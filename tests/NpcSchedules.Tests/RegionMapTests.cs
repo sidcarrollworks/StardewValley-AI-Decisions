@@ -22,6 +22,21 @@ public class RegionMapTests
         Assert.Null(map.RegionFor("Nowhere"));
     }
 
+    [Theory]
+    [InlineData("FishShop", "Beach")]       // Willy's shop is on the beach pier (audit: it was under Forest)
+    [InlineData("ElliottHouse", "Beach")]
+    [InlineData("AnimalShop", "Forest")]    // Marnie's ranch
+    [InlineData("LeahHouse", "Forest")]
+    [InlineData("ScienceHouse", "Mountain")] // Robin's carpenter shop
+    [InlineData("Saloon", "Town")]
+    [InlineData("Mine", "Mountain")]
+    public void BuildingsSitInTheRegionTheirDoorOpensOnto(string location, string region)
+    {
+        RegionMap map = RegionMap.Load(FindDataRegionsJson());
+
+        Assert.Equal(region, map.RegionFor(location));
+    }
+
     [Fact]
     public void EveryLocationInRealGameFixturesIsMapped()
     {
