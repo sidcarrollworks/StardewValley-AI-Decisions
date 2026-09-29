@@ -19,6 +19,8 @@ namespace StardewNpcMod;
 /// location within <see cref="MemoryStore.CoLocationRadius"/> tiles (memory from the NPC side).</item>
 /// <item>At day end, overnight intents are planned on a background task with a time budget; the plan
 /// is collected (never waited on) and shadow-logged the next morning.</item>
+/// <item>NPCs who miss the player ask the NPCs around them where the player is (gossip), and the
+/// ladder can send an NPC to look for the player where it believes they are.</item>
 /// <item>The initiation ladder runs on its own background worker; its would-be actions are logged.</item>
 /// </list>
 /// Model calls (Laya or the fake) never run on the game thread, including during the save.
@@ -32,6 +34,7 @@ public class ModEntry : Mod
     private IDecisionClient _model = new FakeDecisionClient();
     private MemoryStore _memory = new();
     private BackgroundLadder _ladder = null!;
+    private PlayerSearch _search = new();
     private IntentPlanJob? _planJob;
 
     // NPCs with a planned line for today (feeds the ladder's intent boost).
@@ -129,6 +132,7 @@ public class ModEntry : Mod
         try
         {
             _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
+            AskAround(now);
         }
         catch (Exception ex)
         {
@@ -178,6 +182,7 @@ public class ModEntry : Mod
         _planJob = null;
         _memory = new MemoryStore();
         _ladder = NewLadder(null);
+        _search = new PlayerSearch();
         _intentsToday.Clear();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
@@ -241,15 +246,30 @@ public class ModEntry : Mod
 
     // ---- initiation ladder (shadow) -------------------------------------------------------------
 
-    /// <summary>Hand the ladder this tick's inputs (each NPC's own ledger view of the player, never a
-    /// live position) and log whatever the worker finished.</summary>
+    /// <summary>NPCs who miss the player ask the NPCs around them (memory only, game thread). The
+    /// urges come from the ladder's last finished tick.</summary>
+    private void AskAround(int now)
+    {
+        foreach (SearchEvent ev in _search.Tick(_memory, now, _ladder.LatestUrges))
+        {
+            LedgerView learned = ev.Learned;
+            string heard = learned.HopCount > 1 ? "heard you were" : "saw you";
+            string where = learned.Place is null ? "" : $" at {PlaceNames.Display(learned.Place)}";
+            Monitor.Log($"[shadow] {ev.Seeker} asked {string.Join(", ", ev.Asked)} about you: {learned.ToldBy} {heard}{where} {Ago(learned.AgeTicks)}.", LogLevel.Info);
+        }
+    }
+
+    /// <summary>Hand the ladder this tick's inputs (each NPC's own ledger view of the player and its
+    /// best lead on where the player is, both from memory, never a live position) and log whatever
+    /// the worker finished.</summary>
     private void RunLadder(int now)
     {
         var inputs = new List<InitiationInput>();
         foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
             LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
-            inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc)));
+            Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes);
+            inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
         }
         if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
@@ -259,12 +279,34 @@ public class ModEntry : Mod
             foreach ((string npc, DiaryEntry entry) in result.DiaryLines)
                 _memory.DiaryOf(npc).Append(entry);
             foreach (InitiationEvent ev in result.Events)
-                Monitor.Log(ev.Kind == "Attempt"
-                    ? $"[shadow] {ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})"
-                    : $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00})",
-                    LogLevel.Info);
+                Monitor.Log(ev switch
+                {
+                    { Kind: "Attempt", Lead: { } lead } =>
+                        $"[shadow] {ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00})",
+                    { Kind: "Attempt" } => $"[shadow] {ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})",
+                    _ => $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00})",
+                }, LogLevel.Info);
         }
     }
+
+    /// <summary>Why the NPC thinks the player is there, for the log.</summary>
+    private static string DescribeLead(Whereabouts lead) => lead.Source switch
+    {
+        WhereaboutsSource.Told when lead.HopCount > 1 => $"{lead.ToldBy} heard you were there {Ago(lead.AgeTicks)}",
+        WhereaboutsSource.Told => $"{lead.ToldBy} saw you there {Ago(lead.AgeTicks)}",
+        WhereaboutsSource.SeenToday => $"saw you there {Ago(lead.AgeTicks)}",
+        WhereaboutsSource.Habit => $"you're usually there at this hour ({lead.HabitShare:P0} of the time)",
+        _ => lead.Source.ToString(),
+    };
+
+    /// <summary>A tick age in words: 10 minutes per tick.</summary>
+    private static string Ago(int ticks) => ticks switch
+    {
+        <= 0 => "just now",
+        < 6 => $"{ticks * 10} minutes ago",
+        < 12 => "an hour ago",
+        _ => $"{ticks / 6} hours ago",
+    };
 
     // ---- overnight intents (shadow) -------------------------------------------------------------
 

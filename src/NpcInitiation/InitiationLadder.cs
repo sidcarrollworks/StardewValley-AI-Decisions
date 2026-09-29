@@ -40,6 +40,10 @@ public sealed class InitiationLadder
     /// <summary>Current urge of an NPC in [0,1]; 0 for an unknown NPC.</summary>
     public double Urge(string npc) => _npcs.TryGetValue(npc, out var s) ? s.Urge : 0.0;
 
+    /// <summary>Every known NPC's current urge, as a new dictionary (safe to hand to another thread).</summary>
+    public IReadOnlyDictionary<string, double> Urges()
+        => _npcs.ToDictionary(kv => kv.Key, kv => kv.Value.Urge, StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Current rung of an NPC (the mildest step it may use next); 0 for an unknown NPC.</summary>
     public int Rung(string npc) => _npcs.TryGetValue(npc, out var s) ? s.Rung : 0;
 
@@ -186,10 +190,13 @@ public sealed class InitiationLadder
             return null;
 
         var view = input.PlayerView!;
+        // An Approach without the player in sight means going to where the NPC believes they are.
+        Whereabouts? lead = step == InitiationStep.Approach && !IsNear(view) ? input.Lead : null;
         string context = string.Format(CultureInfo.InvariantCulture,
-            "urge={0:0.00}; hearts={1}; step={2}; player last seen: {3}, {4} ticks ago, {5}",
+            "urge={0:0.00}; hearts={1}; step={2}; player last seen: {3}, {4} ticks ago, {5}{6}",
             state.Urge, input.Hearts, step.Value, view.Detail, view.AgeTicks,
-            view.HopCount == 0 ? "first-hand" : $"hearsay ({view.HopCount} hops)");
+            view.HopCount == 0 ? "first-hand" : $"hearsay ({view.HopCount} hops)",
+            lead is null ? "" : $"; would look for them at {lead.Place} ({lead.Source})");
         double p = _decision.YesNo(context, $"should {input.Npc} try to get the player's attention with {step.Value} now?");
         if (double.IsNaN(p) || !(Uniform(input.Npc, absoluteTick) < p))
             return null;
@@ -208,7 +215,8 @@ public sealed class InitiationLadder
 
         return new InitiationEvent(absoluteTick, input.Npc, "Attempt", step.Value, state.Urge, state.Urge,
             string.Format(CultureInfo.InvariantCulture, "urge {0:0.00} >= {1:0.00} at rung {2}; p={3:0.00}",
-                state.Urge, _options.StepThresholds[(int)step.Value], state.Rung, p));
+                state.Urge, _options.StepThresholds[(int)step.Value], state.Rung, p),
+            lead);
     }
 
     /// <summary>The mildest step at or above the NPC's rung that is available and whose threshold the urge meets.</summary>
@@ -235,8 +243,10 @@ public sealed class InitiationLadder
 
     private static bool Available(InitiationStep step, InitiationInput input) => step switch
     {
-        InitiationStep.Emote or InitiationStep.Bubble or InitiationStep.Approach or InitiationStep.ForcedDialogue
+        InitiationStep.Emote or InitiationStep.Bubble or InitiationStep.ForcedDialogue
             => IsNear(input.PlayerView),
+        // Walk up to the player, or go and look for them where the NPC believes they are.
+        InitiationStep.Approach => IsNear(input.PlayerView) || HasLead(input.Lead),
         InitiationStep.QueuedLine => IsSeenToday(input.PlayerView),
         InitiationStep.Mail => !IsSeenToday(input.PlayerView) && input.Hearts >= 2,
         _ => false,
@@ -245,6 +255,11 @@ public sealed class InitiationLadder
     /// <summary>The NPC itself saw the player at a named spot this very tick.</summary>
     private static bool IsNear(LedgerView? view)
         => view is not null && view.HopCount == 0 && view.AgeTicks == 0 && view.Detail == LedgerDetail.NamedSpot;
+
+    /// <summary>The NPC has somewhere to look: its own sighting from today, a neighbour's tip, or a
+    /// learned habit for this hour. An "earlier today" with no place is not a lead.</summary>
+    private static bool HasLead(Whereabouts? lead)
+        => lead is { HasPlace: true, Source: WhereaboutsSource.SeenToday or WhereaboutsSource.Told or WhereaboutsSource.Habit };
 
     /// <summary>The NPC itself saw the player today (any detail short of Gone). Hearsay never counts.</summary>
     private static bool IsSeenToday(LedgerView? view)

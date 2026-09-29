@@ -53,6 +53,8 @@ public static class PlaceNames
         ["FarmHouse"] = "your house",
         ["Greenhouse"] = "your greenhouse",
         ["IslandSouth"] = "the island",
+        ["Island"] = "the island",        // region names, used when only the region is remembered
+        ["Other"] = "somewhere out of the way",
     };
 
     public static string Display(string? location)

@@ -117,6 +117,36 @@ public sealed class RoutineBelief
         return null;
     }
 
+    /// <summary>
+    /// Where the subject tends to be during one time block: the region with the most weight in that
+    /// block, its share of the block's total, and the total itself (how much evidence there is).
+    /// Null when nothing was learned for the block. Ties go to the region name, ascending.
+    /// Note the observer only learns from time spent together, so this is "where I usually see
+    /// them at this hour", not the subject's true routine.
+    /// </summary>
+    public BlockGuess? BestGuessAt(int block)
+    {
+        if (block < 0 || block >= BlockCount)
+            throw new ArgumentOutOfRangeException(nameof(block), block, $"block must be in [0, {BlockCount})");
+
+        double total = 0;
+        string? bestRegion = null;
+        double best = 0;
+        foreach (string region in _counts.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
+        {
+            double value = _counts[region][block];
+            if (!(value > 0))
+                continue;
+            total += value;
+            if (value > best)
+            {
+                best = value;
+                bestRegion = region;
+            }
+        }
+        return bestRegion is null ? null : new BlockGuess(bestRegion, block, best / total, total);
+    }
+
     public string ToJson()
     {
         var dto = new BeliefDto

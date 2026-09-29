@@ -123,6 +123,66 @@ public sealed class MemoryStore
         _prevTick = absoluteTick;
     }
 
+    /// <summary>
+    /// The seeker asks the NPCs it can see right now (its own first-hand view of them is this very
+    /// tick) whether they know where <paramref name="subject"/> is. Each answer goes through
+    /// <see cref="Ledger.Gossip"/>, so it is capped at the teller's detail, limited to two hops, and
+    /// only kept when it is fresher than what the seeker already knows. The player is never asked
+    /// (not a gossip partner) and neither is the subject. Returns who was asked and whose answer
+    /// was kept, both in name order.
+    /// </summary>
+    public AskResult AskAround(string seeker, string subject, int nowTick)
+    {
+        var asked = new List<string>();
+        var told = new List<string>();
+        foreach (string neighbour in Ledger.SubjectsOf(seeker))
+        {
+            if (string.Equals(neighbour, subject, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(neighbour, PlayerName, StringComparison.OrdinalIgnoreCase))
+                continue;
+            LedgerView? view = Ledger.View(seeker, neighbour, nowTick);
+            if (view is not { HopCount: 0, AgeTicks: 0, Detail: LedgerDetail.NamedSpot })
+                continue; // not with the seeker right now
+            asked.Add(neighbour);
+            if (Ledger.Gossip(neighbour, seeker, subject, nowTick))
+                told.Add(neighbour);
+        }
+        return new AskResult(asked, told);
+    }
+
+    /// <summary>
+    /// The seeker's best answer to "where is <paramref name="subject"/> now?" from its own memory:
+    /// its own sighting or a tip from today (the ledger), else where it usually sees the subject at
+    /// this hour (its routine belief, when learned well enough), else Unknown. A sighting that has
+    /// faded to "earlier today" has no place, so the habit is preferred when there is one.
+    /// </summary>
+    public Whereabouts LookFor(string seeker, string subject, int nowTick, int blockMinutes, WhereaboutsOptions? options = null)
+    {
+        options ??= new WhereaboutsOptions();
+        LedgerView? view = Ledger.View(seeker, subject, nowTick);
+
+        Whereabouts? sighting = null;
+        if (view is not null && view.Detail != LedgerDetail.Gone)
+        {
+            WhereaboutsSource source = view.HopCount > 0 ? WhereaboutsSource.Told
+                : view is { AgeTicks: 0, Detail: LedgerDetail.NamedSpot } ? WhereaboutsSource.SeenNow
+                : WhereaboutsSource.SeenToday;
+            string? place = view.Place == RegionMap.OtherRegion ? null : view.Place; // an unmapped region is nowhere to go
+            sighting = new Whereabouts(seeker, subject, source, place, view.Detail, view.AgeTicks, view.HopCount, view.ToldBy, 0);
+            if (sighting.HasPlace)
+                return sighting;
+        }
+
+        int block = TimeUtils.BlockIndex(nowTick % GameClock.TicksPerDay, blockMinutes);
+        if (BeliefOf(seeker, subject)?.BestGuessAt(block) is { } guess
+            && guess.Evidence >= options.MinHabitEvidence
+            && guess.Share >= options.MinHabitShare
+            && guess.Region != RegionMap.OtherRegion)
+            return new Whereabouts(seeker, subject, WhereaboutsSource.Habit, guess.Region, LedgerDetail.Region, 0, 0, null, guess.Share);
+
+        return sighting ?? new Whereabouts(seeker, subject, WhereaboutsSource.Unknown, null, null, 0, 0, null, 0);
+    }
+
     public string ToJson()
     {
         var model = new SaveModel
