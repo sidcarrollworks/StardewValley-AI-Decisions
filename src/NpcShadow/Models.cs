@@ -16,6 +16,10 @@ public sealed class DayPlan
 
     /// <summary>Location name per tick, length 120.</summary>
     public string[] LocationByTick { get; init; } = Array.Empty<string>();
+
+    /// <summary>Tile ("x,y") per tick, length 120, from the schedule point in force; null when the
+    /// NPC has no known tile (spent the day at home, or before its first point without a spawn).</summary>
+    public string?[] SpotByTick { get; init; } = Array.Empty<string?>();
 }
 
 /// <summary>

@@ -11,4 +11,8 @@ public sealed class IntentPlannerOptions
 
     /// <summary>A yes/no probability at or above this makes the NPC speak.</summary>
     public double SpeakThreshold { get; set; } = 0.5;
+
+    /// <summary>Diary kinds that are never talked about. "TriedToReach" is the initiation ladder's
+    /// bookkeeping of its own attempt; what matters is the outcome ("IgnoredBy"), not the attempt.</summary>
+    public IReadOnlyCollection<string> SkipKinds { get; set; } = new[] { "TriedToReach" };
 }

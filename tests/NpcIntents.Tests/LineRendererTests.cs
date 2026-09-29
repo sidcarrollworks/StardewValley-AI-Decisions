@@ -82,12 +82,23 @@ public class LineRendererTests
     }
 
     [Fact]
-    public void FallbackKind_UsesTheSubjectVerbatim_EvenForThePlayer()
+    public void FallbackKind_AddressesThePlayerAsYou()
     {
-        // The fallback template does not special-case the player; it names the subject as written.
+        // NPC diaries now hold entries about the player of any kind (the ladder writes some), so the
+        // fallback must never say "Player" out loud.
         string line = _renderer.Render("Abigail", "spirited", E("Player", "ReceivedGift", "quartz"));
 
-        Assert.Equal("I've been thinking about Player.", line);
+        Assert.Equal("I've been thinking about you.", line);
+    }
+
+    [Theory]
+    [InlineData(1, "I tried to get your attention yesterday. You must have been busy.")]
+    [InlineData(3, "I tried to get your attention the other day. You must have been busy.")]
+    public void IgnoredBy_ThePlayer_SaysSoWithTheRightDay(int daysAgo, string expected)
+    {
+        ILineRenderer renderer = _renderer;
+
+        Assert.Equal(expected, renderer.Render("Abigail", "spirited", E("Player", "IgnoredBy", "Emote"), daysAgo));
     }
 
     [Fact]

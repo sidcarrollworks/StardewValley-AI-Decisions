@@ -23,7 +23,8 @@ public enum LedgerDetail
 /// <summary>
 /// What an observer currently knows about where a subject was last seen. The `Place` field
 /// holds a location name (NamedSpot/Location), a region name (Region), or null
-/// (EarlierToday/Gone). `HopCount` is 0 for first-hand, 1 for told-by-someone, 2 for
+/// (EarlierToday/Gone). `Spot` is the spot within the location (a tile or named area) and is
+/// set only at NamedSpot. `HopCount` is 0 for first-hand, 1 for told-by-someone, 2 for
 /// told-by-someone-who-was-told.
 /// </summary>
 public sealed record LedgerView(
@@ -33,4 +34,5 @@ public sealed record LedgerView(
     string? Place,
     int AgeTicks,
     int HopCount,
-    int AbsoluteTick);
+    int AbsoluteTick,
+    string? Spot = null);

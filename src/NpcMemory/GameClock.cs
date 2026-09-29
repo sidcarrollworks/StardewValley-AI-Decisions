@@ -2,11 +2,13 @@ namespace NpcMemory;
 
 /// <summary>
 /// A point in game time, expressed in the game's own units: season index (0=spring ..
-/// 3=winter), day of month (1..28), and ten-minute tick (0..119). Absolute ordering is
-/// provided by <see cref="GameClock.AbsoluteTick"/>, which flattens a single year into
-/// 0..13439. The stub models one year; the mod will extend it with a year counter later.
+/// 3=winter), day of month (1..28), ten-minute tick (0..119), and year (1-based, like
+/// <c>Game1.year</c>). Absolute ordering is provided by <see cref="GameClock.AbsoluteTick"/>,
+/// which counts from spring 1 of year 1 and keeps increasing across years, so a year-1 memory
+/// never reads as fresh in year 2. <paramref name="Year"/> defaults to 1 so year-less callers
+/// (tests, the shadow harness) keep their old tick values.
 /// </summary>
-public readonly record struct GameTime(int SeasonIndex, int DayOfMonth, int Tick);
+public readonly record struct GameTime(int SeasonIndex, int DayOfMonth, int Tick, int Year = 1);
 
 public static class GameClock
 {
@@ -30,19 +32,38 @@ public static class GameClock
     public static string DayName(int dayOfMonth)
         => DayNames[(dayOfMonth - 1) % 7];
 
-    /// <summary>Flatten a time to an absolute tick in [0, TicksPerYear).</summary>
+    /// <summary>Flatten a time to an absolute tick counted from spring 1, year 1 (tick 0).
+    /// A year below 1 is treated as year 1.</summary>
     public static int AbsoluteTick(GameTime time)
-        => time.SeasonIndex * TicksPerSeason + (time.DayOfMonth - 1) * TicksPerDay + time.Tick;
+        => (Math.Max(1, time.Year) - 1) * TicksPerYear
+         + time.SeasonIndex * TicksPerSeason
+         + (time.DayOfMonth - 1) * TicksPerDay
+         + time.Tick;
 
     public static GameTime FromAbsoluteTick(int tick)
     {
-        int clamped = Math.Clamp(tick, 0, TicksPerYear - 1);
-        int season = clamped / TicksPerSeason;
-        int withinSeason = clamped % TicksPerSeason;
+        int clamped = Math.Max(0, tick);
+        int year = clamped / TicksPerYear + 1;
+        int withinYear = clamped % TicksPerYear;
+        int season = withinYear / TicksPerSeason;
+        int withinSeason = withinYear % TicksPerSeason;
         int day = withinSeason / TicksPerDay + 1;
         int tickOfDay = withinSeason % TicksPerDay;
-        return new GameTime(season, day, tickOfDay);
+        return new GameTime(season, day, tickOfDay, year);
     }
+
+    /// <summary>The calendar day an absolute tick falls on (0 = spring 1, year 1). A game day runs
+    /// 6:00 to 2:00, so everything before the next 6:00 belongs to the same day.</summary>
+    public static int DayIndex(int absoluteTick)
+        => Math.Max(0, absoluteTick) / TicksPerDay;
+
+    /// <summary>The first tick (6:00) of the calendar day <paramref name="dayIndex"/>.</summary>
+    public static int DayStartTick(int dayIndex)
+        => Math.Max(0, dayIndex) * TicksPerDay;
+
+    /// <summary>Whole calendar days from one tick to another (0 = same day; 1 = the next day).</summary>
+    public static int DaysBetween(int fromAbsoluteTick, int toAbsoluteTick)
+        => Math.Max(0, DayIndex(toAbsoluteTick) - DayIndex(fromAbsoluteTick));
 
     /// <summary>Non-negative elapsed ticks between two absolute ticks (0 if from >= to).</summary>
     public static int AgeTicks(int fromAbsoluteTick, int toAbsoluteTick)

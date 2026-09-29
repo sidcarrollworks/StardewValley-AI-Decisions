@@ -41,6 +41,7 @@ public sealed class DayPlanner
 
         var regionByTick = new string[TimeUtils.TicksPerDay];
         var locationByTick = new string[TimeUtils.TicksPerDay];
+        var spotByTick = new string?[TimeUtils.TicksPerDay];
         string keyChain;
 
         if (key == null || parsed == null || parsed.NoSchedule || parsed.ParseFailed || parsed.Points.Count == 0)
@@ -54,29 +55,33 @@ public sealed class DayPlanner
         {
             string startLocation = parsed.Spawn?.Location ?? homeLocation;
             string startRegion = _regions.RegionFor(startLocation) ?? RegionMap.OtherRegion;
+            string? startSpot = parsed.Spawn is { } spawn ? Spot(spawn) : null;
 
-            // point time -> (region, location); a time outside the live day never happens
-            var tickMap = new Dictionary<int, (string Region, string Location)>();
+            // point time -> (region, location, tile); a time outside the live day never happens
+            var tickMap = new Dictionary<int, (string Region, string Location, string Spot)>();
             foreach (SchedulePoint point in parsed.Points)
             {
                 int tick = TimeUtils.TickIndex(point.Time);
                 if (tick < 0)
                     continue;
-                tickMap[tick] = (_regions.RegionFor(point.Location) ?? RegionMap.OtherRegion, point.Location);
+                tickMap[tick] = (_regions.RegionFor(point.Location) ?? RegionMap.OtherRegion, point.Location, Spot(point));
             }
 
             // walk forward: each tick keeps the latest point's place until the next point arrives
             string currentRegion = startRegion;
             string currentLocation = startLocation;
+            string? currentSpot = startSpot;
             for (int tick = 0; tick < TimeUtils.TicksPerDay; tick++)
             {
-                if (tickMap.TryGetValue(tick, out (string Region, string Location) rl))
+                if (tickMap.TryGetValue(tick, out (string Region, string Location, string Spot) rl))
                 {
                     currentRegion = rl.Region;
                     currentLocation = rl.Location;
+                    currentSpot = rl.Spot;
                 }
                 regionByTick[tick] = currentRegion;
                 locationByTick[tick] = currentLocation;
+                spotByTick[tick] = currentSpot;
             }
 
             keyChain = parsed.KeyChainLabel;
@@ -90,6 +95,11 @@ public sealed class DayPlanner
             KeyChain = keyChain,
             RegionByTick = regionByTick,
             LocationByTick = locationByTick,
+            SpotByTick = spotByTick,
         };
     }
+
+    /// <summary>A schedule point's destination tile as a ledger spot ("x,y"). Walking time is not
+    /// modelled, so the NPC counts as standing on the tile from the point's time.</summary>
+    private static string Spot(SchedulePoint point) => $"{point.X},{point.Y}";
 }

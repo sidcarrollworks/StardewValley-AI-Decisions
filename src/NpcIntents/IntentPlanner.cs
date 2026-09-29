@@ -28,7 +28,10 @@ public sealed class IntentPlanner
     /// </summary>
     /// <param name="snapshots">One snapshot per NPC (the mod builds these from each NPC's diary).</param>
     /// <param name="seed">Determinism seed for sampling from the model's probabilities.</param>
-    public IntentPlan Plan(IEnumerable<NpcMemorySnapshot> snapshots, int seed)
+    /// <param name="sourceDay">The calendar day being slept on (<see cref="GameClock.DayIndex"/>). When
+    /// given, only that day's diary entries are candidates, so tomorrow's "yesterday" is true; older
+    /// entries are never offered. Null keeps every entry (tests, tools).</param>
+    public IntentPlan Plan(IEnumerable<NpcMemorySnapshot> snapshots, int seed, int? sourceDay = null)
     {
         if (snapshots is null)
             return new IntentPlan(Array.Empty<IntentCandidate>());
@@ -44,7 +47,14 @@ public sealed class IntentPlanner
             if (snapshot is null || snapshot.RecentDiary is null || snapshot.RecentDiary.Count == 0)
                 continue;
 
-            string context = BuildContext(snapshot);
+            IReadOnlyList<DiaryEntry> diary = snapshot.RecentDiary
+                .Where(e => e is not null && !Skipped(e.Kind))
+                .Where(e => sourceDay is not { } day || GameClock.DayIndex(e.AbsoluteTick) == day)
+                .ToList();
+            if (diary.Count == 0)
+                continue; // nothing from the day just ended: an old entry is not news
+
+            string context = BuildContext(diary, snapshot.Voice);
 
             // 1b. Who speaks: yes/no, probability must clear the threshold.
             // NaN-safe comparison: a NaN probability can never pass.
@@ -52,8 +62,8 @@ public sealed class IntentPlanner
             if (!(speak >= _options.SpeakThreshold))
                 continue;
 
-            // 2a. About what: newest entries only (diary is oldest first).
-            IReadOnlyList<DiaryEntry> newest = TakeNewest(snapshot.RecentDiary, _options.MaxRecentDiaryEntries);
+            // 2a. About what: newest distinct entries only (diary is oldest first).
+            IReadOnlyList<DiaryEntry> newest = TakeNewest(Distinct(diary), _options.MaxRecentDiaryEntries);
             if (newest.Count == 0)
                 continue; // no valid options to hand Choose
 
@@ -65,7 +75,9 @@ public sealed class IntentPlanner
             DiaryEntry entry = newest[index];
 
             // 3. Render the cited entry.
-            string line = _renderer.Render(snapshot.Npc, snapshot.Voice, entry);
+            // Delivered the morning after the source day, so its entries are one day old.
+            int daysAgo = sourceDay is { } source ? source + 1 - GameClock.DayIndex(entry.AbsoluteTick) : 1;
+            string line = _renderer.Render(snapshot.Npc, snapshot.Voice, entry, daysAgo);
 
             // 4. Novelty: never repeat a line this NPC already said.
             if (AlreadySaid(snapshot.RecentLines, line))
@@ -88,12 +100,26 @@ public sealed class IntentPlanner
     }
 
     /// <summary>Short context for the model: the voice anchor plus a compact diary summary.</summary>
-    private string BuildContext(NpcMemorySnapshot snapshot)
+    private string BuildContext(IReadOnlyList<DiaryEntry> diary, string voice)
     {
         IReadOnlyList<DiaryEntry> entries =
-            TakeNewest(snapshot.RecentDiary, Math.Max(1, _options.MaxRecentDiaryEntries));
-        string diary = string.Join("; ", entries.Select(Summarize));
-        return $"voice: {snapshot.Voice}; recent diary: {diary}";
+            TakeNewest(Distinct(diary), Math.Max(1, _options.MaxRecentDiaryEntries));
+        string summary = string.Join("; ", entries.Select(Summarize));
+        return $"voice: {voice}; recent diary: {summary}";
+    }
+
+    /// <summary>Drop repeats of the same summary, keeping the newest occurrence (oldest-first order kept).</summary>
+    private static IReadOnlyList<DiaryEntry> Distinct(IReadOnlyList<DiaryEntry> diary)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var kept = new List<DiaryEntry>();
+        for (int i = diary.Count - 1; i >= 0; i--)
+        {
+            if (diary[i] is { } entry && seen.Add(Summarize(entry)))
+                kept.Add(entry);
+        }
+        kept.Reverse();
+        return kept;
     }
 
     /// <summary>The newest <paramref name="max"/> entries, preserving their relative order.</summary>
@@ -109,13 +135,20 @@ public sealed class IntentPlanner
         return newest;
     }
 
-    /// <summary>A short option string for one diary entry, e.g. "Saw Player at SeedShop".</summary>
+    private bool Skipped(string? kind)
+        => kind is not null && _options.SkipKinds is { } skip
+           && skip.Any(k => string.Equals(k, kind, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>A short option string for one diary entry, e.g. "Saw Player at Pierre's General Store"
+    /// (a "Saw" detail is a place) or "IgnoredBy Player (Emote)" (any other detail is not).</summary>
     private static string Summarize(DiaryEntry entry)
     {
         string summary = $"{entry.Kind} {entry.Subject}".Trim();
-        if (!string.IsNullOrWhiteSpace(entry.Detail))
-            summary += $" at {entry.Detail}";
-        return summary;
+        if (string.IsNullOrWhiteSpace(entry.Detail))
+            return summary;
+        return string.Equals(entry.Kind, "Saw", StringComparison.OrdinalIgnoreCase)
+            ? $"{summary} at {PlaceNames.Display(entry.Detail)}"
+            : $"{summary} ({entry.Detail})";
     }
 
     private static bool AlreadySaid(IReadOnlyList<string> recentLines, string line)

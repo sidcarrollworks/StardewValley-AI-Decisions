@@ -10,8 +10,10 @@ namespace NpcShadow;
 ///
 /// Model: a single OBSERVER watches a set of SUBJECT NPCs. The observer is stationary at
 /// <see cref="ObserverHomeRegion"/> unless its own schedule was registered via
-/// <see cref="AddSubject"/>. Each ten-minute tick, a subject co-located with the observer
-/// causes a first-hand ledger recording, a diary entry, and a routine-belief observation.
+/// <see cref="AddSubject"/>. Each ten-minute tick, a subject in the SAME LOCATION as the observer
+/// (not merely the same region; schedule tiles are destinations, so distance is not modelled)
+/// causes a first-hand ledger recording and a routine-belief observation; the diary gets one
+/// entry at the start of each co-located span, as the live mod does.
 /// Memory persists across the days of a run, so ledger decay (through "gone the next day") and
 /// pair unlock (240 ticks of co-presence) both manifest. Ledger decay and unlock are logged.
 /// </summary>
@@ -81,6 +83,10 @@ public sealed class ShadowSimulator
         for (int i = 0; i < dayCount; i++)
         {
             (string curSeason, int curDay) = AddDays(season, startDay, i);
+            // Absolute day keeps counting past winter 28 (into year 2), so memory ages correctly
+            // across the year end even though the season names wrap.
+            int dayStart = GameClock.DayStartTick(GameClock.DayIndex(GameClock.AbsoluteTick(
+                new GameTime(GameClock.SeasonIndex(season), startDay, 0))) + i);
             int daySeed = seed + i;
 
             DayPlan observerPlan = ResolveObserver(planner, curSeason, curDay, options, daySeed);
@@ -96,19 +102,21 @@ public sealed class ShadowSimulator
 
             for (int tick = 0; tick < TimeUtils.TicksPerDay; tick++)
             {
-                int absTick = GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(curSeason), curDay, tick));
-                string observerRegion = observerPlan.RegionByTick[tick];
+                int absTick = dayStart + tick;
+                string observerLocation = observerPlan.LocationByTick[tick];
                 var nowCoLocated = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (DayPlan plan in plans)
                 {
-                    if (plan.RegionByTick[tick] != observerRegion)
+                    if (!string.Equals(plan.LocationByTick[tick], observerLocation, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    // first-hand sighting: ledger, diary and routine belief all get one line/tick
+                    // first-hand sighting: ledger and routine belief every tick, diary once per span
                     nowCoLocated.Add(plan.Npc);
-                    Ledger.Record(Observer, plan.Npc, plan.LocationByTick[tick], plan.RegionByTick[tick], absTick);
-                    Diary.Append(new DiaryEntry(absTick, plan.Npc, "Saw", plan.LocationByTick[tick]));
+                    Ledger.Record(Observer, plan.Npc, plan.LocationByTick[tick], plan.RegionByTick[tick], absTick,
+                        plan.SpotByTick.Length > tick ? plan.SpotByTick[tick] : null);
+                    if (!prevCoLocated.Contains(plan.Npc))
+                        Diary.Append(new DiaryEntry(absTick, plan.Npc, "Saw", plan.LocationByTick[tick]));
 
                     RoutineBelief belief = _beliefs[plan.Npc];
                     belief.Observe(plan.RegionByTick[tick], TimeUtils.BlockIndex(tick, blockMinutes), absTick);
