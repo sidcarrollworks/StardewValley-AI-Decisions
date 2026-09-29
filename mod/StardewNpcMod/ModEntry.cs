@@ -29,6 +29,9 @@ public class ModEntry : Mod
     private Ledger _ledger = new();
     private Diary _diary = new();
     private readonly Dictionary<string, RoutineBelief> _beliefs = new(StringComparer.OrdinalIgnoreCase);
+    // Each NPC's own diary of what they witnessed (currently: "Saw Player" at a location). This is
+    // the source the overnight-intent planner will reason over.
+    private readonly Dictionary<string, Diary> _npcDiaries = new(StringComparer.OrdinalIgnoreCase);
 
     // Fake client in shadow mode; the real Laya/Jev clients are wired in when their APIs are known.
     private readonly IDecisionClient _decision = new ResilientDecisionClient(new FakeDecisionClient());
@@ -109,6 +112,7 @@ public class ModEntry : Mod
         _ledger = new Ledger();
         _diary = new Diary();
         _beliefs.Clear();
+        _npcDiaries.Clear();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
@@ -149,7 +153,20 @@ public class ModEntry : Mod
             RoutineBelief belief = GetBelief(subject);
             belief.Observe(region, block, absTick);
             belief.NoteCoPresence(1);
+
+            // The NPC also witnesses the player; their own diary is the overnight-intent source.
+            NpcDiary(subject).Append(new DiaryEntry(absTick, "Player", "Saw", locName));
         }
+    }
+
+    private Diary NpcDiary(string npc)
+    {
+        if (!_npcDiaries.TryGetValue(npc, out Diary? diary))
+        {
+            diary = new Diary();
+            _npcDiaries[npc] = diary;
+        }
+        return diary;
     }
 
     private RoutineBelief GetBelief(string subject)
@@ -168,13 +185,18 @@ public class ModEntry : Mod
         foreach ((string subject, RoutineBelief belief) in _beliefs)
             beliefs[subject] = belief.ToJson();
 
+        var npcDiaries = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach ((string npc, Diary diary) in _npcDiaries)
+            npcDiaries[npc] = diary.ToJson();
+
         Helper.Data.WriteSaveData(SaveKey, new Dictionary<string, string>
         {
             ["diary"] = _diary.ToJson(),
             ["ledger"] = _ledger.ToJson(),
             ["beliefs"] = System.Text.Json.JsonSerializer.Serialize(beliefs),
+            ["npcDiaries"] = System.Text.Json.JsonSerializer.Serialize(npcDiaries),
         });
-        Monitor.Log($"Memory saved ({_diary.Entries.Count} diary entries, {_beliefs.Count} beliefs).", LogLevel.Info);
+        Monitor.Log($"Memory saved ({_diary.Entries.Count} diary entries, {_beliefs.Count} beliefs, {_npcDiaries.Count} NPC diaries).", LogLevel.Info);
     }
 
     private void LoadMemory()
@@ -195,6 +217,15 @@ public class ModEntry : Mod
             if (stored is not null)
                 foreach ((string subject, string json) in stored)
                     _beliefs[subject] = RoutineBelief.FromJson(json);
+        }
+        if (model.TryGetValue("npcDiaries", out string? npcDiariesJson))
+        {
+            _npcDiaries.Clear();
+            Dictionary<string, string>? stored =
+                System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(npcDiariesJson);
+            if (stored is not null)
+                foreach ((string npc, string json) in stored)
+                    _npcDiaries[npc] = Diary.FromJson(json);
         }
     }
 }

@@ -26,7 +26,7 @@ NPCs that:
 
 - **Jev** (typeSafe.ai): hosted, early access. State plus typed questions in, probabilities out, 70 to 500 ms, choice cardinality up to 255. Claims are self-reported by the vendor.
 - **Laya** (Convai Innovations): open weights, local. Three question types: `choice`, `score` (ordered), `noul` (yes/no probability). Default context 512 tokens. Needs Python 3.10+, so run it as a separate local process and call it over localhost.
-- Prototype with Jev. Ship with Laya so players carry no API cost.
+- Prototype with Jev. Ship with Laya so players carry no API cost. **Settled (Sep 2026): Laya is the backend** — open-source and local, so the model itself can be modified; no per-player API bill.
 - Text: a short sentence from an LLM overnight, or templates. Jev and Laya only decide what, who, and how.
 - Caution: the Hugging Face Laya article is a community post that links mostly to thejevai.com, which is not TypeSafe's domain. Rely on the Laya GitHub repo and model card.
 
