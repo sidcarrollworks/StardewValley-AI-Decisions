@@ -47,9 +47,10 @@ public sealed class IntentPlanner
             if (snapshot is null || snapshot.RecentDiary is null || snapshot.RecentDiary.Count == 0)
                 continue;
 
-            IReadOnlyList<DiaryEntry> diary = sourceDay is { } day
-                ? snapshot.RecentDiary.Where(e => e is not null && GameClock.DayIndex(e.AbsoluteTick) == day).ToList()
-                : snapshot.RecentDiary;
+            IReadOnlyList<DiaryEntry> diary = snapshot.RecentDiary
+                .Where(e => e is not null && !Skipped(e.Kind))
+                .Where(e => sourceDay is not { } day || GameClock.DayIndex(e.AbsoluteTick) == day)
+                .ToList();
             if (diary.Count == 0)
                 continue; // nothing from the day just ended: an old entry is not news
 
@@ -134,13 +135,20 @@ public sealed class IntentPlanner
         return newest;
     }
 
-    /// <summary>A short option string for one diary entry, e.g. "Saw Player at Pierre's General Store".</summary>
+    private bool Skipped(string? kind)
+        => kind is not null && _options.SkipKinds is { } skip
+           && skip.Any(k => string.Equals(k, kind, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>A short option string for one diary entry, e.g. "Saw Player at Pierre's General Store"
+    /// (a "Saw" detail is a place) or "IgnoredBy Player (Emote)" (any other detail is not).</summary>
     private static string Summarize(DiaryEntry entry)
     {
         string summary = $"{entry.Kind} {entry.Subject}".Trim();
-        if (!string.IsNullOrWhiteSpace(entry.Detail))
-            summary += $" at {PlaceNames.Display(entry.Detail)}";
-        return summary;
+        if (string.IsNullOrWhiteSpace(entry.Detail))
+            return summary;
+        return string.Equals(entry.Kind, "Saw", StringComparison.OrdinalIgnoreCase)
+            ? $"{summary} at {PlaceNames.Display(entry.Detail)}"
+            : $"{summary} ({entry.Detail})";
     }
 
     private static bool AlreadySaid(IReadOnlyList<string> recentLines, string line)

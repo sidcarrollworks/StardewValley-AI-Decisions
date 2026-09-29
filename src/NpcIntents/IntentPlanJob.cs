@@ -9,30 +9,42 @@ namespace NpcIntents;
 /// </summary>
 public sealed class IntentPlanJob : IDisposable
 {
-    private readonly Task<IntentPlan> _task;
-    private readonly CancellationTokenSource _budget;
+    private readonly CancellationTokenSource _budget = new();
+    private Task<IntentPlan> _task = null!;
+    private volatile bool _budgetHitBeforeDone;
     private bool _taken;
 
-    private IntentPlanJob(Task<IntentPlan> task, CancellationTokenSource budget)
+    private IntentPlanJob()
     {
-        _task = task;
-        _budget = budget;
     }
 
     /// <summary>Start planning now. Returns immediately.</summary>
     public static IntentPlanJob Start(Func<CancellationToken, IntentPlan> work, TimeSpan budget)
     {
-        var cts = new CancellationTokenSource();
-        cts.CancelAfter(budget);
-        CancellationToken token = cts.Token;
-        Task<IntentPlan> task = Task.Run(() => work(token));
-        return new IntentPlanJob(task, cts);
+        var job = new IntentPlanJob();
+        CancellationToken token = job._budget.Token;
+        job._budget.CancelAfter(budget);
+        job._task = Task.Run(() =>
+        {
+            try
+            {
+                return work(token);
+            }
+            finally
+            {
+                // Recorded when the work ends, so a plan collected long after it finished is not
+                // reported as cut short just because the budget time has since passed.
+                job._budgetHitBeforeDone = token.IsCancellationRequested;
+            }
+        });
+        return job;
     }
 
     public bool IsCompleted => _task.IsCompleted;
 
-    /// <summary>True once the budget ran out (the plan may then contain fallback decisions).</summary>
-    public bool BudgetExhausted => _budget.IsCancellationRequested;
+    /// <summary>True when the budget ran out before the work finished (the plan may then contain
+    /// fallback decisions). False while the work is still running.</summary>
+    public bool BudgetExhausted => _task.IsCompleted && _budgetHitBeforeDone;
 
     /// <summary>
     /// Non-blocking. When the job has finished, hands over its plan once (an empty plan if the work
@@ -56,6 +68,7 @@ public sealed class IntentPlanJob : IDisposable
     /// <summary>Stop waiting on the model: remaining calls fall back at once.</summary>
     public void Cancel() => _budget.Cancel();
 
+    /// <summary>Cancels the budget (so a still-running plan finishes on fallbacks) and releases it.</summary>
     public void Dispose()
     {
         _budget.Cancel();

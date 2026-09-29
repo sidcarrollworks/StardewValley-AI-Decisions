@@ -89,6 +89,19 @@ public sealed class MemoryStoreTests
     }
 
     [Fact]
+    public void TheNightBreaksASpanEvenThoughTheTicksAreAdjacent()
+    {
+        // 1:50 AM (last tick of day 0) and 6:00 AM (first tick of day 1) are consecutive ticks.
+        var store = new MemoryStore();
+
+        Tick(store, GameClock.TicksPerDay - 1, Player("FarmHouse", 5, 5), Npc("Spouse", "FarmHouse", 6, 6));
+        Tick(store, GameClock.TicksPerDay, Player("FarmHouse", 5, 5), Npc("Spouse", "FarmHouse", 6, 6));
+
+        Assert.Equal(new[] { GameClock.TicksPerDay - 1, GameClock.TicksPerDay },
+            store.DiaryOf("Spouse").Entries.Select(e => e.AbsoluteTick).ToArray());
+    }
+
+    [Fact]
     public void DiariesAreCapped()
     {
         var store = new MemoryStore { MaxDiaryEntries = 3 };

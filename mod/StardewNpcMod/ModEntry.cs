@@ -6,12 +6,14 @@ using NpcSchedules;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace StardewNpcMod;
 
 /// <summary>
 /// The live mod, in shadow mode (records and logs, changes no game state). Hooks SaveLoaded /
-/// DayStarted / TimeChanged / DayEnding / Saving / ReturnedToTitle.
+/// DayStarted / TimeChanged / DayEnding / Saving / ReturnedToTitle, plus MenuChanged to notice
+/// conversations.
 /// <list type="bullet">
 /// <item>Each ten-minute tick, every NPC observes the player and the other NPCs that share its
 /// location within <see cref="MemoryStore.CoLocationRadius"/> tiles (memory from the NPC side).</item>
@@ -34,8 +36,6 @@ public class ModEntry : Mod
 
     // NPCs with a planned line for today (feeds the ladder's intent boost).
     private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
-    // NPCs the player had already talked to at the last tick (a new talk = a response).
-    private readonly HashSet<string> _talkedToday = new(StringComparer.OrdinalIgnoreCase);
 
     public override void Entry(IModHelper helper)
     {
@@ -50,6 +50,7 @@ public class ModEntry : Mod
         helper.Events.GameLoop.DayEnding += OnDayEnding;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+        helper.Events.Display.MenuChanged += OnMenuChanged;
 
         Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
     }
@@ -105,7 +106,6 @@ public class ModEntry : Mod
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        _talkedToday.Clear();
         _intentsToday.Clear();
         try
         {
@@ -178,7 +178,6 @@ public class ModEntry : Mod
         _memory = new MemoryStore();
         _ladder = NewLadder(null);
         _intentsToday.Clear();
-        _talkedToday.Clear();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
@@ -224,13 +223,25 @@ public class ModEntry : Mod
     private static int HeartsFor(string npc)
         => Game1.player.getFriendshipHeartLevelForNPC(npc); // VERIFY: 1.6 name
 
-    private static bool TalkedToToday(string npc)
-        => Game1.player.friendshipData.TryGetValue(npc, out Friendship friendship) && friendship.TalkedToToday; // VERIFY
+    /// <summary>
+    /// Every conversation counts as the player responding to that NPC (talking, or the NPC's reaction
+    /// to a gift), not just the first of the day. VERIFY: a character's dialogue opens a
+    /// <see cref="DialogueBox"/> whose <c>characterDialogue.speaker</c> is that NPC; question boxes
+    /// and letters have no speaker and are ignored.
+    /// </summary>
+    private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
+    {
+        if (!Context.IsWorldReady || e.NewMenu is not DialogueBox { characterDialogue.speaker: { } speaker })
+            return;
+        int tick = TimeUtils.TickIndex(Game1.timeOfDay);
+        if (tick >= 0)
+            _ladder.EnqueueResponse(speaker.Name, Now(tick));
+    }
 
     // ---- initiation ladder (shadow) -------------------------------------------------------------
 
     /// <summary>Hand the ladder this tick's inputs (each NPC's own ledger view of the player, never a
-    /// live position), report new conversations as responses, and log whatever the worker finished.</summary>
+    /// live position) and log whatever the worker finished.</summary>
     private void RunLadder(int now)
     {
         var inputs = new List<InitiationInput>();
@@ -238,9 +249,6 @@ public class ModEntry : Mod
         {
             LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
             inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc)));
-
-            if (TalkedToToday(npc) && _talkedToday.Add(npc))
-                _ladder.EnqueueResponse(npc, now);
         }
         if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
@@ -331,7 +339,8 @@ public class ModEntry : Mod
         if (model is null)
             return;
 
-        if (model.TryGetValue("version", out string? version) && version == MemoryStore.CurrentVersion.ToString())
+        // Only step-4/5 saves have no version; anything versioned is read as the current format.
+        if (model.ContainsKey("version"))
         {
             if (model.TryGetValue("memory", out string? memoryJson))
                 _memory = MemoryStore.FromJson(memoryJson);

@@ -5,13 +5,16 @@ namespace NpcIntents;
 /// <summary>
 /// Default <see cref="ILineRenderer"/>: turns a cited diary entry into a short first-person line
 /// (the NPC is the speaker). Pure templating — deterministic, no <see cref="Random"/>, no network.
-/// A "Saw" entry names the place last seen; anything else falls back to a neutral musing. Every
+/// A "Saw" entry names the place last seen; "IgnoredBy" (the initiation ladder's record of an
+/// attempt the player ignored) says so; anything else falls back to a neutral musing. The player
+/// is always addressed as "you", never by the diary's "Player" subject. Every
 /// result passes through <see cref="LineSanitizer.Sanitize"/> so no dialogue-command characters
 /// can reach a game dialogue string.
 /// </summary>
 public sealed class LineRenderer : ILineRenderer
 {
     private const string SawKind = "Saw";
+    private const string IgnoredByKind = "IgnoredBy";
     private const string PlayerSubject = "Player";
 
     private readonly Func<string?, string> _placeName;
@@ -34,9 +37,13 @@ public sealed class LineRenderer : ILineRenderer
     {
         ArgumentNullException.ThrowIfNull(entry);
 
-        string line = string.Equals(entry.Kind, SawKind, StringComparison.OrdinalIgnoreCase)
-            ? RenderSaw(entry, When(daysAgo))
-            : $"I've been thinking about {entry.Subject}.";
+        string line;
+        if (string.Equals(entry.Kind, SawKind, StringComparison.OrdinalIgnoreCase))
+            line = RenderSaw(entry, When(daysAgo));
+        else if (string.Equals(entry.Kind, IgnoredByKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"I tried to get your attention {When(daysAgo)}. You must have been busy.";
+        else
+            line = $"I've been thinking about {Who(entry.Subject)}.";
 
         return LineSanitizer.Sanitize(line);
     }
@@ -52,14 +59,15 @@ public sealed class LineRenderer : ILineRenderer
 
     private string RenderSaw(DiaryEntry entry, string when)
     {
-        // The player is addressed in the second person: "I saw you ...", never "I saw Player ...".
-        string who = string.Equals(entry.Subject, PlayerSubject, StringComparison.OrdinalIgnoreCase)
-            ? "you"
-            : entry.Subject;
-
+        string who = Who(entry.Subject);
         string place = _placeName(entry.Detail);
         return string.IsNullOrEmpty(place)
             ? $"I saw {who} {when}."
             : $"I saw {who} at {place} {when}.";
     }
+
+    /// <summary>The player is addressed in the second person ("I saw you"), never as "Player".</summary>
+    private static string Who(string subject) => IsPlayer(subject) ? "you" : subject;
+
+    private static bool IsPlayer(string subject) => string.Equals(subject, PlayerSubject, StringComparison.OrdinalIgnoreCase);
 }

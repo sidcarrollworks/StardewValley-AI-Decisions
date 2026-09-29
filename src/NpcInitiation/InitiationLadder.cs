@@ -23,8 +23,10 @@ public sealed class InitiationLadder
     private readonly Dictionary<string, NpcState> _npcs = new(StringComparer.OrdinalIgnoreCase);
 
     // Global counters (across all NPCs).
-    private int _day = int.MinValue;     // day index the daily counter belongs to
+    private int _day = int.MinValue;     // day index the daily counters belong to
     private int _attemptsToday;
+    private int _queuedLinesToday;
+    private int _mailToday;
     private int _week = int.MinValue;    // week index the forced counter belongs to
     private int _forcedThisWeek;
 
@@ -60,27 +62,46 @@ public sealed class InitiationLadder
                 _npcs[input.Npc] = state;
             }
 
-            // (1) Day rollover: urge fades overnight, rung and daily count reset.
+            // (1) Resolve an open attempt whose response window has passed. This runs before the
+            // day rollover, so an attempt left open overnight is settled on the day it was made and
+            // the new day still starts from rung 0.
+            if (state.OpenStep is { } openStep && state.OpenTick is { } openTick
+                && absoluteTick >= ResolveAt(openStep, openTick))
+            {
+                int resolveAt = ResolveAt(openStep, openTick);
+                // Stamp it when the window closed; a window that closed with the day belongs to that day.
+                int stamp = Math.Min(absoluteTick, resolveAt);
+                if (stamp == resolveAt && resolveAt % GameClock.TicksPerDay == 0)
+                    stamp = resolveAt - 1;
+
+                double before = state.Urge;
+                state.OpenStep = null;
+                state.OpenTick = null;
+                if (openStep == InitiationStep.QueuedLine)
+                {
+                    // The player never came to talk, so never heard it: no penalty, no escalation.
+                    events.Add(new InitiationEvent(stamp, input.Npc, "Expired", openStep, before, before,
+                        "the player did not talk to them before the day ended"));
+                }
+                else
+                {
+                    state.Urge = Math.Max(0.0, state.Urge - _options.IgnorePenalty);
+                    state.Rung = (int)openStep + 1; // escalate one rung past what was ignored
+                    events.Add(new InitiationEvent(stamp, input.Npc, "Ignored", openStep, before, state.Urge,
+                        openStep == InitiationStep.Mail
+                            ? "no visit by the end of the day after the letter"
+                            : $"no response within {_options.ResponseWindowTicks} ticks"));
+                    diaryFor(input.Npc).Append(new DiaryEntry(stamp, "Player", "IgnoredBy", openStep.ToString()));
+                }
+            }
+
+            // (2) Day rollover: urge fades overnight, rung and daily count reset.
             if (state.Day != day)
             {
                 state.Urge = Clamp01(state.Urge * _options.OvernightFactor);
                 state.Rung = 0;
                 state.AttemptsToday = 0;
                 state.Day = day;
-            }
-
-            // (2) Resolve an open attempt whose response window has passed.
-            if (state.OpenStep is { } openStep && state.OpenTick is { } openTick
-                && absoluteTick - openTick >= _options.ResponseWindowTicks)
-            {
-                double before = state.Urge;
-                state.Urge = Math.Max(0.0, state.Urge - _options.IgnorePenalty);
-                state.Rung = (int)openStep + 1; // escalate one rung past what was ignored
-                state.OpenStep = null;
-                state.OpenTick = null;
-                events.Add(new InitiationEvent(absoluteTick, input.Npc, "Ignored", openStep, before, state.Urge,
-                    $"no response within {_options.ResponseWindowTicks} ticks"));
-                diaryFor(input.Npc).Append(new DiaryEntry(absoluteTick, "Player", "IgnoredBy", openStep.ToString()));
             }
 
             // Never seen the player: no growth, no attempt.
@@ -109,20 +130,39 @@ public sealed class InitiationLadder
     }
 
     /// <summary>
-    /// The player responded to this NPC (e.g. talked to them). Resolves the NPC's open attempt,
-    /// if any, as "Responded" (urge relieved, rung reset) and returns that event; else null.
+    /// The player talked to this NPC. The NPC got the attention it wanted, so its urge is relieved,
+    /// its rung resets, and it waits out the cooldown before trying anything. If an attempt was
+    /// open, it is resolved as "Responded" and that event is returned; otherwise null.
     /// </summary>
     public InitiationEvent? NoteResponded(string npc, int absoluteTick)
     {
-        if (!_npcs.TryGetValue(npc, out var state) || state.OpenStep is not { } step)
+        if (!_npcs.TryGetValue(npc, out var state))
             return null;
 
         double before = state.Urge;
         state.Urge = Clamp01(state.Urge * _options.RespondRelief);
         state.Rung = 0;
+        state.LastContactTick = absoluteTick;
+        if (state.OpenStep is not { } step)
+            return null;
+
         state.OpenStep = null;
         state.OpenTick = null;
         return new InitiationEvent(absoluteTick, npc, "Responded", step, before, state.Urge, "player responded");
+    }
+
+    /// <summary>The first tick at which an open attempt counts as unanswered. Active steps get the
+    /// response window, cut off when the day ends; a queued line waits for the rest of the day; a
+    /// letter arrives the next morning and waits until the end of that day.</summary>
+    private int ResolveAt(InitiationStep step, int openTick)
+    {
+        int nextDay = GameClock.DayStartTick(DayIndex(openTick) + 1);
+        return step switch
+        {
+            InitiationStep.QueuedLine => nextDay,
+            InitiationStep.Mail => GameClock.DayStartTick(DayIndex(openTick) + 2),
+            _ => Math.Min(openTick + _options.ResponseWindowTicks, nextDay),
+        };
     }
 
     // ---- Attempt decision --------------------------------------------------------------------
@@ -137,6 +177,8 @@ public sealed class InitiationLadder
         if (_attemptsToday >= _options.MaxAttemptsPerDay)
             return null;
         if (state.LastAttemptTick is { } last && absoluteTick - last < _options.CooldownTicks)
+            return null;
+        if (state.LastContactTick is { } contact && absoluteTick - contact < _options.CooldownTicks)
             return null;
 
         var step = Candidate(input, state);
@@ -159,6 +201,10 @@ public sealed class InitiationLadder
         _attemptsToday++;
         if (step.Value == InitiationStep.ForcedDialogue)
             _forcedThisWeek++;
+        else if (step.Value == InitiationStep.QueuedLine)
+            _queuedLinesToday++;
+        else if (step.Value == InitiationStep.Mail)
+            _mailToday++;
 
         return new InitiationEvent(absoluteTick, input.Npc, "Attempt", step.Value, state.Urge, state.Urge,
             string.Format(CultureInfo.InvariantCulture, "urge {0:0.00} >= {1:0.00} at rung {2}; p={3:0.00}",
@@ -177,6 +223,10 @@ public sealed class InitiationLadder
             if (!Available(step, input))
                 continue;
             if (step == InitiationStep.ForcedDialogue && _forcedThisWeek >= _options.MaxForcedPerWeek)
+                continue;
+            if (step == InitiationStep.QueuedLine && _queuedLinesToday >= _options.MaxQueuedLinesPerDay)
+                continue;
+            if (step == InitiationStep.Mail && _mailToday >= _options.MaxMailPerDay)
                 continue;
             return step;
         }
@@ -212,7 +262,7 @@ public sealed class InitiationLadder
 
     // ---- Days --------------------------------------------------------------------------------
 
-    private static int DayIndex(int absoluteTick) => absoluteTick / GameClock.TicksPerDay;
+    private static int DayIndex(int absoluteTick) => GameClock.DayIndex(absoluteTick);
 
     private void RollGlobal(int day)
     {
@@ -220,6 +270,8 @@ public sealed class InitiationLadder
         {
             _day = day;
             _attemptsToday = 0;
+            _queuedLinesToday = 0;
+            _mailToday = 0;
         }
         int week = day / 7;
         if (_week != week)
@@ -240,6 +292,8 @@ public sealed class InitiationLadder
         {
             Day = _day,
             AttemptsToday = _attemptsToday,
+            QueuedLinesToday = _queuedLinesToday,
+            MailToday = _mailToday,
             Week = _week,
             ForcedThisWeek = _forcedThisWeek,
             Npcs = _npcs
@@ -252,6 +306,7 @@ public sealed class InitiationLadder
                     Day = kv.Value.Day,
                     AttemptsToday = kv.Value.AttemptsToday,
                     LastAttemptTick = kv.Value.LastAttemptTick,
+                    LastContactTick = kv.Value.LastContactTick,
                     OpenStep = kv.Value.OpenStep,
                     OpenTick = kv.Value.OpenTick,
                     IntentBoostDay = kv.Value.IntentBoostDay,
@@ -268,6 +323,8 @@ public sealed class InitiationLadder
         var dto = JsonSerializer.Deserialize<LadderDto>(json, JsonOptions) ?? new LadderDto();
         ladder._day = dto.Day;
         ladder._attemptsToday = dto.AttemptsToday;
+        ladder._queuedLinesToday = dto.QueuedLinesToday;
+        ladder._mailToday = dto.MailToday;
         ladder._week = dto.Week;
         ladder._forcedThisWeek = dto.ForcedThisWeek;
         foreach (var n in dto.Npcs ?? new List<NpcDto>())
@@ -281,6 +338,7 @@ public sealed class InitiationLadder
                 Day = n.Day,
                 AttemptsToday = n.AttemptsToday,
                 LastAttemptTick = n.LastAttemptTick,
+                LastContactTick = n.LastContactTick,
                 OpenStep = n.OpenStep,
                 OpenTick = n.OpenTick,
                 IntentBoostDay = n.IntentBoostDay,
@@ -296,6 +354,7 @@ public sealed class InitiationLadder
         public int Day;                  // day index this state's daily fields belong to
         public int AttemptsToday;
         public int? LastAttemptTick;
+        public int? LastContactTick;     // last time the player talked to them
         public InitiationStep? OpenStep; // unresolved attempt, if any
         public int? OpenTick;
         public int? IntentBoostDay;      // day the intent boost was last applied
@@ -305,6 +364,8 @@ public sealed class InitiationLadder
     {
         public int Day { get; set; } = int.MinValue;
         public int AttemptsToday { get; set; }
+        public int QueuedLinesToday { get; set; }
+        public int MailToday { get; set; }
         public int Week { get; set; } = int.MinValue;
         public int ForcedThisWeek { get; set; }
         public List<NpcDto>? Npcs { get; set; }
@@ -318,6 +379,7 @@ public sealed class InitiationLadder
         public int Day { get; set; }
         public int AttemptsToday { get; set; }
         public int? LastAttemptTick { get; set; }
+        public int? LastContactTick { get; set; }
         public InitiationStep? OpenStep { get; set; }
         public int? OpenTick { get; set; }
         public int? IntentBoostDay { get; set; }

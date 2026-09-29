@@ -69,12 +69,6 @@ public sealed class Ledger
     public LedgerView? View(string observer, string subject, int nowTick)
         => TryGetEntry(observer, subject, out var entry) ? BuildView(observer, subject, entry, nowTick) : null;
 
-    /// <summary>Every subject this observer has an entry for, in name order.</summary>
-    public IReadOnlyList<string> SubjectsOf(string observer)
-        => _byObserver.TryGetValue(observer, out var bySubject)
-            ? bySubject.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList()
-            : Array.Empty<string>();
-
     /// <summary>Tell `listener` where `subject` is, from `speaker`'s already-coarsened knowledge.
     /// The listener stores the view at hop+1, never with more detail than the speaker had, and
     /// refuses beyond two hops. Also refused: talking to yourself, passing on a forgotten (Gone)

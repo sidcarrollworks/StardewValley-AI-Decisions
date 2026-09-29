@@ -27,7 +27,7 @@ public sealed record InitiationInput(
 
 /// <summary>
 /// One thing the ladder would do, or an outcome it recorded. <see cref="Kind"/> is
-/// "Attempt", "Ignored" or "Responded".
+/// "Attempt", "Ignored", "Responded", or "Expired" (a queued line the player never came to hear).
 /// </summary>
 public sealed record InitiationEvent(
     int AbsoluteTick,
@@ -56,26 +56,33 @@ public sealed class InitiationOptions
     /// <summary>Urge drops by this when an attempt is ignored.</summary>
     public double IgnorePenalty { get; set; } = 0.2;
 
-    /// <summary>Urge is multiplied by this when the player responds.</summary>
+    /// <summary>Urge is multiplied by this when the player talks to the NPC (a response to an
+    /// open attempt, or just a conversation).</summary>
     public double RespondRelief { get; set; } = 0.5;
 
-    /// <summary>An attempt not responded to within this many ticks is "ignored".</summary>
+    /// <summary>An emote, bubble, approach or forced dialogue not responded to within this many
+    /// ticks (and before the day ends) is "ignored". A queued line waits until the end of the day
+    /// and then quietly expires; a letter waits until the end of the next day.</summary>
     public int ResponseWindowTicks { get; set; } = 6;
 
-    /// <summary>Minimum ticks between two attempts by the same NPC.</summary>
+    /// <summary>Minimum ticks between two attempts by the same NPC, and between a conversation
+    /// with the player and the NPC's next attempt.</summary>
     public int CooldownTicks { get; set; } = 6;
 
     public int MaxAttemptsPerNpcPerDay { get; set; } = 2;
 
-    /// <summary>Across all NPCs.</summary>
+    /// <summary>Across all NPCs and all steps.</summary>
     public int MaxAttemptsPerDay { get; set; } = 6;
+
+    /// <summary>Across all NPCs. Keeps passive steps from using up the daily cap.</summary>
+    public int MaxQueuedLinesPerDay { get; set; } = 2;
+
+    /// <summary>Across all NPCs: at most this many letters a day.</summary>
+    public int MaxMailPerDay { get; set; } = 1;
 
     /// <summary>Across all NPCs; a week is dayIndex / 7.</summary>
     public int MaxForcedPerWeek { get; set; } = 1;
 
     /// <summary>Minimum urge per rung, indexed by (int)step.</summary>
     public double[] StepThresholds { get; set; } = { 0.30, 0.45, 0.60, 0.70, 0.80, 0.95 };
-
-    /// <summary>Reserved; not used by the ladder.</summary>
-    public double AttemptProbabilityFloor { get; set; } = 0.0;
 }

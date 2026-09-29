@@ -152,6 +152,35 @@ public class ShadowSimulatorTests
     }
 
     [Fact]
+    public void Run_AcrossTheYearEnd_TimeKeepsMovingForward()
+    {
+        // The review repro: the season names wrap from winter 28 to spring 1, but the harness's
+        // clock must carry on into year 2. Otherwise spring 1 reads as earlier than winter 27, the
+        // old sighting looks fresh again, and new sightings are filed in year 1.
+        ShadowSimulator sim = Sim();
+        sim.AddSubject("Caroline", new Dictionary<string, string>
+        {
+            ["winter_27"] = "600 Town 40 20 0/1200 Mountain 5 5 2",
+            ["spring_1"] = "600 Town 40 20 0/1200 Mountain 5 5 2",
+            ["winter"] = "600 Mountain 5 5 2/1800 Mountain 6 6 0",
+            ["spring"] = "600 Mountain 5 5 2/1800 Mountain 6 6 0",
+        });
+
+        ShadowLog log = sim.Run("winter", 27, 3, Options(), 1234);
+
+        Assert.Equal(new[] { "winter day 27", "winter day 28", "spring day 1" },
+            Of(log, "DayStart").Select(e => e.Message).ToArray());
+
+        // Winter 27's sighting went Gone once, on winter 28, and the spring 1 sighting is a new one.
+        Assert.Single(log.Events, e => e.Kind == "Decayed" && e.Message == "memory of Caroline decayed to Gone");
+        Assert.Equal(2, SawEvents(log, "Caroline").Count);
+
+        int lastSpring1Sighting = GameClock.AbsoluteTick(new GameTime(0, 1, 35, Year: 2)); // 1150 on spring 1, year 2
+        Assert.Equal(lastSpring1Sighting, sim.Ledger.View("Player", "Caroline", lastSpring1Sighting)!.AbsoluteTick);
+        Assert.All(sim.Diary.About("Caroline").Skip(1), e => Assert.True(e.AbsoluteTick >= GameClock.TicksPerYear));
+    }
+
+    [Fact]
     public void Run_TwoDaysOfCoLocation_UnlocksThePair()
     {
         ShadowSimulator sim = Sim();

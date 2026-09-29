@@ -85,6 +85,36 @@ public class PlannedLineDateAndPlaceTests
     }
 
     [Fact]
+    public void LadderBookkeepingIsNeverTalkedAboutButBeingIgnoredIs()
+    {
+        // The initiation ladder writes "TriedToReach" and "IgnoredBy" lines about the player into the
+        // NPC's diary. The attempt itself is not news; being ignored is, and it is said to "you".
+        var decision = new AlwaysYes();
+        var planner = new IntentPlanner(decision, new LineRenderer());
+        var snapshot = Snapshot("Abigail",
+            new DiaryEntry(TickOn(3, 10), "Player", "TriedToReach", "Emote"),
+            new DiaryEntry(TickOn(3, 16), "Player", "IgnoredBy", "Emote"));
+
+        IntentPlan plan = planner.Plan(new[] { snapshot }, seed: 2, sourceDay: 3);
+
+        Assert.Equal(new[] { "IgnoredBy Player (Emote)" }, Assert.Single(decision.ChooseCalls));
+        IntentCandidate candidate = Assert.Single(plan.Candidates);
+        Assert.Equal("I tried to get your attention yesterday. You must have been busy.", candidate.Line);
+        Assert.DoesNotContain("Player", candidate.Line);
+    }
+
+    [Fact]
+    public void AnNpcWhoseOnlyNewsIsItsOwnAttemptStaysQuiet()
+    {
+        var decision = new AlwaysYes();
+        var planner = new IntentPlanner(decision, new LineRenderer());
+        var snapshot = Snapshot("Abigail", new DiaryEntry(TickOn(3, 10), "Player", "TriedToReach", "Emote"));
+
+        Assert.Empty(planner.Plan(new[] { snapshot }, seed: 2, sourceDay: 3).Candidates);
+        Assert.Empty(decision.ChooseCalls);
+    }
+
+    [Fact]
     public void OnlyTheSourceDaysEntriesAreOffered()
     {
         var decision = new AlwaysYes();

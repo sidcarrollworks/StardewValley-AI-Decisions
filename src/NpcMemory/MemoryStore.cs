@@ -70,7 +70,10 @@ public sealed class MemoryStore
     {
         int tickOfDay = absoluteTick % GameClock.TicksPerDay;
         int block = TimeUtils.BlockIndex(tickOfDay, regions.BlockMinutes);
-        bool continuesPrevious = absoluteTick == _prevTick + 1;
+        // A span continues only from the previous tick of the same day: 1:50 AM and the next 6:00 AM
+        // are adjacent ticks, but the night in between breaks every span.
+        bool continuesPrevious = absoluteTick == _prevTick + 1
+            && GameClock.DayIndex(absoluteTick) == GameClock.DayIndex(_prevTick);
         var now = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Stable order so diaries and the JSON are deterministic regardless of how the game lists characters.

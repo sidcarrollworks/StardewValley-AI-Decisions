@@ -2,7 +2,7 @@
   "Name": "Stardew NPC Mod",
   "Author": "squid",
   "Version": "0.1.0",
-  "Description": "AI-driven NPC decisions (Jev/Laya), currently in shadow mode: logs what it would do, changes nothing.",
+  "Description": "AI-driven NPC decisions (Laya), currently in shadow mode: logs what it would do, changes nothing.",
   "UniqueID": "squid.StardewNpcMod",
   "EntryDll": "StardewNpcMod.dll",
   "MinimumApiVersion": "4.0.0",

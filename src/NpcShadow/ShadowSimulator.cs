@@ -83,6 +83,10 @@ public sealed class ShadowSimulator
         for (int i = 0; i < dayCount; i++)
         {
             (string curSeason, int curDay) = AddDays(season, startDay, i);
+            // Absolute day keeps counting past winter 28 (into year 2), so memory ages correctly
+            // across the year end even though the season names wrap.
+            int dayStart = GameClock.DayStartTick(GameClock.DayIndex(GameClock.AbsoluteTick(
+                new GameTime(GameClock.SeasonIndex(season), startDay, 0))) + i);
             int daySeed = seed + i;
 
             DayPlan observerPlan = ResolveObserver(planner, curSeason, curDay, options, daySeed);
@@ -98,7 +102,7 @@ public sealed class ShadowSimulator
 
             for (int tick = 0; tick < TimeUtils.TicksPerDay; tick++)
             {
-                int absTick = GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(curSeason), curDay, tick));
+                int absTick = dayStart + tick;
                 string observerLocation = observerPlan.LocationByTick[tick];
                 var nowCoLocated = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

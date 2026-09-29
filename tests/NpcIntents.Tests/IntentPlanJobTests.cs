@@ -69,6 +69,20 @@ public class IntentPlanJobTests
     }
 
     [Fact]
+    public void APlanThatFinishedInTimeIsNotReportedAsCutShortWhenCollectedLate()
+    {
+        // The mod collects the plan the next morning, long after the budget time has passed.
+        using IntentPlanJob job = IntentPlanJob.Start(_ => new IntentPlan(Array.Empty<IntentCandidate>()), TimeSpan.FromMilliseconds(50));
+
+        Assert.True(WaitUntil(() => job.IsCompleted, 5000));
+        Thread.Sleep(200); // the budget time elapses after the work is done
+
+        Assert.True(job.TryTake(out _, out Exception? error));
+        Assert.Null(error);
+        Assert.False(job.BudgetExhausted);
+    }
+
+    [Fact]
     public void APlanIsHandedOverOnlyOnce()
     {
         var expected = new IntentPlan(new[] { new IntentCandidate("Sam", "Hi.", new DiaryEntry(0, "Player", "Saw"), "test") });
