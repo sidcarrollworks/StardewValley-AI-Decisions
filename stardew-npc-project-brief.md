@@ -7,6 +7,7 @@ This project is a SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel les
 Working rules:
 - Separate what is verified in source or docs from what is recalled. Mark recalled items "verify".
 - The game's true positions for the player or any NPC must never be inputs to an NPC decision. Only ledger entries, aged and coarsened, may be.
+- In live-game code, "co-located" means the same location AND within 8 tiles (Chebyshev square), not the same region. The 8-tile radius is a placeholder to tune.
 - Decay and coarsening are done by deterministic code, not by a model.
 - Any generated text must be sanitized before it reaches a dialogue string (see Constraints).
 - Prefer shadow mode (log what the mod would do, change nothing) before any behavior goes live.
@@ -59,7 +60,7 @@ NPCs that:
 1. ~~Schedule extractor: raw schedules to region-by-time-block counts.~~ **Done** (see README): simulates a full year per NPC mirroring the verified 1.6 key order and command semantics, outputs region x block counts + routine priors; 61 tests; real 1.6 fixtures unpacked from the game.
 2. ~~Ledger record and the age-based view function (C# stub).~~ **Done** (see `src/NpcMemory`): `Diary` (event log), `Ledger` (last-seen with age decay + two-hop gossip), `RoutineBelief` (co-presence routine learning + prior seeding + pair unlock); 77 tests. Built by three parallel subagents on deepseek-flash against a parent-authored contract.
 3. ~~Shadow-mode logging harness.~~ **Done** (see `src/NpcShadow`): deterministic simulator drives the memory layer through co-located ticks and emits a shadow log (`Saw` / `Decayed` / `Unlocked` lines) over a span of days; 29 tests.
-4. SMAPI skeleton with `Saving` / `DayStarted` hooks and the sidecar client. **Scaffolded, compile-verified** (`mod/StardewNpcMod`, runs the shadow harness on `DayStarted`); not yet run in-game (SMAPI is installed, but launching the game is a manual step), and the sidecar client (Laya) is not started.
+4. ~~SMAPI skeleton with the sidecar client.~~ **Done, compile-verified** (`mod/StardewNpcMod`): hooks `SaveLoaded` / `DayStarted` / `TimeChanged` / `Saving` / `ReturnedToTitle`; persists Diary/Ledger/RoutineBeliefs per save via `Helper.Data` (memory survives reload, not reset each day); live co-location each ten-minute tick (same location AND within 8 tiles, never same region); and a typed `IDecisionClient` (choice / score / yes-no) with a deterministic fake and a timeout-with-fallback wrapper, real Jev/Laya left as stubs marked "verify". 180 tests green. Not yet run in-game; sidecar (Laya) not started. **Out of scope, not started:** overnight intents, the initiation ladder, newcomer week, day length.
 
 ## Side ideas
 

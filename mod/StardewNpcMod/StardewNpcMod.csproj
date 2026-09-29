@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\NpcSchedules\NpcSchedules.csproj" />
     <ProjectReference Include="..\..\src\NpcMemory\NpcMemory.csproj" />
     <ProjectReference Include="..\..\src\NpcShadow\NpcShadow.csproj" />
+    <ProjectReference Include="..\..\src\NpcDecision\NpcDecision.csproj" />
   </ItemGroup>
 
   <ItemGroup>
