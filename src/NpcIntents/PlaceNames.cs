@@ -41,7 +41,7 @@ public static class PlaceNames
         ["SandyHouse"] = "the Oasis",
         ["Desert"] = "the desert",
         ["BusStop"] = "the bus stop",
-        ["Town"] = "town",
+        ["Town"] = "Pelican Town",        // also the region name, so it must read well for both
         ["Beach"] = "the beach",
         ["Forest"] = "the forest",
         ["Woods"] = "the secret woods",

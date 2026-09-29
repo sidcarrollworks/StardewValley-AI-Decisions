@@ -295,7 +295,7 @@ public class ModEntry : Mod
         WhereaboutsSource.Told when lead.HopCount > 1 => $"{lead.ToldBy} heard you were there {Ago(lead.AgeTicks)}",
         WhereaboutsSource.Told => $"{lead.ToldBy} saw you there {Ago(lead.AgeTicks)}",
         WhereaboutsSource.SeenToday => $"saw you there {Ago(lead.AgeTicks)}",
-        WhereaboutsSource.Habit => $"you're usually there at this hour ({lead.HabitShare:P0} of the time)",
+        WhereaboutsSource.Habit => $"you're usually there at this hour, {lead.HabitShare * 100:0}% of the time",
         _ => lead.Source.ToString(),
     };
 

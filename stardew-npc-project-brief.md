@@ -65,7 +65,9 @@ NPCs that:
 7. ~~Laya client.~~ **Done**: `LayaDecisionClient` over `laya-serve` (choice / score / noul), per-call timeout with real cancellation, bearer key optional; `sidecar/` has run scripts and a smoke test. Not yet run against a live server. Open: whether `typed-decisions` or `english` answers NPC questions better (A/B once running).
 8. ~~Initiation ladder.~~ **Done, shadow mode** (`src/NpcInitiation`): per-NPC urge, mildest fitting step with escalation after being ignored, per-NPC / daily / weekly-forced caps (letters and queued lines have their own small daily caps), cooldown, ignored attempts lower urge and go in the diary. Each step has a fitting response window: an hour for an emote, bubble, approach or forced dialogue; the rest of the day for a queued line (which quietly expires if never heard); the day after for a letter. Its only knowledge of the player is the NPC's own ledger view. Runs on a background worker in the mod and logs what it would do. A response is any conversation with the NPC, read from a dialogue box whose speaker is that NPC (verify in-game); talking also relieves urge and starts the cooldown.
 
-353 tests green after steps 6 to 8.
+9. ~~Finding the player.~~ **Done, shadow mode** (`MemoryStore.AskAround` / `LookFor`, `PlayerSearch`, the ladder's Approach): an NPC that misses the player (urge 0.45+, no first-hand sighting in the last hour) asks the NPCs it is with, under the gossip rules; its answer to "where is the player?" is its own sighting today, else a tip, else its habit for this hour (routine belief), else unknown. With a lead, Approach works from a distance, so a keen NPC goes looking before it writes. Logged as "asked X about you" and "would go looking for you at ...". The fish shop now maps to the Beach region (audit).
+
+386 tests green after step 9. Docs for other models: `AGENTS.md`, `docs/architecture.md`, `docs/decisions.md` (open work is listed at the end of decisions.md).
 
 ## Side ideas
 
