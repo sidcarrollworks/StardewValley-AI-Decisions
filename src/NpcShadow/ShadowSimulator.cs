@@ -126,14 +126,16 @@ public sealed class ShadowSimulator
                 }
                 prevCoLocated = nowCoLocated;
 
-                // decay lines: the ledger view coarsens (NamedSpot -> Location -> Region -> ...)
+                // decay lines: only log when the view actually COARSENS (LedgerDetail enum
+                // values increase with coarseness). A re-sighting refreshes the entry back to
+                // NamedSpot; that is already captured by the "Saw" line, not a "Decayed" line.
                 foreach (DayPlan plan in plans)
                 {
                     LedgerView? view = Ledger.View(Observer, plan.Npc, absTick);
                     if (view == null)
                         continue;
                     prevDetail.TryGetValue(plan.Npc, out LedgerDetail previous);
-                    if (view.Detail != previous)
+                    if ((int)view.Detail > (int)previous)
                         log.Add(tick, Observer, "Decayed",
                             $"memory of {plan.Npc} decayed to {view.Detail}", day: i + 1);
                     prevDetail[plan.Npc] = view.Detail;

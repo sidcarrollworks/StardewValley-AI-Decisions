@@ -164,6 +164,23 @@ public class ShadowSimulatorTests
         Assert.DoesNotContain(log.Events, e => e.Kind == "Unlocked");
     }
 
+    [Fact]
+    public void Run_ResightingRefreshesButNeverLogsDecayToAFinerDetail()
+    {
+        // Lewis leaves Town, comes back, leaves again: the re-sighting is a "Saw", not a
+        // "Decayed to NamedSpot". Decay only ever logs a COARSENING.
+        ShadowSimulator sim = Sim();
+        sim.AddSubject("Lewis", Spring("600 Town 40 20 0/1200 Mountain 5 5 2/1600 Town 40 20 0/2000 Mountain 5 5 2"));
+
+        ShadowLog log = sim.Run("spring", 1, 1, Options(), 1234);
+
+        Assert.Equal(2, SawEvents(log, "Lewis").Count); // 0610 and 1600
+        List<ShadowEvent> decays = Of(log, "Decayed").Where(e => e.Message.Contains("Lewis")).ToList();
+        Assert.Equal(2, decays.Count);
+        Assert.All(decays, e => Assert.Equal("memory of Lewis decayed to Location", e.Message));
+        Assert.DoesNotContain(log.Events, e => e.Kind == "Decayed" && e.Message.Contains("NamedSpot"));
+    }
+
     // ---- observer memory state after a run ---------------------------------------------------
 
     [Fact]
