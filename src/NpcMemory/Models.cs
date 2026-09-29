@@ -13,7 +13,7 @@ public sealed record DiaryEntry(
 /// <summary>How precisely a last-seen entry is still known, in decreasing detail.</summary>
 public enum LedgerDetail
 {
-    NamedSpot,   // the specific place, recent
+    NamedSpot,   // the spot within the location (a tile), recent
     Location,    // the map/location name
     Region,      // coarse region (RegionMap)
     EarlierToday, // no place, just "seen earlier today"
@@ -25,7 +25,7 @@ public enum LedgerDetail
 /// holds a location name (NamedSpot/Location), a region name (Region), or null
 /// (EarlierToday/Gone). `Spot` is the spot within the location (a tile or named area) and is
 /// set only at NamedSpot. `HopCount` is 0 for first-hand, 1 for told-by-someone, 2 for
-/// told-by-someone-who-was-told.
+/// told-by-someone-who-was-told; `ToldBy` names who passed it on (null when first-hand).
 /// </summary>
 public sealed record LedgerView(
     string Observer,
@@ -35,4 +35,9 @@ public sealed record LedgerView(
     int AgeTicks,
     int HopCount,
     int AbsoluteTick,
-    string? Spot = null);
+    string? Spot = null,
+    string? ToldBy = null);
+
+/// <summary>A routine belief's best guess for one time block (see <see cref="RoutineBelief.BestGuessAt"/>):
+/// the region, its share of the block's weight (0..1), and the block's total weight (the evidence).</summary>
+public sealed record BlockGuess(string Region, int Block, double Share, double Evidence);

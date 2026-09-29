@@ -21,11 +21,11 @@
       "Summit", "Mine"
     ],
     "Forest": [
-      "Forest", "AnimalShop", "LeahHouse", "FishShop", "WizardHouse", "Sewer", "Woods",
+      "Forest", "AnimalShop", "LeahHouse", "WizardHouse", "Sewer", "Woods",
       "SecretWoods", "Spring", "ForestWest"
     ],
     "Beach": [
-      "Beach", "ElliottHouse", "BeachNightMarket", "TidePools"
+      "Beach", "ElliottHouse", "FishShop", "BeachNightMarket", "TidePools"
     ],
     "Desert": [
       "Desert", "SandyHouse", "SkullCave", "Club", "DesertFestival"

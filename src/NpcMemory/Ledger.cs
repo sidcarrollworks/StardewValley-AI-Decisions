@@ -38,6 +38,9 @@ public sealed class Ledger
         public int AbsoluteTick;
         public int HopCount;
 
+        /// <summary>Who passed this on (the speaker of the gossip), or null for a first-hand sighting.</summary>
+        public string? ToldBy;
+
         /// <summary>
         /// Coarsest detail this entry may ever be viewed at. Set when knowledge arrives by gossip:
         /// a told fact can never be recalled in more detail than the teller had at the time.
@@ -68,6 +71,12 @@ public sealed class Ledger
     /// for EarlierToday/Gone; `Spot` is set only at NamedSpot.</summary>
     public LedgerView? View(string observer, string subject, int nowTick)
         => TryGetEntry(observer, subject, out var entry) ? BuildView(observer, subject, entry, nowTick) : null;
+
+    /// <summary>Every subject this observer has an entry for, in name order.</summary>
+    public IReadOnlyList<string> SubjectsOf(string observer)
+        => _byObserver.TryGetValue(observer, out var bySubject)
+            ? bySubject.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList()
+            : Array.Empty<string>();
 
     /// <summary>Tell `listener` where `subject` is, from `speaker`'s already-coarsened knowledge.
     /// The listener stores the view at hop+1, never with more detail than the speaker had, and
@@ -112,6 +121,7 @@ public sealed class Ledger
             Spot = cap == LedgerDetail.NamedSpot ? source.Spot : null, // never hand over detail the cap hides
             AbsoluteTick = source.AbsoluteTick,
             HopCount = hopCount,
+            ToldBy = speaker,
             DetailCap = cap,
         });
         return true;
@@ -142,6 +152,7 @@ public sealed class Ledger
                     ["spot"] = entry.Spot,
                     ["absoluteTick"] = entry.AbsoluteTick,
                     ["hopCount"] = entry.HopCount,
+                    ["toldBy"] = entry.ToldBy,
                     ["detailCap"] = entry.DetailCap.HasValue ? JsonValue.Create((int)entry.DetailCap.Value) : null,
                 });
             }
@@ -165,6 +176,7 @@ public sealed class Ledger
             foreach (var item in entries.EnumerateArray())
             {
                 string spot = Text(item, "spot");
+                string toldBy = Text(item, "toldBy");
                 var entry = new Entry
                 {
                     Location = Text(item, "location"),
@@ -172,6 +184,7 @@ public sealed class Ledger
                     Spot = spot.Length == 0 ? null : spot,
                     AbsoluteTick = item.TryGetProperty("absoluteTick", out var tick) ? tick.GetInt32() : 0,
                     HopCount = item.TryGetProperty("hopCount", out var hop) ? hop.GetInt32() : 0,
+                    ToldBy = toldBy.Length == 0 ? null : toldBy,
                     DetailCap = item.TryGetProperty("detailCap", out var cap) && cap.ValueKind == JsonValueKind.Number
                         ? (LedgerDetail)cap.GetInt32()
                         : null,
@@ -212,7 +225,7 @@ public sealed class Ledger
         var detail = DetailAt(entry.AbsoluteTick, nowTick, entry.Spot is not null);
         if (entry.DetailCap is { } cap && (int)cap > (int)detail) detail = cap;
         return new LedgerView(observer, subject, detail, PlaceFor(detail, entry), age, entry.HopCount, entry.AbsoluteTick,
-            detail == LedgerDetail.NamedSpot ? entry.Spot : null);
+            detail == LedgerDetail.NamedSpot ? entry.Spot : null, entry.ToldBy);
     }
 
     /// <summary>Detail implied by time alone (LedgerDetail is ordered finest -> coarsest). A sighting

@@ -24,12 +24,14 @@ public sealed class BackgroundLadder
     private int _backlog;
     private int _dropped;
     private volatile string _latestJson;
+    private volatile IReadOnlyDictionary<string, double> _latestUrges;
 
     public BackgroundLadder(InitiationLadder ladder, int maxBacklog = 6)
     {
         _ladder = ladder;
         _maxBacklog = Math.Max(1, maxBacklog);
         _latestJson = ladder.ToJson();
+        _latestUrges = ladder.Urges();
     }
 
     /// <summary>Ticks dropped because the worker was too far behind.</summary>
@@ -41,6 +43,10 @@ public sealed class BackgroundLadder
     /// <summary>The ladder state as of the last finished operation; safe to read from any thread
     /// (the save uses it, so saving never waits on the model).</summary>
     public string LatestJson => _latestJson;
+
+    /// <summary>Each NPC's urge as of the last finished operation; safe to read from any thread. The
+    /// game thread uses it to decide who is missing the player enough to ask around.</summary>
+    public IReadOnlyDictionary<string, double> LatestUrges => _latestUrges;
 
     /// <summary>Queue one tick. Returns false (and counts a drop) when the backlog is full.</summary>
     public bool EnqueueTick(int absoluteTick, IReadOnlyList<InitiationInput> inputs)
@@ -110,6 +116,7 @@ public sealed class BackgroundLadder
                     if (result.Events.Count > 0 || result.DiaryLines.Count > 0)
                         _results.Enqueue(result);
                     _latestJson = _ladder.ToJson();
+                    _latestUrges = _ladder.Urges();
                 }
                 catch
                 {
