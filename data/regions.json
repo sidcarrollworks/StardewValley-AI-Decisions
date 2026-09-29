@@ -1,0 +1,40 @@
+{
+  "blockMinutes": 120,
+  "rainChance": {
+    "spring": 0.183,
+    "summer": 0.12,
+    "fall": 0.183,
+    "winter": 0.0
+  },
+  "regions": {
+    "Farm": [
+      "Farm", "FarmHouse", "FarmCave", "Greenhouse", "Backwoods", "Farm2", "Farm3", "Farm4"
+    ],
+    "Town": [
+      "Town", "BusStop", "SeedShop", "JojaMart", "Saloon", "Hospital", "HarveyRoom",
+      "ArchaeologyHouse", "Blacksmith", "ManorHouse", "CommunityCenter", "MovieTheater",
+      "HaleyHouse", "JoshHouse", "SamHouse", "Trailer", "Sunroom", "EmilyHouse"
+    ],
+    "Mountain": [
+      "Mountain", "ScienceHouse", "SebastianRoom", "Railroad", "Tent",
+      "BathHouse_Entry", "BathHouse_MensLocker", "BathHouse_WomensLocker", "AdventureGuild",
+      "Summit", "Mine"
+    ],
+    "Forest": [
+      "Forest", "AnimalShop", "LeahHouse", "FishShop", "WizardHouse", "Sewer", "Woods",
+      "SecretWoods", "Spring", "ForestWest"
+    ],
+    "Beach": [
+      "Beach", "ElliottHouse", "BeachNightMarket", "TidePools"
+    ],
+    "Desert": [
+      "Desert", "SandyHouse", "SkullCave", "Club", "DesertFestival"
+    ],
+    "Island": [
+      "IslandNorth", "IslandSouth", "IslandEast", "IslandWest", "IslandHut", "IslandShrine",
+      "LeoTreeHouse", "IslandFarmHouse", "IslandFieldOffice", "IslandFarmCave",
+      "IslandSouthEast", "IslandWestCave1", "IslandSouthEastCave", "IslandSecret"
+    ]
+  },
+  "homes": {}
+}
