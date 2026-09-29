@@ -61,16 +61,14 @@ public sealed class LedgerTests
 
     [Theory]
     [InlineData(0, LedgerDetail.NamedSpot, Location)]
-    [InlineData(1, LedgerDetail.NamedSpot, Location)]
-    [InlineData(119, LedgerDetail.NamedSpot, Location)]   // last tick still named
-    [InlineData(120, LedgerDetail.Location, Location)]    // 2h -> Location
-    [InlineData(121, LedgerDetail.Location, Location)]
-    [InlineData(719, LedgerDetail.Location, Location)]    // last tick still Location
-    [InlineData(720, LedgerDetail.Region, Region)]        // 12h -> Region
-    [InlineData(1199, LedgerDetail.Region, Region)]       // last tick still Region
-    [InlineData(1200, LedgerDetail.EarlierToday, null)]   // 20h -> no place
-    [InlineData(1439, LedgerDetail.EarlierToday, null)]   // last tick still today
-    [InlineData(1440, LedgerDetail.Gone, null)]           // a day -> forgotten
+    [InlineData(11, LedgerDetail.NamedSpot, Location)]    // last tick still named
+    [InlineData(12, LedgerDetail.Location, Location)]     // 2h -> Location
+    [InlineData(47, LedgerDetail.Location, Location)]     // last tick still Location
+    [InlineData(48, LedgerDetail.Region, Region)]         // 8h -> Region
+    [InlineData(95, LedgerDetail.Region, Region)]         // last tick still Region
+    [InlineData(96, LedgerDetail.EarlierToday, null)]     // 16h -> no place
+    [InlineData(119, LedgerDetail.EarlierToday, null)]    // last tick still today
+    [InlineData(120, LedgerDetail.Gone, null)]            // a day -> forgotten
     [InlineData(5000, LedgerDetail.Gone, null)]
     public void ViewDegradesAtEachThreshold(int age, LedgerDetail expectedDetail, string? expectedPlace)
     {
@@ -201,13 +199,13 @@ public sealed class LedgerTests
     {
         var ledger = SeenAtZero();
 
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 30));
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 5));
 
-        var view = Must(ledger, "Bob", "Sam", 30);
+        var view = Must(ledger, "Bob", "Sam", 5);
         Assert.Equal(LedgerDetail.NamedSpot, view.Detail);
         Assert.Equal(Location, view.Place);
         Assert.Equal(1, view.HopCount);
-        Assert.Equal(30, view.AgeTicks);             // age still measured from the sighting
+        Assert.Equal(5, view.AgeTicks);              // age still measured from the sighting
         Assert.Equal(0, view.AbsoluteTick);
     }
 
@@ -216,40 +214,40 @@ public sealed class LedgerTests
     {
         var ledger = SeenAtZero();
 
-        // By tick 800 Alice's own view has decayed to Region.
-        Assert.Equal(LedgerDetail.Region, Must(ledger, "Alice", "Sam", 800).Detail);
+        // By tick 60 Alice's own view has decayed to Region.
+        Assert.Equal(LedgerDetail.Region, Must(ledger, "Alice", "Sam", 60).Detail);
 
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 800));
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 60));
 
-        var view = Must(ledger, "Bob", "Sam", 800);
+        var view = Must(ledger, "Bob", "Sam", 60);
         Assert.Equal(LedgerDetail.Region, view.Detail);   // capped, never NamedSpot/Location
         Assert.Equal(Region, view.Place);                 // the region, not the shop
         Assert.NotEqual(Location, view.Place);
         Assert.Equal(1, view.HopCount);
-        Assert.Equal(800, view.AgeTicks);
+        Assert.Equal(60, view.AgeTicks);
     }
 
     [Fact]
     public void GossipIsCappedAtTheSpeakersDetailEvenWhenNatureWouldBeFiner()
     {
         var ledger = SeenAtZero();
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 800));   // Bob is told only "Region"
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 60));   // Bob is told only "Region"
 
         // Widen the "fresh" window: by age alone the sighting would read as a NamedSpot again,
         // and Alice (first-hand) does resolve that finely — but a told fact may not get finer.
-        ledger.SpotTtl = 2000;
+        ledger.SpotTtl = 70;
 
-        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Alice", "Sam", 800).Detail);
+        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Alice", "Sam", 60).Detail);
 
-        var bob = Must(ledger, "Bob", "Sam", 800);
+        var bob = Must(ledger, "Bob", "Sam", 60);
         Assert.Equal(LedgerDetail.Region, bob.Detail);
         Assert.Equal(Region, bob.Place);
 
         // Passing it on again: the listener's natural detail is NamedSpot, the speaker's is
         // Region, so the stored detail must be capped to Region.
-        Assert.True(ledger.Gossip("Bob", "Carol", "Sam", 800));
+        Assert.True(ledger.Gossip("Bob", "Carol", "Sam", 60));
 
-        var carol = Must(ledger, "Carol", "Sam", 800);
+        var carol = Must(ledger, "Carol", "Sam", 60);
         Assert.Equal(LedgerDetail.Region, carol.Detail);
         Assert.Equal(Region, carol.Place);
         Assert.Equal(2, carol.HopCount);
@@ -261,11 +259,11 @@ public sealed class LedgerTests
         var ledger = SeenAtZero();
         Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 10));
 
-        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Bob", "Sam", 119).Detail);
-        Assert.Equal(LedgerDetail.Location, Must(ledger, "Bob", "Sam", 120).Detail);
-        Assert.Equal(LedgerDetail.Region, Must(ledger, "Bob", "Sam", 720).Detail);
-        Assert.Equal(LedgerDetail.EarlierToday, Must(ledger, "Bob", "Sam", 1200).Detail);
-        Assert.Equal(LedgerDetail.Gone, Must(ledger, "Bob", "Sam", 1440).Detail);
+        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Bob", "Sam", 11).Detail);
+        Assert.Equal(LedgerDetail.Location, Must(ledger, "Bob", "Sam", 12).Detail);
+        Assert.Equal(LedgerDetail.Region, Must(ledger, "Bob", "Sam", 48).Detail);
+        Assert.Equal(LedgerDetail.EarlierToday, Must(ledger, "Bob", "Sam", 96).Detail);
+        Assert.Equal(LedgerDetail.Gone, Must(ledger, "Bob", "Sam", 120).Detail);
     }
 
     [Fact]
@@ -353,14 +351,14 @@ public sealed class LedgerTests
     public void FromJsonRestoresADegradedViewExactly()
     {
         var ledger = SeenAtZero();
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 800));   // Region, hop 1
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 60));   // Region, hop 1
 
         var copy = Ledger.FromJson(ledger.ToJson());
 
-        var view = Must(copy, "Bob", "Sam", 800);
+        var view = Must(copy, "Bob", "Sam", 60);
         Assert.Equal(LedgerDetail.Region, view.Detail);
         Assert.Equal(Region, view.Place);
-        Assert.Equal(800, view.AgeTicks);
+        Assert.Equal(60, view.AgeTicks);
         Assert.Equal(1, view.HopCount);
         Assert.Equal(0, view.AbsoluteTick);
     }
@@ -372,10 +370,10 @@ public sealed class LedgerTests
 
         var copy = Ledger.FromJson(ledger.ToJson());
 
-        Assert.Equal(120, copy.SpotTtl);
-        Assert.Equal(720, copy.LocationTtl);
-        Assert.Equal(1200, copy.RegionTtl);
-        Assert.Equal(1440, copy.GoneTtl);
+        Assert.Equal(12, copy.SpotTtl);
+        Assert.Equal(48, copy.LocationTtl);
+        Assert.Equal(96, copy.RegionTtl);
+        Assert.Equal(120, copy.GoneTtl);
         Assert.Null(copy.View("Alice", "Sam", 0));
         Assert.Equal(ledger.ToJson(), copy.ToJson());
     }

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>StardewNpcMod</RootNamespace>
+    <LangVersion>10.0</LangVersion>
+    <!-- Shadow mode: compile only. Never deploy into the game's Mods folder or zip. -->
+    <EnableModDeploy>false</EnableModDeploy>
+    <EnableModZip>false</EnableModZip>
+    <EnableGameDebugging>false</EnableGameDebugging>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.1" />
+    <ProjectReference Include="..\..\src\NpcSchedules\NpcSchedules.csproj" />
+    <ProjectReference Include="..\..\src\NpcMemory\NpcMemory.csproj" />
+    <ProjectReference Include="..\..\src\NpcShadow\NpcShadow.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\data\regions.json" Link="regions.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

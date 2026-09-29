@@ -57,9 +57,9 @@ NPCs that:
 ## Next steps
 
 1. ~~Schedule extractor: raw schedules to region-by-time-block counts.~~ **Done** (see README): simulates a full year per NPC mirroring the verified 1.6 key order and command semantics, outputs region x block counts + routine priors; 61 tests; real 1.6 fixtures unpacked from the game.
-2. ~~Ledger record and the age-based view function (C# stub).~~ **Done** (see `src/NpcMemory`): `Diary` (event log), `Ledger` (last-seen with age decay + two-hop gossip), `RoutineBelief` (co-presence routine learning + prior seeding + pair unlock); 79 tests. Built by three parallel subagents on deepseek-flash against a parent-authored contract.
-3. Shadow-mode logging harness.
-4. SMAPI skeleton with `Saving` / `DayStarted` hooks and the sidecar client.
+2. ~~Ledger record and the age-based view function (C# stub).~~ **Done** (see `src/NpcMemory`): `Diary` (event log), `Ledger` (last-seen with age decay + two-hop gossip), `RoutineBelief` (co-presence routine learning + prior seeding + pair unlock); 77 tests. Built by three parallel subagents on deepseek-flash against a parent-authored contract.
+3. ~~Shadow-mode logging harness.~~ **Done** (see `src/NpcShadow`): deterministic simulator drives the memory layer through co-located ticks and emits a shadow log (`Saw` / `Decayed` / `Unlocked` lines) over a span of days; 29 tests.
+4. SMAPI skeleton with `Saving` / `DayStarted` hooks and the sidecar client. **Scaffolded, compile-verified** (`mod/StardewNpcMod`, runs the shadow harness on `DayStarted`); not yet run in-game (SMAPI is installed, but launching the game is a manual step), and the sidecar client (Laya) is not started.
 
 ## Side ideas
 

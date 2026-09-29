@@ -172,11 +172,13 @@ public sealed class RoutineExtractor
     /// Home inference: last stop of the spring (else default) script; if that stop is 'bed', the
     /// script's spawn point; if neither works, the most common last stop across all keys.
     /// </summary>
-    private string InferHome(string npc, Dictionary<string, string> schedules, List<string> warnings)
+    /// <summary>
+    /// Infer an NPC's home location from its schedules: the last stop of the spring (else
+    /// default) script; if that stop is 'bed', the script's spawn point; if neither works, the
+    /// most common last stop across all keys. Returns null when nothing can be inferred.
+    /// </summary>
+    public static string? InferHomeLocation(Dictionary<string, string> schedules)
     {
-        if (regions.HomeOverride(npc) is string overrideLocation)
-            return overrideLocation;
-
         foreach (string key in new[] { "spring", "default" })
         {
             if (!schedules.TryGetValue(key, out string? script))
@@ -228,6 +230,15 @@ public sealed class RoutineExtractor
         if (counts.Count > 0)
             return counts.OrderByDescending(p => p.Value).ThenBy(p => p.Key, StringComparer.OrdinalIgnoreCase).First().Key;
 
+        return null;
+    }
+
+    private string InferHome(string npc, Dictionary<string, string> schedules, List<string> warnings)
+    {
+        if (regions.HomeOverride(npc) is string overrideLocation)
+            return overrideLocation;
+        if (InferHomeLocation(schedules) is string inferred)
+            return inferred;
         warnings.Add("no home location could be inferred");
         return "";
     }

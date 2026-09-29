@@ -12,10 +12,10 @@ namespace NpcMemory;
 public sealed class Ledger
 {
     // Degradation thresholds, in ticks (1 tick = 10 game minutes). All public and tunable.
-    public int SpotTtl { get; set; } = 120;     // NamedSpot while age < 120 (2 hours)
-    public int LocationTtl { get; set; } = 720; // Location while age < 720 (12 hours)
-    public int RegionTtl { get; set; } = 1200;  // Region while age < 1200 (20 hours)
-    public int GoneTtl { get; set; } = 1440;    // EarlierToday for [1200,1440); Gone at 1440+ (a day)
+    public int SpotTtl { get; set; } = 12;     // NamedSpot while age < 12 ticks (2 hours)
+    public int LocationTtl { get; set; } = 48; // Location while age < 48 ticks (8 hours)
+    public int RegionTtl { get; set; } = 96;   // Region while age < 96 ticks (16 hours)
+    public int GoneTtl { get; set; } = 120;    // EarlierToday for [96,120) ticks; Gone at 120+ (a full day, "gone the next day")
 
     /// <summary>Knowledge may be re-told twice: first-hand (0) -> told (1) -> told-by-told (2).</summary>
     private const int MaxHopCount = 2;
