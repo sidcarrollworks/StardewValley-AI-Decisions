@@ -1,4 +1,5 @@
 using NpcDecision;
+using NpcIntents;
 using NpcMemory;
 using NpcSchedules;
 using StardewModdingAPI;
@@ -35,10 +36,13 @@ public class ModEntry : Mod
 
     // Fake client in shadow mode; the real Laya/Jev clients are wired in when their APIs are known.
     private readonly IDecisionClient _decision = new ResilientDecisionClient(new FakeDecisionClient());
+    private IntentPlanner _planner = null!;
+    private IntentPlan? _pendingPlan;
 
     public override void Entry(IModHelper helper)
     {
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
+        _planner = new IntentPlanner(_decision, new LineRenderer());
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
@@ -64,20 +68,14 @@ public class ModEntry : Mod
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
+        // Deliver last night's intents — shadow mode: log what each NPC would say, change nothing.
         try
         {
-            // Shadow probe only: prove the decision client is reachable in-game. No real feature
-            // uses it yet (overnight intents / initiation ladder are out of scope for step 4).
-            IReadOnlyList<double> weights = _decision.Choose(
-                new[] { "tend the shop", "take a walk", "stay near the player" },
-                "what would Abigail do this afternoon");
-            double sociability = _decision.Score("how sociable is the player today", 1, 5);
-            double lonely = _decision.YesNo("is Abigail lonely", "Abigail has not seen the player recently");
-            Monitor.Log($"[shadow] would-ask: choice {string.Join("/", weights.Select(w => $"{w:0.00}"))}, sociability {sociability:0.0}/5, lonely {lonely:0.0}", LogLevel.Info);
+            DeliverIntents();
         }
         catch (Exception ex)
         {
-            Monitor.Log($"Shadow probe failed: {ex}", LogLevel.Error);
+            Monitor.Log($"Intent delivery failed: {ex}", LogLevel.Error);
         }
     }
 
@@ -99,6 +97,7 @@ public class ModEntry : Mod
         try
         {
             SaveMemory();
+            PlanIntents();
         }
         catch (Exception ex)
         {
@@ -177,6 +176,48 @@ public class ModEntry : Mod
             _beliefs[subject] = belief;
         }
         return belief;
+    }
+
+    /// <summary>
+    /// At sleep, decide which NPCs will have something to say tomorrow. The model makes the typed
+    /// choices (who speaks = yes/no; about what = choice over recent diary entries); the line is
+    /// templated. Shadow mode: the result is only logged the next morning, never pushed into the
+    /// game. The plan is kept in memory only — it survives the sleep-to-morning boundary (same
+    /// process) but not a save-and-quit; persist it before real delivery goes live.
+    /// </summary>
+    private void PlanIntents()
+    {
+        var snapshots = new List<NpcMemorySnapshot>();
+        foreach ((string npc, Diary diary) in _npcDiaries)
+        {
+            if (diary.Entries.Count == 0)
+                continue;
+            snapshots.Add(new NpcMemorySnapshot(
+                npc, VoiceSheets.Voice(npc), diary.Entries.ToList(), Array.Empty<string>()));
+        }
+
+        if (snapshots.Count == 0)
+        {
+            _pendingPlan = null;
+            return;
+        }
+
+        // Deterministic per-day seed: same day -> same plan, different days -> different plans.
+        int seed = GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, 0));
+        _pendingPlan = _planner.Plan(snapshots, seed);
+        Monitor.Log($"[shadow] planned {_pendingPlan.Candidates.Count} intent(s) for tomorrow (from {snapshots.Count} NPC diaries).", LogLevel.Info);
+    }
+
+    /// <summary>Shadow delivery: log the would-be lines, then drop the plan. Changes no game state.</summary>
+    private void DeliverIntents()
+    {
+        if (_pendingPlan is null || _pendingPlan.Candidates.Count == 0)
+            return;
+
+        foreach (IntentCandidate candidate in _pendingPlan.Candidates)
+            Monitor.Log($"[shadow] {candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})", LogLevel.Info);
+
+        _pendingPlan = null;
     }
 
     private void SaveMemory()
