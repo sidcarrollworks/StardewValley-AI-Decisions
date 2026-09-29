@@ -106,7 +106,8 @@ public class ModEntry : Mod
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        _intentsToday.Clear();
+        // Don't clear _intentsToday here: the 6:00 TimeChanged fires during the new-day transition,
+        // before the save and before DayStarted (seen in the SMAPI log), and usually collects the plan.
         try
         {
             CollectPlan(morning: true);
@@ -276,6 +277,7 @@ public class ModEntry : Mod
     {
         _planJob?.Dispose();
         _planJob = null;
+        _intentsToday.Clear(); // today's lines are over; tomorrow's arrive when the new plan is collected
 
         var snapshots = _memory.Diaries
             .Where(kv => kv.Value.Entries.Count > 0)

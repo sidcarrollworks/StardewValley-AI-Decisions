@@ -100,7 +100,6 @@ Married NPCs use only `marriage_*` keys (+ `marriageJob` for Harvey/Maru/Penny o
 
 ## Tools
 
-- **SMAPI:** `GameLoop.Saving`, `DayStarted`, `DayEnding` (recall); `helper.Data.WriteSaveData` (recall).
-- **Jev:** typed decisions, up to 255 choices, hosted early access.
+- **SMAPI:** `GameLoop.Saving`, `DayStarted`, `DayEnding`, `helper.Data.WriteSaveData` (verified in-game, SMAPI 4.5.2 / 1.6.15). Night order seen in the SMAPI log: `DayEnding` -> the "NewDay" task -> `TimeChanged` with NewTime 600 (the date is already the new day) -> `Saving` -> `DayStarted`. So the 6:00 tick runs before the save and before `DayStarted`.
 - **Laya checkpoints:** `laya` (English, 512 ctx), `laya-multilingual` (1,024), `laya-typed-decisions` (1,024).
 - **xnbcli** (LeonBlade/xnbcli, Node): unpacks plain-XNA-type XNB files directly (dictionary data works, e.g. `Characters/schedules/*.xnb`). The native `lz4` module needs a stub (`const LZ4 = null`) when no C++ toolchain is present; LZX files (all schedule files) don't need it. Structured 1.6 data (Data/Locations etc.) uses game-specific type readers xnbcli can't resolve — StardewXnbHack handles those but runs through a real game instance (needs to run from the game folder, briefly opens a game window, writes `Content (unpacked)`).
