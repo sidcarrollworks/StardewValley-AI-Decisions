@@ -1,7 +1,7 @@
 namespace NpcDecision;
 
 /// <summary>
-/// A typed decision engine (Jev or Laya). Three question types, all returning numbers, never
+/// A typed decision engine (Laya, run locally; or the deterministic fake). Three question types, all returning numbers, never
 /// free text: choice (probabilities over the game's currently-valid options), score (on an
 /// ordered scale), and yes/no (probability of the proposition). Options are always the actions
 /// the game actually supports, so the client can never propose an invalid one.

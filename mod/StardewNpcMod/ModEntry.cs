@@ -1,4 +1,5 @@
 using NpcDecision;
+using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
 using NpcSchedules;
@@ -9,56 +10,92 @@ using StardewValley;
 namespace StardewNpcMod;
 
 /// <summary>
-/// Step 4: the live scaffold. Hooks SaveLoaded / DayStarted / TimeChanged / Saving /
-/// ReturnedToTitle. Persists the player's Diary, Ledger and RoutineBeliefs into the save, so
-/// memory survives a save/reload instead of resetting each day. Each ten-minute tick it records
-/// actual co-location — same location AND within <see cref="CoLocationRadius"/> tiles, never
-/// same-region. A typed decision client (fake for now; real Jev/Laya are stubs marked "verify")
-/// is wired but only shadow-probed. Shadow mode: records and logs, changes no game state.
+/// The live mod, in shadow mode (records and logs, changes no game state). Hooks SaveLoaded /
+/// DayStarted / TimeChanged / DayEnding / Saving / ReturnedToTitle.
+/// <list type="bullet">
+/// <item>Each ten-minute tick, every NPC observes the player and the other NPCs that share its
+/// location within <see cref="MemoryStore.CoLocationRadius"/> tiles (memory from the NPC side).</item>
+/// <item>At day end, overnight intents are planned on a background task with a time budget; the plan
+/// is collected (never waited on) and shadow-logged the next morning.</item>
+/// <item>The initiation ladder runs on its own background worker; its would-be actions are logged.</item>
+/// </list>
+/// Model calls (Laya or the fake) never run on the game thread, including during the save.
 /// </summary>
 public class ModEntry : Mod
 {
     private const string SaveKey = "squid.StardewNpcMod.memory";
 
-    // VERIFY/tune: "seen" means the same location and within this many tiles (Chebyshev square).
-    private const int CoLocationRadius = 8;
-
-    // The player is the observer for now; other NPCs become observers later.
-    private const string Observer = "Player";
-
+    private ModConfig _config = new();
     private RegionMap _regions = null!;
-    private Ledger _ledger = new();
-    private Diary _diary = new();
-    private readonly Dictionary<string, RoutineBelief> _beliefs = new(StringComparer.OrdinalIgnoreCase);
-    // Each NPC's own diary of what they witnessed (currently: "Saw Player" at a location). This is
-    // the source the overnight-intent planner will reason over.
-    private readonly Dictionary<string, Diary> _npcDiaries = new(StringComparer.OrdinalIgnoreCase);
+    private IDecisionClient _model = new FakeDecisionClient();
+    private MemoryStore _memory = new();
+    private BackgroundLadder _ladder = null!;
+    private IntentPlanJob? _planJob;
 
-    // Fake client in shadow mode; the real Laya/Jev clients are wired in when their APIs are known.
-    private readonly IDecisionClient _decision = new ResilientDecisionClient(new FakeDecisionClient());
-    private IntentPlanner _planner = null!;
-    private IntentPlan? _pendingPlan;
+    // NPCs with a planned line for today (feeds the ladder's intent boost).
+    private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
+    // NPCs the player had already talked to at the last tick (a new talk = a response).
+    private readonly HashSet<string> _talkedToday = new(StringComparer.OrdinalIgnoreCase);
 
     public override void Entry(IModHelper helper)
     {
+        _config = helper.ReadConfig<ModConfig>();
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
-        _planner = new IntentPlanner(_decision, new LineRenderer());
+        _model = BuildModel();
+        _ladder = NewLadder(null);
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.GameLoop.TimeChanged += OnTimeChanged;
+        helper.Events.GameLoop.DayEnding += OnDayEnding;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
 
-        Monitor.Log($"Shadow scaffold ready: co-location radius {CoLocationRadius} tiles, decision client {_decision.GetType().Name}.", LogLevel.Info);
+        Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
     }
+
+    /// <summary>The raw model client. Every use goes through a <see cref="ResilientDecisionClient"/>
+    /// with a timeout, on a background thread.</summary>
+    private IDecisionClient BuildModel()
+    {
+        if (!string.Equals(_config.DecisionBackend, "Laya", StringComparison.OrdinalIgnoreCase))
+            return new FakeDecisionClient();
+
+        var laya = new LayaDecisionClient(new LayaOptions
+        {
+            BaseUrl = _config.LayaUrl,
+            Model = _config.LayaModel,
+            ApiKey = _config.LayaApiKey,
+            Timeout = TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs),
+        });
+        // Health check off the game thread; failures only mean every decision will fall back.
+        Task.Run(() => Monitor.Log(laya.IsHealthy()
+            ? $"Laya is up at {_config.LayaUrl}."
+            : $"Laya is not answering at {_config.LayaUrl}; decisions will use the fallback until it is. See sidecar/README.md.",
+            LogLevel.Info));
+        return laya;
+    }
+
+    private IDecisionClient Guarded(CancellationToken budget = default)
+        => new ResilientDecisionClient(_model, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget);
+
+    private BackgroundLadder NewLadder(string? json)
+    {
+        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // VERIFY: per-save id
+        InitiationLadder ladder = json is null
+            ? new InitiationLadder(Guarded(), seed)
+            : InitiationLadder.FromJson(json, Guarded(), seed);
+        return new BackgroundLadder(ladder, _config.LadderMaxBacklog);
+    }
+
+    // ---- events --------------------------------------------------------------------------------
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         try
         {
             LoadMemory();
-            Monitor.Log($"Memory loaded: {_diary.Entries.Count} diary entries, {_beliefs.Count} routine beliefs.", LogLevel.Info);
+            Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
         }
         catch (Exception ex)
         {
@@ -68,10 +105,11 @@ public class ModEntry : Mod
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
-        // Deliver last night's intents — shadow mode: log what each NPC would say, change nothing.
+        _talkedToday.Clear();
+        _intentsToday.Clear();
         try
         {
-            DeliverIntents();
+            CollectPlan(morning: true);
         }
         catch (Exception ex)
         {
@@ -82,22 +120,49 @@ public class ModEntry : Mod
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
         // VERIFY: TimeChanged fires on the ten-minute tick (and may also fire at other clock jumps).
+        int tick = TimeUtils.TickIndex(e.NewTime);
+        if (tick < 0)
+            return; // outside the 600..2600 live day
+        int now = Now(tick);
+
         try
         {
-            ObserveNearby(e.NewTime);
+            _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
         }
         catch (Exception ex)
         {
             Monitor.Log($"Observation failed: {ex}", LogLevel.Error);
         }
+
+        try
+        {
+            RunLadder(now);
+            CollectPlan(morning: false);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Shadow ladder failed: {ex}", LogLevel.Error);
+        }
+    }
+
+    private void OnDayEnding(object? sender, DayEndingEventArgs e)
+    {
+        try
+        {
+            StartPlanning();
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Could not start overnight planning: {ex}", LogLevel.Error);
+        }
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
+        // Only fast local serialization here; planning is already running in the background.
         try
         {
             SaveMemory();
-            PlanIntents();
         }
         catch (Exception ex)
         {
@@ -108,165 +173,175 @@ public class ModEntry : Mod
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
         // Fresh memory per save; a different save must start clean.
-        _ledger = new Ledger();
-        _diary = new Diary();
-        _beliefs.Clear();
-        _npcDiaries.Clear();
+        _planJob?.Dispose();
+        _planJob = null;
+        _memory = new MemoryStore();
+        _ladder = NewLadder(null);
+        _intentsToday.Clear();
+        _talkedToday.Clear();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
-    /// <summary>
-    /// Record actual co-location each tick: every villager in the player's current location whose
-    /// tile is within <see cref="CoLocationRadius"/> tiles (Chebyshev) is "seen". Same region is
-    /// NOT enough — only aged, coarsened ledger entries may later feed a decision, never live
-    /// positions.
-    /// </summary>
-    private void ObserveNearby(int newTime)
+    // ---- perception ------------------------------------------------------------------------------
+
+    /// <summary>Absolute tick for the current day, including the year.</summary>
+    private static int Now(int tickOfDay)
+        => GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, tickOfDay, Game1.year));
+
+    /// <summary>Where every villager and the player stand this tick. This is the perception layer:
+    /// it only feeds <see cref="MemoryStore.Observe"/>, which ages and coarsens it into the ledger.
+    /// Nothing here reaches a decision directly.</summary>
+    private static List<Presence> CollectPresences()
     {
-        int tick = TimeUtils.TickIndex(newTime);
-        if (tick < 0)
-            return; // outside the 600..2600 live day
+        var presences = new List<Presence>();
+        var seen = new HashSet<GameLocation>();
+
+        // VERIFY: Game1.locations holds the static maps (town buildings included); building interiors
+        // on the farm are not listed, so the player's own location is added explicitly. Also unverified:
+        // whether off-screen NPCs' positions update in real time (brief, open question).
+        IEnumerable<GameLocation> locations = Game1.locations;
+        if (Game1.player.currentLocation is { } playerLocation)
+            locations = locations.Append(playerLocation);
+
+        foreach (GameLocation location in locations)
+        {
+            if (location is null || !seen.Add(location))
+                continue;
+            foreach (NPC npc in location.characters)
+            {
+                if (!npc.IsVillager) // confirmed: property, not method; drops monsters/animals
+                    continue;
+                presences.Add(new Presence(npc.Name, location.Name, npc.TilePoint.X, npc.TilePoint.Y));
+            }
+        }
 
         Farmer player = Game1.player;
-        GameLocation location = player.currentLocation;
-        if (location is null)
-            return;
-
-        // VERIFY: absolute tick is year-1-scoped (GameClock models one year); real saves spanning
-        // years will need a year counter before this is monotonic across a new-year boundary.
-        int absTick = GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, tick));
-        string locName = location.Name; // VERIFY: internal location name ("Town", "SeedShop", ...)
-        string region = _regions.RegionFor(locName) ?? RegionMap.OtherRegion;
-        int block = TimeUtils.BlockIndex(tick, _regions.BlockMinutes);
-
-        foreach (NPC npc in location.characters)
-        {
-            if (!npc.IsVillager) // confirmed: property, not method (was isVillager()); drops monsters/animals
-                continue;
-            if (!Proximity.WithinRadius(player.TilePoint.X, player.TilePoint.Y, npc.TilePoint.X, npc.TilePoint.Y, CoLocationRadius))
-                continue;
-
-            string subject = npc.Name;
-            _ledger.Record(Observer, subject, locName, region, absTick);
-            _diary.Append(new DiaryEntry(absTick, subject, "Saw", locName));
-            RoutineBelief belief = GetBelief(subject);
-            belief.Observe(region, block, absTick);
-            belief.NoteCoPresence(1);
-
-            // The NPC also witnesses the player; their own diary is the overnight-intent source.
-            NpcDiary(subject).Append(new DiaryEntry(absTick, "Player", "Saw", locName));
-        }
+        if (player.currentLocation is { } here)
+            presences.Add(new Presence(MemoryStore.PlayerName, here.Name, player.TilePoint.X, player.TilePoint.Y, IsPlayer: true));
+        return presences;
     }
 
-    private Diary NpcDiary(string npc)
+    private static int HeartsFor(string npc)
+        => Game1.player.getFriendshipHeartLevelForNPC(npc); // VERIFY: 1.6 name
+
+    private static bool TalkedToToday(string npc)
+        => Game1.player.friendshipData.TryGetValue(npc, out Friendship friendship) && friendship.TalkedToToday; // VERIFY
+
+    // ---- initiation ladder (shadow) -------------------------------------------------------------
+
+    /// <summary>Hand the ladder this tick's inputs (each NPC's own ledger view of the player, never a
+    /// live position), report new conversations as responses, and log whatever the worker finished.</summary>
+    private void RunLadder(int now)
     {
-        if (!_npcDiaries.TryGetValue(npc, out Diary? diary))
+        var inputs = new List<InitiationInput>();
+        foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
-            diary = new Diary();
-            _npcDiaries[npc] = diary;
+            LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
+            inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc)));
+
+            if (TalkedToToday(npc) && _talkedToday.Add(npc))
+                _ladder.EnqueueResponse(npc, now);
         }
-        return diary;
+        if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
+            Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
+
+        foreach (BackgroundLadder.Result result in _ladder.Drain())
+        {
+            foreach ((string npc, DiaryEntry entry) in result.DiaryLines)
+                _memory.DiaryOf(npc).Append(entry);
+            foreach (InitiationEvent ev in result.Events)
+                Monitor.Log(ev.Kind == "Attempt"
+                    ? $"[shadow] {ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})"
+                    : $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00})",
+                    LogLevel.Info);
+        }
     }
 
-    private RoutineBelief GetBelief(string subject)
-    {
-        if (!_beliefs.TryGetValue(subject, out RoutineBelief? belief))
-        {
-            belief = new RoutineBelief(Observer, subject, _regions.BlockMinutes);
-            _beliefs[subject] = belief;
-        }
-        return belief;
-    }
+    // ---- overnight intents (shadow) -------------------------------------------------------------
 
     /// <summary>
-    /// At sleep, decide which NPCs will have something to say tomorrow. The model makes the typed
-    /// choices (who speaks = yes/no; about what = choice over recent diary entries); the line is
-    /// templated. Shadow mode: the result is only logged the next morning, never pushed into the
-    /// game. The plan is kept in memory only — it survives the sleep-to-morning boundary (same
-    /// process) but not a save-and-quit; persist it before real delivery goes live.
+    /// At day end, snapshot every NPC diary and plan tomorrow's intents on a background task. Only
+    /// the day just ended is considered (so "yesterday" is true). The budget cuts off a slow model;
+    /// remaining decisions fall back. The plan is kept in memory only (survives sleep, not quit).
     /// </summary>
-    private void PlanIntents()
+    private void StartPlanning()
     {
-        var snapshots = new List<NpcMemorySnapshot>();
-        foreach ((string npc, Diary diary) in _npcDiaries)
-        {
-            if (diary.Entries.Count == 0)
-                continue;
-            snapshots.Add(new NpcMemorySnapshot(
-                npc, VoiceSheets.Voice(npc), diary.Entries.ToList(), Array.Empty<string>()));
-        }
+        _planJob?.Dispose();
+        _planJob = null;
 
+        var snapshots = _memory.Diaries
+            .Where(kv => kv.Value.Entries.Count > 0)
+            .Select(kv => new NpcMemorySnapshot(kv.Key, VoiceSheets.Voice(kv.Key), kv.Value.Entries.ToList(), Array.Empty<string>()))
+            .ToList();
         if (snapshots.Count == 0)
+            return;
+
+        int today = GameClock.DayIndex(Now(0));
+        int seed = today; // deterministic per day
+        _planJob = IntentPlanJob.Start(
+            budget => new IntentPlanner(Guarded(budget), new LineRenderer()).Plan(snapshots, seed, sourceDay: today),
+            TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
+        Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Trace);
+    }
+
+    /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>
+    private void CollectPlan(bool morning)
+    {
+        if (_planJob is null)
+            return;
+        if (!_planJob.TryTake(out IntentPlan plan, out Exception? error))
         {
-            _pendingPlan = null;
+            if (morning)
+                Monitor.Log("[shadow] overnight planning is still running; its lines will be logged when ready.", LogLevel.Info);
             return;
         }
 
-        // Deterministic per-day seed: same day -> same plan, different days -> different plans.
-        int seed = GameClock.AbsoluteTick(new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, 0));
-        _pendingPlan = _planner.Plan(snapshots, seed);
-        Monitor.Log($"[shadow] planned {_pendingPlan.Candidates.Count} intent(s) for tomorrow (from {snapshots.Count} NPC diaries).", LogLevel.Info);
-    }
-
-    /// <summary>Shadow delivery: log the would-be lines, then drop the plan. Changes no game state.</summary>
-    private void DeliverIntents()
-    {
-        if (_pendingPlan is null || _pendingPlan.Candidates.Count == 0)
-            return;
-
-        foreach (IntentCandidate candidate in _pendingPlan.Candidates)
+        if (error is not null)
+            Monitor.Log($"Overnight planning failed: {error}", LogLevel.Error);
+        if (_planJob.BudgetExhausted)
+            Monitor.Log("[shadow] planning hit its time budget; some decisions used the fallback.", LogLevel.Info);
+        foreach (IntentCandidate candidate in plan.Candidates)
+        {
+            _intentsToday.Add(candidate.Npc);
             Monitor.Log($"[shadow] {candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})", LogLevel.Info);
+        }
 
-        _pendingPlan = null;
+        _planJob.Dispose();
+        _planJob = null;
     }
+
+    // ---- persistence ----------------------------------------------------------------------------
 
     private void SaveMemory()
     {
-        var beliefs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach ((string subject, RoutineBelief belief) in _beliefs)
-            beliefs[subject] = belief.ToJson();
-
-        var npcDiaries = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach ((string npc, Diary diary) in _npcDiaries)
-            npcDiaries[npc] = diary.ToJson();
-
         Helper.Data.WriteSaveData(SaveKey, new Dictionary<string, string>
         {
-            ["diary"] = _diary.ToJson(),
-            ["ledger"] = _ledger.ToJson(),
-            ["beliefs"] = System.Text.Json.JsonSerializer.Serialize(beliefs),
-            ["npcDiaries"] = System.Text.Json.JsonSerializer.Serialize(npcDiaries),
+            ["version"] = MemoryStore.CurrentVersion.ToString(),
+            ["memory"] = _memory.ToJson(),
+            ["ladder"] = _ladder.LatestJson, // last finished state; saving never waits on the model
         });
-        Monitor.Log($"Memory saved ({_diary.Entries.Count} diary entries, {_beliefs.Count} beliefs, {_npcDiaries.Count} NPC diaries).", LogLevel.Info);
+        Monitor.Log($"Memory saved ({_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} beliefs).", LogLevel.Info);
     }
 
     private void LoadMemory()
     {
         var model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
+        _memory = new MemoryStore();
+        _ladder = NewLadder(null);
         if (model is null)
             return;
 
-        if (model.TryGetValue("diary", out string? diaryJson))
-            _diary = Diary.FromJson(diaryJson);
-        if (model.TryGetValue("ledger", out string? ledgerJson))
-            _ledger = Ledger.FromJson(ledgerJson);
-        if (model.TryGetValue("beliefs", out string? beliefsJson))
+        if (model.TryGetValue("version", out string? version) && version == MemoryStore.CurrentVersion.ToString())
         {
-            _beliefs.Clear();
-            Dictionary<string, string>? stored =
-                System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(beliefsJson);
-            if (stored is not null)
-                foreach ((string subject, string json) in stored)
-                    _beliefs[subject] = RoutineBelief.FromJson(json);
+            if (model.TryGetValue("memory", out string? memoryJson))
+                _memory = MemoryStore.FromJson(memoryJson);
+            if (model.TryGetValue("ladder", out string? ladderJson))
+                _ladder = NewLadder(ladderJson);
+            return;
         }
-        if (model.TryGetValue("npcDiaries", out string? npcDiariesJson))
-        {
-            _npcDiaries.Clear();
-            Dictionary<string, string>? stored =
-                System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(npcDiariesJson);
-            if (stored is not null)
-                foreach ((string npc, string json) in stored)
-                    _npcDiaries[npc] = Diary.FromJson(json);
-        }
+
+        // Version 1 (steps 4-5): ticks had no year. Migrate relative to today.
+        _memory = MemoryStore.FromVersion1(model, new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, 0, Game1.year));
+        Monitor.Log("Migrated memory from the previous save format (added the year to old timestamps).", LogLevel.Info);
     }
 }

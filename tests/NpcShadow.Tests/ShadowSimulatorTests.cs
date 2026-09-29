@@ -25,6 +25,9 @@ public class ShadowSimulatorTests
     /// <summary>Subject with two separate Town spans: 0610-1150 and 1400-2500.</summary>
     private const string TownTwoSpans = "600 Town 40 20 0/1200 Mountain 5 5 2/2000 Town 40 20 0";
 
+    /// <summary>Subject standing in the Town location all day (time-0 spawn in Town).</summary>
+    private const string TownAllDay = "0 Town 40 20 0/2000 Town 41 20 0";
+
     /// <summary>Subject who never leaves the Mountain: never co-located with a Town observer.</summary>
     private const string MountainAllDay = "600 Mountain 5 5 2/1800 Mountain 6 6 0";
 
@@ -75,18 +78,26 @@ public class ShadowSimulatorTests
     }
 
     [Fact]
-    public void Run_SubjectInTheObserverRegionAllDay_LogsASingleSawAtTheFirstCoLocatedTick()
+    public void Run_SameRegionButADifferentLocation_IsNotCoPresence()
     {
-        ShadowSimulator sim = Sim(); // stationary observer at Town
+        // The audit repro: an observer standing in Town must not "see" Abby inside the SeedShop,
+        // even though both are in the Town region. Only the Town span (0900-1750) counts.
+        ShadowSimulator sim = Sim(); // stationary observer at the Town location
         sim.AddSubject("Abby", TestHelpers.AbbySchedules());
 
         ShadowLog log = sim.Run("spring", 1, 1, Options(), 1234);
 
         ShadowEvent saw = Assert.Single(SawEvents(log, "Abby"));
-        Assert.Equal(0, saw.Tick); // Abby is home (SeedShop, Town) from tick 0
-        Assert.Equal(600, saw.TimeOfDay);
-        Assert.Equal("Abby at SeedShop (Town)", saw.Message);
-        Assert.Equal(TicksPerDay, sim.Beliefs["Abby"].CoPresenceTicks);
+        Assert.Equal(18, saw.Tick);
+        Assert.Equal(900, saw.TimeOfDay);
+        Assert.Equal("Abby at Town (Town)", saw.Message);
+        Assert.Equal(72 - 18, sim.Beliefs["Abby"].CoPresenceTicks);
+
+        // After she goes home at 1800 the memory is of Town, not the SeedShop she is really in.
+        int evening = GameClock.AbsoluteTick(new GameTime(0, 1, 80));
+        LedgerView view = sim.Ledger.View("Player", "Abby", evening)!;
+        Assert.Equal("Town", view.Place);
+        Assert.Equal(71, view.AbsoluteTick);
     }
 
     [Fact]
@@ -122,26 +133,29 @@ public class ShadowSimulatorTests
     }
 
     [Fact]
-    public void Run_SecondDay_MemoryDecaysToEarlierTodayAndGone()
+    public void Run_SecondDay_MemoryIsGoneAtTheNextMorning()
     {
         ShadowSimulator sim = Sim();
-        sim.AddSubject("Caroline", TownOnlyOnDay1()); // Town on day 1 only
+        sim.AddSubject("Caroline", TownOnlyOnDay1()); // Town on day 1 only, last seen at 1150
 
         ShadowLog log = sim.Run("spring", 1, 2, Options(), 1234);
 
-        // day 2: age crosses 96 (EarlierToday) and 120 (Gone)
-        Assert.Contains(log.Events, e => e.Kind == "Decayed" && e.Message == "memory of Caroline decayed to EarlierToday" && e.Day == 2);
-        Assert.Contains(log.Events, e => e.Kind == "Decayed" && e.Message == "memory of Caroline decayed to Gone" && e.Day == 2);
+        // Calendar-day decay: Gone at 6:00 on day 2, not 120 ticks after the sighting, and no
+        // "EarlierToday" carried into the next day.
+        ShadowEvent gone = Assert.Single(log.Events, e => e.Kind == "Decayed" && e.Message == "memory of Caroline decayed to Gone");
+        Assert.Equal(2, gone.Day);
+        Assert.Equal(0, gone.Tick);
+        Assert.DoesNotContain(log.Events, e => e.Kind == "Decayed" && e.Message.EndsWith("EarlierToday") && e.Day == 2);
 
-        int day2Last = GameClock.AbsoluteTick(new GameTime(0, 2, TicksPerDay - 1));
-        Assert.Equal(LedgerDetail.Gone, sim.Ledger.View("Player", "Caroline", day2Last)!.Detail);
+        int day2First = GameClock.AbsoluteTick(new GameTime(0, 2, 0));
+        Assert.Equal(LedgerDetail.Gone, sim.Ledger.View("Player", "Caroline", day2First)!.Detail);
     }
 
     [Fact]
     public void Run_TwoDaysOfCoLocation_UnlocksThePair()
     {
         ShadowSimulator sim = Sim();
-        sim.AddSubject("Abby", TestHelpers.AbbySchedules()); // Town all day, every day
+        sim.AddSubject("Abby", Spring(TownAllDay)); // the Town location all day, every day
 
         ShadowLog log = sim.Run("spring", 1, 2, Options(), 42);
 
@@ -155,7 +169,7 @@ public class ShadowSimulatorTests
     public void Run_OneDayOfCoLocation_DoesNotUnlock()
     {
         ShadowSimulator sim = Sim();
-        sim.AddSubject("Abby", TestHelpers.AbbySchedules());
+        sim.AddSubject("Abby", Spring(TownAllDay));
 
         ShadowLog log = sim.Run("spring", 1, 1, Options(), 42);
 
@@ -198,10 +212,14 @@ public class ShadowSimulatorTests
         Assert.Equal("Abby", view!.Subject);
         Assert.Equal(LedgerDetail.NamedSpot, view.Detail); // still co-located at the last tick
         Assert.Equal("SeedShop", view.Place);
+        Assert.Equal("6,6", view.Spot);                     // the schedule tile she stands on
 
-        Assert.Equal(TicksPerDay - 18, sim.Diary.Entries.Count);
-        Assert.All(sim.Diary.Entries, e => Assert.Equal("Saw", e.Kind));
-        Assert.Equal(TicksPerDay - 18, sim.Diary.About("abby").Count());
+        // One diary entry per co-located span (0900 in Town, still together in the SeedShop after),
+        // not one per tick.
+        DiaryEntry entry = Assert.Single(sim.Diary.Entries);
+        Assert.Equal("Saw", entry.Kind);
+        Assert.Equal("Town", entry.Detail);
+        Assert.Single(sim.Diary.About("abby"));
 
         Assert.True(sim.Beliefs.ContainsKey("abby"));
         Assert.Equal("Abby", sim.Beliefs["Abby"].Subject);

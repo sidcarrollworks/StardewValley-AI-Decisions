@@ -14,32 +14,52 @@ public sealed class LineRenderer : ILineRenderer
     private const string SawKind = "Saw";
     private const string PlayerSubject = "Player";
 
+    private readonly Func<string?, string> _placeName;
+
+    /// <param name="placeName">Maps an internal location name to the player-facing one; defaults
+    /// to <see cref="PlaceNames.Display"/>. The mod may pass the game's own display names.</param>
+    public LineRenderer(Func<string?, string>? placeName = null)
+        => _placeName = placeName ?? PlaceNames.Display;
+
     /// <inheritdoc />
     /// <remarks>
     /// <paramref name="npc"/> and <paramref name="voice"/> are accepted for interface symmetry and
     /// future per-voice phrasing; the current templates do not vary by speaker, so the line is
-    /// fully determined by <paramref name="entry"/>.
+    /// fully determined by <paramref name="entry"/> and when it happened.
     /// </remarks>
-    public string Render(string npc, string voice, DiaryEntry entry)
+    public string Render(string npc, string voice, DiaryEntry entry) => Render(npc, voice, entry, daysAgo: 1);
+
+    /// <inheritdoc />
+    public string Render(string npc, string voice, DiaryEntry entry, int daysAgo)
     {
         ArgumentNullException.ThrowIfNull(entry);
 
         string line = string.Equals(entry.Kind, SawKind, StringComparison.OrdinalIgnoreCase)
-            ? RenderSaw(entry)
+            ? RenderSaw(entry, When(daysAgo))
             : $"I've been thinking about {entry.Subject}.";
 
         return LineSanitizer.Sanitize(line);
     }
 
-    private static string RenderSaw(DiaryEntry entry)
+    /// <summary>How long ago, in words. Only exactly one day is "yesterday".</summary>
+    public static string When(int daysAgo) => daysAgo switch
+    {
+        <= 0 => "earlier today",
+        1 => "yesterday",
+        < 7 => "the other day",
+        _ => "a while back",
+    };
+
+    private string RenderSaw(DiaryEntry entry, string when)
     {
         // The player is addressed in the second person: "I saw you ...", never "I saw Player ...".
         string who = string.Equals(entry.Subject, PlayerSubject, StringComparison.OrdinalIgnoreCase)
             ? "you"
             : entry.Subject;
 
-        return string.IsNullOrEmpty(entry.Detail)
-            ? $"I saw {who} yesterday."
-            : $"I saw {who} at {entry.Detail} yesterday.";
+        string place = _placeName(entry.Detail);
+        return string.IsNullOrEmpty(place)
+            ? $"I saw {who} {when}."
+            : $"I saw {who} at {place} {when}.";
     }
 }

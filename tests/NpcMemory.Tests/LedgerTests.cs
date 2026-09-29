@@ -11,13 +11,14 @@ public sealed class LedgerTests
     // Sam is in the SeedShop (region Town) at tick 0 in the fixtures below.
     private const string Location = "SeedShop";
     private const string Region = "Town";
+    private const string Spot = "12,20"; // a tile inside the shop
 
     private static Ledger SeenAtZero() => SeenAtZero("Alice", "Sam");
 
     private static Ledger SeenAtZero(string observer, string subject)
     {
         var ledger = new Ledger();
-        ledger.Record(observer, subject, Location, Region, 0);
+        ledger.Record(observer, subject, Location, Region, 0, Spot);
         return ledger;
     }
 
@@ -54,6 +55,7 @@ public sealed class LedgerTests
         Assert.Equal("Sam", view.Subject);
         Assert.Equal(LedgerDetail.NamedSpot, view.Detail);
         Assert.Equal(Location, view.Place);
+        Assert.Equal(Spot, view.Spot);
         Assert.Equal(0, view.AgeTicks);
         Assert.Equal(0, view.HopCount);       // first-hand
         Assert.Equal(0, view.AbsoluteTick);
@@ -68,7 +70,7 @@ public sealed class LedgerTests
     [InlineData(95, LedgerDetail.Region, Region)]         // last tick still Region
     [InlineData(96, LedgerDetail.EarlierToday, null)]     // 16h -> no place
     [InlineData(119, LedgerDetail.EarlierToday, null)]    // last tick still today
-    [InlineData(120, LedgerDetail.Gone, null)]            // a day -> forgotten
+    [InlineData(120, LedgerDetail.Gone, null)]            // next morning 6:00 -> forgotten
     [InlineData(5000, LedgerDetail.Gone, null)]
     public void ViewDegradesAtEachThreshold(int age, LedgerDetail expectedDetail, string? expectedPlace)
     {
@@ -105,21 +107,22 @@ public sealed class LedgerTests
     [Fact]
     public void ThresholdsAreConfigurable()
     {
-        var ledger = new Ledger { SpotTtl = 10, LocationTtl = 20, RegionTtl = 30, GoneTtl = 40 };
-        ledger.Record("Alice", "Sam", Location, Region, 100);
+        var ledger = new Ledger { SpotTtl = 10, LocationTtl = 20, RegionTtl = 30 };
+        ledger.Record("Alice", "Sam", Location, Region, 10, Spot);
 
-        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Alice", "Sam", 109).Detail);
-        Assert.Equal(LedgerDetail.Location, Must(ledger, "Alice", "Sam", 110).Detail);
-        Assert.Equal(LedgerDetail.Region, Must(ledger, "Alice", "Sam", 120).Detail);
-        Assert.Equal(LedgerDetail.EarlierToday, Must(ledger, "Alice", "Sam", 130).Detail);
-        Assert.Equal(LedgerDetail.Gone, Must(ledger, "Alice", "Sam", 140).Detail);
+        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Alice", "Sam", 19).Detail);
+        Assert.Equal(LedgerDetail.Location, Must(ledger, "Alice", "Sam", 20).Detail);
+        Assert.Equal(LedgerDetail.Region, Must(ledger, "Alice", "Sam", 30).Detail);
+        Assert.Equal(LedgerDetail.EarlierToday, Must(ledger, "Alice", "Sam", 40).Detail);
+        Assert.Equal(LedgerDetail.EarlierToday, Must(ledger, "Alice", "Sam", 119).Detail); // until the day ends
+        Assert.Equal(LedgerDetail.Gone, Must(ledger, "Alice", "Sam", 120).Detail);
     }
 
     [Fact]
     public void RecordReplacesThePreviousEntry()
     {
         var ledger = SeenAtZero();
-        ledger.Record("Alice", "Sam", "Mountain", "Mountain", 300);
+        ledger.Record("Alice", "Sam", "Mountain", "Mountain", 300, "40,10");
 
         var view = Must(ledger, "Alice", "Sam", 300);
 
@@ -148,12 +151,12 @@ public sealed class LedgerTests
     public void AFirstHandRecordResetsTheHopCountToZero()
     {
         var ledger = SeenAtZero();
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 300));
-        Assert.Equal(1, Must(ledger, "Bob", "Sam", 300).HopCount);
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 30));
+        Assert.Equal(1, Must(ledger, "Bob", "Sam", 30).HopCount);
 
-        ledger.Record("Bob", "Sam", "SeedShop", Region, 300);
+        ledger.Record("Bob", "Sam", "SeedShop", Region, 30, Spot);
 
-        var view = Must(ledger, "Bob", "Sam", 300);
+        var view = Must(ledger, "Bob", "Sam", 30);
         Assert.Equal(0, view.HopCount);
         Assert.Equal(LedgerDetail.NamedSpot, view.Detail);
     }
@@ -184,7 +187,7 @@ public sealed class LedgerTests
     public void ARecordInTheFutureClampsTheAgeToZero()
     {
         var ledger = new Ledger();
-        ledger.Record("Alice", "Sam", Location, Region, 500);
+        ledger.Record("Alice", "Sam", Location, Region, 500, Spot);
 
         var view = Must(ledger, "Alice", "Sam", 400);   // querying before the sighting
 
@@ -299,16 +302,152 @@ public sealed class LedgerTests
     }
 
     [Fact]
-    public void GossipOfAForgottenSubjectKeepsItForgotten()
+    public void GossipOfAForgottenSubjectIsRefused()
     {
         var ledger = SeenAtZero();
 
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 2000));
+        Assert.False(ledger.Gossip("Alice", "Bob", "Sam", 2000));   // Alice's view is Gone
+        Assert.Null(ledger.View("Bob", "Sam", 2000));
+    }
 
-        var view = Must(ledger, "Bob", "Sam", 2000);
+    [Fact]
+    public void GossipNeverOverwritesAFresherFirstHandSighting()
+    {
+        // The audit repro: Bob saw Sam a tick ago; Alice's view is older. Bob keeps his own.
+        var ledger = SeenAtZero();                              // Alice saw Sam at tick 0
+        ledger.Record("Bob", "Sam", "Saloon", Region, 50, "3,4");
+
+        Assert.False(ledger.Gossip("Alice", "Bob", "Sam", 51));
+
+        var bob = Must(ledger, "Bob", "Sam", 51);
+        Assert.Equal(0, bob.HopCount);
+        Assert.Equal(50, bob.AbsoluteTick);
+        Assert.Equal("Saloon", bob.Place);
+        Assert.Equal(LedgerDetail.NamedSpot, bob.Detail);
+    }
+
+    [Fact]
+    public void GossipOfTheSameSightingOnlyReplacesAHigherHopCount()
+    {
+        var ledger = SeenAtZero();
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 5));      // Bob: hop 1
+        Assert.True(ledger.Gossip("Bob", "Carol", "Sam", 6));      // Carol: hop 2
+
+        Assert.False(ledger.Gossip("Carol", "Bob", "Sam", 7));     // hop 3 anyway, and not fresher
+        Assert.True(ledger.Gossip("Alice", "Carol", "Sam", 8));    // same sighting, fewer hops: accepted
+        Assert.Equal(1, Must(ledger, "Carol", "Sam", 8).HopCount);
+        Assert.False(ledger.Gossip("Alice", "Carol", "Sam", 9));   // same sighting, same hops: nothing new
+    }
+
+    [Fact]
+    public void NewerHearsayReplacesAnOlderFirstHandSighting()
+    {
+        var ledger = new Ledger();
+        ledger.Record("Bob", "Sam", "Beach", "Beach", 10, "1,1");  // Bob's own, older
+        ledger.Record("Alice", "Sam", Location, Region, 40, Spot); // Alice's, newer
+
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 41));
+
+        var bob = Must(ledger, "Bob", "Sam", 41);
+        Assert.Equal(1, bob.HopCount);
+        Assert.Equal(40, bob.AbsoluteTick);
+        Assert.Equal(Location, bob.Place);
+    }
+
+    [Fact]
+    public void GossipToYourselfIsRefusedAndKeepsFirstHandKnowledge()
+    {
+        var ledger = SeenAtZero();
+
+        Assert.False(ledger.Gossip("Alice", "alice", "Sam", 5));
+
+        Assert.Equal(0, Must(ledger, "Alice", "Sam", 5).HopCount);
+    }
+
+    [Fact]
+    public void GossipHandsOverTheSpotOnlyWhileItIsANamedSpot()
+    {
+        var ledger = SeenAtZero();
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 5));      // NamedSpot: spot passed on
+        Assert.Equal(Spot, Must(ledger, "Bob", "Sam", 5).Spot);
+
+        ledger.Record("Alice", "Pierre", Location, Region, 0, Spot);
+        Assert.True(ledger.Gossip("Alice", "Carol", "Pierre", 20)); // Location by now: no spot
+        ledger.SpotTtl = 100;                                       // even if thresholds widen later
+        var carol = Must(ledger, "Carol", "Pierre", 20);
+        Assert.Equal(LedgerDetail.Location, carol.Detail);
+        Assert.Null(carol.Spot);
+    }
+
+    // ---- calendar days, spots, years ----------------------------------------------------------
+
+    [Fact]
+    public void ALateNightSightingIsGoneAtTheNextSixAm()
+    {
+        // The audit repro: seen at 00:20, then viewed at 6:00 the next morning.
+        var ledger = new Ledger();
+        int lateNight = NpcSchedules.TimeUtils.TickIndex(2420);
+        ledger.Record("Alice", "Sam", "Saloon", Region, lateNight, "5,5");
+
+        Assert.Equal(LedgerDetail.NamedSpot, Must(ledger, "Alice", "Sam", lateNight + 1).Detail);
+        var morning = Must(ledger, "Alice", "Sam", GameClock.DayStartTick(1));
+        Assert.Equal(LedgerDetail.Gone, morning.Detail);
+        Assert.Null(morning.Place);
+        Assert.Equal(LedgerDetail.Gone, Must(ledger, "Alice", "Sam", GameClock.DayStartTick(1) + 90).Detail);
+    }
+
+    [Fact]
+    public void WithoutASpotTheFinestDetailIsTheLocation()
+    {
+        var ledger = new Ledger();
+        ledger.Record("Alice", "Sam", Location, Region, 0);
+
+        var view = Must(ledger, "Alice", "Sam", 0);
+        Assert.Equal(LedgerDetail.Location, view.Detail);
+        Assert.Equal(Location, view.Place);
+        Assert.Null(view.Spot);
+    }
+
+    [Fact]
+    public void NamedSpotAndLocationAreDifferentViews()
+    {
+        var ledger = SeenAtZero();
+
+        var named = Must(ledger, "Alice", "Sam", 0);
+        var location = Must(ledger, "Alice", "Sam", 12);
+
+        Assert.Equal(LedgerDetail.NamedSpot, named.Detail);
+        Assert.Equal(Spot, named.Spot);
+        Assert.Equal(LedgerDetail.Location, location.Detail);
+        Assert.Null(location.Spot);                  // the spot is forgotten, the location is not
+        Assert.Equal(Location, location.Place);
+    }
+
+    [Fact]
+    public void AYearOneSightingIsGoneInYearTwo()
+    {
+        // The audit repro: a winter 28 sighting viewed on spring 1 of year 2.
+        var ledger = new Ledger();
+        int winter28 = GameClock.AbsoluteTick(new GameTime(3, 28, 60, Year: 1));
+        int spring1Y2 = GameClock.AbsoluteTick(new GameTime(0, 1, 0, Year: 2));
+        ledger.Record("Alice", "Sam", Location, Region, winter28, Spot);
+
+        var view = Must(ledger, "Alice", "Sam", spring1Y2);
         Assert.Equal(LedgerDetail.Gone, view.Detail);
-        Assert.Null(view.Place);
-        Assert.Equal(1, view.HopCount);
+        Assert.Equal(spring1Y2 - winter28, view.AgeTicks);
+        Assert.True(view.AgeTicks > 0);
+    }
+
+    [Fact]
+    public void RemapTicksShiftsEveryEntry()
+    {
+        var ledger = SeenAtZero();
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 5));
+
+        ledger.RemapTicks(t => t + GameClock.TicksPerYear);
+
+        Assert.Equal(GameClock.TicksPerYear, Must(ledger, "Alice", "Sam", GameClock.TicksPerYear).AbsoluteTick);
+        Assert.Equal(GameClock.TicksPerYear, Must(ledger, "Bob", "Sam", GameClock.TicksPerYear).AbsoluteTick);
     }
 
     // ---- JSON ------------------------------------------------------------------------------
@@ -316,35 +455,45 @@ public sealed class LedgerTests
     [Fact]
     public void JsonRoundTripIsLossless()
     {
-        var ledger = new Ledger { SpotTtl = 100, LocationTtl = 500, RegionTtl = 900, GoneTtl = 1300 };
-        ledger.Record("Alice", "Sam", Location, Region, 480);
-        ledger.Record("Alice", "Player", "Farm", "Farm", 600);
-        ledger.Record("Robin", "Sam", "Mountain", "Mountain", 700);
-        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 1200));
-        Assert.True(ledger.Gossip("Bob", "Carol", "Sam", 1220));
+        var ledger = new Ledger();
+        ledger.Record("Alice", "Sam", Location, Region, 480, Spot);
+        ledger.Record("Alice", "Player", "Farm", "Farm", 500);          // no spot
+        ledger.Record("Robin", "Sam", "Mountain", "Mountain", 520, "7,7");
+        Assert.True(ledger.Gossip("Alice", "Bob", "Sam", 482));
+        Assert.True(ledger.Gossip("Bob", "Carol", "Sam", 530));
 
         string json = ledger.ToJson();
         var copy = Ledger.FromJson(json);
 
-        Assert.Equal(100, copy.SpotTtl);
-        Assert.Equal(500, copy.LocationTtl);
-        Assert.Equal(900, copy.RegionTtl);
-        Assert.Equal(1300, copy.GoneTtl);
-
-        AssertSameView(ledger.View("Alice", "Sam", 1200), copy.View("Alice", "Sam", 1200));
-        AssertSameView(ledger.View("Alice", "Player", 700), copy.View("Alice", "Player", 700));
-        AssertSameView(ledger.View("Robin", "Sam", 1000), copy.View("Robin", "Sam", 1000));
-        AssertSameView(ledger.View("Bob", "Sam", 1230), copy.View("Bob", "Sam", 1230));
-        AssertSameView(ledger.View("Carol", "Sam", 1240), copy.View("Carol", "Sam", 1240));
-        Assert.Null(copy.View("Dave", "Sam", 1230));
+        AssertSameView(ledger.View("Alice", "Sam", 481), copy.View("Alice", "Sam", 481));
+        AssertSameView(ledger.View("Alice", "Player", 510), copy.View("Alice", "Player", 510));
+        AssertSameView(ledger.View("Robin", "Sam", 525), copy.View("Robin", "Sam", 525));
+        AssertSameView(ledger.View("Bob", "Sam", 483), copy.View("Bob", "Sam", 483));
+        AssertSameView(ledger.View("Carol", "Sam", 540), copy.View("Carol", "Sam", 540));
+        Assert.Equal(Spot, copy.View("Alice", "Sam", 481)!.Spot);
+        Assert.Null(copy.View("Dave", "Sam", 530));
 
         // Hop counts survive a save/load, so the two-hop cap still holds afterwards.
-        Assert.Equal(2, Must(copy, "Carol", "Sam", 1240).HopCount);
-        Assert.False(copy.Gossip("Carol", "Dave", "Sam", 1240));
+        Assert.Equal(2, Must(copy, "Carol", "Sam", 540).HopCount);
+        Assert.False(copy.Gossip("Carol", "Dave", "Sam", 540));
 
         // Re-serialising the copy gives byte-identical JSON, and lookups stay case-insensitive.
         Assert.Equal(json, copy.ToJson());
-        Assert.NotNull(copy.View("ALICE", "sam", 1200));
+        Assert.NotNull(copy.View("ALICE", "sam", 500));
+    }
+
+    [Fact]
+    public void ThresholdsAreNotSavedSoRetuningAppliesToOldSaves()
+    {
+        // An old save carried its thresholds; they must be ignored in favour of the code defaults.
+        string oldSave = "{\"spotTtl\":100,\"locationTtl\":500,\"regionTtl\":900,\"goneTtl\":1300,\"entries\":[]}";
+
+        var copy = Ledger.FromJson(oldSave);
+
+        Assert.Equal(12, copy.SpotTtl);
+        Assert.Equal(48, copy.LocationTtl);
+        Assert.Equal(96, copy.RegionTtl);
+        Assert.DoesNotContain("Ttl", new Ledger { SpotTtl = 99 }.ToJson());
     }
 
     [Fact]
@@ -373,7 +522,6 @@ public sealed class LedgerTests
         Assert.Equal(12, copy.SpotTtl);
         Assert.Equal(48, copy.LocationTtl);
         Assert.Equal(96, copy.RegionTtl);
-        Assert.Equal(120, copy.GoneTtl);
         Assert.Null(copy.View("Alice", "Sam", 0));
         Assert.Equal(ledger.ToJson(), copy.ToJson());
     }
