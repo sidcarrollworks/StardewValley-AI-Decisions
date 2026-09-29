@@ -21,7 +21,7 @@ public sealed class RoutineBelief
     public int BlockCount => TimeUtils.BlockCount(BlockMinutes);
 
     /// <summary>Co-presence ticks needed before the pair is "unlocked".</summary>
-    public int UnlockThreshold { get; set; } = 240; // 4 hours of being around each other
+    public int UnlockThreshold { get; set; } = 240; // 40 game hours (two full days) of being around each other
 
     /// <summary>Region -> block[] pseudo-counts. Each block value is a non-negative double.</summary>
     public IReadOnlyDictionary<string, double[]> Counts => _counts;

@@ -236,7 +236,8 @@ where the habit points, so a habit lead is coarse ("the beach").
 - **Not saved.** The overnight plan and Find's ask cooldowns.
 
 **Deploy.** `EnableModDeploy=false`. A build never copies itself into the game. Someone copies
-`mod/StardewNpcMod/bin/Debug/net6.0/*` into the game's `Mods/StardewNpcMod` on purpose.
+the build into the game's `Mods/StardewNpcMod` on purpose, using the command in `AGENTS.md`.
+`manifest.json` comes from `mod/StardewNpcMod/`, not the bin folder.
 **Why.** A build should never silently change what the player's game runs (D1). The version
 field lets future formats migrate instead of wiping memory.
 
@@ -260,6 +261,12 @@ entries. The fish shop was in the wrong region until an audit caught it (now Bea
   and compare the `typed-decisions` and `english` checkpoints. (D13)
 - **Fake backend.** The fake ties everything, so the shadow log is only informative about
   mechanics, not choices. A seeded non-uniform fake would help. (Audit finding 6)
+- **Novelty.** The mod passes an empty `RecentLines`, so the planner's "already said" check never
+  fires. Wire it once lines are delivered for real. The brief also asks for cooldowns and for
+  rejecting lines too close to vanilla dialogue.
+- **Laya and the budget.** The planning budget stops *new* model calls, but the mod doesn't pass it
+  into `LayaDecisionClient`. An in-flight HTTP call is abandoned and ends at its own timeout
+  (`DecisionTimeoutMs`) instead of being cancelled. It's harmless but wasteful.
 - **Find for NPCs.** Let NPCs look for each other, and say where they are going
   (`showTextAboveHead`) once behaviour goes live. (D18)
 - **Routine beliefs.** `RoutineBelief.Decay` is never called, and `Observe` ignores its tick.
