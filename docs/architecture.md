@@ -89,21 +89,25 @@ TimeChanged(e.NewTime)                                     game thread
  |- 1. NoteSpecialOrders(now)      diff team.completedSpecialOrders -> QuestHelped (Special)
  |- 2. _events.Drain(...)          queued GiftReceived / SawGift / QuestHelped into memory
  |                                 (SawGift witnesses: the span tracker's last Observe)
- |- 3. CaptureFestival()           while Game1.isFestival(): attended = true, keep actor names
- |- 4. CollectPresences()          the only live-position read: every villager in
+ |- 3. CollectPresences()          the only live-position read: every villager in
  |                                 Game1.locations, plus the player's own location
- |- 5. _memory.Observe(now, ...)   Ledger.Record, RoutineBelief.Observe, diary "Saw"
- |- 6. AskAround(now)              Find: NPCs that miss the player ask around
- |- 7. RunLadder(now)
+ |- 4. _memory.Observe(now, ...)   Ledger.Record, RoutineBelief.Observe, diary "Saw"
+ |- 5. AskAround(now)              Find: NPCs that miss the player ask around
+ |- 6. RunLadder(now)
  |      inputs, one per NPC that has a diary, in name order:
  |        (npc, Ledger.View(npc, "Player", now), npc in _intentsToday, hearts, Find lead)
  |      _ladder.EnqueueTick(now, inputs) -------> worker: InitiationLadder.Tick
  |                                                (YesNo via ResilientDecisionClient)
  |      _ladder.Drain() <------------------------ finished results; never blocks
  |        append TriedToReach / IgnoredBy lines to the diaries; log [shadow] events
- |- 8. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
+ |- 7. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
                                    fill _intentsToday
 ```
+
+Festival capture is NOT in the tick: the clock is stopped for the whole festival
+(`Game1.shouldTimePass` is false while `isFestival()`) and the one `TimeChanged` after it (the
+22:00 jump) already sees `isFestival()` false, so `CaptureFestival()` runs on
+`OneSecondUpdateTicked` instead.
 
 `CollectPresences` builds a `Presence(name, location, tileX, tileY, isPlayer)` for every NPC with
 `IsVillager`, from `Game1.locations` plus `Game1.player.currentLocation` (farm buildings are not in
@@ -116,6 +120,7 @@ assumes `TimeChanged` fires once per ten-minute tick (verify).
 | `Entry` | reads `config.json`; loads `regions.json` from the mod folder (a missing or invalid file throws before any event is hooked, so the mod does nothing); builds the decision backend; `ApplyPatches()` (the read-only Harmony postfixes, one list); logs `Shadow mode ready: ...` |
 | `SaveLoaded` | `LoadMemory()`: fresh memory and ladder, then the save's data (see Persistence); seeds the special-order diff set |
 | `MenuChanged` | response detection for the ladder (see the ladder section); first daily conversation -> `Talked`; conversations during a festival feed the Festival `with` key |
+| `OneSecondUpdateTicked` | `CaptureFestival()` while `Game1.isFestival()` (attended + actor names); gated on `Context.IsWorldReady` |
 | `ReturnedToTitle` | disposes the plan job; fresh memory, ladder, `PlayerSearch`, `_intentsToday`; clears the event queue, festival capture and special-order set |
 
 ### The night, in the order it really happens
@@ -357,10 +362,14 @@ records each quest once). A postfix only queues into `DiaryEventQueue`; the next
 through the pure producers (`GiftNotes`, `SawGiftNotes`, `QuestNotes`, `FestivalNotes` in
 `src/NpcDiaryEvents` — plain inputs in, `DiaryEntry` out) into `MemoryStore`, so there is one
 writer and one order. Special orders never touch `Quest.questComplete`: the tick diffs
-`team.completedSpecialOrders` and writes `QuestHelped` for the order's requester. Festivals are
-captured by the tick while `Game1.isFestival()` (attended + actor names; time does not pass during
-one) and written at `DayEnding` — `Festival` for every NPC that took part (`with=1` when the player
-talked to it there) or `MissedFestival` for 4+ heart NPCs when the player never attended. If a
+`team.completedSpecialOrders` and writes `QuestHelped` for the order's requester (resolved from the
+order data by key, falling back to the live order — it can already be gone once everyone claims).
+Festivals are captured on `OneSecondUpdateTicked` while `Game1.isFestival()` (attended + actor
+names; time does not pass during one, so `TimeChanged` never fires) and written at `DayEnding` —
+`Festival` for every NPC that took part (`with=1` when the player talked to it there) or
+`MissedFestival` for 4+ heart NPCs when the player never attended; the Detail carries the stable
+date key (`spring13`), never the localized display name. The queue also drains at the start of
+`DayEnding`, so a gift or quest after the last tick still makes that night's plan. If a
 patched method is missing after a game update, the mod logs a warning and skips that patch (the
 polling fallbacks in the spec are deferred until one is actually needed).
 

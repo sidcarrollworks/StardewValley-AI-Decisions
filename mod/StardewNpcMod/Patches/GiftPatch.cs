@@ -21,16 +21,20 @@ public static class GiftPatch
     {
         try
         {
-            if (__instance is null || o is null || giver is null || !giver.IsLocalPlayer)
+            if (__instance is null || o is null || giver is null || !giver.IsLocalPlayer || !__instance.CanReceiveGifts())
                 return;
+            // Stardrop Tea also passes updateGiftLimitInfo: false (1.6.15, NPC.cs:2403); only the
+            // Winter Star secret gift is a festival gift.
+            bool isWinterStar = !updateGiftLimitInfo
+                && !string.Equals(o.QualifiedItemId, "(O)StardropTea", StringComparison.OrdinalIgnoreCase);
             Queue.EnqueueGift(new GiftDetails(
                 __instance.Name,
                 o.QualifiedItemId,
                 o.DisplayName,
                 __instance.getGiftTasteForThisItem(o),
                 __instance.isBirthday(),
-                IsWinterStar: !updateGiftLimitInfo, // the Winter Star secret gift passes false
-                AbsoluteTick: 0));                  // stamped at drain time
+                isWinterStar,
+                AbsoluteTick: 0)); // stamped at drain time
         }
         catch (Exception ex)
         {

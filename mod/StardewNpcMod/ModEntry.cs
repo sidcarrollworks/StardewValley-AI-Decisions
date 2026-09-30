@@ -9,6 +9,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Characters;
+using StardewValley.GameData.SpecialOrders;
 using StardewValley.Menus;
 using StardewValley.Quests;
 using StardewValley.SpecialOrders;
@@ -75,6 +76,7 @@ public class ModEntry : Mod
         helper.Events.GameLoop.DayEnding += OnDayEnding;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+        helper.Events.GameLoop.OneSecondUpdateTicked += OnOneSecondUpdateTicked;
         helper.Events.Display.MenuChanged += OnMenuChanged;
 
         ApplyPatches();
@@ -202,7 +204,6 @@ public class ModEntry : Mod
 
         try
         {
-            CaptureFestival();
             _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
             AskAround(now);
         }
@@ -223,10 +224,29 @@ public class ModEntry : Mod
         }
     }
 
+    /// <summary>Festival capture runs here, not on TimeChanged: the clock is stopped for the whole
+    /// festival (Game1.shouldTimePass is false while isFestival()), and when it ends the event
+    /// clears isFestival before the one 22:00 TimeChanged fires (docs/spec/diary.md).</summary>
+    private void OnOneSecondUpdateTicked(object? sender, OneSecondUpdateTickedEventArgs e)
+    {
+        if (!Context.IsWorldReady)
+            return;
+        try
+        {
+            CaptureFestival();
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Festival capture failed: {ex}", LogLevel.Error);
+        }
+    }
+
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
     {
         try
         {
+            _events.Drain(_memory, Now(119), Monitor); // gifts/quests after the last tick still
+                                                       // make tonight's plan
             NoteDayEnd();
             StartPlanning();
         }
@@ -467,12 +487,14 @@ public class ModEntry : Mod
         if (!Utility.isFestivalDay(Game1.dayOfMonth, season))
             return; // passive festivals (Night Market etc.) are separate, per the spec
 
+        // The date key (e.g. "spring13") is the stable festival id; the FestivalDates VALUES are
+        // localized display names, which must never reach a saved diary.
         string dateKey = Utility.getSeasonKey(season) + Game1.dayOfMonth;
-        if (!DataLoader.Festivals_FestivalDates(Game1.temporaryContent).TryGetValue(dateKey, out string festivalId))
+        if (!DataLoader.Festivals_FestivalDates(Game1.temporaryContent).ContainsKey(dateKey))
             return;
 
         IReadOnlyList<(string Npc, DiaryEntry Entry)> notes = FestivalNotes.AtDayEnd(
-            festivalId, _festivalAttended, _festivalActors, _festivalTalked, names, HeartsFor, _diaryOptions, now);
+            dateKey, _festivalAttended, _festivalActors, _festivalTalked, names, HeartsFor, _diaryOptions, now);
         foreach ((string npc, DiaryEntry entry) in notes)
             Monitor.Log($"[shadow] diary {npc}: {entry.Kind} {entry.Subject} ({entry.Detail})", LogLevel.Trace);
     }
@@ -500,15 +522,22 @@ public class ModEntry : Mod
         {
             if (!_seenSpecialOrders.Add(key))
                 continue;
+            // Resolve from the order DATA by key first: the order can already be gone from
+            // team.specialOrders (removed once everyone has claimed, SpecialOrder.cs:903).
             string? requester = null;
-            foreach (SpecialOrder order in Game1.player.team.specialOrders)
-                if (string.Equals(order.questKey.Value, key, StringComparison.OrdinalIgnoreCase))
-                    requester = order.requester.Value;
-            if (!string.IsNullOrEmpty(requester))
+            if (DataLoader.SpecialOrders(Game1.content) is { } orders && orders.TryGetValue(key, out SpecialOrderData? data))
+                requester = data?.Requester;
+            if (string.IsNullOrEmpty(requester))
+                foreach (SpecialOrder order in Game1.player.team.specialOrders)
+                    if (string.Equals(order.questKey.Value, key, StringComparison.OrdinalIgnoreCase))
+                        requester = order.requester.Value;
+            if (string.IsNullOrEmpty(requester))
             {
-                _memory.Note(requester, QuestNotes.ToDiaryEntry(new QuestDetails(requester, QuestNotes.Special, now)));
-                Monitor.Log($"[shadow] diary {requester}: QuestHelped Player (Special)", LogLevel.Trace);
+                Monitor.Log($"[shadow] special order {key} completed but no requester was found; no QuestHelped written.", LogLevel.Trace);
+                continue;
             }
+            _memory.Note(requester, QuestNotes.ToDiaryEntry(new QuestDetails(requester, QuestNotes.Special, now)));
+            Monitor.Log($"[shadow] diary {requester}: QuestHelped Player (Special)", LogLevel.Trace);
         }
     }
 
