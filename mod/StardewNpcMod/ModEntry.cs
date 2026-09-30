@@ -402,7 +402,8 @@ public class ModEntry : Mod
     /// :4815). Game1.characterData is read at use time, so content-pack edits to Data/Characters
     /// are seen.</summary>
     private static bool BirthdayFor(string npc)
-        => Game1.characterData.TryGetValue(npc, out CharacterData? data)
+        => Game1.characterData is not null
+           && Game1.characterData.TryGetValue(npc, out CharacterData? data)
            && data.BirthSeason is { } season
            && string.Equals(Utility.getSeasonKey(season), Game1.currentSeason, StringComparison.OrdinalIgnoreCase)
            && data.BirthDay == Game1.dayOfMonth;
@@ -419,7 +420,7 @@ public class ModEntry : Mod
         foreach ((string npc, string location) in _regions.Homes)
             homes[npc] = location;
 
-        foreach ((string npc, CharacterData data) in Game1.characterData)
+        foreach ((string npc, CharacterData data) in Game1.characterData ?? new Dictionary<string, CharacterData>())
         {
             if (homes.ContainsKey(npc))
                 continue;
