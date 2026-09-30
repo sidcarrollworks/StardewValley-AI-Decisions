@@ -38,7 +38,7 @@ published on, and a release zip (`EnableModZip`); multiplayer itself.
 ([README.md](README.md), "Verifying game facts"; findings in `stardew-source-notes.md`). The biggest
 results: the game already has a "walk somewhere, then resume the schedule" pattern, which makes
 visits much less risky than feared (step 11's spike now confirms behavior rather than discovering
-it); shops really do close while their keeper is away; unheard lines are cleared by the game every
+it); shops really do close while their keeper is away; unread lines are cleared by the game every
 night; and planned lines can be wiped by conversation topics, which step 6 must handle.
 
 ### Why this order
@@ -54,7 +54,7 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
   PRs by group of characters, so Sid reviews a few voices at a time.
 - **A first live release (steps 4-6) comes before newcomer week and visits.** Newcomer week needs
   mail, gifts and placing an NPC on the farm at once. Shipping the simplest live feature first
-  (planned lines, heard only when the player talks) proves the live switches, the sanitizers and the
+  (planned lines, shown only when the player talks to the NPC) proves the live switches, the sanitizers and the
   kill switch on something low-risk.
 - **Letters come before newcomer week**, since newcomer week's letters and notes reuse the same mail
   plumbing, and invitations are Sid's ask.

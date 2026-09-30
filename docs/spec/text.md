@@ -15,6 +15,10 @@ values the mod controls.
 
 ## Player-visible behavior
 
+Stardew has no voice acting: every "line" in this spec is on-screen text, in a dialogue box, a
+bubble over a head, or a letter. Where a spec says an NPC "says" something, it means text the player
+reads.
+
 Lines that sound a little different per NPC and per occasion, never contain internal names
 (`SeedShop`), never repeat day after day, and never run a game command. Four channels:
 

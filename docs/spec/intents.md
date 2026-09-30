@@ -12,7 +12,7 @@ decision 2; D15; architecture, "Overnight intents".
   before (or instead of) its normal dialogue. It is said once. At most three NPCs a day have one.
   Each line cites a real diary entry from the day before, so it is always true ("You gave me a
   sunflower yesterday", never a made-up event).
-- If the player never talks to that NPC, the line is simply not heard. The ladder may still push for
+- If the player never talks to that NPC, the line is simply never shown. The ladder may still push for
   it ([ladder.md](ladder.md), `QueuedLine`), and an undelivered line never carries over to the next
   day.
 
@@ -50,11 +50,11 @@ What the 1.6.15 code does with it (decompile, `NPC.cs`, `Dialogue.cs`, `Game1.cs
 - `clearOnMovement` must be **false**: it sets `removeOnNextMove`, and the line is popped whenever the
   NPC starts a new path, is warped, or finishes a route animation, which on a schedule day is almost
   immediately.
-- **Unheard lines expire on their own:** every NPC's dialogue stack is reset during the new-day
+- **Unread lines expire on their own:** every NPC's dialogue stack is reset during the new-day
   processing (`ResetCharacterDialogues`), so nothing is left for the mod to remove.
 - **Risk:** talking to an NPC runs `checkForNewCurrentDialogue`, which clears the stack when a
   conversation topic or location line applies, and events clear it too. A planned line can therefore
-  be wiped before it is heard. On each `MenuChanged` for that NPC, if our line was not shown and is
+  be wiped before the player reads it. On each `MenuChanged` for that NPC, if our line was not shown and is
   no longer in `npc.CurrentDialogue`, push it again (at most once more that day). Test this in-game
   before `IntentLines` goes live.
 - Text is split into pages by pixel height (a 1200 x 384 box, about 460 px of it portrait), so a long
@@ -122,7 +122,7 @@ In-game:
   no line repeats within three days.
 - Save and quit after 6:00, reload: the same planned lines are still pending (logged at load).
 - Live (after Sid switches it on): talk to a planned NPC; the line appears once, then normal
-  dialogue; talk again: no repeat. Sleep: an unheard line is gone next day.
+  dialogue; talk again: no repeat. Sleep: an unread line is gone next day.
 
 ## Status
 
@@ -134,7 +134,7 @@ In-game:
 
 ## Open questions
 
-- How often a conversation topic or location line wipes a planned line before it is heard (see the
+- How often a conversation topic or location line wipes a planned line before it is shown (see the
   risk above). Measure in shadow by logging when it would have happened.
 - Should the planned line come before the NPC's normal daily line or replace it? Recommendation:
   before, as an added line, so vanilla dialogue (and its friendship gain) is untouched.

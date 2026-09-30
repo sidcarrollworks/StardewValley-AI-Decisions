@@ -48,7 +48,7 @@ What has to change (each a design question to answer before building):
    town-wide so a busy server doesn't flood.
 4. **Dialogue lives in each player's own game, not in the shared world.** Checked in the decompile:
    `NPC.CurrentDialogue` reads `Game1.npcDialogues[name]`, a per-instance static that is not synced.
-   So a line pushed on the host is heard only by the host, and a farmhand's line must be pushed by
+   So a line pushed on the host is shown only to the host, and a farmhand's line must be pushed by
    the mod copy on that farmhand's machine, told by a host message. That is workable: it makes
    delivery naturally per farmer.
 5. **Mail is per farmer** (`mailForTomorrow`, `mailbox` and `mailReceived` are fields on each `Farmer`), which fits invitations.

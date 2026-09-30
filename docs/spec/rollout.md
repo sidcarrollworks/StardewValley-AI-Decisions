@@ -39,7 +39,7 @@ Recommended order, least invasive first:
 
 | # | Switch | Why this position | Risk |
 |---|---|---|---|
-| 1 | `IntentLines` | passive: heard only when the player talks; every line cites a true event | a line shows at a bad moment; mitigated by expiring daily |
+| 1 | `IntentLines` | passive: shown only when the player talks to the NPC; every line cites a true event | a line shows at a bad moment; mitigated by expiring daily |
 | 2 | `Emote` | purely visual | none known |
 | 3 | `Bubble` | visual, short text | text quality (templates) |
 | 4 | `QueuedLine` | same mechanism as 1 | same as 1 |
