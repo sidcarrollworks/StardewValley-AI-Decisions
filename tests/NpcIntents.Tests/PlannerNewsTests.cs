@@ -236,4 +236,54 @@ public class PlannerNewsTests
         public double YesNo(string context, string proposition) => 0.5;
         public double Score(string context, double min, double max) => (min + max) / 2.0;
     }
+
+    [Fact]
+    public void BatchBackend_SpeakAndPickInOneRequest()
+    {
+        // A batch-capable backend gets ONE Ask carrying the speak and pick questions
+        // (docs/spec/laya.md, "Data model"): half the round trips per NPC.
+        var snapshot = Snap("Haley", 20, "Player", "Talked", DiaryDetail.Format(("hearts", "2")));
+        var client = new BatchRecordingClient();
+
+        IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        Assert.Equal(1, client.AskCalls);
+        Assert.Equal(2, client.LastQuestions!.Count);
+        Assert.Contains(client.LastQuestions, q => q is YesNoQuestion);
+        Assert.Contains(client.LastQuestions, q => q is ChoiceQuestion);
+        IntentCandidate candidate = Assert.Single(plan.Candidates);
+        Assert.Equal("Haley", candidate.Npc);
+    }
+
+    /// <summary>A batch-capable decision client: speak 0.6, uniform pick; records the asks.</summary>
+    private sealed class BatchRecordingClient : IDecisionClient, IBatchDecisionClient
+    {
+        public int AskCalls;
+        public IReadOnlyList<Question>? LastQuestions;
+
+        public IReadOnlyList<Answer> Ask(string state, IReadOnlyList<Question> questions)
+        {
+            AskCalls++;
+            LastQuestions = questions;
+            var answers = new List<Answer>(questions.Count);
+            foreach (Question question in questions)
+            {
+                answers.Add(question switch
+                {
+                    YesNoQuestion => Answer.FromYesNo(question.Id, 0.6),
+                    ChoiceQuestion choice => Answer.FromChoice(question.Id,
+                        choice.Options.Select(_ => 1.0 / choice.Options.Count).ToArray()),
+                    ScoreQuestion score => Answer.FromScore(question.Id, (score.Min + score.Max) / 2.0),
+                    _ => throw new ArgumentException(),
+                });
+            }
+            return answers;
+        }
+
+        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
+            => options.Select(_ => 1.0 / options.Count).ToArray();
+
+        public double YesNo(string context, string proposition) => 0.5;
+        public double Score(string context, double min, double max) => (min + max) / 2.0;
+    }
 }

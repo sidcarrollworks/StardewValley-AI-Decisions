@@ -6,13 +6,13 @@ of agent work, **L** several PRs.
 
 ## Where things stand
 
-Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (PR #3), roadmap step 1,
-diary enrichment part 1 (PR #5) and step 2, diary enrichment part 2 with the read-only Harmony
-postfixes (PR #6); 561 tests pass at the PR #6 head. Nothing is live. Laya is installed on Sid's
-PC and now runs on the GPU (~35 ms a question), but its answers haven't been reviewed in a real
-play session yet. The dull overnight lines are fixed (D15): housemates at home score zero, the
-planner ranks by news, and the diary now carries gifts, quests and festivals — the next play
-session should cite those.
+Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (PR #3), diary enrichment
+parts 1 and 2 (PRs #5 and #6, gifts/quests/festivals via read-only Harmony postfixes) and the Laya
+decision layer (PR #7: DecisionState + the NPC card, batching, the varied fake, health
+re-check/warm-up/short-circuit, budget pass-through, the morning wait, heartbeat counters, and the
+eval set — typed-decisions 5/6 vs english 3/6); 624 tests pass at the PR #7 head. Nothing is live.
+Laya runs on Sid's GPU (~45 ms a question); what remains before a live decision is the in-game
+week with Laya on, plus the speak-question rewording experiments the eval points at.
 
 ## Order
 

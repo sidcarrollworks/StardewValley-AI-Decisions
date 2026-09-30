@@ -3,7 +3,8 @@ namespace StardewNpcMod;
 /// <summary>Player-editable settings (config.json, created by SMAPI on first run).</summary>
 public sealed class ModConfig
 {
-    /// <summary>"Fake" (deterministic, no model) or "Laya" (local laya-serve process; see sidecar/README.md).</summary>
+    /// <summary>"Fake" (deterministic, no model), "Varied" (deterministic non-uniform fake) or
+    /// "Laya" (local laya-serve process; see sidecar/README.md).</summary>
     public string DecisionBackend { get; set; } = "Fake";
 
     /// <summary>Base URL of the local Laya server. Keep it on loopback.</summary>
@@ -23,4 +24,9 @@ public sealed class ModConfig
 
     /// <summary>Ticks the ladder worker may fall behind before new ticks are dropped.</summary>
     public int LadderMaxBacklog { get; set; } = 6;
+
+    /// <summary>How long the "valley is waking up" morning wait may hold the day while overnight
+    /// work finishes (docs/spec/laya.md, "A morning wait"). 0 disables it: lines arrive whenever
+    /// the plan is ready, as before.</summary>
+    public int MorningWaitMs { get; set; } = 10_000;
 }

@@ -78,6 +78,22 @@ public class HeartbeatTests
         Assert.Contains("backlog 3/dropped 2", line);
     }
 
+    [Fact]
+    public void Format_ModelCounters_AppearOnlyWhenSupplied()
+    {
+        string with = Heartbeat.Format(0, 1, Empty(), 0, 0, Heartbeat.PlanState.None,
+            modelCalls: 42, modelFallbacks: 3, modelMedianMs: 47, modelP95Ms: 61);
+        Assert.Contains("model calls 42/fallback 3, median 47 ms, p95 61 ms", with);
+
+        string without = Heartbeat.Format(0, 1, Empty(), 0, 0, Heartbeat.PlanState.None);
+        Assert.DoesNotContain("model calls", without);
+
+        string noLatency = Heartbeat.Format(0, 1, Empty(), 0, 0, Heartbeat.PlanState.None,
+            modelCalls: 1, modelFallbacks: 0);
+        Assert.Contains("model calls 1/fallback 0", noLatency);
+        Assert.DoesNotContain("median", noLatency);
+    }
+
     private static IReadOnlyDictionary<string, double> Empty()
         => new Dictionary<string, double>();
 }

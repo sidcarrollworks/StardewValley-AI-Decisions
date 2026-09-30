@@ -89,16 +89,37 @@ public sealed class IntentPlanner
                     continue; // no valid options to hand Choose
             }
 
-            string context = BuildContext(offered, snapshot.Voice);
+            string context = BuildContext(snapshot.Npc, offered, snapshot.Voice, snapshot.Card);
+            string speakProposition = $"does {snapshot.Npc} have something worth telling the player today?";
+            List<string> options = offered.Select(Summarize).ToList();
 
-            // 1b. Who speaks: yes/no, probability must clear the threshold.
+            // 1b + 2b. Who speaks and about what: one batched request when the backend supports
+            // it (docs/spec/laya.md, "Data model": halves the overnight round trips); the
+            // YesNo-then-Choose pair otherwise. Missing answers fall back per question.
+            double speak;
+            IReadOnlyList<double> probabilities;
+            if (_decision is IBatchDecisionClient batch)
+            {
+                IReadOnlyList<Answer> answers = batch.Ask(context, new Question[]
+                {
+                    new YesNoQuestion("speak", speakProposition),
+                    new ChoiceQuestion("pick", options),
+                });
+                Answer? speakAnswer = answers.FirstOrDefault(a => a.Id == "speak");
+                Answer? pickAnswer = answers.FirstOrDefault(a => a.Id == "pick");
+                speak = speakAnswer?.YesNo ?? 0.5;
+                probabilities = pickAnswer?.Probabilities
+                    ?? options.Select(_ => 1.0 / options.Count).ToArray();
+            }
+            else
+            {
+                speak = _decision.YesNo(context, speakProposition);
+                probabilities = _decision.Choose(options, context) ?? Array.Empty<double>();
+            }
+
             // NaN-safe comparison: a NaN probability can never pass.
-            double speak = _decision.YesNo(context, $"does {snapshot.Npc} have something worth telling the player today?");
             if (!(speak >= _options.SpeakThreshold))
                 continue;
-
-            List<string> options = offered.Select(Summarize).ToList();
-            IReadOnlyList<double> probabilities = _decision.Choose(options, context) ?? Array.Empty<double>();
 
             // 2b. Sample one entry from the returned distribution (never argmax).
             int index = SampleIndex(probabilities, options.Count, random);
@@ -130,9 +151,16 @@ public sealed class IntentPlanner
         return new IntentPlan(ordered);
     }
 
-    /// <summary>Short context for the model: the voice anchor plus the offered entries.</summary>
-    private static string BuildContext(IReadOnlyList<DiaryEntry> offered, string voice)
-        => $"voice: {voice}; recent diary: {string.Join("; ", offered.Select(Summarize))}";
+    /// <summary>State for the model: the NPC card (or the legacy voice anchor when the snapshot
+    /// carries no card) as the highest-priority section, then the offered entries as news bullets;
+    /// cut to the token budget by <see cref="DecisionState"/>.</summary>
+    private static string BuildContext(string npc, IReadOnlyList<DiaryEntry> offered, string voice, string? card)
+    {
+        var state = new DecisionState();
+        state.Add(100, card ?? $"npc: {npc}\nvoice: {voice}");
+        state.Add(50, "news:\n" + string.Join("\n", offered.Select(e => "- " + Summarize(e))));
+        return state.Build();
+    }
 
     /// <summary>Drop repeats of the same summary, keeping the newest occurrence (oldest-first order kept).</summary>
     private static IReadOnlyList<DiaryEntry> Distinct(IReadOnlyList<DiaryEntry> diary)

@@ -12,7 +12,8 @@ public sealed record NpcMemorySnapshot(
     string Voice,                                // short voice description (VoiceSheets.Voice)
     IReadOnlyList<DiaryEntry> RecentDiary,       // recent entries, oldest first
     IReadOnlyList<string> RecentLines,           // lines this NPC already said (dedupe/cooldown)
-    NewsContext? News = null);                   // newsworthiness context (docs/spec/diary.md)
+    NewsContext? News = null,                    // newsworthiness context (docs/spec/diary.md)
+    string? Card = null);                        // prebuilt NPC card (docs/spec/laya.md); null -> legacy context
 
 /// <summary>
 /// One would-be line for tomorrow, with its cited diary entry for legibility (the player should

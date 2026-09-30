@@ -58,6 +58,10 @@ public class ModEntry : Mod
     private readonly DiaryOptions _diaryOptions = new();
     private readonly HashSet<string> _seenSpecialOrders = new(StringComparer.OrdinalIgnoreCase);
 
+    // Step 3: the last background health check's answer. While false, every decision falls back
+    // immediately without an HTTP attempt (docs/spec/laya.md, "Short-circuit when down").
+    private volatile bool _layaUp = true;
+
     // Festival capture, reset after NoteDayEnd uses it (docs/spec/diary.md, "Festival").
     private bool _festivalAttended;
     private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
@@ -118,6 +122,8 @@ public class ModEntry : Mod
     /// with a timeout, on a background thread.</summary>
     private IDecisionClient BuildModel()
     {
+        if (string.Equals(_config.DecisionBackend, "Varied", StringComparison.OrdinalIgnoreCase))
+            return new VariedFakeDecisionClient();
         if (!string.Equals(_config.DecisionBackend, "Laya", StringComparison.OrdinalIgnoreCase))
             return new FakeDecisionClient();
 
@@ -129,15 +135,50 @@ public class ModEntry : Mod
             Timeout = TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs),
         });
         // Health check off the game thread; failures only mean every decision will fall back.
-        Task.Run(() => Monitor.Log(laya.IsHealthy()
-            ? $"Laya is up at {_config.LayaUrl}."
-            : $"Laya is not answering at {_config.LayaUrl}; decisions will use the fallback until it is. See sidecar/README.md.",
-            LogLevel.Info));
+        // A healthy check also fires one throwaway question so the first real call is not the
+        // slow one (docs/spec/laya.md, "Warm-up").
+        Task.Run(() =>
+        {
+            bool up = laya.IsHealthy();
+            _layaUp = up;
+            Monitor.Log(up
+                ? $"Laya is up at {_config.LayaUrl}."
+                : $"Laya is not answering at {_config.LayaUrl}; decisions will use the fallback until it is. See sidecar/README.md.",
+                LogLevel.Info);
+            if (up)
+                laya.TryWarmUp(); // first real call would be the slow one (docs/spec/laya.md)
+        });
         return laya;
     }
 
     private IDecisionClient Guarded(CancellationToken budget = default)
-        => new ResilientDecisionClient(_model, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget);
+    {
+        // Budget pass-through (docs/spec/laya.md): session-scoped calls run through a view of the
+        // shared client with this session's token, so a cancelled budget aborts the in-flight HTTP
+        // call — and no session can leak its token into another (the ladder keeps its own).
+        IDecisionClient inner = budget != default && _model is LayaDecisionClient laya
+            ? laya.WithBudget(budget)
+            : _model;
+        return new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
+            isDown: () => _model is LayaDecisionClient && !_layaUp);
+    }
+
+    /// <summary>Re-check health every 6 ticks (one in-game hour) off the game thread and log only
+    /// when the state changes (docs/spec/laya.md, "Sidecar lifecycle").</summary>
+    private void RecheckLayaHealth()
+    {
+        if (_model is not LayaDecisionClient laya)
+            return;
+        bool up = laya.IsHealthy();
+        if (up == _layaUp)
+            return;
+        _layaUp = up;
+        Monitor.Log(up
+            ? "Laya is back up; decisions use the model again."
+            : "Laya went down; decisions fall back until it recovers.", LogLevel.Info);
+        if (up)
+            laya.TryWarmUp(); // a checkpoint may have lazy-loaded while down; warm it
+    }
 
     private BackgroundLadder NewLadder(string? json)
     {
@@ -179,6 +220,25 @@ public class ModEntry : Mod
         {
             Monitor.Log($"Intent delivery failed: {ex}", LogLevel.Error);
         }
+
+        OpenMorningWaitIfNeeded();
+    }
+
+    /// <summary>The morning wait (docs/spec/laya.md, "A morning wait"): if the overnight plan is
+    /// still running at DayStarted, hold the day behind a small menu until it finishes or the
+    /// deadline passes (config MorningWaitMs; 0 disables). Single player only: in multiplayer the
+    /// clock does not stop for menus, so the wait would serve nothing.</summary>
+    private void OpenMorningWaitIfNeeded()
+    {
+        if (_config.MorningWaitMs <= 0 || !Context.IsMainPlayer || Context.IsMultiplayer || Game1.activeClickableMenu is not null)
+            return; // single player only: in multiplayer the clock does not stop for menus
+        if (_planJob is not { } job || job.IsCompleted)
+            return; // nothing to wait for (the 6:00 tick usually collects the plan already)
+
+        Game1.activeClickableMenu = new MorningWaitMenu(
+            _config.MorningWaitMs,
+            isDone: () => job.IsCompleted,
+            onFinished: () => CollectPlan(morning: true));
     }
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
@@ -190,6 +250,9 @@ public class ModEntry : Mod
         int now = Now(tick);
         if (tick == 0)
             _talkedToday.Clear(); // the new day: the day-end notes already used yesterday's set
+
+        if (_model is LayaDecisionClient && tick % 6 == 0)
+            Task.Run(RecheckLayaHealth);
 
         try
         {
@@ -284,6 +347,7 @@ public class ModEntry : Mod
         _festivalAttended = false;
         _festivalActors.Clear();
         _festivalTalked.Clear();
+        _layaUp = true;
         QuestPatch.Reset();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
@@ -442,7 +506,12 @@ public class ModEntry : Mod
                 string npc = kv.Key;
                 var news = new NewsContext(npc, homes, BeliefsOf(npc), _regions, HeartsFor(npc),
                     Array.Empty<(string, string)>());
-                return new NpcMemorySnapshot(npc, VoiceSheets.Voice(npc), kv.Value.Entries.ToList(), Array.Empty<string>(), news);
+                // The NPC card is built here, on the game thread, and passed as a copy
+                // (docs/spec/laya.md, "The NPC card").
+                string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc),
+                    HeartsFor(npc), TomorrowLine());
+                return new NpcMemorySnapshot(npc, VoiceSheets.Voice(npc), kv.Value.Entries.ToList(),
+                    Array.Empty<string>(), news, card);
             })
             .ToList();
         if (snapshots.Count == 0)
@@ -451,10 +520,51 @@ public class ModEntry : Mod
         int today = GameClock.DayIndex(Now(0));
         int seed = today; // deterministic per day
         _planJob = IntentPlanJob.Start(
-            budget => new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness()).Plan(snapshots, seed, sourceDay: today),
+            budget => new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness())
+                .Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
     }
+
+    /// <summary>The temperament line for the NPC card from Data/Characters (plain words, per
+    /// docs/spec/laya.md).</summary>
+    private static string TemperamentOf(string npc)
+    {
+        if (Game1.characterData is null || !Game1.characterData.TryGetValue(npc, out CharacterData? data))
+            return "unknown";
+        return $"manners {MannerWord(data.Manner)}, {AnxietyWord(data.SocialAnxiety)}, {OptimismWord(data.Optimism)}";
+    }
+
+    private static string MannerWord(NpcManner m) => m switch { NpcManner.Polite => "polite", NpcManner.Rude => "rude", _ => "neutral" };
+    private static string AnxietyWord(NpcSocialAnxiety a) => a switch { NpcSocialAnxiety.Outgoing => "outgoing", NpcSocialAnxiety.Shy => "shy", _ => "neutral" };
+    private static string OptimismWord(NpcOptimism o) => o switch { NpcOptimism.Positive => "optimistic", NpcOptimism.Negative => "pessimistic", _ => "neutral" };
+
+    /// <summary>The card's "today" line, describing the delivery day (the plan runs at DayEnding
+    /// but the lines arrive tomorrow morning): tomorrow's date in English (the checkpoint is
+    /// English), tomorrow's weather, and a fixed morning time. VERIFY: the weatherForTomorrow key
+    /// to word mapping (the game's own weather strings are "Sun", "Rain", "Snow", "Wind", "Storm").</summary>
+    private static string TomorrowLine()
+    {
+        // TotalDays has a setter that recomputes day/season/year (WorldDate.cs, verified).
+        WorldDate tomorrow = new(Game1.Date) { TotalDays = Game1.Date.TotalDays + 1 };
+        string weather = Game1.weatherForTomorrow switch
+        {
+            "Rain" or "Storm" => "rainy",
+            "Snow" => "snowy",
+            "Wind" => "windy",
+            _ => "sunny",
+        };
+        return $"{SeasonWord(tomorrow.Season)} {tomorrow.DayOfMonth} ({tomorrow.DayOfWeek}), {weather}, morning";
+    }
+
+    private static string SeasonWord(Season season) => season switch
+    {
+        Season.Spring => "spring",
+        Season.Summer => "summer",
+        Season.Fall => "fall",
+        Season.Winter => "winter",
+        _ => season.ToString().ToLowerInvariant(),
+    };
 
     /// <summary>Day-end diary notes: PassedBy and BirthdayForgotten (docs/spec/diary.md). Pure memory
     /// plus game facts (hearts, birthdays, gifts); logged at Trace like every new diary kind.</summary>
@@ -654,9 +764,22 @@ public class ModEntry : Mod
         Heartbeat.PlanState plan = _planJob is null ? Heartbeat.PlanState.None
             : (_planJob.IsCompleted ? Heartbeat.PlanState.Ready : Heartbeat.PlanState.Running);
 
-        Monitor.Log(
-            Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog, _ladder.Dropped, plan),
-            LogLevel.Info);
+        // Model counters (docs/spec/laya.md, "Counters in the heartbeat"); only the Laya backend
+        // has them — the fakes pass nothing (the counters are omitted).
+        if (_model is LayaDecisionClient laya)
+        {
+            (double median, double p95) = laya.Latency();
+            Monitor.Log(
+                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog,
+                    _ladder.Dropped, plan, laya.Calls, laya.CallFallbacks, median, p95),
+                LogLevel.Info);
+        }
+        else
+        {
+            Monitor.Log(
+                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog, _ladder.Dropped, plan),
+                LogLevel.Info);
+        }
     }
 
     // ---- persistence ----------------------------------------------------------------------------
