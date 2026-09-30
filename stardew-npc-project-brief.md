@@ -73,6 +73,8 @@ Answers and many more facts: `stardew-source-notes.md`, "Checked in the 1.6.15 d
 
 Roadmap step 1 (diary enrichment part 1) landed in PR #5: `DiaryDetail`, `MemoryStore.Note`, the day-end `Talked`/`PassedBy`/`BirthdayForgotten` notes, `Newsworthiness` and the planner's news filter and ranking. 482 tests green.
 
+Roadmap step 2 (diary enrichment part 2) landed in PR #6: read-only Harmony postfixes on `NPC.receiveGift` and `Quest.questComplete` (queued at the tick, never applied inside a patch), the `GiftReceived`/`SawGift`/`QuestHelped`/`Festival`/`MissedFestival` kinds through `src/NpcDiaryEvents` producers, and `LineRenderer` templates for all of them. 561 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

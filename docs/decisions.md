@@ -256,9 +256,11 @@ entries. The fish shop was in the wrong region until an audit caught it (now Bea
 
 ## Open work and known issues
 
-- **Richer diary, part 2.** Record gifts and how they landed, quests, and festivals. Part 1 is
-  done (PR #5): `Talked` and the day-end `PassedBy`/`BirthdayForgotten` notes, plus the
-  newsworthiness filter that skips housemates seen at home and ranks by news. (D10, D15)
+- **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
+  week), the romance kinds, the trade and town-life kinds. Parts 1 and 2 are done (PRs #5 and #6):
+  `Talked`, the day-end notes, gifts (`GiftReceived`/`SawGift` via read-only Harmony postfixes),
+  `QuestHelped`, `Festival`/`MissedFestival`, and the newsworthiness filter that skips housemates
+  seen at home and ranks by news. (D10, D15)
 - **Laya in practice.** Install and run `laya-serve` (`sidecar/README.md`), switch `config.json`,
   and compare the `typed-decisions` and `english` checkpoints. (D13)
 - **Fake backend.** The fake ties everything, so the shadow log is only informative about

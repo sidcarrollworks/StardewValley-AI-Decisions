@@ -1,9 +1,11 @@
 # 1. Diary and diary enrichment
 
 **Status: partial.** The diary exists and records three kinds (`Saw`, `TriedToReach`, `IgnoredBy`),
-and enrichment part 1 landed in PR #5: `DiaryDetail`, `MemoryStore.Note`, the day-end notes
-(`Talked`, `PassedBy`, `BirthdayForgotten`), `Newsworthiness` and the planner's news filter and
-ranking. Part 2 (gifts, quests, festivals via Harmony) is not started.
+enrichment part 1 landed in PR #5 (`DiaryDetail`, `MemoryStore.Note`, the day-end notes `Talked`,
+`PassedBy`, `BirthdayForgotten`, `Newsworthiness` and the planner's news filter and ranking), and
+part 2 landed in PR #6: the read-only Harmony postfixes and the `GiftReceived`, `SawGift`,
+`QuestHelped`, `Festival` and `MissedFestival` kinds. The visit/letter/romance/town-life kinds
+remain (their features do not exist yet).
 Brief goal 1; decisions D10 and D15; `docs/decisions.md`, "Open work".
 
 Why this matters now: overnight lines can only be as interesting as the diary. Today almost every
@@ -51,7 +53,7 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `Talked` | Player | `hearts` | the first conversation with the player on a calendar day | 1 |
 | `GiftReceived` | Player | `item`, `name`, `taste` (Love, Like, Neutral, Dislike, Hate), `birthday` (0/1) | the NPC accepts a gift from the player | Love 5, Like 3, Neutral 1, Dislike 3, Hate 4; +2 on a birthday |
 | `SawGift` | the recipient NPC | `giver=Player`, `name`, `taste` | this NPC is co-located with the player when the player gives someone else a gift | 2; 3 if the NPC has 6+ hearts with the player |
-| `QuestHelped` | Player | `quest` (ItemDelivery, Fishing, SlayMonster, ResourceCollection, Special), `name` | the player completes a quest whose target is this NPC | 4 |
+| `QuestHelped` | Player | `quest` (ItemDelivery, Fishing, SlayMonster, ResourceCollection, LostItem, Special), `name` | the player completes a quest whose target is this NPC | 4 |
 | `Festival` | Player | `festival` (id), `with` (0/1: talked there) | a festival day ends and the player attended it; written for every NPC who took part | 2; 3 if talked |
 | `MissedFestival` | Player | `festival` | a festival day ends and the player never attended; written for NPCs with 4+ hearts | 2 |
 | `PassedBy` | Player | `ticks` | the player spent 6+ ticks co-located with the NPC today, talked to at least one other NPC, and never to this one; at most once a day; only for NPCs with 2+ hearts | 2 |
@@ -76,10 +78,10 @@ All writers run on the game thread and write through `MemoryStore.Note`.
 | Kind | Hook | Notes |
 |---|---|---|
 | `Talked` | existing `ModEntry.OnMenuChanged` (a `DialogueBox` with a speaker) | one per NPC per calendar day; keep a `HashSet` of NPCs talked to today, cleared at the 6:00 tick |
-| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo = true, float friendshipChangeMultiplier = 1f, bool showResponse = true)` (1.6.15, `NPC.cs:4899`). Vanilla gifting reaches it from `NPC.tryToReceiveActiveObject` after the game's own gift limits (1 a day, 2 a week, except spouse, birthday, Stardrop Tea). The Winter Star secret gift also calls it, with `updateGiftLimitInfo: false`; record it with `festival=WinterStar`. Items handed over for quests and special orders never reach it (those are `QuestHelped`) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (`NPC.gift_taste_*`: love 0, like 2, dislike 4, hate 6, Stardrop Tea 7, neutral 8), `npc.isBirthday()`. It must not change anything. If the patch can't be applied (see Harmony below), the fallback is to diff `Game1.player.giftedItems` (`Dictionary<npc, Dictionary<itemId, count>>`, the game's own per-item gift log, updated in `Farmer.onGiftGiven`) each tick: that keeps the item, and the taste can be looked up with `getGiftTasteForThisItem` on a created item |
+| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo = true, float friendshipChangeMultiplier = 1f, bool showResponse = true)` (1.6.15, `NPC.cs:4899`). Vanilla gifting reaches it from `NPC.tryToReceiveActiveObject` after the game's own gift limits (1 a day, 2 a week, except spouse, birthday, Stardrop Tea). The Winter Star secret gift also calls it, with `updateGiftLimitInfo: false`; record it with `festival=WinterStar`. Stardrop Tea passes false too (`NPC.cs:2403`), so the patch records Winter Star only when `updateGiftLimitInfo` is false AND the item is not `(O)StardropTea`. Items handed over for quests and special orders never reach it (those are `QuestHelped`) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (`NPC.gift_taste_*`: love 0, like 2, dislike 4, hate 6, Stardrop Tea 7, neutral 8), `npc.isBirthday()`, `npc.CanReceiveGifts()`. It must not change anything. If the patch can't be applied (see Harmony below), the fallback is to diff `Game1.player.giftedItems` (`Dictionary<npc, Dictionary<itemId, count>>`, the game's own per-item gift log, updated in `Farmer.onGiftGiven`) each tick: that keeps the item, and the taste can be looked up with `getGiftTasteForThisItem` on a created item |
 | `SawGift` | the same postfix | loop over the NPC diaries' current co-located pairs from the last `Observe` (the span tracker already holds them), not over live positions; this keeps rule 2 |
 | `QuestHelped` | Harmony postfix on `Quest.questComplete()` (`Quest.cs:581`, the one place every quest completes; SMAPI has no quest event). Fallback: poll `Game1.player.questLog` for `completed` turning true (a quest with a money reward stays in the log, completed, until the reward is claimed) | target NPC by type: `target` on `ItemDeliveryQuest`, `SlayMonsterQuest`, `FishingQuest`, `ResourceCollectionQuest`; `npcName` on `LostItemQuest` and `SecretLostItemQuest`; `SocializeQuest` (introductions) has no single target and is skipped. Special orders: `SpecialOrder.requester` is the NPC; completion adds the order's `questKey` to `Game1.player.team.completedSpecialOrders` (a string set) in `SpecialOrder.CheckCompletion` |
-| `Festival` / `MissedFestival` | at `DayEnding`, if `Utility.isFestivalDay(int day, Season season)` was true (it covers the main festivals only; passive festivals such as the Night Market are separate, `Utility.IsPassiveFestivalDay`, and run like normal days) | "attended" = `Game1.isFestival()` was true on any update tick (it reads `currentLocation.currentEvent.isFestival`). Who took part: the names in `Game1.CurrentEvent.actors`, captured while it runs. The actors are **clones** created for the event (`EventActor = true`), so keep names, never the objects. The clock stops during a festival (`Game1.shouldTimePass` returns false), so no `TimeChanged` and no `Saw` lines are written there; when it ends the time jumps straight to 22:00 (one `TimeChanged` with a large gap) |
+| `Festival` / `MissedFestival` | at `DayEnding`, if `Utility.isFestivalDay(int day, Season season)` was true (it covers the main festivals only; passive festivals such as the Night Market are separate, `Utility.IsPassiveFestivalDay`, and run like normal days) | "attended" = `Game1.isFestival()` was true on any update tick (it reads `currentLocation.currentEvent.isFestival`); captured on `OneSecondUpdateTicked`, because no `TimeChanged` fires during a festival (see below). Who took part: the names in `Game1.CurrentEvent.actors`, captured while it runs. The actors are **clones** created for the event (`EventActor = true`), so keep names, never the objects. The Detail's `festival` value is the stable date key (`spring13`), never the localized display name from `Data/Festivals/FestivalDates`. When it ends the time jumps straight to 22:00 (one `TimeChanged` with a large gap) |
 | `PassedBy` | at `DayEnding`, from today's `Saw` spans (co-located tick counts) and `Talked` entries | pure memory; no new hook |
 | `BirthdayForgotten` | at `DayEnding`: `npc.isBirthday()` and no `GiftReceived` today | `isBirthday()` compares the NPC's `Birthday_Season`/`Birthday_Day`, loaded from `Data/Characters` `BirthSeason`/`BirthDay` |
 
@@ -105,7 +107,9 @@ read 2026-09-30). Rules for this mod, from that page plus our own shadow-mode ru
 - **All patches live in one place:** `mod/StardewNpcMod/Patches/`, one class per patched method,
   applied in `Entry` from a single `ApplyPatches()`, so one list shows everything the mod hooks.
 - **If `AccessTools.Method` returns null** (the game changed), log a warning, skip that patch and
-  fall back to the polling approach for that kind. The mod must still load.
+  the mod still loads. The spec's polling fallbacks for the skipped kind (diffing
+  `Game1.player.giftedItems`; polling `Game1.player.questLog`) are deferred until a game update
+  actually breaks a patch — the postfixes are verified against 1.6.15 today.
 - **A postfix records, the tick applies.** Gifts and quests complete inside the game's update on
   the game thread, but a postfix still only queues an observation; the next tick writes it to memory,
   so there is one writer and one order.
@@ -183,16 +187,22 @@ In-game (test save `BUNKO_450391925`):
 - Done: `src/NpcMemory/Diary.cs`, `MemoryStore.Observe` (`Saw`), `InitiationLadder` (`TriedToReach`,
   `IgnoredBy`); `DiaryDetail` (Parse/Format), `MemoryStore.Note`, the day-end notes (`Talked`,
   `PassedBy`, `BirthdayForgotten` via `MemoryStore.DayEndNotes`); `Newsworthiness` and the planner's
-  news filter and ranking; tests in `tests/NpcMemory.Tests` (147) and `tests/NpcIntents.Tests` (117).
-- Not started: the Harmony kinds (`GiftReceived`, `SawGift`, `QuestHelped`, `Festival`,
-  `MissedFestival`) and the rest of the kinds table; the recent-citations wiring (`RecentCitations`
-  is always empty until intents step 5); the visit/letter/romance/town-life kinds (their features
-  do not exist yet).
+  news filter and ranking (PR #5); the Harmony kinds `GiftReceived`, `SawGift`, `QuestHelped`,
+  `Festival` and `MissedFestival` via read-only postfixes plus `src/NpcDiaryEvents` producers and
+  `LineRenderer` templates (PR #6); tests in `tests/NpcMemory.Tests` (153), `tests/NpcIntents.Tests`
+  (138) and `tests/NpcDiaryEvents.Tests`.
+- Not started: the recent-citations wiring (`RecentCitations` is always empty until intents step
+  5); the polling fallbacks if a patched method disappears after a game update; the
+  visit/letter/romance/town-life kinds (their features do not exist yet).
 
 ## Open questions
 
-- The `Talked` hook is any dialogue box with a speaker, so cutscene and festival dialogue also
-  counts as "talked to" (and feeds `PassedBy`). Worth revisiting once festival kinds exist (part 2).
+- ~~The `Talked` hook is any dialogue box with a speaker, so cutscene and festival dialogue also
+  counts as "talked to" (and feeds `PassedBy`).~~ Decided (PR #6): festival conversations still
+  count as `Talked` — they ARE conversations — and additionally feed the Festival `with` key.
+- `MissedFestival` is written for every 4+ heart villager, including ones who never appear at the
+  festival in question (Krobus, the Wizard, the Dwarf...). "You missed the festival" from them
+  reads oddly; filtering by the festival's actor data is a possible fix if it bothers anyone.
 - Should NPCs record things the player does alone that they could see (fishing, tilling, dumpster
   diving)? The game already reacts to dumpster diving (`stardew-source-notes.md`). Deferred: every
   new kind needs its own template set and a reason to exist in a line.

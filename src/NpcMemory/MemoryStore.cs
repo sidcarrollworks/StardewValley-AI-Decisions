@@ -58,13 +58,28 @@ public sealed class MemoryStore
         return diary;
     }
 
-    /// <summary>Append to an NPC's diary and trim to <see cref="MaxDiaryEntries"/>. The one writer
-    /// every diary kind uses (docs/spec/diary.md).</summary>
+    /// <summary>The one diary writer: append and trim to <see cref="MaxDiaryEntries"/>.</summary>
     public void Note(string npc, DiaryEntry entry)
     {
         Diary diary = DiaryOf(npc);
         diary.Append(entry);
         diary.TrimTo(MaxDiaryEntries);
+    }
+
+    /// <summary>
+    /// The NPCs that were co-located with the player at the most recent <see cref="Observe"/> —
+    /// the span tracker's memory, never a live position (rule 2). The gift postfix uses this to
+    /// pick SawGift witnesses. Name order is the tracker's internal order, so callers that need
+    /// determinism must sort.
+    /// </summary>
+    public IReadOnlyCollection<string> CoLocatedWithPlayerNow()
+    {
+        const string suffix = ">" + PlayerName;
+        var result = new List<string>();
+        foreach (string key in _prevCoLocated)
+            if (key.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                result.Add(key[..^suffix.Length]);
+        return result;
     }
 
     public RoutineBelief? BeliefOf(string observer, string subject)
