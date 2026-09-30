@@ -82,6 +82,7 @@ From the Get Started guide, and already true here unless noted:
 | 14 | [multiplayer-compat.md](multiplayer-compat.md) | Multiplayer (and what it would take), other mods, custom NPCs | not started |
 | 15 | [invitations.md](invitations.md) | Letters in the NPC's voice, invitations to meet, later requests and quests | not started |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
+| - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 
 ## How every feature section is laid out
 
