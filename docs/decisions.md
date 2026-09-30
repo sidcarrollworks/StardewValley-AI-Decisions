@@ -172,9 +172,9 @@ and that lines used internal map names ("SeedShop").
 **Known weakness.** With the fake backend every NPC ties, so the speakers are the first three
 names alphabetically and the topic is random. Most diary lines are housemates seeing each other
 at home. This was seen on Sid's first in-game day. The newsworthiness filter (PR #5) scores
-housemates at home zero and ranks ties by news, so the speakers are now the NPCs with the best
-news; the topic is still the fake's uniform pick, so it stays random until Laya chooses. Richer
-diary kinds remain (Open work).
+housemates at home zero, and the news-ranking redesign (D21) ranks by news and blends news into
+the pick, so with any backend the speakers are the NPCs with the best news and the topic is
+news-proportional (with the model able to steer or veto). Richer diary kinds remain (Open work).
 
 ### D16. The initiation ladder: mildest step that fits, escalate only after being ignored
 **Decision.**
@@ -253,6 +253,23 @@ field lets future formats migrate instead of wiping memory.
 
 **Why.** These will be tuned often and by non-programmers. Each table has tests that pin known
 entries. The fish shop was in the wrong region until an audit caught it (now Beach).
+
+### D21. News decides the line; the model modulates it (in-game week review)
+**Decision (PR #10).** The overnight plan ranks speakers by their best news score first, then the
+model's yes/no answer, then name; the topic samples from blended pick weights (model probability
+x news score, a zero probability a veto, a missing or degenerate answer the pure news weights).
+`MinNews` 1.0 -> 2.0, so "nice talking" chit-chat never reaches the model while a player `Saw`
+stays the everyday baseline. The speak threshold drops 0.5 -> 0.25: the rewording sweep on the
+shipped plain-sentence states measures newsy answers at 0.15-0.51 on every wording, so a 0.5 gate
+was vetoing real news (a quest state measured 0.49 on the deployed checkpoint); the gate is now a
+hard-veto floor. The model states and pick options use plain sentences (`NewsPhrasing`), the
+phrasing the eval set was measured on.
+**Why.** The in-game week showed the yes/no band (0.47-0.60) barely moved the outcome, so a
+birthday gift, a completed quest and a festival all lost to "I saw you" and "nice talking". The
+deterministic news score is the reliable signal; the model keeps the veto, the steering between
+close options, and every other question (bubble, emote, approach, pick direction).
+**Known weakness.** `MissedFestival` still goes to every 4+ heart villager, including ones who
+never attend festivals (tracked in `docs/spec/diary.md`).
 
 ---
 

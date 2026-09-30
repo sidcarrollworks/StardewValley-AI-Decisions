@@ -206,8 +206,7 @@ public class IntentPlannerTests
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal("LINE:Saw:Player:SeedShop", candidate.Line);
         Assert.Equal(new DiaryEntry(7, "Player", "Saw", "SeedShop"), candidate.Source);
-        Assert.Contains("Saw", candidate.Reason);
-        Assert.Contains("Player", candidate.Reason);
+        Assert.Contains("saw the player", candidate.Reason);
         Assert.Contains("p=", candidate.Reason);
     }
 

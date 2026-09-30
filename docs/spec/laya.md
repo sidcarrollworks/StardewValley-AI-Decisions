@@ -229,12 +229,12 @@ speak-question rewording experiments the eval points at.
   `typed-decisions`. See `sidecar/eval/RESULTS.md` for the per-case numbers.
 - Whether question text and options count against the same 512/1,024 window as the state.
 - ~~The speak question is weak on both checkpoints~~ (answers cluster at 0.15-0.4, below the 0.5
-  speak threshold — the observed empty plans). Partly addressed 2026-09-30 by the rewording
-  experiment (`sidecar/eval/run_speak_experiments.py`): "does X have news for the player?" beats
-  six alternatives on both checkpoints (mean newsy ≈ 0.55 vs dull ≈ 0.25-0.33) and is now the
-  planner's question. The noul probabilities stay compressed toward the middle, so roughly half
-  of newsy NPCs clear 0.5 — with the 3-lines-a-day cap that is the intended calibration. If a
-  live week still shows empty plans, the next lever is the speak threshold (0.45), not the
-  wording.
+  speak threshold — the observed empty plans). Addressed by the rewording experiment
+  (`sidecar/eval/run_speak_experiments.py`): "does X have news for the player?" beats six
+  alternatives, and it is now the planner's question. A re-run of the sweep on the shipped
+  plain-sentence states (PR #10) then showed the noul band is compressed (0.15-0.51) on EVERY
+  wording, so the answer no longer decides the speakers: news-first ranking does (D21), and the
+  speak threshold is 0.25 as a veto floor, not 0.5. If a live week still shows empty plans, the
+  next lever is the state (more news kinds), not the wording or the threshold.
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with
   good state should be enough, and fine-tuning adds a training pipeline to maintain.

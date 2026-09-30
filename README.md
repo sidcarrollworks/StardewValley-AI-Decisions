@@ -24,7 +24,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (113). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
-| `tests/NpcIntents.Tests/` | xUnit tests (140). |
+| `tests/NpcIntents.Tests/` | xUnit tests (164). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (59). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |

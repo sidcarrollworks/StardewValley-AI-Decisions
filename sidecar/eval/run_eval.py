@@ -57,9 +57,9 @@ CARD_ALEX = (
     "today: spring 12 (Tuesday), sunny, 7:30 PM\n"
 )
 
-GIFT_NEWS = "\nnews:\n- yesterday the player gave Haley a sunflower; she loves it\n"
-DULL_NEWS = "\nnews:\n- yesterday Haley saw Caroline at home\n"
-QUEST_NEWS = "\nnews:\n- yesterday the player completed Willy's fishing request\n"
+GIFT_NEWS = "\nnews:\n- yesterday the player gave Haley a Sunflower (a loved gift)\n"
+DULL_NEWS = "\nnews:\n- yesterday Haley saw the player at the Stardrop Saloon\n"
+QUEST_NEWS = "\nnews:\n- yesterday the player completed the request for Willy\n"
 
 # (id, kind, a_state, b_state, question_builder, a_better)
 # kind: "noul" (compare a.noul vs b.noul, expect a > b) or "choice" (compare a choice prob
@@ -67,10 +67,10 @@ QUEST_NEWS = "\nnews:\n- yesterday the player completed Willy's fishing request\
 CASES = [
     ("speak_gift_vs_dull", "noul",
      CARD_HALEY + GIFT_NEWS, CARD_HALEY + DULL_NEWS,
-     "Does Haley have something worth telling the player today?"),
+     "Does Haley have news for the player?"),
     ("speak_quest_vs_dull", "noul",
      CARD_WILLY + QUEST_NEWS, CARD_WILLY + DULL_NEWS,
-     "Does Willy have something worth telling the player today?"),
+     "Does Willy have news for the player?"),
     ("bubble_shy_vs_outgoing", "noul",
      CARD_PENNY, CARD_SAM,
      "Should {npc} try to get the player's attention with a speech bubble now?"),
@@ -88,8 +88,8 @@ CASES = [
 ]
 
 CHOICE_OPTIONS = [
-    ("o0", "talk about the sunflower the player gave Haley yesterday"),
-    ("o1", "talk about seeing Caroline at home yesterday"),
+    ("o0", "yesterday the player gave Haley a Sunflower (a loved gift)"),
+    ("o1", "yesterday Haley saw the player at the Stardrop Saloon"),
 ]
 
 

@@ -239,7 +239,9 @@ least important facts drop first) and start with the NPC card (`NpcCard.Render`:
 hearts, date/weather/time — built on the game thread into the snapshot, never from live positions).
 The planner's speak/pick pair is one batched request per NPC. `VariedFakeDecisionClient`
 (`DecisionBackend = "Varied"`) derives every answer from FNV-1a over (state, question), so shadow
-logs show varied stable choices without a model; the plain `FakeDecisionClient` stays the test
+logs show varied stable choices without a model; its yes/no is uniform over 0..1, so the 0.25
+speak veto floor lets about 3 in 4 newsy NPCs through (with the Fake client's constant 0.5, all
+of them); the plain `FakeDecisionClient` stays the test
 baseline. `ResilientDecisionClient` wraps every client with a timeout, a session budget token and a
 health gate (`isDown`: while the server is down every call falls back immediately, no HTTP attempt);
 the budget token also reaches the inner Laya client so a cancelled budget aborts the in-flight
@@ -300,31 +302,36 @@ which diary entry; the words come from templates.
 1. Drop entries whose `Kind` is in `SkipKinds` (default `TriedToReach`: the attempt is not news, being
    ignored is) and, when `sourceDay` is given, entries from any other calendar day. If nothing is
    left, the NPC is skipped without asking the model.
-2. Context: `voice: <voice>; recent diary: <summaries of the newest 5 distinct entries>`.
-3. `YesNo(context, "does this NPC have something to say today?")`: below `SpeakThreshold` (0.5), or
-   NaN, and the NPC is skipped.
+2. Context: the NPC card (or `npc: <name>` + `voice: <voice>` without one), then a `news:` section
+   of the top options as plain sentences (`NewsPhrasing`), news score descending. This matches the
+   eval set's phrasing (sidecar/eval/run_eval.py).
+3. `YesNo(context, "does <npc> have news for the player?")`: below `SpeakThreshold` (0.25: a veto
+   floor — the measured answer band sits at 0.2-0.5 even for real news, so a 0.5 gate vetoed a
+   quest at 0.49), or NaN, and the NPC is skipped.
 4. Options. With news (the mod always attaches a `NewsContext`): every entry scores through
-   `Newsworthiness`; entries under `MinNews` are dropped, and an NPC with none left is skipped
+   `Newsworthiness`; entries under `MinNews` (2.0) are dropped, and an NPC with none left is skipped
    without a model call. The top `MaxRecentDiaryEntries` (5) by news score (ties: newest first) are
-   the options. Without news (the legacy path, tests and tools): the newest
+   the options, as plain sentences. Without news (the legacy path, tests and tools): the newest
    `MaxRecentDiaryEntries` (5) entries, deduplicated by summary (the newest copy kept). A summary
    is `Saw Player at Pierre's General Store` for `Saw` (the detail is a place, through
    `PlaceNames`) and `IgnoredBy Player (Emote)` for anything else.
-5. `Choose(options, context)`, then **sample** one option by its probability, never argmax. Missing,
-   all-zero or non-finite probabilities give a uniform pick. One `Random(seed)` serves the whole plan,
+5. `Choose(options, context)`, then **sample** one option from the blended pick weights: each
+   model probability times the option's news score (a zero probability is a veto; a missing,
+   all-zero or non-finite answer leaves the pure news weights, which in the legacy no-news path
+   means a uniform pick). Never argmax. One `Random(seed)` serves the whole plan,
    consumed in snapshot order.
 6. Render the cited entry with `daysAgo = sourceDay + 1 - DayIndex(entry)` (1 in the mod).
 7. Novelty: skip a line equal (ignoring case) to one in `RecentLines`. The mod passes none yet.
-8. Sort by the yes/no probability, highest first, then the best news score among the NPC's options,
-   then by name; keep `MaxNpcsPerDay` (3). Each
+8. Sort by the best news score among the NPC's options, then the yes/no probability, then by
+   name; keep `MaxNpcsPerDay` (3). Each
    `IntentCandidate` has `Line`, the cited `Source` entry, its `News` (the best news among the
    options, not the sampled one) and a `Reason` such as
-   `cited "Saw Pierre at Pierre's General Store" (sampled p=0.333)`.
+   `cited "yesterday Abigail saw Pierre at Pierre's General Store" (sampled p=0.333)`.
 
-With the Fake backend every NPC with news scores 0.5, which passes the threshold, and equal
-probabilities sort by news, then by name. So the plan becomes the three NPCs with the best news
-from the day just ended (ties: name ascending) — no longer simply the alphabetically first three
-(`docs/decisions.md`, D15).
+With the Fake backend every NPC with news scores 0.5, which passes the threshold, so the plan
+becomes the three NPCs with the best news from the day just ended (ties: name ascending) — the
+narrow yes/no band no longer decides the speakers (week review, finding 4;
+`docs/decisions.md`, D15).
 
 **`LineRenderer`**, the default `ILineRenderer`, is first person and deterministic:
 
