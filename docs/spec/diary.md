@@ -141,7 +141,8 @@ context ([intents.md](intents.md)).
 - +1 if the entry is about the player and the NPC has 4+ hearts.
 - -1 per time the same (kind, subject) was already cited in the last 7 days (needs the persisted
   recent-lines list; [intents.md](intents.md)).
-- Entries scoring below `MinNews` (1.0) are not offered to the model. If nothing is left, the NPC is
+- Entries scoring below `MinNews` (2.0, raised from 1.0 after the in-game week so "nice talking"
+  chit-chat never reaches the model) are not offered. If nothing is left, the NPC is
   skipped with no model call, as today.
 
 `NewsContext` carries only memory: the observer's beliefs, home table, hearts and recent citations,
@@ -152,7 +153,7 @@ built on the game thread into the snapshot, so the planner stays game-independen
 | Name | Default | Where | Saved |
 |---|---|---|---|
 | kind weights | table above | `NewsworthinessOptions` | no |
-| `MinNews` | 1.0 | `NewsworthinessOptions` | no |
+| `MinNews` | 2.0 | `NewsworthinessOptions` | no |
 | `UnusualShare` / `UnusualEvidence` | 0.15 / 12 | `NewsworthinessOptions` | no |
 | `PassedByMinTicks` | 6 | `DiaryOptions` | no |
 | hearts floors (PassedBy 2, MissedFestival 4, BirthdayForgotten 3) | as listed | `DiaryOptions` | no |

@@ -3,8 +3,11 @@ namespace NpcIntents;
 /// <summary>Knobs for <see cref="Newsworthiness"/>. All public and tunable; never saved.</summary>
 public sealed class NewsworthinessOptions
 {
-    /// <summary>Entries scoring below this are never offered to the model.</summary>
-    public double MinNews { get; set; } = 1.0;
+    /// <summary>Entries scoring below this are never offered to the model. 2.0 (week review,
+    /// finding 4): "nice talking" chit-chat (Talked 1, ChattedWith 1, MetUpWith 1, LookedFor 1)
+    /// never beats real news; a player Saw (2) remains the everyday baseline so ordinary days
+    /// still produce lines.</summary>
+    public double MinNews { get; set; } = 2.0;
 
     /// <summary>An "unusual" sighting needs the belief's region share in that block under this.</summary>
     public double UnusualShare { get; set; } = 0.15;

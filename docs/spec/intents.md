@@ -68,30 +68,37 @@ Asked in `IntentPlanner`, per NPC with news, on the plan job's thread:
 
 | Question | Type | State ([laya.md](laya.md)) | Fallback |
 |---|---|---|---|
-| "Does <npc> have something worth telling the player today?" | `noul` | NPC card + up to 5 news items | 0.5 |
-| "Which of these would <npc> most want to bring up?" | `choice`, options = the news items (at most 5) | same state | uniform |
+| "Does <npc> have news for the player?" (wording chosen by the rewording experiment) | `noul` | NPC card + up to 5 news items as plain sentences | 0.5 |
+| "Which of these would <npc> most want to bring up?" | `choice`, options = the same plain sentences (at most 5) | same state | news-proportional |
 
-Both questions share one state, so they should go in one request once the client supports batching
-([laya.md](laya.md)). The speaker ranking stays: highest yes/no first.
+Both questions share one state and go in one batched request. The options and the news bullets are
+plain sentences (`NewsPhrasing`), not the telegraphic "GiftReceived Player (taste=Love)": the eval
+set was measured on this phrasing, so the game now sends what the A/B validated (week review,
+finding 5). The speaker ranking is news score first, the yes/no answer second.
 
 ## Deterministic rules
 
-Today (done): skip `TriedToReach`; only entries from the day just ended; newest 5 distinct entries;
-sample from the model's probabilities with one `Random(seed)`; seed = DayIndex; render with
-`daysAgo`; drop a line equal to a recent one; keep the top 3 by yes/no, ties by name.
+Today (done): skip `TriedToReach`; only entries from the day just ended; news filter at
+`MinNews` (2.0); the top 5 by news score (ties: newest first) offered as plain sentences; speak
+gate at `SpeakThreshold` (0.25, a veto floor: the compressed 0.2-0.5 answer band must not veto
+real news); sample from the blended pick weights (model probabilities x news
+score; a zero probability is a veto; a missing answer leaves the pure news weights); one
+`Random(seed)`, seed = DayIndex; render with `daysAgo`; drop a line equal to a recent one; rank
+speakers by best news score, then the yes/no probability, then name; keep the top 3.
+
+The news-first ranking and the pick blend are the week-review redesign (finding 4): the yes/no
+band measured in-game (0.47-0.60) barely separates speakers, so the deterministic news score
+decides the order and anchors the pick, while the model keeps the gate and a veto. `MinNews` rose
+from 1.0 to 2.0 so "nice talking" chit-chat (Talked 1) never reaches the model, while a player
+`Saw` (2) remains the everyday baseline.
 
 Planned changes, in order:
-1. **Newsworthiness filter** before asking ([diary.md](diary.md)): entries under `MinNews` are never
-   options. Options are the top 5 by news score (ties: newest first), not the newest 5. (done)
-2. **Tie-break by news:** ranking is yes/no probability, then the best news score among the NPC's
-   options, then name. With the Fake backend (all 0.5) the speakers become the NPCs with the best
-   news, not the alphabetically first. (done)
-3. **Novelty:** a line is rejected if it equals one of the NPC's last 20 lines, or if the same
+1. **Novelty:** a line is rejected if it equals one of the NPC's last 20 lines, or if the same
    (kind, subject) was cited by this NPC in the last `CiteCooldownDays` (3). A rejected NPC falls to
    its next-best option once, then is skipped.
-4. **One topic per subject across NPCs:** if two speakers would cite the same event (both saw the
+2. **One topic per subject across NPCs:** if two speakers would cite the same event (both saw the
    player's gift to Haley), keep the one with more hearts; the other falls to its next option.
-5. **Vanilla overlap:** the brief asks to reject lines "too similar to vanilla dialogue". Templated
+3. **Vanilla overlap:** the brief asks to reject lines "too similar to vanilla dialogue". Templated
    lines are ours, so overlap is unlikely; defer until LLM text exists, which is not planned
    (D12).
 
@@ -99,10 +106,11 @@ Planned changes, in order:
 
 | Name | Default | Where | Saved |
 |---|---|---|---|
-| `SpeakThreshold` | 0.5 | `IntentPlannerOptions` | no |
+| `SpeakThreshold` | 0.25 (a veto floor, not a coin flip: the news filter decides who has anything to say) | `IntentPlannerOptions` | no |
 | `MaxNpcsPerDay` | 3 | `IntentPlannerOptions` | no |
 | `MaxRecentDiaryEntries` (options) | 5 | `IntentPlannerOptions` | no |
 | `SkipKinds` | `TriedToReach` | `IntentPlannerOptions` | no |
+| `MinNews` | 2.0 | `NewsworthinessOptions` | no |
 | `RecentLinesKept` | 20 | new | no (the lines are saved, the count is not) |
 | `CiteCooldownDays` | 3 | new | no |
 | `PlanningBudgetMs` | 20000 | `ModConfig` | config |

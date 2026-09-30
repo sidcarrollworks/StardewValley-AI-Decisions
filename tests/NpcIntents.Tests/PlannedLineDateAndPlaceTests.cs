@@ -97,7 +97,8 @@ public class PlannedLineDateAndPlaceTests
 
         IntentPlan plan = planner.Plan(new[] { snapshot }, seed: 2, sourceDay: 3);
 
-        Assert.Equal(new[] { "IgnoredBy Player (Emote)" }, Assert.Single(decision.ChooseCalls));
+        Assert.Equal(new[] { "yesterday Abigail tried to get the player's attention (an emote) and got none" },
+            Assert.Single(decision.ChooseCalls));
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal("I tried to get your attention yesterday. You must have been busy.", candidate.Line);
         Assert.DoesNotContain("Player", candidate.Line);
@@ -128,7 +129,11 @@ public class PlannedLineDateAndPlaceTests
         IntentPlan plan = planner.Plan(new[] { snapshot }, seed: 5, sourceDay: 6);
 
         IReadOnlyList<string> options = Assert.Single(decision.ChooseCalls);
-        Assert.Equal(new[] { "Saw Player at the Stardrop Saloon", "Saw Pierre at Pierre's General Store" }, options);
+        Assert.Equal(new[]
+        {
+            "yesterday Abigail saw the player at the Stardrop Saloon",
+            "yesterday Abigail saw Pierre at Pierre's General Store",
+        }, options);
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal(6, GameClock.DayIndex(candidate.Source.AbsoluteTick));
         Assert.EndsWith("yesterday.", candidate.Line);
