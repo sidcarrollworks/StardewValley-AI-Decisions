@@ -81,6 +81,21 @@ public sealed class RoutineBelief
     /// <summary>Accumulate co-presence time; the pair unlocks once it reaches UnlockThreshold.</summary>
     public void NoteCoPresence(int ticks) => _coPresenceTicks += ticks;
 
+    /// <summary>A detached copy with cloned counts, safe to hand to another thread (the overnight
+    /// planner reads beliefs on the plan job's thread while the game thread keeps observing;
+    /// AGENTS.md: pass copies between threads).</summary>
+    public RoutineBelief Snapshot()
+    {
+        var copy = new RoutineBelief(Observer, Subject, BlockMinutes)
+        {
+            UnlockThreshold = UnlockThreshold,
+        };
+        copy._coPresenceTicks = _coPresenceTicks;
+        foreach ((string region, double[] column) in _counts)
+            copy._counts[region] = (double[])column.Clone();
+        return copy;
+    }
+
     /// <summary>Age all cells toward zero (multiply by `factor`, 0 &lt; factor &lt;= 1).</summary>
     public void Decay(double factor)
     {

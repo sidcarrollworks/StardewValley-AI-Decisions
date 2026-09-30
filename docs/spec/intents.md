@@ -1,7 +1,8 @@
 # 2. Overnight intents and line selection
 
-**Status: partial (shadow).** Planning, selection and templated lines are done and logged. Newsworthiness,
-novelty, persistence of the plan and in-game delivery are not started. Brief goal 2 and design
+**Status: partial (shadow).** Planning, selection and templated lines are done and logged, and
+newsworthiness (the news filter plus news ranking) is in (PR #5). Novelty, persistence of the plan
+and in-game delivery are not started. Brief goal 2 and design
 decision 2; D15; architecture, "Overnight intents".
 
 ## Player-visible behavior
@@ -81,10 +82,10 @@ sample from the model's probabilities with one `Random(seed)`; seed = DayIndex; 
 
 Planned changes, in order:
 1. **Newsworthiness filter** before asking ([diary.md](diary.md)): entries under `MinNews` are never
-   options. Options are the top 5 by news score (ties: newest first), not the newest 5.
+   options. Options are the top 5 by news score (ties: newest first), not the newest 5. (done)
 2. **Tie-break by news:** ranking is yes/no probability, then the best news score among the NPC's
    options, then name. With the Fake backend (all 0.5) the speakers become the NPCs with the best
-   news, not the alphabetically first.
+   news, not the alphabetically first. (done)
 3. **Novelty:** a line is rejected if it equals one of the NPC's last 20 lines, or if the same
    (kind, subject) was cited by this NPC in the last `CiteCooldownDays` (3). A rejected NPC falls to
    its next-best option once, then is skipped.
@@ -127,10 +128,10 @@ In-game:
 ## Status
 
 - Done: `src/NpcIntents/IntentPlanner.cs`, `IntentPlanJob.cs`, `LineRenderer.cs`, `PlaceNames.cs`,
-  `LineSanitizer.cs`, `VoiceSheets.cs`; the mod's `StartPlanning` and `CollectPlan`; tests in
-  `tests/NpcIntents.Tests` (60 at `c97a829`).
-- Not started: newsworthiness ranking, novelty wiring (`RecentLines` is always empty today), plan
-  persistence, delivery.
+  `LineSanitizer.cs`, `VoiceSheets.cs`; `Newsworthiness` plus the planner's news filter and ranking
+  (options by news score, zero-news entries never offered, ties by name); the mod's `StartPlanning`
+  (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (117).
+- Not started: novelty wiring (`RecentLines` is always empty today), plan persistence, delivery.
 
 ## Open questions
 

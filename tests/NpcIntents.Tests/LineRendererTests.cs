@@ -186,6 +186,57 @@ public class LineRendererTests
         Assert.Equal(line, _renderer.Render("Abigail", "a completely different voice", entry));
     }
 
+    // ---------------------------------------------------------------- Enriched kinds (PR #5)
+
+    [Fact]
+    public void Talked_WithThePlayer_SaysSoWithTheRightDay()
+    {
+        Assert.Equal("It was nice talking with you yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Player", "Talked")));
+        Assert.Equal("It was nice talking with you earlier today.",
+            _renderer.Render("Abigail", "spirited", E("Player", "Talked"), daysAgo: 0));
+    }
+
+    [Fact]
+    public void PassedBy_ThePlayer_SaysSoWithTheRightDay()
+    {
+        Assert.Equal("You walked right past me yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Player", "PassedBy")));
+        Assert.Equal("You walked right past me the other day.",
+            _renderer.Render("Abigail", "spirited", E("Player", "PassedBy"), daysAgo: 3));
+    }
+
+    [Fact]
+    public void BirthdayForgotten_ThePlayer_SaysSoWithTheRightDay()
+    {
+        Assert.Equal("My birthday was yesterday, you know.",
+            _renderer.Render("Abigail", "spirited", E("Player", "BirthdayForgotten")));
+        Assert.Equal("My birthday was a while back, you know.",
+            _renderer.Render("Abigail", "spirited", E("Player", "BirthdayForgotten"), daysAgo: 9));
+    }
+
+    [Theory]
+    [InlineData("Talked")]
+    [InlineData("PassedBy")]
+    [InlineData("BirthdayForgotten")]
+    public void EnrichedKinds_AboutAnotherSubject_FallBack(string kind)
+    {
+        string line = _renderer.Render("Abigail", "spirited", E("Pierre", kind));
+
+        Assert.Equal("I've been thinking about Pierre.", line);
+    }
+
+    [Fact]
+    public void EnrichedKinds_AreCaseInsensitive()
+    {
+        Assert.Equal("It was nice talking with you yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Player", "tAlKeD")));
+        Assert.Equal("You walked right past me yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Player", "passedby")));
+        Assert.Equal("My birthday was yesterday, you know.",
+            _renderer.Render("Abigail", "spirited", E("Player", "BIRTHDAYFORGOTTEN")));
+    }
+
     // ---------------------------------------------------------------- Interface
 
     [Fact]

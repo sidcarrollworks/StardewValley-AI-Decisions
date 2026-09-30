@@ -37,6 +37,11 @@ public sealed class MemoryStore
     private HashSet<string> _prevCoLocated = new(StringComparer.OrdinalIgnoreCase);
     private int _prevTick = int.MinValue;
 
+    // Ticks each NPC was co-located with the PLAYER on the current calendar day, for PassedBy.
+    // In memory only (like the span tracker): a reload mid-day restarts the count.
+    private readonly Dictionary<string, int> _todayPlayerTicks = new(StringComparer.OrdinalIgnoreCase);
+    private int _todayDayIndex = int.MinValue;
+
     public IReadOnlyDictionary<string, Diary> Diaries => _diaries;
 
     /// <summary>Beliefs keyed "observer>subject".</summary>
@@ -51,6 +56,15 @@ public sealed class MemoryStore
             _diaries[npc] = diary;
         }
         return diary;
+    }
+
+    /// <summary>Append to an NPC's diary and trim to <see cref="MaxDiaryEntries"/>. The one writer
+    /// every diary kind uses (docs/spec/diary.md).</summary>
+    public void Note(string npc, DiaryEntry entry)
+    {
+        Diary diary = DiaryOf(npc);
+        diary.Append(entry);
+        diary.TrimTo(MaxDiaryEntries);
     }
 
     public RoutineBelief? BeliefOf(string observer, string subject)
@@ -70,6 +84,12 @@ public sealed class MemoryStore
     {
         int tickOfDay = absoluteTick % GameClock.TicksPerDay;
         int block = TimeUtils.BlockIndex(tickOfDay, regions.BlockMinutes);
+        int dayIndex = GameClock.DayIndex(absoluteTick);
+        if (dayIndex != _todayDayIndex)
+        {
+            _todayDayIndex = dayIndex;
+            _todayPlayerTicks.Clear();
+        }
         // A span continues only from the previous tick of the same day: 1:50 AM and the next 6:00 AM
         // are adjacent ticks, but the night in between breaks every span.
         bool continuesPrevious = absoluteTick == _prevTick + 1
@@ -111,9 +131,13 @@ public sealed class MemoryStore
 
                     if (!(continuesPrevious && _prevCoLocated.Contains(key)))
                     {
-                        Diary diary = DiaryOf(observer.Name);
-                        diary.Append(new DiaryEntry(absoluteTick, subjectName, "Saw", subject.Location));
-                        diary.TrimTo(MaxDiaryEntries);
+                        Note(observer.Name, new DiaryEntry(absoluteTick, subjectName, "Saw", subject.Location));
+                    }
+
+                    if (subject.IsPlayer)
+                    {
+                        int ticks = _todayPlayerTicks.TryGetValue(observer.Name, out int t) ? t : 0;
+                        _todayPlayerTicks[observer.Name] = ticks + 1;
                     }
                 }
             }
@@ -241,6 +265,61 @@ public sealed class MemoryStore
                 store._beliefs[Key(PlayerName, subject)] = RoutineBelief.FromJson(json);
         }
         return store;
+    }
+
+    /// <summary>
+    /// Day-end diary notes (docs/spec/diary.md), written through <see cref="Note"/> in NPC name
+    /// order and returned for the caller to log. PassedBy: the player spent the day near an NPC
+    /// (PassedByMinTicks co-located ticks, PassedByHearts+ hearts), talked to at least one OTHER
+    /// NPC, and never to this one. BirthdayForgotten: the NPC's birthday, BirthdayHearts+ hearts,
+    /// and no gift from the player today. Deterministic.
+    /// </summary>
+    public IReadOnlyList<(string Npc, DiaryEntry Entry)> DayEndNotes(
+        IEnumerable<string> npcs,
+        int absoluteTick,
+        Func<string, int> heartsFor,
+        Func<string, bool> birthdayFor,
+        Func<string, bool> giftedToday,
+        IReadOnlyCollection<string> talkedToday,
+        DiaryOptions? options = null)
+    {
+        options ??= new DiaryOptions();
+        var talked = new HashSet<string>(talkedToday ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+        var written = new List<(string, DiaryEntry)>();
+
+        foreach (string npc in _todayPlayerTicks.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            int ticks = _todayPlayerTicks[npc];
+            int hearts = heartsFor(npc);
+            bool talkedToThisOne = talked.Contains(npc);
+            bool talkedToAnother = talked.Any(other => !string.Equals(other, npc, StringComparison.OrdinalIgnoreCase));
+
+            if (ticks >= options.PassedByMinTicks
+                && hearts >= options.PassedByHearts
+                && !talkedToThisOne
+                && talkedToAnother)
+            {
+                DiaryEntry entry = new(absoluteTick, PlayerName, "PassedBy",
+                    DiaryDetail.Format(("ticks", ticks.ToString())));
+                Note(npc, entry);
+                written.Add((npc, entry));
+            }
+        }
+
+        foreach (string npc in (npcs ?? Array.Empty<string>()).OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (birthdayFor(npc)
+                && heartsFor(npc) >= options.BirthdayHearts
+                && !giftedToday(npc))
+            {
+                DiaryEntry entry = new(absoluteTick, PlayerName, "BirthdayForgotten",
+                    DiaryDetail.Format(("hearts", heartsFor(npc).ToString())));
+                Note(npc, entry);
+                written.Add((npc, entry));
+            }
+        }
+
+        return written;
     }
 
     /// <summary>Map a year-less (year-1-scoped) tick to an absolute tick, given the current time.</summary>

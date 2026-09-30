@@ -71,6 +71,8 @@ Answers and many more facts: `stardew-source-notes.md`, "Checked in the 1.6.15 d
 
 386 tests green after step 9. Docs for other models: `AGENTS.md`, `docs/architecture.md`, `docs/decisions.md` (open work is listed at the end of decisions.md).
 
+Roadmap step 1 (diary enrichment part 1) landed in PR #5: `DiaryDetail`, `MemoryStore.Note`, the day-end `Talked`/`PassedBy`/`BirthdayForgotten` notes, `Newsworthiness` and the planner's news filter and ranking. 482 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

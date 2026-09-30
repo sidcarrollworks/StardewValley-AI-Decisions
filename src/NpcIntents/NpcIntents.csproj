@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NpcMemory\NpcMemory.csproj" />
     <ProjectReference Include="..\NpcDecision\NpcDecision.csproj" />
+    <ProjectReference Include="..\NpcSchedules\NpcSchedules.csproj" />
   </ItemGroup>
 
 </Project>
