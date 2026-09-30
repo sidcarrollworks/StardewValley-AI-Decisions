@@ -121,7 +121,7 @@ Seen in the SMAPI log (`stardew-source-notes.md`, "Tools"): `DayEnding` -> the g
 
 | # | Event | What the mod does |
 |---|---|---|
-| 1 | `DayEnding` | `StartPlanning()`: disposes any old plan job, clears `_intentsToday`, snapshots every non-empty diary, starts an `IntentPlanJob` (seed and `sourceDay` = DayIndex of the day just ended) |
+| 1 | `DayEnding` | `NoteDayEnd()` writes the day's `Talked`/`PassedBy`/`BirthdayForgotten` notes into the diaries (Trace `[shadow] diary ...`), then `StartPlanning()`: disposes any old plan job, clears `_intentsToday`, snapshots every non-empty diary with a per-NPC `NewsContext` (homes, snapshot beliefs, hearts), starts an `IntentPlanJob` (seed and `sourceDay` = DayIndex of the day just ended) |
 | 2 | "NewDay" task | nothing |
 | 3 | `TimeChanged` 600 | an ordinary tick 0 of the new day: the ladder's first tick settles attempts left open overnight on their own day, then halves urge and resets rungs; `CollectPlan` usually collects the plan here |
 | 4 | `Saving` | `SaveMemory()`: serialization only, never waits on the model |
@@ -277,21 +277,28 @@ which diary entry; the words come from templates.
 2. Context: `voice: <voice>; recent diary: <summaries of the newest 5 distinct entries>`.
 3. `YesNo(context, "does this NPC have something to say today?")`: below `SpeakThreshold` (0.5), or
    NaN, and the NPC is skipped.
-4. Options: the newest `MaxRecentDiaryEntries` (5) entries, deduplicated by summary (the newest copy
-   kept). A summary is `Saw Player at Pierre's General Store` for `Saw` (the detail is a place, through
+4. Options. With news (the mod always attaches a `NewsContext`): every entry scores through
+   `Newsworthiness`; entries under `MinNews` are dropped, and an NPC with none left is skipped
+   without a model call. The top `MaxRecentDiaryEntries` (5) by news score (ties: newest first) are
+   the options. Without news (the legacy path, tests and tools): the newest
+   `MaxRecentDiaryEntries` (5) entries, deduplicated by summary (the newest copy kept). A summary
+   is `Saw Player at Pierre's General Store` for `Saw` (the detail is a place, through
    `PlaceNames`) and `IgnoredBy Player (Emote)` for anything else.
 5. `Choose(options, context)`, then **sample** one option by its probability, never argmax. Missing,
    all-zero or non-finite probabilities give a uniform pick. One `Random(seed)` serves the whole plan,
    consumed in snapshot order.
 6. Render the cited entry with `daysAgo = sourceDay + 1 - DayIndex(entry)` (1 in the mod).
 7. Novelty: skip a line equal (ignoring case) to one in `RecentLines`. The mod passes none yet.
-8. Sort by the yes/no probability, highest first, then by name; keep `MaxNpcsPerDay` (3). Each
-   `IntentCandidate` has `Line`, the cited `Source` entry and a `Reason` such as
+8. Sort by the yes/no probability, highest first, then the best news score among the NPC's options,
+   then by name; keep `MaxNpcsPerDay` (3). Each
+   `IntentCandidate` has `Line`, the cited `Source` entry, its `News` (the best news among the
+   options, not the sampled one) and a `Reason` such as
    `cited "Saw Pierre at Pierre's General Store" (sampled p=0.333)`.
 
-With the Fake backend every NPC with news scores 0.5, which passes the threshold, and ties sort by
-name. So the plan is always the alphabetically first three NPCs that have any news from the day just
-ended. That is expected (`docs/decisions.md`, D15), not a bug.
+With the Fake backend every NPC with news scores 0.5, which passes the threshold, and equal
+probabilities sort by news, then by name. So the plan becomes the three NPCs with the best news
+from the day just ended (ties: name ascending) — no longer simply the alphabetically first three
+(`docs/decisions.md`, D15).
 
 **`LineRenderer`**, the default `ILineRenderer`, is first person and deterministic:
 
@@ -299,6 +306,9 @@ ended. That is expected (`docs/decisions.md`, D15), not a bug.
 |---|---|
 | `Saw` | `I saw {who} at {place} {when}.`, or `I saw {who} {when}.` without a place |
 | `IgnoredBy`, subject Player | `I tried to get your attention {when}. You must have been busy.` |
+| `Talked`, subject Player | `It was nice talking with you {when}.` |
+| `PassedBy`, subject Player | `You walked right past me {when}.` |
+| `BirthdayForgotten`, subject Player | `My birthday was {when}, you know.` |
 | anything else | `I've been thinking about {who}.` |
 
 `{who}` is "you" for the player, otherwise the subject's name. `{when}` (`LineRenderer.When`): 0 or
@@ -312,6 +322,22 @@ from the 1.6 maps (verify the wording), e.g. `SeedShop` -> "Pierre's General Sto
 capitals and underscores (`IslandWest` -> "Island West"). `LineRenderer` accepts another name
 function; the mod uses the default. **`VoiceSheets`** has one-line voices for 18 NPCs (fallback
 "friendly and plain-spoken"); only the model's context uses them.
+
+**`Newsworthiness`** scores how much an entry is worth telling (`docs/spec/diary.md`, "Newsworthiness"):
+housemates seen at home score zero and are never offered; `Saw` of the player scores 2 (+1 at 4+
+hearts, −1 per recent citation of the same kind and subject); a subject seen somewhere unusual for
+them (their routine belief for the 2-hour block has ≥ 12 total evidence and the region's share is
+under 0.15) scores 2; fixed kinds use `NewsworthinessOptions.KindWeights` (`IgnoredBy` 3, `PassedBy`
+2, `BirthdayForgotten` 4, ...); `GiftReceived` reads the Detail's `taste` and `birthday` keys. The
+planner's `NewsContext` carries the observer's homes, beliefs and hearts **as snapshots** — the plan
+job reads beliefs off the game thread, so the mod passes `RoutineBelief.Snapshot()` copies (AGENTS.md:
+two threads, two owners).
+
+**Day-end notes** (`MemoryStore.DayEndNotes`, `docs/spec/diary.md`, "Day-end notes") run on the game
+thread at `DayEnding` and write `Talked` (on the first conversation of the day, from a dialogue box
+whose speaker is that NPC), `PassedBy` (6+ co-located ticks with 2+ hearts, talked to someone else,
+never to this NPC) and `BirthdayForgotten` (its birthday, 3+ hearts, no gift today via
+`Friendship.GiftsToday`) into the diaries, so planning at `DayEnding` already sees them.
 
 **`IntentPlanJob`** runs the planner on a background task. `Start(work, budget)` creates a token that
 is cancelled after `budget`. The work builds its client with `Guarded(token)`, so after the budget

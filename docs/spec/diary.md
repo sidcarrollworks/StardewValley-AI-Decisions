@@ -1,7 +1,9 @@
 # 1. Diary and diary enrichment
 
-**Status: partial.** The diary exists and records three kinds (`Saw`, `TriedToReach`, `IgnoredBy`).
-Enrichment (conversations, gifts, quests, festivals, being passed by, newsworthiness) is not started.
+**Status: partial.** The diary exists and records three kinds (`Saw`, `TriedToReach`, `IgnoredBy`),
+and enrichment part 1 landed in PR #5: `DiaryDetail`, `MemoryStore.Note`, the day-end notes
+(`Talked`, `PassedBy`, `BirthdayForgotten`), `Newsworthiness` and the planner's news filter and
+ranking. Part 2 (gifts, quests, festivals via Harmony) is not started.
 Brief goal 1; decisions D10 and D15; `docs/decisions.md`, "Open work".
 
 Why this matters now: overnight lines can only be as interesting as the diary. Today almost every
@@ -189,6 +191,8 @@ In-game (test save `BUNKO_450391925`):
 
 ## Open questions
 
+- The `Talked` hook is any dialogue box with a speaker, so cutscene and festival dialogue also
+  counts as "talked to" (and feeds `PassedBy`). Worth revisiting once festival kinds exist (part 2).
 - Should NPCs record things the player does alone that they could see (fishing, tilling, dumpster
   diving)? The game already reacts to dumpster diving (`stardew-source-notes.md`). Deferred: every
   new kind needs its own template set and a reason to exist in a line.

@@ -1,7 +1,8 @@
 # 2. Overnight intents and line selection
 
-**Status: partial (shadow).** Planning, selection and templated lines are done and logged. Newsworthiness,
-novelty, persistence of the plan and in-game delivery are not started. Brief goal 2 and design
+**Status: partial (shadow).** Planning, selection and templated lines are done and logged, and
+newsworthiness (the news filter plus news ranking) is in (PR #5). Novelty, persistence of the plan
+and in-game delivery are not started. Brief goal 2 and design
 decision 2; D15; architecture, "Overnight intents".
 
 ## Player-visible behavior

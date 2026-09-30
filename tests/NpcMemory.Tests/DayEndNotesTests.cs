@@ -148,6 +148,32 @@ public class DayEndNotesTests
         Assert.Equal(new[] { "Alex", "Willy" }, notes.Select(n => n.Npc).ToArray());
     }
 
+    [Fact]
+    public void Note_TrimsAtTheCap()
+    {
+        var store = new MemoryStore { MaxDiaryEntries = 3 };
+        for (int i = 0; i < 5; i++)
+            store.Note("Haley", new DiaryEntry(i, "Player", "Talked", "hearts=1"));
+
+        Assert.Equal(3, store.DiaryOf("Haley").Entries.Count);
+        Assert.Equal(2, store.DiaryOf("Haley").Entries[0].AbsoluteTick); // the two oldest dropped
+    }
+
+    [Fact]
+    public void NewKinds_SurviveToJsonAndFromJson()
+    {
+        var store = new MemoryStore();
+        store.Note("Haley", new DiaryEntry(42, "Player", "PassedBy", "ticks=6"));
+        store.Note("Haley", new DiaryEntry(43, "Player", "BirthdayForgotten", "hearts=3"));
+
+        MemoryStore loaded = MemoryStore.FromJson(store.ToJson());
+
+        Diary diary = loaded.DiaryOf("Haley");
+        Assert.Equal(2, diary.Entries.Count);
+        Assert.Equal(new[] { "PassedBy", "BirthdayForgotten" }, diary.Entries.Select(e => e.Kind).ToArray());
+        Assert.Equal("ticks=6", diary.Entries[0].Detail);
+    }
+
     /// <summary>Observe `ticks` consecutive co-located ticks between the player and one NPC.</summary>
     private static void CoLocated(MemoryStore store, int dayIndex, int startTick, int ticks, string npc)
     {

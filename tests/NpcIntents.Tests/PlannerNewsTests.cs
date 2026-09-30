@@ -160,4 +160,80 @@ public class PlannerNewsTests
 
         Assert.Equal(new[] { "Alex", "Willy" }, plan.Candidates.Select(c => c.Npc).ToArray());
     }
+
+    [Fact]
+    public void Ranking_UsesTheBestOptionNews_NotTheSampledOne()
+    {
+        // Abigail has two options: news 4 and news 1; a skewed Choose makes her sample the 1.
+        // Willy has a single option of news 2. The ranking key is the BEST news among the
+        // options (intents.md, planned change 2), so Abigail must still rank above Willy.
+        var abigail = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "BirthdayForgotten", DiaryDetail.Format(("hearts", "3"))), // 4
+            new(20, "Player", "Talked", DiaryDetail.Format(("hearts", "2"))),            // 1
+        }, Array.Empty<string>(), Context("Abigail"));
+        var willy = Snap("Willy", 20, "Player", "Saw", "Town"); // 2
+
+        IntentPlan plan = new IntentPlanner(new SkewedClient(), new StubRenderer(), News)
+            .Plan(new[] { abigail, willy }, 42, sourceDay: 0);
+
+        Assert.Equal(new[] { "Abigail", "Willy" }, plan.Candidates.Select(c => c.Npc).ToArray());
+        Assert.Equal(new[] { 4.0, 2.0 }, plan.Candidates.Select(c => c.News).ToArray());
+    }
+
+    [Fact]
+    public void GiftReceived_Love_Outranks_SawOfThePlayer()
+    {
+        var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "Saw", "Town"),                    // 2
+            new(20, "Player", "GiftReceived", "taste=Love"),     // 5
+        }, Array.Empty<string>(), Context("Abigail"));
+
+        var client = new RecordingDecisionClient();
+        Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        Assert.Equal(2, client.ChooseOptions[0].Count);
+        Assert.StartsWith("GiftReceived", client.ChooseOptions[0][0]); // best news first
+        Assert.StartsWith("Saw", client.ChooseOptions[0][1]);
+    }
+
+    [Fact]
+    public void SnapshotBeliefs_AreImmuneToLaterObserves()
+    {
+        // The planner's context carries a snapshot; the game thread keeps observing the live
+        // belief. A later observe must not change what the planner sees (AGENTS.md: two threads).
+        var live = new RoutineBelief("Abigail", "Willy", 120);
+        live.Observe("Town", TimeUtils.BlockIndex(100 % 120, 120), 100, 12);
+        var snapshot = live.Snapshot();
+
+        var context = new NewsContext("Abigail",
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["Willy"] = "Saloon" },
+            new Dictionary<string, RoutineBelief>(StringComparer.OrdinalIgnoreCase) { ["Willy"] = snapshot },
+            Regions(), 0);
+        var entry = new DiaryEntry(100, "Willy", "Saw", "Mountain");
+
+        double before = News.Score(entry, context);
+        Assert.Equal(2.0, before); // unusual: evidence 12, Mountain share 0 < 0.15
+
+        live.Observe("Mountain", TimeUtils.BlockIndex(100 % 120, 120), 100, 100); // would flip the verdict
+
+        Assert.Equal(before, News.Score(entry, context)); // the snapshot did not change
+    }
+
+    /// <summary>Chooses the LAST option (all probability mass on it), so a multi-option NPC
+    /// always samples their worst ranked one.</summary>
+    private sealed class SkewedClient : IDecisionClient
+    {
+        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
+        {
+            var p = new double[options.Count];
+            if (options.Count > 0)
+                p[^1] = 1.0;
+            return p;
+        }
+
+        public double YesNo(string context, string proposition) => 0.5;
+        public double Score(string context, double min, double max) => (min + max) / 2.0;
+    }
 }

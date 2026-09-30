@@ -19,10 +19,10 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `mod/StardewNpcMod/` | The SMAPI mod (compile-verified against the real game + SMAPI). Hooks SaveLoaded/DayStarted/TimeChanged/DayEnding/Saving/ReturnedToTitle; persists memory per save; each tick every NPC records the player and other NPCs in the same location within 8 tiles; shadow-logs overnight intents and ladder attempts. `config.json`: `DecisionBackend` = `Fake` or `Laya`. |
 | `tools/ScheduleExtractor/` | Command-line wrapper: schedule JSON files in, counts out. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (68). |
-| `tests/NpcMemory.Tests/` | xUnit tests (147). |
+| `tests/NpcMemory.Tests/` | xUnit tests (150). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (50). |
-| `tests/NpcIntents.Tests/` | xUnit tests (117). |
+| `tests/NpcIntents.Tests/` | xUnit tests (127). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (56). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |

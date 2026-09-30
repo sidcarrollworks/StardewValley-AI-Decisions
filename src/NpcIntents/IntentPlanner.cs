@@ -60,7 +60,7 @@ public sealed class IntentPlanner
             // else the newest distinct entries (legacy). A snapshot with news but nothing above
             // MinNews is skipped WITHOUT a model call (docs/spec/diary.md).
             IReadOnlyList<DiaryEntry> offered;
-            var newsOf = new Dictionary<DiaryEntry, double>();
+            double bestNews = 0.0; // the BEST news among the offered options (intents.md, planned change 2)
             if (_news is not null && snapshot.News is { } newsContext)
             {
                 var candidates = new List<(DiaryEntry Entry, double Score)>();
@@ -70,8 +70,8 @@ public sealed class IntentPlanner
                     if (score >= _news.Options.MinNews)
                         candidates.Add((e, score));
                 }
-                foreach ((DiaryEntry e, double score) in candidates)
-                    newsOf[e] = score;
+                if (candidates.Count > 0)
+                    bestNews = candidates.Max(x => x.Score);
                 // Top 5 by news, ties newest first.
                 offered = candidates
                     .OrderByDescending(x => x.Score)
@@ -114,10 +114,9 @@ public sealed class IntentPlanner
                 continue;
 
             double cited = index < probabilities.Count ? probabilities[index] : 0.0;
-            double entryNews = newsOf.TryGetValue(entry, out double n) ? n : 0.0;
             string reason = $"cited \"{options[index]}\" (sampled p={Format(cited)})";
 
-            scored.Add((new IntentCandidate(snapshot.Npc, line, entry, reason, entryNews), speak));
+            scored.Add((new IntentCandidate(snapshot.Npc, line, entry, reason, bestNews), speak));
         }
 
         // 5. Highest yes/no first, then the best news score, name ascending as the last tie-break, then cap.

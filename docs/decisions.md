@@ -171,8 +171,10 @@ Hand data between them as copies or immutable records (`LedgerView`, `Whereabout
 and that lines used internal map names ("SeedShop").
 **Known weakness.** With the fake backend every NPC ties, so the speakers are the first three
 names alphabetically and the topic is random. Most diary lines are housemates seeing each other
-at home. This was seen on Sid's first in-game day. The fix is newsworthiness and richer diary
-kinds (Open work), or a real model.
+at home. This was seen on Sid's first in-game day. The newsworthiness filter (PR #5) scores
+housemates at home zero and ranks ties by news, so the speakers are now the NPCs with the best
+news; the topic is still the fake's uniform pick, so it stays random until Laya chooses. Richer
+diary kinds remain (Open work).
 
 ### D16. The initiation ladder: mildest step that fits, escalate only after being ignored
 **Decision.**
@@ -254,9 +256,9 @@ entries. The fish shop was in the wrong region until an audit caught it (now Bea
 
 ## Open work and known issues
 
-- **Richer diary.** Record conversations, gifts and how they landed, quests, festivals, and seeing
-  the player do something notable. Then prefer newsworthy entries: anything about the player, and
-  someone somewhere unusual for them. Skip housemates seen at home. (D10, D15)
+- **Richer diary, part 2.** Record gifts and how they landed, quests, and festivals. Part 1 is
+  done (PR #5): `Talked` and the day-end `PassedBy`/`BirthdayForgotten` notes, plus the
+  newsworthiness filter that skips housemates seen at home and ranks by news. (D10, D15)
 - **Laya in practice.** Install and run `laya-serve` (`sidecar/README.md`), switch `config.json`,
   and compare the `typed-decisions` and `english` checkpoints. (D13)
 - **Fake backend.** The fake ties everything, so the shadow log is only informative about

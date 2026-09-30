@@ -15,6 +15,9 @@ public sealed class LineRenderer : ILineRenderer
 {
     private const string SawKind = "Saw";
     private const string IgnoredByKind = "IgnoredBy";
+    private const string TalkedKind = "Talked";
+    private const string PassedByKind = "PassedBy";
+    private const string BirthdayForgottenKind = "BirthdayForgotten";
     private const string PlayerSubject = "Player";
 
     private readonly Func<string?, string> _placeName;
@@ -42,6 +45,12 @@ public sealed class LineRenderer : ILineRenderer
             line = RenderSaw(entry, When(daysAgo));
         else if (string.Equals(entry.Kind, IgnoredByKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
             line = $"I tried to get your attention {When(daysAgo)}. You must have been busy.";
+        else if (string.Equals(entry.Kind, TalkedKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"It was nice talking with you {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, PassedByKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"You walked right past me {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, BirthdayForgottenKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"My birthday was {When(daysAgo)}, you know.";
         else
             line = $"I've been thinking about {Who(entry.Subject)}.";
 

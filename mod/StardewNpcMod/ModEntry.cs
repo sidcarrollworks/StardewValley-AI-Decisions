@@ -41,17 +41,14 @@ public class ModEntry : Mod
     // NPCs with a planned line for today (feeds the ladder's intent boost).
     private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
 
-    // First-conversation tracking for the Talked diary kind; cleared at the 6:00 tick.
+    // First-conversation tracking for the Talked diary kind; cleared at the 6:00 tick, on load,
+    // and at the title screen.
     private readonly HashSet<string> _talkedToday = new(StringComparer.OrdinalIgnoreCase);
-
-    // Static villager data (birthdays, homes), loaded once in Entry; used by the day-end notes.
-    private Dictionary<string, CharacterData> _characterData = new(StringComparer.OrdinalIgnoreCase);
 
     public override void Entry(IModHelper helper)
     {
         _config = helper.ReadConfig<ModConfig>();
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
-        _characterData = helper.GameContent.Load<Dictionary<string, CharacterData>>("Data/Characters");
         _model = BuildModel();
         _ladder = NewLadder(null);
 
@@ -107,6 +104,7 @@ public class ModEntry : Mod
         try
         {
             LoadMemory();
+            _talkedToday.Clear(); // a load starts a fresh day; never carry a previous session's set
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
         }
         catch (Exception ex)
@@ -196,6 +194,7 @@ public class ModEntry : Mod
         _ladder = NewLadder(null);
         _search = new PlayerSearch();
         _intentsToday.Clear();
+        _talkedToday.Clear();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
@@ -398,24 +397,32 @@ public class ModEntry : Mod
         return names;
     }
 
-    /// <summary>VERIFY: Season enum compared by name against Game1.currentSeason.</summary>
-    private bool BirthdayFor(string npc)
-        => _characterData.TryGetValue(npc, out CharacterData? data)
+    /// <summary>Matches the game's own isBirthday(): Birthday_Season is Utility.getSeasonKey(
+    /// data.BirthSeason.Value), compared to Game1.currentSeason (1.6.15 decompile, NPC.cs:822 and
+    /// :4815). Game1.characterData is read at use time, so content-pack edits to Data/Characters
+    /// are seen.</summary>
+    private static bool BirthdayFor(string npc)
+        => Game1.characterData.TryGetValue(npc, out CharacterData? data)
            && data.BirthSeason is { } season
-           && string.Equals(season.ToString(), Game1.currentSeason, StringComparison.OrdinalIgnoreCase)
+           && string.Equals(Utility.getSeasonKey(season), Game1.currentSeason, StringComparison.OrdinalIgnoreCase)
            && data.BirthDay == Game1.dayOfMonth;
 
     private static bool GiftedToday(string npc)
         => Game1.player.friendshipData.TryGetValue(npc, out Friendship? friendship) && friendship.GiftsToday > 0;
 
-    /// <summary>NPC -> home location from Data/Characters (first unconditional Home entry, else the
-    /// first). The regions.json `homes` table is empty today, so Data/Characters is the source;
-    /// verify Condition handling when conditions appear (docs/spec/diary.md).</summary>
+    /// <summary>NPC -> home location: the regions.json `homes` table wins, then Data/Characters
+    /// (first unconditional Home entry, else the first; Condition handling still to verify —
+    /// docs/spec/diary.md). Read at use time so content packs are seen.</summary>
     private Dictionary<string, string> ResolveHomes()
     {
         var homes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach ((string npc, CharacterData data) in _characterData)
+        foreach ((string npc, string location) in _regions.Homes)
+            homes[npc] = location;
+
+        foreach ((string npc, CharacterData data) in Game1.characterData)
         {
+            if (homes.ContainsKey(npc))
+                continue;
             string? home = data.Home?.FirstOrDefault(h => string.IsNullOrEmpty(h.Condition))?.Location
                            ?? data.Home?.FirstOrDefault()?.Location;
             if (!string.IsNullOrEmpty(home))
@@ -424,14 +431,16 @@ public class ModEntry : Mod
         return homes;
     }
 
-    /// <summary>The observer's routine beliefs about each subject, keyed by subject name.</summary>
+    /// <summary>The observer's routine beliefs about each subject, keyed by subject name, as
+    /// snapshots: the planner reads them on the plan job's thread while the game thread keeps
+    /// observing (AGENTS.md: pass copies between threads).</summary>
     private Dictionary<string, RoutineBelief> BeliefsOf(string observer)
     {
         var result = new Dictionary<string, RoutineBelief>(StringComparer.OrdinalIgnoreCase);
         string prefix = observer + ">";
         foreach ((string key, RoutineBelief belief) in _memory.Beliefs)
             if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                result[key[prefix.Length..]] = belief;
+                result[key[prefix.Length..]] = belief.Snapshot();
         return result;
     }
 

@@ -65,4 +65,16 @@ public class DiaryDetailTests
         IReadOnlyDictionary<string, string> parsed = DiaryDetail.Parse(" item = Sunflower ");
         Assert.Equal("Sunflower", parsed["item"]);
     }
+
+    [Fact]
+    public void Format_StripsTheDelimitersAndDialogueCommandCharacters()
+    {
+        // Pins the exact sanitizer list (the LineSanitizer set lives in NpcIntents, which
+        // NpcMemory cannot reference; this test stops the two lists drifting apart). The list is
+        // ; = # $ % { [ — note `]` is NOT stripped, matching LineSanitizer.
+        string detail = DiaryDetail.Format(("it#em", "Sun$flower{1"), ("note", "hi%[there"),
+            ("place", "Town"), ("k", "a;b"), ("x", "c=d"), ("ok", "a]b"));
+
+        Assert.Equal("item=Sunflower1;note=hithere;place=Town;k=ab;x=cd;ok=a]b", detail);
+    }
 }
