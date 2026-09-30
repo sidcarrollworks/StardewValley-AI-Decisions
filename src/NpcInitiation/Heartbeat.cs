@@ -27,7 +27,11 @@ public static class Heartbeat
         IReadOnlyDictionary<string, double> urges,
         int backlog,
         int dropped,
-        PlanState planState)
+        PlanState planState,
+        long modelCalls = -1,
+        long modelFallbacks = -1,
+        double modelMedianMs = -1,
+        double modelP95Ms = -1)
     {
         string plan = planState switch
         {
@@ -50,8 +54,19 @@ public static class Heartbeat
             }
         }
 
-        return $"[shadow] {TimeUtils.TimeOfDay(tickOfDay):0000}: {diaryCount} NPC diaries, " +
-               $"max urge {maxUrge:0.00} ({top}), ladder backlog {backlog}/dropped {dropped}, " +
-               $"overnight plan {plan}";
+        string line = $"[shadow] {TimeUtils.TimeOfDay(tickOfDay):0000}: {diaryCount} NPC diaries, " +
+                      $"max urge {maxUrge:0.00} ({top}), ladder backlog {backlog}/dropped {dropped}, " +
+                      $"overnight plan {plan}";
+
+        // Model counters ride at the end when the caller supplies them (docs/spec/laya.md,
+        // "Counters in the heartbeat"); a negative value means "no data" and is omitted.
+        if (modelCalls >= 0)
+        {
+            line += $", model calls {modelCalls}/fallback {modelFallbacks}";
+            if (modelMedianMs >= 0)
+                line += $", median {modelMedianMs:0} ms, p95 {modelP95Ms:0} ms";
+        }
+
+        return line;
     }
 }

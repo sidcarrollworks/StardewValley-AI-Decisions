@@ -39,8 +39,14 @@ public sealed class LayaException : Exception
 /// (<see cref="ResilientDecisionClient"/>) turns those into a deterministic fallback.
 /// Thread-safe: one shared <see cref="HttpClient"/>, no mutable state.
 /// </para>
+/// <para>
+/// Batching (<see cref="IBatchDecisionClient"/>): one POST carries every question under its caller
+/// id (<c>questions: {id: question}</c>); answers are matched by id, and an id the server leaves
+/// out is simply absent from the result (the wrapper fills the gap). Single-question calls are one
+/// batch of one, under the fixed id <c>q</c>.
+/// </para>
 /// </summary>
-public sealed class LayaDecisionClient : IDecisionClient, IDisposable
+public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, IDisposable
 {
     /// <summary>Verified HTTP guard: at most 100 options per choice question (413 above it).</summary>
     public const int MaxChoiceOptions = 100;
@@ -53,8 +59,36 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
 
     private readonly LayaOptions _options;
     private readonly HttpClient _http;
-    private readonly CancellationToken _budget;
+    private CancellationToken _budget;
     private readonly string _baseUrl;
+
+    // Call counters and latency samples for the heartbeat (docs/spec/laya.md, "Sidecar
+    // lifecycle"): thread-safe; the mod reads them off the game thread.
+    private long _calls;
+    private long _callFallbacks;
+    private readonly object _latencyLock = new();
+    private readonly List<double> _latencyMs = new();
+
+    /// <summary>How many question calls were sent (a batch counts once).</summary>
+    public long Calls => Interlocked.Read(ref _calls);
+
+    /// <summary>How many question calls failed (timeouts, HTTP errors, malformed answers).</summary>
+    public long CallFallbacks => Interlocked.Read(ref _callFallbacks);
+
+    /// <summary>The median and p95 of the last 128 call latencies in milliseconds (0, 0 with no
+    /// calls yet). Thread-safe snapshot.</summary>
+    public (double MedianMs, double P95Ms) Latency()
+    {
+        double[] snapshot;
+        lock (_latencyLock)
+            snapshot = _latencyMs.ToArray();
+        if (snapshot.Length == 0)
+            return (0.0, 0.0);
+        Array.Sort(snapshot);
+        double median = snapshot[snapshot.Length / 2];
+        double p95 = snapshot[Math.Min(snapshot.Length - 1, (int)(snapshot.Length * 0.95))];
+        return (median, p95);
+    }
 
     /// <summary>Client using the default socket handler.</summary>
     public LayaDecisionClient(LayaOptions? options = null, CancellationToken budget = default)
@@ -81,6 +115,14 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
         _http = new HttpClient(handler, disposeHandler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
     }
 
+    /// <summary>
+    /// Swap the external budget token mid-flight (docs/spec/laya.md, "Pass the budget token"): the
+    /// planning wrapper sets the session's budget before the plan job starts, so a cancelled budget
+    /// aborts the in-flight HTTP call instead of only the wrapper's wait. Set before any call of
+    /// that session; not safe to race with a running call.
+    /// </summary>
+    public void SetBudget(CancellationToken budget) => _budget = budget;
+
     public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
     {
         if (options is null)
@@ -94,60 +136,50 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
 
         // Synthetic labels o0..oN keep labels unique even when option texts repeat; the text
         // goes in the description, which is what the model reads.
-        string[] labels = Enumerable.Range(0, options.Count).Select(i => "o" + i).ToArray();
-
-        JsonElement answer = Ask(context, w =>
-        {
-            w.WriteString("type", "choice");
-            w.WriteString("instructions", "Which option fits best?");
-            w.WriteStartObject("criteria");
-            for (int i = 0; i < labels.Length; i++)
-                w.WriteString(labels[i], options[i] ?? string.Empty);
-            w.WriteEndObject();
-        });
-
-        if (!answer.TryGetProperty("probabilities", out JsonElement probs) || probs.ValueKind != JsonValueKind.Object)
-            throw new LayaException("Laya choice answer has no 'probabilities' object.");
-
-        var result = new double[labels.Length];
-        for (int i = 0; i < labels.Length; i++)
-        {
-            if (probs.TryGetProperty(labels[i], out JsonElement p))
-                result[i] = Clamp01(ReadNumber(p, "probabilities." + labels[i]));
-        }
-        return result;
+        var question = new ChoiceQuestion(QuestionId, options);
+        return ParseAnswer(question, AskSingle(context, question)).Probabilities!;
     }
 
     public double Score(string context, double min, double max)
     {
-        JsonElement answer = Ask(context, w =>
-        {
-            w.WriteString("type", "score");
-            w.WriteString("instructions", ScoreInstructions);
-            w.WriteStartArray("criteria");
-            foreach (string level in ScoreLevels)
-                w.WriteStringValue(level);
-            w.WriteEndArray();
-        });
-
-        if (!answer.TryGetProperty("score", out JsonElement scoreEl))
-            throw new LayaException("Laya score answer has no 'score'.");
-        double top = ScoreLevels.Length - 1;
-        double s = Math.Clamp(ReadNumber(scoreEl, "score"), 0.0, top);
-        return min + (max - min) * (s / top);
+        var question = new ScoreQuestion(QuestionId, min, max);
+        return ParseAnswer(question, AskSingle(context, question)).Score!.Value;
     }
 
     public double YesNo(string context, string proposition)
     {
-        JsonElement answer = Ask(context, w =>
-        {
-            w.WriteString("type", "noul");
-            w.WriteString("instructions", proposition ?? string.Empty);
-        });
+        var question = new YesNoQuestion(QuestionId, proposition);
+        return ParseAnswer(question, AskSingle(context, question)).YesNo!.Value;
+    }
 
-        if (!answer.TryGetProperty("noul", out JsonElement noul))
-            throw new LayaException("Laya noul answer has no 'noul'.");
-        return Clamp01(ReadNumber(noul, "noul"));
+    /// <summary>
+    /// One <c>POST /v1/systemone</c> carrying the state and every question under its caller id
+    /// (<c>questions: {id: question}</c>). Answers come back in the questions' order, matched by
+    /// id; an id the server leaves out is absent from the result, not an error. Duplicate ids or
+    /// more than <see cref="MaxChoiceOptions"/> options on a choice question throw before any
+    /// request; an empty question list returns an empty result without a request.
+    /// </summary>
+    public IReadOnlyList<Answer> Ask(string state, IReadOnlyList<Question> questions)
+    {
+        if (questions is null)
+            throw new ArgumentNullException(nameof(questions));
+        if (questions.Count == 0)
+            return Array.Empty<Answer>();
+        Validate(questions);
+
+        JsonElement answers = AskForAnswers(PrepareState(state), questions);
+
+        var result = new List<Answer>(questions.Count);
+        foreach (Question question in questions)
+        {
+            // An id the server skipped (or answered with something that is not an object) is
+            // simply absent from the result; the resilient wrapper fills the gap.
+            if (!answers.TryGetProperty(question.Id, out JsonElement answer)
+                || answer.ValueKind != JsonValueKind.Object)
+                continue;
+            result.Add(ParseAnswer(question, answer));
+        }
+        return result;
     }
 
     /// <summary>
@@ -188,9 +220,60 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
         return state.Substring(0, cut);
     }
 
-    private JsonElement Ask(string context, Action<Utf8JsonWriter> writeQuestionBody)
+    /// <summary>Rejects overlapping ids and choice questions the server would refuse (all before any request).</summary>
+    private static void Validate(IReadOnlyList<Question> questions)
     {
-        byte[] body = BuildBody(PrepareState(context), writeQuestionBody);
+        var seen = new HashSet<string>();
+        foreach (Question question in questions)
+        {
+            if (!seen.Add(question.Id))
+                throw new ArgumentException($"Duplicate question id '{question.Id}'.", nameof(questions));
+            if (question is ChoiceQuestion choice)
+            {
+                if (choice.Options is null)
+                    throw new ArgumentNullException(nameof(questions), "A choice question's options must not be null.");
+                if (choice.Options.Count > MaxChoiceOptions)
+                    throw new ArgumentException(
+                        $"Laya accepts at most {MaxChoiceOptions} options per choice question (got {choice.Options.Count}).",
+                        nameof(questions));
+            }
+        }
+    }
+
+    /// <summary>POSTs one body carrying all the questions and returns the response's <c>answers</c> object.</summary>
+    private JsonElement AskForAnswers(string state, IReadOnlyList<Question> questions)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            JsonElement answers = SendForAnswers(state, questions);
+            RecordLatency(watch.Elapsed.TotalMilliseconds, failed: false);
+            return answers;
+        }
+        catch
+        {
+            RecordLatency(watch.Elapsed.TotalMilliseconds, failed: true);
+            throw;
+        }
+    }
+
+    private void RecordLatency(double ms, bool failed)
+    {
+        Interlocked.Increment(ref _calls);
+        if (failed)
+            Interlocked.Increment(ref _callFallbacks);
+        lock (_latencyLock)
+        {
+            _latencyMs.Add(ms);
+            if (_latencyMs.Count > 128)
+                _latencyMs.RemoveAt(0);
+        }
+    }
+
+    /// <summary>The raw POST: one body carrying all the questions, answers object out.</summary>
+    private JsonElement SendForAnswers(string state, IReadOnlyList<Question> questions)
+    {
+        byte[] body = BuildBody(state, questions);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + "/v1/systemone")
         {
@@ -204,14 +287,91 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
         JsonElement root = doc.RootElement;
         if (root.ValueKind != JsonValueKind.Object
             || !root.TryGetProperty("answers", out JsonElement answers)
-            || answers.ValueKind != JsonValueKind.Object
-            || !answers.TryGetProperty(QuestionId, out JsonElement answer)
-            || answer.ValueKind != JsonValueKind.Object)
-            throw new LayaException("Laya response has no answer for the question.");
-        return answer.Clone();
+            || answers.ValueKind != JsonValueKind.Object)
+            throw new LayaException("Laya response has no 'answers' object.");
+        return answers.Clone();
     }
 
-    private byte[] BuildBody(string state, Action<Utf8JsonWriter> writeQuestionBody)
+    /// <summary>One question posted under the fixed id <c>q</c>: the single-question call shape.</summary>
+    private JsonElement AskSingle(string context, Question question)
+    {
+        JsonElement answers = AskForAnswers(PrepareState(context), new[] { question });
+        if (!answers.TryGetProperty(QuestionId, out JsonElement answer) || answer.ValueKind != JsonValueKind.Object)
+            throw new LayaException("Laya response has no answer for the question.");
+        return answer;
+    }
+
+    /// <summary>Turns one <c>answers.{id}</c> object into a typed answer for its question.</summary>
+    private static Answer ParseAnswer(Question question, JsonElement answer)
+    {
+        switch (question)
+        {
+            case ChoiceQuestion choice:
+            {
+                if (!answer.TryGetProperty("probabilities", out JsonElement probs) || probs.ValueKind != JsonValueKind.Object)
+                    throw new LayaException("Laya choice answer has no 'probabilities' object.");
+
+                var result = new double[choice.Options.Count];
+                for (int i = 0; i < result.Length; i++)
+                {
+                    if (probs.TryGetProperty(Label(i), out JsonElement p))
+                        result[i] = Clamp01(ReadNumber(p, "probabilities." + Label(i)));
+                }
+                return Answer.FromChoice(choice.Id, result);
+            }
+            case ScoreQuestion score:
+            {
+                if (!answer.TryGetProperty("score", out JsonElement scoreEl))
+                    throw new LayaException("Laya score answer has no 'score'.");
+                double top = ScoreLevels.Length - 1;
+                double s = Math.Clamp(ReadNumber(scoreEl, "score"), 0.0, top);
+                return Answer.FromScore(score.Id, score.Min + (score.Max - score.Min) * (s / top));
+            }
+            case YesNoQuestion yesNo:
+            {
+                if (!answer.TryGetProperty("noul", out JsonElement noul))
+                    throw new LayaException("Laya noul answer has no 'noul'.");
+                return Answer.FromYesNo(yesNo.Id, Clamp01(ReadNumber(noul, "noul")));
+            }
+            default:
+                throw new ArgumentException($"Unknown question type {question.GetType().Name}.", nameof(question));
+        }
+    }
+
+    /// <summary>Writes one question body (type, instructions, criteria); shared by singles and batches.</summary>
+    private static void WriteQuestion(Utf8JsonWriter w, Question question)
+    {
+        switch (question)
+        {
+            case ChoiceQuestion choice:
+                w.WriteString("type", "choice");
+                w.WriteString("instructions", "Which option fits best?");
+                w.WriteStartObject("criteria");
+                for (int i = 0; i < choice.Options.Count; i++)
+                    w.WriteString(Label(i), choice.Options[i] ?? string.Empty);
+                w.WriteEndObject();
+                break;
+            case ScoreQuestion:
+                w.WriteString("type", "score");
+                w.WriteString("instructions", ScoreInstructions);
+                w.WriteStartArray("criteria");
+                foreach (string level in ScoreLevels)
+                    w.WriteStringValue(level);
+                w.WriteEndArray();
+                break;
+            case YesNoQuestion yesNo:
+                w.WriteString("type", "noul");
+                w.WriteString("instructions", yesNo.Proposition ?? string.Empty);
+                break;
+            default:
+                throw new ArgumentException($"Unknown question type {question.GetType().Name}.", nameof(question));
+        }
+    }
+
+    /// <summary>The synthetic label for option <paramref name="index"/> (o0..oN), unique even for repeated texts.</summary>
+    private static string Label(int index) => "o" + index;
+
+    private byte[] BuildBody(string state, IReadOnlyList<Question> questions)
     {
         using var buffer = new MemoryStream();
         using (var w = new Utf8JsonWriter(buffer))
@@ -221,9 +381,12 @@ public sealed class LayaDecisionClient : IDecisionClient, IDisposable
             if (!string.IsNullOrEmpty(_options.Model))
                 w.WriteString("model", _options.Model);
             w.WriteStartObject("questions");
-            w.WriteStartObject(QuestionId);
-            writeQuestionBody(w);
-            w.WriteEndObject();
+            foreach (Question question in questions)
+            {
+                w.WriteStartObject(question.Id);
+                WriteQuestion(w, question);
+                w.WriteEndObject();
+            }
             w.WriteEndObject();
             w.WriteEndObject();
         }

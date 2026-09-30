@@ -40,7 +40,8 @@ public sealed class LayaOptions
     /// truncates an over-long state to its first window). The server's hard cap is 50,000
     /// characters (413 above it), but the checkpoints only see 512 tokens (english) or 1024
     /// (typed-decisions, multilingual), so anything much past a few thousand characters is
-    /// dropped by the model anyway. Zero or negative disables truncation.
+    /// dropped by the model anyway; the state builders cut to DecisionState.StateBudgetChars
+    /// (1250) well before this. Zero or negative disables truncation.
     /// </summary>
-    public int MaxStateChars { get; set; } = 4000;
+    public int MaxStateChars { get; set; } = 2000;
 }

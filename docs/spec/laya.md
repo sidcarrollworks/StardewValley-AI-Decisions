@@ -1,10 +1,14 @@
 # 9. The Laya decision layer
 
-**Status: partial.** The typed client, the fake, the timeout-and-fallback wrapper and the HTTP client
-for `laya-serve` are done and tested against a fake server. On Sid's PC `laya-serve` 0.3.22 is
-installed and answers (its log shows requests, and the benchmark in `sidecar/README.md` ran against
-it), now on the GPU; a full in-game session with `DecisionBackend: Laya` is still to be reviewed. The state format is ad hoc per caller, there is no token budget, no batching, and the
-sidecar is started by hand. Brief, "Decision layer"; D12, D13, D14; architecture, "Decisions";
+**Status: mostly done.** The typed client, the fake, the timeout-and-fallback wrapper and the HTTP
+client for `laya-serve` are done and tested against a fake server. On Sid's PC `laya-serve` 0.3.22
+runs on the GPU and answers (~45 ms a question, measured in the eval below); a full in-game session
+with `DecisionBackend: Laya` is still to be reviewed. PR #7 added: `DecisionState` (whole-line
+budget cutting), the NPC card (built on the game thread, passed as a copy), batching (one request
+per speak+pick pair), the varied fake, the health re-check with warm-up and short-circuit, budget
+pass-through, the morning wait, heartbeat counters, and the eval set — run once, results in
+`sidecar/eval/RESULTS.md`. The sidecar is still started by hand, and the ladder still builds its
+state ad hoc (see Status). Brief, "Decision layer"; D12, D13, D14; architecture, "Decisions";
 `sidecar/README.md`.
 
 Laya facts below come only from github.com/NandhaKishorM/laya and huggingface.co/convaiinnovations/laya
@@ -172,8 +176,9 @@ Planned:
 
 ## Tuning constants
 
-`DecisionTimeoutMs` 1500, `PlanningBudgetMs` 20000, `LadderMaxBacklog` 6 (config); `MaxStateChars`
-2000 (planned, was 4000), `StateBudgetChars` 1250 (planned), `HealthCheckTicks` 6 (planned).
+`DecisionTimeoutMs` 1500, `PlanningBudgetMs` 20000, `LadderMaxBacklog` 6, `MorningWaitMs` 10000
+(0 disables the wait) (config); `MaxStateChars` 2000, `StateBudgetChars` 1250,
+`HealthCheckTicks` 6 (code).
 
 ## Acceptance tests
 
@@ -197,13 +202,25 @@ With a running server (manual, documented in `sidecar/README.md`):
 
 ## Status
 
-Done: `src/NpcDecision/*`, `ModEntry.BuildModel`, `Guarded`, `sidecar/*`; Laya on Sid's GPU (2026-09-30); tests in
-`tests/NpcDecision.Tests` (50 at `c97a829`). Not started: `DecisionState`, the NPC card, batching,
-the varied fake, periodic health, warm-up, short-circuit, budget pass-through, launch, eval set.
+Done: `src/NpcDecision/*` (incl. `DecisionState`, `NpcCard`, `IBatchDecisionClient`, the varied
+fake, the health gate, budget pass-through, latency counters), `ModEntry.BuildModel`/`Guarded` +
+the health re-check, warm-up, short-circuit and the morning wait menu, the planner's batched
+speak/pick pair and card-carrying state, `sidecar/eval/*` (run: typed-decisions 5/6, english 3/6,
+see `sidecar/eval/RESULTS.md`), the heartbeat counters; Laya on Sid's GPU (2026-09-30); tests in
+`tests/NpcDecision.Tests` (111) and `tests/NpcIntents.Tests` (139).
+Not started: launching the sidecar from the mod (decided: manual while we develop);
+`DecisionState` adoption in the ladder's context (its state is small by construction and already
+fits the budget; do it when the ladder's inputs grow); the tokenizer verification and the
+speak-question rewording experiments the eval points at.
 
 ## Open questions
 
-- Which checkpoint is better for these questions? Decide with the eval set, not by guess.
+- ~~Which checkpoint is better for these questions?~~ Answered 2026-09-30 by the eval set:
+  `typed-decisions` agreed with 5/6 expected directions vs `english` 3/6; the mod keeps
+  `typed-decisions`. See `sidecar/eval/RESULTS.md` for the per-case numbers.
 - Whether question text and options count against the same 512/1,024 window as the state.
+- **The speak question is weak on both checkpoints** (answers cluster at 0.15-0.4, below the 0.5
+  speak threshold — the observed empty plans). Before touching the threshold, try rewordings on
+  the eval set (a cheap experiment now that it exists).
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with
   good state should be enough, and fine-tuning adds a training pipeline to maintain.

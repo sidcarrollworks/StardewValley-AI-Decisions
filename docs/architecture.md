@@ -230,7 +230,23 @@ a diary on first use. `AskAround` and `LookFor` belong to Find. `ToJson()` gives
 ## Decisions (`src/NpcDecision`)
 
 `IDecisionClient` asks three typed questions. Answers are numbers, never text, and choice options are
-always things the game can actually do.
+always the actions the game actually supports, so the client can never propose an invalid one.
+`IBatchDecisionClient.Ask(state, questions)` sends several typed questions about one state in one
+round trip where the backend supports it (Laya does; the fakes loop). State strings are built with
+`DecisionState` (priority-ordered sections cut by whole lines to `StateBudgetChars` 1250, so the
+least important facts drop first) and start with the NPC card (`NpcCard.Render`: temperament, voice,
+hearts, date/weather/time — built on the game thread into the snapshot, never from live positions).
+The planner's speak/pick pair is one batched request per NPC. `VariedFakeDecisionClient`
+(`DecisionBackend = "Varied"`) derives every answer from FNV-1a over (state, question), so shadow
+logs show varied stable choices without a model; the plain `FakeDecisionClient` stays the test
+baseline. `ResilientDecisionClient` wraps every client with a timeout, a session budget token and a
+health gate (`isDown`: while the server is down every call falls back immediately, no HTTP attempt);
+the budget token also reaches the inner Laya client so a cancelled budget aborts the in-flight
+request, and it is reset when the session ends. The mod re-checks health every 6 ticks off the game
+thread, warms the model with one throwaway question after a healthy check, and reports calls,
+fallbacks and median/p95 latency in the heartbeat. The morning wait (`MorningWaitMenu`, config
+`MorningWaitMs`) holds the day behind a small menu at `DayStarted` when the overnight plan is still
+running.
 
 | Method | Returns | Fake, and every fallback | Laya question |
 |---|---|---|---|
