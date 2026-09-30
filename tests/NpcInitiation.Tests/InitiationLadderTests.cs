@@ -209,7 +209,7 @@ public sealed class InitiationLadderTests
     {
         var diaries = new Diaries();
         var ladder = new InitiationLadder(new StubDecision(1.0), 1,
-            Opts(0.35, o => { o.ResponseWindowTicks = 2; o.CooldownTicks = 0; }));
+            Opts(0.35, o => { o.ResponseWindowTicks = 2; o.CooldownTicks = 0; o.RecordIgnoredBy = true; }));
 
         Assert.Equal(InitiationStep.Emote, SingleAttempt(TickOne(ladder, diaries, 0, "Abigail", Near)).Step);
         Assert.Empty(TickOne(ladder, diaries, 1, "Abigail", Near)); // still within the window, open attempt
@@ -225,6 +225,26 @@ public sealed class InitiationLadderTests
         Assert.Equal(1, ladder.Rung("Abigail"));
 
         Assert.Contains(new DiaryEntry(2, "Player", "IgnoredBy", "Emote"), diaries.For("Abigail").Entries);
+    }
+
+    [Fact]
+    public void IgnoredAttempt_WritesNoDiaryLineWhileShadow()
+    {
+        // Week review finding 3: shadow mode must not record "you ignored me" for an attempt the
+        // player never saw. The default (RecordIgnoredBy off) keeps the penalty and escalation
+        // but writes nothing to the diary.
+        var diaries = new Diaries();
+        var ladder = new InitiationLadder(new StubDecision(1.0), 1,
+            Opts(0.35, o => { o.ResponseWindowTicks = 2; o.CooldownTicks = 0; }));
+
+        Assert.Equal(InitiationStep.Emote, SingleAttempt(TickOne(ladder, diaries, 0, "Abigail", Near)).Step);
+        Assert.Empty(TickOne(ladder, diaries, 1, "Abigail", Near));
+
+        var events = TickOne(ladder, diaries, 2, "Abigail", Near);
+        Assert.Contains(events, e => e.Kind == "Ignored");
+        Assert.Equal(0.85, ladder.Urge("Abigail"), 9); // 0.70 - 0.2 penalty, then this tick's +0.35 growth
+        Assert.DoesNotContain(diaries.For("Abigail").Entries, e => e.Kind == "IgnoredBy");
+        Assert.Contains(diaries.For("Abigail").Entries, e => e.Kind == "TriedToReach"); // the attempt itself stays
     }
 
     [Fact]

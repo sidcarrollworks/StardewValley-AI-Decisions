@@ -99,7 +99,8 @@ TimeChanged(e.NewTime)                                     game thread
  |      _ladder.EnqueueTick(now, inputs) -------> worker: InitiationLadder.Tick
  |                                                (YesNo via ResilientDecisionClient)
  |      _ladder.Drain() <------------------------ finished results; never blocks
- |        append TriedToReach / IgnoredBy lines to the diaries; log [shadow] events
+ |        append TriedToReach / IgnoredBy lines to the diaries (IgnoredBy only once the rung is
+|        live — `RecordIgnoredBy`); log [shadow] events
  |- 7. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
                                    fill _intentsToday
 ```
@@ -187,7 +188,7 @@ drops the oldest. JSON is a flat array of entries. `Kind` is a free-form string.
 |---|---|---|---|
 | `Saw` | `MemoryStore.Observe`, at the start of each co-located span | `"Player"` or an NPC | internal location name, e.g. `SeedShop` |
 | `TriedToReach` | the ladder, when it makes an attempt | `"Player"` | step name, e.g. `Emote` |
-| `IgnoredBy` | the ladder, when an attempt goes unanswered | `"Player"` | step name |
+| `IgnoredBy` | the ladder, when an attempt goes unanswered (once the rung is live; not while shadow) | `"Player"` | step name |
 
 A **span** is a run of ticks in which the same observer and subject stay co-located. It continues
 only from the immediately previous tick of the same calendar day, so a gap or the night starts a new
@@ -427,7 +428,8 @@ lead.
 
 1. **Settle** an open attempt whose window has passed. A `QueuedLine` becomes `Expired` and nothing
    changes. Anything else becomes `Ignored`: urge -0.2 (not below 0), rung = the ignored step + 1
-   (escalation), and an `IgnoredBy` diary line. The event is stamped when the window closed, or on the
+   (escalation), and an `IgnoredBy` diary line — the line only while the rung is live
+   (`RecordIgnoredBy`, off in shadow). The event is stamped when the window closed, or on the
    day's last tick if it closed with the day. This runs before the rollover, so an attempt left open
    overnight belongs to its own day.
 2. **New day:** urge x 0.5, rung 0, the NPC's attempt count 0.

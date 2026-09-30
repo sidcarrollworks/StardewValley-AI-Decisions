@@ -38,7 +38,11 @@ public static class QuestPatch
                 _ => (null, null), // SocializeQuest and anything else: no single target
             };
 
-            if (string.IsNullOrWhiteSpace(npc) || label is null)
+            // The game uses the literal string "null" for "no target" (e.g. Marlon's mine
+            // initiation SlayMonsterQuest); only a known villager gets a diary entry.
+            if (string.IsNullOrWhiteSpace(npc) || label is null
+                || string.Equals(npc, "null", StringComparison.OrdinalIgnoreCase)
+                || Game1.characterData is null || !Game1.characterData.ContainsKey(npc))
                 return;
             Queue.EnqueueQuest(new QuestDetails(npc, label, AbsoluteTick: 0)); // stamped at drain time
         }

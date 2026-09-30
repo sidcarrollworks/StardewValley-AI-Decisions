@@ -95,7 +95,11 @@ public sealed class InitiationLadder
                         openStep == InitiationStep.Mail
                             ? "no visit by the end of the day after the letter"
                             : $"no response within {_options.ResponseWindowTicks} ticks"));
-                    diaryFor(input.Npc).Append(new DiaryEntry(stamp, "Player", "IgnoredBy", openStep.ToString()));
+                    // Shadow mode: the player never saw the attempt, so no IgnoredBy diary line
+                    // (the urge penalty and escalation above still apply). RecordIgnoredBy turns
+                    // on per rung in step 6, when the attempts really appear.
+                    if (_options.RecordIgnoredBy)
+                        diaryFor(input.Npc).Append(new DiaryEntry(stamp, "Player", "IgnoredBy", openStep.ToString()));
                 }
             }
 

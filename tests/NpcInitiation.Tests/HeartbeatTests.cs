@@ -94,6 +94,24 @@ public class HeartbeatTests
         Assert.DoesNotContain("median", noLatency);
     }
 
+    [Fact]
+    public void Format_CollectedPlan_WordingReplacesNone()
+    {
+        // After a plan is collected the job is gone; the heartbeat should say "3 lines", not
+        // "none" (week review, finding 10).
+        string collected = Heartbeat.Format(6, 1, Empty(), 0, 0, Heartbeat.PlanState.None,
+            planCollectedLines: 3);
+        Assert.Contains("overnight plan 3 lines", collected);
+        Assert.DoesNotContain("overnight plan none", collected);
+
+        string none = Heartbeat.Format(6, 1, Empty(), 0, 0, Heartbeat.PlanState.None);
+        Assert.Contains("overnight plan none", none);
+
+        string zero = Heartbeat.Format(6, 1, Empty(), 0, 0, Heartbeat.PlanState.None,
+            planCollectedLines: 0);
+        Assert.Contains("overnight plan 0 lines", zero);
+    }
+
     private static IReadOnlyDictionary<string, double> Empty()
         => new Dictionary<string, double>();
 }

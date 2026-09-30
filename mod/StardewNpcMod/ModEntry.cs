@@ -62,6 +62,11 @@ public class ModEntry : Mod
     // immediately without an HTTP attempt (docs/spec/laya.md, "Short-circuit when down").
     private volatile bool _layaUp = true;
 
+    // Heartbeat cosmetics (week review, findings 9-10): the backlog read BEFORE this tick's work
+    // was enqueued, and how many lines today's plan collected (for the "3 lines" wording).
+    private int _backlogAtTickStart;
+    private int _planCollectedLinesToday = -1;
+
     // Festival capture, reset after NoteDayEnd uses it (docs/spec/diary.md, "Festival").
     private bool _festivalAttended;
     private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
@@ -348,6 +353,8 @@ public class ModEntry : Mod
         _festivalActors.Clear();
         _festivalTalked.Clear();
         _layaUp = true;
+        _backlogAtTickStart = 0;
+        _planCollectedLinesToday = -1;
         QuestPatch.Reset();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
@@ -448,6 +455,7 @@ public class ModEntry : Mod
             Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes);
             inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
         }
+        _backlogAtTickStart = _ladder.Backlog; // read BEFORE enqueueing: this tick's work is still running
         if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
 
@@ -459,9 +467,9 @@ public class ModEntry : Mod
                 Monitor.Log(ev switch
                 {
                     { Kind: "Attempt", Lead: { } lead } =>
-                        $"[shadow] {ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00})",
+                        $"[shadow] {ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00}) (shadow: {ev.Npc} did not move)",
                     { Kind: "Attempt" } => $"[shadow] {ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})",
-                    _ => $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00})",
+                    _ => $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00}; {ev.Reason})",
                 }, LogLevel.Info);
         }
     }
@@ -472,7 +480,7 @@ public class ModEntry : Mod
         WhereaboutsSource.Told when lead.HopCount > 1 => $"{lead.ToldBy} heard you were there {Ago(lead.AgeTicks)}",
         WhereaboutsSource.Told => $"{lead.ToldBy} saw you there {Ago(lead.AgeTicks)}",
         WhereaboutsSource.SeenToday => $"saw you there {Ago(lead.AgeTicks)}",
-        WhereaboutsSource.Habit => $"you're usually there at this hour, {lead.HabitShare * 100:0}% of the time",
+        WhereaboutsSource.Habit => $"you're usually there at this hour ({lead.HabitShare * 100:0}% of the block, evidence {lead.Evidence:0})",
         _ => lead.Source.ToString(),
     };
 
@@ -497,6 +505,7 @@ public class ModEntry : Mod
         _planJob?.Dispose();
         _planJob = null;
         _intentsToday.Clear(); // today's lines are over; tomorrow's arrive when the new plan is collected
+        _planCollectedLinesToday = -1;
 
         IReadOnlyDictionary<string, string> homes = ResolveHomes();
         var snapshots = _memory.Diaries
@@ -606,7 +615,10 @@ public class ModEntry : Mod
         IReadOnlyList<(string Npc, DiaryEntry Entry)> notes = FestivalNotes.AtDayEnd(
             dateKey, _festivalAttended, _festivalActors, _festivalTalked, names, HeartsFor, _diaryOptions, now);
         foreach ((string npc, DiaryEntry entry) in notes)
+        {
+            _memory.Note(npc, entry); // unlike DayEndNotes, FestivalNotes only builds: save them here
             Monitor.Log($"[shadow] diary {npc}: {entry.Kind} {entry.Subject} ({entry.Detail})", LogLevel.Trace);
+        }
     }
 
     /// <summary>While the festival runs (time does not pass), note that the player attended and
@@ -742,6 +754,7 @@ public class ModEntry : Mod
                 ? "[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone)."
                 : $"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.";
         Monitor.Log(summary, LogLevel.Info);
+        _planCollectedLinesToday = plan.Candidates.Count;
 
         foreach (IntentCandidate candidate in plan.Candidates)
         {
@@ -763,21 +776,20 @@ public class ModEntry : Mod
 
         Heartbeat.PlanState plan = _planJob is null ? Heartbeat.PlanState.None
             : (_planJob.IsCompleted ? Heartbeat.PlanState.Ready : Heartbeat.PlanState.Running);
-
-        // Model counters (docs/spec/laya.md, "Counters in the heartbeat"); only the Laya backend
-        // has them — the fakes pass nothing (the counters are omitted).
         if (_model is LayaDecisionClient laya)
         {
             (double median, double p95) = laya.Latency();
             Monitor.Log(
-                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog,
-                    _ladder.Dropped, plan, laya.Calls, laya.CallFallbacks, median, p95),
+                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _backlogAtTickStart,
+                    _ladder.Dropped, plan, laya.Calls, laya.CallFallbacks, median, p95,
+                    planCollectedLines: _planCollectedLinesToday),
                 LogLevel.Info);
         }
         else
         {
             Monitor.Log(
-                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog, _ladder.Dropped, plan),
+                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _backlogAtTickStart,
+                    _ladder.Dropped, plan, planCollectedLines: _planCollectedLinesToday),
                 LogLevel.Info);
         }
     }
@@ -810,6 +822,7 @@ public class ModEntry : Mod
                 _memory = MemoryStore.FromJson(memoryJson);
             if (model.TryGetValue("ladder", out string? ladderJson))
                 _ladder = NewLadder(ladderJson);
+            _memory.RemoveDiary("null"); // junk from before the quest-target guard (week review, finding 2)
             return;
         }
 

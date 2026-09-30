@@ -185,7 +185,9 @@ diary kinds remain (Open work).
 - **Choosing.** The NPC picks the mildest step at or above its current rung that is available and
   that its urge allows.
 - **Being ignored.** The urge drops by 0.2, the rung moves past the ignored step, and a diary line
-  is written. A new day resets the rung.
+  is written — but only once that step is live (`RecordIgnoredBy`); while shadow, the penalty and
+  escalation apply with no diary write, since the player never saw the attempt (in-game week
+  review). A new day resets the rung.
 - **Response windows fit the step.** One hour for anything done in person, ending at day end. A
   queued line waits for the rest of the day and quietly expires with no penalty, because the
   player never heard it. A letter waits until the end of the next day.

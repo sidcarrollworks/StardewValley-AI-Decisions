@@ -32,7 +32,7 @@ public sealed class LadderTimingTests
 
     private static InitiationOptions Eager(Action<InitiationOptions>? tweak = null)
     {
-        var o = new InitiationOptions { BaseGainPerTick = 1.0, HeartsGainPerTick = 0 };
+        var o = new InitiationOptions { BaseGainPerTick = 1.0, HeartsGainPerTick = 0, RecordIgnoredBy = true };
         tweak?.Invoke(o);
         return o;
     }
@@ -135,7 +135,7 @@ public sealed class LadderTimingTests
     {
         // The review repro: an emote just before bed, next seen at 6:10.
         var diaries = new Diaries();
-        var ladder = new InitiationLadder(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.35, HeartsGainPerTick = 0 });
+        var ladder = new InitiationLadder(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.35, HeartsGainPerTick = 0, RecordIgnoredBy = true });
         Assert.Equal(InitiationStep.Emote, Assert.Single(One(ladder, diaries, Day - 2, "Abigail", Near("Abigail", Day - 2))).Step);
 
         var events = One(ladder, diaries, Day + 1, "Abigail", null);
