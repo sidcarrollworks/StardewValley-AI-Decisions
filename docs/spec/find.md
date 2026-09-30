@@ -155,7 +155,10 @@ from 3 after the in-game week: three co-located ticks on one day made "you're us
 the time" claims), `HabitMinShare` 0.5 (`WhereaboutsOptions`). New in `InitiationOptions`:
 `VisitThreshold` 0.90 (the `StepThresholds` entry for step 6), `MaxVisitsPerWeek` 2,
 `MaxVisitsPerNpcPerWeek` 1, `MinDaysBetweenVisits` 2, `VisitEarliest` 900, `VisitLatest` 2000,
-`SearchMaxTicks` 6. None saved. Distinct-day evidence tracking is still open (step 7).
+`SearchMaxTicks` 6. None saved. Distinct-day evidence tracking is still open (step 7). A Habit
+lead to the seeker's own region (as of its last observed tick — span-tracker memory, not a live
+position) is rejected: the seeker's belief only contains places it itself was, so such a lead is
+"go looking where I am standing".
 
 ## Acceptance tests
 

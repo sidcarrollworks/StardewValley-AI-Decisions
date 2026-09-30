@@ -127,7 +127,8 @@ public sealed class WhereaboutsTests
     }
 
     /// <summary>Seen with the player at the beach at 8:00 (block 1) on three earlier days,
-    /// <paramref name="ticksPerDay"/> consecutive ticks each (an hour is 6 ticks).</summary>
+    /// <paramref name="ticksPerDay"/> consecutive ticks each (an hour is 6 ticks), then a final
+    /// tick with the seeker somewhere else, so its own region is not the habit region.</summary>
     private static MemoryStore WithABeachMorningHabit(int days = 3, int ticksPerDay = 6, int hearts = 0)
     {
         var store = new MemoryStore();
@@ -136,7 +137,32 @@ public sealed class WhereaboutsTests
                 store.Observe(GameClock.DayStartTick(day) + 12 + t,
                     new[] { You("Beach", 10, 10), Npc("Willy", "Beach", 11, 11) },
                     TestHelpers.Regions(), _ => hearts);
+        store.Observe(GameClock.DayStartTick(days) + 260, new[] { Npc("Willy", "Town", 40, 40) },
+            TestHelpers.Regions(), _ => hearts); // last seen in town, not at the habit spot
         return store;
+    }
+
+    [Fact]
+    public void AHabitLeadToTheSeekersOwnRegionIsRejected()
+    {
+        // The seeker's belief is fed only by ticks where it could see the player, so the habit
+        // region is always somewhere the seeker itself was. A lead to where it is right now is
+        // "go looking for you where I am standing" (week review): reject it.
+        var store = new MemoryStore();
+        for (int day = 0; day < 3; day++)
+            for (int t = 0; t < 6; t++)
+                store.Observe(GameClock.DayStartTick(day) + 12 + t,
+                    new[] { You("Beach", 10, 10), Npc("Willy", "Beach", 11, 11) },
+                    TestHelpers.Regions(), _ => 0);
+        int thisMorning = GameClock.DayStartTick(5) + 14;
+
+        // Willy was last seen at the beach itself: the beach habit is not a lead from here.
+        Assert.Equal(WhereaboutsSource.Unknown, store.LookFor("Willy", Player, thisMorning, 120).Source);
+
+        // One later tick anywhere else and the same habit becomes a usable lead again.
+        store.Observe(GameClock.DayStartTick(3) + 260, new[] { Npc("Willy", "Town", 40, 40) },
+            TestHelpers.Regions(), _ => 0);
+        Assert.Equal(WhereaboutsSource.Habit, store.LookFor("Willy", Player, thisMorning, 120).Source);
     }
 
     [Fact]

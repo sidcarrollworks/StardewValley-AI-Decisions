@@ -35,6 +35,7 @@ public sealed class MemoryStore
 
     // Pairs ("observer>subject") co-located on the previous observed tick, for span detection.
     private HashSet<string> _prevCoLocated = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _lastObservedRegion = new(StringComparer.OrdinalIgnoreCase);
     private int _prevTick = int.MinValue;
 
     // Ticks each NPC was co-located with the PLAYER on the current calendar day, for PassedBy.
@@ -70,6 +71,12 @@ public sealed class MemoryStore
     /// target recorded before the guard existed).</summary>
     public void RemoveDiary(string npc)
         => _diaries.Remove(npc);
+
+    /// <summary>The region this NPC was in on its last observed tick (span-tracker memory, not a
+    /// live position; null until it has been observed). <see cref="LookFor"/> uses it to reject
+    /// habit leads to where the seeker already is.</summary>
+    public string? LastObservedRegion(string npc)
+        => _lastObservedRegion.TryGetValue(npc, out string? region) ? region : null;
 
     /// <summary>
     /// The NPCs that were co-located with the player at the most recent <see cref="Observe"/> —
@@ -130,6 +137,11 @@ public sealed class MemoryStore
             {
                 if (observer.IsPlayer)
                     continue;
+
+                // Span-tracker memory: where the observer itself was on the last observed tick.
+                // LookFor uses it to reject habit leads to the seeker's own region (rule 2 holds:
+                // nothing here reads a live position; it is aged by at least one tick).
+                _lastObservedRegion[observer.Name] = region;
 
                 foreach (Presence subject in here)
                 {
@@ -221,7 +233,8 @@ public sealed class MemoryStore
         if (BeliefOf(seeker, subject)?.BestGuessAt(block) is { } guess
             && guess.Evidence >= options.MinHabitEvidence
             && guess.Share >= options.MinHabitShare
-            && guess.Region != RegionMap.OtherRegion)
+            && guess.Region != RegionMap.OtherRegion
+            && !string.Equals(guess.Region, LastObservedRegion(seeker), StringComparison.OrdinalIgnoreCase))
             return new Whereabouts(seeker, subject, WhereaboutsSource.Habit, guess.Region, LedgerDetail.Region, 0, 0, null, guess.Share, guess.Evidence);
 
         return sighting ?? new Whereabouts(seeker, subject, WhereaboutsSource.Unknown, null, null, 0, 0, null, 0);

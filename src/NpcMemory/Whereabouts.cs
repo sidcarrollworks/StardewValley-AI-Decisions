@@ -38,11 +38,10 @@ public sealed record AskResult(IReadOnlyList<string> Asked, IReadOnlyList<string
 /// <summary>Tuning for <see cref="MemoryStore.LookFor"/>. Not saved, so changes apply to old saves.</summary>
 public sealed class WhereaboutsOptions
 {
-    /// <summary>A habit counts only with at least this much weight in the hour's block (roughly
-    /// ticks spent together then; hearts make each tick with the player count for more).</summary>
     /// <summary>How much evidence a 2-hour block needs before the habit counts as a lead
-    /// (docs/spec/find.md). Raised from 3.0 after the in-game week: three co-located ticks on one
-    /// day made "you're usually there 100% of the time" claims (week review, finding 6).</summary>
+    /// (docs/spec/find.md): roughly ticks spent together, hearts making each tick with the player
+    /// count for more. Raised from 3.0 after the in-game week: three co-located ticks on one day
+    /// made "you're usually there 100% of the time" claims (week review, finding 6).</summary>
     public double MinHabitEvidence { get; set; } = 12.0;
 
     /// <summary>...and only if one region holds at least this share of that weight.</summary>

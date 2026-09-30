@@ -353,6 +353,8 @@ public class ModEntry : Mod
         _festivalActors.Clear();
         _festivalTalked.Clear();
         _layaUp = true;
+        _backlogAtTickStart = 0;
+        _planCollectedLinesToday = -1;
         QuestPatch.Reset();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
