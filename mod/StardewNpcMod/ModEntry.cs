@@ -6,6 +6,7 @@ using NpcSchedules;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.GameData.Characters;
 using StardewValley.Menus;
 
 namespace StardewNpcMod;
@@ -40,10 +41,17 @@ public class ModEntry : Mod
     // NPCs with a planned line for today (feeds the ladder's intent boost).
     private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
 
+    // First-conversation tracking for the Talked diary kind; cleared at the 6:00 tick.
+    private readonly HashSet<string> _talkedToday = new(StringComparer.OrdinalIgnoreCase);
+
+    // Static villager data (birthdays, homes), loaded once in Entry; used by the day-end notes.
+    private Dictionary<string, CharacterData> _characterData = new(StringComparer.OrdinalIgnoreCase);
+
     public override void Entry(IModHelper helper)
     {
         _config = helper.ReadConfig<ModConfig>();
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
+        _characterData = helper.GameContent.Load<Dictionary<string, CharacterData>>("Data/Characters");
         _model = BuildModel();
         _ladder = NewLadder(null);
 
@@ -128,6 +136,8 @@ public class ModEntry : Mod
         if (tick < 0)
             return; // outside the 600..2600 live day
         int now = Now(tick);
+        if (tick == 0)
+            _talkedToday.Clear(); // the new day: the day-end notes already used yesterday's set
 
         try
         {
@@ -155,6 +165,7 @@ public class ModEntry : Mod
     {
         try
         {
+            NoteDayEnd();
             StartPlanning();
         }
         catch (Exception ex)
@@ -241,8 +252,17 @@ public class ModEntry : Mod
         if (!Context.IsWorldReady || e.NewMenu is not DialogueBox { characterDialogue.speaker: { } speaker })
             return;
         int tick = TimeUtils.TickIndex(Game1.timeOfDay);
-        if (tick >= 0)
-            _ladder.EnqueueResponse(speaker.Name, Now(tick));
+        if (tick < 0)
+            return;
+        _ladder.EnqueueResponse(speaker.Name, Now(tick));
+
+        // First conversation of the day: a Talked diary entry (docs/spec/diary.md).
+        if (_talkedToday.Add(speaker.Name))
+        {
+            DiaryEntry entry = new(Now(tick), MemoryStore.PlayerName, "Talked",
+                DiaryDetail.Format(("hearts", HeartsFor(speaker.Name).ToString())));
+            _memory.Note(speaker.Name, entry);
+        }
     }
 
     // ---- initiation ladder (shadow) -------------------------------------------------------------
@@ -322,9 +342,16 @@ public class ModEntry : Mod
         _planJob = null;
         _intentsToday.Clear(); // today's lines are over; tomorrow's arrive when the new plan is collected
 
+        IReadOnlyDictionary<string, string> homes = ResolveHomes();
         var snapshots = _memory.Diaries
             .Where(kv => kv.Value.Entries.Count > 0)
-            .Select(kv => new NpcMemorySnapshot(kv.Key, VoiceSheets.Voice(kv.Key), kv.Value.Entries.ToList(), Array.Empty<string>()))
+            .Select(kv =>
+            {
+                string npc = kv.Key;
+                var news = new NewsContext(npc, homes, BeliefsOf(npc), _regions, HeartsFor(npc),
+                    Array.Empty<(string, string)>());
+                return new NpcMemorySnapshot(npc, VoiceSheets.Voice(npc), kv.Value.Entries.ToList(), Array.Empty<string>(), news);
+            })
             .ToList();
         if (snapshots.Count == 0)
             return;
@@ -332,9 +359,80 @@ public class ModEntry : Mod
         int today = GameClock.DayIndex(Now(0));
         int seed = today; // deterministic per day
         _planJob = IntentPlanJob.Start(
-            budget => new IntentPlanner(Guarded(budget), new LineRenderer()).Plan(snapshots, seed, sourceDay: today),
+            budget => new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness()).Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
+    }
+
+    /// <summary>Day-end diary notes: PassedBy and BirthdayForgotten (docs/spec/diary.md). Pure memory
+    /// plus game facts (hearts, birthdays, gifts); logged at Trace like every new diary kind.</summary>
+    private void NoteDayEnd()
+    {
+        int now = Now(119); // the day's last live tick (1:50 AM)
+
+        var names = new HashSet<string>(VillagerNames(), StringComparer.OrdinalIgnoreCase);
+        foreach (KeyValuePair<string, Friendship> pair in Game1.player.friendshipData.Pairs)
+            names.Add(pair.Key);
+
+        IReadOnlyList<(string Npc, DiaryEntry Entry)> notes = _memory.DayEndNotes(
+            names, now, HeartsFor, BirthdayFor, GiftedToday, _talkedToday);
+        foreach ((string npc, DiaryEntry entry) in notes)
+            Monitor.Log($"[shadow] diary {npc}: {entry.Kind} {entry.Subject} ({entry.Detail})", LogLevel.Trace);
+    }
+
+    /// <summary>Villager names from every loaded location (same coverage as CollectPresences).</summary>
+    private static IEnumerable<string> VillagerNames()
+    {
+        IEnumerable<GameLocation> locations = Game1.locations;
+        if (Game1.player.currentLocation is { } playerLocation)
+            locations = locations.Append(playerLocation);
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (GameLocation location in locations)
+        {
+            if (location is null)
+                continue;
+            foreach (NPC npc in location.characters)
+                if (npc.IsVillager)
+                    names.Add(npc.Name);
+        }
+        return names;
+    }
+
+    /// <summary>VERIFY: Season enum compared by name against Game1.currentSeason.</summary>
+    private bool BirthdayFor(string npc)
+        => _characterData.TryGetValue(npc, out CharacterData? data)
+           && data.BirthSeason is { } season
+           && string.Equals(season.ToString(), Game1.currentSeason, StringComparison.OrdinalIgnoreCase)
+           && data.BirthDay == Game1.dayOfMonth;
+
+    private static bool GiftedToday(string npc)
+        => Game1.player.friendshipData.TryGetValue(npc, out Friendship? friendship) && friendship.GiftsToday > 0;
+
+    /// <summary>NPC -> home location from Data/Characters (first unconditional Home entry, else the
+    /// first). The regions.json `homes` table is empty today, so Data/Characters is the source;
+    /// verify Condition handling when conditions appear (docs/spec/diary.md).</summary>
+    private Dictionary<string, string> ResolveHomes()
+    {
+        var homes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach ((string npc, CharacterData data) in _characterData)
+        {
+            string? home = data.Home?.FirstOrDefault(h => string.IsNullOrEmpty(h.Condition))?.Location
+                           ?? data.Home?.FirstOrDefault()?.Location;
+            if (!string.IsNullOrEmpty(home))
+                homes[npc] = home;
+        }
+        return homes;
+    }
+
+    /// <summary>The observer's routine beliefs about each subject, keyed by subject name.</summary>
+    private Dictionary<string, RoutineBelief> BeliefsOf(string observer)
+    {
+        var result = new Dictionary<string, RoutineBelief>(StringComparer.OrdinalIgnoreCase);
+        string prefix = observer + ">";
+        foreach ((string key, RoutineBelief belief) in _memory.Beliefs)
+            if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                result[key[prefix.Length..]] = belief;
+        return result;
     }
 
     /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>

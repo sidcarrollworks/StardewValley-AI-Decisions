@@ -179,8 +179,13 @@ In-game (test save `BUNKO_450391925`):
 ## Status
 
 - Done: `src/NpcMemory/Diary.cs`, `MemoryStore.Observe` (`Saw`), `InitiationLadder` (`TriedToReach`,
-  `IgnoredBy`); tests in `tests/NpcMemory.Tests/DiaryTests.cs`.
-- Not started: `DiaryDetail`, `MemoryStore.Note`, every new kind, `Newsworthiness`.
+  `IgnoredBy`); `DiaryDetail` (Parse/Format), `MemoryStore.Note`, the day-end notes (`Talked`,
+  `PassedBy`, `BirthdayForgotten` via `MemoryStore.DayEndNotes`); `Newsworthiness` and the planner's
+  news filter and ranking; tests in `tests/NpcMemory.Tests` (147) and `tests/NpcIntents.Tests` (117).
+- Not started: the Harmony kinds (`GiftReceived`, `SawGift`, `QuestHelped`, `Festival`,
+  `MissedFestival`) and the rest of the kinds table; the recent-citations wiring (`RecentCitations`
+  is always empty until intents step 5); the visit/letter/romance/town-life kinds (their features
+  do not exist yet).
 
 ## Open questions
 

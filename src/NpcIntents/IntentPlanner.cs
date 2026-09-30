@@ -14,12 +14,14 @@ public sealed class IntentPlanner
 {
     private readonly IDecisionClient _decision;
     private readonly ILineRenderer _renderer;
+    private readonly Newsworthiness? _news;
     private readonly IntentPlannerOptions _options;
 
-    public IntentPlanner(IDecisionClient decision, ILineRenderer renderer, IntentPlannerOptions? options = null)
+    public IntentPlanner(IDecisionClient decision, ILineRenderer renderer, Newsworthiness? news = null, IntentPlannerOptions? options = null)
     {
         _decision = decision;
         _renderer = renderer;
+        _news = news;
         _options = options ?? new IntentPlannerOptions();
     }
 
@@ -54,25 +56,53 @@ public sealed class IntentPlanner
             if (diary.Count == 0)
                 continue; // nothing from the day just ended: an old entry is not news
 
-            string context = BuildContext(diary, snapshot.Voice);
+            // 2a. About what: the highest-news distinct entries when newsworthiness is available,
+            // else the newest distinct entries (legacy). A snapshot with news but nothing above
+            // MinNews is skipped WITHOUT a model call (docs/spec/diary.md).
+            IReadOnlyList<DiaryEntry> offered;
+            var newsOf = new Dictionary<DiaryEntry, double>();
+            if (_news is not null && snapshot.News is { } newsContext)
+            {
+                var candidates = new List<(DiaryEntry Entry, double Score)>();
+                foreach (DiaryEntry e in Distinct(diary))
+                {
+                    double score = _news.Score(e, newsContext);
+                    if (score >= _news.Options.MinNews)
+                        candidates.Add((e, score));
+                }
+                foreach ((DiaryEntry e, double score) in candidates)
+                    newsOf[e] = score;
+                // Top 5 by news, ties newest first.
+                offered = candidates
+                    .OrderByDescending(x => x.Score)
+                    .ThenByDescending(x => x.Entry.AbsoluteTick)
+                    .Take(_options.MaxRecentDiaryEntries)
+                    .Select(x => x.Entry)
+                    .ToList();
+                if (offered.Count == 0)
+                    continue; // nothing newsworthy: no model call
+            }
+            else
+            {
+                offered = TakeNewest(Distinct(diary), _options.MaxRecentDiaryEntries);
+                if (offered.Count == 0)
+                    continue; // no valid options to hand Choose
+            }
+
+            string context = BuildContext(offered, snapshot.Voice);
 
             // 1b. Who speaks: yes/no, probability must clear the threshold.
             // NaN-safe comparison: a NaN probability can never pass.
-            double speak = _decision.YesNo(context, "does this NPC have something to say today?");
+            double speak = _decision.YesNo(context, $"does {snapshot.Npc} have something worth telling the player today?");
             if (!(speak >= _options.SpeakThreshold))
                 continue;
 
-            // 2a. About what: newest distinct entries only (diary is oldest first).
-            IReadOnlyList<DiaryEntry> newest = TakeNewest(Distinct(diary), _options.MaxRecentDiaryEntries);
-            if (newest.Count == 0)
-                continue; // no valid options to hand Choose
-
-            List<string> options = newest.Select(Summarize).ToList();
+            List<string> options = offered.Select(Summarize).ToList();
             IReadOnlyList<double> probabilities = _decision.Choose(options, context) ?? Array.Empty<double>();
 
             // 2b. Sample one entry from the returned distribution (never argmax).
             int index = SampleIndex(probabilities, options.Count, random);
-            DiaryEntry entry = newest[index];
+            DiaryEntry entry = offered[index];
 
             // 3. Render the cited entry.
             // Delivered the morning after the source day, so its entries are one day old.
@@ -84,14 +114,16 @@ public sealed class IntentPlanner
                 continue;
 
             double cited = index < probabilities.Count ? probabilities[index] : 0.0;
+            double entryNews = newsOf.TryGetValue(entry, out double n) ? n : 0.0;
             string reason = $"cited \"{options[index]}\" (sampled p={Format(cited)})";
 
-            scored.Add((new IntentCandidate(snapshot.Npc, line, entry, reason), speak));
+            scored.Add((new IntentCandidate(snapshot.Npc, line, entry, reason, entryNews), speak));
         }
 
-        // 5. Highest yes/no first, name ascending as the deterministic tie-break, then cap.
+        // 5. Highest yes/no first, then the best news score, name ascending as the last tie-break, then cap.
         IEnumerable<IntentCandidate> ordered = scored
             .OrderByDescending(x => x.Probability)
+            .ThenByDescending(x => x.Candidate.News)
             .ThenBy(x => x.Candidate.Npc, StringComparer.OrdinalIgnoreCase)
             .Select(x => x.Candidate)
             .Take(Math.Max(0, _options.MaxNpcsPerDay));
@@ -99,14 +131,9 @@ public sealed class IntentPlanner
         return new IntentPlan(ordered);
     }
 
-    /// <summary>Short context for the model: the voice anchor plus a compact diary summary.</summary>
-    private string BuildContext(IReadOnlyList<DiaryEntry> diary, string voice)
-    {
-        IReadOnlyList<DiaryEntry> entries =
-            TakeNewest(Distinct(diary), Math.Max(1, _options.MaxRecentDiaryEntries));
-        string summary = string.Join("; ", entries.Select(Summarize));
-        return $"voice: {voice}; recent diary: {summary}";
-    }
+    /// <summary>Short context for the model: the voice anchor plus the offered entries.</summary>
+    private static string BuildContext(IReadOnlyList<DiaryEntry> offered, string voice)
+        => $"voice: {voice}; recent diary: {string.Join("; ", offered.Select(Summarize))}";
 
     /// <summary>Drop repeats of the same summary, keeping the newest occurrence (oldest-first order kept).</summary>
     private static IReadOnlyList<DiaryEntry> Distinct(IReadOnlyList<DiaryEntry> diary)

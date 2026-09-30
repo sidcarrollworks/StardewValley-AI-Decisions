@@ -11,7 +11,8 @@ public sealed record NpcMemorySnapshot(
     string Npc,
     string Voice,                                // short voice description (VoiceSheets.Voice)
     IReadOnlyList<DiaryEntry> RecentDiary,       // recent entries, oldest first
-    IReadOnlyList<string> RecentLines);          // lines this NPC already said (dedupe/cooldown)
+    IReadOnlyList<string> RecentLines,           // lines this NPC already said (dedupe/cooldown)
+    NewsContext? News = null);                   // newsworthiness context (docs/spec/diary.md)
 
 /// <summary>
 /// One would-be line for tomorrow, with its cited diary entry for legibility (the player should
@@ -21,7 +22,8 @@ public sealed record IntentCandidate(
     string Npc,
     string Line,
     DiaryEntry Source,
-    string Reason);
+    string Reason,
+    double News = 0);                            // newsworthiness of the cited entry (0 = unknown)
 
 /// <summary>A day's worth of intents. JSON-round-trippable for save persistence.</summary>
 public sealed class IntentPlan

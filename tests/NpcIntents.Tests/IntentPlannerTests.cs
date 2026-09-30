@@ -21,7 +21,7 @@ public class IntentPlannerTests
     private static IntentPlanner Planner(
         IDecisionClient decision,
         IntentPlannerOptions? options = null)
-        => new(decision, new StubRenderer(), options);
+        => new(decision, new StubRenderer(), null, options);
 
     /// <summary>Templated line that exposes which entry was rendered.</summary>
     private sealed class StubRenderer : ILineRenderer
