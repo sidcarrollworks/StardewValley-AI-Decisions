@@ -20,7 +20,7 @@ Lines that sound a little different per NPC and per occasion, never contain inte
 
 | Channel | Where the player sees it | Max length |
 |---|---|---|
-| Dialogue | a dialogue box (queued lines, intents, forced dialogue) | 160 chars (fits one box page: verify) |
+| Dialogue | a dialogue box (queued lines, intents, forced dialogue) | 160 chars, a style target: the box splits text into pages by pixel height, so a longer line becomes a second page rather than being cut |
 | Bubble | `showTextAboveHead` | 40 chars |
 | Mail | a letter | 400 chars |
 | Log | the SMAPI log (shadow) | none |
@@ -47,13 +47,13 @@ Lines that sound a little different per NPC and per occasion, never contain inte
   ```
   Lookup order for a speaker: its own hearts bucket (`Haley.high`), its own bucket (`Haley`), its
   tone bucket, then `any`; within the first bucket that has `.1`, the variants are `.1`, `.2`, ...
-  up to the first gap. Tone buckets come from `Data/Characters` (Manner: polite/rude; Optimism:
-  positive/negative; SocialAnxiety: shy/outgoing; verify the fields) and exist for custom NPCs from
-  other mods.
+  up to the first gap. Tone buckets come from `Data/Characters` (`Manner`: Neutral, Polite, Rude;
+  `Optimism`: Positive, Negative, Neutral; `SocialAnxiety`: Outgoing, Shy, Neutral; read with
+  `npc.GetData()`) and exist for custom NPCs from other mods.
 - **Keeping `src/` game-independent.** The renderer in `src/NpcIntents` can't call SMAPI. It takes an
   `ILineBank` (a read-only key-to-template map). The mod builds one on the game thread at load, from
-  `helper.Translation` for the current language (the API for listing every key is recalled, e.g.
-  `GetTranslations()`: verify; otherwise read the keys from `default.json` and fetch each), and hands
+  `helper.Translation` for the current language (`GetTranslations()` returns them all; `GetKeys()`
+  and `ContainsKey()` also exist in SMAPI 4.5.2), and hands
   the immutable copy to the planner and ladder threads. Tests build one by reading
   `i18n/default.json` straight from the repo, so the coverage tests run against the real file.
 - **Tokens are filled by our renderer**, not by `helper.Translation.Get`, because rendering happens
@@ -72,7 +72,9 @@ Lines that sound a little different per NPC and per occasion, never contain inte
 ## Triggers and game hooks
 
 SMAPI loads `i18n/` itself. The mod snapshots the bank at `SaveLoaded` and again when the game
-language changes (SMAPI raises `Content.LocaleChanged`: verify). A missing or broken key falls back
+language changes (SMAPI's `Content.LocaleChanged` event). A key missing from a language falls back
+to `default.json`; a key missing everywhere reads as `(no translation:<key>)` unless placeholders are
+turned off, so the bank must check `HasValue()` rather than the text. A missing or broken key falls back
 to the built-in templates and logs once (a text problem must never disable the mod). Rendering runs
 on the plan job or the game thread; it is pure.
 
@@ -90,19 +92,19 @@ One sanitizer per channel, in `src/NpcIntents/LineSanitizer.cs`, applied last, a
 are filled. Values inserted into templates are sanitized **before** insertion as well, because an
 item name from another mod could contain anything.
 
-| Channel | Removes | Keeps | Why (verify each against the dialogue and mail docs) |
+| Channel | Removes | Keeps | Why (dialogue: the wiki's dialogue page; mail: `LetterViewerMenu` in the 1.6.15 decompile) |
 |---|---|---|---|
 | Dialogue | `#` `$` `%` `{` `[` (done), plus `^` `@` `*` `\|` `}` `]` `<` `>` | letters, digits, basic punctuation | `#` breaks pages, `$` runs commands and portraits, `%` and `{` are tokens, `[` gives items, `^` splits gendered text, `@` is the player name, `*` and `\|` are special (D12 notes); `}` `]` are harmless but pointless |
 | Bubble | same as dialogue | | `showTextAboveHead` probably ignores commands, but it is cheap to be safe |
-| Mail | `#` `$` `{` `[` `*` `\|` and `%` **except** the template's own `%item ... %%` block, which is appended by code after sanitizing | `^` (newline in mail) and `@` (player name) only where the template put them | mail uses `%item` to attach items; only the newcomer code may add one |
+| Mail | `#` `$` `{` `[` `*` `\|` and `%` **except** the template's own `%item ... %%` block, which is appended by code after sanitizing | `^` (newline in mail) and `@` (player name) only where the template put them | the letter parser acts on `[#]` (cuts the rest), `[letterbg ...]`, `[textcolor ...]`, `%action ... %%` (runs a trigger action), `%item ... %%` (items, money, recipes, quests, special orders, conversation topics) and `%secretsanta`; only the newcomer code may append an item block |
 | Log | control characters | everything else | readability |
 
 Rules:
 - Templates may use `@` and `^` only in the mail channel, and the sanitizer strips any that came
   from values.
 - Length: cut at the channel maximum on a word boundary, adding nothing (no ellipsis needed).
-- Everything is plain ASCII plus the characters the game font supports (verify for accented names
-  in other languages; for now non-English play is untested).
+- Everything is plain ASCII plus the characters the game font supports. Accented names in other
+  languages are untested (in-game check when translation starts).
 
 ## Tuning constants
 

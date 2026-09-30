@@ -35,9 +35,17 @@ Planned:
 | `DayEnding` | `Decay(DailyDecay)` on every belief that had no co-presence today |
 
 **Seeding priors.** For each NPC observer, for each subject in its `Data/Characters`
-`FriendsAndFamily` (verify the field and its shape in 1.6):
-1. Load the subject's raw schedule: `helper.GameContent.Load<Dictionary<string,string>>("Characters/schedules/<Name>")`
-   or `npc.getMasterScheduleRawData()` (both verify). Loading also picks up other mods' edits.
+`FriendsAndFamily`. In 1.6.15 that field is a `Dictionary<string, string>`: the key is the other
+NPC's internal name, the value an optional word used in dialogue ("mom"). The game says the list
+"isn't necessarily comprehensive", and it doesn't say family or friend, so:
+- **family** = the pair shares a home (the first `Home` entry's `Location`, or the `homes` table in
+  `data/regions.json`); **friend** = listed but living elsewhere;
+- the list is one NPC's view; don't assume the other NPC lists it back.
+
+Steps:
+1. Load the subject's raw schedule with `npc.getMasterScheduleRawData()` (confirmed; it loads
+   `Characters\schedules\<Name>`), or `helper.GameContent.Load<Dictionary<string, string>>("Characters/schedules/<Name>")`.
+   Loading through the content pipeline also picks up other mods' edits.
 2. `RoutineExtractor.Extract` then `RoutinePrior.Build(routine, observer, saveSeed, options)` with
    family strength for family, friend strength for friends (the existing `PriorOptions`).
 3. `belief.SeedPrior(...)`, mark `Seeded`.
@@ -98,6 +106,5 @@ calls, the `UnlockThreshold` fix, `Seeded`.
 
 ## Open questions
 
-- `FriendsAndFamily` format and whether it lists both directions.
 - Married or dating NPCs' schedules come from `marriage_*` keys, which the extractor does not model
   (README, "Not modelled"). Priors about a spouse would be wrong; skip spouses as subjects.

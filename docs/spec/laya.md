@@ -44,7 +44,7 @@ Planned:
 2. **The NPC card**, a shared first section built on the game thread and passed as a copy:
    ```
    npc: Haley
-   temperament: manners neutral, outgoing, optimistic      (Data/Characters Manner, SocialAnxiety, Optimism: verify)
+   temperament: manners neutral, outgoing, optimistic      (Data/Characters Manner, SocialAnxiety, Optimism)
    voice: sunny, a little vain, warms up slowly             (VoiceSheets)
    hearts with the player: 4 of 10
    today: spring 12 (Tuesday), sunny, 7:30 PM
@@ -134,8 +134,8 @@ Planned:
   first run downloads PyTorch and ~1.7 GB of weights: size verify), what happens without Python, the
   loopback bind and a random API key per launch, and killing the process if the game crashes. Until
   then, players of a release would still need the manual steps in `sidecar/README.md`.
-- **Counters in the heartbeat:** calls, fallbacks, median and p95 latency, logged in PR #3's
-  heartbeat line once that is merged.
+- **Counters in the heartbeat:** calls, fallbacks, median and p95 latency, added to the
+  heartbeat line (`src/NpcInitiation/Heartbeat.cs`, from PR #3).
 
 ## Deterministic rules
 

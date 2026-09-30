@@ -39,12 +39,27 @@ Planned:
 |---|---|---|
 | `DayEnding` | snapshot diaries (plus news context and recent lines), start `IntentPlanJob` | game, then background |
 | every `TimeChanged`, and `DayStarted` | `CollectPlan`: non-blocking take; log; fill `_intentsToday`; (live) queue lines | game |
-| live, when collected | for each planned NPC: `npc.setNewDialogue(line, add: true, clearOnMovement: false)` (1.6 signature and overloads: verify; the brief also names `addExtraDialogues`) | game |
-| live, `MenuChanged` | if the opened `DialogueBox` shows our line (compare the current dialogue text: verify how to read it), mark it delivered, append to recent lines | game |
-| 6:00 tick of the next day | any undelivered line is dropped (see open question on removal) | game |
+| live, when collected | for each planned NPC: `npc.setNewDialogue(new Dialogue(npc, "squid.StardewNpcMod:intent", line), add: true, clearOnMovement: false)` | game |
+| live, `MenuChanged` | if the opened `DialogueBox.characterDialogue` is our `Dialogue` (compare the reference we pushed, or its translation key `squid.StardewNpcMod:intent`), mark it delivered, append to recent lines | game |
+| the next day | nothing: the game drops it (below) | - |
 
-A pushed line survives the NPC walking away only if `clearOnMovement` is false: verify what the
-game does with added dialogue at day end (the brief expects it to be cleared by the day reset).
+What the 1.6.15 code does with it (decompile, `NPC.cs`, `Dialogue.cs`, `Game1.cs`):
+- The `string` overload of `setNewDialogue` takes a **translation key**, not text. Raw text needs the
+  `Dialogue(NPC speaker, string translationKey, string dialogueText)` constructor, whose first string
+  is only a label. The brief's `addExtraDialogues` is really `addExtraDialogue(Dialogue)`.
+- `clearOnMovement` must be **false**: it sets `removeOnNextMove`, and the line is popped whenever the
+  NPC starts a new path, is warped, or finishes a route animation, which on a schedule day is almost
+  immediately.
+- **Unheard lines expire on their own:** every NPC's dialogue stack is reset during the new-day
+  processing (`ResetCharacterDialogues`), so nothing is left for the mod to remove.
+- **Risk:** talking to an NPC runs `checkForNewCurrentDialogue`, which clears the stack when a
+  conversation topic or location line applies, and events clear it too. A planned line can therefore
+  be wiped before it is heard. On each `MenuChanged` for that NPC, if our line was not shown and is
+  no longer in `npc.CurrentDialogue`, push it again (at most once more that day). Test this in-game
+  before `IntentLines` goes live.
+- Text is split into pages by pixel height (a 1200 x 384 box, about 460 px of it portrait), so a long
+  line becomes an extra page rather than being cut. `#` separates lines in dialogue text and the
+  sanitizer strips it.
 
 ## Laya questions
 
@@ -119,8 +134,8 @@ In-game:
 
 ## Open questions
 
-- Can an added dialogue line be removed at the next 6:00 if unheard, or does the game's day reset
-  already clear it? Needs an in-game check before going live.
+- How often a conversation topic or location line wipes a planned line before it is heard (see the
+  risk above). Measure in shadow by logging when it would have happened.
 - Should the planned line come before the NPC's normal daily line or replace it? Recommendation:
   before, as an added line, so vanilla dialogue (and its friendship gain) is untouched.
 - Should married spouses get planned lines? Marriage dialogue has its own paths

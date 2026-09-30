@@ -38,19 +38,22 @@ mechanics are a later idea, sketched at the end. Builds on the ladder's `Mail` r
 
 ## Triggers and game hooks
 
-| When | What | Game calls (verify all) |
+| When | What | Game calls (checked in the 1.6.15 decompile) |
 |---|---|---|
-| a `Mail` attempt is drained (day D) | reserve tomorrow's letter: add the mail id to `Game1.player.mailForTomorrow`; record a `PendingLetter` with no text yet | `mailForTomorrow` |
+| a `Mail` attempt is drained (day D) | reserve tomorrow's letter; record a `PendingLetter` with no text yet | `Game1.addMailForTomorrow(id)` (skips an id the player already has or will get) |
 | the 6:00 tick of day D+1 | decide the letter's kind and text (below), store it, and invalidate `Data/mail` so the text is served | `helper.GameContent.InvalidateCache("Data/mail")` |
-| `AssetRequested` for `Data/mail` | add every pending letter's id and text | `e.Edit(...)` on `IDictionary<string,string>` |
+| `AssetRequested` for `Data/mail` | add every pending letter's id and text | `e.Edit(asset => asset.AsDictionary<string, string>().Data[id] = text)`. The mailbox loads the text when the player opens the letter, so text written at 6:00 is what they read |
 | each tick during an invitation's window | if the NPC's **own** ledger has a first-hand sighting of the player at the invitation's location this tick, mark `Accepted` | memory only (`Ledger.View`), no position read |
 | `MenuChanged` with that NPC as speaker during the window, at the place | `talked=1`; (live) the NPC's queued "you came" line | existing hook |
 | the end of the window | `Open` becomes `StoodUp` | - |
 
 **Why the text is decided the morning it arrives.** An invitation must name a place where the NPC
 will really be. By the 6:00 tick the game has already picked the NPC's schedule for the day
-(schedules load during the new-day processing, before `TimeChanged` 600: verify), including rain
-variants. So the letter is written from that day's actual schedule, and the invitation is for the
+(confirmed: `NPC.dayUpdate` -> `resetForNewDay` -> `TryLoadSchedule` runs inside the new-day
+processing, which SMAPI runs synchronously, before any 6:00 event), including rain variants. The day's
+plan is `npc.Schedule`, a `Dictionary<int, SchedulePathDescription>` keyed by start time, each entry
+with a `targetLocationName` and `targetTile`; a slot is the gap between one entry's time and the
+next. So the letter is written from that day's actual schedule, and the invitation is for the
 same day ("tonight"). A letter read on a later day says "tonight" about a day already gone; vanilla
 letters share that quirk, and the window has simply closed.
 
@@ -77,8 +80,9 @@ few hundred milliseconds), the fallback kind is `MissedYou`.
   the NPC has at least one candidate slot.
 - **Candidate slots** come from the NPC's schedule for the day: a stay of at least
   `MinSlotTicks` (6, one hour) at one location, starting between 9:00 and 21:00, in a location not in
-  `noSearch` and not in `noInvite` (a new `data/regions.json` list: farm buildings, mines, the NPC's
-  workplace back rooms if they turn out to be separate maps: verify). Up to 3 slots, earliest first.
+  `noSearch` and not in `noInvite` (a new `data/regions.json` list: farm buildings, mines, and any
+  map the player can't enter at the time; check the list against the maps NPC schedules actually
+  use). Up to 3 slots, earliest first.
 - **Kind eligibility:** `News` needs a planned line for this NPC today ([intents.md](intents.md)); if
   the letter uses it, the line is marked delivered so it isn't said again in person.
 - **Accepted** needs the NPC's own first-hand sighting at the place during the window; hearsay
@@ -117,15 +121,15 @@ Not started. Today the `Mail` rung only logs `would try Mail`.
 ## Later: requests and quests from vanilla mechanics
 
 Sid's idea: NPCs asking for things, maybe as quests. Vanilla has several mechanics the mod could use
-rather than inventing its own. All of the game facts here are recalled: verify each before designing
-with it.
+rather than inventing its own. The mail commands and data formats below were checked in the 1.6.15
+decompile (`LetterViewerMenu`, `Quest`, `NPC.checkForNewCurrentDialogue`).
 
 | Mechanic | What it would give | Notes |
 |---|---|---|
-| A quest attached to a letter (the mail format's quest command) | "Could you bring me a trout? - Willy", tracked in the quest log with its own completion | our quests would be added to `Data/Quests` through `AssetRequested`; vanilla quest rewards can include money and friendship, which the mod never changes today: Sid's call |
+| A quest attached to a letter: `%item quest <id> %%` shows an "accept quest" button; `%item quest <id> true %%` adds it at once | "Could you bring me a trout? - Willy", tracked in the quest log with its own completion | our quests go into `Data/Quests` (key -> `type/title/description/objective/conditions/nextQuests/money/rewardDescription/canBeCancelled`) through `AssetRequested`. Note the game itself grants friendship on some completions (an item delivery gives the target 150 points for a daily quest, 255 otherwise); the mod would be choosing to use that, which is Sid's call |
 | Help-wanted board (the daily quest) | nudging which NPC posts today's request toward one who wants the player's attention | invasive: it changes a vanilla system; probably not |
 | Special orders (the town board) | multi-day requests with objectives | heavy content; a candidate for pairing with a content mod |
-| Conversation topics (`activeDialogueEvents`) | vanilla-style dialogue reacting to what happened ("I heard about the fire at the mines"), expiring after some days | the game's own mechanism for "NPCs remember recent events"; our topic dialogue would be templated text added by asset edit |
+| Conversation topics (`Game1.player.activeDialogueEvents`, topic id -> days left; `autoGenerateActiveDialogueEvent(id, 4)`; mail can start one with `%item conversationtopic <id> <days> %%`) | vanilla-style dialogue reacting to what happened ("I heard about the fire at the mines"), expiring after some days | an NPC says the entry whose key equals the topic id in its `Characters/Dialogue/<Name>`, once (tracked as mail flag `<Name>_<topic>`). Our topic dialogue would be templated text added by asset edit. Caution: showing a topic line clears the NPC's other queued dialogue, including ours ([intents.md](intents.md)) |
 | NPC gifts by mail | a small item enclosed with a thank-you letter | item grants only from a table, like newcomer week |
 | The movie theater | an NPC inviting the player to a movie | 1.6 has the theater and invitations in the other direction; later |
 
@@ -135,7 +139,8 @@ natural `QuestHelped` entry ([diary.md](diary.md)).
 
 ## Open questions
 
-- Should an invitation ever be for the NPC's home? Vanilla locks some bedrooms below certain hearts
-  (verify); `InviteMinHearts` 3 is meant to be above that.
+- Should an invitation ever be for the NPC's home? Bedroom doors open at 2 hearts (confirmed: the
+  `Door` action checks `getFriendshipHeartLevelForNPC >= 2`, then remembers `doorUnlock<Name>`), so
+  `InviteMinHearts` 3 is above that.
 - Should accepting an invitation do anything beyond memory and a line (a friendship bonus)? Today the
   mod never changes friendship; the vanilla conversation there already gives the usual points.

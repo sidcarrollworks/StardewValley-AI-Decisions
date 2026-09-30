@@ -12,15 +12,15 @@ Shadow (today): `[shadow] Abigail would try Emote (...)`, `[shadow] Abigail: Emo
 
 Live, per rung (each behind its own switch, [rollout.md](rollout.md)):
 
-| Rung | What the player sees | Game call (all verify) | Only when |
+| Rung | What the player sees | Game call (checked in the 1.6.15 decompile) | Only when |
 |---|---|---|---|
-| `Emote` | an emote over the NPC's head | `npc.doEmote(id)` (Character). Id by mood: exclamation 16, heart 20 at 8+ hearts, question 8 after being ignored (ids verify; 8 is confirmed as "question" in the wiki notes) | the player is in the NPC's location (it is "Near" by definition) |
-| `Bubble` | a short line above the head | `npc.showTextAboveHead(text)` with a bubble template ([text.md](text.md)) | same location |
-| `Approach` near | the NPC turns and walks a few tiles toward the player, then resumes its day | face the player, then a `PathFindController` to a free tile next to the player, within the same location, with a timeout; on arrival or timeout, restore the schedule (see open questions) | same location, no event or menu, `Context.CanPlayerMove` |
+| `Emote` | an emote over the NPC's head | `npc.doEmote(int whichEmote, bool playSound, bool nextEventCommand = true)` (`Character`). Id by mood, from the `Character` constants: `exclamationEmote` 16 by default, `heartEmote` 20 at 8+ hearts, `questionMarkEmote` 8 after being ignored (also available: happy 32, sad 28, blush 60, music note 56) | the player is in the NPC's location (it is "Near" by definition) |
+| `Bubble` | a short line above the head | `npc.showTextAboveHead(string text, Color? spriteTextColor = null, int style = 2, int duration = 3000, int preTimer = 0)` with a bubble template ([text.md](text.md)) | same location |
+| `Approach` near | the NPC turns and walks a few tiles toward the player, then resumes its day | face the player, then `npc.temporaryController = new PathFindController(npc, location, tile, facing) { NPCSchedule = true }` to a free tile next to the player's last seen spot, within the same location; when it finishes, the game itself calls `checkSchedule(Game1.timeOfDay)` and the NPC catches up on schedule steps queued meanwhile (see [find.md](find.md), "Travel") | same location, no event or menu, `Context.CanPlayerMove` |
 | `Approach` from a lead | the NPC walks to where it believes the player is, in the map it is already in | as `Approach` near | the lead is in the NPC's current map |
-| `QueuedLine` | the next time the player talks to the NPC, it opens with the line | `setNewDialogue(..., add: true)`; the planned intent if there is one, else a "missed you" template | any time; expires at day end |
-| `Mail` | a letter the next morning | register the letter in `Data/mail` via `helper.Events.Content.AssetRequested`, add its id to `Game1.player.mailForTomorrow` (verify both) | hearts >= 2 |
-| `ForcedDialogue` | a dialogue box opens unprompted | `setNewDialogue` then `Game1.drawDialogue(npc)` | same location within 3 tiles (the NPC's own first-hand view), no menu, no event, player free to move; at most once a week across all NPCs |
+| `QueuedLine` | the next time the player talks to the NPC, it opens with the line | `setNewDialogue(new Dialogue(npc, key, text), add: true, clearOnMovement: false)` ([intents.md](intents.md)); the planned intent if there is one, else a "missed you" template | any time; the game clears it at day end |
+| `Mail` | a letter the next morning | register the letter in `Data/mail` via `helper.Events.Content.AssetRequested` (`e.Edit(asset => asset.AsDictionary<string, string>().Data[id] = text)`), then `Game1.addMailForTomorrow(id)`, which fills the per-farmer `mailForTomorrow` set; the game moves it to the mailbox during the new-day processing | hearts >= 2 |
+| `ForcedDialogue` | a dialogue box opens unprompted | `setNewDialogue(dialogue, add: true)` then `Game1.drawDialogue(npc)` (it opens a `DialogueBox` on the top of the NPC's stack) | same location within 3 tiles (the NPC's own first-hand view), no menu, no event, player free to move; at most once a week across all NPCs |
 | `Visit` (new, step 6) | the NPC leaves what it is doing (a shop may close) and goes to another map, maybe the farm, to find the player; 1 to 2 a week across the town | a one-off cross-map path, then restore the schedule ([find.md](find.md)) | urge >= 0.90, lead in another map, hearts >= 2, 9:00 to 20:00, caps in [find.md](find.md) |
 
 A live attempt that the game refuses (menu open, event running, NPC busy) is not made and not
@@ -53,8 +53,9 @@ Planned, live:
   "only when" column against the current game state. Checking live state to decide whether the game
   *can* show something is allowed; it does not decide *whether the NPC wants to* (D2).
 - `Mail`: the letter text is built when the attempt is drained, registered for tomorrow, and the
-  response is the player opening it (a `LetterViewerMenu` with our id: verify how to read the id) or
-  talking to the NPC before the end of the next day.
+  response is the player opening it or talking to the NPC before the end of the next day. Opening
+  is easy to see: the mailbox adds the letter's id to `Game1.player.mailReceived` when it opens it,
+  and the open `LetterViewerMenu` carries it in `mailTitle`.
 
 ## Laya questions
 
@@ -76,12 +77,16 @@ below `p`.
 
 Planned additions:
 - **Temperament floor** (deterministic, before the model): NPCs whose `Data/Characters`
-  `SocialAnxiety` is `Shy` (verify field) never use `Bubble` or `ForcedDialogue`; they skip to the
+  `SocialAnxiety` is `Shy` (`NpcSocialAnxiety.Shy`; read with `npc.GetData()`) never use `Bubble` or `ForcedDialogue`; they skip to the
   next available step. Their news shows up as letters instead, matching brief decision 6.
 - **Spouse and children:** excluded from the ladder when live (they have their own game logic).
+  Children are `Data/Characters` `Age == NpcAge.Child` (Jas, Vincent); the player's own children
+  are the separate `StardewValley.Characters.Child` class and aren't villagers.
   In shadow they stay, for tuning data.
-- **Not during events or festivals:** no attempt while `Game1.eventUp` or a festival is running
-  (verify flags). Shadow logs these too, marked `(event running: would wait)`.
+- **Not during events or festivals:** no attempt while `Game1.eventUp` is true (any event or
+  cutscene, festivals included) or `Game1.isFestival()`. SMAPI's `Context.CanPlayerMove` is
+  `IsPlayerFree && Game1.player.CanMove`, where `IsPlayerFree` needs no menu and no dialogue, and
+  during an event is true only at a festival, so check `eventUp` separately. Shadow logs these too, marked `(event running: would wait)`.
 
 ## Tuning constants
 
@@ -118,11 +123,8 @@ Done: `src/NpcInitiation/InitiationLadder.cs`, `BackgroundLadder.cs`, `Models.cs
 
 ## Open questions
 
-- How to hand an NPC back to its schedule after a custom walk. The brief notes that
-  `PathToOnFarm` sets `ignoreScheduleToday`, which makes `checkSchedule` return early for the rest of
-  the day. Candidate: save the NPC's controller and `ignoreScheduleToday`, walk, then restore and
-  call `checkSchedule(Game1.timeOfDay)` (verify all of it). Needs an in-game experiment before
-  `Approach` goes live.
-- Emote ids beyond 8, 12 and 28 (the only ones in the source notes).
+- Handing an NPC back to its schedule after a custom walk: the decompile shows how
+  ([find.md](find.md), "Travel"), and that `PathToOnFarm`, named in the brief, doesn't exist in 1.6.
+  An in-game experiment still has to confirm it before `Approach` goes live.
 - Should a response to a letter require reading it, or is talking to the NPC enough? Recommendation:
   either counts.

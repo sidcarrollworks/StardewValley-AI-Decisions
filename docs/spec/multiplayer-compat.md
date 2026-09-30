@@ -9,8 +9,11 @@ Every SMAPI player runs the mod. Without care, each machine would keep its own m
 its own, and the "Player" subject would mean a different farmer on each machine.
 
 **Decided (Sid, 2026-09-30): single-player for now**, and research what multiplayer would need (below).
-- If `Context.IsMultiplayer` (verify) and this machine is not the host (`!Context.IsMainPlayer`), the
-  mod logs `Multiplayer farmhand: NPC memory runs on the host only` and hooks nothing else.
+- A remote farmhand (`!Context.IsOnHostComputer`) logs `Multiplayer farmhand: NPC memory runs on
+  the host only` and hooks nothing else.
+- Split-screen players share one process with the host, so there the guard is per event: every
+  handler returns early unless `Context.IsMainPlayer` (screen 0). `Context.IsMultiplayer` is true for
+  both split-screen and network sessions.
 - On the host in multiplayer, the mod keeps running but observes only the host's farmer as `Player`
   and logs a warning that other farmers are ignored. No live behavior runs in multiplayer
   (`Live` switches are ignored) until multiplayer is designed.
@@ -32,27 +35,30 @@ What we know:
   mod still gets host-side effects that are synced by the game (mail, NPC movement), but not
   mod-drawn visuals.
 - **Split-screen co-op** runs several players in one process (`Context.ScreenId`, **wiki**). Every
-  field keyed to "the player" would need SMAPI's per-screen storage (`PerScreen<T>`: verify).
+  field keyed to "the player" would need SMAPI's per-screen storage (`StardewModdingAPI.Utilities.PerScreen<T>`,
+  read and written through `.Value`).
 
 What has to change (each a design question to answer before building):
-1. **Subjects per farmer.** `Player` becomes `Player:<UniqueMultiplayerID>` (verify the property)
+1. **Subjects per farmer.** `Player` becomes `Player:<UniqueMultiplayerID>` (`Farmer.UniqueMultiplayerID`, a `long`)
    in the ledger, diaries, beliefs and ladder; a save migration maps the old `Player` to the host.
    Hearts are per farmer already in the game (`friendshipData` lives on each `Farmer`).
-2. **Perception on the host.** `CollectPresences` adds every online farmer in `Game1.getOnlineFarmers()`
-   (verify), each with its own location and tile.
+2. **Perception on the host.** `CollectPresences` adds every online farmer in `Game1.getOnlineFarmers()`,
+   each with its own location and tile.
 3. **One ladder per (NPC, farmer).** Urge, rungs and caps per farmer; the daily caps probably stay
    town-wide so a busy server doesn't flood.
-4. **Dialogue is per NPC, not per farmer.** A line added with `setNewDialogue` is heard by whichever
-   farmer talks first (verify). Delivery would need a check of who is talking (the speaker's
-   `DialogueBox` on that farmer's screen) or per-farmer dialogue through a message and a local
-   push on the farmhand's copy. This is the hardest part.
-5. **Mail is per farmer** (`mailForTomorrow` on each `Farmer`: verify), which fits invitations.
-6. **Save data:** does `helper.Data.WriteSaveData` work on farmhands? Recalled: save data belongs to
-   the host (verify on the SMAPI data API page). Memory only needs to live on the host anyway.
-7. **NPC movement** (visits, newcomer week) is host-side game state; the game syncs NPC positions to
-   farmhands (verify for scripted paths).
-8. **Day length:** the clock is the host's; setting the constants on the host only (verify that
-   farmhands don't also run their own ten-minute timer).
+4. **Dialogue lives in each player's own game, not in the shared world.** Checked in the decompile:
+   `NPC.CurrentDialogue` reads `Game1.npcDialogues[name]`, a per-instance static that is not synced.
+   So a line pushed on the host is heard only by the host, and a farmhand's line must be pushed by
+   the mod copy on that farmhand's machine, told by a host message. That is workable: it makes
+   delivery naturally per farmer.
+5. **Mail is per farmer** (`mailForTomorrow`, `mailbox` and `mailReceived` are fields on each `Farmer`), which fits invitations.
+6. **Save data:** `helper.Data.WriteSaveData` throws on a farmhand connected to a remote host
+   (split-screen players on the host's PC are allowed). Memory only needs to live on the host anyway.
+7. **NPC movement** (visits, newcomer week) is host-side: path controllers only advance on the host,
+   and `warpCharacter` on a farmhand only sends a request. How smoothly farmhands see a scripted
+   walk is an in-game check.
+8. **Day length:** the clock is the host's. Only the host accumulates the ten-minute timer and
+   advances `timeOfDay`; farmhands receive it, so the constants only need setting on the host.
 9. **Laya:** one server on the host's machine; farmhands never call it.
 
 Rough size once the research questions are answered: M for host-only memory with per-farmer
@@ -64,18 +70,18 @@ subjects in shadow; L for live delivery to farmhands.
 |---|---|---|
 | Custom NPCs (e.g. Stardew Valley Expanded) | observed like any villager (`IsVillager`); unmapped locations count as region `Other`; place names fall back to splitting CamelCase; voice falls back to "friendly and plain-spoken" | add regions and names by data (`data/regions.json`, `PlaceNames`) for popular mods on request; the tone buckets in `i18n/default.json` cover custom NPCs through their `Data/Characters` fields |
 | Mods that edit schedules | the planned prior loader reads schedules through `GameContent.Load`, so it sees edits | nothing |
-| Mods that add dialogue | our live lines are added with `setNewDialogue(add: true)`, which should queue alongside theirs (verify) | test with one popular dialogue mod before `IntentLines` ships |
+| Mods that add dialogue | our live lines are added with `setNewDialogue(dialogue, add: true)`, which pushes on top of the NPC's stack without clearing it; but vanilla topic and location lines clear the stack when they apply ([intents.md](intents.md)), and other mods' may too | test with one popular dialogue mod before `IntentLines` ships |
 | Mods that add mail | our letter ids are prefixed `squid.StardewNpcMod.` | nothing |
 | Harmony patches | the only planned patch is a read-only postfix on `NPC.receiveGift` ([diary.md](diary.md)); postfixes stack safely | nothing |
-| Time mods (e.g. TimeSpeed) | conflict with `DayLengthMinutes` | if another mod sets the clock constants, log a warning and don't set them (detect by checking the value at `SaveLoaded` against vanilla: verify) |
+| Time mods (e.g. TimeSpeed) | conflict with `DayLengthMinutes` | if another mod sets the clock constants, log a warning and don't set them (detect by checking the values at `SaveLoaded` against vanilla 700 / 7000: the game never changes them itself) |
 | Generic Mod Config Menu | not integrated | optional, later ([config.md](config.md)) |
 
 ## Acceptance tests
 
-- Unit: a pure `MultiplayerMode.For(isMultiplayer, isMainPlayer)` returns Off / HostOnly / Single,
+- Unit: a pure `MultiplayerMode.For(isMultiplayer, isOnHostComputer, isMainPlayer)` returns Off / HostOnly / Single,
   and the mod's hook-up follows it.
-- In-game: a two-player LAN session on one PC (two game instances: verify that's allowed) where the
-  farmhand's log shows the disabled message and the host's shows the warning.
+- In-game: a split-screen co-op session on one PC (local multiplayer; `Context.IsSplitScreen`):
+  the host's log shows the warning, and nothing runs twice for the second screen.
 
 ## Status
 

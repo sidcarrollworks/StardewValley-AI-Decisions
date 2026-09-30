@@ -33,26 +33,29 @@ NewcomerVisit(Npc, DayIndex, Kind = Visit | Note, GiftItemId, State = Planned | 
 
 Gift items come from a data table `data/newcomer.json` (D20: data in tables): per NPC, one or two
 small qualified item ids and a quantity, for example Pierre -> parsnip seeds, Willy -> bait,
-Caroline -> a cup of tea (item ids verify). NPCs without an entry are never picked. The table is
+Caroline -> a cup of tea (check each qualified item id against `Data/Objects` when writing the table). NPCs without an entry are never picked. The table is
 the **only** place items come from; no template or model output can name an item.
 
 ## Triggers and game hooks
 
 | When | What |
 |---|---|
-| first `SaveLoaded` with no `newcomer` key | decide `Eligible` (Sid, 2026-09-30: **new saves only**): `Game1.stats.DaysPlayed <= 1` (verify) and year 1, spring 1-2. Otherwise `Eligible = false` forever |
+| first `SaveLoaded` with no `newcomer` key | decide `Eligible` (Sid, 2026-09-30: **new saves only**): `Game1.stats.DaysPlayed <= 1` (a `uint`, raised by one in each new-day processing; its value on a brand-new save's first day is still to be checked in-game) and year 1, spring 1-2. Otherwise `Eligible = false` forever |
 | console command `npcmod_newcomer start` (`helper.ConsoleCommands.Add`) | test command (Sid, 2026-09-30): builds a plan starting tomorrow on any save, ignoring `Eligible`, and logs it; `npcmod_newcomer status` prints the plan; `npcmod_newcomer clear` removes it. Works in shadow and live |
 | same | build the plan (below), save it with the next save |
-| `DayEnding` before a visit day | register and send the letter (`Data/mail` via `AssetRequested`, `mailForTomorrow`: verify) |
-| visit day, 9:00 tick | the visitor is placed near the farmhouse door: `Game1.warpCharacter(npc, "Farm", tile)` (verify) and stands, facing the door; ignore schedule for the window; restore it at the window's end (same open problem as [ladder.md](ladder.md)) |
-| `MenuChanged` with the visitor as speaker, on the farm, during the window | give the gift with `Game1.player.addItemByMenuIfNecessary(item)` (verify), state `Met`, a `Talked` diary line and a `Visit` entry |
+| `DayEnding` before a visit day | register the letter in `Data/mail` via `AssetRequested` and send it with `Game1.addMailForTomorrow(id)` |
+| visit day, 9:00 tick | the visitor is placed near the farmhouse door: `Game1.warpCharacter(npc, "Farm", new Point(x, y))` (tiles; host only) and stands, facing the door. Its schedule steps queue up while it waits; at the window's end it walks back with the travel pattern in [find.md](find.md) and catches up. Note that warping pops any line queued with `clearOnMovement`, which ours never use |
+| `MenuChanged` with the visitor as speaker, on the farm, during the window | give the gift with `Game1.player.addItemByMenuIfNecessary(item)`, state `Met`, a `Talked` diary line and a `Visit` entry |
 | window end (11:00) | if not met: state `Missed`, `MissedVisit` diary line, send the NPC back |
-| note days | a letter with the item attached through the mail format's item command (`%item object <id> <count> %%`: verify), written by our template, never with other commands |
-| day 1 | Lewis gets a first-hand ledger entry for the player at the Farm (he meets the player in the intro event, which the tick observer doesn't see: verify whether `TimeChanged` fires during it). Ambient gossip spreads it |
+| note days | a letter with the item attached through the mail format's item command (`%item object <id> <count> %%`, confirmed in `LetterViewerMenu`), written by our template, never with other commands |
+| day 1 | Lewis gets a first-hand ledger entry for the player at the Farm (he meets the player in the intro event, which the tick observer can't see: in single player the clock stops while any event runs, so no `TimeChanged` fires during it). Ambient gossip spreads it |
 
-The introductions quest counts meeting NPCs by the friendship record, which is created on the first
-click (brief, "Constraints"). A visitor the player talks to is therefore "met" by the game's rules.
-Verify it counts toward the quest.
+Checked in the decompile: the introductions quest is a `SocializeQuest`. Its list is every NPC whose
+`Data/Characters` entry has `IntroductionsQuest` set, or by default lives in the `Town` home region;
+it ticks one off when the game's `OnNpcSocialized` fires, which talking to the NPC does
+(`NPC.checkAction`). The friendship record is created on that same first talk. So a visitor the
+player talks to on the farm counts, as long as it is on the list (check each candidate's
+`IntroductionsQuest` and `HomeRegion` when building the gift table).
 
 ## Laya questions
 
@@ -70,7 +73,7 @@ varies by save.
   walk to the farm (not Krobus, the Wizard, the Dwarf, Sandy: a table).
 - Visitors: draw each candidate with probability = the model's p, using FNV-1a of (save seed, npc);
   keep 3 to 5 (if fewer than 3 pass, take the highest p; above 5, the highest p). Shy NPCs
-  (`SocialAnxiety` = Shy, verify) become `Note` instead of `Visit`.
+  (`Data/Characters` `SocialAnxiety` = `Shy`) become `Note` instead of `Visit`.
 - Days: visits on days 2-7, at most one visitor a day, order seeded. Notes on any day 2-7.
 - Rain: a visit day with rain moves to the next free dry day in the week, else becomes a note.
 - Never on a festival day (spring 13 is outside the week anyway).

@@ -21,17 +21,23 @@ Config only: `DayLengthMinutes` (int, 0 = vanilla, default 0). Nothing saved.
 
 ## Triggers and game hooks
 
-- Set `Game1.realMilliSecondsPerGameTenMinutes` and `Game1.realMilliSecondsPerGameMinute` (public
-  static: verified in the source notes) at `SaveLoaded` and again at `DayStarted`, in case anything
-  resets them (verify whether the game ever does).
-- Schedules compute NPC departure times from the ten-minute constant when they are parsed
-  (`stardew-source-notes.md`, "arrival time math"), and parsing happens in the day update before
-  `DayStarted` (verify). So the value must already be set when the day starts, which setting it at
-  `SaveLoaded` ensures from day 2 on; on the load day, schedules were parsed with the vanilla value
-  (small arrival-time error for one day, acceptable).
-- Restore the vanilla values on `ReturnedToTitle` so another save without the setting is unaffected.
-- Multiplayer: only the host sets it (`Context.IsMainPlayer`); farmhands follow the host clock
-  (verify that the constant only matters on the host).
+- Set **both** `Game1.realMilliSecondsPerGameTenMinutes` and `Game1.realMilliSecondsPerGameMinute`
+  at `SaveLoaded`. In the 1.6.15 decompile they are `public static int` (not readonly), set to 700 and
+  7000 only in `Game1`'s static constructor, and never assigned anywhere else, so nothing in the game
+  resets them and one set per session is enough. The ten-minute value is not derived from the
+  one-minute value after start-up, so setting one alone is a bug.
+- What reads which: the clock compares against the ten-minute value (plus a per-location
+  `ExtraMillisecondsPerInGameMinute`, used by a few special maps); schedule arrival math uses
+  `realMilliSecondsPerGameTenMinutes / 1000 * 60`; buff durations and a few map timers use the
+  one-minute value, so buffs keep the same length in game minutes.
+- Schedules are parsed in the new-day processing (`NPC.dayUpdate` -> `resetForNewDay` ->
+  `TryLoadSchedule`), before any 6:00 event. Setting the values at `SaveLoaded` covers every day after
+  the first; on the load day, schedules were parsed with the vanilla value (a small arrival-time
+  error for one day, acceptable).
+- Restore the vanilla values (700 and 7000) on `ReturnedToTitle` so another save without the setting
+  is unaffected.
+- Multiplayer: only the host sets it (`Context.IsMainPlayer`). Confirmed: only the host accumulates
+  the clock timer and advances `timeOfDay`; farmhands receive the time from the host.
 
 ## Laya questions
 
@@ -63,5 +69,4 @@ Not started.
 
 ## Open questions
 
-- Does any 1.6 code reset these constants (on day start, on festival exit)? The `DayStarted` re-set
-  covers the day case; festivals need a check.
+- None left in code; the in-game checks above (shop hours, arrival times, buffs) are what remain.

@@ -24,9 +24,22 @@ the character and the relationship, not from a fixed table.
   line queued for when the player talks to it: its planned news if it has some, otherwise a
   "came to find you" line in its voice. Then it goes back to its day.
 - **Shops close while the keeper is out.** If Pierre goes looking for the player, Pierre's shop is
-  closed until he is back at the counter, because the game only opens a shop when its owner is there
-  (1.6 `Data/Shops` owner areas: verify). The mod does nothing special for this; it follows from the
+  closed until he is back at the counter. The mod does nothing special for this; it follows from the
   NPC being elsewhere. Visits during opening hours are allowed but rare by construction (below).
+  Confirmed in the 1.6.15 decompile: `Utility.TryOpenShopMenu(shopId, location, ownerArea, ...)` opens
+  a shop only if one of its `Data/Shops` `Owners` stands in the owner area; otherwise it shows the
+  entry's `ClosedMessage`, or quietly doesn't open. The counters are checked in code
+  (`GameLocation.cs`):
+
+  | Shop | The keeper must be |
+  |---|---|
+  | Pierre (SeedShop) | at the counter tile (4, 17). His honor box appears only when he is on Ginger Island, not when he's out looking for the player |
+  | Robin (carpenter) | within 3 tiles of the counter |
+  | Marnie (animal shop) | at the counter, unless the player has read the Animal Catalogue |
+  | Gus (Saloon) | behind the bar |
+  | Harvey (clinic) | at the counter next to the player |
+  | Willy (fish shop) | anywhere in the shop, behind the player |
+  | Clint (blacksmith) | anywhere in the blacksmith |
 - **Not found:** after about an hour at the place it looked, the NPC gives up and goes back. The
   next day it may say so ("I went all the way to the beach looking for you yesterday").
 - **Shadow:** `[shadow] Pierre would close the shop and go looking for you at the farm (Robin saw
@@ -55,27 +68,38 @@ Planned:
   other farm buildings, the mines and Skull Cavern, the desert, Ginger Island). A lead there cannot
   become a visit; it may become a letter instead.
 - `data/visits.json` (small table): NPCs that never visit because they can't plausibly travel
-  (Krobus, the Wizard, the Dwarf, Sandy, children: names verify against 1.6 data). This is the only
+  (Krobus, the Wizard, the Dwarf, Sandy: check the internal names against `Data/Characters`).
+  Children don't need listing: they are `Age == NpcAge.Child` in `Data/Characters`. This is the only
   fixed list; who is *prone* to visiting is the model's call.
 
 ## Triggers and game hooks
 
 Done: each tick, `PlayerSearch.Tick` (asks) then `RunLadder` (the ladder gets `LookFor`'s lead).
 
-Planned, live (every game call here is verify, and needs the spike in [roadmap.md](roadmap.md)
-step 11 before it is built):
+Planned, live (the calls below are from the 1.6.15 decompile; the behavior still needs the in-game
+spike in [roadmap.md](roadmap.md) step 11 before it is built):
 - **Start:** the game thread drains a `Visit` attempt, checks `LiveGate` (no event, festival or
   menu; the NPC is not in a cutscene; the NPC's current map is not `noSearch`), and creates a trip.
-- **Travel:** build a path from the NPC's map to the target with the game's route table
-  (`WarpPathfindingCache` / `getLocationRoute` in 1.6: verify names) and hand it to the NPC as a
-  one-off schedule for the rest of the trip. Keep the NPC's original schedule and restore it at the
-  end.
+- **Travel** (the pattern the game itself uses in `NPC.prepareToDisembarkOnNewSchedulePath`):
+  1. Build the route with `npc.pathfindToNextScheduleLocation(scheduleKey, startLocation, startX,
+     startY, endLocation, endX, endY, facing, endBehavior, endMessage)`. It gets the list of maps from
+     `WarpPathfindingCache.GetLocationRoute(start, end, gender)` and pathfinds to each warp, and
+     returns a `SchedulePathDescription` whose `route` is a `Stack<Point>`.
+  2. Hand that route to `npc.temporaryController = new PathFindController(route, npc, location)
+     { NPCSchedule = true }`. Only schedule-style controllers follow warps between maps.
+  3. **Don't** set `ignoreScheduleToday`: that abandons the schedule for the rest of the day (the
+     movie theater and spouse code do this, with no restore). Don't touch `npc.Schedule` either.
+  4. While the controller runs, `checkSchedule` keeps queuing the schedule steps that come due, so
+     they are deferred, not lost.
+  5. Controllers only advance on the host, so this is host-only code.
 - **Search:** at the target, the trip ends in `Found` as soon as the NPC's **own ledger** has a
   first-hand, age-0 sighting of the player (the ordinary `Observe` path: no peeking at the player's
   position), or in `GaveUp` after `SearchMaxTicks` (6) at the target.
-- **Return:** restore the original schedule and send the NPC to where that schedule says it should
-  be now (`checkSchedule`-style re-entry: verify; this is the same open problem as `Approach` in
-  [ladder.md](ladder.md)).
+- **Return:** when the trip ends, the game's own code takes over: when a `temporaryController` with
+  `NPCSchedule` finishes, `NPC.update` calls `checkSchedule(Game1.timeOfDay)` and the NPC sets off on
+  its queued schedule steps from wherever it stands. If that turns out to misbehave in the spike, the
+  hard reset is `npc.TryLoadSchedule(npc.dayScheduleName.Value)` followed by `checkSchedule`, the
+  way `Game1.addHour` catches up on missed steps.
 - **Bubbles on the way:** only rendered when the player is in that map (brief: "render text only when
   the player is in the location").
 
@@ -160,8 +184,9 @@ Done: `MemoryStore.AskAround`, `LookFor`; `PlayerSearch`; the ladder's `HasLead`
 
 ## Open questions
 
-- The travel spike: can a one-off cross-map path be given to an NPC and its schedule restored
-  afterwards, reliably? Everything live here depends on it.
+- The travel spike: the code path exists (above), but does it behave in-game? For example, an NPC
+  starting its queued schedule route from the farm instead of its usual spot, doors, and a route
+  through a map the NPC normally never visits. Everything live here depends on it.
 - Should a shopkeeper leave a sign or a note when the shop closes? Nice touch, not needed for v1.
 - Should the player's spouse be allowed to come looking? Spouses are left out of the ladder when
   live until marriage behavior is tested ([ladder.md](ladder.md)).

@@ -70,12 +70,12 @@ All writers run on the game thread and write through `MemoryStore.Note`.
 | Kind | Hook | Notes |
 |---|---|---|
 | `Talked` | existing `ModEntry.OnMenuChanged` (a `DialogueBox` with a speaker) | one per NPC per calendar day; keep a `HashSet` of NPCs talked to today, cleared at the 6:00 tick |
-| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo, float friendshipChangeMultiplier, bool showResponse)` (signature from 1.5.6 notes: verify in 1.6) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (returns 0 love, 2 like, 4 dislike, 6 hate, 8 neutral: verify), `npc.isBirthday()` (verify). It must not change anything. If the patch can't be applied (see Harmony below), the fallback is to poll `Game1.player.friendshipData[npc].GiftsToday` on every `MenuChanged` and tick and record a gift with no item when it rises; this loses the item and the taste, which is most of the news value |
+| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo = true, float friendshipChangeMultiplier = 1f, bool showResponse = true)` (1.6.15, `NPC.cs:4899`). Vanilla gifting reaches it from `NPC.tryToReceiveActiveObject` after the game's own gift limits (1 a day, 2 a week, except spouse, birthday, Stardrop Tea). The Winter Star secret gift also calls it, with `updateGiftLimitInfo: false`; record it with `festival=WinterStar`. Items handed over for quests and special orders never reach it (those are `QuestHelped`) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (`NPC.gift_taste_*`: love 0, like 2, dislike 4, hate 6, Stardrop Tea 7, neutral 8), `npc.isBirthday()`. It must not change anything. If the patch can't be applied (see Harmony below), the fallback is to diff `Game1.player.giftedItems` (`Dictionary<npc, Dictionary<itemId, count>>`, the game's own per-item gift log, updated in `Farmer.onGiftGiven`) each tick: that keeps the item, and the taste can be looked up with `getGiftTasteForThisItem` on a created item |
 | `SawGift` | the same postfix | loop over the NPC diaries' current co-located pairs from the last `Observe` (the span tracker already holds them), not over live positions; this keeps rule 2 |
-| `QuestHelped` | poll `Game1.player.questLog` at each tick and on `MenuChanged`; a quest that moved to completed since the last poll, with a target NPC, is recorded | quest types and their target field (`ItemDeliveryQuest.target`, `SlayMonsterQuest.target`, `FishingQuest.target`, `ResourceCollectionQuest.target`: verify). Special orders: `Game1.player.team.completedSpecialOrders` gains an id; the order's `requester` is the NPC (verify) |
-| `Festival` / `MissedFestival` | at `DayEnding`, if the day was a festival day (`Utility.isFestivalDay(day, season)`: verify) | "attended" = the player entered the festival (set a flag when `Game1.CurrentEvent?.isFestival` is true on any update tick: verify). Who took part: the actors of that festival event, captured while it runs (`Game1.CurrentEvent.actors`: verify). `TimeChanged` probably does not fire while the festival runs (the clock is frozen: verify), so ordinary `Saw` lines are not written there |
+| `QuestHelped` | Harmony postfix on `Quest.questComplete()` (`Quest.cs:581`, the one place every quest completes; SMAPI has no quest event). Fallback: poll `Game1.player.questLog` for `completed` turning true (a quest with a money reward stays in the log, completed, until the reward is claimed) | target NPC by type: `target` on `ItemDeliveryQuest`, `SlayMonsterQuest`, `FishingQuest`, `ResourceCollectionQuest`; `npcName` on `LostItemQuest` and `SecretLostItemQuest`; `SocializeQuest` (introductions) has no single target and is skipped. Special orders: `SpecialOrder.requester` is the NPC; completion adds the order's `questKey` to `Game1.player.team.completedSpecialOrders` (a string set) in `SpecialOrder.CheckCompletion` |
+| `Festival` / `MissedFestival` | at `DayEnding`, if `Utility.isFestivalDay(int day, Season season)` was true (it covers the main festivals only; passive festivals such as the Night Market are separate, `Utility.IsPassiveFestivalDay`, and run like normal days) | "attended" = `Game1.isFestival()` was true on any update tick (it reads `currentLocation.currentEvent.isFestival`). Who took part: the names in `Game1.CurrentEvent.actors`, captured while it runs. The actors are **clones** created for the event (`EventActor = true`), so keep names, never the objects. The clock stops during a festival (`Game1.shouldTimePass` returns false), so no `TimeChanged` and no `Saw` lines are written there; when it ends the time jumps straight to 22:00 (one `TimeChanged` with a large gap) |
 | `PassedBy` | at `DayEnding`, from today's `Saw` spans (co-located tick counts) and `Talked` entries | pure memory; no new hook |
-| `BirthdayForgotten` | at `DayEnding`: `npc.isBirthday()` and no `GiftReceived` today | birthday from `Data/Characters` (verify) |
+| `BirthdayForgotten` | at `DayEnding`: `npc.isBirthday()` and no `GiftReceived` today | `isBirthday()` compares the NPC's `Birthday_Season`/`Birthday_Day`, loaded from `Data/Characters` `BirthSeason`/`BirthDay` |
 
 ### Harmony (decided 2026-09-30: use it)
 
@@ -90,7 +90,9 @@ read 2026-09-30). Rules for this mod, from that page plus our own shadow-mode ru
   `harmony.Patch(original: AccessTools.Method(typeof(NPC), nameof(NPC.receiveGift)), postfix: new
   HarmonyMethod(typeof(GiftPatch), nameof(GiftPatch.Postfix)));` (the wiki's form). `nameof` makes a
   renamed method a compile error instead of a silent no-op.
-- **Enable it in the csproj:** `<EnableHarmony>true</EnableHarmony>` (wiki).
+- **Enable it in the csproj:** `<EnableHarmony>true</EnableHarmony>` (wiki). That only adds the
+  reference: SMAPI 4.5.2 ships Harmony 2.2.2 and needs no opt-in at runtime; it just logs that the mod
+  patches game code.
 - **Every postfix body is a try/catch** that logs `Failed in <method>` with the exception at Error
   level and returns. Errors in patches can show up under other mods' names (wiki), so our messages
   must name this mod and the patched method.
@@ -98,11 +100,12 @@ read 2026-09-30). Rules for this mod, from that page plus our own shadow-mode ru
   applied in `Entry` from a single `ApplyPatches()`, so one list shows everything the mod hooks.
 - **If `AccessTools.Method` returns null** (the game changed), log a warning, skip that patch and
   fall back to the polling approach for that kind. The mod must still load.
-- **A postfix never touches memory directly** if it could run off the game thread (verify that
-  `receiveGift` only runs on the game thread); it queues an observation that the next tick applies.
+- **A postfix records, the tick applies.** Gifts and quests complete inside the game's update on
+  the game thread, but a postfix still only queues an observation; the next tick writes it to memory,
+  so there is one writer and one order.
 - **Test after every game update:** the in-game gift checklist below. SMAPI's `harmony_summary`
-  console command lists every patch on a method (recalled: verify), useful when another mod
-  conflicts.
+  console command (confirmed in SMAPI 4.5.2) lists every patch per method with each mod's id, useful
+  when another mod conflicts.
 
 ## Laya questions
 
@@ -117,8 +120,10 @@ context ([intents.md](intents.md)).
 - Base weight from the kinds table.
 - `Saw` entries:
   - subject is the player: 2;
-  - subject is an NPC who lives with the observer (same home location in the `homes` table of
-    `data/regions.json`, or `Data/Characters` `Home`: verify), seen at that home: **0** (dropped);
+  - subject is an NPC who lives with the observer (same home location: the `homes` table of
+    `data/regions.json`, else the first entry of `Data/Characters` `Home`, a list of
+    `{Id, Condition, Location, Tile, Direction}` where the first matching condition wins), seen at
+    that home: **0** (dropped);
   - subject is an NPC somewhere unusual for it: 2. "Unusual" means the observer's belief about that
     subject has Evidence of at least 12 in the entry's block, and the region's share there is under
     0.15. Only the observer's own belief is used (memory, not the true schedule);
@@ -175,8 +180,6 @@ In-game (test save `BUNKO_450391925`):
 
 ## Open questions
 
-- Does `TimeChanged` fire during festivals? If it does, festival `Saw` lines already exist and the
-  `Festival` kind should replace them for that day.
 - Should NPCs record things the player does alone that they could see (fishing, tilling, dumpster
   diving)? The game already reacts to dumpster diving (`stardew-source-notes.md`). Deferred: every
   new kind needs its own template set and a reason to exist in a line.

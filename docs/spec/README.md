@@ -8,26 +8,33 @@ models, so each file can be read on its own.
   **Rules:** `AGENTS.md`. This spec does not repeat them; it links to them and adds what is not
   built yet. When the spec and the code disagree about something marked **done**, the code wins:
   fix the spec.
-- Written against `main` at `5031f6f` (after step 9, Find). DeepSeek's PR #3 (console heartbeat,
-  plan-collection summary) was open at the time and changes only logging.
+- Written against `main` at `91d41f2`: step 9 (Find) plus DeepSeek's console heartbeat and
+  plan-collection logging (PR #3), which changed only logging.
 - **verify** marks a game or SMAPI fact recalled rather than confirmed in decompiled source, docs or
   in-game. Treat it as a hypothesis: confirm it before relying on it, and keep a `VERIFY` comment in
   code until you have.
 
 ## Verifying game facts
 
-About seventy statements in this spec are marked **verify**. Ways to settle one, best first:
+On 2026-09-30 the spec's game and SMAPI facts were checked against a local decompile of 1.6.15 and
+SMAPI 4.5.2; what it settled is in `stardew-source-notes.md`, "Checked in the 1.6.15 decompile". The
+few **verify** marks left are about Laya and other mods, which the decompile can't answer, and some
+facts only the running game can show are listed as in-game checks. Ways to settle something new,
+best first:
 
 1. **Decompile the game Sid actually runs** (1.6.15 with SMAPI 4.5.2). The modding wiki's Get
    Started guide (stardewvalleywiki.com/Modding:Modder_Guide/Get_Started, read 2026-09-30)
    recommends ILSpy, with "Always qualify member references" on, or its command-line version:
    ```bash
-   dotnet tool install --global ilspycmd
+   dotnet tool install --global ilspycmd --version 8.2.0.7535
    ilspycmd -p --nested-directories -r "<game path>" -o "<output folder>" "<game path>/Stardew Valley.dll"
    ```
-   Put the output **outside this repo** (for example `%USERPROFILE%\stardew-decompiled`): decompiled
-   game code must never be committed. Then search it with grep. As of 2026-09-30 `ilspycmd` is not
-   installed on Sid's PC; installing it is Sid's call.
+   The version is pinned because the installed .NET SDK (6.0.300) can't install newer `ilspycmd`
+   packages. Put the output **outside this repo**: decompiled game code must never be committed.
+   **On Sid's PC this is done:** `ilspycmd` is installed (Sid agreed on 2026-09-30) and the decompile
+   is in `%USERPROFILE%\stardew-decompiled\`, with `game\` (`Stardew Valley.dll`, 1.6.15.24356),
+   `gamedata\` (`StardewValley.GameData.dll`: `Data/*` models such as `CharacterData`, `ShopData`)
+   and `smapi\` (`StardewModdingAPI.dll`, 4.5.2). Search it with grep. Redo it after a game update.
 2. The online decompiles listed in `stardew-source-notes.md` (1.5.6 and an unspecified 1.6 build).
 3. The modding pages on the wiki (SMAPI APIs, data formats).
 4. In-game, with a build that logs what you need, for behavior rather than signatures.

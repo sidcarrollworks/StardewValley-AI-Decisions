@@ -643,14 +643,18 @@ defaults.
 
 ## Open "verify" items
 
-| Item | Where |
-|---|---|
-| `TimeChanged` fires once per ten-minute tick, and not on other clock jumps | `ModEntry.OnTimeChanged` |
-| `Game1.locations` covers the static maps; farm building interiors are seen only with the player inside | `ModEntry.CollectPresences` |
-| Off-screen NPCs' positions update in real time | brief, open questions |
-| `Game1.uniqueIDForThisGame` is a per-save id | `ModEntry.NewLadder` |
-| A conversation (and a gift reaction) opens a `DialogueBox` with that speaker; event dialogue may also count | `ModEntry.OnMenuChanged` |
-| The 8-tile radius is a placeholder to tune | `MemoryStore.CoLocationRadius` |
-| `PlaceNames` wording matches the game | `src/NpcIntents/PlaceNames.cs` |
-| `LayaDecisionClient` has not run against a live server | brief, step 7 |
-| Rain weights and the extractor's other recalls | `README.md`, "Remaining recalls to verify" |
+Several were settled on 2026-09-30 against a local decompile of 1.6.15 and SMAPI 4.5.2
+(`stardew-source-notes.md`, "Checked in the 1.6.15 decompile"). The `VERIFY` comments in the code
+for those can go in the next code PR.
+
+| Item | Where | Status |
+|---|---|---|
+| `TimeChanged` fires once per ten-minute tick | `ModEntry.OnTimeChanged` | **settled:** SMAPI raises it once per change of `Game1.timeOfDay`. Normally that is every ten minutes; there are no ticks during festivals (the clock stops), and the end of a festival jumps straight to 22:00 in one event |
+| `Game1.locations` covers the static maps; farm building interiors are seen only with the player inside | `ModEntry.CollectPresences` | **settled:** true. `Utility.ForEachLocation` would include interiors if that's ever wanted |
+| Off-screen NPCs' positions update in real time | brief, open questions | **settled:** yes, on the host, every tick |
+| `Game1.uniqueIDForThisGame` is a per-save id | `ModEntry.NewLadder` | **settled:** a `ulong` per save |
+| A conversation (and a gift reaction) opens a `DialogueBox` with that speaker; event dialogue may also count | `ModEntry.OnMenuChanged` | **settled** for talking and gifts: the gift reaction is `Game1.DrawDialogue(GetGiftReaction(...))`, a `Dialogue` whose speaker is the NPC. Event dialogue: still to check in-game |
+| The 8-tile radius is a placeholder to tune | `MemoryStore.CoLocationRadius` | open (tuning) |
+| `PlaceNames` wording matches the game | `src/NpcIntents/PlaceNames.cs` | open |
+| `LayaDecisionClient` has not run against a live server | brief, step 7 | open |
+| Rain weights and the extractor's other recalls | `README.md`, "Remaining recalls to verify" | open (`Data/Locations` is data, not code) |

@@ -93,4 +93,5 @@ Done: `src/NpcMemory/Ledger.cs`, `MemoryStore.AskAround`. Not started: `Chat`, `
 - Is 0.3 per span the right rate? Too high and every NPC always knows where the player is, which is
   what D2 is against. Start low and read the shadow log.
 - Should hearts between the two NPCs (friends, family) raise the chat chance? Family and friends
-  data comes from `Data/Characters` `FriendsAndFamily` (verify); a natural second step.
+  data comes from `Data/Characters` `FriendsAndFamily` (a name-to-label map, not comprehensive: see
+  [routines.md](routines.md)); a natural second step.

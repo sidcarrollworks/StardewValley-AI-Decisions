@@ -13,7 +13,10 @@ their planned days.
 ## Data model
 
 One SMAPI save-data entry, key `squid.StardewNpcMod.memory`, a `Dictionary<string, string>`
-(`Helper.Data.WriteSaveData`; stored inside the save by SMAPI: verify where, it matters for size).
+(`Helper.Data.WriteSaveData`). SMAPI 4.5.2 serializes it to JSON inside the save file itself, in the
+game's `CustomData` under the key `smapi/mod-data/squid.stardewnpcmod/squid.stardewnpcmod.memory`
+(lower-cased), so its size adds directly to the save file. It throws on a farmhand connected to a
+remote host (the save lives on the host's computer).
 
 | Key | Content | Status |
 |---|---|---|
@@ -83,4 +86,5 @@ Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromV
 
 ## Open questions
 
-- Where SMAPI puts save data (inside the save XML or beside it) and whether size affects save time.
+- How much a megabyte of mod data slows saving and loading. It lives inside the save file, so
+  measure save time on Sid's save before and after the diary enrichment lands.

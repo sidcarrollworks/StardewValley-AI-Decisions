@@ -6,8 +6,8 @@ of agent work, **L** several PRs.
 
 ## Where things stand
 
-Steps 1-9 of the brief are done in shadow mode (386 tests at `c97a829`). DeepSeek's PR #3 (console
-heartbeat and plan-collection logging) is open. Nothing is live. Laya has never answered a real
+Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (DeepSeek's PR #3); 394
+tests pass at `91d41f2`. Nothing is live. Laya has never answered a real
 question. The overnight lines are dull because the diary only knows who saw whom (D15).
 
 ## Order
@@ -34,9 +34,12 @@ packaging, including starting the Laya server with the game ([laya.md](laya.md),
 lifecycle"), filling `UpdateKeys` in `mod/StardewNpcMod/manifest.json` (empty today) for the site it's
 published on, and a release zip (`EnableModZip`); multiplayer itself.
 
-**Any time, and it pays off everywhere:** a local decompile of the game to settle the "verify" items
-([README.md](README.md), "Verifying game facts"). Most of the live work (steps 6, 8, 9, 11, 12) rests
-on recalled game APIs, and the travel spike in step 11 needs the real schedule code.
+**Done 2026-09-30:** a local decompile of the game settled the spec's "verify" items
+([README.md](README.md), "Verifying game facts"; findings in `stardew-source-notes.md`). The biggest
+results: the game already has a "walk somewhere, then resume the schedule" pattern, which makes
+visits much less risky than feared (step 11's spike now confirms behavior rather than discovering
+it); shops really do close while their keeper is away; unheard lines are cleared by the game every
+night; and planned lines can be wiped by conversation topics, which step 6 must handle.
 
 ### Why this order
 

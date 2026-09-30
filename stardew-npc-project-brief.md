@@ -48,10 +48,12 @@ NPCs that:
 
 ## Open questions
 
-- How shop opening hours are enforced under a longer day (not yet read).
+- How shop opening hours are enforced under a longer day. Answered (1.6.15 decompile): opening hours are checked against the game clock (`OpenShop` action), so a longer day doesn't change them.
 - The code that moves an NPC once `isWalkingTowardPlayer` is set (not found in NPC.cs).
-- Where the per-item gift log lives in the Farmer class.
-- Whether off-screen NPCs' `currentLocation` updates in real time (the ledger depends on it).
+- ~~Where the per-item gift log lives in the Farmer class.~~ `Farmer.giftedItems` (1.6.15 decompile).
+- ~~Whether off-screen NPCs' `currentLocation` updates in real time.~~ Yes, on the host: every location's NPCs update each tick (1.6.15 decompile).
+
+Answers and many more facts: `stardew-source-notes.md`, "Checked in the 1.6.15 decompile".
 
 ## Next steps
 
