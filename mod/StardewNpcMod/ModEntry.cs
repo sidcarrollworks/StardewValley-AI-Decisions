@@ -143,6 +143,7 @@ public class ModEntry : Mod
         {
             RunLadder(now);
             CollectPlan(morning: false);
+            LogHeartbeat(tick);
         }
         catch (Exception ex)
         {
@@ -333,7 +334,7 @@ public class ModEntry : Mod
         _planJob = IntentPlanJob.Start(
             budget => new IntentPlanner(Guarded(budget), new LineRenderer()).Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
-        Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Trace);
+        Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
     }
 
     /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>
@@ -352,6 +353,12 @@ public class ModEntry : Mod
             Monitor.Log($"Overnight planning failed: {error}", LogLevel.Error);
         if (_planJob.BudgetExhausted)
             Monitor.Log("[shadow] planning hit its time budget; some decisions used the fallback.", LogLevel.Info);
+
+        if (plan.Candidates.Count == 0)
+            Monitor.Log("[shadow] collected overnight plan: nobody had anything to say today (the model answered below the speak threshold for everyone).", LogLevel.Info);
+        else
+            Monitor.Log($"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.", LogLevel.Info);
+
         foreach (IntentCandidate candidate in plan.Candidates)
         {
             _intentsToday.Add(candidate.Npc);
@@ -360,6 +367,32 @@ public class ModEntry : Mod
 
         _planJob.Dispose();
         _planJob = null;
+    }
+
+    /// <summary>One Info line every two game hours so the pipeline is visible in the console
+    /// without flooding it: how much memory exists, the ladder's best urge so far, and whether
+    /// the overnight plan is still running.</summary>
+    private void LogHeartbeat(int tick)
+    {
+        if (tick % 12 != 0)
+            return;
+
+        double maxUrge = 0.0;
+        string top = "none";
+        foreach ((string npc, double urge) in _ladder.LatestUrges)
+        {
+            if (urge > maxUrge)
+            {
+                maxUrge = urge;
+                top = npc;
+            }
+        }
+
+        string plan = _planJob is null ? "none" : (_planJob.IsCompleted ? "ready" : "running");
+        Monitor.Log(
+            $"[shadow] {TimeUtils.TimeOfDay(tick):0000}: {_memory.Diaries.Count} NPC diaries, " +
+            $"max urge {maxUrge:0.00} ({top}), ladder backlog {_ladder.Backlog}/dropped {_ladder.Dropped}, overnight plan {plan}",
+            LogLevel.Info);
     }
 
     // ---- persistence ----------------------------------------------------------------------------
