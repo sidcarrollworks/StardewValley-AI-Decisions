@@ -142,8 +142,8 @@ public class ModEntry : Mod
         try
         {
             RunLadder(now);
+            LogHeartbeat(tick); // before CollectPlan, so "ready" can appear for the finishing tick
             CollectPlan(morning: false);
-            LogHeartbeat(tick);
         }
         catch (Exception ex)
         {
@@ -354,10 +354,14 @@ public class ModEntry : Mod
         if (_planJob.BudgetExhausted)
             Monitor.Log("[shadow] planning hit its time budget; some decisions used the fallback.", LogLevel.Info);
 
-        if (plan.Candidates.Count == 0)
-            Monitor.Log("[shadow] collected overnight plan: nobody had anything to say today (the model answered below the speak threshold for everyone).", LogLevel.Info);
-        else
-            Monitor.Log($"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.", LogLevel.Info);
+        // An empty plan has several possible causes; the log must not blame one of them
+        // (the threshold) when the plan failed outright.
+        string summary = error is not null
+            ? "[shadow] collected overnight plan: no lines (the plan failed; see the error above)."
+            : plan.Candidates.Count == 0
+                ? "[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone)."
+                : $"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.";
+        Monitor.Log(summary, LogLevel.Info);
 
         foreach (IntentCandidate candidate in plan.Candidates)
         {
@@ -370,28 +374,18 @@ public class ModEntry : Mod
     }
 
     /// <summary>One Info line every two game hours so the pipeline is visible in the console
-    /// without flooding it: how much memory exists, the ladder's best urge so far, and whether
-    /// the overnight plan is still running.</summary>
+    /// without flooding it. The formatting lives in <see cref="NpcInitiation.Heartbeat"/> (pure,
+    /// tested); this only assembles the current values.</summary>
     private void LogHeartbeat(int tick)
     {
-        if (tick % 12 != 0)
+        if (!Heartbeat.ShouldFire(tick))
             return;
 
-        double maxUrge = 0.0;
-        string top = "none";
-        foreach ((string npc, double urge) in _ladder.LatestUrges)
-        {
-            if (urge > maxUrge)
-            {
-                maxUrge = urge;
-                top = npc;
-            }
-        }
+        Heartbeat.PlanState plan = _planJob is null ? Heartbeat.PlanState.None
+            : (_planJob.IsCompleted ? Heartbeat.PlanState.Ready : Heartbeat.PlanState.Running);
 
-        string plan = _planJob is null ? "none" : (_planJob.IsCompleted ? "ready" : "running");
         Monitor.Log(
-            $"[shadow] {TimeUtils.TimeOfDay(tick):0000}: {_memory.Diaries.Count} NPC diaries, " +
-            $"max urge {maxUrge:0.00} ({top}), ladder backlog {_ladder.Backlog}/dropped {_ladder.Dropped}, overnight plan {plan}",
+            Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog, _ladder.Dropped, plan),
             LogLevel.Info);
     }
 

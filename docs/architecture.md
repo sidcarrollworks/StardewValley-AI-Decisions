@@ -575,7 +575,7 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | `[shadow] overnight planning is still running; its lines will be logged when ready.` | Info | `DayStarted` came before the plan finished |
 | `[shadow] planning hit its time budget; some decisions used the fallback.` | Info | the budget fired before the plan finished |
 | `[shadow] collected overnight plan: 3 line(s) for today.` | Info | the plan was collected; each line is logged after it |
-| `[shadow] collected overnight plan: nobody had anything to say today (...).` | Info | the plan was empty: the model answered below the speak threshold for every NPC |
+| `[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone).` | Info | the plan was collected empty; the wording varies with the cause (`the plan failed; see the error above` when it threw) |
 | `[shadow] Abigail would try Emote (urge 0.31; urge 0.31 >= 0.30 at rung 0; p=0.50)` | Info | a ladder attempt: urge, the step's threshold, the rung, the model's `p` |
 | `[shadow] Abigail: Emote ignored (urge 0.35 -> 0.15)` | Info | an attempt's outcome, `ignored`, `responded` or `expired`, with urge before and after |
 | `[shadow] <npc> would go looking for you at <place> (...)` | Info | an Approach from a distance (Find) |
