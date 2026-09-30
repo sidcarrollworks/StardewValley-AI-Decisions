@@ -58,6 +58,8 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `AcceptedInvite` | Player | `place`, `talked` (0/1) | the NPC sees the player at the invited place in the window ([invitations.md](invitations.md)) | 4 |
 | `StoodUp` | Player | `place` | an invitation's window ends unanswered | 4 |
 | `MissedVisit` | Player | - | a newcomer-week visit ends without the player talking to the visitor ([newcomer-week.md](newcomer-week.md)) | 3 |
+| `Traded` | Player | `offer`, `gave` | the player takes one of the NPC's trade offers ([trades.md](trades.md)) | 2 |
+| `HeldAGrudge` | Player | `points` | the grudge penalty applies ([motives.md](motives.md)); never shared or cited directly | 0 (skipped) |
 
 The weights are the base for newsworthiness, below. `IgnoredBy` stays; `PassedBy`,
 `BirthdayForgotten`, `StoodUp` and `MissedVisit` are the other forms of "being ignored". This table

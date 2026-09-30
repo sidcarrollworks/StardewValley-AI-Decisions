@@ -22,7 +22,7 @@ page is possible later (see [multiplayer-compat.md](multiplayer-compat.md)).
 | `PlanningBudgetMs` | 20000 | overnight model budget | done |
 | `LadderMaxBacklog` | 6 | ladder queue before ticks drop | done |
 | `LaunchSidecar` | false | start the Laya server with the game and stop it on exit ([laya.md](laya.md)). Decided (Sid, 2026-09-30): off while we develop; a public release ships with it on | planned |
-| `Live` | all false | per-behavior live switches, including `Letters` and `Visit` ([rollout.md](rollout.md)) | planned |
+| `Live` | all false | per-behavior live switches, including `Letters`, `Visit`, `Trades` and `FriendshipEffects` ([rollout.md](rollout.md)) | planned |
 | `DayLengthMinutes` | 0 (vanilla) | real minutes per game day ([day-length.md](day-length.md)) | planned |
 | `LogDiary` | false | log every new diary line at Trace | planned |
 

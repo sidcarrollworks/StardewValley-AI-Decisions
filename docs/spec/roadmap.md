@@ -27,6 +27,8 @@ question. The overnight lines are dull because the diary only knows who saw whom
 | 11 | **Travel spike, then movement:** an in-game experiment that walks an NPC to another map and restores its schedule; then `ApproachNear` and `ForcedDialogue` | M | [ladder.md](ladder.md), [find.md](find.md) | 8 |
 | 12 | **Visits:** the `Visit` rung, 1 to 2 a week, shops close while the keeper is out; shadow first, with the pacing test | L | [find.md](find.md) | 11 (live part); the shadow part can start after 7 |
 | 13 | **Multiplayer research:** answer the list in [multiplayer-compat.md](multiplayer-compat.md) from SMAPI docs and decompiled 1.6, and estimate | S | [multiplayer-compat.md](multiplayer-compat.md) | none; any time |
+| 14 | **Motives:** named motives from the diary drive urge growth and the choice of action and line; hurt and grudges in shadow, then the friendship penalty behind its own switch | M | [motives.md](motives.md) | 1, 2 (diary kinds); can run in shadow before 6 |
+| 15 | **Trades:** the offer table, barter shops through `Data/Shops`, the question box, `WantsToTrade` | M | [trades.md](trades.md) | 8 (mail and the live switches); table text drafted with step 4 |
 
 **Later, not scheduled:** requests and quests from vanilla mechanics ([invitations.md](invitations.md),
 "Later"); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
@@ -61,6 +63,11 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
 - **Visits last**, because they need the travel spike. Their shadow logging (who would visit, how
   often) can start as soon as the ladder change is in, which is the time to tune the 1-to-2-a-week
   target.
+- **Motives (14) right after diary enrichment** in practice: they turn the richer diary into
+  behavior, and they run in shadow, so they can land before the first live release even though the
+  table lists them later. The friendship penalty goes live last among the motive parts.
+- **Trades (15) after letters (8)**, because they reuse the live-switch plumbing and a letter is one
+  way a trader reaches out.
 - **Day length and multiplayer research are independent** and small: good tasks for whoever has a
   free slot (DeepSeek included).
 
@@ -78,6 +85,8 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
 | 8 | Who writes the lines? | Claude writes, Sid edits; language must match each character | [text.md](text.md) |
 | 9 | NPC mail | NPCs send letters, including invitations to visit; quest-like requests later, using vanilla mechanics where possible | [invitations.md](invitations.md) |
 | 10 | Other mods | Consider pairing with a content mod once the system works | [multiplayer-compat.md](multiplayer-compat.md), "Later" |
+| 11 | Can characters be hurt or annoyed? | Yes; and repeatedly treating a character badly costs friendship points | [motives.md](motives.md) |
+| 12 | Trading | Villager-style trades that give characters another reason to seek the player out; the vanilla barter shops cover it | [trades.md](trades.md) |
 
 ## Still open (none block the next steps)
 

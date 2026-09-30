@@ -28,6 +28,7 @@ remote host (the save lives on the host's computer).
 | `newcomer` | `NewcomerPlan` ([newcomer-week.md](newcomer-week.md)) | planned |
 | `talkedToday` | NPCs talked to today, for `Talked` and `PassedBy` ([diary.md](diary.md)) | planned |
 | `letters` | pending letters and invitations ([invitations.md](invitations.md)) | planned |
+| `trades` | today's trade offers and which were taken ([trades.md](trades.md)) | planned |
 
 **Additive keys need no version bump.** The loader already reads keys it finds and ignores the rest.
 A new key is read with a default when missing, so a version-2 save loads fine into a build that adds
@@ -82,7 +83,7 @@ lines), then lower `MaxDiaryEntries`.
 ## Status
 
 Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`,
-`InitiationLadder.ToJson`/`FromJson`. Not started: the five planned keys, size logging, pruning. Visit counters go inside the existing `ladder` value ([find.md](find.md)).
+`InitiationLadder.ToJson`/`FromJson`. Not started: the six planned keys, size logging, pruning. Visit counters and each NPC's grudge go inside the existing `ladder` value ([find.md](find.md), [motives.md](motives.md)).
 
 ## Open questions
 

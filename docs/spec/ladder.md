@@ -76,6 +76,10 @@ the urge allows and that is available; caps (2 per NPC a day, 6 in total, 2 queu
 below `p`.
 
 Planned additions:
+- **Motives drive the urge** ([motives.md](motives.md)): growth per tick becomes
+  `BaseGainPerTick x (0.5 + sum of motive strengths)`, the intent boost becomes the `News` motive,
+  and `Hurt` lowers the pull to approach while favoring letters. Rungs, thresholds and caps are
+  unchanged.
 - **Temperament floor** (deterministic, before the model): NPCs whose `Data/Characters`
   `SocialAnxiety` is `Shy` (`NpcSocialAnxiety.Shy`; read with `npc.GetData()`) never use `Bubble` or `ForcedDialogue`; they skip to the
   next available step. Their news shows up as letters instead, matching brief decision 6.

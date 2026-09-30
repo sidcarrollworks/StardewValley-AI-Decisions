@@ -64,6 +64,10 @@ Lines that sound a little different per NPC and per occasion, never contain inte
   off the game thread and every value must be sanitized before insertion. The syntax matches SMAPI's
   so translators see what they expect. SMAPI's gender switch blocks (**wiki**) aren't supported: the
   sanitizer removes `^`, which they use, from dialogue anyway.
+- **Motive variants:** where a kind can be said in different moods, the key carries the motive
+  after the kind (`line.Saw.Player.Hurt.Shane.1` vs `line.Saw.Player.Grateful.Shane.1`), chosen by
+  the character's leading motive ([motives.md](motives.md)); lookup falls back to the key without a
+  motive.
 - **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
   language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
   haven't written for.

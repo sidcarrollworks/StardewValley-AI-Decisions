@@ -18,7 +18,7 @@ the same day, letters are ordinary letters, gifts are ordinary items).
 "Live": {
   "IntentLines": false, "Emote": false, "Bubble": false, "QueuedLine": false,
   "Mail": false, "Letters": false, "ApproachNear": false, "ForcedDialogue": false,
-  "Visit": false, "NewcomerWeek": false
+  "Visit": false, "NewcomerWeek": false, "Trades": false, "FriendshipEffects": false
 }
 ```
 
@@ -48,11 +48,14 @@ Recommended order, least invasive first:
 | 7 | `ForcedDialogue` | interrupts the player; rare by design | annoyance |
 | 8 | `NewcomerWeek` | combines mail, gifts, and placing an NPC | item grant; only new saves |
 | 9 | `Visit` (was `ApproachFar`) | cross-location travel; 1 to 2 a week, a shop may close while its keeper is out | the riskiest code: needs the travel spike first |
+| - | `Trades` | any time after `Mail`: uses the vanilla shop menu, gives items from `data/trades.json` | balance; covered by the table test |
+| - | `FriendshipEffects` | only after motives have run in shadow long enough to trust the grudge numbers | the one change to friendship points; capped at 20 points per character per week |
 
 ## Safety invariants (live)
 
-- The mod never changes friendship points, never grants items except the newcomer table, never
-  edits vanilla dialogue assets, and never removes anything from the player.
+- The mod changes friendship points only through the grudge penalty (`FriendshipEffects`), grants
+  items only from the newcomer and trade tables, never edits vanilla dialogue assets, and never
+  removes anything from the player except what the player hands over in a trade.
 - Every NPC the mod moves gets its schedule back the same day, or the move is not made.
 - No live action during events, festivals, cutscenes, menus, or while the player can't move.
 - If any live handler throws, it logs an error and turns that one switch off for the session (a

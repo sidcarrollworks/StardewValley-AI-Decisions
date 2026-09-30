@@ -81,6 +81,8 @@ From the Get Started guide, and already true here unless noted:
 | 13 | [config.md](config.md) | Every setting, current and planned | partial |
 | 14 | [multiplayer-compat.md](multiplayer-compat.md) | Multiplayer (and what it would take), other mods, custom NPCs | not started |
 | 15 | [invitations.md](invitations.md) | Letters in the NPC's voice, invitations to meet, later requests and quests | not started |
+| 16 | [motives.md](motives.md) | Why a character wants to see the player: named motives, hurt, grudges and friendship loss | not started |
+| 17 | [trades.md](trades.md) | Villager-style barter offers through vanilla barter shops | not started |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 | - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 
@@ -114,5 +116,8 @@ These restate `AGENTS.md` in one place; a feature that breaks one is wrong even 
 6. The model never writes text. Every string a player can see comes from a template and passes the
    sanitizer for its channel ([text.md](text.md)).
 7. The mod never grants items, changes friendship points or edits game dialogue data except through
-   a feature that is live and says so here (the only planned item grant is the newcomer gift).
+   a feature that is live and says so here. Planned exceptions, each behind its own switch: the
+   newcomer gift ([newcomer-week.md](newcomer-week.md)), trades from `data/trades.json`
+   ([trades.md](trades.md)), and the grudge penalty, the only friendship change
+   ([motives.md](motives.md)).
 8. Harmony patches are read-only postfixes ([diary.md](diary.md), "Harmony").
