@@ -26,8 +26,29 @@ python -m pip install "laya[serve]"
 (Git Bash: `python -m venv .venv && source .venv/Scripts/activate`; Linux/macOS:
 `python3 -m venv .venv && source .venv/bin/activate`; then the same `pip install`.)
 
-`pip` installs the CPU build of PyTorch by default on Windows. For a GPU, install the CUDA build of
-torch first, following the selector at pytorch.org, then `pip install "laya[serve]"`.
+`pip` installs the CPU build of PyTorch by default on Windows. **Use the GPU if you have an NVIDIA
+card**: it is about seven times faster (measured below). With the venv active, replace torch with
+the CUDA build of the same version:
+
+```powershell
+python -m pip install "torch==2.14.0+cu130" --index-url https://download.pytorch.org/whl/cu130
+python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+```
+
+The second line must print `True` and the card's name. The version must match the torch that
+`laya[serve]` installed (`python -m pip show torch`); `cu130` needs an NVIDIA driver recent enough
+for CUDA 13 (Sid's 616.92 works). The download is a few GB. `laya-serve` picks the GPU by itself
+(`LAYA_DEVICE` defaults to auto), and `/health` then reports `"device":"cuda"`.
+
+**Measured on Sid's PC** (RTX 4070 Ti, `typed-decisions`, 2026-09-30, `laya-serve` 0.3.22, a
+~400-character state):
+
+| Request | CPU median | GPU median |
+|---|---|---|
+| one yes/no | 246 ms | 37 ms |
+| one choice, 5 options | 280 ms | 31 ms |
+| yes/no + choice in one request | 488 ms | 36 ms |
+| a night's plan, ~30 NPCs (estimate) | ~15 s | ~1 s batched, ~2 s unbatched |
 
 ## Run
 

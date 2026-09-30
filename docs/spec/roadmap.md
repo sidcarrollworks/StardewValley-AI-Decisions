@@ -7,8 +7,8 @@ of agent work, **L** several PRs.
 ## Where things stand
 
 Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (DeepSeek's PR #3); 394
-tests pass at `91d41f2`. Nothing is live. Laya has never answered a real
-question. The overnight lines are dull because the diary only knows who saw whom (D15).
+tests pass at `91d41f2`. Nothing is live. Laya is installed on Sid's PC and now runs on the GPU
+(~35 ms a question), but its answers haven't been reviewed in a real play session yet. The overnight lines are dull because the diary only knows who saw whom (D15).
 
 ## Order
 
@@ -16,7 +16,7 @@ question. The overnight lines are dull because the diary only knows who saw whom
 |---|---|---|---|---|
 | 1 | **Diary enrichment, part 1:** `DiaryDetail`, `MemoryStore.Note`, `Talked`, `PassedBy`, `BirthdayForgotten`, newsworthiness in the planner (drops housemates at home, ranks by news) | M | [diary.md](diary.md), [intents.md](intents.md) | - |
 | 2 | **Diary enrichment, part 2:** Harmony set-up (read-only postfixes), `GiftReceived` and `SawGift`, `QuestHelped`, `Festival`/`MissedFestival` | M | [diary.md](diary.md) | 1 |
-| 3 | **Laya in practice (shadow):** `DecisionState` and the NPC card within the 512-token budget, the varied fake, health re-check and short-circuit, budget pass-through, batching, the eval set and the checkpoint A/B | M | [laya.md](laya.md) | 1 (for real news in the eval) |
+| 3 | **Laya in practice (shadow):** `DecisionState` and the NPC card within the 512-token budget, the varied fake, health re-check and short-circuit, budget pass-through, batching, the morning wait, the eval set and the checkpoint A/B. (Laya already runs on Sid's GPU.) | M | [laya.md](laya.md) | 1 (for real news in the eval) |
 | 4 | **Voices and lines:** voice notes for every vanilla villager (`data/voices.json`), then the lines in `i18n/default.json` (SMAPI's translation file) with a bucket per NPC and kind, tone fallbacks, per-channel sanitizers and lengths. Claude writes, Sid edits | L | [text.md](text.md) | 1, 2 (the kinds to write for) |
 | 5 | **Intents ready to ship:** plan persistence, recent lines, novelty and cite cooldowns, one topic per event | S | [intents.md](intents.md), [persistence.md](persistence.md) | 1 |
 | 6 | **First live release:** `Live` config, `[live]` logs, circuit breaker, console kill switch, the single-player guard, then `IntentLines` on, and nothing else | M | [rollout.md](rollout.md), [multiplayer-compat.md](multiplayer-compat.md) | 4, 5, and Sid's word |

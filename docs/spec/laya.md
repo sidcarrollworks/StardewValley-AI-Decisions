@@ -1,8 +1,9 @@
 # 9. The Laya decision layer
 
 **Status: partial.** The typed client, the fake, the timeout-and-fallback wrapper and the HTTP client
-for `laya-serve` are done and tested against a fake server. Laya has never answered a real question
-from the mod. The state format is ad hoc per caller, there is no token budget, no batching, and the
+for `laya-serve` are done and tested against a fake server. On Sid's PC `laya-serve` 0.3.22 is
+installed and answers (its log shows requests, and the benchmark in `sidecar/README.md` ran against
+it), now on the GPU; a full in-game session with `DecisionBackend: Laya` is still to be reviewed. The state format is ad hoc per caller, there is no token budget, no batching, and the
 sidecar is started by hand. Brief, "Decision layer"; D12, D13, D14; architecture, "Decisions";
 `sidecar/README.md`.
 
@@ -18,7 +19,8 @@ Laya facts below come only from github.com/NandhaKishorM/laya and huggingface.co
 | Limits | at most 100 options per choice (413 above); score 2..32 levels; state up to 50,000 chars at the HTTP layer | repo `serve.py` / `docs/http-api.md` at v0.3.22 (as recorded in `LayaDecisionClient`) |
 | Quality notes | `score` is the weakest primitive (model card: SST-5 accuracy 0.372); choice quality degrades above about 20 options | model card |
 | Batching | one request may carry several questions (`questions: {id: question}`) about one state | repo (client comments) |
-| Latency | one question 33-40 ms on a T4 GPU; 10 batched 72-159 ms; CPU a few hundred ms | model card; `sidecar/README.md` |
+| Latency | one question 33-40 ms on a T4 GPU; 10 batched 72-159 ms; CPU a few hundred ms | model card |
+| Latency on Sid's PC | CPU: ~250 ms a question; GPU (RTX 4070 Ti, CUDA PyTorch): ~35 ms, and a yes/no plus a choice batched in one request still ~36 ms | measured 2026-09-30, `sidecar/README.md` |
 | State | free text or JSON; no required format | model card |
 
 Not stated anywhere we trust: which side is truncated when state is too long, the tokenizer's exact
@@ -109,6 +111,30 @@ uses without a reason.
 Wording rules: name the NPC, ask one thing, present tense, no negations, no numbers the model has to
 compare. The proposition for `noul` must be answerable from the state alone.
 
+## Speed: the GPU, and a morning wait (Sid, 2026-09-30)
+
+Sid: "speed is important", either by running Laya on the GPU or by holding the next day until
+everything is ready. Both are in:
+
+1. **GPU (done on Sid's PC).** The CUDA build of PyTorch is installed in `sidecar/.venv` and Laya runs
+   on the RTX 4070 Ti. A night's plan drops from ~15 s to ~1-2 s, well inside the 20 s budget, and a
+   ladder question is ~35 ms. Install steps: `sidecar/README.md`. A release that starts Laya itself
+   ([Launching](#sidecar-lifecycle) below) must detect a GPU and pick the right PyTorch build.
+2. **A morning wait, as the safety net** for CPU-only players and slow nights. At `DayStarted`, if
+   the overnight work isn't finished (the plan, plus the 6:00 jobs: letters' text, trade offers),
+   the mod opens a small menu, "The valley is waking up...", with a spinner. In single player the
+   game clock doesn't run while a menu is open (`Game1.shouldTimePass`, confirmed in the decompile),
+   so nothing is missed. It closes itself when the work is done, or after `MorningWaitMs` (10 s), at
+   which point the remaining decisions take the fallback. The player can close it early (Esc); that
+   also takes the fallback. It's a menu on the game thread that polls the job each frame; nothing
+   ever blocks the game thread.
+   - Why not stretch the save itself: the save runs on the game's own schedule and blocking inside
+     `Saving` is exactly the freeze D14 forbids.
+   - With the GPU it should almost never appear. The heartbeat logs how long each night took so a
+     slow machine shows up in the log.
+   - Config: `MorningWaitMs` (0 disables the wait: the old behavior, lines arrive when ready).
+3. **Batching** ([Data model](#data-model), item 3) halves the round trips on either device.
+
 ## Sidecar lifecycle
 
 | State | Detected by | Mod behavior | Log |
@@ -171,7 +197,7 @@ With a running server (manual, documented in `sidecar/README.md`):
 
 ## Status
 
-Done: `src/NpcDecision/*`, `ModEntry.BuildModel`, `Guarded`, `sidecar/*`; tests in
+Done: `src/NpcDecision/*`, `ModEntry.BuildModel`, `Guarded`, `sidecar/*`; Laya on Sid's GPU (2026-09-30); tests in
 `tests/NpcDecision.Tests` (50 at `c97a829`). Not started: `DecisionState`, the NPC card, batching,
 the varied fake, periodic health, warm-up, short-circuit, budget pass-through, launch, eval set.
 
