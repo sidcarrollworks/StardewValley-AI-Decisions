@@ -5,4 +5,5 @@ out-*/
 *.user
 .vs/
 sidecar/.venv/
+sidecar/laya.log
 __pycache__/

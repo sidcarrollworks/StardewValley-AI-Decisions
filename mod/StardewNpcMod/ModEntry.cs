@@ -142,6 +142,7 @@ public class ModEntry : Mod
         try
         {
             RunLadder(now);
+            LogHeartbeat(tick); // before CollectPlan, so "ready" can appear for the finishing tick
             CollectPlan(morning: false);
         }
         catch (Exception ex)
@@ -333,7 +334,7 @@ public class ModEntry : Mod
         _planJob = IntentPlanJob.Start(
             budget => new IntentPlanner(Guarded(budget), new LineRenderer()).Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
-        Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Trace);
+        Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
     }
 
     /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>
@@ -352,6 +353,16 @@ public class ModEntry : Mod
             Monitor.Log($"Overnight planning failed: {error}", LogLevel.Error);
         if (_planJob.BudgetExhausted)
             Monitor.Log("[shadow] planning hit its time budget; some decisions used the fallback.", LogLevel.Info);
+
+        // An empty plan has several possible causes; the log must not blame one of them
+        // (the threshold) when the plan failed outright.
+        string summary = error is not null
+            ? "[shadow] collected overnight plan: no lines (the plan failed; see the error above)."
+            : plan.Candidates.Count == 0
+                ? "[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone)."
+                : $"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.";
+        Monitor.Log(summary, LogLevel.Info);
+
         foreach (IntentCandidate candidate in plan.Candidates)
         {
             _intentsToday.Add(candidate.Npc);
@@ -360,6 +371,22 @@ public class ModEntry : Mod
 
         _planJob.Dispose();
         _planJob = null;
+    }
+
+    /// <summary>One Info line every two game hours so the pipeline is visible in the console
+    /// without flooding it. The formatting lives in <see cref="NpcInitiation.Heartbeat"/> (pure,
+    /// tested); this only assembles the current values.</summary>
+    private void LogHeartbeat(int tick)
+    {
+        if (!Heartbeat.ShouldFire(tick))
+            return;
+
+        Heartbeat.PlanState plan = _planJob is null ? Heartbeat.PlanState.None
+            : (_planJob.IsCompleted ? Heartbeat.PlanState.Ready : Heartbeat.PlanState.Running);
+
+        Monitor.Log(
+            Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _ladder.Backlog, _ladder.Dropped, plan),
+            LogLevel.Info);
     }
 
     // ---- persistence ----------------------------------------------------------------------------

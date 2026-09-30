@@ -570,15 +570,18 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | `Shadow mode ready: co-location radius 8 tiles, decision backend FakeDecisionClient.` | Info | started; names the backend |
 | `Memory saved (23 NPC diaries, 74 beliefs).` (also `Memory loaded: ...`) | Info | written at `Saving`, read at `SaveLoaded` |
 | `Migrated memory from the previous save format (...)` | Info | a version-1 save was converted |
-| `[shadow] planning tomorrow's intents in the background (19 NPC diaries).` | Trace | `DayEnding`: the plan job started |
+| `[shadow] planning tomorrow's intents in the background (19 NPC diaries).` | Info | `DayEnding`: the plan job started |
 | `[shadow] Abigail would say: "I saw Pierre at Pierre's General Store yesterday." (cited "Saw Pierre at Pierre's General Store" (sampled p=1))` | Info | a planned line, the diary entry it cites and the chosen option's probability (1 = the only option) |
 | `[shadow] overnight planning is still running; its lines will be logged when ready.` | Info | `DayStarted` came before the plan finished |
 | `[shadow] planning hit its time budget; some decisions used the fallback.` | Info | the budget fired before the plan finished |
+| `[shadow] collected overnight plan: 3 line(s) for today.` | Info | the plan was collected; each line is logged after it |
+| `[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone).` | Info | the plan was collected empty; the wording varies with the cause (`the plan failed; see the error above` when it threw) |
 | `[shadow] Abigail would try Emote (urge 0.31; urge 0.31 >= 0.30 at rung 0; p=0.50)` | Info | a ladder attempt: urge, the step's threshold, the rung, the model's `p` |
 | `[shadow] Abigail: Emote ignored (urge 0.35 -> 0.15)` | Info | an attempt's outcome, `ignored`, `responded` or `expired`, with urge before and after |
 | `[shadow] <npc> would go looking for you at <place> (...)` | Info | an Approach from a distance (Find) |
 | `[shadow] <npc> asked <npcs> about you: ...` | Info | an NPC asked around and learned something (Find) |
 | `[shadow] ladder is behind the model; skipped a tick (3 so far).` | Trace | the backlog was full, so a tick was dropped |
+| `[shadow] 1600: 29 NPC diaries, max urge 0.31 (Abigail), ladder backlog 1/dropped 0, overnight plan running` | Info | heartbeat every 2 game hours: memory size, the ladder's best urge (and who), its backlog and drop count, and the plan job's state (`none` / `running` / `ready`) |
 
 The first five lines are copied from a real log (an earlier build, same formats); the rest follow the
 format strings in `ModEntry` (numbers illustrative). Failures are logged at Error level and name the
