@@ -99,7 +99,9 @@ Every model question in the plan. Anything not listed here is not asked.
 | Intents | which of these would <npc> most want to bring up? | choice (≤5) | uniform | done |
 | Ladder | should <npc> try to get the player's attention with <step> now? | noul | 0.5 | done |
 | Newcomer | would <npc> go out of their way to welcome a newcomer in person? | noul | 0.5 | not started |
-| Find (optional) | is it worth <npc> walking to <place> to look for the player? | noul | 0.5 | not started, only if needed |
+| Visit | would <npc> drop what they are doing right now and go looking for the player? ([find.md](find.md)) | noul | 0.5 | not started |
+| Letters | what would <npc> write to the player about? ([invitations.md](invitations.md)) | choice (≤3) | uniform | not started |
+| Letters | where would <npc> ask the player to meet? | choice (≤3) | uniform | not started |
 
 `Score` has no caller and none is planned (weakest primitive). Keep it in the interface; don't add
 uses without a reason.
@@ -125,9 +127,13 @@ Planned:
   immediately without an HTTP attempt, so a dead server doesn't cost a full timeout per call.
 - **Pass the budget token** into `LayaDecisionClient` so the planning budget cancels in-flight HTTP
   calls (`docs/decisions.md`, "Laya and the budget").
-- **Launching:** manual today (`sidecar/run-laya.ps1`). Optional `LaunchSidecar` config (default
-  false) would start the script as a child process at `Entry`, hidden, and kill it on exit. This runs
-  a program on the player's machine, so it is roadmap decision 6.
+- **Launching (decided 2026-09-30):** manual while we develop (`sidecar/run-laya.ps1`); a public
+  release starts it with the game. `LaunchSidecar` (default false now, true in a release build)
+  starts the server as a hidden child process at `Entry` and stops it at exit. Before a release this
+  needs its own design: where the Python environment and weights come from on a player's PC (the
+  first run downloads PyTorch and ~1.7 GB of weights: size verify), what happens without Python, the
+  loopback bind and a random API key per launch, and killing the process if the game crashes. Until
+  then, players of a release would still need the manual steps in `sidecar/README.md`.
 - **Counters in the heartbeat:** calls, fallbacks, median and p95 latency, logged in PR #3's
   heartbeat line once that is merged.
 

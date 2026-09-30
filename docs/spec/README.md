@@ -32,7 +32,7 @@ models, so each file can be read on its own.
 | 3 | [ladder.md](ladder.md) | Initiation ladder, and what each rung does when live | done (shadow) |
 | 4 | [ledger-gossip.md](ledger-gossip.md) | Last-seen ledger, gossip, ambient news spreading | partial |
 | 5 | [routines.md](routines.md) | Routine learning, family priors, decay, unlock | partial |
-| 6 | [find.md](find.md) | Finding the player (and later each other) | done (shadow) |
+| 6 | [find.md](find.md) | Finding the player; NPCs coming to find the player (visits, 1-2 a week) | partial (asking done; visits not started) |
 | 7 | [newcomer-week.md](newcomer-week.md) | Newcomer week: visits, letters, gifts | not started |
 | 8 | [day-length.md](day-length.md) | Longer days | not started |
 | 9 | [laya.md](laya.md) | The Laya decision layer: questions, state format, 512-token budget, sidecar lifecycle | partial |
@@ -40,7 +40,8 @@ models, so each file can be read on its own.
 | 11 | [rollout.md](rollout.md) | Shadow-to-live rollout, switches, safety invariants | not started |
 | 12 | [persistence.md](persistence.md) | Save data, versions, migrations, size | partial |
 | 13 | [config.md](config.md) | Every setting, current and planned | partial |
-| 14 | [multiplayer-compat.md](multiplayer-compat.md) | Multiplayer, other mods, custom NPCs | not started |
+| 14 | [multiplayer-compat.md](multiplayer-compat.md) | Multiplayer (and what it would take), other mods, custom NPCs | not started |
+| 15 | [invitations.md](invitations.md) | Letters in the NPC's voice, invitations to meet, later requests and quests | not started |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 
 ## How every feature section is laid out
@@ -74,3 +75,4 @@ These restate `AGENTS.md` in one place; a feature that breaks one is wrong even 
    sanitizer for its channel ([text.md](text.md)).
 7. The mod never grants items, changes friendship points or edits game dialogue data except through
    a feature that is live and says so here (the only planned item grant is the newcomer gift).
+8. Harmony patches are read-only postfixes ([diary.md](diary.md), "Harmony").

@@ -24,6 +24,7 @@ One SMAPI save-data entry, key `squid.StardewNpcMod.memory`, a `Dictionary<strin
 | `recentLines` | per NPC, last 20 delivered lines with day and cited (kind, subject) | planned |
 | `newcomer` | `NewcomerPlan` ([newcomer-week.md](newcomer-week.md)) | planned |
 | `talkedToday` | NPCs talked to today, for `Talked` and `PassedBy` ([diary.md](diary.md)) | planned |
+| `letters` | pending letters and invitations ([invitations.md](invitations.md)) | planned |
 
 **Additive keys need no version bump.** The loader already reads keys it finds and ignores the rest.
 A new key is read with a default when missing, so a version-2 save loads fine into a build that adds
@@ -78,7 +79,7 @@ lines), then lower `MaxDiaryEntries`.
 ## Status
 
 Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`,
-`InitiationLadder.ToJson`/`FromJson`. Not started: the four planned keys, size logging, pruning.
+`InitiationLadder.ToJson`/`FromJson`. Not started: the five planned keys, size logging, pruning. Visit counters go inside the existing `ladder` value ([find.md](find.md)).
 
 ## Open questions
 

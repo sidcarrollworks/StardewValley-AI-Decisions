@@ -17,8 +17,8 @@ the same day, letters are ordinary letters, gifts are ordinary items).
 ```json
 "Live": {
   "IntentLines": false, "Emote": false, "Bubble": false, "QueuedLine": false,
-  "Mail": false, "ApproachNear": false, "ForcedDialogue": false,
-  "ApproachFar": false, "NewcomerWeek": false
+  "Mail": false, "Letters": false, "ApproachNear": false, "ForcedDialogue": false,
+  "Visit": false, "NewcomerWeek": false
 }
 ```
 
@@ -43,11 +43,11 @@ Recommended order, least invasive first:
 | 2 | `Emote` | purely visual | none known |
 | 3 | `Bubble` | visual, short text | text quality (templates) |
 | 4 | `QueuedLine` | same mechanism as 1 | same as 1 |
-| 5 | `Mail` | needs asset editing; letters persist in the mailbox | a malformed letter; covered by the mail sanitizer |
+| 5 | `Mail` and `Letters` | needs asset editing; letters persist in the mailbox; `Letters` adds news and invitation kinds ([invitations.md](invitations.md)) | a malformed letter; covered by the mail sanitizer |
 | 6 | `ApproachNear` | first movement; must restore the schedule | NPC stuck or late for its schedule |
 | 7 | `ForcedDialogue` | interrupts the player; rare by design | annoyance |
 | 8 | `NewcomerWeek` | combines mail, gifts, and placing an NPC | item grant; only new saves |
-| 9 | `ApproachFar` | cross-location travel | the riskiest code; may be cut (roadmap decision 5) |
+| 9 | `Visit` (was `ApproachFar`) | cross-location travel; 1 to 2 a week, a shop may close while its keeper is out | the riskiest code: needs the travel spike first |
 
 ## Safety invariants (live)
 
@@ -80,7 +80,9 @@ None of its own.
 
 Not started: `Live` config, `[live]` logging, circuit breaker, console command.
 
-## Open questions
+## Decided
 
-- Whether the first live release should be only `IntentLines`, or `IntentLines` plus `Emote`
-  (roadmap decision 2).
+- The first live release is `IntentLines` only (Sid, 2026-09-30). `Emote` and the rest follow one at
+  a time, each with Sid's go-ahead.
+- `ApproachFar` is wanted (Sid, 2026-09-30), as the rare `Visit` rung ([find.md](find.md)); it keeps
+  its place at the end of the order because it depends on the travel code.

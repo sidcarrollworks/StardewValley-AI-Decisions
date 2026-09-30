@@ -17,10 +17,11 @@ Live, per rung (each behind its own switch, [rollout.md](rollout.md)):
 | `Emote` | an emote over the NPC's head | `npc.doEmote(id)` (Character). Id by mood: exclamation 16, heart 20 at 8+ hearts, question 8 after being ignored (ids verify; 8 is confirmed as "question" in the wiki notes) | the player is in the NPC's location (it is "Near" by definition) |
 | `Bubble` | a short line above the head | `npc.showTextAboveHead(text)` with a bubble template ([text.md](text.md)) | same location |
 | `Approach` near | the NPC turns and walks a few tiles toward the player, then resumes its day | face the player, then a `PathFindController` to a free tile next to the player, within the same location, with a timeout; on arrival or timeout, restore the schedule (see open questions) | same location, no event or menu, `Context.CanPlayerMove` |
-| `Approach` from a lead | shadow only in v1 | cross-location travel needs the route table and schedule restore ([find.md](find.md)) | - |
+| `Approach` from a lead | the NPC walks to where it believes the player is, in the map it is already in | as `Approach` near | the lead is in the NPC's current map |
 | `QueuedLine` | the next time the player talks to the NPC, it opens with the line | `setNewDialogue(..., add: true)`; the planned intent if there is one, else a "missed you" template | any time; expires at day end |
 | `Mail` | a letter the next morning | register the letter in `Data/mail` via `helper.Events.Content.AssetRequested`, add its id to `Game1.player.mailForTomorrow` (verify both) | hearts >= 2 |
 | `ForcedDialogue` | a dialogue box opens unprompted | `setNewDialogue` then `Game1.drawDialogue(npc)` | same location within 3 tiles (the NPC's own first-hand view), no menu, no event, player free to move; at most once a week across all NPCs |
+| `Visit` (new, step 6) | the NPC leaves what it is doing (a shop may close) and goes to another map, maybe the farm, to find the player; 1 to 2 a week across the town | a one-off cross-map path, then restore the schedule ([find.md](find.md)) | urge >= 0.90, lead in another map, hearts >= 2, 9:00 to 20:00, caps in [find.md](find.md) |
 
 A live attempt that the game refuses (menu open, event running, NPC busy) is not made and not
 counted; the ladder is told with a new `NoteSkipped(npc, tick)` so the urge is unchanged.
@@ -31,9 +32,16 @@ Done: `InitiationStep` (Emote 0 .. ForcedDialogue 5, saved as ints: append only)
 `InitiationEvent`, `InitiationOptions`, per-NPC state and global counters in `InitiationLadder`
 (`ToJson`/`FromJson`, saved under `ladder`).
 
-Planned: nothing new in the save. Live execution needs one record handed from the ladder worker to
-the game thread: the existing `InitiationEvent` with `Kind == "Attempt"` is enough (step, NPC, lead).
-The game thread executes it; the worker never touches `Game1`.
+Planned:
+- `InitiationStep.Visit = 6`, appended after `ForcedDialogue`, and visit counters in the ladder JSON
+  (defaults for old saves); details in [find.md](find.md). Adding the step means: a seventh
+  `StepThresholds` entry (0.90), `Available`, `ResolveAt` (the trip decides), the loop bound in
+  `Candidate` (today `rung <= (int)InitiationStep.ForcedDialogue`), the caps, and `LadderDto`.
+- Live execution needs one record handed from the ladder worker to the game thread: the existing
+  `InitiationEvent` with `Kind == "Attempt"` is enough (step, NPC, lead). The game thread executes
+  it; the worker never touches `Game1`.
+- `Mail` attempts may become invitations ([invitations.md](invitations.md)); the step stays `Mail`,
+  and the letter's kind is decided when it is written.
 
 ## Triggers and game hooks
 
@@ -53,6 +61,7 @@ Planned, live:
 | Question | Type | Fallback |
 |---|---|---|
 | "should <npc> try to get the player's attention with <step> now?" (done) | `noul` | 0.5 |
+| `Visit` only: "would <npc> drop what they are doing right now and go looking for the player?" ([find.md](find.md)) | `noul` | 0.5 |
 
 Planned change: the state becomes the shared NPC card plus the ladder facts ([laya.md](laya.md)),
 so the model sees the NPC's temperament (manners, shyness) and not only numbers. A shy NPC should
@@ -80,7 +89,7 @@ All in `InitiationOptions` (`src/NpcInitiation/Models.cs`), none saved: `BaseGai
 `HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5, `IgnorePenalty` 0.2,
 `RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `MaxAttemptsPerNpcPerDay` 2,
 `MaxAttemptsPerDay` 6, `MaxQueuedLinesPerDay` 2, `MaxMailPerDay` 1, `MaxForcedPerWeek` 1,
-`StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3.
+`StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3; a seventh threshold 0.90 for `Visit` and the visit caps ([find.md](find.md)).
 
 ## Acceptance tests
 
@@ -88,6 +97,7 @@ Existing: `tests/NpcInitiation.Tests` (`InitiationLadderTests`, `LadderTimingTes
 `BackgroundLadderTests`, `FindTests`).
 
 To add:
+- `Visit` appended as 6: a ladder saved before it loads unchanged; the escalation loop reaches it.
 - Shy NPC: never offered `Bubble` or `ForcedDialogue`; with urge 0.5 and a first-hand view it picks
   `Approach` if available, else nothing.
 - `NoteSkipped` leaves urge, rung and counters unchanged.

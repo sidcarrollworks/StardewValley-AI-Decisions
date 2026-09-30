@@ -43,7 +43,8 @@ Pure arithmetic above. Any value under 14 minutes or over 60 is clamped and logg
 
 ## Tuning constants
 
-`DayLengthMinutes` in config. The brief says test 18 to 20 minutes before 24.
+`DayLengthMinutes` in config. Decided (Sid, 2026-09-30): the default stays vanilla (0); Sid tries 20
+minutes first, then decides whether 24 is better. The brief says test 18 to 20 before 24.
 
 ## Acceptance tests
 
@@ -64,4 +65,3 @@ Not started.
 
 - Does any 1.6 code reset these constants (on day start, on festival exit)? The `DayStarted` re-set
   covers the day case; festivals need a check.
-- Default length (roadmap decision 4). Recommendation: off by default; Sid tries 20.

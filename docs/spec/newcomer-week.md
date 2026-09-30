@@ -40,7 +40,8 @@ the **only** place items come from; no template or model output can name an item
 
 | When | What |
 |---|---|
-| first `SaveLoaded` with no `newcomer` key | decide `Eligible` (see decision 3 in the roadmap): `Game1.stats.DaysPlayed <= 1` (verify) and year 1, spring 1-2. Otherwise `Eligible = false` forever |
+| first `SaveLoaded` with no `newcomer` key | decide `Eligible` (Sid, 2026-09-30: **new saves only**): `Game1.stats.DaysPlayed <= 1` (verify) and year 1, spring 1-2. Otherwise `Eligible = false` forever |
+| console command `npcmod_newcomer start` (`helper.ConsoleCommands.Add`) | test command (Sid, 2026-09-30): builds a plan starting tomorrow on any save, ignoring `Eligible`, and logs it; `npcmod_newcomer status` prints the plan; `npcmod_newcomer clear` removes it. Works in shadow and live |
 | same | build the plan (below), save it with the next save |
 | `DayEnding` before a visit day | register and send the letter (`Data/mail` via `AssetRequested`, `mailForTomorrow`: verify) |
 | visit day, 9:00 tick | the visitor is placed near the farmhouse door: `Game1.warpCharacter(npc, "Farm", tile)` (verify) and stands, facing the door; ignore schedule for the window; restore it at the window's end (same open problem as [ladder.md](ladder.md)) |
@@ -86,6 +87,8 @@ Unit (new `tests/NpcInitiation.Tests/NewcomerTests.cs`, pure planner in `src/Npc
 - 3-5 visitors, one per day, only candidates with gifts, shy NPCs as notes, no excluded NPCs.
 - Rain moves a visit; a full week turns it into a note.
 - Not eligible: no plan, and it stays not eligible on later loads.
+- The test command's plan starts tomorrow, uses the same rules, and ignores `Eligible` (the command
+  parser is a pure function; test it without the game).
 - State machine: Planned -> Lettered -> Waiting -> Met or Missed; a gift is granted once only.
 
 In-game on a fresh save: letters arrive the evening before; the visitor waits by the door; talking
@@ -98,7 +101,6 @@ Not started. Nothing exists yet.
 
 ## Open questions
 
-- Only new saves, or also existing ones via a console command? (roadmap decision 3)
 - Is placing (warping) the visitor acceptable, or must they walk? Walking is more natural but needs
   the travel code; warping at 9:00 before the player is likely outside is a reasonable first cut.
 - Gift list contents are Sid's call; the table makes that an edit, not code.

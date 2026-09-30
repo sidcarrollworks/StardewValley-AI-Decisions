@@ -54,9 +54,14 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `MissedFestival` | Player | `festival` | a festival day ends and the player never attended; written for NPCs with 4+ hearts | 2 |
 | `PassedBy` | Player | `ticks` | the player spent 6+ ticks co-located with the NPC today, talked to at least one other NPC, and never to this one; at most once a day; only for NPCs with 2+ hearts | 2 |
 | `BirthdayForgotten` | Player | `hearts` | at `DayEnding` on the NPC's birthday, if the player has 3+ hearts with it and gave it no gift that day | 4 |
+| `WentLooking` | Player | `place`, `found` (0/1) | a visit trip ends ([find.md](find.md)) | 4; 2 if found |
+| `AcceptedInvite` | Player | `place`, `talked` (0/1) | the NPC sees the player at the invited place in the window ([invitations.md](invitations.md)) | 4 |
+| `StoodUp` | Player | `place` | an invitation's window ends unanswered | 4 |
+| `MissedVisit` | Player | - | a newcomer-week visit ends without the player talking to the visitor ([newcomer-week.md](newcomer-week.md)) | 3 |
 
-The weights are the base for newsworthiness, below. `IgnoredBy` stays; `PassedBy` and
-`BirthdayForgotten` are the other two forms of "being ignored".
+The weights are the base for newsworthiness, below. `IgnoredBy` stays; `PassedBy`,
+`BirthdayForgotten`, `StoodUp` and `MissedVisit` are the other forms of "being ignored". This table
+is the registry of kinds: a feature that adds a kind adds its row here.
 
 ## Triggers and game hooks
 
@@ -65,15 +70,39 @@ All writers run on the game thread and write through `MemoryStore.Note`.
 | Kind | Hook | Notes |
 |---|---|---|
 | `Talked` | existing `ModEntry.OnMenuChanged` (a `DialogueBox` with a speaker) | one per NPC per calendar day; keep a `HashSet` of NPCs talked to today, cleared at the 6:00 tick |
-| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo, float friendshipChangeMultiplier, bool showResponse)` (signature from 1.5.6 notes: verify in 1.6) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (returns 0 love, 2 like, 4 dislike, 6 hate, 8 neutral: verify), `npc.isBirthday()` (verify). It must not change anything. Without Harmony, the fallback is to poll `Game1.player.friendshipData[npc].GiftsToday` on every `MenuChanged` and tick and record a gift with no item when it rises; this loses the item and the taste, which is most of the news value |
+| `GiftReceived` | Harmony postfix on `NPC.receiveGift(Object o, Farmer giver, bool updateGiftLimitInfo, float friendshipChangeMultiplier, bool showResponse)` (signature from 1.5.6 notes: verify in 1.6) | the postfix only reads: `o.QualifiedItemId`, `o.DisplayName`, `npc.getGiftTasteForThisItem(o)` (returns 0 love, 2 like, 4 dislike, 6 hate, 8 neutral: verify), `npc.isBirthday()` (verify). It must not change anything. If the patch can't be applied (see Harmony below), the fallback is to poll `Game1.player.friendshipData[npc].GiftsToday` on every `MenuChanged` and tick and record a gift with no item when it rises; this loses the item and the taste, which is most of the news value |
 | `SawGift` | the same postfix | loop over the NPC diaries' current co-located pairs from the last `Observe` (the span tracker already holds them), not over live positions; this keeps rule 2 |
 | `QuestHelped` | poll `Game1.player.questLog` at each tick and on `MenuChanged`; a quest that moved to completed since the last poll, with a target NPC, is recorded | quest types and their target field (`ItemDeliveryQuest.target`, `SlayMonsterQuest.target`, `FishingQuest.target`, `ResourceCollectionQuest.target`: verify). Special orders: `Game1.player.team.completedSpecialOrders` gains an id; the order's `requester` is the NPC (verify) |
 | `Festival` / `MissedFestival` | at `DayEnding`, if the day was a festival day (`Utility.isFestivalDay(day, season)`: verify) | "attended" = the player entered the festival (set a flag when `Game1.CurrentEvent?.isFestival` is true on any update tick: verify). Who took part: the actors of that festival event, captured while it runs (`Game1.CurrentEvent.actors`: verify). `TimeChanged` probably does not fire while the festival runs (the clock is frozen: verify), so ordinary `Saw` lines are not written there |
 | `PassedBy` | at `DayEnding`, from today's `Saw` spans (co-located tick counts) and `Talked` entries | pure memory; no new hook |
 | `BirthdayForgotten` | at `DayEnding`: `npc.isBirthday()` and no `GiftReceived` today | birthday from `Data/Characters` (verify) |
 
-Harmony is bundled with SMAPI (`HarmonyLib`), but using it is a project decision; see
-[roadmap.md](roadmap.md), decision 1.
+### Harmony (decided 2026-09-30: use it)
+
+Sid approved Harmony for the gift hook, knowing the wiki warns it can cause crashes, conflicts with
+other mods and breakage on game updates (stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony,
+read 2026-09-30). Rules for this mod, from that page plus our own shadow-mode rules:
+
+- **Postfixes only**, and only to observe. No prefixes that return `false`, no transpilers, no
+  changing arguments or results. A postfix that only reads is the least likely to break the game or
+  another mod's patch.
+- **Code API, not attributes:** `var harmony = new Harmony(ModManifest.UniqueID);` then
+  `harmony.Patch(original: AccessTools.Method(typeof(NPC), nameof(NPC.receiveGift)), postfix: new
+  HarmonyMethod(typeof(GiftPatch), nameof(GiftPatch.Postfix)));` (the wiki's form). `nameof` makes a
+  renamed method a compile error instead of a silent no-op.
+- **Enable it in the csproj:** `<EnableHarmony>true</EnableHarmony>` (wiki).
+- **Every postfix body is a try/catch** that logs `Failed in <method>` with the exception at Error
+  level and returns. Errors in patches can show up under other mods' names (wiki), so our messages
+  must name this mod and the patched method.
+- **All patches live in one place:** `mod/StardewNpcMod/Patches/`, one class per patched method,
+  applied in `Entry` from a single `ApplyPatches()`, so one list shows everything the mod hooks.
+- **If `AccessTools.Method` returns null** (the game changed), log a warning, skip that patch and
+  fall back to the polling approach for that kind. The mod must still load.
+- **A postfix never touches memory directly** if it could run off the game thread (verify that
+  `receiveGift` only runs on the game thread); it queues an observation that the next tick applies.
+- **Test after every game update:** the in-game gift checklist below. SMAPI's `harmony_summary`
+  console command lists every patch on a method (recalled: verify), useful when another mod
+  conflicts.
 
 ## Laya questions
 
@@ -146,7 +175,6 @@ In-game (test save `BUNKO_450391925`):
 
 ## Open questions
 
-- Harmony for the gift hook (roadmap decision 1). Without it, gifts lose the item and the taste.
 - Does `TimeChanged` fire during festivals? If it does, festival `Saw` lines already exist and the
   `Festival` kind should replace them for that day.
 - Should NPCs record things the player does alone that they could see (fishing, tilling, dumpster

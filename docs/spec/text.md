@@ -37,9 +37,13 @@ Lines that sound a little different per NPC and per occasion, never contain inte
     "Mail.MissedYou": { "any": ["Dear @,^I was hoping to run into you {when}...^-{npc}"] }
   }
   ```
-  Key = channel/kind plus a variant (taste, subject kind). Tone buckets come from `Data/Characters`
-  (Manner: polite/rude; Optimism: positive/negative; SocialAnxiety: shy/outgoing; verify the
-  fields); `any` is the fallback. An NPC-specific bucket (`"Haley": [...]`) overrides tone.
+  Key = channel/kind plus a variant (taste, subject kind). Lookup order for a speaker: its own
+  bucket (`"Haley": [...]`), then its tone bucket, then `any`. Tone buckets come from
+  `Data/Characters` (Manner: polite/rude; Optimism: positive/negative; SocialAnxiety: shy/outgoing;
+  verify the fields) and exist for custom NPCs from other mods.
+- **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
+  language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
+  haven't written for.
 - **Placeholders:** `{who}` (you / a name), `{npc}`, `{place}` (`PlaceNames`), `{when}`
   (`LineRenderer.When`), `{name}` (an item or festival display name stored in the diary detail).
   Unknown placeholders are a load error, caught by a test.
@@ -83,6 +87,8 @@ Channel maximums above; `RecentLinesKept` 20 lives in intents.
 ## Acceptance tests
 
 - Every key in `lines.json` renders for every tone with sample values; no leftover `{...}`.
+- Every vanilla villager in `data/voices.json` has a bucket for every kind the planner and ladder can
+  produce (a coverage test, so a new kind can't ship without lines).
 - Each sanitizer removes exactly its set; a value containing `$action` or `[72]` comes out harmless
   in every channel; mail keeps template `^` and `@` but strips them from values.
 - Variant choice is deterministic by (npc, day, kind) and covers all variants over many days.
@@ -96,8 +102,26 @@ Done: `src/NpcIntents/LineRenderer.cs` (3 templates), `LineSanitizer.cs` (dialog
 `PlaceNames.cs`, `VoiceSheets.cs` (used only in model context). Not started: `lines.json`, tone
 buckets, channels, value sanitizing, lengths.
 
+## Writing the lines (decided 2026-09-30: Claude writes, Sid edits)
+
+The template text is the most player-visible part of the mod, so it gets its own process:
+
+1. **Voice notes first.** For each vanilla villager, a few lines in `VoiceSheets` style describing
+   how they talk: sentence length, formality, pet phrases, what they care about, how they react to
+   gifts and to being ignored (Shane's gruffness, Haley's early vanity and later warmth, Linus's
+   gentleness). Written from the character's in-game dialogue and events, kept in
+   `data/voices.json` (and used as the model's `voice:` line too, replacing `VoiceSheets`' one-liners).
+2. **Original lines only.** Write new lines in the character's voice. Don't copy vanilla dialogue:
+   it would read as a repeat, and it isn't ours to redistribute.
+3. **Hearts matter.** Kinds that are personal (`GiftReceived`, `StoodUp`, invitations) get a low-
+   and a high-hearts variant per NPC where the character's attitude changes (bucket keys
+   `"Haley.low"`, `"Haley.high"`; the split is at 5 hearts). Lookup tries the hearts bucket first.
+4. **Two to three variants** per NPC per kind, so repeats are rare even without novelty checks.
+5. **Review loop.** Lines land in a PR that changes only `data/lines.json` and `data/voices.json`.
+   Sid edits the file directly on the branch or comments per NPC; the tests below catch broken
+   placeholders and sanitizer problems, so Sid only has to judge the voice.
+6. **Order:** start with the NPCs the shadow logs show speaking most, then everyone else.
+
 ## Open questions
 
-- Who writes the template text? It is the most player-visible part of the mod. Recommendation: Claude
-  drafts a first bank per kind and tone; Sid edits `lines.json` directly.
 - Translation: out of scope until the mod works in English.
