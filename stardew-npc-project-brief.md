@@ -48,10 +48,12 @@ NPCs that:
 
 ## Open questions
 
-- How shop opening hours are enforced under a longer day (not yet read).
+- How shop opening hours are enforced under a longer day. Answered (1.6.15 decompile): opening hours are checked against the game clock (`OpenShop` action), so a longer day doesn't change them.
 - The code that moves an NPC once `isWalkingTowardPlayer` is set (not found in NPC.cs).
-- Where the per-item gift log lives in the Farmer class.
-- Whether off-screen NPCs' `currentLocation` updates in real time (the ledger depends on it).
+- ~~Where the per-item gift log lives in the Farmer class.~~ `Farmer.giftedItems` (1.6.15 decompile).
+- ~~Whether off-screen NPCs' `currentLocation` updates in real time.~~ Yes, on the host: every location's NPCs update each tick (1.6.15 decompile).
+
+Answers and many more facts: `stardew-source-notes.md`, "Checked in the 1.6.15 decompile".
 
 ## Next steps
 
@@ -68,6 +70,8 @@ NPCs that:
 9. ~~Finding the player.~~ **Done, shadow mode** (`MemoryStore.AskAround` / `LookFor`, `PlayerSearch`, the ladder's Approach): an NPC that misses the player (urge 0.45+, no first-hand sighting in the last hour) asks the NPCs it is with, under the gossip rules; its answer to "where is the player?" is its own sighting today, else a tip, else its habit for this hour (routine belief), else unknown. With a lead, Approach works from a distance, so a keen NPC goes looking before it writes. Logged as "asked X about you" and "would go looking for you at ...". The fish shop now maps to the Beach region (audit).
 
 386 tests green after step 9. Docs for other models: `AGENTS.md`, `docs/architecture.md`, `docs/decisions.md` (open work is listed at the end of decisions.md).
+
+**From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas
 

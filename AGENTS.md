@@ -20,8 +20,12 @@ run locally. A deterministic fake is the default.
 1. `AGENTS.md` (this file): rules and workflow.
 2. `docs/architecture.md`: how the pieces work and fit together.
 3. `docs/decisions.md`: why they work that way. Read the entry before you change what it covers.
-4. `stardew-npc-project-brief.md`: goals, design, status, next steps.
-5. `stardew-source-notes.md`: game internals. Read it before answering anything about Stardew's
+4. `docs/spec/`: the full spec. Every feature, built or planned, with its data model, hooks,
+   model questions, rules, tuning, tests, status and open questions. Start at
+   `docs/spec/README.md`; what to build next is `docs/spec/roadmap.md`. Read the feature's file
+   before you build any part of it.
+5. `stardew-npc-project-brief.md`: goals, original design, step-by-step history.
+6. `stardew-source-notes.md`: game internals. Read it before answering anything about Stardew's
    code.
 
 ## Rules you must not break
@@ -42,7 +46,7 @@ run locally. A deterministic fake is the default.
    templated and must pass `LineSanitizer.Sanitize`, which strips `#`, `$`, `%`, `{` and `[`.
 7. **Mark what you haven't verified.** Anything recalled rather than confirmed in source, docs or
    in-game gets a `VERIFY` comment in code or a "verify" note in docs. Don't invent APIs; if unsure,
-   say so.
+   say so. How to settle one: `docs/spec/README.md`, "Verifying game facts".
 8. **Laya facts come only from** github.com/NandhaKishorM/laya and
    huggingface.co/convaiinnovations/laya, not blog posts.
 
@@ -60,7 +64,9 @@ run locally. A deterministic fake is the default.
   All tests must pass and the mod must build (it compiles against the installed game). Warning
   CS8032 about SMAPI analyzers is expected on the installed SDK 6.0.300.
 - **Docs.** When behaviour changes, update `docs/architecture.md`, `docs/decisions.md`, the test
-  counts in `README.md`, and the status in the brief, in the same PR.
+  counts in `README.md`, the status in the brief, and the feature's **Status** section in
+  `docs/spec/`, in the same PR. If you build something differently from the spec, change the spec
+  too.
 - **Commits.** Messages say what changed and why, like the existing history.
 
 ## Running it in the game
