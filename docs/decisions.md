@@ -266,7 +266,9 @@ entries. The fish shop was in the wrong region until an audit caught it (now Bea
   (`sidecar/eval/RESULTS.md`): `typed-decisions` won 5/6 directional cases vs 3/6; the remaining
   work is the in-game week and the speak-question rewording experiments.
 - **Fake backend.** The fake ties everything, so the shadow log is only informative about
-  mechanics, not choices. A seeded non-uniform fake would help. (Audit finding 6)
+  mechanics, not choices. ~~A seeded non-uniform fake would help.~~ Done (PR #7):
+  `VariedFakeDecisionClient` (`DecisionBackend: "Varied"`), deterministic FNV-1a answers.
+  (Audit finding 6)
 - **Novelty.** The mod passes an empty `RecentLines`, so the planner's "already said" check never
   fires. Wire it once lines are delivered for real. The brief also asks for cooldowns and for
   rejecting lines too close to vanilla dialogue.

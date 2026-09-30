@@ -20,11 +20,13 @@ public sealed class MorningWaitMenu : IClickableMenu
     private readonly int _deadlineMs;
     private readonly Func<bool> _isDone;
     private readonly Action _onFinished;
+    private bool _finished;
 
     /// <param name="deadlineMs">Close no later than this (the remaining decisions fall back).</param>
     /// <param name="isDone">Polled each frame; true when the overnight work finished.</param>
-    /// <param name="onFinished">Runs once before the menu closes: collects the finished plan
-    /// (or logs that it is still running, in the deadline case).</param>
+    /// <param name="onFinished">Runs exactly once before the menu closes: collects the finished
+    /// plan (or logs that it is still running, in the deadline case). On Escape the next tick
+    /// would collect it anyway; running it here keeps the behavior symmetric.</param>
     public MorningWaitMenu(int deadlineMs, Func<bool> isDone, Action onFinished)
     {
         _deadlineMs = deadlineMs;
@@ -37,7 +39,7 @@ public sealed class MorningWaitMenu : IClickableMenu
         base.update(time);
         if (_isDone() || _watch.ElapsedMilliseconds >= _deadlineMs)
         {
-            _onFinished();
+            Finish();
             exitThisMenu(playSound: false);
         }
     }
@@ -45,7 +47,18 @@ public sealed class MorningWaitMenu : IClickableMenu
     public override void receiveKeyPress(Microsoft.Xna.Framework.Input.Keys key)
     {
         if (key == Microsoft.Xna.Framework.Input.Keys.Escape)
+        {
+            Finish();
             exitThisMenu(playSound: false);
+        }
+    }
+
+    private void Finish()
+    {
+        if (_finished)
+            return;
+        _finished = true;
+        _onFinished();
     }
 
     public override void draw(SpriteBatch b)

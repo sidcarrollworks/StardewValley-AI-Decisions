@@ -53,9 +53,12 @@ Planned:
    temperament: manners neutral, outgoing, optimistic      (Data/Characters Manner, SocialAnxiety, Optimism)
    voice: sunny, a little vain, warms up slowly             (VoiceSheets)
    hearts with the player: 4 of 10
-   today: spring 12 (Tuesday), sunny, 7:30 PM
+   today: spring 13 (Wednesday), sunny, morning
    ```
-   Then the caller's sections, for example news for the planner:
+   The "today" line describes the DELIVERY day (tomorrow morning: the plan runs at DayEnding),
+   built in English (the checkpoint's language) with tomorrow's weather and a fixed morning time,
+   so the same diary always produces the same state. Then the caller's sections, for example news
+   for the planner:
    ```
    news:
    - yesterday the player gave Haley a sunflower; she loves it

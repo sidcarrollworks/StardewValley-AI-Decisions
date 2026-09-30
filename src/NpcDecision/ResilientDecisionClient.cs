@@ -33,11 +33,6 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
         _timeout = timeout;
         _budget = budget;
         _isDown = isDown;
-        // Budget pass-through (docs/spec/laya.md): the session's budget token reaches the inner
-        // Laya client so a cancelled budget aborts the in-flight HTTP call, not just our wait.
-        // The caller resets it (SetBudget(default)) when the session ends.
-        if (inner is LayaDecisionClient laya && budget != default)
-            laya.SetBudget(budget);
     }
 
     /// <summary>How many answers fell back so far (timeouts, failures, missing batch answers, or an exhausted budget).</summary>

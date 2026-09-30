@@ -146,17 +146,22 @@ public class ModEntry : Mod
                 : $"Laya is not answering at {_config.LayaUrl}; decisions will use the fallback until it is. See sidecar/README.md.",
                 LogLevel.Info);
             if (up)
-            {
-                try { laya.YesNo("warm-up", "Is this a warm-up question?"); }
-                catch { /* warm-up is best-effort */ }
-            }
+                laya.TryWarmUp(); // first real call would be the slow one (docs/spec/laya.md)
         });
         return laya;
     }
 
     private IDecisionClient Guarded(CancellationToken budget = default)
-        => new ResilientDecisionClient(_model, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
+    {
+        // Budget pass-through (docs/spec/laya.md): session-scoped calls run through a view of the
+        // shared client with this session's token, so a cancelled budget aborts the in-flight HTTP
+        // call — and no session can leak its token into another (the ladder keeps its own).
+        IDecisionClient inner = budget != default && _model is LayaDecisionClient laya
+            ? laya.WithBudget(budget)
+            : _model;
+        return new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
             isDown: () => _model is LayaDecisionClient && !_layaUp);
+    }
 
     /// <summary>Re-check health every 6 ticks (one in-game hour) off the game thread and log only
     /// when the state changes (docs/spec/laya.md, "Sidecar lifecycle").</summary>
@@ -171,6 +176,8 @@ public class ModEntry : Mod
         Monitor.Log(up
             ? "Laya is back up; decisions use the model again."
             : "Laya went down; decisions fall back until it recovers.", LogLevel.Info);
+        if (up)
+            laya.TryWarmUp(); // a checkpoint may have lazy-loaded while down; warm it
     }
 
     private BackgroundLadder NewLadder(string? json)
@@ -223,8 +230,8 @@ public class ModEntry : Mod
     /// clock does not stop for menus, so the wait would serve nothing.</summary>
     private void OpenMorningWaitIfNeeded()
     {
-        if (_config.MorningWaitMs <= 0 || !Context.IsMainPlayer || Game1.activeClickableMenu is not null)
-            return;
+        if (_config.MorningWaitMs <= 0 || !Context.IsMainPlayer || Context.IsMultiplayer || Game1.activeClickableMenu is not null)
+            return; // single player only: in multiplayer the clock does not stop for menus
         if (_planJob is not { } job || job.IsCompleted)
             return; // nothing to wait for (the 6:00 tick usually collects the plan already)
 
@@ -502,7 +509,7 @@ public class ModEntry : Mod
                 // The NPC card is built here, on the game thread, and passed as a copy
                 // (docs/spec/laya.md, "The NPC card").
                 string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc),
-                    HeartsFor(npc), TodayLine());
+                    HeartsFor(npc), TomorrowLine());
                 return new NpcMemorySnapshot(npc, VoiceSheets.Voice(npc), kv.Value.Entries.ToList(),
                     Array.Empty<string>(), news, card);
             })
@@ -513,21 +520,8 @@ public class ModEntry : Mod
         int today = GameClock.DayIndex(Now(0));
         int seed = today; // deterministic per day
         _planJob = IntentPlanJob.Start(
-            budget =>
-            {
-                try
-                {
-                    return new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness())
-                        .Plan(snapshots, seed, sourceDay: today);
-                }
-                finally
-                {
-                    // Budget pass-through (docs/spec/laya.md): the shared Laya client must not
-                    // keep this session's (soon cancelled) token for the ladder's later calls.
-                    if (_model is LayaDecisionClient laya)
-                        laya.SetBudget(default);
-                }
-            },
+            budget => new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness())
+                .Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
     }
@@ -545,13 +539,32 @@ public class ModEntry : Mod
     private static string AnxietyWord(NpcSocialAnxiety a) => a switch { NpcSocialAnxiety.Outgoing => "outgoing", NpcSocialAnxiety.Shy => "shy", _ => "neutral" };
     private static string OptimismWord(NpcOptimism o) => o switch { NpcOptimism.Positive => "optimistic", NpcOptimism.Negative => "pessimistic", _ => "neutral" };
 
-    /// <summary>The card's "today" line. VERIFY: Game1.isRaining/isSnowing reflect the current
-    /// location's weather (1.6 has per-context weather; these are the global flags).</summary>
-    private static string TodayLine()
+    /// <summary>The card's "today" line, describing the delivery day (the plan runs at DayEnding
+    /// but the lines arrive tomorrow morning): tomorrow's date in English (the checkpoint is
+    /// English), tomorrow's weather, and a fixed morning time. VERIFY: the weatherForTomorrow key
+    /// to word mapping (the game's own weather strings are "Sun", "Rain", "Snow", "Wind", "Storm").</summary>
+    private static string TomorrowLine()
     {
-        string weather = Game1.isSnowing ? "snowy" : Game1.isRaining ? "rainy" : "sunny";
-        return $"{Game1.Date.Localize()} ({Game1.Date.DayOfWeek}), {weather}, {Game1.getTimeOfDayString(Game1.timeOfDay)}";
+        // TotalDays has a setter that recomputes day/season/year (WorldDate.cs, verified).
+        WorldDate tomorrow = new(Game1.Date) { TotalDays = Game1.Date.TotalDays + 1 };
+        string weather = Game1.weatherForTomorrow switch
+        {
+            "Rain" or "Storm" => "rainy",
+            "Snow" => "snowy",
+            "Wind" => "windy",
+            _ => "sunny",
+        };
+        return $"{SeasonWord(tomorrow.Season)} {tomorrow.DayOfMonth} ({tomorrow.DayOfWeek}), {weather}, morning";
     }
+
+    private static string SeasonWord(Season season) => season switch
+    {
+        Season.Spring => "spring",
+        Season.Summer => "summer",
+        Season.Fall => "fall",
+        Season.Winter => "winter",
+        _ => season.ToString().ToLowerInvariant(),
+    };
 
     /// <summary>Day-end diary notes: PassedBy and BirthdayForgotten (docs/spec/diary.md). Pure memory
     /// plus game facts (hearts, birthdays, gifts); logged at Trace like every new diary kind.</summary>

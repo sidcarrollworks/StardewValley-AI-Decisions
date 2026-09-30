@@ -318,13 +318,14 @@ public class BatchTests
     }
 
     [Fact]
-    public void Ask_PresentAnswerWithoutItsField_Throws()
+    public void Ask_PresentAnswerWithoutItsField_IsAbsent()
     {
+        // A malformed answer is skipped like a missing id, so one bad answer never sinks the
+        // batch (review nit: per-question gap fill, not a batch-wide failure).
         var stub = StubHandler.Json(AnswersBody(("ch", "{\"type\":\"choice\",\"choice\":\"o0\"}")));
         using var client = Client(stub);
 
-        Assert.Throws<LayaException>(
-            () => client.Ask("state", new Question[] { new ChoiceQuestion("ch", new[] { "a", "b" }) }));
+        Assert.Empty(client.Ask("state", new Question[] { new ChoiceQuestion("ch", new[] { "a", "b" }) }));
     }
 
     [Fact]

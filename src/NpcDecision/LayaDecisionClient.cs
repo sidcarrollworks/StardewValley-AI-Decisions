@@ -59,35 +59,41 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
 
     private readonly LayaOptions _options;
     private readonly HttpClient _http;
-    private CancellationToken _budget;
+    private readonly CancellationToken _budget;
     private readonly string _baseUrl;
 
     // Call counters and latency samples for the heartbeat (docs/spec/laya.md, "Sidecar
-    // lifecycle"): thread-safe; the mod reads them off the game thread.
-    private long _calls;
-    private long _callFallbacks;
-    private readonly object _latencyLock = new();
-    private readonly List<double> _latencyMs = new();
+    // lifecycle"): thread-safe; the mod reads them off the game thread. Shared between the
+    // client and every view returned by WithBudget, so the heartbeat sees all calls.
+    private readonly CallStats _stats;
 
     /// <summary>How many question calls were sent (a batch counts once).</summary>
-    public long Calls => Interlocked.Read(ref _calls);
+    public long Calls => Interlocked.Read(ref _stats.Calls);
 
     /// <summary>How many question calls failed (timeouts, HTTP errors, malformed answers).</summary>
-    public long CallFallbacks => Interlocked.Read(ref _callFallbacks);
+    public long CallFallbacks => Interlocked.Read(ref _stats.Fallbacks);
 
     /// <summary>The median and p95 of the last 128 call latencies in milliseconds (0, 0 with no
     /// calls yet). Thread-safe snapshot.</summary>
     public (double MedianMs, double P95Ms) Latency()
     {
         double[] snapshot;
-        lock (_latencyLock)
-            snapshot = _latencyMs.ToArray();
+        lock (_stats.Lock)
+            snapshot = _stats.LatencyMs.ToArray();
         if (snapshot.Length == 0)
             return (0.0, 0.0);
         Array.Sort(snapshot);
         double median = snapshot[snapshot.Length / 2];
         double p95 = snapshot[Math.Min(snapshot.Length - 1, (int)(snapshot.Length * 0.95))];
         return (median, p95);
+    }
+
+    private sealed class CallStats
+    {
+        public long Calls;
+        public long Fallbacks;
+        public readonly object Lock = new();
+        public readonly List<double> LatencyMs = new();
     }
 
     /// <summary>Client using the default socket handler.</summary>
@@ -110,18 +116,44 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
         _baseUrl = (_options.BaseUrl ?? throw new ArgumentNullException(nameof(options), "BaseUrl is required."))
             .TrimEnd('/');
         _budget = budget;
+        _stats = new CallStats();
         // Our own CancellationTokenSource enforces the timeout; HttpClient's is disabled so there
         // is exactly one timer and one exception path.
         _http = new HttpClient(handler, disposeHandler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
     }
 
     /// <summary>
-    /// Swap the external budget token mid-flight (docs/spec/laya.md, "Pass the budget token"): the
-    /// planning wrapper sets the session's budget before the plan job starts, so a cancelled budget
-    /// aborts the in-flight HTTP call instead of only the wrapper's wait. Set before any call of
-    /// that session; not safe to race with a running call.
+    /// A light view over the same server connection with a different external budget token
+    /// (docs/spec/laya.md, "Pass the budget token"): session-scoped callers wrap the shared client
+    /// instead of mutating it, so a session's token can never leak into another session's calls.
+    /// The view shares the HttpClient, the options and the latency counters.
     /// </summary>
-    public void SetBudget(CancellationToken budget) => _budget = budget;
+    public LayaDecisionClient WithBudget(CancellationToken budget)
+        => new(_options, _http, _baseUrl, _stats, budget);
+
+    private LayaDecisionClient(LayaOptions options, HttpClient http, string baseUrl, CallStats stats, CancellationToken budget)
+    {
+        _options = options;
+        _http = http;
+        _baseUrl = baseUrl;
+        _stats = stats;
+        _budget = budget;
+    }
+
+    /// <summary>One throwaway yes/no that warms the model after a healthy check; its call and
+    /// latency are NOT counted in the heartbeat (it is not a real decision).</summary>
+    public bool TryWarmUp()
+    {
+        try
+        {
+            AskForAnswers("warm-up", new[] { new YesNoQuestion(QuestionId, "Is this a warm-up question?") }, count: false);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
     {
@@ -172,12 +204,20 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
         var result = new List<Answer>(questions.Count);
         foreach (Question question in questions)
         {
-            // An id the server skipped (or answered with something that is not an object) is
-            // simply absent from the result; the resilient wrapper fills the gap.
+            // An id the server skipped, answered with something that is not an object, or answered
+            // with a malformed payload is simply absent from the result; the resilient wrapper
+            // fills the gap per question (docs/spec/laya.md: a missing answer falls back alone).
             if (!answers.TryGetProperty(question.Id, out JsonElement answer)
                 || answer.ValueKind != JsonValueKind.Object)
                 continue;
-            result.Add(ParseAnswer(question, answer));
+            try
+            {
+                result.Add(ParseAnswer(question, answer));
+            }
+            catch (LayaException)
+            {
+                // malformed answer for this question only; skip it, keep the valid ones
+            }
         }
         return result;
     }
@@ -241,32 +281,34 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
     }
 
     /// <summary>POSTs one body carrying all the questions and returns the response's <c>answers</c> object.</summary>
-    private JsonElement AskForAnswers(string state, IReadOnlyList<Question> questions)
+    private JsonElement AskForAnswers(string state, IReadOnlyList<Question> questions, bool count = true)
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             JsonElement answers = SendForAnswers(state, questions);
-            RecordLatency(watch.Elapsed.TotalMilliseconds, failed: false);
+            if (count)
+                RecordLatency(watch.Elapsed.TotalMilliseconds, failed: false);
             return answers;
         }
         catch
         {
-            RecordLatency(watch.Elapsed.TotalMilliseconds, failed: true);
+            if (count)
+                RecordLatency(watch.Elapsed.TotalMilliseconds, failed: true);
             throw;
         }
     }
 
     private void RecordLatency(double ms, bool failed)
     {
-        Interlocked.Increment(ref _calls);
+        Interlocked.Increment(ref _stats.Calls);
         if (failed)
-            Interlocked.Increment(ref _callFallbacks);
-        lock (_latencyLock)
+            Interlocked.Increment(ref _stats.Fallbacks);
+        lock (_stats.Lock)
         {
-            _latencyMs.Add(ms);
-            if (_latencyMs.Count > 128)
-                _latencyMs.RemoveAt(0);
+            _stats.LatencyMs.Add(ms);
+            if (_stats.LatencyMs.Count > 128)
+                _stats.LatencyMs.RemoveAt(0);
         }
     }
 
@@ -396,6 +438,10 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
     /// <summary>Sends synchronously under the timeout + budget, returning the parsed 2xx body.</summary>
     private JsonDocument SendForJson(HttpRequestMessage request)
     {
+        // A budget already dead before the call must still surface as a cancellation (a
+        // pre-cancelled token into HttpClient.Send can otherwise bubble ObjectDisposedException).
+        if (_budget.IsCancellationRequested)
+            throw new OperationCanceledException(_budget);
         using var timeout = new CancellationTokenSource(_options.Timeout);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, _budget);
         try

@@ -1,3 +1,4 @@
+using System.Globalization;
 using NpcSchedules;
 
 namespace NpcDecision;
@@ -26,7 +27,7 @@ public sealed class VariedFakeDecisionClient : IDecisionClient
         double total = 0.0;
         for (int i = 0; i < options.Count; i++)
         {
-            double weight = unchecked((uint)Fnv1a.Seed(context, "|choice|", i.ToString(), "|", options[i])) % 100 + 1;
+            double weight = unchecked((uint)Fnv1a.Seed(context, "|choice|", i.ToString(CultureInfo.InvariantCulture), "|", options[i])) % 100 + 1;
             probabilities[i] = weight;
             total += weight;
         }
@@ -43,7 +44,7 @@ public sealed class VariedFakeDecisionClient : IDecisionClient
     /// </summary>
     public double Score(string context, double min, double max)
     {
-        double frac = unchecked((uint)Fnv1a.Seed(context, "|score|", min.ToString(), "|", max.ToString())) % 1000 / 1000.0;
+        double frac = unchecked((uint)Fnv1a.Seed(context, "|score|", min.ToString(CultureInfo.InvariantCulture), "|", max.ToString(CultureInfo.InvariantCulture))) % 1000 / 1000.0;
         return min + (max - min) * frac;
     }
 
