@@ -25,6 +25,8 @@ page is possible later (see [multiplayer-compat.md](multiplayer-compat.md)).
 | `Live` | all false | per-behavior live switches, including `Letters`, `Visit`, `Trades` and `FriendshipEffects` ([rollout.md](rollout.md)) | planned |
 | `DayLengthMinutes` | 0 (vanilla) | real minutes per game day ([day-length.md](day-length.md)) | planned |
 | `LogDiary` | false | log every new diary line at Trace | planned |
+| `ShowMindsTab` | true in development | the "NPC Minds" tab in the game menu ([debug-tools.md](debug-tools.md)) | planned |
+| `MindsKey` | `F8` | opens the Minds page as its own menu (fallback if the tab can't be added) | planned |
 
 Not in config, on purpose: every tuning class (`InitiationOptions`, `IntentPlannerOptions`, ledger
 thresholds, `NewsworthinessOptions`, ...). They are code defaults so tests pin them. Promote one to

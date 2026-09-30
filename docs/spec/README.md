@@ -81,8 +81,11 @@ From the Get Started guide, and already true here unless noted:
 | 13 | [config.md](config.md) | Every setting, current and planned | partial |
 | 14 | [multiplayer-compat.md](multiplayer-compat.md) | Multiplayer (and what it would take), other mods, custom NPCs | not started |
 | 15 | [invitations.md](invitations.md) | Letters in the NPC's voice, invitations to meet, later requests and quests | not started |
-| 16 | [motives.md](motives.md) | Why a character wants to see the player: named motives, hurt, grudges and friendship loss | not started |
+| 16 | [motives.md](motives.md) | Why a character wants to see the player: named motives, hurt, grudges and friendship loss, weather and seasons | not started |
 | 17 | [trades.md](trades.md) | Villager-style barter offers through vanilla barter shops | not started |
+| 18 | [debug-tools.md](debug-tools.md) | An "NPC Minds" tab in the game menu, console commands, a playtest digest | not started |
+| 19 | [romance.md](romance.md) | Dating, engagement, marriage, divorce: partners, jealousy, milestones, spouses at home | not started |
+| 20 | [town-life.md](town-life.md) | NPCs chatting, meeting up and looking for each other, rendered only when the player is there | not started |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 | - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 

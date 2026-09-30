@@ -18,7 +18,7 @@ the same day, letters are ordinary letters, gifts are ordinary items).
 "Live": {
   "IntentLines": false, "Emote": false, "Bubble": false, "QueuedLine": false,
   "Mail": false, "Letters": false, "ApproachNear": false, "ForcedDialogue": false,
-  "Visit": false, "NewcomerWeek": false, "Trades": false, "FriendshipEffects": false
+  "Visit": false, "NewcomerWeek": false, "Trades": false, "FriendshipEffects": false, "TownLife": false
 }
 ```
 
@@ -49,6 +49,7 @@ Recommended order, least invasive first:
 | 8 | `NewcomerWeek` | combines mail, gifts, and placing an NPC | item grant; only new saves |
 | 9 | `Visit` (was `ApproachFar`) | cross-location travel; 1 to 2 a week, a shop may close while its keeper is out | the riskiest code: needs the travel spike first |
 | - | `Trades` | any time after `Mail`: uses the vanilla shop menu, gives items from `data/trades.json` | balance; covered by the table test |
+| - | `TownLife` | bubbles between NPCs can go live early (after `Bubble`); meet-ups need the travel spike | chatter volume; capped at 6 rendered scenes a day |
 | - | `FriendshipEffects` | only after motives have run in shadow long enough to trust the grudge numbers | the one change to friendship points; capped at 20 points per character per week |
 
 ## Safety invariants (live)

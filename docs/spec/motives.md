@@ -22,7 +22,8 @@ keeps treating them badly.
 ## Data model
 
 `Motive` enum, saved as an int, append only: `MissingYou = 0`, `News = 1`, `Grateful = 2`, `Hurt = 3`,
-`Curious = 4`, `Worried = 5`, `WantsToTrade = 6` ([trades.md](trades.md)).
+`Curious = 4`, `Worried = 5`, `WantsToTrade = 6` ([trades.md](trades.md)), `Jealous = 7`
+([romance.md](romance.md)).
 
 Per NPC (in the ladder's saved state, defaults for old saves):
 - `Grudge` (0..1): the accumulated hurt that friendship loss is based on; saved, decays daily.
@@ -65,6 +66,27 @@ decays by 10% each day with no new hurt. Repeated bad acts push it up; one bad d
   characters mostly don't).
 This is the one place the mod changes friendship. It has its own live switch, `Live.FriendshipEffects`,
 default off ([rollout.md](rollout.md)); in shadow it only logs what would happen.
+
+## Weather and seasons
+
+Agreed with Sid on 2026-09-30. Weather and season change motives and what characters do about them,
+never the facts in memory. Game state read (all confirmed in the 1.6.15 decompile): `Game1.isRaining`,
+`isSnowing`, `isLightning`, `Game1.IsRainingHere(location)` / `IsLightningHere(location)`,
+`Game1.weatherForTomorrow`, `Game1.currentSeason`. Weather is public knowledge, so reading it is not
+a D2 problem; where the *player* is still comes only from the NPC's memory.
+
+| Situation | Effect |
+|---|---|
+| Storm (lightning) and the NPC's last knowledge puts the player outdoors | `Worried` +0.3 for NPCs with 4+ hearts |
+| The NPC's last knowledge puts the player in the mines or Skull Cavern, and no sighting since 18:00 | `Worried` +0.2 per two hours, for 4+ hearts and partners |
+| Rain or snow | `Visit` and meet-up chances x0.5; outdoor town-life scenes x0.5 ([town-life.md](town-life.md)); bubbles and lines get weather variants ("Stay dry out there") |
+| Storm | no `Visit` or meet-ups at all, except a worried partner's |
+| The day before a festival | a `News` source "the festival is tomorrow" for outgoing characters (weight 2), so they bring it up |
+| Winter | `MissingYou` grows 25% faster (people stay in; the player is missed more) |
+| Green rain (year 1) | a `News` source for everyone that day (weight 3) |
+
+Tests: each row as a unit test over a fake weather record; nothing reads `Game1` inside `src/`, the
+mod passes a small `WeatherFacts` record into the tick.
 
 ## Laya questions
 

@@ -29,6 +29,9 @@ question. The overnight lines are dull because the diary only knows who saw whom
 | 13 | **Multiplayer research:** answer the list in [multiplayer-compat.md](multiplayer-compat.md) from SMAPI docs and decompiled 1.6, and estimate | S | [multiplayer-compat.md](multiplayer-compat.md) | none; any time |
 | 14 | **Motives:** named motives from the diary drive urge growth and the choice of action and line; hurt and grudges in shadow, then the friendship penalty behind its own switch | M | [motives.md](motives.md) | 1, 2 (diary kinds); can run in shadow before 6 |
 | 15 | **Trades:** the offer table, barter shops through `Data/Shops`, the question box, `WantsToTrade` | M | [trades.md](trades.md) | 8 (mail and the live switches); table text drafted with step 4 |
+| 16 | **Debug tools:** console commands first, then the NPC Minds tab (spike the tab; fall back to a hotkey menu) | M | [debug-tools.md](debug-tools.md) | none; commands can start right after 1 |
+| 17 | **Romance:** status milestones, partner multipliers, jealousy, date invitations, spouse behavior | M | [romance.md](romance.md) | 14 (motives), 8 (invitations) |
+| 18 | **Town life:** NPC chats as bubbles (shadow, then live), bonds, then meet-ups and looking for each other | M | [town-life.md](town-life.md) | 7 (ambient gossip); 11 for movement |
 
 **Later, not scheduled:** requests and quests from vanilla mechanics ([invitations.md](invitations.md),
 "Later"); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
@@ -68,6 +71,10 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
   table lists them later. The friendship penalty goes live last among the motive parts.
 - **Trades (15) after letters (8)**, because they reuse the live-switch plumbing and a letter is one
   way a trader reaches out.
+- **Debug tools (16) early in practice:** the console commands are small and make every later step
+  easier to judge; build them right after diary part 1. The menu tab follows.
+- **Romance (17) and town life (18)** build on motives, invitations and gossip, so they come after
+  those; their shadow parts can start as soon as the pieces they read exist.
 - **Day length and multiplayer research are independent** and small: good tasks for whoever has a
   free slot (DeepSeek included).
 
@@ -87,6 +94,9 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
 | 10 | Other mods | Consider pairing with a content mod once the system works | [multiplayer-compat.md](multiplayer-compat.md), "Later" |
 | 11 | Can characters be hurt or annoyed? | Yes; and repeatedly treating a character badly costs friendship points | [motives.md](motives.md) |
 | 12 | Trading | Villager-style trades that give characters another reason to seek the player out; the vanilla barter shops cover it | [trades.md](trades.md) |
+| 13 | Debug view | An in-game menu tab showing NPC data, plus console commands | [debug-tools.md](debug-tools.md) |
+| 14 | Romance | The mod should work well with dating and spouses | [romance.md](romance.md) |
+| 15 | NPCs with each other, weather and seasons | Yes to both | [town-life.md](town-life.md), [motives.md](motives.md) |
 
 ## Still open (none block the next steps)
 
