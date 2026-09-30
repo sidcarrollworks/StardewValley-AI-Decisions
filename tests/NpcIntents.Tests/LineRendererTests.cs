@@ -237,6 +237,65 @@ public class LineRendererTests
             _renderer.Render("Abigail", "spirited", E("Player", "BIRTHDAYFORGOTTEN")));
     }
 
+    // ---------------------------------------------------------------- Step 2 kinds (PR #6)
+
+    [Fact]
+    public void GiftReceived_NamesTheItem()
+    {
+        Assert.Equal("Thanks again for the Sunflower yesterday.",
+            _renderer.Render("Haley", "spirited", E("Player", "GiftReceived", "item=(O)421;name=Sunflower;taste=Love;birthday=0")));
+    }
+
+    [Fact]
+    public void GiftReceived_WithoutAName_FallsBackToTheGift()
+    {
+        Assert.Equal("Thanks again for the gift yesterday.",
+            _renderer.Render("Haley", "spirited", E("Player", "GiftReceived", "taste=Love;birthday=0")));
+    }
+
+    [Fact]
+    public void SawGift_NamesTheRecipientAndTheItem()
+    {
+        Assert.Equal("I saw Pierre get a Sunflower yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Pierre", "SawGift", "giver=Player;name=Sunflower;taste=Love")));
+    }
+
+    [Fact]
+    public void QuestHelped_SaysSoWithTheRightDay()
+    {
+        Assert.Equal("Thanks for helping me out yesterday.",
+            _renderer.Render("Willy", "spirited", E("Player", "QuestHelped", "quest=Fishing;name=Willy")));
+        Assert.Equal("Thanks for helping me out the other day.",
+            _renderer.Render("Willy", "spirited", E("Player", "QuestHelped", "quest=Fishing;name=Willy"), daysAgo: 3));
+    }
+
+    [Theory]
+    [InlineData("with=1", "It was nice catching up with you at the festival yesterday.")]
+    [InlineData("with=0", "I saw you at the festival yesterday.")]
+    public void Festival_DistinguishesTalkedAt(string detail, string expected)
+    {
+        Assert.Equal(expected, _renderer.Render("Abigail", "spirited", E("Player", "Festival", $"festival=spring13;{detail}")));
+    }
+
+    [Fact]
+    public void MissedFestival_SaysSoWithTheRightDay()
+    {
+        Assert.Equal("You missed the festival yesterday.",
+            _renderer.Render("Abigail", "spirited", E("Player", "MissedFestival", "festival=spring13")));
+    }
+
+    [Theory]
+    [InlineData("GiftReceived")]
+    [InlineData("QuestHelped")]
+    [InlineData("Festival")]
+    [InlineData("MissedFestival")]
+    public void Step2Kinds_AboutAnotherSubject_FallBack(string kind)
+    {
+        string line = _renderer.Render("Abigail", "spirited", E("Pierre", kind, "name=Sunflower"));
+
+        Assert.Equal("I've been thinking about Pierre.", line);
+    }
+
     // ---------------------------------------------------------------- Interface
 
     [Fact]

@@ -10,6 +10,9 @@
     <EnableModDeploy>false</EnableModDeploy>
     <EnableModZip>false</EnableModZip>
     <EnableGameDebugging>false</EnableGameDebugging>
+    <!-- Read-only Harmony postfixes (docs/spec/diary.md, "Harmony"): adds the reference only;
+         SMAPI 4.5.2 ships Harmony 2.2.2 and needs no opt-in at runtime. -->
+    <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +22,7 @@
     <ProjectReference Include="..\..\src\NpcDecision\NpcDecision.csproj" />
     <ProjectReference Include="..\..\src\NpcIntents\NpcIntents.csproj" />
     <ProjectReference Include="..\..\src\NpcInitiation\NpcInitiation.csproj" />
+    <ProjectReference Include="..\..\src\NpcDiaryEvents\NpcDiaryEvents.csproj" />
   </ItemGroup>
 
   <ItemGroup>

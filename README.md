@@ -11,18 +11,20 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcSchedules/` | Game-independent library (net6.0, same runtime as Stardew 1.6). The mod will reference it. |
 | `src/NpcMemory/` | NPC memory layer: `Diary` (event log), `Ledger` (last-seen + same-day decay, gone at the next 6:00, two-hop gossip that never overwrites fresher knowledge), `RoutineBelief` (co-presence routine learning, best guess per hour), `Proximity` (tile-radius co-location), `MemoryStore` (per-tick observation from the NPC side, asking around and looking for someone, save format and migration), `GameClock` (year-aware ticks). References NpcSchedules. |
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
-| `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
+| `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `Newsworthiness` (news scoring), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
 | `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
+| `src/NpcDiaryEvents/` | Pure diary producers: `GiftNotes`, `SawGiftNotes`, `QuestNotes`, `FestivalNotes` turn plain event records into `DiaryEntry` values (no game types). The mod's read-only Harmony postfixes in `mod/StardewNpcMod/Patches/` capture the events. |
 | `docs/` | `architecture.md` (how it works), `decisions.md` (why) and `spec/` (every feature, built or planned, plus the roadmap). `AGENTS.md` at the root is the entry point for coding agents. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. |
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |
 | `mod/StardewNpcMod/` | The SMAPI mod (compile-verified against the real game + SMAPI). Hooks SaveLoaded/DayStarted/TimeChanged/DayEnding/Saving/ReturnedToTitle; persists memory per save; each tick every NPC records the player and other NPCs in the same location within 8 tiles; shadow-logs overnight intents and ladder attempts. `config.json`: `DecisionBackend` = `Fake` or `Laya`. |
 | `tools/ScheduleExtractor/` | Command-line wrapper: schedule JSON files in, counts out. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (68). |
-| `tests/NpcMemory.Tests/` | xUnit tests (150). |
+| `tests/NpcMemory.Tests/` | xUnit tests (153). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (50). |
-| `tests/NpcIntents.Tests/` | xUnit tests (127). |
+| `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
+| `tests/NpcIntents.Tests/` | xUnit tests (138). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (56). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |

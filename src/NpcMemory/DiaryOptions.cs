@@ -11,4 +11,7 @@ public sealed class DiaryOptions
 
     /// <summary>BirthdayForgotten: hearts at or above this.</summary>
     public int BirthdayHearts { get; set; } = 3;
+
+    /// <summary>MissedFestival: hearts with the player at or above this.</summary>
+    public int MissedFestivalHeartsFloor { get; set; } = 4;
 }

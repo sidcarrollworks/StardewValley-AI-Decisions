@@ -1,4 +1,6 @@
+using HarmonyLib;
 using NpcDecision;
+using NpcDiaryEvents;
 using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
@@ -8,6 +10,10 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Characters;
 using StardewValley.Menus;
+using StardewValley.Quests;
+using StardewValley.SpecialOrders;
+using StardewNpcMod.Patches;
+using System.Reflection;
 
 namespace StardewNpcMod;
 
@@ -45,6 +51,17 @@ public class ModEntry : Mod
     // and at the title screen.
     private readonly HashSet<string> _talkedToday = new(StringComparer.OrdinalIgnoreCase);
 
+    // Step 2 (diary enrichment part 2): Harmony postfixes queue here; the next tick drains into
+    // memory (docs/spec/diary.md, "A postfix records, the tick applies").
+    private readonly DiaryEventQueue _events = new();
+    private readonly DiaryOptions _diaryOptions = new();
+    private readonly HashSet<string> _seenSpecialOrders = new(StringComparer.OrdinalIgnoreCase);
+
+    // Festival capture, reset after NoteDayEnd uses it (docs/spec/diary.md, "Festival").
+    private bool _festivalAttended;
+    private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _festivalTalked = new(StringComparer.OrdinalIgnoreCase);
+
     public override void Entry(IModHelper helper)
     {
         _config = helper.ReadConfig<ModConfig>();
@@ -60,7 +77,39 @@ public class ModEntry : Mod
         helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
         helper.Events.Display.MenuChanged += OnMenuChanged;
 
+        ApplyPatches();
+
         Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
+    }
+
+    /// <summary>
+    /// Read-only Harmony postfixes for the diary kinds (docs/spec/diary.md, "Harmony"): the code
+    /// API, one class per patched method, all applied from this one place. A missing method (game
+    /// update) logs a warning and skips that patch; the mod still loads.
+    /// </summary>
+    private void ApplyPatches()
+    {
+        var harmony = new HarmonyLib.Harmony(ModManifest.UniqueID);
+
+        MethodInfo? receiveGift = AccessTools.Method(typeof(NPC), nameof(NPC.receiveGift));
+        if (receiveGift is null)
+            Monitor.Log("GiftReceived patch skipped: NPC.receiveGift not found (game update?). Gift notes are off until this is fixed.", LogLevel.Warn);
+        else
+        {
+            harmony.Patch(receiveGift, postfix: new HarmonyMethod(typeof(GiftPatch), nameof(GiftPatch.Postfix)));
+            GiftPatch.Queue = _events;
+            GiftPatch.Log = Monitor;
+        }
+
+        MethodInfo? questComplete = AccessTools.Method(typeof(Quest), nameof(Quest.questComplete));
+        if (questComplete is null)
+            Monitor.Log("QuestHelped patch skipped: Quest.questComplete not found (game update?). Quest notes are off until this is fixed.", LogLevel.Warn);
+        else
+        {
+            harmony.Patch(questComplete, postfix: new HarmonyMethod(typeof(QuestPatch), nameof(QuestPatch.Postfix)));
+            QuestPatch.Queue = _events;
+            QuestPatch.Log = Monitor;
+        }
     }
 
     /// <summary>The raw model client. Every use goes through a <see cref="ResilientDecisionClient"/>
@@ -105,6 +154,9 @@ public class ModEntry : Mod
         {
             LoadMemory();
             _talkedToday.Clear(); // a load starts a fresh day; never carry a previous session's set
+            _seenSpecialOrders.Clear();
+            foreach (string key in Game1.player.team.completedSpecialOrders)
+                _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
         }
         catch (Exception ex)
@@ -139,6 +191,18 @@ public class ModEntry : Mod
 
         try
         {
+            NoteSpecialOrders(now);
+            _events.Drain(_memory, now, Monitor); // before Observe: the span tracker still holds the
+                                                  // last tick's pairs, which SawGift witnesses need
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Diary events failed: {ex}", LogLevel.Error);
+        }
+
+        try
+        {
+            CaptureFestival();
             _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
             AskAround(now);
         }
@@ -195,6 +259,12 @@ public class ModEntry : Mod
         _search = new PlayerSearch();
         _intentsToday.Clear();
         _talkedToday.Clear();
+        _events.Clear();
+        _seenSpecialOrders.Clear();
+        _festivalAttended = false;
+        _festivalActors.Clear();
+        _festivalTalked.Clear();
+        QuestPatch.Reset();
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
@@ -262,6 +332,9 @@ public class ModEntry : Mod
                 DiaryDetail.Format(("hearts", HeartsFor(speaker.Name).ToString())));
             _memory.Note(speaker.Name, entry);
         }
+
+        if (Game1.isFestival())
+            _festivalTalked.Add(speaker.Name); // "talked there" for the Festival note
     }
 
     // ---- initiation ladder (shadow) -------------------------------------------------------------
@@ -374,9 +447,69 @@ public class ModEntry : Mod
             names.Add(pair.Key);
 
         IReadOnlyList<(string Npc, DiaryEntry Entry)> notes = _memory.DayEndNotes(
-            names, now, HeartsFor, BirthdayFor, GiftedToday, _talkedToday);
+            names, now, HeartsFor, BirthdayFor, GiftedToday, _talkedToday, _diaryOptions);
         foreach ((string npc, DiaryEntry entry) in notes)
             Monitor.Log($"[shadow] diary {npc}: {entry.Kind} {entry.Subject} ({entry.Detail})", LogLevel.Trace);
+
+        NoteFestival(names, now);
+        _festivalAttended = false;
+        _festivalActors.Clear();
+        _festivalTalked.Clear();
+    }
+
+    /// <summary>Festival / MissedFestival at day end (docs/spec/diary.md, "Triggers and game
+    /// hooks"): "attended" means Game1.isFestival() was true on any tick today; the actors are
+    /// the names captured while the event ran (clones, so names only).</summary>
+    private void NoteFestival(IReadOnlyCollection<string> names, int now)
+    {
+        if (!Enum.TryParse(Game1.currentSeason, ignoreCase: true, out Season season))
+            return;
+        if (!Utility.isFestivalDay(Game1.dayOfMonth, season))
+            return; // passive festivals (Night Market etc.) are separate, per the spec
+
+        string dateKey = Utility.getSeasonKey(season) + Game1.dayOfMonth;
+        if (!DataLoader.Festivals_FestivalDates(Game1.temporaryContent).TryGetValue(dateKey, out string festivalId))
+            return;
+
+        IReadOnlyList<(string Npc, DiaryEntry Entry)> notes = FestivalNotes.AtDayEnd(
+            festivalId, _festivalAttended, _festivalActors, _festivalTalked, names, HeartsFor, _diaryOptions, now);
+        foreach ((string npc, DiaryEntry entry) in notes)
+            Monitor.Log($"[shadow] diary {npc}: {entry.Kind} {entry.Subject} ({entry.Detail})", LogLevel.Trace);
+    }
+
+    /// <summary>While the festival runs (time does not pass), note that the player attended and
+    /// keep the actors' names. The actors are event clones (EventActor), so names only.</summary>
+    private void CaptureFestival()
+    {
+        if (!Game1.isFestival())
+            return;
+        _festivalAttended = true;
+        if (Game1.CurrentEvent is not { } ev)
+            return;
+        foreach (NPC actor in ev.actors)
+            if (actor is not null && !string.IsNullOrEmpty(actor.Name))
+                _festivalActors.Add(actor.Name);
+    }
+
+    /// <summary>Special orders complete through SpecialOrder.CheckCompletion, not Quest.questComplete:
+    /// detect a newly completed order by diffing team.completedSpecialOrders and write QuestHelped
+    /// for the order's requester (docs/spec/diary.md, "Triggers and game hooks").</summary>
+    private void NoteSpecialOrders(int now)
+    {
+        foreach (string key in Game1.player.team.completedSpecialOrders)
+        {
+            if (!_seenSpecialOrders.Add(key))
+                continue;
+            string? requester = null;
+            foreach (SpecialOrder order in Game1.player.team.specialOrders)
+                if (string.Equals(order.questKey.Value, key, StringComparison.OrdinalIgnoreCase))
+                    requester = order.requester.Value;
+            if (!string.IsNullOrEmpty(requester))
+            {
+                _memory.Note(requester, QuestNotes.ToDiaryEntry(new QuestDetails(requester, QuestNotes.Special, now)));
+                Monitor.Log($"[shadow] diary {requester}: QuestHelped Player (Special)", LogLevel.Trace);
+            }
+        }
     }
 
     /// <summary>Villager names from every loaded location (same coverage as CollectPresences).</summary>

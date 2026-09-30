@@ -6,12 +6,13 @@ of agent work, **L** several PRs.
 
 ## Where things stand
 
-Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (PR #3) and roadmap step
-1, diary enrichment part 1 (PR #5); 482 tests pass at `cf1d24a`. Nothing is live. Laya is installed
-on Sid's PC and now runs on the GPU (~35 ms a question), but its answers haven't been reviewed in a
-real play session yet. Step 1 fixes the dull overnight lines (D15): housemates at home score zero
-and the planner ranks by news, so the next play session should cite conversations, being passed by
-and forgotten birthdays.
+Steps 1-9 of the brief are done in shadow mode, plus a console heartbeat (PR #3), roadmap step 1,
+diary enrichment part 1 (PR #5) and step 2, diary enrichment part 2 with the read-only Harmony
+postfixes (PR #6); 561 tests pass at the PR #6 head. Nothing is live. Laya is installed on Sid's
+PC and now runs on the GPU (~35 ms a question), but its answers haven't been reviewed in a real
+play session yet. The dull overnight lines are fixed (D15): housemates at home score zero, the
+planner ranks by news, and the diary now carries gifts, quests and festivals — the next play
+session should cite those.
 
 ## Order
 

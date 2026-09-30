@@ -18,6 +18,11 @@ public sealed class LineRenderer : ILineRenderer
     private const string TalkedKind = "Talked";
     private const string PassedByKind = "PassedBy";
     private const string BirthdayForgottenKind = "BirthdayForgotten";
+    private const string GiftReceivedKind = "GiftReceived";
+    private const string SawGiftKind = "SawGift";
+    private const string QuestHelpedKind = "QuestHelped";
+    private const string FestivalKind = "Festival";
+    private const string MissedFestivalKind = "MissedFestival";
     private const string PlayerSubject = "Player";
 
     private readonly Func<string?, string> _placeName;
@@ -51,6 +56,22 @@ public sealed class LineRenderer : ILineRenderer
             line = $"You walked right past me {When(daysAgo)}.";
         else if (string.Equals(entry.Kind, BirthdayForgottenKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
             line = $"My birthday was {When(daysAgo)}, you know.";
+        else if (string.Equals(entry.Kind, GiftReceivedKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = ItemName(entry) is { } item
+                ? $"Thanks again for the {item} {When(daysAgo)}."
+                : $"Thanks again for the gift {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, SawGiftKind, StringComparison.OrdinalIgnoreCase))
+            line = ItemName(entry) is { } item
+                ? $"I saw {Who(entry.Subject)} get a {item} {When(daysAgo)}."
+                : $"I saw {Who(entry.Subject)} get a gift {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, QuestHelpedKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"Thanks for helping me out {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, FestivalKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = TalkedAt(entry)
+                ? $"It was nice catching up with you at the festival {When(daysAgo)}."
+                : $"I saw you at the festival {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, MissedFestivalKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
+            line = $"You missed the festival {When(daysAgo)}.";
         else
             line = $"I've been thinking about {Who(entry.Subject)}.";
 
@@ -79,4 +100,12 @@ public sealed class LineRenderer : ILineRenderer
     private static string Who(string subject) => IsPlayer(subject) ? "you" : subject;
 
     private static bool IsPlayer(string subject) => string.Equals(subject, PlayerSubject, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The item display name from a key=value Detail ("name" key), or null when absent.</summary>
+    private static string? ItemName(DiaryEntry entry)
+        => DiaryDetail.Parse(entry.Detail).TryGetValue("name", out string? name) ? name : null;
+
+    /// <summary>The "with" key of a Festival Detail: 1 when the player talked to this NPC there.</summary>
+    private static bool TalkedAt(DiaryEntry entry)
+        => DiaryDetail.Parse(entry.Detail).TryGetValue("with", out string? with) && with == "1";
 }

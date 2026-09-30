@@ -1,9 +1,11 @@
 # 1. Diary and diary enrichment
 
 **Status: partial.** The diary exists and records three kinds (`Saw`, `TriedToReach`, `IgnoredBy`),
-and enrichment part 1 landed in PR #5: `DiaryDetail`, `MemoryStore.Note`, the day-end notes
-(`Talked`, `PassedBy`, `BirthdayForgotten`), `Newsworthiness` and the planner's news filter and
-ranking. Part 2 (gifts, quests, festivals via Harmony) is not started.
+enrichment part 1 landed in PR #5 (`DiaryDetail`, `MemoryStore.Note`, the day-end notes `Talked`,
+`PassedBy`, `BirthdayForgotten`, `Newsworthiness` and the planner's news filter and ranking), and
+part 2 landed in PR #6: the read-only Harmony postfixes and the `GiftReceived`, `SawGift`,
+`QuestHelped`, `Festival` and `MissedFestival` kinds. The visit/letter/romance/town-life kinds
+remain (their features do not exist yet).
 Brief goal 1; decisions D10 and D15; `docs/decisions.md`, "Open work".
 
 Why this matters now: overnight lines can only be as interesting as the diary. Today almost every
@@ -51,7 +53,7 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `Talked` | Player | `hearts` | the first conversation with the player on a calendar day | 1 |
 | `GiftReceived` | Player | `item`, `name`, `taste` (Love, Like, Neutral, Dislike, Hate), `birthday` (0/1) | the NPC accepts a gift from the player | Love 5, Like 3, Neutral 1, Dislike 3, Hate 4; +2 on a birthday |
 | `SawGift` | the recipient NPC | `giver=Player`, `name`, `taste` | this NPC is co-located with the player when the player gives someone else a gift | 2; 3 if the NPC has 6+ hearts with the player |
-| `QuestHelped` | Player | `quest` (ItemDelivery, Fishing, SlayMonster, ResourceCollection, Special), `name` | the player completes a quest whose target is this NPC | 4 |
+| `QuestHelped` | Player | `quest` (ItemDelivery, Fishing, SlayMonster, ResourceCollection, LostItem, Special), `name` | the player completes a quest whose target is this NPC | 4 |
 | `Festival` | Player | `festival` (id), `with` (0/1: talked there) | a festival day ends and the player attended it; written for every NPC who took part | 2; 3 if talked |
 | `MissedFestival` | Player | `festival` | a festival day ends and the player never attended; written for NPCs with 4+ hearts | 2 |
 | `PassedBy` | Player | `ticks` | the player spent 6+ ticks co-located with the NPC today, talked to at least one other NPC, and never to this one; at most once a day; only for NPCs with 2+ hearts | 2 |
@@ -105,7 +107,9 @@ read 2026-09-30). Rules for this mod, from that page plus our own shadow-mode ru
 - **All patches live in one place:** `mod/StardewNpcMod/Patches/`, one class per patched method,
   applied in `Entry` from a single `ApplyPatches()`, so one list shows everything the mod hooks.
 - **If `AccessTools.Method` returns null** (the game changed), log a warning, skip that patch and
-  fall back to the polling approach for that kind. The mod must still load.
+  the mod still loads. The spec's polling fallbacks for the skipped kind (diffing
+  `Game1.player.giftedItems`; polling `Game1.player.questLog`) are deferred until a game update
+  actually breaks a patch — the postfixes are verified against 1.6.15 today.
 - **A postfix records, the tick applies.** Gifts and quests complete inside the game's update on
   the game thread, but a postfix still only queues an observation; the next tick writes it to memory,
   so there is one writer and one order.
@@ -183,11 +187,13 @@ In-game (test save `BUNKO_450391925`):
 - Done: `src/NpcMemory/Diary.cs`, `MemoryStore.Observe` (`Saw`), `InitiationLadder` (`TriedToReach`,
   `IgnoredBy`); `DiaryDetail` (Parse/Format), `MemoryStore.Note`, the day-end notes (`Talked`,
   `PassedBy`, `BirthdayForgotten` via `MemoryStore.DayEndNotes`); `Newsworthiness` and the planner's
-  news filter and ranking; tests in `tests/NpcMemory.Tests` (147) and `tests/NpcIntents.Tests` (117).
-- Not started: the Harmony kinds (`GiftReceived`, `SawGift`, `QuestHelped`, `Festival`,
-  `MissedFestival`) and the rest of the kinds table; the recent-citations wiring (`RecentCitations`
-  is always empty until intents step 5); the visit/letter/romance/town-life kinds (their features
-  do not exist yet).
+  news filter and ranking (PR #5); the Harmony kinds `GiftReceived`, `SawGift`, `QuestHelped`,
+  `Festival` and `MissedFestival` via read-only postfixes plus `src/NpcDiaryEvents` producers and
+  `LineRenderer` templates (PR #6); tests in `tests/NpcMemory.Tests` (153), `tests/NpcIntents.Tests`
+  (138) and `tests/NpcDiaryEvents.Tests`.
+- Not started: the recent-citations wiring (`RecentCitations` is always empty until intents step
+  5); the polling fallbacks if a patched method disappears after a game update; the
+  visit/letter/romance/town-life kinds (their features do not exist yet).
 
 ## Open questions
 
