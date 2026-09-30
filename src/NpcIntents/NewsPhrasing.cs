@@ -103,11 +103,16 @@ public static class NewsPhrasing
         _ => "fine", // Neutral and anything unrecognised
     };
 
-    /// <summary>"Emote" -> "an emote", "Bubble" -> "a speech bubble", else the word as-is.</summary>
+    /// <summary>InitiationStep names as player-legible words, e.g. "Emote" -> "an emote". Unknown
+    /// values pass through raw (they only reach the model state and logs, never the player).</summary>
     private static string StepWords(string? step) => (step ?? string.Empty).ToLowerInvariant() switch
     {
         "emote" => "an emote",
         "bubble" => "a speech bubble",
+        "approach" => "an approach",
+        "queuedline" => "a queued line",
+        "mail" => "a letter",
+        "forceddialogue" => "a forced conversation",
         "" => "a small gesture",
         var other => other,
     };

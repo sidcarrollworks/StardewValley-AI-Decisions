@@ -179,7 +179,10 @@ public sealed class IntentPlanner
     private static double[] BlendedWeights(IReadOnlyList<double> probabilities, IReadOnlyList<(DiaryEntry Entry, double Score)> offered)
     {
         var weights = new double[offered.Count];
-        bool usable = probabilities is not null && probabilities.Count > 0;
+        // "usable" means at least one probability is a real number: a non-empty list of all zeros
+        // or NaNs is a degenerate answer and falls back to the pure news weights (a degenerate
+        // entry inside a usable answer gets weight 0 = vetoed).
+        bool usable = probabilities is not null && probabilities.Any(IsUsable);
         for (int i = 0; i < offered.Count; i++)
         {
             double p = usable && i < probabilities.Count && IsUsable(probabilities[i])

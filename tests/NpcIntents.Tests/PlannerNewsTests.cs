@@ -57,6 +57,7 @@ public class PlannerNewsTests
         public int YesNoCalls;
         public int ChooseCalls;
         public readonly List<List<string>> ChooseOptions = new();
+        public readonly List<string> YesNoPropositions = new();
 
         public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
         {
@@ -69,6 +70,7 @@ public class PlannerNewsTests
         public double YesNo(string context, string proposition)
         {
             YesNoCalls++;
+            YesNoPropositions.Add(proposition);
             return 0.5;
         }
 
@@ -95,6 +97,7 @@ public class PlannerNewsTests
         Assert.Equal(1, client.ChooseCalls);
         string option = Assert.Single(client.ChooseOptions[0]);
         Assert.StartsWith("yesterday Abigail saw the player at", option); // plain phrase, not "Saw Player at ..."
+        Assert.Equal("does Abigail have news for the player?", Assert.Single(client.YesNoPropositions));
     }
 
     [Fact]
@@ -238,6 +241,52 @@ public class PlannerNewsTests
     }
 
     [Fact]
+    public void Pick_DegenerateAnswers_FallBackToTheNewsWeights()
+    {
+        // An all-zero or all-NaN answer is not a usable distribution: the pure news weights
+        // decide (news 4 vs 2 -> roughly 2:1), never a uniform coin flip (review item 4).
+        var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "BirthdayForgotten", DiaryDetail.Format(("hearts", "3"))), // 4
+            new(20, "Player", "Saw", "Town"),                                            // 2
+        }, Array.Empty<string>(), Context("Abigail"));
+
+        int birthday = 0, saw = 0;
+        foreach (IDecisionClient client in new IDecisionClient[]
+        {
+            new FixedChooseClient(_ => new[] { 0.0, 0.0 }),
+            new FixedChooseClient(_ => new[] { double.NaN, double.NaN }),
+        })
+        {
+            for (int seed = 0; seed < 300; seed++)
+            {
+                IntentPlan plan = Planner(client).Plan(new[] { snapshot }, seed, sourceDay: 0);
+                if (Assert.Single(plan.Candidates).Source.Kind == "BirthdayForgotten")
+                    birthday++;
+                else
+                    saw++;
+            }
+        }
+
+        Assert.True(birthday > saw, $"newsier entry should win more often: {birthday} vs {saw}");
+    }
+
+    /// <summary>A client returning a fixed probability list regardless of options.</summary>
+    private sealed class FixedChooseClient : IDecisionClient
+    {
+        private readonly Func<IReadOnlyList<string>, IReadOnlyList<double>> _choose;
+
+        public FixedChooseClient(Func<IReadOnlyList<string>, IReadOnlyList<double>> choose)
+            => _choose = choose;
+
+        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context) => _choose(options);
+
+        public double YesNo(string context, string proposition) => 0.5;
+
+        public double Score(string context, double min, double max) => (min + max) / 2.0;
+    }
+
+    [Fact]
     public void GiftReceived_Love_Outranks_SawOfThePlayer()
     {
         var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
@@ -328,7 +377,10 @@ public class PlannerNewsTests
 
         Assert.Equal(1, client.AskCalls);
         Assert.Equal(2, client.LastQuestions!.Count);
-        Assert.Contains(client.LastQuestions, q => q is YesNoQuestion);
+        Assert.Contains(client.LastQuestions, q => q is YesNoQuestion
+        {
+            Proposition: "does Haley have news for the player?",
+        });
         Assert.Contains(client.LastQuestions, q => q is ChoiceQuestion);
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal("Haley", candidate.Npc);

@@ -239,7 +239,9 @@ least important facts drop first) and start with the NPC card (`NpcCard.Render`:
 hearts, date/weather/time — built on the game thread into the snapshot, never from live positions).
 The planner's speak/pick pair is one batched request per NPC. `VariedFakeDecisionClient`
 (`DecisionBackend = "Varied"`) derives every answer from FNV-1a over (state, question), so shadow
-logs show varied stable choices without a model; the plain `FakeDecisionClient` stays the test
+logs show varied stable choices without a model; its yes/no is uniform over 0..1, so the 0.25
+speak veto floor lets about 3 in 4 newsy NPCs through (with the Fake client's constant 0.5, all
+of them); the plain `FakeDecisionClient` stays the test
 baseline. `ResilientDecisionClient` wraps every client with a timeout, a session budget token and a
 health gate (`isDown`: while the server is down every call falls back immediately, no HTTP attempt);
 the budget token also reaches the inner Laya client so a cancelled budget aborts the in-flight

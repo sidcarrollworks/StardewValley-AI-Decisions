@@ -1,9 +1,11 @@
 # 2. Overnight intents and line selection
 
-**Status: partial (shadow).** Planning, selection and templated lines are done and logged, and
-newsworthiness (the news filter plus news ranking) is in (PR #5). Novelty, persistence of the plan
+**Status: partial (shadow).** Planning, selection and templated lines are done and logged;
+newsworthiness (the news filter plus news ranking) is in, and the news-ranking redesign (PR #10)
+ranks speakers by news score, blends news into the pick, raises `MinNews` to 2.0 and sends the
+model plain-sentence news. Novelty, persistence of the plan
 and in-game delivery are not started. Brief goal 2 and design
-decision 2; D15; architecture, "Overnight intents".
+decision 2; D15, D21; architecture, "Overnight intents".
 
 ## Player-visible behavior
 
@@ -136,9 +138,12 @@ In-game:
 ## Status
 
 - Done: `src/NpcIntents/IntentPlanner.cs`, `IntentPlanJob.cs`, `LineRenderer.cs`, `PlaceNames.cs`,
-  `LineSanitizer.cs`, `VoiceSheets.cs`; `Newsworthiness` plus the planner's news filter and ranking
-  (options by news score, zero-news entries never offered, ties by name); the mod's `StartPlanning`
-  (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (117).
+  `LineSanitizer.cs`, `VoiceSheets.cs`; `Newsworthiness` plus the planner's news filter and
+  ranking (options by news score, zero-news entries never offered, ties by name); the news-ranking
+  redesign (PR #10): speakers by best news then yes/no, blended pick (p x news, model veto,
+  degenerate answers fall back to news weights), `MinNews` 2.0, `SpeakThreshold` 0.25 as a veto
+  floor, plain-sentence states and options (`NewsPhrasing`); the mod's `StartPlanning`
+  (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (164).
 - Not started: novelty wiring (`RecentLines` is always empty today), plan persistence, delivery.
 
 ## Open questions

@@ -78,6 +78,7 @@ public class NewsPhrasingTests
     [InlineData("QuestHelped", "quest=SlayMonster", "Player")]
     [InlineData("MissedFestival", "festival=spring13", "Player")]
     [InlineData("IgnoredBy", "Emote", "Player")]
+    [InlineData("IgnoredBy", "Mail", "Player")]
     [InlineData("PassedBy", "ticks=6", "Player")]
     [InlineData("BirthdayForgotten", "hearts=3", "Player")]
     public void Sentences_NeverContainStrippedCharacters(string kind, string detail, string subject)
@@ -87,6 +88,23 @@ public class NewsPhrasingTests
         string sentence = NewsPhrasing.Sentence("Haley", entry, 1);
 
         Assert.False(string.IsNullOrWhiteSpace(sentence));
-        Assert.DoesNotContain(Stripped, sentence);
+        foreach (char c in Stripped)
+            Assert.DoesNotContain(c, sentence);
+    }
+
+    [Theory]
+    [InlineData("Emote", "an emote")]
+    [InlineData("Bubble", "a speech bubble")]
+    [InlineData("Approach", "an approach")]
+    [InlineData("QueuedLine", "a queued line")]
+    [InlineData("Mail", "a letter")]
+    [InlineData("ForcedDialogue", "a forced conversation")]
+    public void IgnoredBy_PhrasesEveryLadderStep(string step, string words)
+    {
+        var entry = new DiaryEntry(100, "Player", "IgnoredBy", step);
+
+        string sentence = NewsPhrasing.Sentence("Haley", entry, 1);
+
+        Assert.Equal($"yesterday Haley tried to get the player's attention ({words}) and got none", sentence);
     }
 }

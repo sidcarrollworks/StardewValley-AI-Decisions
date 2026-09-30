@@ -77,6 +77,8 @@ Roadmap step 2 (diary enrichment part 2) landed in PR #6: read-only Harmony post
 
 Roadmap step 3 (the Laya decision layer) landed in PR #7: `DecisionState` and the NPC card, batched questions (the planner's speak/pick pair is one request), the varied fake (`DecisionBackend: Varied`), the health re-check with warm-up and short-circuit, budget pass-through, the morning wait menu, heartbeat counters, and the eval set (`sidecar/eval/`: typed-decisions 5/6 vs english 3/6). 624 tests green.
 
+The step-3 in-game week (spring 10-16, shadow mode, Laya on the GPU) passed its acceptance test as plumbing (0/171 fallbacks, 0 drops, plan collected every morning) but its review found the decisions not ready for steps 5/6. PR #9 fixed the bugs (festival notes now saved; no more `null` quest diary; shadow `IgnoredBy` no longer written; habit leads need 12 evidence and never point where the seeker already is). PR #10 is the news-ranking redesign: speakers ranked by news score (not the compressed yes/no band), the pick blends model probabilities with news (veto kept, degenerate answers fall back to news weights), `MinNews` 2.0, `SpeakThreshold` 0.25 as a veto floor, and plain-sentence model states matching the eval phrasing; eval re-run live (typed-decisions 5/6, english 4/6). 647 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas
