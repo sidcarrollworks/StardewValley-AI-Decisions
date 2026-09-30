@@ -90,7 +90,10 @@ public sealed class IntentPlanner
             }
 
             string context = BuildContext(snapshot.Npc, offered, snapshot.Voice, snapshot.Card);
-            string speakProposition = $"does {snapshot.Npc} have something worth telling the player today?";
+            // The wording was picked by the rewording experiment (sidecar/eval/speak_experiments.md):
+            // "does X have news for the player?" separates newsy from dull states best on BOTH
+            // checkpoints (typed-decisions and english).
+            string speakProposition = $"does {snapshot.Npc} have news for the player?";
             List<string> options = offered.Select(Summarize).ToList();
 
             // 1b + 2b. Who speaks and about what: one batched request when the backend supports

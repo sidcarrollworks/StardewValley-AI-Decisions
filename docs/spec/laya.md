@@ -104,7 +104,7 @@ Every model question in the plan. Anything not listed here is not asked.
 
 | Feature | Question | Type | Fallback | Status |
 |---|---|---|---|---|
-| Intents | does <npc> have something worth telling the player today? | noul | 0.5 | done (wording to update) |
+| Intents | does <npc> have news for the player? | noul | 0.5 | done (wording chosen by the rewording experiment, `sidecar/eval/speak_experiments.md`) |
 | Intents | which of these would <npc> most want to bring up? | choice (≤5) | uniform | done |
 | Ladder | should <npc> try to get the player's attention with <step> now? | noul | 0.5 | done |
 | Newcomer | would <npc> go out of their way to welcome a newcomer in person? | noul | 0.5 | not started |
@@ -222,8 +222,13 @@ speak-question rewording experiments the eval points at.
   `typed-decisions` agreed with 5/6 expected directions vs `english` 3/6; the mod keeps
   `typed-decisions`. See `sidecar/eval/RESULTS.md` for the per-case numbers.
 - Whether question text and options count against the same 512/1,024 window as the state.
-- **The speak question is weak on both checkpoints** (answers cluster at 0.15-0.4, below the 0.5
-  speak threshold — the observed empty plans). Before touching the threshold, try rewordings on
-  the eval set (a cheap experiment now that it exists).
+- ~~The speak question is weak on both checkpoints~~ (answers cluster at 0.15-0.4, below the 0.5
+  speak threshold — the observed empty plans). Partly addressed 2026-09-30 by the rewording
+  experiment (`sidecar/eval/run_speak_experiments.py`): "does X have news for the player?" beats
+  six alternatives on both checkpoints (mean newsy ≈ 0.55 vs dull ≈ 0.25-0.33) and is now the
+  planner's question. The noul probabilities stay compressed toward the middle, so roughly half
+  of newsy NPCs clear 0.5 — with the 3-lines-a-day cap that is the intended calibration. If a
+  live week still shows empty plans, the next lever is the speak threshold (0.45), not the
+  wording.
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with
   good state should be enough, and fine-tuning adds a training pipeline to maintain.
