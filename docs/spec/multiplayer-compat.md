@@ -62,7 +62,7 @@ subjects in shadow; L for live delivery to farmhands.
 
 | Concern | What happens today | Plan |
 |---|---|---|
-| Custom NPCs (e.g. Stardew Valley Expanded) | observed like any villager (`IsVillager`); unmapped locations count as region `Other`; place names fall back to splitting CamelCase; voice falls back to "friendly and plain-spoken" | add regions and names by data (`data/regions.json`, `PlaceNames`) for popular mods on request; `data/lines.json` tone buckets cover custom NPCs through their `Data/Characters` fields |
+| Custom NPCs (e.g. Stardew Valley Expanded) | observed like any villager (`IsVillager`); unmapped locations count as region `Other`; place names fall back to splitting CamelCase; voice falls back to "friendly and plain-spoken" | add regions and names by data (`data/regions.json`, `PlaceNames`) for popular mods on request; the tone buckets in `i18n/default.json` cover custom NPCs through their `Data/Characters` fields |
 | Mods that edit schedules | the planned prior loader reads schedules through `GameContent.Load`, so it sees edits | nothing |
 | Mods that add dialogue | our live lines are added with `setNewDialogue(add: true)`, which should queue alongside theirs (verify) | test with one popular dialogue mod before `IntentLines` ships |
 | Mods that add mail | our letter ids are prefixed `squid.StardewNpcMod.` | nothing |
@@ -92,7 +92,7 @@ do and talk about. Directions to evaluate then, none designed yet:
   dialogue and events that react to our memory, without us writing that content. This fits D12: the
   text comes from human-written packs, we only supply facts.
 - **Ship our own content pack** alongside the mod, with dialogue for conversation topics and small
-  events ([invitations.md](invitations.md), "Later"), written the same way as `data/lines.json`.
+  events ([invitations.md](invitations.md), "Later"), written the same way as our `i18n/default.json` lines.
 - **Support a big content mod's NPCs** (Stardew Valley Expanded is the obvious one): regions, place
   names and voice notes for its characters, so they are first-class rather than tone-bucket
   fallbacks.

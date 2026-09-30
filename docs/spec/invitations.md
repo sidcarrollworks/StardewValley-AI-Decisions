@@ -86,7 +86,7 @@ few hundred milliseconds), the fallback kind is `MissedYou`.
 - **Ladder effect:** the letter's `Mail` attempt is resolved by the invitation: `Accepted` counts as
   `Responded` (urge x 0.5, rung 0), `StoodUp` as `Ignored` (urge -0.2, escalation). For the other
   kinds, the existing rule stands (the player talks to the NPC before the end of the next day).
-- **Text:** all from `data/lines.json` (`Mail.MissedYou`, `Mail.News`, `Mail.Invitation` per NPC),
+- **Text:** all from `i18n/default.json` (`mail.MissedYou`, `mail.News`, `mail.Invitation` per NPC),
   through the mail sanitizer. Letters never attach items.
 
 ## Tuning constants

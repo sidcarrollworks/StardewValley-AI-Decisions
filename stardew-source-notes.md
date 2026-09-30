@@ -6,7 +6,9 @@
 
 - Decompiled 1.5.6: https://github.com/WeDias/StardewValley (NPC.cs, 5,954 lines)
 - Decompiled 1.6: https://github.com/Dannode36/StardewValleyDecompiled (NPC.cs 7,154 lines, Game1.cs 16,245 lines)
+- A local decompile of the installed game (1.6.15) with ILSpy or `ilspycmd` is the most exact source; how to make one is in `docs/spec/README.md`, "Verifying game facts" (not done yet).
 - Wiki: Modding:Dialogue, Modding:NPC data, Modding:Schedule data, Friendship, Marriage (stardewvalleywiki.com)
+- Wiki, modder guide (read 2026-09-30): Get Started, APIs/Harmony, APIs/Multiplayer, APIs/Translation. What they settled is quoted in `docs/spec/` and marked "wiki" there.
 - TypeSafe announcement: typesafe.ai/blog/introducing-system-one-models-and-jev
 - Laya: github.com/NandhaKishorM/laya and huggingface.co/convaiinnovations/laya
 

@@ -17,7 +17,7 @@ question. The overnight lines are dull because the diary only knows who saw whom
 | 1 | **Diary enrichment, part 1:** `DiaryDetail`, `MemoryStore.Note`, `Talked`, `PassedBy`, `BirthdayForgotten`, newsworthiness in the planner (drops housemates at home, ranks by news) | M | [diary.md](diary.md), [intents.md](intents.md) | - |
 | 2 | **Diary enrichment, part 2:** Harmony set-up (read-only postfixes), `GiftReceived` and `SawGift`, `QuestHelped`, `Festival`/`MissedFestival` | M | [diary.md](diary.md) | 1 |
 | 3 | **Laya in practice (shadow):** `DecisionState` and the NPC card within the 512-token budget, the varied fake, health re-check and short-circuit, budget pass-through, batching, the eval set and the checkpoint A/B | M | [laya.md](laya.md) | 1 (for real news in the eval) |
-| 4 | **Voices and lines:** voice notes for every vanilla villager (`data/voices.json`), then `data/lines.json` with a bucket per NPC and kind, tone fallbacks, per-channel sanitizers and lengths. Claude writes, Sid edits | L | [text.md](text.md) | 1, 2 (the kinds to write for) |
+| 4 | **Voices and lines:** voice notes for every vanilla villager (`data/voices.json`), then the lines in `i18n/default.json` (SMAPI's translation file) with a bucket per NPC and kind, tone fallbacks, per-channel sanitizers and lengths. Claude writes, Sid edits | L | [text.md](text.md) | 1, 2 (the kinds to write for) |
 | 5 | **Intents ready to ship:** plan persistence, recent lines, novelty and cite cooldowns, one topic per event | S | [intents.md](intents.md), [persistence.md](persistence.md) | 1 |
 | 6 | **First live release:** `Live` config, `[live]` logs, circuit breaker, console kill switch, the single-player guard, then `IntentLines` on, and nothing else | M | [rollout.md](rollout.md), [multiplayer-compat.md](multiplayer-compat.md) | 4, 5, and Sid's word |
 | 7 | **Routine and gossip fixes:** `UnlockThreshold` not saved, decay, family priors, ambient gossip and `Heard` | M | [routines.md](routines.md), [ledger-gossip.md](ledger-gossip.md) | - (parallel with 3-6) |
@@ -31,7 +31,12 @@ question. The overnight lines are dull because the diary only knows who saw whom
 **Later, not scheduled:** requests and quests from vanilla mechanics ([invitations.md](invitations.md),
 "Later"); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
 packaging, including starting the Laya server with the game ([laya.md](laya.md), "Sidecar
-lifecycle"); multiplayer itself.
+lifecycle"), filling `UpdateKeys` in `mod/StardewNpcMod/manifest.json` (empty today) for the site it's
+published on, and a release zip (`EnableModZip`); multiplayer itself.
+
+**Any time, and it pays off everywhere:** a local decompile of the game to settle the "verify" items
+([README.md](README.md), "Verifying game facts"). Most of the live work (steps 6, 8, 9, 11, 12) rests
+on recalled game APIs, and the travel spike in step 11 needs the real schedule code.
 
 ### Why this order
 

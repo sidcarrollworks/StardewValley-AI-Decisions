@@ -14,6 +14,38 @@ models, so each file can be read on its own.
   in-game. Treat it as a hypothesis: confirm it before relying on it, and keep a `VERIFY` comment in
   code until you have.
 
+## Verifying game facts
+
+About seventy statements in this spec are marked **verify**. Ways to settle one, best first:
+
+1. **Decompile the game Sid actually runs** (1.6.15 with SMAPI 4.5.2). The modding wiki's Get
+   Started guide (stardewvalleywiki.com/Modding:Modder_Guide/Get_Started, read 2026-09-30)
+   recommends ILSpy, with "Always qualify member references" on, or its command-line version:
+   ```bash
+   dotnet tool install --global ilspycmd
+   ilspycmd -p --nested-directories -r "<game path>" -o "<output folder>" "<game path>/Stardew Valley.dll"
+   ```
+   Put the output **outside this repo** (for example `%USERPROFILE%\stardew-decompiled`): decompiled
+   game code must never be committed. Then search it with grep. As of 2026-09-30 `ilspycmd` is not
+   installed on Sid's PC; installing it is Sid's call.
+2. The online decompiles listed in `stardew-source-notes.md` (1.5.6 and an unspecified 1.6 build).
+3. The modding pages on the wiki (SMAPI APIs, data formats).
+4. In-game, with a build that logs what you need, for behavior rather than signatures.
+
+When a fact is settled, remove "verify" from the spec and the `VERIFY` comment from the code, and
+add the fact with its source to `stardew-source-notes.md`.
+
+## Conventions from the modding guide
+
+From the Get Started guide, and already true here unless noted:
+- Target `net6.0`: it is what the game ships, and players may not have anything newer.
+- Build file paths with `Path.Combine(Helper.DirectoryPath, ...)`; never hard-code `\` or look up
+  the assembly's location. Asset names (`Data/mail`) always use `/`; SMAPI normalizes the ones passed
+  to its APIs (`PathUtilities.NormalizeAssetName` for comparisons).
+- `Pathoschild.Stardew.ModBuildConfig` deploys a build into the game by default. This repo turns
+  that off on purpose (`EnableModDeploy=false`, D19).
+- Player-facing text goes in `i18n/` ([text.md](text.md)).
+
 ## Status legend
 
 | Mark | Meaning |

@@ -46,7 +46,7 @@ run locally. A deterministic fake is the default.
    templated and must pass `LineSanitizer.Sanitize`, which strips `#`, `$`, `%`, `{` and `[`.
 7. **Mark what you haven't verified.** Anything recalled rather than confirmed in source, docs or
    in-game gets a `VERIFY` comment in code or a "verify" note in docs. Don't invent APIs; if unsure,
-   say so.
+   say so. How to settle one: `docs/spec/README.md`, "Verifying game facts".
 8. **Laya facts come only from** github.com/NandhaKishorM/laya and
    huggingface.co/convaiinnovations/laya, not blog posts.
 
