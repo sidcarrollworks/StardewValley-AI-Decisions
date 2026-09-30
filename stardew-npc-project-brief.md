@@ -69,6 +69,8 @@ NPCs that:
 
 386 tests green after step 9. Docs for other models: `AGENTS.md`, `docs/architecture.md`, `docs/decisions.md` (open work is listed at the end of decisions.md).
 
+**From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
+
 ## Side ideas
 
 - **Sims 4:** script mods are Python and hook autonomy. Wrap the autonomy pick: take the top 8 to 12 legal candidates, ask Laya to choose, and fall back on timeout. Run the model in a sidecar process, off the sim thread.

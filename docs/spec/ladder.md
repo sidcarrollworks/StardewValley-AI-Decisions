@@ -1,0 +1,118 @@
+# 3. Initiation ladder
+
+**Status: done (shadow).** Urge, rungs, caps, response windows, escalation after being ignored,
+conversations as responses, and Approach from a distance (Find) are built and logged. No rung does
+anything in the game yet. Brief goal 3 and design decision 3; D16, D17; architecture, "Initiation
+ladder".
+
+## Player-visible behavior
+
+Shadow (today): `[shadow] Abigail would try Emote (...)`, `[shadow] Abigail: Emote ignored (...)`,
+`[shadow] Abigail would go looking for you at ...`.
+
+Live, per rung (each behind its own switch, [rollout.md](rollout.md)):
+
+| Rung | What the player sees | Game call (all verify) | Only when |
+|---|---|---|---|
+| `Emote` | an emote over the NPC's head | `npc.doEmote(id)` (Character). Id by mood: exclamation 16, heart 20 at 8+ hearts, question 8 after being ignored (ids verify; 8 is confirmed as "question" in the wiki notes) | the player is in the NPC's location (it is "Near" by definition) |
+| `Bubble` | a short line above the head | `npc.showTextAboveHead(text)` with a bubble template ([text.md](text.md)) | same location |
+| `Approach` near | the NPC turns and walks a few tiles toward the player, then resumes its day | face the player, then a `PathFindController` to a free tile next to the player, within the same location, with a timeout; on arrival or timeout, restore the schedule (see open questions) | same location, no event or menu, `Context.CanPlayerMove` |
+| `Approach` from a lead | shadow only in v1 | cross-location travel needs the route table and schedule restore ([find.md](find.md)) | - |
+| `QueuedLine` | the next time the player talks to the NPC, it opens with the line | `setNewDialogue(..., add: true)`; the planned intent if there is one, else a "missed you" template | any time; expires at day end |
+| `Mail` | a letter the next morning | register the letter in `Data/mail` via `helper.Events.Content.AssetRequested`, add its id to `Game1.player.mailForTomorrow` (verify both) | hearts >= 2 |
+| `ForcedDialogue` | a dialogue box opens unprompted | `setNewDialogue` then `Game1.drawDialogue(npc)` | same location within 3 tiles (the NPC's own first-hand view), no menu, no event, player free to move; at most once a week across all NPCs |
+
+A live attempt that the game refuses (menu open, event running, NPC busy) is not made and not
+counted; the ladder is told with a new `NoteSkipped(npc, tick)` so the urge is unchanged.
+
+## Data model
+
+Done: `InitiationStep` (Emote 0 .. ForcedDialogue 5, saved as ints: append only), `InitiationInput`,
+`InitiationEvent`, `InitiationOptions`, per-NPC state and global counters in `InitiationLadder`
+(`ToJson`/`FromJson`, saved under `ladder`).
+
+Planned: nothing new in the save. Live execution needs one record handed from the ladder worker to
+the game thread: the existing `InitiationEvent` with `Kind == "Attempt"` is enough (step, NPC, lead).
+The game thread executes it; the worker never touches `Game1`.
+
+## Triggers and game hooks
+
+Done: `TimeChanged` builds inputs from memory and enqueues; `Drain` returns events; `MenuChanged`
+enqueues a response.
+
+Planned, live:
+- The game thread executes drained `Attempt` events for switched-on rungs, after checking the
+  "only when" column against the current game state. Checking live state to decide whether the game
+  *can* show something is allowed; it does not decide *whether the NPC wants to* (D2).
+- `Mail`: the letter text is built when the attempt is drained, registered for tomorrow, and the
+  response is the player opening it (a `LetterViewerMenu` with our id: verify how to read the id) or
+  talking to the NPC before the end of the next day.
+
+## Laya questions
+
+| Question | Type | Fallback |
+|---|---|---|
+| "should <npc> try to get the player's attention with <step> now?" (done) | `noul` | 0.5 |
+
+Planned change: the state becomes the shared NPC card plus the ladder facts ([laya.md](laya.md)),
+so the model sees the NPC's temperament (manners, shyness) and not only numbers. A shy NPC should
+answer lower for `Bubble` and `ForcedDialogue`, higher for `Mail`.
+
+## Deterministic rules
+
+All done; see D16 and architecture, "Initiation ladder": the mildest step at or above the rung that
+the urge allows and that is available; caps (2 per NPC a day, 6 in total, 2 queued lines, 1 letter,
+1 forced dialogue a week); 6-tick cooldown; settle before the rollover; the draw is FNV-1a uniform
+below `p`.
+
+Planned additions:
+- **Temperament floor** (deterministic, before the model): NPCs whose `Data/Characters`
+  `SocialAnxiety` is `Shy` (verify field) never use `Bubble` or `ForcedDialogue`; they skip to the
+  next available step. Their news shows up as letters instead, matching brief decision 6.
+- **Spouse and children:** excluded from the ladder when live (they have their own game logic).
+  In shadow they stay, for tuning data.
+- **Not during events or festivals:** no attempt while `Game1.eventUp` or a festival is running
+  (verify flags). Shadow logs these too, marked `(event running: would wait)`.
+
+## Tuning constants
+
+All in `InitiationOptions` (`src/NpcInitiation/Models.cs`), none saved: `BaseGainPerTick` 0.004,
+`HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5, `IgnorePenalty` 0.2,
+`RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `MaxAttemptsPerNpcPerDay` 2,
+`MaxAttemptsPerDay` 6, `MaxQueuedLinesPerDay` 2, `MaxMailPerDay` 1, `MaxForcedPerWeek` 1,
+`StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3.
+
+## Acceptance tests
+
+Existing: `tests/NpcInitiation.Tests` (`InitiationLadderTests`, `LadderTimingTests`,
+`BackgroundLadderTests`, `FindTests`).
+
+To add:
+- Shy NPC: never offered `Bubble` or `ForcedDialogue`; with urge 0.5 and a first-hand view it picks
+  `Approach` if available, else nothing.
+- `NoteSkipped` leaves urge, rung and counters unchanged.
+- An executor test in the mod is not possible (no game in tests); instead keep a pure
+  `LiveGate.CanShow(step, gameFacts)` in `src/NpcInitiation` that takes a small record of game facts
+  (same location, menu open, event running, distance from the NPC's own view) and test it.
+
+In-game, per rung as it goes live: the action appears; an ignored attempt shows `IgnoredBy` in the
+diary and escalates next time; talking relieves urge (log); caps hold over a full day; nothing
+happens during a cutscene or festival; the NPC resumes its schedule after an approach and reaches its
+next destination on time.
+
+## Status
+
+Done: `src/NpcInitiation/InitiationLadder.cs`, `BackgroundLadder.cs`, `Models.cs`, `PlayerSearch.cs`;
+`ModEntry.RunLadder`, `OnMenuChanged`. Not started: every live execution path, temperament floor,
+`NoteSkipped`, `LiveGate`.
+
+## Open questions
+
+- How to hand an NPC back to its schedule after a custom walk. The brief notes that
+  `PathToOnFarm` sets `ignoreScheduleToday`, which makes `checkSchedule` return early for the rest of
+  the day. Candidate: save the NPC's controller and `ignoreScheduleToday`, walk, then restore and
+  call `checkSchedule(Game1.timeOfDay)` (verify all of it). Needs an in-game experiment before
+  `Approach` goes live.
+- Emote ids beyond 8, 12 and 28 (the only ones in the source notes).
+- Should a response to a letter require reading it, or is talking to the NPC enough? Recommendation:
+  either counts.

@@ -2,7 +2,7 @@
 
 SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `stardew-npc-project-brief.md` for the design and `stardew-source-notes.md` for the verified game internals. Progress so far: extractor (step 1), NPC memory layer (step 2), shadow-mode harness (step 3), live SMAPI scaffold with persistence + decision client (step 4), overnight intents in shadow mode (step 5), audit fixes (step 6), a real Laya client (step 7), the initiation ladder in shadow mode (step 8), and finding the player (step 9).
 
-**Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why).
+**Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why). The full spec and roadmap are in [`docs/spec/`](docs/spec/README.md).
 
 ## Layout
 
@@ -13,7 +13,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
 | `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
 | `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
-| `docs/` | `architecture.md` (how it works) and `decisions.md` (why). `AGENTS.md` at the root is the entry point for coding agents. |
+| `docs/` | `architecture.md` (how it works), `decisions.md` (why) and `spec/` (every feature, built or planned, plus the roadmap). `AGENTS.md` at the root is the entry point for coding agents. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. |
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |
 | `mod/StardewNpcMod/` | The SMAPI mod (compile-verified against the real game + SMAPI). Hooks SaveLoaded/DayStarted/TimeChanged/DayEnding/Saving/ReturnedToTitle; persists memory per save; each tick every NPC records the player and other NPCs in the same location within 8 tiles; shadow-logs overnight intents and ladder attempts. `config.json`: `DecisionBackend` = `Fake` or `Laya`. |
