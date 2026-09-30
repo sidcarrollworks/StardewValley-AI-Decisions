@@ -25,7 +25,8 @@ public sealed record Whereabouts(
     int AgeTicks,             // how old the sighting is (0 for a habit)
     int HopCount,             // 0 own sighting, 1 told by someone who saw it, 2 told second-hand
     string? ToldBy,           // who passed it on, for Told
-    double HabitShare)        // for Habit: the region's share of that hour's weight (0..1)
+    double HabitShare,       // for Habit: the region's share of that hour's weight (0..1)
+    double Evidence = 0)     // for Habit: the block's total evidence behind the lead
 {
     /// <summary>True when the answer names somewhere to go.</summary>
     public bool HasPlace => !string.IsNullOrEmpty(Place);
@@ -39,7 +40,10 @@ public sealed class WhereaboutsOptions
 {
     /// <summary>A habit counts only with at least this much weight in the hour's block (roughly
     /// ticks spent together then; hearts make each tick with the player count for more).</summary>
-    public double MinHabitEvidence { get; set; } = 3.0;
+    /// <summary>How much evidence a 2-hour block needs before the habit counts as a lead
+    /// (docs/spec/find.md). Raised from 3.0 after the in-game week: three co-located ticks on one
+    /// day made "you're usually there 100% of the time" claims (week review, finding 6).</summary>
+    public double MinHabitEvidence { get; set; } = 12.0;
 
     /// <summary>...and only if one region holds at least this share of that weight.</summary>
     public double MinHabitShare { get; set; } = 0.5;

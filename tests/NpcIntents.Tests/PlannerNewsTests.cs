@@ -221,6 +221,17 @@ public class PlannerNewsTests
         Assert.Equal(before, News.Score(entry, context)); // the snapshot did not change
     }
 
+    [Fact]
+    public void Festival_TalkedAtTheFestival_GainsOne()
+    {
+        var context = Context("Abigail");
+        var seen = new DiaryEntry(20, "Player", "Festival", "festival=spring13;with=1");
+        var missed = new DiaryEntry(20, "Player", "Festival", "festival=spring13;with=0");
+
+        Assert.Equal(3.0, News.Score(seen, context));   // 2 base + 1 talked (diary.md kinds table)
+        Assert.Equal(2.0, News.Score(missed, context));
+    }
+
     /// <summary>Chooses the LAST option (all probability mass on it), so a multi-option NPC
     /// always samples their worst ranked one.</summary>
     private sealed class SkewedClient : IDecisionClient

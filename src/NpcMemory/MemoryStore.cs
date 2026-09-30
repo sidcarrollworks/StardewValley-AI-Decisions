@@ -66,6 +66,11 @@ public sealed class MemoryStore
         diary.TrimTo(MaxDiaryEntries);
     }
 
+    /// <summary>Drops an NPC's whole diary (load-time cleanup of junk data, e.g. a "null" quest
+    /// target recorded before the guard existed).</summary>
+    public void RemoveDiary(string npc)
+        => _diaries.Remove(npc);
+
     /// <summary>
     /// The NPCs that were co-located with the player at the most recent <see cref="Observe"/> —
     /// the span tracker's memory, never a live position (rule 2). The gift postfix uses this to
@@ -217,7 +222,7 @@ public sealed class MemoryStore
             && guess.Evidence >= options.MinHabitEvidence
             && guess.Share >= options.MinHabitShare
             && guess.Region != RegionMap.OtherRegion)
-            return new Whereabouts(seeker, subject, WhereaboutsSource.Habit, guess.Region, LedgerDetail.Region, 0, 0, null, guess.Share);
+            return new Whereabouts(seeker, subject, WhereaboutsSource.Habit, guess.Region, LedgerDetail.Region, 0, 0, null, guess.Share, guess.Evidence);
 
         return sighting ?? new Whereabouts(seeker, subject, WhereaboutsSource.Unknown, null, null, 0, 0, null, 0);
     }

@@ -150,10 +150,12 @@ Planned:
 
 ## Tuning constants
 
-`AskUrge` 0.45, `FreshTicks` 6, `AskCooldownTicks` 6 (`PlayerSearch`); `HabitMinEvidence` 3,
-`HabitMinShare` 0.5 (`WhereaboutsOptions`). New in `InitiationOptions`: `VisitThreshold` 0.90 (the
-`StepThresholds` entry for step 6), `MaxVisitsPerWeek` 2, `MaxVisitsPerNpcPerWeek` 1,
-`MinDaysBetweenVisits` 2, `VisitEarliest` 900, `VisitLatest` 2000, `SearchMaxTicks` 6. None saved.
+`AskUrge` 0.45, `FreshTicks` 6, `AskCooldownTicks` 6 (`PlayerSearch`); `HabitMinEvidence` 12 (raised
+from 3 after the in-game week: three co-located ticks on one day made "you're usually there 100% of
+the time" claims), `HabitMinShare` 0.5 (`WhereaboutsOptions`). New in `InitiationOptions`:
+`VisitThreshold` 0.90 (the `StepThresholds` entry for step 6), `MaxVisitsPerWeek` 2,
+`MaxVisitsPerNpcPerWeek` 1, `MinDaysBetweenVisits` 2, `VisitEarliest` 900, `VisitLatest` 2000,
+`SearchMaxTicks` 6. None saved. Distinct-day evidence tracking is still open (step 7).
 
 ## Acceptance tests
 

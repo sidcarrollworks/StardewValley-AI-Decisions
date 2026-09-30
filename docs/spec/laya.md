@@ -199,9 +199,15 @@ With a running server (manual, documented in `sidecar/README.md`):
 - A small golden set in `sidecar/eval/` (20-40 states with the expected direction, for example a shy
   NPC should score lower for `Bubble` than an outgoing one, and loved-gift news should be picked
   over seeing a housemate) run against `typed-decisions` and `laya`; record agreement and latency.
-  This is the A/B from D13.
+  This is the A/B from D13. **Done 2026-09-30** (6 cases, `sidecar/eval/RESULTS.md`):
+  `typed-decisions` 5/6 vs `english` 3/6.
 - One in-game week with Laya on: fallback rate under 5% after warm-up, no tick drops logged by the
-  ladder, overnight plan collected at 6:00.
+  ladder, overnight plan collected at 6:00. **Done 2026-09-30** (save `BUNKO_450391925`, spring
+  10-16): 0/171 fallbacks, 0 drops, plan collected every morning, median ~30 ms. The week also
+  produced the review findings that the bug-fix PR #9 and the ranking redesign PR #10 address:
+  festival notes were logged but never saved; a quest without a target made a `null` diary; shadow
+  ladder outcomes wrote `IgnoredBy` diary lines; the speak-probability-first ranking let "I saw
+  you" beat a birthday gift; habits claimed "100% of the time" after one day.
 
 ## Status
 

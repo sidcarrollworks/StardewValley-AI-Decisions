@@ -112,6 +112,16 @@ public sealed class Newsworthiness
             return true;
         }
 
+        if (string.Equals(entry.Kind, "Festival", StringComparison.OrdinalIgnoreCase))
+        {
+            // The kinds table gives Festival "2; 3 if talked" (docs/spec/diary.md): the player
+            // talked to this NPC at the festival (Detail "with" is 1).
+            score = KindWeight(entry.Kind) ?? 0.0;
+            if (DiaryDetail.Parse(entry.Detail).TryGetValue("with", out string? with) && with is "1")
+                score += 1.0;
+            return true;
+        }
+
         if (string.Equals(entry.Kind, "WentLooking", StringComparison.OrdinalIgnoreCase))
         {
             score = WentLookingScore(entry);

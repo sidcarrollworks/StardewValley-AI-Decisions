@@ -31,13 +31,14 @@ public static class Heartbeat
         long modelCalls = -1,
         long modelFallbacks = -1,
         double modelMedianMs = -1,
-        double modelP95Ms = -1)
+        double modelP95Ms = -1,
+        int planCollectedLines = -1)
     {
         string plan = planState switch
         {
             PlanState.Running => "running",
             PlanState.Ready => "ready",
-            _ => "none",
+            _ => planCollectedLines >= 0 ? $"{planCollectedLines} lines" : "none",
         };
 
         // Strictly-higher comparison over name-ascending order, so ties keep the

@@ -119,6 +119,11 @@ diary and escalates next time; talking relieves urge (log); caps hold over a ful
 happens during a cutscene or festival; the NPC resumes its schedule after an approach and reaches its
 next destination on time.
 
+While a rung is shadow, `InitiationOptions.RecordIgnoredBy` stays false: the attempt never
+appeared, so no `IgnoredBy` diary line is written (the urge penalty and escalation still apply).
+The week review caught this: shadow `IgnoredBy` lines were the highest-weighted everyday news and
+would have made live NPCs complain about attempts the player never saw.
+
 ## Status
 
 Done: `src/NpcInitiation/InitiationLadder.cs`, `BackgroundLadder.cs`, `Models.cs`, `PlayerSearch.cs`;

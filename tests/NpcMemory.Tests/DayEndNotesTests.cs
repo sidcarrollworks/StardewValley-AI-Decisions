@@ -174,6 +174,19 @@ public class DayEndNotesTests
         Assert.Equal("ticks=6", diary.Entries[0].Detail);
     }
 
+    [Fact]
+    public void RemoveDiary_DropsTheWholeDiary()
+    {
+        var store = new MemoryStore();
+        store.Note("null", new DiaryEntry(1, "Player", "QuestHelped", "quest=SlayMonster;name=null"));
+        store.Note("Haley", new DiaryEntry(1, "Player", "Talked", "hearts=0"));
+
+        store.RemoveDiary("null");
+
+        Assert.False(store.Diaries.ContainsKey("null"));
+        Assert.True(store.Diaries.ContainsKey("Haley"));
+    }
+
     /// <summary>Observe `ticks` consecutive co-located ticks between the player and one NPC.</summary>
     private static void CoLocated(MemoryStore store, int dayIndex, int startTick, int ticks, string npc)
     {

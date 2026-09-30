@@ -126,13 +126,16 @@ public sealed class WhereaboutsTests
         Assert.True(found.HasPlace);
     }
 
-    /// <summary>Seen with the player at the beach at 8:00 (block 1) on three earlier days.</summary>
-    private static MemoryStore WithABeachMorningHabit(int days = 3, int hearts = 0)
+    /// <summary>Seen with the player at the beach at 8:00 (block 1) on three earlier days,
+    /// <paramref name="ticksPerDay"/> consecutive ticks each (an hour is 6 ticks).</summary>
+    private static MemoryStore WithABeachMorningHabit(int days = 3, int ticksPerDay = 6, int hearts = 0)
     {
         var store = new MemoryStore();
         for (int day = 0; day < days; day++)
-            store.Observe(GameClock.DayStartTick(day) + 12, new[] { You("Beach", 10, 10), Npc("Willy", "Beach", 11, 11) },
-                TestHelpers.Regions(), _ => hearts);
+            for (int t = 0; t < ticksPerDay; t++)
+                store.Observe(GameClock.DayStartTick(day) + 12 + t,
+                    new[] { You("Beach", 10, 10), Npc("Willy", "Beach", 11, 11) },
+                    TestHelpers.Regions(), _ => hearts);
         return store;
     }
 
@@ -153,13 +156,14 @@ public sealed class WhereaboutsTests
     [Fact]
     public void AHabitNeedsEnoughEvidence()
     {
-        MemoryStore twoMornings = WithABeachMorningHabit(days: 2);
+        // Two short mornings (5 ticks each) stay under the 12-evidence floor...
+        MemoryStore twoMornings = WithABeachMorningHabit(days: 2, ticksPerDay: 5);
         int thisMorning = GameClock.DayStartTick(5) + 14;
 
         Assert.Equal(WhereaboutsSource.Unknown, twoMornings.LookFor("Willy", Player, thisMorning, 120).Source);
 
-        // Hearts make each morning together count for more, so a friend learns faster.
-        MemoryStore friend = WithABeachMorningHabit(days: 2, hearts: 4);
+        // ...but hearts make each morning together count for more, so a friend learns faster.
+        MemoryStore friend = WithABeachMorningHabit(days: 2, ticksPerDay: 5, hearts: 4);
         Assert.Equal(WhereaboutsSource.Habit, friend.LookFor("Willy", Player, thisMorning, 120).Source);
     }
 

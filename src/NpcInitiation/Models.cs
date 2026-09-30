@@ -89,4 +89,10 @@ public sealed class InitiationOptions
 
     /// <summary>Minimum urge per rung, indexed by (int)step.</summary>
     public double[] StepThresholds { get; set; } = { 0.30, 0.45, 0.60, 0.70, 0.80, 0.95 };
+
+    /// <summary>Whether an ignored attempt writes an IgnoredBy diary line. Off while the ladder
+    /// is shadow-mode: the player never saw the attempt, so recording "you ignored me" would be a
+    /// lie the planner could later cite (week review, finding 3). Turns on per rung in step 6,
+    /// when the rung's actions actually appear. Urge penalty and escalation always apply.</summary>
+    public bool RecordIgnoredBy { get; set; }
 }
