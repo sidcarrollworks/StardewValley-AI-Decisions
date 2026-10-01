@@ -55,7 +55,8 @@ It's easier to watch changes visually than through the logs." That became the li
   below `FlatSpread` (0.05) is marked **flat**; one whose correlation is below 0.3 is marked
   **doesn't follow personality**. Opening a row lists the NPCs in answer order beside their
   temperament summary, and the calibration file's median and spread for comparison. It resets at
-  the 6:00 tick. Data: `RecordingDecisionClient` keeps a small per-day table of (question
+  `DayEnding`, just before the overnight plan, so the plan's answers count toward the day they
+  plan for; nothing clears it at the 6:00 tick. Data: `RecordingDecisionClient` keeps a small per-day table of (question
   template, NPC) -> count and mean answer, beside the existing call log, under a lock (the model
   workers write, the server reads a copy); it changes no answer.
 - **Viewer, when motives land** ([motives.md](motives.md)): the urge bar gives way to the NPC's
@@ -145,8 +146,8 @@ model calls, a 2-second poll.
   rollover, `npcmod_simulate` refused when live.
 - Unit (spread panel): question templates group the same question across NPCs (the name is
   replaced, the rest kept); per-day means and the 90/10 spread are right on fixed answers; the
-  flat and doesn't-follow marks appear at their thresholds; the table resets at 6:00; recording
-  never changes an answer.
+  flat and doesn't-follow marks appear at their thresholds; only an explicit reset (at
+  `DayEnding`) clears the table; recording never changes an answer.
 - Unit: each playtest record type round-trips; with `PlaytestLog` off nothing is written; a
   failed write is logged once and never throws into the tick.
 - In-game: the tab appears, opens, scrolls, closes; switching between vanilla tabs still works; with
@@ -157,10 +158,19 @@ model calls, a 2-second poll.
 
 - **Playtest log:** not started; build it with the first motives step, so the first motives
   playtest has data.
-- **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 43 tests: the snapshot is
+- **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 48 tests: the snapshot is
   read-only and shows what the ladder saw, the recorder never changes an answer, the server is
   GET-only and loopback-only and survives a busy port). Checked in a browser against a scratch
   driver over the real ladder and the varied fake; not yet watched during a real game session.
+- **The model spread panel: built** (same project, +6 tests): per-day (question template, NPC)
+  answer table in `RecordingDecisionClient` (lock-guarded, copied for the server, reset at
+  `DayEnding` just before the overnight plan starts — so the plan's answers count toward the day
+  they plan for, and nothing clears them at the 6:00 tick), rows with the dot strip, spread,
+  median, trait correlation, flat and doesn't-follow marks and the calibration file's numbers,
+  computed in `MindsSnapshotBuilder.SpreadRows` and shown in the viewer beside the planned
+  lines. The template mapper normalizes the mod's real question wordings
+  (`LayaCalibration.NormalizeTemplate`, pinned by a test against the exact ladder and planner
+  strings). Tuning: `FlatSpread` 0.05, `MinNpcsForSpread` 6, `FollowsTraitMin` 0.3.
 - **In-game tab and console commands:** not started. The viewer may cover most of what they were
   for; decide before building them.
 

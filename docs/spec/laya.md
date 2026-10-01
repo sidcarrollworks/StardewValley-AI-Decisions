@@ -174,52 +174,67 @@ Planned:
 - **Counters in the heartbeat:** calls, fallbacks, median and p95 latency, added to the
   heartbeat line (`src/NpcInitiation/Heartbeat.cs`, from PR #3).
 
-## Character spread: does the card change the answer? (2026-10-02)
+## Character spread: does the card change the answer?
 
-Sid's concern: every villager is judged by the same model, so their choices may trend alike. The
-model can't drift (its weights never change and it keeps no memory between calls; the same text
-always gets the same answer), but it can **start out flat**: if it barely reacts to the card's
-personality words, every villager gets roughly the model's idea of an average villager. The eval
-already shows it: shy Penny vs outgoing Sam differ by only 0.06-0.07 on the emote and bubble
-questions (`sidecar/eval/RESULTS.md`), and the speak answer sits in one compressed band.
+Sid's concern (2026-10-02, spec PR #19): every villager is judged by the same model, so their
+choices may trend alike. The model can't drift (its weights never change and it keeps no memory
+between calls), but it can start out flat: if it barely reacts to the card's personality words,
+every villager gets roughly the model's idea of an average villager. It matters most mid-game
+(4+ hearts, several motives near their act costs, close calls are common) and in newcomer week,
+where first impressions should separate shy from outgoing; less in the first season, when few
+villagers know the player and vanilla supplies the introductions. The motives design limits the
+damage — personality lives in code (boldness, costs, sensitivity, regard, mood) and the model only
+decides close calls ([motives.md](motives.md), D24) — and this section supplies the means to see
+the problem and correct it.
 
-**When it matters** (Sid, 2026-10-02): less in the first season. Early on few villagers know the
-player, vanilla already supplies many introductions and scripted interactions, and players are busy
-with the farm. Low familiarity also makes most early calls clear "no"s under the act rule, so few
-reach the model. Flatness matters most from mid-game on, when many villagers sit at 4+ hearts with
-several motives near their act costs and close calls are common. One early exception is newcomer
-week ([newcomer-week.md](newcomer-week.md)): first impressions are where shy and outgoing should
-differ most, and its welcome question goes to the model. So the spread eval uses mid-game
-situations (hearts 4 and 6) as its reference, plus a 0-heart newcomer case, and its results gate
-the corrections before motives' close calls go live, not before then.
+**Measured: the spread eval.** `sidecar/eval/run_spread.py` (stdlib only) asks one fixed
+reference question per type of every villager's card, cards built by `tools/CardExporter`
+(variant A = the card the mod sends today; variant B = A plus the "leanings:" line the viewer
+summarizes from the seed table). The questions are the mod's real ones — the ladder's attention
+wording with its context line, the planner's speak question with a news section, the motives'
+close-call wording with each NPC's own effective boldness — so the calibration matches what the
+game sends. Two mid-game runs (hearts 4 and 6) and one newcomer run (hearts 0, the welcome
+question). Results (2026-10-02, `sidecar/eval/RESULTS.md`, revised after review):
 
-The motives design limits the damage, because personality lives in code (boldness, costs,
-sensitivity, retention, regard, mood) and the model only decides close calls
-([motives.md](motives.md), D24). This section adds the means to see the problem and correct it.
+- **Only speak is flat** (spread 0.034 on both variants), and its correlation with chattiness is
+  negative on both checkpoints — with a real news section the model answers the gate at ~0.47 for
+  everyone. Approach is borderline (0.074 A, 0.049 B) and doesn't follow boldness.
+- **What follows its trait (typed-decisions):** bubble A (+0.37), emote B (+0.34), hold-against
+  A/B (-0.40/-0.35), close_hostile A/B (+0.32/+0.48), and the newcomer welcome (+0.54/+0.51).
+  English is stronger across the board: emote, bubble, both close-calls, the choice variant and
+  the welcome all follow; only approach, speak and hold-against don't.
+- **Card B is a mixed bag**: it pushes emote and close_hostile over the line but costs bubble its
+  ordering and flattens choose on typed-decisions; it also shifts levels. The first run's
+  "leanings line is the fix" was too strong — it is a candidate, judged by the panel in real
+  play.
+- **The choice variant separates characters better only on english** (+0.32/+0.54 vs
+  typed-decisions -0.02/-0.10); the checkpoint matters more than the question form. This does not
+  switch the default: the questions english wins are the motives' close calls, which are not live
+  yet; revisit per question when step 14 lands and the spread panel has real playtest data (D27).
 
-1. **Measure: the spread eval** (`sidecar/eval/run_spread.py`). For each question type, one fixed
-   reference situation is asked once per villager, with only the NPC card changing (all 34 from
-   the temperament table). Per question it reports the spread (90th minus 10th percentile of the
-   answers), the median, and whether the order follows the trait the question should depend on
-   (Spearman's rank correlation with that trait: boldness for attention and approach questions,
-   chattiness for the news question, forgiveness, inverted, for "hold it against"). Results go in
-   `sidecar/eval/RESULTS.md`, and the per-question medians and spreads go in a fixed calibration
-   file, `data/laya-calibration.json`, so the mod's use of them is deterministic and versioned.
-2. **Watch: the viewer's spread panel** ([debug-tools.md](debug-tools.md)): the same numbers from
-   real play, per question, live.
-3. **Correct, per question type, only where the data says so:**
-   - **Relative answers.** When a question is flat in absolute terms but its order follows the
-     trait, use the answer relative to the town: `p_rel = 0.5 + (p - median) / spread x
-     RelativeScale`, clamped, with the median and spread from the calibration file. The 0.5 cut
-     for close calls ([motives.md](motives.md)) then reads p_rel.
-   - **Temperament prior.** When a question is flat and its order doesn't follow the trait either,
-     blend in a prior from the trait: `p' = w x p + (1 - w) x prior(trait)`, with `w` per question
-     in the calibration file (1.0 means the model alone).
-   - **Text first.** Before either, check the card: the traits must be in plain words ("shy;
-     rarely starts a conversation"), and the card must never be the part cut by the 512-token
-     budget (it has the highest priority in `DecisionState`).
-   Both corrections default off (`RelativeScale` and `w` absent from the calibration file) until
-   a spread run says a question needs them.
+**Watched: the viewer's spread panel** ([debug-tools.md](debug-tools.md), "model spread panel"):
+the same numbers from real play, per question, live, with the flat and doesn't-follow marks and
+the calibration file beside them.
+
+**Corrected, per question type, only where the data says so:**
+
+- **Relative answers.** When a question is flat but its order follows the trait:
+  `p_rel = 0.5 + (p - median) / spread x RelativeScale`, clamped, with the median and spread from
+  `data/laya-calibration.json`. The 0.5 close-call cut reads p_rel.
+- **Temperament prior.** When a question is flat and its order doesn't follow the trait either:
+  `p' = w x p + (1 - w) x prior(trait)`, `w` per question in the calibration file.
+- **Text first.** The traits must reach the card in plain words, and the card must keep its
+  budget priority in `DecisionState`.
+
+**The first spread run says: the numeric corrections are not the answer.** The one flat question
+(speak) doesn't follow its trait either, so a relative rescale cannot fix its ordering, and a
+prior over the speak answer would fight a gate that already works as a veto floor (D21). The
+personality for speak belongs in code: wire chattiness into the news weights
+([temperament.md](temperament.md) plans exactly that). `RelativeScale` and `w` stay absent from
+the calibration file and the mod never applies the numbers. The leanings line (card B) is a
+candidate card change, not a guaranteed fix; its real-play verdict comes from the viewer's
+spread panel. Re-run this eval whenever the card or a question's wording changes — the review
+showed that small state differences (the act line, hand-fed boldness) change every conclusion.
 
 ## Deterministic rules
 
@@ -275,11 +290,6 @@ speak-question rewording experiments the eval points at.
 
 ## Open questions
 
-- Is the model flat on personality? The spread eval answers it per question; the corrections above
-  wait on its numbers. A choice question may separate characters better than several yes/no
-  questions ("what would Shane do: write a note / say nothing / walk over"); add that variant to
-  the spread eval.
-
 - ~~Which checkpoint is better for these questions?~~ Answered 2026-09-30 by the eval set:
   `typed-decisions` agreed with 5/6 expected directions vs `english` 3/6; the mod keeps
   `typed-decisions`. See `sidecar/eval/RESULTS.md` for the per-case numbers.
@@ -292,5 +302,11 @@ speak-question rewording experiments the eval points at.
   wording, so the answer no longer decides the speakers: news-first ranking does (D21), and the
   speak threshold is 0.25 as a veto floor, not 0.5. If a live week still shows empty plans, the
   next lever is the state (more news kinds), not the wording or the threshold.
+- ~~Is the model flat on personality?~~ Answered by the character-spread eval (2026-10-02, revised
+  after review): only the speak gate is flat (and anti-correlated with chattiness); bubble,
+  hold-against, close_hostile and the welcome follow their traits on typed-decisions (emote too,
+  with the leanings line). The numeric corrections stay off — speak's personality belongs in
+  code (chattiness in the news weights), not in a prior. See "Character spread" above and
+  `sidecar/eval/RESULTS.md`.
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with
   good state should be enough, and fine-tuning adds a training pipeline to maintain.

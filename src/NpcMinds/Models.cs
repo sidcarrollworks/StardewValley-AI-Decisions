@@ -19,7 +19,8 @@ public sealed record MindsSnapshot(
     IReadOnlyList<string> StepNames,
     IReadOnlyList<NpcMind> Npcs,               // name order
     IReadOnlyList<PlannedLine> PlanToday,      // the lines collected for today
-    IReadOnlyList<FeedItem> Feed)              // newest first
+    IReadOnlyList<FeedItem> Feed,              // newest first
+    IReadOnlyList<SpreadRow>? Spread = null)   // the model spread panel's rows (Part 2); null before it is built
 {
     /// <summary>What the viewer shows before a save is loaded.</summary>
     public static MindsSnapshot Idle(long seq, string backend) => new(
@@ -97,3 +98,22 @@ public sealed record DecisionCall(
     string ContextHead);            // the first part of the state the model read
 
 public sealed record CallAnswer(string Label, double Value);
+
+/// <summary>One row of the model spread panel: a question template asked of several NPCs today,
+/// their mean answers, the spread and median over them, the rank correlation with the trait the
+/// question should follow, the flat and doesn't-follow marks (null when too few NPCs were asked
+/// or no trait mapping exists), and the calibration row for comparison.</summary>
+public sealed record SpreadRow(
+    string Template,                        // the proposition with the NPC name replaced by <npc>
+    string? CalibrationTemplate,            // the spread eval's id, or null when not measured
+    IReadOnlyList<SpreadNpc> Npcs,          // answer order, highest mean first
+    double Spread,                          // 90th minus 10th percentile of the means
+    double Median,
+    double? Correlation,                    // Spearman rank correlation with the trait; null without one
+    bool? Flat,                             // null: fewer than MinNpcsForSpread NPCs asked
+    bool? Follows,
+    double? CalibrationMedian,              // from data/laya-calibration.json (card variant A); null when absent
+    double? CalibrationSpread);
+
+/// <summary>One NPC's mean answer within a spread row.</summary>
+public sealed record SpreadNpc(string Name, double Mean);

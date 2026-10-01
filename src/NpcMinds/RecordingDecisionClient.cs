@@ -25,12 +25,15 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
     private readonly ResilientDecisionClient _inner;
     private readonly RingLog<DecisionCall> _log;
     private readonly string _caller;
+    private readonly SpreadTable? _spread;
 
-    public RecordingDecisionClient(ResilientDecisionClient inner, RingLog<DecisionCall> log, string caller)
+    public RecordingDecisionClient(ResilientDecisionClient inner, RingLog<DecisionCall> log, string caller,
+        SpreadTable? spread = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _caller = caller ?? "";
+        _spread = spread;
     }
 
     public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
@@ -49,8 +52,21 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
     {
         string? proposition = questions?.OfType<YesNoQuestion>().FirstOrDefault()?.Proposition;
         string question = string.Join(" + ", (questions ?? Array.Empty<Question>()).Select(Describe));
-        return Record("batch", state, proposition, () => _inner.Ask(state, questions!),
+        IReadOnlyList<Answer> result = Record("batch", state, proposition, () => _inner.Ask(state, questions!),
             answers => Flatten(questions ?? Array.Empty<Question>(), answers), question);
+        // Per-question spread recording: each yes/no question gets its own template row.
+        if (_spread is not null && questions is not null)
+        {
+            foreach (Question q in questions)
+            {
+                if (q is not YesNoQuestion y)
+                    continue;
+                string? npc = NpcOf(state, y.Proposition);
+                double value = result.FirstOrDefault(a => a?.Id == y.Id)?.YesNo ?? double.NaN;
+                _spread.Record(SpreadTable.ReplaceNpc(y.Proposition, npc), npc, value);
+            }
+        }
+        return result;
     }
 
     private T Record<T>(string type, string? context, string? proposition, Func<T> call,
@@ -65,9 +81,15 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
         try
         {
             IReadOnlyList<CallAnswer> shown = answers(result);
+            string? npc = NpcOf(context, proposition);
             _log.Add(seq => new DecisionCall(seq, DateTime.UtcNow, _caller, type,
-                NpcOf(context, proposition), question, shown, clock.Elapsed.TotalMilliseconds,
+                npc, question, shown, clock.Elapsed.TotalMilliseconds,
                 fellBack, Head(context)));
+            // The spread panel's table: observe (never alter) the answer under the question
+            // template. Choice calls have per-call options, so they carry no single number; the
+            // per-question recording for batches is in Ask.
+            if (_spread is not null && type is "yesno" or "score" && shown.Count > 0)
+                _spread.Record(SpreadTable.ReplaceNpc(question, npc), npc, shown[0].Value);
         }
         catch
         {
