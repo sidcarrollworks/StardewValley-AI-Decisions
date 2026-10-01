@@ -1,10 +1,11 @@
 # 4. Last-seen ledger and gossip
 
-**Status: partial.** The ledger, decay and on-demand gossip (when an NPC asks around) are done.
-Ambient gossip (`MemoryStore.Chat`, once per span with a deterministic FNV-1a draw) and the `Heard`
-diary kind (one hop, at most once per listener) are built in PR #16, open at the time of writing.
-The juiciness design below (D25, 2026-10-01) is planned and replaces PR #16's fixed one-hop rule.
-Brief goal 4 and design decision 4; D7, D8, D9, D18, D25; architecture, "Ledger".
+**Status: partial.** The ledger, decay and on-demand gossip (when an NPC asks around) are done,
+and step 7 (PR #16) added ambient gossip (`MemoryStore.Chat`, once per span with a deterministic
+FNV-1a draw, both sides pass their view of the player) and the `Heard` diary kind (original kind's
+news weight minus 1, one hop, at most once per listener). The juiciness design below (D25,
+2026-10-01) is planned and replaces that fixed one-hop rule. Brief goal 4 and design decision 4;
+D7, D8, D9, D18, D25; architecture, "Ledger".
 
 ## Player-visible behavior
 
@@ -21,12 +22,13 @@ Done: one entry per (observer, subject) with location, region, spot, absolute ti
 `ToldBy`, `DetailCap` (`src/NpcMemory/Ledger.cs`). Detail by age: NamedSpot < 12 ticks, Location
 < 48, Region < 96, then EarlierToday, and Gone from the next 6:00.
 
+Done (step 7): the **Heard diary kind** for event gossip: `Heard`, subject = who the news is
+about, `Detail` = `from=<teller>;kind=<original kind>;subject=<original subject>;name=...` (the
+original's keys copied). Only kinds marked shareable pass on: `GiftReceived`, `SawGift`,
+`QuestHelped`, `Festival`.
+
 Planned:
-- **Heard diary kind** for event gossip: `Heard`, subject = who the news is about, `Detail` =
-  `from=<teller>;kind=<original kind>;subject=<original subject>;name=...` (the original's keys
-  copied). Only kinds marked shareable pass on: `GiftReceived`, `SawGift`, `QuestHelped`,
-  `Festival` in PR #16; with juiciness (below), any kind whose juiciness can reach
-  `VolunteerLevel`. The `Detail` gains `j=<juiciness when told>;hops=<n>`, so how juicy it still is
+- With juiciness (below), any kind whose juiciness can reach `VolunteerLevel` is shareable. The `Detail` gains `j=<juiciness when told>;hops=<n>`, so how juicy it still is
   can be computed, never stored and changed.
 - No ledger format change (positions keep their D9 rules, below).
 
@@ -34,14 +36,16 @@ Planned:
 
 Done: `MemoryStore.AskAround` from `PlayerSearch.Tick`, on the game thread after `Observe`.
 
-Planned: **ambient gossip**, `MemoryStore.Chat(now)`, called each tick right after `Observe`:
+Done (step 7): **ambient gossip**, `MemoryStore.Chat(now)`, called each tick right after
+`Observe`. Planned changes for juiciness are marked:
 - Pairs of NPCs co-located for at least `ChatMinTicks` (3) consecutive ticks in the current span may
   chat once per span.
 - Whether a pair chats: FNV-1a uniform of (seed, a, b, span start tick) below `ChatChance` (0.3). No
   model call: this runs every tick for many pairs and must stay cheap and on the game thread.
 - In a chat, each side passes the other its view of the **player** through `Ledger.Gossip` (all D9
-  rules hold), and at most one event as a `Heard` entry: the juiciest one, for that listener, at
-  or above `VolunteerLevel` that the listener does not already have (below).
+  rules hold), and at most one shareable event from today as a `Heard` entry, the highest news
+  score the listener does not already have. **Planned:** the juiciest one for that listener, at or
+  above `VolunteerLevel`, that the listener does not already have (below).
 - NPC-about-NPC positions are not gossiped ambiently (the ledger would churn with little use); only
   `AskAround` does that, when someone is being looked for.
 
@@ -148,8 +152,8 @@ did not meet that day; a quest-help line appears days later from an NPC the play
 
 ## Status
 
-Done: `src/NpcMemory/Ledger.cs`, `MemoryStore.AskAround`. In review: `MemoryStore.Chat` and
-`Heard` (PR #16). Not started: juiciness (above).
+Done: `src/NpcMemory/Ledger.cs`, `MemoryStore.AskAround`, `MemoryStore.Chat` and `Heard` (PR #16).
+Not started: juiciness (above).
 
 ## Open questions
 

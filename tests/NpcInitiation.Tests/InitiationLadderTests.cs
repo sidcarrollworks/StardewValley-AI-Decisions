@@ -248,6 +248,19 @@ public sealed class InitiationLadderTests
     }
 
     [Fact]
+    public void FromJson_SkipsANullNpc()
+    {
+        // Playtest review: the saved ladder carried an NPC literally named "null" (the game's
+        // no-target quest marker) at urge 0. FromJson must drop it like the diary does.
+        string json = "{\"Day\":3,\"Npcs\":[{\"Npc\":\"null\",\"Urge\":0.5,\"Rung\":0,\"Day\":3},{\"Npc\":\"Haley\",\"Urge\":0.4,\"Rung\":0,\"Day\":3}]}";
+
+        var ladder = InitiationLadder.FromJson(json, new StubDecision(1.0), 1);
+
+        Assert.Equal(0.0, ladder.Urge("null")); // gone: unknown NPCs read as 0
+        Assert.Equal(0.4, ladder.Urge("Haley"), 9); // the real NPC survives
+    }
+
+    [Fact]
     public void IgnorePenaltyClampsAtZero()
     {
         var ladder = new InitiationLadder(new StubDecision(1.0), 1,

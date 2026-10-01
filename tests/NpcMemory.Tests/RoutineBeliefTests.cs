@@ -374,9 +374,12 @@ public class RoutineBeliefTests
         Assert.Equal(belief.Subject, back.Subject);
         Assert.Equal(belief.BlockMinutes, back.BlockMinutes);
         Assert.Equal(belief.BlockCount, back.BlockCount);
-        Assert.Equal(300, back.UnlockThreshold);
+        // Tuning is not saved: the loaded belief uses the code default, not the saved 300
+        // (routines.md acceptance — an old save's threshold must not pin the behaviour).
+        Assert.Equal(240, back.UnlockThreshold);
         Assert.Equal(130.0, back.CoPresenceTicks, 10);
         Assert.False(back.Unlocked);
+        Assert.Equal(belief.LastObservedDay, back.LastObservedDay);
 
         Assert.Equal(belief.Counts.Count, back.Counts.Count);
         foreach (KeyValuePair<string, double[]> pair in belief.Counts)
@@ -391,8 +394,8 @@ public class RoutineBeliefTests
         Assert.Equal(3.0, back.Counts["Town"][2], 10);
         Assert.Equal(1.25, back.Counts["Beach"][7], 10);
 
-        // Round-tripping twice is stable and the reloaded instance still behaves.
-        Assert.Equal(json, RoutineBelief.FromJson(back.ToJson()).ToJson());
+        // Round-tripping twice is stable after the first load normalizes the threshold.
+        Assert.Equal(back.ToJson(), RoutineBelief.FromJson(back.ToJson()).ToJson());
         Assert.Equal(("Town", 2), back.BestGuess()!.Value);
         back.Observe("Desert", 0, 0, 1.0);
         Assert.Equal(("Town", 2), back.BestGuess()!.Value);
