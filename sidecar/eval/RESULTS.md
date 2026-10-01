@@ -69,91 +69,98 @@ Per-case:
 - **`typed-decisions` stays the default** (5/6 vs 4/6, and it rates the gift and the player-saw
   correctly, which english does not).
 
-# Character-spread eval, 2026-10-02
 
-`python eval/run_spread.py` — one fixed question per type, asked once per villager's card (34
-cards, built by `tools/CardExporter`). Variant A is the card the mod sends today; variant B adds
-the viewer's "leanings:" line (the seed temperament's strongest traits in plain words). Two
-mid-game runs (hearts 4 and 6; the model barely moves between them, so hearts 4 is the
-calibration reference) and one newcomer run (hearts 0, the newcomer-week welcome question).
-Spread = 90th minus 10th percentile; "follows" = Spearman rank correlation with the trait the
-question should depend on, in the expected direction, >= 0.3 (inverted for hold_against).
-Flat = spread < 0.05.
+# Character-spread eval, 2026-10-02 (revised after review)
 
-## typed-decisions (hearts 4)
+`python eval/run_spread.py` — one fixed reference question per type, asked once per villager's
+card (34 cards, built by `tools/CardExporter`). Variant A is the card the mod sends today;
+variant B adds the viewer's "leanings:" line. Two mid-game runs (hearts 4 and 6; hearts 4 is the
+calibration reference) and one newcomer run (hearts 0, the welcome question).
 
-| Question | trait | variant | spread | median | min | max | spearman | follows? |
-|---|---|---|---|---|---|---|---|---|
-| attention_emote | boldness | A | 0.238 | 0.323 | 0.230 | 0.551 | +0.23 | no |
-| attention_emote | boldness | B | 0.258 | 0.452 | 0.247 | 0.681 | -0.24 | no |
-| attention_bubble | boldness | A | 0.106 | 0.220 | 0.150 | 0.346 | +0.24 | no |
-| attention_bubble | boldness | B | 0.114 | 0.249 | 0.129 | 0.348 | +0.51 | **yes** |
-| approach | boldness | A | 0.099 | 0.084 | 0.026 | 0.157 | -0.19 | no |
-| approach | boldness | B | 0.068 | 0.115 | 0.055 | 0.153 | -0.27 | no |
-| speak | chattiness | A | 0.167 | 0.366 | 0.243 | 0.497 | +0.32 | **yes** |
-| speak | chattiness | B | 0.173 | 0.350 | 0.175 | 0.484 | +0.34 | **yes** |
-| hold_against | forgiveness (inv.) | A | 0.106 | 0.426 | 0.331 | 0.501 | -0.23 | no |
-| hold_against | forgiveness (inv.) | B | 0.111 | 0.429 | 0.334 | 0.535 | -0.12 | no |
-| close_friendly | boldness | A | 0.070 | 0.597 | 0.521 | 0.645 | +0.03 | no |
-| close_friendly | boldness | B | 0.248 | 0.530 | 0.258 | 0.625 | -0.41 | no (wrong way) |
-| close_hostile | boldness | A | 0.089 | 0.625 | 0.499 | 0.687 | +0.23 | no |
-| close_hostile | boldness | B | 0.118 | 0.598 | 0.493 | 0.674 | +0.07 | no |
-| choose (P walk over) | boldness | A | 0.096 | 0.692 | 0.630 | 0.788 | -0.12 | no |
-| choose (P walk over) | boldness | B | 0.109 | 0.695 | 0.600 | 0.771 | -0.18 | no |
-| welcome (newcomer) | boldness | A | 0.300 | 0.394 | 0.134 | 0.523 | +0.48 | **yes** |
-| welcome (newcomer) | boldness | B | 0.259 | 0.397 | 0.183 | 0.545 | +0.55 | **yes** |
+**The questions are the mod's real ones** (review fix): the ladder's
+"should <npc> try to get the player's attention with {Emote|Bubble|Approach} now?" with its
+`urge=…; hearts=…; step=…; player last seen: …` context line (InitiationLadder.cs:195-204); the
+planner's "does <npc> have news for the player?" with a news section (IntentPlanner.cs:108); the
+motives' close-call wording with **the NPC's own effective boldness** (seed boldness + the run's
+hearts, fixed intensity) and a fixed cost; the choice state describes the reason only, never the
+act. Spread = 90th minus 10th percentile; "follows" = Spearman vs the trait in the expected
+direction (forgiveness inverted for hold-against) >= 0.3. Flat = spread < 0.05.
 
-Median latency 30-42 ms per call on the GPU.
+## typed-decisions (hearts 4; the mod's checkpoint)
+
+| Question | trait | variant | spread | median | spearman | follows? |
+|---|---|---|---|---|---|---|
+| attention_emote | boldness | A | 0.233 | 0.398 | +0.26 | no |
+| attention_emote | boldness | B | 0.162 | 0.432 | +0.34 | **yes** |
+| attention_bubble | boldness | A | 0.247 | 0.386 | +0.37 | **yes** |
+| attention_bubble | boldness | B | 0.195 | 0.455 | +0.25 | no |
+| attention_approach | boldness | A | 0.074 | 0.572 | +0.06 | no |
+| attention_approach | boldness | B | 0.049 | 0.561 | +0.24 | no (and B is FLAT) |
+| speak | chattiness | A | 0.034 | 0.478 | -0.39 | **FLAT**, no |
+| speak | chattiness | B | 0.035 | 0.468 | -0.10 | **FLAT**, no |
+| hold_against | forgiveness (inv.) | A | 0.135 | 0.424 | -0.40 | **yes** |
+| hold_against | forgiveness (inv.) | B | 0.146 | 0.430 | -0.35 | **yes** |
+| close_friendly | boldness | A | 0.092 | 0.614 | +0.27 | no |
+| close_friendly | boldness | B | 0.123 | 0.586 | +0.10 | no |
+| close_hostile | boldness | A | 0.098 | 0.658 | +0.20 | no |
+| close_hostile | boldness | B | 0.128 | 0.639 | +0.37 | **yes** |
+| choose (P walk over) | boldness | A | 0.085 | 0.516 | +0.25 | no |
+| choose (P walk over) | boldness | B | 0.142 | 0.535 | +0.01 | no |
+| welcome (newcomer) | boldness | A | 0.289 | 0.396 | +0.54 | **yes** |
+| welcome (newcomer) | boldness | B | 0.264 | 0.401 | +0.51 | **yes** |
+
+Median latency 30-40 ms per call on the GPU. Hearts 6 moves nothing by more than 0.02.
 
 ## english (hearts 4)
 
-| Question | trait | variant | spread | median | min | max | spearman | follows? |
-|---|---|---|---|---|---|---|---|---|
-| attention_emote | boldness | A | 0.490 | 0.521 | 0.144 | 0.890 | +0.18 | no |
-| attention_emote | boldness | B | 0.304 | 0.738 | 0.254 | 0.921 | -0.26 | no |
-| attention_bubble | boldness | A | 0.079 | 0.066 | 0.012 | 0.201 | +0.31 | **yes** |
-| attention_bubble | boldness | B | 0.093 | 0.063 | 0.001 | 0.244 | +0.47 | **yes** |
-| approach | boldness | A | 0.001 | 0.000 | 0.000 | 0.037 | -0.13 | **FLAT**, no |
-| approach | boldness | B | 0.003 | 0.000 | 0.000 | 0.030 | +0.05 | **FLAT**, no |
-| speak | chattiness | A | 0.107 | 0.120 | 0.064 | 0.260 | +0.03 | no |
-| speak | chattiness | B | 0.076 | 0.106 | 0.035 | 0.216 | +0.02 | no |
-| hold_against | forgiveness (inv.) | A | 0.153 | 0.252 | 0.105 | 0.383 | -0.06 | no |
-| hold_against | forgiveness (inv.) | B | 0.109 | 0.205 | 0.104 | 0.359 | +0.11 | no |
-| close_friendly | boldness | A | 0.066 | 0.890 | 0.490 | 0.936 | +0.28 | no |
-| close_friendly | boldness | B | 0.118 | 0.859 | 0.672 | 0.929 | +0.26 | no |
-| close_hostile | boldness | A | 0.099 | 0.905 | 0.756 | 0.955 | +0.24 | no |
-| close_hostile | boldness | B | 0.135 | 0.865 | 0.665 | 0.918 | +0.44 | **yes** |
-| choose (P walk over) | boldness | A | 0.073 | 0.925 | 0.875 | 0.972 | -0.18 | no |
-| choose (P walk over) | boldness | B | 0.069 | 0.934 | 0.868 | 0.968 | -0.13 | no |
-| welcome (newcomer) | boldness | A | 0.596 | 0.471 | 0.007 | 0.773 | +0.38 | **yes** |
-| welcome (newcomer) | boldness | B | 0.623 | 0.271 | 0.031 | 0.836 | +0.47 | **yes** |
+| Question | trait | variant | spread | median | spearman | follows? |
+|---|---|---|---|---|---|---|
+| attention_emote | boldness | A | 0.831 | 0.525 | +0.41 | **yes** |
+| attention_emote | boldness | B | 0.743 | 0.391 | +0.52 | **yes** |
+| attention_bubble | boldness | A | 0.638 | 0.367 | +0.49 | **yes** |
+| attention_bubble | boldness | B | 0.646 | 0.556 | +0.48 | **yes** |
+| attention_approach | boldness | A | 0.157 | 0.864 | -0.00 | no |
+| attention_approach | boldness | B | 0.226 | 0.785 | +0.02 | no |
+| speak | chattiness | A | 0.239 | 0.542 | -0.36 | no |
+| speak | chattiness | B | 0.244 | 0.421 | -0.18 | no |
+| hold_against | forgiveness (inv.) | A | 0.141 | 0.232 | -0.23 | no |
+| hold_against | forgiveness (inv.) | B | 0.123 | 0.205 | -0.20 | no |
+| close_friendly | boldness | A | 0.066 | 0.894 | +0.41 | **yes** |
+| close_friendly | boldness | B | 0.145 | 0.870 | +0.47 | **yes** |
+| close_hostile | boldness | A | 0.083 | 0.944 | +0.36 | **yes** |
+| close_hostile | boldness | B | 0.160 | 0.891 | +0.57 | **yes** |
+| choose (P walk over) | boldness | A | 0.135 | 0.257 | +0.42 | **yes** |
+| choose (P walk over) | boldness | B | 0.189 | 0.326 | +0.54 | **yes** |
+| welcome (newcomer) | boldness | A | 0.554 | 0.424 | +0.38 | **yes** |
+| welcome (newcomer) | boldness | B | 0.604 | 0.326 | +0.43 | **yes** |
 
-## What this says
+## What this says (the revised run)
 
-**Which questions are flat.** Almost none on typed-decisions (the closest are close_friendly A at
-0.070 and approach B at 0.068, both above the 0.05 line). English is flatter: approach is exactly
-flat (spread 0.001-0.003, median 0.000 — the model says no for everyone) and speak is compressed
-(median 0.106-0.120). On typed-decisions the problem is not flatness, it is direction.
-
-**Does card B widen the spread?** Usually, but not reliably, and it moves the level at least as
-much as the spread. typed-decisions: emote 0.238 -> 0.258 (and median 0.323 -> 0.452 — a big level
-shift), close_friendly 0.070 -> 0.248, hostile 0.089 -> 0.118, choose 0.096 -> 0.109, but approach
-narrows 0.099 -> 0.068. The one ordering fix is bubble: +0.24 -> +0.51. The one ordering casualty
-is close_friendly, which goes wrong-way -0.41. So the leanings line is a real improvement for the
-attention questions but not a general fix.
-
-**Does the choice variant separate characters better?** No. P(walk over) sits at a ceiling on
-both checkpoints (typed-decisions median 0.69-0.70, min 0.60; english median 0.93) and its
-correlation with boldness is negative in both variants. "Walk over" is not a close call for this
-model — every villager prefers it. The widest spreads belong to yes/no questions (close_friendly B
-on typed-decisions; emote A on english).
-
-**Conclusion.** The correction for the questions that fail is the text one, not the numeric ones:
-the traits must reach the card in plain words (variant B), and the card must keep its budget
-priority. The numeric corrections stay off (`RelativeScale` and `w` absent from
-`data/laya-calibration.json`): the failing questions are not flat, so a relative rescale cannot
-fix their ordering, and a temperament prior would fight the questions that already follow their
-trait (speak, welcome). Recommend adding the leanings line to the real card as a separate change
-(it shifts answer levels, so re-run this eval and re-calibrate after), and re-running this eval
-whenever the card or a question's wording changes. typed-decisions remains the default; its
-numbers are committed in `data/laya-calibration.json`.
+- **The old run's conclusions were artifacts** (review, confirmed). With the real question
+  wordings and each NPC's own effective boldness, the picture is completely different: hold_against
+  follows forgiveness on typed-decisions, the choice question left its ceiling (median 0.52 vs
+  0.69 before — the state used to state the act), and english's close-call and choice questions
+  follow boldness strongly.
+- **Which questions are flat (typed-decisions).** Only **speak** — 0.034 on both variants, and
+  its correlation with chattiness is *negative* (-0.39 A). With a real news section, the model
+  answers the speak gate at ~0.47 for everyone regardless of chattiness. Approach is borderline
+  (0.074 A / 0.049 B, the latter flat) and doesn't follow boldness on either checkpoint.
+- **Does card B widen the spread?** Mixed, and it moves levels: emote narrows (0.233 -> 0.162)
+  but rises to follow (+0.26 -> +0.34); bubble widens spread but loses its ordering (+0.37 ->
+  +0.25); close_hostile gains follows (+0.20 -> +0.37); close_friendly and choose lose ground.
+  No consistent win. On english, B is neutral-to-positive.
+- **Does the choice variant separate characters better?** On english, yes — it follows boldness
+  strongly (+0.42/+0.54) and its spread beats most yes/no questions; on typed-decisions, no
+  (+0.25/+0.01). The checkpoint matters more than the question form.
+- **The one solid finding: speak is flat and anti-correlated with chattiness on BOTH
+  checkpoints.** The question as asked cannot carry personality. Don't fix it with the model:
+  keep the news ranking deterministic (D21, speak stays a 0.25 veto floor), and wire chattiness
+  into the news weights in code ([temperament.md](temperament.md) plans exactly that) rather
+  than a temperament prior over the speak answer.
+- **Corrections stay off.** No question is simultaneously flat and trait-following in a way a
+  relative rescale would fix on typed-decisions (speak is flat but not following; approach is
+  flat-ish but not following). The prior correction is a code-level temperament wiring, not a
+  number in the calibration file. `RelativeScale` and `w` remain absent; the panel's job is to
+  watch these numbers in real play. The leanings-line recommendation (card B) is weaker than the
+  first run suggested — it helps emote and close_hostile and hurts bubble and close_friendly —
+  so try it as its own change only if the panel agrees in real play.

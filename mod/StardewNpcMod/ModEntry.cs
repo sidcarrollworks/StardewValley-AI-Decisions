@@ -648,17 +648,14 @@ public class ModEntry : Mod
     }
 
     /// <summary>The temperament line for the NPC card from Data/Characters (plain words, per
-    /// docs/spec/laya.md).</summary>
+    /// docs/spec/laya.md). The mapping lives in NpcDecision.CardText, shared with the card
+    /// exporter, so the eval's cards always match the mod's wording.</summary>
     private static string TemperamentOf(string npc)
     {
         if (Game1.characterData is null || !Game1.characterData.TryGetValue(npc, out CharacterData? data))
             return "unknown";
-        return $"manners {MannerWord(data.Manner)}, {AnxietyWord(data.SocialAnxiety)}, {OptimismWord(data.Optimism)}";
+        return CardText.TemperamentWords(data.Manner.ToString(), data.SocialAnxiety.ToString(), data.Optimism.ToString());
     }
-
-    private static string MannerWord(NpcManner m) => m switch { NpcManner.Polite => "polite", NpcManner.Rude => "rude", _ => "neutral" };
-    private static string AnxietyWord(NpcSocialAnxiety a) => a switch { NpcSocialAnxiety.Outgoing => "outgoing", NpcSocialAnxiety.Shy => "shy", _ => "neutral" };
-    private static string OptimismWord(NpcOptimism o) => o switch { NpcOptimism.Positive => "optimistic", NpcOptimism.Negative => "pessimistic", _ => "neutral" };
 
     /// <summary>The card's "today" line, describing the delivery day (the plan runs at DayEnding
     /// but the lines arrive tomorrow morning): tomorrow's date in English (the checkpoint is

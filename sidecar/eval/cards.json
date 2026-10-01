@@ -14,14 +14,14 @@
     },
     "Alex": {
       "A": {
-        "0": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nvoice: confident and sporty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nvoice: confident and sporty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nvoice: confident and sporty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Alex\ntemperament: manners rude, outgoing, positive\nvoice: confident and sporty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Alex\ntemperament: manners rude, outgoing, positive\nvoice: confident and sporty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Alex\ntemperament: manners rude, outgoing, positive\nvoice: confident and sporty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Alex\ntemperament: manners rude, outgoing, optimistic\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Alex\ntemperament: manners rude, outgoing, positive\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Alex\ntemperament: manners rude, outgoing, positive\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Alex\ntemperament: manners rude, outgoing, positive\nleanings: holds grudges, bold, rarely sad\nvoice: confident and sporty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Caroline": {
@@ -38,38 +38,38 @@
     },
     "Clint": {
       "A": {
-        "0": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nvoice: shy and self-deprecating\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nvoice: shy and self-deprecating\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nvoice: shy and self-deprecating\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Clint\ntemperament: manners rude, shy, negative\nvoice: shy and self-deprecating\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Clint\ntemperament: manners rude, shy, negative\nvoice: shy and self-deprecating\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Clint\ntemperament: manners rude, shy, negative\nvoice: shy and self-deprecating\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Clint\ntemperament: manners rude, shy, pessimistic\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Clint\ntemperament: manners rude, shy, negative\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Clint\ntemperament: manners rude, shy, negative\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Clint\ntemperament: manners rude, shy, negative\nleanings: timid, sensitive, quiet\nvoice: shy and self-deprecating\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Demetrius": {
       "A": {
-        "0": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Demetrius\ntemperament: manners polite, neutral, optimistic\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Demetrius\ntemperament: manners polite, neutral, positive\nleanings: rarely sad\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Dwarf": {
       "A": {
-        "0": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Dwarf\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Dwarf\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, glum\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Elliott": {
@@ -86,50 +86,50 @@
     },
     "Emily": {
       "A": {
-        "0": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nvoice: whimsical and spiritual\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nvoice: whimsical and spiritual\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nvoice: whimsical and spiritual\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Emily\ntemperament: manners polite, outgoing, positive\nvoice: whimsical and spiritual\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Emily\ntemperament: manners polite, outgoing, positive\nvoice: whimsical and spiritual\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Emily\ntemperament: manners polite, outgoing, positive\nvoice: whimsical and spiritual\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Emily\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Emily\ntemperament: manners polite, outgoing, positive\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Emily\ntemperament: manners polite, outgoing, positive\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Emily\ntemperament: manners polite, outgoing, positive\nleanings: bold, chatty, forgiving\nvoice: whimsical and spiritual\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Evelyn": {
       "A": {
-        "0": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Evelyn\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Evelyn\ntemperament: manners polite, outgoing, positive\nleanings: bold, thick-skinned, cheerful\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "George": {
       "A": {
-        "0": "npc: George\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: George\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: George\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: George\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: George\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: George\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: George\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: George\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: George\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: George\ntemperament: manners rude, neutral, negative\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: George\ntemperament: manners rude, neutral, negative\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: George\ntemperament: manners rude, neutral, negative\nleanings: glum, cool, holds grudges\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Gus": {
       "A": {
-        "0": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nvoice: generous and easygoing\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nvoice: generous and easygoing\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nvoice: generous and easygoing\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nvoice: generous and easygoing\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nvoice: generous and easygoing\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nvoice: generous and easygoing\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Gus\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Gus\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: generous and easygoing\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Haley": {
@@ -146,26 +146,26 @@
     },
     "Harvey": {
       "A": {
-        "0": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nvoice: anxious and conscientious\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nvoice: anxious and conscientious\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nvoice: anxious and conscientious\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Harvey\ntemperament: manners polite, shy, positive\nvoice: anxious and conscientious\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Harvey\ntemperament: manners polite, shy, positive\nvoice: anxious and conscientious\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Harvey\ntemperament: manners polite, shy, positive\nvoice: anxious and conscientious\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Harvey\ntemperament: manners polite, shy, optimistic\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Harvey\ntemperament: manners polite, shy, positive\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Harvey\ntemperament: manners polite, shy, positive\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Harvey\ntemperament: manners polite, shy, positive\nleanings: warm, incurious, forgiving\nvoice: anxious and conscientious\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Jas": {
       "A": {
-        "0": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Jas\ntemperament: manners neutral, shy, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Jas\ntemperament: manners neutral, shy, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Jas\ntemperament: manners neutral, shy, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Jas\ntemperament: manners neutral, shy, optimistic\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Jas\ntemperament: manners neutral, shy, positive\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Jas\ntemperament: manners neutral, shy, positive\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Jas\ntemperament: manners neutral, shy, positive\nleanings: fearful, easily surprised, timid\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Jodi": {
@@ -182,14 +182,14 @@
     },
     "Kent": {
       "A": {
-        "0": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Kent\ntemperament: manners neutral, shy, negative\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Kent\ntemperament: manners neutral, shy, negative\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Kent\ntemperament: manners neutral, shy, negative\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Kent\ntemperament: manners neutral, shy, pessimistic\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Kent\ntemperament: manners neutral, shy, negative\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Kent\ntemperament: manners neutral, shy, negative\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Kent\ntemperament: manners neutral, shy, negative\nleanings: incurious, quiet, timid\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Krobus": {
@@ -206,14 +206,14 @@
     },
     "Leah": {
       "A": {
-        "0": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nvoice: warm and artistic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nvoice: warm and artistic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nvoice: warm and artistic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Leah\ntemperament: manners polite, neutral, positive\nvoice: warm and artistic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Leah\ntemperament: manners polite, neutral, positive\nvoice: warm and artistic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Leah\ntemperament: manners polite, neutral, positive\nvoice: warm and artistic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Leah\ntemperament: manners polite, neutral, optimistic\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Leah\ntemperament: manners polite, neutral, positive\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Leah\ntemperament: manners polite, neutral, positive\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Leah\ntemperament: manners polite, neutral, positive\nleanings: cheerful, thick-skinned, warm\nvoice: warm and artistic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Leo": {
@@ -230,158 +230,158 @@
     },
     "Lewis": {
       "A": {
-        "0": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Lewis\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Lewis\ntemperament: manners neutral, outgoing, positive\nleanings: bold, chatty, thick-skinned\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Linus": {
       "A": {
-        "0": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nvoice: humble and at peace outdoors\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nvoice: humble and at peace outdoors\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nvoice: humble and at peace outdoors\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Linus\ntemperament: manners neutral, shy, positive\nvoice: humble and at peace outdoors\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Linus\ntemperament: manners neutral, shy, positive\nvoice: humble and at peace outdoors\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Linus\ntemperament: manners neutral, shy, positive\nvoice: humble and at peace outdoors\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Linus\ntemperament: manners neutral, shy, optimistic\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Linus\ntemperament: manners neutral, shy, positive\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Linus\ntemperament: manners neutral, shy, positive\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Linus\ntemperament: manners neutral, shy, positive\nleanings: incurious, quiet, timid\nvoice: humble and at peace outdoors\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Marnie": {
       "A": {
-        "0": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Marnie\ntemperament: manners polite, outgoing, optimistic\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Marnie\ntemperament: manners polite, outgoing, positive\nleanings: bold, forgiving, chatty\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Maru": {
       "A": {
-        "0": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nvoice: bright and scientific\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nvoice: bright and scientific\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nvoice: bright and scientific\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nvoice: bright and scientific\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nvoice: bright and scientific\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nvoice: bright and scientific\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Maru\ntemperament: manners neutral, outgoing, optimistic\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Maru\ntemperament: manners neutral, outgoing, positive\nleanings: rarely sad, bold, fearless\nvoice: bright and scientific\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Pam": {
       "A": {
-        "0": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Pam\ntemperament: manners rude, outgoing, negative\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Pam\ntemperament: manners rude, outgoing, negative\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Pam\ntemperament: manners rude, outgoing, negative\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Pam\ntemperament: manners rude, outgoing, pessimistic\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Pam\ntemperament: manners rude, outgoing, negative\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Pam\ntemperament: manners rude, outgoing, negative\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Pam\ntemperament: manners rude, outgoing, negative\nleanings: cool, holds grudges, glum\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Penny": {
       "A": {
-        "0": "npc: Penny\ntemperament: manners polite, shy, optimistic\nvoice: gentle and bookish\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Penny\ntemperament: manners polite, shy, optimistic\nvoice: gentle and bookish\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Penny\ntemperament: manners polite, shy, optimistic\nvoice: gentle and bookish\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Penny\ntemperament: manners polite, shy, positive\nvoice: gentle and bookish\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Penny\ntemperament: manners polite, shy, positive\nvoice: gentle and bookish\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Penny\ntemperament: manners polite, shy, positive\nvoice: gentle and bookish\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Penny\ntemperament: manners polite, shy, optimistic\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Penny\ntemperament: manners polite, shy, optimistic\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Penny\ntemperament: manners polite, shy, optimistic\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Penny\ntemperament: manners polite, shy, positive\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Penny\ntemperament: manners polite, shy, positive\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Penny\ntemperament: manners polite, shy, positive\nleanings: timid, sensitive, quiet\nvoice: gentle and bookish\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Pierre": {
       "A": {
-        "0": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nvoice: businesslike and chatty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nvoice: businesslike and chatty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nvoice: businesslike and chatty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nvoice: businesslike and chatty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nvoice: businesslike and chatty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nvoice: businesslike and chatty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Pierre\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Pierre\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, thick-skinned\nvoice: businesslike and chatty\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Robin": {
       "A": {
-        "0": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nvoice: practical and warm\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nvoice: practical and warm\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nvoice: practical and warm\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nvoice: practical and warm\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nvoice: practical and warm\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nvoice: practical and warm\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Robin\ntemperament: manners neutral, outgoing, optimistic\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Robin\ntemperament: manners neutral, outgoing, positive\nleanings: chatty, curious, bold\nvoice: practical and warm\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Sam": {
       "A": {
-        "0": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nvoice: upbeat and energetic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nvoice: upbeat and energetic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nvoice: upbeat and energetic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nvoice: upbeat and energetic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nvoice: upbeat and energetic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nvoice: upbeat and energetic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sam\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sam\ntemperament: manners neutral, outgoing, positive\nleanings: bold, thick-skinned, rarely sad\nvoice: upbeat and energetic\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Sandy": {
       "A": {
-        "0": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sandy\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sandy\ntemperament: manners neutral, outgoing, positive\nleanings: bold, cheerful, forgiving\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Sebastian": {
       "A": {
-        "0": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nvoice: reserved and dry, nocturnal\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nvoice: reserved and dry, nocturnal\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nvoice: reserved and dry, nocturnal\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sebastian\ntemperament: manners rude, shy, negative\nvoice: reserved and dry, nocturnal\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sebastian\ntemperament: manners rude, shy, negative\nvoice: reserved and dry, nocturnal\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sebastian\ntemperament: manners rude, shy, negative\nvoice: reserved and dry, nocturnal\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Sebastian\ntemperament: manners rude, shy, pessimistic\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Sebastian\ntemperament: manners rude, shy, negative\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Sebastian\ntemperament: manners rude, shy, negative\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Sebastian\ntemperament: manners rude, shy, negative\nleanings: timid, quick to anger, quiet\nvoice: reserved and dry, nocturnal\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Shane": {
       "A": {
-        "0": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nvoice: gruff and guarded\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nvoice: gruff and guarded\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nvoice: gruff and guarded\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Shane\ntemperament: manners rude, shy, negative\nvoice: gruff and guarded\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Shane\ntemperament: manners rude, shy, negative\nvoice: gruff and guarded\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Shane\ntemperament: manners rude, shy, negative\nvoice: gruff and guarded\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Shane\ntemperament: manners rude, shy, pessimistic\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Shane\ntemperament: manners rude, shy, negative\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Shane\ntemperament: manners rude, shy, negative\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Shane\ntemperament: manners rude, shy, negative\nleanings: timid, prone to sadness, sensitive\nvoice: gruff and guarded\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Vincent": {
       "A": {
-        "0": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Vincent\ntemperament: manners neutral, outgoing, optimistic\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Vincent\ntemperament: manners neutral, outgoing, positive\nleanings: bold, easily surprised, easily disgusted\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     },
     "Willy": {
@@ -398,14 +398,14 @@
     },
     "Wizard": {
       "A": {
-        "0": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Wizard\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Wizard\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Wizard\ntemperament: manners rude, neutral, negative\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       },
       "B": {
-        "0": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "4": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
-        "6": "npc: Wizard\ntemperament: manners rude, neutral, pessimistic\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
+        "0": "npc: Wizard\ntemperament: manners rude, neutral, negative\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 0 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "4": "npc: Wizard\ntemperament: manners rude, neutral, negative\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 4 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM",
+        "6": "npc: Wizard\ntemperament: manners rude, neutral, negative\nleanings: glum, incurious, cool\nvoice: friendly and plain-spoken\nhearts with the player: 6 of 10\ntoday: spring 12 (Tuesday), sunny, 7:30 PM"
       }
     }
   },

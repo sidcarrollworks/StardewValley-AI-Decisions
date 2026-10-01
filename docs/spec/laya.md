@@ -190,19 +190,25 @@ the problem and correct it.
 **Measured: the spread eval.** `sidecar/eval/run_spread.py` (stdlib only) asks one fixed
 reference question per type of every villager's card, cards built by `tools/CardExporter`
 (variant A = the card the mod sends today; variant B = A plus the "leanings:" line the viewer
-summarizes from the seed table). Two mid-game runs (hearts 4 and 6) and one newcomer run
-(hearts 0, the welcome question). Results (2026-10-02, `sidecar/eval/RESULTS.md`):
+summarizes from the seed table). The questions are the mod's real ones — the ladder's attention
+wording with its context line, the planner's speak question with a news section, the motives'
+close-call wording with each NPC's own effective boldness — so the calibration matches what the
+game sends. Two mid-game runs (hearts 4 and 6) and one newcomer run (hearts 0, the welcome
+question). Results (2026-10-02, `sidecar/eval/RESULTS.md`, revised after review):
 
-- **Nothing is flat on typed-decisions** (closest: close_friendly A 0.070 and approach B 0.068,
-  both above the 0.05 line); english is flatter (approach exactly flat at 0.000, speak compressed).
-- **Only three questions follow their trait**: speak (chattiness, +0.32), the newcomer welcome
-  (boldness, +0.48) and bubble with variant B (+0.51). Emote, approach, hold-against and both
-  close-call questions do not, on either checkpoint.
-- **Card B helps the attention questions but is not a general fix**: bubble flips to follows,
-  emote's spread widens but its level shifts a lot (median 0.323 -> 0.452), and close_friendly
-  goes wrong-way (-0.41). The choice variant ("write a note / say nothing / walk over") does not
-  separate characters better than the yes/no questions: P(walk over) sits at a ceiling and
-  correlates negatively with boldness.
+- **Only speak is flat** (spread 0.034 on both variants), and its correlation with chattiness is
+  negative on both checkpoints — with a real news section the model answers the gate at ~0.47 for
+  everyone. Approach is borderline (0.074 A, 0.049 B) and doesn't follow boldness.
+- **What follows its trait (typed-decisions):** bubble A (+0.37), emote B (+0.34), hold-against
+  A/B (-0.40/-0.35), close_hostile B (+0.37), and the newcomer welcome (+0.54/+0.51). English is
+  stronger across the board: emote, bubble, both close-calls, the choice variant and the welcome
+  all follow; only approach, speak and hold-against don't.
+- **Card B is a mixed bag**: it pushes emote and close_hostile over the line but costs bubble its
+  ordering and flattens choose on typed-decisions; it also shifts levels. The first run's
+  "leanings line is the fix" was too strong — it is a candidate, judged by the panel in real
+  play.
+- **The choice variant separates characters better only on english** (+0.42/+0.54 vs
+  typed-decisions +0.25/+0.01); the checkpoint matters more than the question form.
 
 **Watched: the viewer's spread panel** ([debug-tools.md](debug-tools.md), "model spread panel"):
 the same numbers from real play, per question, live, with the flat and doesn't-follow marks and
@@ -218,13 +224,15 @@ the calibration file beside them.
 - **Text first.** The traits must reach the card in plain words, and the card must keep its
   budget priority in `DecisionState`.
 
-**The first spread run says: neither correction is warranted yet** — the failing questions are
-not flat, so a relative rescale cannot fix their ordering, and a prior would fight speak and the
-welcome question, which already work. `RelativeScale` and `w` stay absent from the calibration
-file and the mod never applies the numbers. Instead, recommend the text change: **add the
-leanings line to the real card** as its own change with its own tests (it shifts answer levels,
-so re-run this eval and re-calibrate after), and re-run the eval whenever the card or a
-question's wording changes.
+**The first spread run says: the numeric corrections are not the answer.** The one flat question
+(speak) doesn't follow its trait either, so a relative rescale cannot fix its ordering, and a
+prior over the speak answer would fight a gate that already works as a veto floor (D21). The
+personality for speak belongs in code: wire chattiness into the news weights
+([temperament.md](temperament.md) plans exactly that). `RelativeScale` and `w` stay absent from
+the calibration file and the mod never applies the numbers. The leanings line (card B) is a
+candidate card change, not a guaranteed fix; its real-play verdict comes from the viewer's
+spread panel. Re-run this eval whenever the card or a question's wording changes — the review
+showed that small state differences (the act line, hand-fed boldness) change every conclusion.
 
 ## Deterministic rules
 
@@ -292,9 +300,11 @@ speak-question rewording experiments the eval points at.
   wording, so the answer no longer decides the speakers: news-first ranking does (D21), and the
   speak threshold is 0.25 as a veto floor, not 0.5. If a live week still shows empty plans, the
   next lever is the state (more news kinds), not the wording or the threshold.
-- ~~Is the model flat on personality?~~ Answered by the character-spread eval (2026-10-02): nothing
-  is flat on typed-decisions, but only speak, the newcomer welcome and (with the leanings line)
-  bubble follow their trait; neither numeric correction is warranted yet — the fix to try first is
-  the card text. See "Character spread" above and `sidecar/eval/RESULTS.md`.
+- ~~Is the model flat on personality?~~ Answered by the character-spread eval (2026-10-02, revised
+  after review): only the speak gate is flat (and anti-correlated with chattiness); bubble,
+  hold-against, emote-with-leanings, close_hostile-with-leanings and the welcome follow their
+  traits on typed-decisions. The numeric corrections stay off — speak's personality belongs in
+  code (chattiness in the news weights), not in a prior. See "Character spread" above and
+  `sidecar/eval/RESULTS.md`.
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with
   good state should be enough, and fine-tuning adds a training pipeline to maintain.

@@ -3,17 +3,26 @@
 question type, to measure whether the model's answers spread across characters and follow
 the trait each question should depend on.
 
+The questions are the mod's real ones, with the same context shape:
+- the ladder's attention question "should <npc> try to get the player's attention with
+  <Step> now?" with its "urge=…; hearts=…; step=…; player last seen: …" line
+  (InitiationLadder.cs:195-204);
+- the planner's "does <npc> have news for the player?" with a news section
+  (IntentPlanner.cs:108);
+- the motives' "would <npc> … toward the player now?" close-call wording with the NPC's OWN
+  effective boldness (from the seed table + the run's hearts) and a fixed cost, and
+  "would <npc> hold this against the player?" with a grudge section.
 Cards come from cards.json (built by tools/CardExporter: variant A is the card the mod
 sends today, variant B adds the viewer's leanings summary line). Trait values come from
-the seed temperament table. Two mid-game runs (hearts 4 and 6) ask all eight question
-types; the newcomer run (hearts 0) asks the newcomer-week welcome question.
+the seed temperament table. Two mid-game runs (hearts 4 and 6) ask all question types; the
+newcomer run (hearts 0) asks the newcomer-week welcome question.
 
 Per question, card variant and run it reports the spread (90th minus 10th percentile),
 median, min, max, Spearman's rank correlation with the trait, and the median latency.
 A question is marked flat when its spread is under FLAT_SPREAD (0.05) and
 "doesn't follow personality" when the correlation is under FOLLOWS_MIN (0.3) in the
 expected direction. The hearts-4 run's medians and spreads are written to
-data/laya-calibration.json.
+data/laya-calibration.json, keyed by the question templates the mod asks.
 
 Usage: python run_spread.py [base_url] [--model typed-decisions|english]
 Set LAYA_API_KEY in the environment if the server requires a bearer token.
@@ -40,35 +49,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CARDS = json.load(open(os.path.join(HERE, "cards.json"), encoding="utf-8"))
 TRAITS = json.load(open(os.path.join(HERE, "..", "..", "fixtures", "game", "temperament", "temperament.json"), encoding="utf-8"))
 
-# id -> (question text with {npc}, trait, expected direction (+1 / -1), context after the card)
-QUESTIONS = {
-    "attention_emote": ("Should {npc} try to get the player's attention with an emote now?",
-                        "boldness", +1, ""),
-    "attention_bubble": ("Should {npc} try to get the player's attention with a speech bubble now?",
-                         "boldness", +1, ""),
-    "attention_approach": ("Should {npc} drop what they are doing and go looking for the player now?",
-                 "boldness", +1, ""),
-    "speak": ("Does {npc} have news for the player?",
-              "chattiness", +1, ""),
-    "hold_against": ("Would {npc} hold this against the player?",
-                     "forgiveness", -1,
-                     "\ngrudge:\n"
-                     "- two days ago the player gave them a hated gift\n"
-                     "- yesterday they tried to get the player's attention and were ignored\n"),
-    "close_friendly": ("Would {npc} walk over to greet the player now?",
-                       "boldness", +1,
-                       "\nmotive:\n"
-                       "- reason: they miss the player (they have not talked in two days)\n"
-                       "- act: walk over and greet\n"
-                       "- effective boldness: 0.6 of 1, cost: 0.3 of 1\n"),
-    "close_hostile": ("Would {npc} confront the player now?",
-                      "boldness", +1,
-                      "\nmotive:\n"
-                      "- reason: the player stood them up two days ago and never apologized\n"
-                      "- act: confront them about it\n"
-                      "- effective boldness: 0.6 of 1, cost: 0.5 of 1\n"),
-}
-
 CHOOSE = {
     "write": "write a note instead",
     "silent": "say nothing",
@@ -78,9 +58,69 @@ CHOOSE = {
 WELCOME = "Would {npc} go out of their way to welcome a newcomer in person?"
 
 
-def post(state, model, questions):
-    """One batched request: a state and several questions. Returns (answers dict, ms)."""
-    body = {"state": state, "model": model, "questions": questions}
+def effective_boldness(npc, hearts):
+    """The close-call state's 'effective boldness', per NPC: the seed boldness plus a fixed
+    familiarity term from the run's hearts (D24's shape; fixed intensity 0.4)."""
+    boldness = TRAITS["characters"][npc]["boldness"]
+    familiarity = min(0.5, hearts / 10.0)
+    return round(boldness * 0.6 + 0.4 * familiarity, 2)
+
+
+def question_of(qid, npc, hearts, variant):
+    """(question dict, state) for one question id, NPC and card variant. The state is the card
+    plus the question's fixed reference situation."""
+    card = CARDS["cards"][npc][variant][str(hearts)]
+    if qid.startswith("attention_"):
+        step = {"attention_emote": "Emote", "attention_bubble": "Bubble",
+                "attention_approach": "Approach"}[qid]
+        text = "should {0} try to get the player's attention with {1} now?".format(npc, step)
+        context = ("\nurge=0.60; hearts={0}; step={1}; player last seen: EarlierToday, "
+                   "12 ticks ago, first-hand").format(hearts, step)
+        if step == "Approach":
+            context += "; would look for them at the Beach (SeenToday)"
+        context += "\n"
+        return {"type": "noul", "instructions": text}, card + context
+    if qid == "speak":
+        text = "does {0} have news for the player?".format(npc)
+        context = "\nnews:\n- yesterday {0} saw the player at the Stardrop Saloon\n".format(npc)
+        return {"type": "noul", "instructions": text}, card + context
+    if qid == "hold_against":
+        text = "would {0} hold this against the player?".format(npc)
+        context = ("\ngrudge:\n"
+                   "- two days ago the player gave them a hated gift\n"
+                   "- yesterday they tried to get the player's attention and were ignored\n")
+        return {"type": "noul", "instructions": text}, card + context
+    if qid == "close_friendly":
+        text = "would {0} walk over to greet the player now?".format(npc)
+        context = ("\nmotive:\n"
+                   "- reason: they miss the player (they have not talked in two days)\n"
+                   "- act: walk over and greet\n"
+                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts))
+        return {"type": "noul", "instructions": text}, card + context
+    if qid == "close_hostile":
+        text = "would {0} confront the player now?".format(npc)
+        context = ("\nmotive:\n"
+                   "- reason: the player stood them up two days ago and never apologized\n"
+                   "- act: confront them about it\n"
+                   "- effective boldness: {0} of 1, cost: 0.5 of 1\n").format(effective_boldness(npc, hearts))
+        return {"type": "noul", "instructions": text}, card + context
+    if qid == "choose":
+        question = {"type": "choice", "instructions": "What would {0} do?".format(npc),
+                    "criteria": dict(CHOOSE)}
+        # The reason and the NPC's own effective boldness, never the act itself: stating
+        # "walk over" in the state would build in the answer.
+        context = ("\nmotive:\n"
+                   "- reason: they miss the player (they have not talked in two days)\n"
+                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts))
+        return question, card + context
+    if qid == "welcome":
+        return {"type": "noul", "instructions": WELCOME.format(npc=npc)}, card
+    raise ValueError(qid)
+
+
+def post(state, model, question):
+    """One request: a state and one question. Returns (answer dict, ms)."""
+    body = {"state": state, "model": model, "questions": {"q": question}}
     headers = {"Content-Type": "application/json"}
     key = os.environ.get("LAYA_API_KEY")
     if key:
@@ -91,12 +131,12 @@ def post(state, model, questions):
     start = time.monotonic()
     with urllib.request.urlopen(req, timeout=180) as resp:
         result = json.load(resp)
-    return result["answers"], (time.monotonic() - start) * 1000
+    return result["answers"].get("q", {}), (time.monotonic() - start) * 1000
 
 
 def warm_up(model):
     try:
-        post("npc: Warmup\n", model, {"q": {"type": "noul", "instructions": "Is this a warm-up call?"}})
+        post("npc: Warmup\n", model, {"type": "noul", "instructions": "Is this a warm-up call?"})
     except Exception:
         pass  # the first real call will still work; it is just slower
 
@@ -155,36 +195,21 @@ def spearman(a, b):
 
 def ask_run(npc_names, variant, hearts, question_ids):
     """Ask the given questions of every villager's card (variant, hearts). One request per
-    question (each has its own reference situation appended to the card). Returns
-    {question_id: (values, latencies)}."""
+    question (each has its own reference situation). Returns
+    {question_id: (values, latencies)} with NaN answers dropped."""
     by_question = {qid: ([], []) for qid in question_ids}
     done = 0
     for npc in npc_names:
-        card = CARDS["cards"][npc][variant][str(hearts)]
         for qid in question_ids:
+            question, state = question_of(qid, npc, hearts, variant)
+            answers, ms = post(state, MODEL, question)
             if qid == "choose":
-                question = {"type": "choice",
-                            "instructions": "What would {0} do?".format(npc),
-                            "criteria": dict(CHOOSE)}
-                state = card + ("\nmotive:\n"
-                                "- reason: they miss the player (they have not talked in two days)\n"
-                                "- act: walk over and say it in person\n"
-                                "- effective boldness: 0.6 of 1, cost: 0.3 of 1\n")
-            elif qid == "welcome":
-                question = {"type": "noul", "instructions": WELCOME.format(npc=npc)}
-                state = card
+                value = answers.get("probabilities", {}).get("walk", float("nan"))
             else:
-                text, _trait, _dir, context = QUESTIONS[qid]
-                question = {"type": "noul", "instructions": text.format(npc=npc)}
-                state = card + context
-            answers, ms = post(state, MODEL, {"q": question})
-            answer = answers.get("q", {})
-            if qid == "choose":
-                value = answer.get("probabilities", {}).get("walk", float("nan"))
-            else:
-                value = answer.get("noul", float("nan"))
-            by_question[qid][0].append(value)
-            by_question[qid][1].append(ms)
+                value = answers.get("noul", float("nan"))
+            if value == value:  # NaN-safe: a failed answer is dropped, never counted
+                by_question[qid][0].append(value)
+                by_question[qid][1].append(ms)
             done += 1
             if done % 34 == 0:
                 print("  %s %s hearts=%s: %d/%d done (last %.0f ms)" % (
@@ -201,20 +226,21 @@ def summarize(question_ids, npc_names, variant, hearts, label):
         rows[qid] = {
             "spread": percentile(values, 0.9) - percentile(values, 0.1),
             "median": median(values),
-            "min": min(values),
-            "max": max(values),
+            "min": min(values) if values else float("nan"),
+            "max": max(values) if values else float("nan"),
             "latency_ms": median(latencies),
             "n": len(values),
         }
-        if qid == "choose":
+        if qid in ("choose", "welcome") or qid.startswith("attention_") or qid.startswith("close_"):
             trait_name = "boldness"
             direction = +1
-        elif qid == "welcome":
-            trait_name = "boldness"
+        elif qid == "speak":
+            trait_name = "chattiness"
             direction = +1
-        else:
-            _text, trait_name, direction, _ctx = QUESTIONS[qid]
-        traits = [TRAITS["characters"][n]["boldness" if trait_name == "boldness" else trait_name] for n in npc_names]
+        else:  # hold_against: forgiveness, inverted
+            trait_name = "forgiveness"
+            direction = -1
+        traits = [TRAITS["characters"][n][trait_name] for n in npc_names]
         r = spearman(values, traits)
         rows[qid]["spearman"] = r
         rows[qid]["flat"] = rows[qid]["spread"] < FLAT_SPREAD
@@ -228,7 +254,8 @@ def main():
     print("character-spread eval: %s on %s (%d villagers)" % (MODEL, BASE, len(npc_names)))
     warm_up(MODEL)
 
-    mid_ids = list(QUESTIONS.keys()) + ["choose"]
+    mid_ids = ["attention_emote", "attention_bubble", "attention_approach",
+               "speak", "hold_against", "close_friendly", "close_hostile", "choose"]
     results = {}
     for variant in ("A", "B"):
         for hearts in (4, 6):
@@ -257,7 +284,8 @@ def main():
     calibration = {
         "note": ("Per-question medians and spreads of the model's answers over all villagers' "
                  "cards, from the character-spread eval (sidecar/eval/run_spread.py, the hearts-4 "
-                 "reference run; the welcome question from the hearts-0 newcomer run). The "
+                 "reference run; the welcome question from the hearts-0 newcomer run). Keyed by "
+                 "the question templates the mod asks (see LayaCalibration.KnownTemplates). The "
                  "corrections (RelativeScale and w) are deliberately absent: they stay off until "
                  "a spread run says a question needs them (docs/spec/laya.md, 'Character spread')."),
         "checkpoint": MODEL,

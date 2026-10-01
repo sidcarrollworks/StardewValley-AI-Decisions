@@ -40,7 +40,7 @@ public static class Program
         var cards = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, string>>>(StringComparer.Ordinal);
         foreach (string npc in gameTraits.Keys.OrderBy(n => n, StringComparer.Ordinal))
         {
-            string words = TemperamentWords(gameTraits[npc]);
+            string words = CardText.TemperamentWords(gameTraits[npc].Manner, gameTraits[npc].Anxiety, gameTraits[npc].Optimism);
             string voice = VoiceSheets.Voice(npc);
             TemperamentView view = MindsSnapshotBuilder.TemperamentOf(table.Of(npc), seeded: true, gameTraits: words);
             var variants = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
@@ -109,14 +109,5 @@ public static class Program
             result[npc.Name] = (text(data.GetProperty("Manner")), text(data.GetProperty("SocialAnxiety")), text(data.GetProperty("Optimism")));
         }
         return result;
-    }
-
-    /// <summary>The temperament line from Data/Characters, in the mod's words (ModEntry.TemperamentOf).</summary>
-    public static string TemperamentWords((string Manner, string Anxiety, string Optimism) traits)
-    {
-        static string manner(string m) => m switch { "Polite" => "polite", "Rude" => "rude", _ => "neutral" };
-        static string anxiety(string a) => a switch { "Outgoing" => "outgoing", "Shy" => "shy", _ => "neutral" };
-        static string optimism(string o) => o switch { "Positive" => "optimistic", "Negative" => "pessimistic", _ => "neutral" };
-        return $"manners {manner(traits.Manner)}, {anxiety(traits.Anxiety)}, {optimism(traits.Optimism)}";
     }
 }

@@ -1,5 +1,5 @@
 {
-  "note": "Per-question medians and spreads of the model's answers over all villagers' cards, from the character-spread eval (sidecar/eval/run_spread.py, the hearts-4 reference run; the welcome question from the hearts-0 newcomer run). The corrections (RelativeScale and w) are deliberately absent: they stay off until a spread run says a question needs them (docs/spec/laya.md, 'Character spread').",
+  "note": "Per-question medians and spreads of the model's answers over all villagers' cards, from the character-spread eval (sidecar/eval/run_spread.py, the hearts-4 reference run; the welcome question from the hearts-0 newcomer run). Keyed by the question templates the mod asks (see LayaCalibration.KnownTemplates). The corrections (RelativeScale and w) are deliberately absent: they stay off until a spread run says a question needs them (docs/spec/laya.md, 'Character spread').",
   "checkpoint": "typed-decisions",
   "reference_hearts": 4,
   "flat_spread": 0.05,
@@ -7,92 +7,92 @@
   "questions": {
     "attention_emote": {
       "A": {
-        "median": 0.3234,
-        "spread": 0.23751
+        "median": 0.39849999999999997,
+        "spread": 0.23258999999999996
       },
       "B": {
-        "median": 0.4517,
-        "spread": 0.25764
+        "median": 0.43195,
+        "spread": 0.16215000000000002
       }
     },
     "attention_bubble": {
       "A": {
-        "median": 0.22005,
-        "spread": 0.10629
+        "median": 0.38634999999999997,
+        "spread": 0.24660999999999994
       },
       "B": {
-        "median": 0.24925,
-        "spread": 0.11396999999999993
+        "median": 0.45485,
+        "spread": 0.19507000000000002
       }
     },
     "attention_approach": {
       "A": {
-        "median": 0.08355,
-        "spread": 0.09910999999999999
+        "median": 0.57245,
+        "spread": 0.07352999999999987
       },
       "B": {
-        "median": 0.1148,
-        "spread": 0.06778
+        "median": 0.5606,
+        "spread": 0.04901
       }
     },
     "speak": {
       "A": {
-        "median": 0.36624999999999996,
-        "spread": 0.16743999999999998
+        "median": 0.47795,
+        "spread": 0.034150000000000014
       },
       "B": {
-        "median": 0.34955,
-        "spread": 0.17312
+        "median": 0.4676,
+        "spread": 0.034609999999999974
       }
     },
     "hold_against": {
       "A": {
-        "median": 0.4256,
-        "spread": 0.10631000000000002
+        "median": 0.42405000000000004,
+        "spread": 0.13463999999999998
       },
       "B": {
-        "median": 0.42945,
-        "spread": 0.11069000000000001
+        "median": 0.43035,
+        "spread": 0.14612999999999998
       }
     },
     "close_friendly": {
       "A": {
-        "median": 0.5972,
-        "spread": 0.07007999999999992
+        "median": 0.6143000000000001,
+        "spread": 0.09165999999999996
       },
       "B": {
-        "median": 0.5299499999999999,
-        "spread": 0.24766999999999995
+        "median": 0.58605,
+        "spread": 0.12341999999999997
       }
     },
     "close_hostile": {
       "A": {
-        "median": 0.6245,
-        "spread": 0.08868999999999994
+        "median": 0.65805,
+        "spread": 0.09777999999999998
       },
       "B": {
-        "median": 0.5982,
-        "spread": 0.11787000000000003
+        "median": 0.6392,
+        "spread": 0.12793
       }
     },
     "choose": {
       "A": {
-        "median": 0.6918,
-        "spread": 0.09647000000000006
+        "median": 0.5159499999999999,
+        "spread": 0.08472999999999997
       },
       "B": {
-        "median": 0.6950000000000001,
-        "spread": 0.10929999999999995
+        "median": 0.53495,
+        "spread": 0.14242
       }
     },
     "welcome_newcomer": {
       "A": {
-        "median": 0.3942,
-        "spread": 0.2999899999999999
+        "median": 0.3955,
+        "spread": 0.28889999999999993
       },
       "B": {
-        "median": 0.39725,
-        "spread": 0.2585
+        "median": 0.401,
+        "spread": 0.26432000000000005
       }
     },
     "choose_bring_up": {
