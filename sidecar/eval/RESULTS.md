@@ -100,12 +100,12 @@ direction (forgiveness inverted for hold-against) >= 0.3. Flat = spread < 0.05.
 | speak | chattiness | B | 0.035 | 0.468 | -0.10 | **FLAT**, no |
 | hold_against | forgiveness (inv.) | A | 0.135 | 0.424 | -0.40 | **yes** |
 | hold_against | forgiveness (inv.) | B | 0.146 | 0.430 | -0.35 | **yes** |
-| close_friendly | boldness | A | 0.092 | 0.614 | +0.27 | no |
-| close_friendly | boldness | B | 0.123 | 0.586 | +0.10 | no |
-| close_hostile | boldness | A | 0.098 | 0.658 | +0.20 | no |
-| close_hostile | boldness | B | 0.128 | 0.639 | +0.37 | **yes** |
-| choose (P walk over) | boldness | A | 0.085 | 0.516 | +0.25 | no |
-| choose (P walk over) | boldness | B | 0.142 | 0.535 | +0.01 | no |
+| close_friendly | boldness | A | 0.070 | 0.614 | +0.13 | no |
+| close_friendly | boldness | B | 0.111 | 0.591 | -0.13 | no |
+| close_hostile | boldness | A | 0.109 | 0.658 | +0.32 | **yes** |
+| close_hostile | boldness | B | 0.145 | 0.639 | +0.48 | **yes** |
+| choose (P walk over) | boldness | A | 0.075 | 0.508 | -0.02 | no |
+| choose (P walk over) | boldness | B | 0.121 | 0.511 | -0.10 | no |
 | welcome (newcomer) | boldness | A | 0.289 | 0.396 | +0.54 | **yes** |
 | welcome (newcomer) | boldness | B | 0.264 | 0.401 | +0.51 | **yes** |
 
@@ -125,11 +125,11 @@ Median latency 30-40 ms per call on the GPU. Hearts 6 moves nothing by more than
 | speak | chattiness | B | 0.244 | 0.421 | -0.18 | no |
 | hold_against | forgiveness (inv.) | A | 0.141 | 0.232 | -0.23 | no |
 | hold_against | forgiveness (inv.) | B | 0.123 | 0.205 | -0.20 | no |
-| close_friendly | boldness | A | 0.066 | 0.894 | +0.41 | **yes** |
-| close_friendly | boldness | B | 0.145 | 0.870 | +0.47 | **yes** |
-| close_hostile | boldness | A | 0.083 | 0.944 | +0.36 | **yes** |
-| close_hostile | boldness | B | 0.160 | 0.891 | +0.57 | **yes** |
-| choose (P walk over) | boldness | A | 0.135 | 0.257 | +0.42 | **yes** |
+| close_friendly | boldness | A | 0.084 | 0.897 | +0.35 | **yes** |
+| close_friendly | boldness | B | 0.149 | 0.865 | +0.38 | **yes** |
+| close_hostile | boldness | A | 0.090 | 0.941 | +0.30 | **yes** |
+| close_hostile | boldness | B | 0.146 | 0.889 | +0.46 | **yes** |
+| choose (P walk over) | boldness | A | 0.140 | 0.247 | +0.32 | **yes** |
 | choose (P walk over) | boldness | B | 0.189 | 0.326 | +0.54 | **yes** |
 | welcome (newcomer) | boldness | A | 0.554 | 0.424 | +0.38 | **yes** |
 | welcome (newcomer) | boldness | B | 0.604 | 0.326 | +0.43 | **yes** |

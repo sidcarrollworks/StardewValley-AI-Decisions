@@ -403,13 +403,15 @@ public class ModEntry : Mod
     {
         try
         {
+            _spread.Reset(); // first, unconditionally: the spread panel's day starts here and the
+                             // overnight plan's answers count toward the day they plan for — even
+                             // when a later step below throws, the table must not keep
+                             // yesterday's answers (SpreadPanelTests pins the order: only an
+                             // explicit Reset clears, nothing at the 6:00 tick)
             _events.Drain(_memory, Now(119), Monitor); // gifts/quests after the last tick still
                                                        // make tonight's plan
             _memory.DecayBeliefs(Now(119), DailyDecay); // beliefs untouched today age (routines.md)
             NoteDayEnd();
-            _spread.Reset(); // the spread panel's day starts here: the overnight plan's answers
-                             // count toward the day they plan for (SpreadPanelTests pins the
-                             // order: only an explicit Reset clears, nothing at the 6:00 tick)
             StartPlanning();
         }
         catch (Exception ex)

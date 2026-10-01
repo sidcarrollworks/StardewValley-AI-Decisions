@@ -53,8 +53,10 @@ public class LayaCalibrationTests
     [Fact]
     public void NormalizeTemplateMatchesTheModsRealQuestions()
     {
-        // The exact strings the mod produces (the name replaced by <npc>):
-        // InitiationLadder.cs:204 — "should {npc} try to get the player's attention with {step.Value} now?"
+        // Unit test of the mapper on the mod's exact wordings (the strings come from
+        // InitiationLadder.AttentionProposition / IntentPlanner.SpeakProposition; the test that
+        // calls the REAL builders and breaks on a wording change lives in
+        // tests/NpcMinds.Tests/SpreadPanelTests.cs).
         Assert.Equal("attention_emote",
             LayaCalibration.NormalizeTemplate("should <npc> try to get the player's attention with Emote now?"));
         Assert.Equal("attention_bubble",

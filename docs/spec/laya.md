@@ -200,15 +200,15 @@ question). Results (2026-10-02, `sidecar/eval/RESULTS.md`, revised after review)
   negative on both checkpoints — with a real news section the model answers the gate at ~0.47 for
   everyone. Approach is borderline (0.074 A, 0.049 B) and doesn't follow boldness.
 - **What follows its trait (typed-decisions):** bubble A (+0.37), emote B (+0.34), hold-against
-  A/B (-0.40/-0.35), close_hostile B (+0.37), and the newcomer welcome (+0.54/+0.51). English is
-  stronger across the board: emote, bubble, both close-calls, the choice variant and the welcome
-  all follow; only approach, speak and hold-against don't.
+  A/B (-0.40/-0.35), close_hostile A/B (+0.32/+0.48), and the newcomer welcome (+0.54/+0.51).
+  English is stronger across the board: emote, bubble, both close-calls, the choice variant and
+  the welcome all follow; only approach, speak and hold-against don't.
 - **Card B is a mixed bag**: it pushes emote and close_hostile over the line but costs bubble its
   ordering and flattens choose on typed-decisions; it also shifts levels. The first run's
   "leanings line is the fix" was too strong — it is a candidate, judged by the panel in real
   play.
-- **The choice variant separates characters better only on english** (+0.42/+0.54 vs
-  typed-decisions +0.25/+0.01); the checkpoint matters more than the question form.
+- **The choice variant separates characters better only on english** (+0.32/+0.54 vs
+  typed-decisions -0.02/-0.10); the checkpoint matters more than the question form.
 
 **Watched: the viewer's spread panel** ([debug-tools.md](debug-tools.md), "model spread panel"):
 the same numbers from real play, per question, live, with the flat and doesn't-follow marks and
@@ -302,8 +302,8 @@ speak-question rewording experiments the eval points at.
   next lever is the state (more news kinds), not the wording or the threshold.
 - ~~Is the model flat on personality?~~ Answered by the character-spread eval (2026-10-02, revised
   after review): only the speak gate is flat (and anti-correlated with chattiness); bubble,
-  hold-against, emote-with-leanings, close_hostile-with-leanings and the welcome follow their
-  traits on typed-decisions. The numeric corrections stay off — speak's personality belongs in
+  hold-against, close_hostile and the welcome follow their traits on typed-decisions (emote too,
+  with the leanings line). The numeric corrections stay off — speak's personality belongs in
   code (chattiness in the news weights), not in a prior. See "Character spread" above and
   `sidecar/eval/RESULTS.md`.
 - Whether to fine-tune later. Laya is open-weight, so possible, but not planned: typed questions with

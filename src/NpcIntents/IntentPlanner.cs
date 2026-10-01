@@ -105,7 +105,7 @@ public sealed class IntentPlanner
             // The wording was picked by the rewording experiment (sidecar/eval/speak_experiments.md):
             // "does X have news for the player?" separates newsy from dull states best on BOTH
             // checkpoints (typed-decisions and english).
-            string speakProposition = $"does {snapshot.Npc} have news for the player?";
+            string speakProposition = SpeakProposition(snapshot.Npc);
             List<string> options = offered
                 .Select(x => NewsPhrasing.Sentence(snapshot.Npc, x.Entry, DaysAgo(x.Entry, sourceDay)))
                 .ToList();
@@ -223,6 +223,10 @@ public sealed class IntentPlanner
         => $"{entry.Kind}|{entry.Subject}|{entry.AbsoluteTick}"; // the EVENT, not the kind:
         // "Saw Player" is shared by every NPC, but only entries from the same moment are the
         // same event (both NPCs saw the player's gift to Haley together).
+
+    /// <summary>The planner's speak question. Public so the spread panel's template-mapper test
+    /// can pin the EXACT wording by calling this instead of repeating the string.</summary>
+    public static string SpeakProposition(string npc) => $"does {npc} have news for the player?";
 
     /// <summary>State for the model: the NPC card (or the legacy voice anchor when the snapshot
     /// carries no card) as the highest-priority section, then the offered entries as plain-words

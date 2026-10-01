@@ -58,12 +58,16 @@ CHOOSE = {
 WELCOME = "Would {npc} go out of their way to welcome a newcomer in person?"
 
 
-def effective_boldness(npc, hearts):
-    """The close-call state's 'effective boldness', per NPC: the seed boldness plus a fixed
-    familiarity term from the run's hearts (D24's shape; fixed intensity 0.4)."""
+def effective_boldness(npc, hearts, hostile):
+    """The close-call state's 'effective boldness', per D24 (motives.md, 'Effective boldness'):
+    effective = boldness + familiarity + 0.5 x intensity. Familiarity toward the player is
+    0.03 x hearts for a friendly act; hostile acts get 0.15 x max(0, -regard) only, which is 0
+    here (no regard). Intensity is a fixed reference: 0.16 for the friendly motive (the spec's
+    worked example), 0.5 for the hostile one."""
     boldness = TRAITS["characters"][npc]["boldness"]
-    familiarity = min(0.5, hearts / 10.0)
-    return round(boldness * 0.6 + 0.4 * familiarity, 2)
+    familiarity = 0.0 if hostile else 0.03 * hearts
+    intensity = 0.5 if hostile else 0.16
+    return round(boldness + familiarity + 0.5 * intensity, 2)
 
 
 def question_of(qid, npc, hearts, variant):
@@ -95,14 +99,14 @@ def question_of(qid, npc, hearts, variant):
         context = ("\nmotive:\n"
                    "- reason: they miss the player (they have not talked in two days)\n"
                    "- act: walk over and greet\n"
-                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts))
+                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts, hostile=False))
         return {"type": "noul", "instructions": text}, card + context
     if qid == "close_hostile":
         text = "would {0} confront the player now?".format(npc)
         context = ("\nmotive:\n"
                    "- reason: the player stood them up two days ago and never apologized\n"
                    "- act: confront them about it\n"
-                   "- effective boldness: {0} of 1, cost: 0.5 of 1\n").format(effective_boldness(npc, hearts))
+                   "- effective boldness: {0} of 1, cost: 0.5 of 1\n").format(effective_boldness(npc, hearts, hostile=True))
         return {"type": "noul", "instructions": text}, card + context
     if qid == "choose":
         question = {"type": "choice", "instructions": "What would {0} do?".format(npc),
@@ -111,7 +115,7 @@ def question_of(qid, npc, hearts, variant):
         # "walk over" in the state would build in the answer.
         context = ("\nmotive:\n"
                    "- reason: they miss the player (they have not talked in two days)\n"
-                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts))
+                   "- effective boldness: {0} of 1, cost: 0.3 of 1\n").format(effective_boldness(npc, hearts, hostile=False))
         return question, card + context
     if qid == "welcome":
         return {"type": "noul", "instructions": WELCOME.format(npc=npc)}, card

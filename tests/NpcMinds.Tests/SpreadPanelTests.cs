@@ -1,4 +1,6 @@
 using NpcDecision;
+using NpcInitiation;
+using NpcIntents;
 using Xunit;
 
 namespace NpcMinds.Tests;
@@ -144,5 +146,32 @@ public sealed class SpreadPanelTests
         // A missing NPC changes nothing.
         table.Record("whatever", null, 0.5);
         Assert.Single(table.Copy());
+    }
+
+    [Fact]
+    public void NormalizeTemplateMatchesTheModsRealQuestions()
+    {
+        // Built by the REAL code, not repeated strings, so a wording change breaks this test:
+        // the ladder's attention question (InitiationLadder.AttentionProposition) and the
+        // planner's speak question (IntentPlanner.SpeakProposition), with the NPC name replaced
+        // by <npc> exactly as the recorder does.
+        string ladder(string step)
+            => SpreadTable.ReplaceNpc(InitiationLadder.AttentionProposition("Haley", step), "Haley");
+        Assert.Equal("attention_emote", LayaCalibration.NormalizeTemplate(ladder("Emote")));
+        Assert.Equal("attention_bubble", LayaCalibration.NormalizeTemplate(ladder("Bubble")));
+        Assert.Equal("attention_approach", LayaCalibration.NormalizeTemplate(ladder("Approach")));
+        Assert.Equal("speak", LayaCalibration.NormalizeTemplate(
+            SpreadTable.ReplaceNpc(IntentPlanner.SpeakProposition("Haley"), "Haley")));
+        Assert.Equal("hold_against", LayaCalibration.NormalizeTemplate("would <npc> hold this against the player?"));
+        Assert.Equal("welcome_newcomer",
+            LayaCalibration.NormalizeTemplate("Would <npc> go out of their way to welcome a newcomer in person?"));
+        // Unknown steps and unrelated questions stay unmapped.
+        Assert.Null(LayaCalibration.NormalizeTemplate(ladder("Mail")));
+        Assert.Null(LayaCalibration.NormalizeTemplate("anything else"));
+        // The trait mapping follows the normalized id.
+        Assert.Equal(("boldness", +1), LayaCalibration.TraitForTemplate(ladder("Emote")));
+        Assert.Equal(("chattiness", +1), LayaCalibration.TraitForTemplate(
+            SpreadTable.ReplaceNpc(IntentPlanner.SpeakProposition("Haley"), "Haley")));
+        Assert.Equal(("forgiveness", -1), LayaCalibration.TraitForTemplate("would <npc> hold this against the player?"));
     }
 }
