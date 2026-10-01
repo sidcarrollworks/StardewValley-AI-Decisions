@@ -19,6 +19,8 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |
 | `mod/StardewNpcMod/` | The SMAPI mod (compile-verified against the real game + SMAPI). Hooks SaveLoaded/DayStarted/TimeChanged/DayEnding/Saving/ReturnedToTitle; persists memory per save; each tick every NPC records the player and other NPCs in the same location within 8 tiles; shadow-logs overnight intents and ladder attempts. `config.json`: `DecisionBackend` = `Fake` or `Laya`. |
 | `tools/ScheduleExtractor/` | Command-line wrapper: schedule JSON files in, counts out. |
+| `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six traits per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). Not in the mod yet. |
+| `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (68). |
 | `tests/NpcMemory.Tests/` | xUnit tests (155). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
@@ -26,8 +28,10 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (164). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (59). |
+| `tests/NpcTemperament.Tests/` | xUnit tests (20). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |
+| `fixtures/game/temperament/` | Game traits per villager (`characters.json`, decoded from `Data/Characters`), the draft seed table (`temperament.json`, plus `temperament.md` for review) and hand overrides. Dialogue itself is not committed. |
 | `fixtures/wiki/Abigail.json` | Abigail's schedule as quoted on the wiki's Modding:Schedule data page (1.5.1-era data, kept for comparison). |
 | `fixtures/synthetic/Testy.json` | An invented NPC that exercises every rule (GOTO, NOT friendship, MAIL, `a` times, omitted location, `bed`, time 0, bad data). Not game data. |
 

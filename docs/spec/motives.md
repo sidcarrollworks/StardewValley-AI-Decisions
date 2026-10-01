@@ -97,7 +97,11 @@ mod passes a small `WeatherFacts` record into the tick.
 
 The chosen motive is passed to the ladder (step choice, via its existing yes/no) and the planner (the
 line's motive variant). Temperament matters through the card: a shy or negative character's hurt
-tends toward letters or silence, an outgoing one's gratitude toward visits.
+tends toward letters or silence, an outgoing one's gratitude toward visits. Per-character seed
+values (warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) derived from each
+villager's dialogue and game traits are specified in [temperament.md](temperament.md); when wired
+they scale the factors above per character (for example forgiveness sets the grudge's decay and
+the "hold it against" fallback).
 
 ## Tuning constants
 

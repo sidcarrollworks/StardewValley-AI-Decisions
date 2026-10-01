@@ -112,3 +112,4 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 | A new ladder step | the end of `InitiationStep`, `Available`, the `StepThresholds` array, the response window in `ResolveAt` | Add a cap if it's passive |
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |
 | A setting | `ModConfig` | Document it in `docs/architecture.md` |
+| A temperament trait or signal | `TemperamentScorer.Recipes` / `DialogueFeatures` | Regenerate `fixtures/game/temperament/` in the same PR (`docs/spec/temperament.md`) |
