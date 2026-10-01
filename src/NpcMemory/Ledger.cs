@@ -74,9 +74,16 @@ public sealed class Ledger
 
     /// <summary>Every subject this observer has an entry for, in name order.</summary>
     public IReadOnlyList<string> SubjectsOf(string observer)
-        => _byObserver.TryGetValue(observer, out var bySubject)
-            ? bySubject.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList()
+        => _byObserver.TryGetValue(observer, out Dictionary<string, Entry>? subjects)
+            ? subjects.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList()
             : Array.Empty<string>();
+
+    /// <summary>How many last-seen entries the observer currently holds (every subject counts).
+    /// Read-only, for the playtest log's memory census.</summary>
+    public int EntryCountFor(string observer)
+        => _byObserver.TryGetValue(observer, out Dictionary<string, Entry>? subjects)
+            ? subjects.Count
+            : 0;
 
     /// <summary>Tell `listener` where `subject` is, from `speaker`'s already-coarsened knowledge.
     /// The listener stores the view at hop+1, never with more detail than the speaker had, and
