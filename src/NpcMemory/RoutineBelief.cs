@@ -23,6 +23,13 @@ public sealed class RoutineBelief
     /// <summary>Co-presence ticks needed before the pair is "unlocked".</summary>
     public int UnlockThreshold { get; set; } = 240; // 40 game hours (two full days) of being around each other
 
+    /// <summary>The calendar day the pair was last co-located (drives the daily decay).</summary>
+    public int LastObservedDay { get; private set; }
+
+    /// <summary>True once a prior from real schedules has been seeded (seeding twice is a no-op;
+    /// learned co-presence then builds on top).</summary>
+    public bool Seeded { get; private set; }
+
     /// <summary>Region -> block[] pseudo-counts. Each block value is a non-negative double.</summary>
     public IReadOnlyDictionary<string, double[]> Counts => _counts;
 
@@ -65,6 +72,7 @@ public sealed class RoutineBelief
 
             Column(cell.Region)[block] += cell.Count; // accumulate, never overwrite
         }
+        Seeded = true;
     }
 
     /// <summary>Record co-presence at a region/block, adding `strength` to that cell.
@@ -73,6 +81,7 @@ public sealed class RoutineBelief
     {
         if (block < 0 || block >= BlockCount)
             throw new ArgumentOutOfRangeException(nameof(block), block, $"block must be in [0, {BlockCount})");
+        LastObservedDay = GameClock.DayIndex(absoluteTick);
 
         // `absoluteTick` is accepted for future age-weighting but is not used yet.
         Column(region)[block] += strength;
@@ -171,6 +180,8 @@ public sealed class RoutineBelief
             BlockMinutes = BlockMinutes,
             UnlockThreshold = UnlockThreshold,
             CoPresenceTicks = _coPresenceTicks,
+            LastObservedDay = LastObservedDay,
+            Seeded = Seeded,
             Counts = _counts.ToDictionary(
                 kv => kv.Key,
                 kv => (double[])kv.Value.Clone(),
@@ -189,11 +200,13 @@ public sealed class RoutineBelief
         if (dto.BlockMinutes <= 0 || dto.BlockMinutes > minutesPerDay || minutesPerDay % dto.BlockMinutes != 0)
             throw new ArgumentException($"invalid block size {dto.BlockMinutes} in JSON", nameof(json));
 
-        var belief = new RoutineBelief(dto.Observer, dto.Subject, dto.BlockMinutes)
-        {
-            UnlockThreshold = dto.UnlockThreshold,
-        };
+        var belief = new RoutineBelief(dto.Observer, dto.Subject, dto.BlockMinutes);
+        // The saved UnlockThreshold is deliberately ignored: tuning is not saved, so a code
+        // change applies to old saves (routines.md acceptance: an old 999 reads as the default).
+        // The field stays in the JSON for forward compatibility only.
         belief._coPresenceTicks = dto.CoPresenceTicks;
+        belief.LastObservedDay = dto.LastObservedDay;
+        belief.Seeded = dto.Seeded;
 
         if (dto.Counts is not null)
         {
@@ -228,6 +241,8 @@ public sealed class RoutineBelief
         public int BlockMinutes { get; set; }
         public int UnlockThreshold { get; set; }
         public double CoPresenceTicks { get; set; }
+        public int LastObservedDay { get; set; }
+        public bool Seeded { get; set; }
         public Dictionary<string, double[]>? Counts { get; set; }
     }
 }

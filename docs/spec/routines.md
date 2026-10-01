@@ -100,9 +100,15 @@ In-game: log the number of seeded pairs and the time taken at load; confirm it i
 
 ## Status
 
-Done: `src/NpcMemory/RoutineBelief.cs` (including the unused `SeedPrior`, `Decay`, `BestGuess`),
-`src/NpcSchedules/RoutinePrior.cs`, `RoutineExtractor.cs`. Not started: seeding in the mod, decay
-calls, the `UnlockThreshold` fix, `Seeded`.
+Done: `src/NpcMemory/RoutineBelief.cs` (including `SeedPrior`, `Decay`, `BestGuess`, the `Seeded`
+flag and the `LastObservedDay` day tracker), `src/NpcSchedules/RoutinePrior.cs`,
+`RoutineExtractor.cs`. Step 7 landed: the saved `UnlockThreshold` is ignored on read (tuning is
+not saved — an old 999 reads as the default 240), `MemoryStore.DecayBeliefs` runs at `DayEnding`
+(`DailyDecay` 0.97 on every belief untouched that day), and the mod seeds family priors from the
+game's own `Data/Schedules` once per save (same-home pairs, `FamilyStrength` 40, spouse skipped).
+The one gap from the acceptance list: with the playtest's `MinHabitEvidence` 12, a fresh prior
+(about 3-4 pseudo-counts per block) does not alone clear the lead floor — priors sharpen real
+co-presence rather than inventing leads. Revisit when distinct-day evidence lands.
 
 ## Open questions
 
