@@ -391,6 +391,15 @@ mod passes a small `WeatherFacts` record into the tick.
 | "would <npc> <act> toward <subject> now?" (close calls only) | `noul` | NPC card + the motive, its sources, the act, effective boldness and cost | `0.5 + margin / (2 x ClearBand)` |
 | "would <npc> hold this against the player?" | `noul` | NPC card + the grudge's source entries | 0.5 |
 
+**Character spread.** Every villager is judged by the same model, so if it reacts only weakly to
+the card, characters would look alike at close calls. The spread eval and the viewer's spread
+panel measure this per question ([laya.md](laya.md), "Character spread"). The first run
+(2026-10-02) found the close-call wordings follow boldness, so no numeric correction is on; only
+the news question is flat, and its personality goes into code (chattiness in the news weights).
+If a close-call question proves flat in real play, its answer can be read relative to the town or
+blended with a temperament prior before the 0.5 cut. The checkpoint stays `typed-decisions`
+until close calls are live (D27).
+
 **Deciding a close call.** `p' = p + MoodTilt x outlook` for a friendly act, `p - MoodTilt x
 outlook` for a hostile one; act when `p' >= 0.5`. No random draw: a close call is decided by what
 the model thinks and how the character woke up, which is the 50/50 case Sid described. The Laya
