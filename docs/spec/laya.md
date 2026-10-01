@@ -183,6 +183,16 @@ personality words, every villager gets roughly the model's idea of an average vi
 already shows it: shy Penny vs outgoing Sam differ by only 0.06-0.07 on the emote and bubble
 questions (`sidecar/eval/RESULTS.md`), and the speak answer sits in one compressed band.
 
+**When it matters** (Sid, 2026-10-02): less in the first season. Early on few villagers know the
+player, vanilla already supplies many introductions and scripted interactions, and players are busy
+with the farm. Low familiarity also makes most early calls clear "no"s under the act rule, so few
+reach the model. Flatness matters most from mid-game on, when many villagers sit at 4+ hearts with
+several motives near their act costs and close calls are common. One early exception is newcomer
+week ([newcomer-week.md](newcomer-week.md)): first impressions are where shy and outgoing should
+differ most, and its welcome question goes to the model. So the spread eval uses mid-game
+situations (hearts 4 and 6) as its reference, plus a 0-heart newcomer case, and its results gate
+the corrections before motives' close calls go live, not before then.
+
 The motives design limits the damage, because personality lives in code (boldness, costs,
 sensitivity, retention, regard, mood) and the model only decides close calls
 ([motives.md](motives.md), D24). This section adds the means to see the problem and correct it.
