@@ -105,10 +105,10 @@ public class IntentPlannerTests
         var snapshots = new[]
         {
             Snapshot("Abigail", Entry(1, "Player", "Saw")),
-            Snapshot("Penny", Entry(1, "Player", "Saw")),
-            Snapshot("Sam", Entry(1, "Player", "Saw")),
-            Snapshot("Leah", Entry(1, "Player", "Saw")),
-            Snapshot("Sebastian", Entry(1, "Player", "Saw")),
+            Snapshot("Penny", Entry(2, "Player", "Saw")),
+            Snapshot("Sam", Entry(3, "Player", "Saw")),
+            Snapshot("Leah", Entry(4, "Player", "Saw")),
+            Snapshot("Sebastian", Entry(5, "Player", "Saw")),
         };
 
         // FakeDecisionClient: yes/no = 0.5 (>= threshold), uniform choice over one option.
@@ -269,8 +269,8 @@ public class IntentPlannerTests
         var snapshots = new[]
         {
             Snapshot("Sam", Entry(1, "Player", "Saw")),        // 0.5
-            Snapshot("Abigail", Entry(1, "Player", "Saw")),    // 0.9
-            Snapshot("Sebastian", Entry(1, "Player", "Saw")),  // 0.7
+            Snapshot("Abigail", Entry(2, "Player", "Saw")),    // 0.9
+            Snapshot("Sebastian", Entry(3, "Player", "Saw")),  // 0.7
         };
 
         IntentPlan plan = planner.Plan(snapshots, seed: 1);
@@ -287,8 +287,8 @@ public class IntentPlannerTests
         var snapshots = new[]
         {
             Snapshot("Zed", Entry(1, "Player", "Saw")),
-            Snapshot("abigail", Entry(1, "Player", "Saw")),
-            Snapshot("Marnie", Entry(1, "Player", "Saw")),
+            Snapshot("abigail", Entry(2, "Player", "Saw")),
+            Snapshot("Marnie", Entry(3, "Player", "Saw")),
         };
 
         IntentPlan plan = planner.Plan(snapshots, seed: 1);

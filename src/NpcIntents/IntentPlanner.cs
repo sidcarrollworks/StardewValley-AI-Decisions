@@ -38,10 +38,10 @@ public sealed class IntentPlanner
         if (snapshots is null)
             return new IntentPlan(Array.Empty<IntentCandidate>());
 
-        // One Random for the whole plan: sampling follows the input order, so the same snapshots
-        // + seed always consume the stream identically.
+        // One Random for the whole plan. Pass 1 builds one Pick per speaking NPC; pass 2 samples
+        // them in RANKED order, so the seeded stream is consumed deterministically.
         var random = new Random(seed);
-        var scored = new List<(IntentCandidate Candidate, double Probability)>();
+        var picks = new List<Pick>();
 
         foreach (NpcMemorySnapshot snapshot in snapshots)
         {
@@ -141,38 +141,88 @@ public sealed class IntentPlanner
             if (!(speak >= _options.SpeakThreshold))
                 continue;
 
-            // 2b. Sample one entry from the blended weights (never argmax): the model's
-            // probabilities times the news score. The model can veto an option (probability 0)
-            // or steer between close ones, but the news it was told is what anchors the pick; a
-            // missing or degenerate answer leaves the pure news weights (intents.md).
-            int index = SampleIndex(BlendedWeights(probabilities, offered), options.Count, random);
-            DiaryEntry entry = offered[index].Entry;
-
-            // 3. Render the cited entry.
-            // Delivered the morning after the source day, so its entries are one day old.
-            int daysAgo = DaysAgo(entry, sourceDay);
-            string line = _renderer.Render(snapshot.Npc, snapshot.Voice, entry, daysAgo);
-
-            // 4. Novelty: never repeat a line this NPC already said.
-            if (AlreadySaid(snapshot.RecentLines, line))
-                continue;
-
-            string reason = $"cited \"{options[index]}\" (sampled p={Format(probabilities.Count > index ? probabilities[index] : 0.0)})";
-
-            scored.Add((new IntentCandidate(snapshot.Npc, line, entry, reason, bestNews), speak));
+            picks.Add(new Pick(snapshot.Npc, snapshot.Voice, offered, options, speak, bestNews,
+                BlendedWeights(probabilities, offered), snapshot.RecentLines, snapshot.News?.Hearts ?? 0));
         }
 
-        // 5. Best news first (week review, finding 4: the narrow yes/no band must not decide the
-        // speakers), then the yes/no probability, name ascending as the last tie-break, then cap.
-        IEnumerable<IntentCandidate> ordered = scored
-            .OrderByDescending(x => x.Candidate.News)
-            .ThenByDescending(x => x.Probability)
-            .ThenBy(x => x.Candidate.Npc, StringComparer.OrdinalIgnoreCase)
-            .Select(x => x.Candidate)
-            .Take(Math.Max(0, _options.MaxNpcsPerDay));
+        // Ranking (week review, finding 4): best news first — the narrow yes/no band must not
+        // decide the speakers — then the yes/no probability, then name ascending.
+        picks.Sort(static (a, b) =>
+        {
+            int news = b.BestNews.CompareTo(a.BestNews);
+            if (news != 0)
+                return news;
+            int prob = b.Speak.CompareTo(a.Speak);
+            if (prob != 0)
+                return prob;
+            return string.Compare(a.Npc, b.Npc, StringComparison.OrdinalIgnoreCase);
+        });
+
+        // Pass 2: sample in ranked order. Novelty (no line this NPC already said) and one-topic-
+        // per-subject (the higher-hearts speaker keeps a shared event) each get ONE fall to the
+        // next-best option before the NPC is skipped (intents.md, "Deterministic rules").
+        var ordered = new List<IntentCandidate>();
+        var owners = new Dictionary<string, Owner>(StringComparer.OrdinalIgnoreCase);
+        foreach (Pick pick in picks)
+        {
+            if (ordered.Count >= Math.Max(0, _options.MaxNpcsPerDay))
+                break;
+
+            var excluded = new HashSet<int>();
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                int? sampled = pick.Sample(random, excluded);
+                if (sampled is not { } index)
+                    break; // nothing left to fall back on
+
+                (DiaryEntry entry, double _) = pick.Offered[index];
+                string line = _renderer.Render(pick.Npc, pick.Voice, entry, DaysAgo(entry, sourceDay));
+
+                // Novelty (intents.md, planned change 1): never repeat a line this NPC said.
+                if (AlreadySaid(pick.RecentLines, line))
+                {
+                    excluded.Add(index);
+                    continue; // the one fall
+                }
+
+                // One topic per subject (planned change 2): the higher-hearts speaker keeps it.
+                string key = PairKey(entry);
+                if (owners.TryGetValue(key, out Owner? owner))
+                {
+                    if (pick.Hearts <= owner.Hearts)
+                    {
+                        excluded.Add(index);
+                        continue; // the one fall: someone closer already says it
+                    }
+
+                    // Takeover: the old owner falls to its next option once, in place, or drops.
+                    IntentCandidate? fallback = owner.Repick(_renderer, sourceDay, random);
+                    int position = ordered.IndexOf(owner.Candidate);
+                    if (fallback is null)
+                        ordered.RemoveAt(position);
+                    else
+                    {
+                        ordered[position] = fallback;
+                        owners[PairKey(fallback.Source)] = owner.With(fallback);
+                    }
+                    owners.Remove(key);
+                }
+
+                string reason = $"cited \"{pick.Options[index]}\" (sampled p={Format(pick.ProbabilityAt(index))})";
+                var candidate = new IntentCandidate(pick.Npc, line, entry, reason, pick.BestNews);
+                ordered.Add(candidate);
+                owners[key] = new Owner(candidate, pick, index, pick.Hearts);
+                break;
+            }
+        }
 
         return new IntentPlan(ordered);
     }
+
+    private static string PairKey(DiaryEntry entry)
+        => $"{entry.Kind}|{entry.Subject}|{entry.AbsoluteTick}"; // the EVENT, not the kind:
+        // "Saw Player" is shared by every NPC, but only entries from the same moment are the
+        // same event (both NPCs saw the player's gift to Haley together).
 
     /// <summary>State for the model: the NPC card (or the legacy voice anchor when the snapshot
     /// carries no card) as the highest-priority section, then the offered entries as plain-words
@@ -309,4 +359,92 @@ public sealed class IntentPlanner
 
     private static string Format(double value)
         => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <summary>One speaking NPC: its options, pick weights and novelty/collision bookkeeping.
+    /// Sampling happens in ranked order during pass 2 (the one fall is a fresh draw).</summary>
+    private sealed class Pick
+    {
+        public Pick(string npc, string voice, List<(DiaryEntry Entry, double Score)> offered,
+            List<string> options, double speak, double bestNews, double[] weights,
+            IReadOnlyList<string> recentLines, double hearts)
+        {
+            Npc = npc;
+            Voice = voice;
+            Offered = offered;
+            Options = options;
+            Speak = speak;
+            BestNews = bestNews;
+            Weights = weights;
+            RecentLines = recentLines;
+            Hearts = hearts;
+        }
+
+        public string Npc { get; }
+        public string Voice { get; }
+        public List<(DiaryEntry Entry, double Score)> Offered { get; }
+        public List<string> Options { get; }
+        public double Speak { get; }
+        public double BestNews { get; }
+        public double[] Weights { get; }
+        public IReadOnlyList<string> RecentLines { get; }
+        public double Hearts { get; }
+
+        public double ProbabilityAt(int index)
+            => index < Weights.Length ? Weights[index] : 0.0;
+
+        /// <summary>Sample one option from the weights, minus <paramref name="excluded"/>; null
+        /// when nothing usable is left.</summary>
+        public int? Sample(Random random, IReadOnlySet<int> excluded)
+        {
+            var weights = new double[Weights.Length];
+            bool any = false;
+            for (int i = 0; i < weights.Length; i++)
+            {
+                weights[i] = excluded.Contains(i) ? 0.0 : Weights[i];
+                any |= weights[i] > 0.0;
+            }
+            if (!any)
+                return null;
+            int index = SampleIndex(weights, weights.Length, random);
+            return index >= 0 ? index : null;
+        }
+    }
+
+    /// <summary>Who currently holds a (kind, subject) pair in the plan, so a higher-hearts NPC
+    /// can take it over and the old owner falls once.</summary>
+    private sealed class Owner
+    {
+        public Owner(IntentCandidate candidate, Pick pick, int citedIndex, double hearts)
+        {
+            Candidate = candidate;
+            Pick = pick;
+            CitedIndex = citedIndex;
+            Hearts = hearts;
+        }
+
+        public IntentCandidate Candidate { get; }
+        public Pick Pick { get; }
+        public int CitedIndex { get; }
+        public double Hearts { get; }
+
+        /// <summary>The owner's one fall: re-sample once without the cited option, novelty-checked
+        /// (no collision check: a takeover chain is rare and one hop is the spec). Null = drop.</summary>
+        public IntentCandidate? Repick(ILineRenderer renderer, int? sourceDay, Random random)
+        {
+            int? index = Pick.Sample(random, new HashSet<int> { CitedIndex });
+            if (index is not { } i)
+                return null;
+
+            (DiaryEntry entry, double _) = Pick.Offered[i];
+            string line = renderer.Render(Pick.Npc, Pick.Voice, entry, DaysAgo(entry, sourceDay));
+            if (AlreadySaid(Pick.RecentLines, line))
+                return null;
+
+            string reason = $"cited \"{Pick.Options[i]}\" (sampled p={Format(Pick.ProbabilityAt(i))})";
+            return new IntentCandidate(Pick.Npc, line, entry, reason, Pick.BestNews);
+        }
+
+        public Owner With(IntentCandidate candidate)
+            => new(candidate, Pick, CitedIndex, Hearts);
+    }
 }

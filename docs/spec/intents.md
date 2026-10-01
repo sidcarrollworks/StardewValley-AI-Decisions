@@ -89,8 +89,10 @@ gate at `SpeakThreshold` (0.25, a veto floor: the compressed 0.2-0.5 answer band
 real news); with a single option the pick question is skipped entirely (there is nothing to pick);
 sample from the blended pick weights (model probabilities x news
 score; a zero probability is a veto; a missing answer leaves the pure news weights); one
-`Random(seed)`, seed = DayIndex; render with `daysAgo`; drop a line equal to a recent one; rank
-speakers by best news score, then the yes/no probability, then name; keep the top 3.
+`Random(seed)`, seed = DayIndex, consumed in RANKED order (two passes: build every speaking NPC,
+rank by best news then yes/no then name, then sample); render with `daysAgo`; novelty and the
+one-topic-per-subject rule each give one fall to the next-best option before the NPC is skipped;
+keep the top 3.
 
 The news-first ranking and the pick blend are the week-review redesign (finding 4): the yes/no
 band measured in-game (0.47-0.60) barely separates speakers, so the deterministic news score
@@ -101,9 +103,11 @@ from 1.0 to 2.0 so "nice talking" chit-chat (Talked 1) never reaches the model, 
 Planned changes, in order:
 1. **Novelty:** a line is rejected if it equals one of the NPC's last 20 lines, or if the same
    (kind, subject) was cited by this NPC in the last `CiteCooldownDays` (3). A rejected NPC falls to
-   its next-best option once, then is skipped.
+   its next-best option once, then is skipped. **(done, step 5)**
 2. **One topic per subject across NPCs:** if two speakers would cite the same event (both saw the
    player's gift to Haley), keep the one with more hearts; the other falls to its next option.
+   An event is (kind, subject, AbsoluteTick), so two "Saw Player" entries from different moments
+   never collide. **(done, step 5)**
 3. **Vanilla overlap:** the brief asks to reject lines "too similar to vanilla dialogue". Templated
    lines are ours, so overlap is unlikely; defer until LLM text exists, which is not planned
    (D12).
@@ -117,8 +121,8 @@ Planned changes, in order:
 | `MaxRecentDiaryEntries` (options) | 5 | `IntentPlannerOptions` | no |
 | `SkipKinds` | `TriedToReach` | `IntentPlannerOptions` | no |
 | `MinNews` | 2.0 | `NewsworthinessOptions` | no |
-| `RecentLinesKept` | 20 | new | no (the lines are saved, the count is not) |
-| `CiteCooldownDays` | 3 | new | no |
+| `RecentLinesKept` | 20 | `PlanPersistence.Append` (`keep`) | no (the lines are saved, the count is not) |
+| `CiteCooldownDays` | 3 | `IntentPlannerOptions` | no |
 | `PlanningBudgetMs` | 20000 | `ModConfig` | config |
 
 ## Acceptance tests
@@ -148,9 +152,11 @@ In-game:
   degenerate answers fall back to news weights), `MinNews` 2.0, `SpeakThreshold` 0.25 as a veto
   floor, plain-sentence states and options (`NewsPhrasing`); the playtest fixes (PR #14): a
   player `Saw` is dropped when the NPC talked to the player that day, and a one-option pick skips
-  the pick question; the mod's `StartPlanning`
-  (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (164).
-- Not started: novelty wiring (`RecentLines` is always empty today), plan persistence, delivery.
+  the pick question; step 5: two-pass sampling in ranked order, novelty with one fall,
+  one-topic-per-subject by event (kind, subject, tick) with a hearts takeover, and the `intents`
+  / `recentLines` save keys (`PlanPersistence`); the mod's `StartPlanning`
+  (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (176).
+- Not started: plan delivery (step 6), vanilla-overlap rejection.
 
 ## Open questions
 

@@ -154,7 +154,7 @@ public class PlannerNewsTests
         var snapshots = new[]
         {
             Snap("Willy", 20, "Player", "Saw", "Town"), // 2
-            Snap("Alex", 20, "Player", "Saw", "Town"),  // 2
+            Snap("Alex", 21, "Player", "Saw", "Town"),  // 2 (a different moment: not the same event)
         };
 
         IntentPlan plan = new IntentPlanner(new FakeDecisionClient(), new StubRenderer(), News)
@@ -174,7 +174,7 @@ public class PlannerNewsTests
             new(10, "Player", "BirthdayForgotten", DiaryDetail.Format(("hearts", "3"))), // 4
             new(20, "Player", "Saw", "Town"),                                            // 2
         }, Array.Empty<string>(), Context("Abigail"));
-        var willy = Snap("Willy", 20, "Player", "Saw", "Town"); // 2
+        var willy = Snap("Willy", 25, "Player", "Saw", "Town"); // 2 (a different moment)
 
         IntentPlan plan = new IntentPlanner(new SkewedClient(), new StubRenderer(), News)
             .Plan(new[] { abigail, willy }, 42, sourceDay: 0);

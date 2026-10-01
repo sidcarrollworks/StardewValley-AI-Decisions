@@ -74,6 +74,13 @@ public class ModEntry : Mod
     private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _festivalTalked = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Delivered lines per NPC (novelty + cite cooldowns; persistence.md key
+    /// `recentLines`). Empty in shadow mode — nothing is delivered until step 6.</summary>
+    private readonly Dictionary<string, List<PlanPersistence.RecentLine>> _recentLines = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Planner tuning shared between the mod's news context and the plan job.</summary>
+    private readonly IntentPlannerOptions _plannerOptions = new();
+
     // NPC Minds viewer (docs/spec/debug-tools.md, "Live viewer"): read-only. The game thread
     // builds a snapshot after each tick and swaps it in; the server thread only serializes it.
     // The call log is written by the model workers through RecordingDecisionClient.
@@ -385,6 +392,8 @@ public class ModEntry : Mod
         _layaUp = true;
         _backlogAtTickStart = 0;
         _planCollectedLinesToday = -1;
+        _planToday = Array.Empty<IntentCandidate>();
+        _recentLines.Clear();
         QuestPatch.Reset();
         _feed.Clear();
         _calls.Clear();
@@ -556,14 +565,16 @@ public class ModEntry : Mod
             .Select(kv =>
             {
                 string npc = kv.Key;
-                var news = new NewsContext(npc, homes, BeliefsOf(npc), _regions, HeartsFor(npc),
-                    Array.Empty<(string, string)>());
+                _recentLines.TryGetValue(npc, out List<PlanPersistence.RecentLine>? said);
+                // Cite cooldown: recently delivered (kind, subject) pairs dock the news score.
+                var citations = PlanPersistence.RecentCitations(said, GameClock.DayIndex(Now(0)), _plannerOptions.CiteCooldownDays);
+                var news = new NewsContext(npc, homes, BeliefsOf(npc), _regions, HeartsFor(npc), citations);
                 // The NPC card is built here, on the game thread, and passed as a copy
                 // (docs/spec/laya.md, "The NPC card").
                 string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc),
                     HeartsFor(npc), TomorrowLine());
                 return new NpcMemorySnapshot(npc, VoiceSheets.Voice(npc), kv.Value.Entries.ToList(),
-                    Array.Empty<string>(), news, card);
+                    PlanPersistence.LinesFor(said), news, card);
             })
             .ToList();
         if (snapshots.Count == 0)
@@ -572,7 +583,7 @@ public class ModEntry : Mod
         int today = GameClock.DayIndex(Now(0));
         int seed = today; // deterministic per day
         _planJob = IntentPlanJob.Start(
-            budget => new IntentPlanner(Guarded("plan", budget), new LineRenderer(), new Newsworthiness())
+            budget => new IntentPlanner(Guarded("plan", budget), new LineRenderer(), new Newsworthiness(), _plannerOptions)
                 .Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
@@ -981,13 +992,23 @@ public class ModEntry : Mod
 
     private void SaveMemory()
     {
-        Helper.Data.WriteSaveData(SaveKey, new Dictionary<string, string>
+        var data = new Dictionary<string, string>
         {
             ["version"] = MemoryStore.CurrentVersion.ToString(),
             ["memory"] = _memory.ToJson(),
             ["ladder"] = _ladder.LatestJson, // last finished state; saving never waits on the model
-        });
-        Monitor.Log($"Memory saved ({_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} beliefs).", LogLevel.Info);
+        };
+
+        // The plan survives save-and-quit (persistence.md keys; additive, no version bump).
+        if (_planToday.Count > 0)
+            data["intents"] = new PlanPersistence.SavedPlan(
+                GameClock.DayIndex(Now(0)), false, _planToday.ToList()).ToJson();
+        if (_recentLines.Count > 0)
+            data["recentLines"] = PlanPersistence.RecentLine.ToJson(
+                _recentLines.Values.SelectMany(lines => lines));
+
+        Helper.Data.WriteSaveData(SaveKey, data);
+        Monitor.Log($"[shadow] Memory saved ({_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} beliefs; plan {_planToday.Count} line(s) kept for today).", LogLevel.Info);
     }
 
     private void LoadMemory()
@@ -1006,6 +1027,26 @@ public class ModEntry : Mod
             if (model.TryGetValue("ladder", out string? ladderJson))
                 _ladder = NewLadder(ladderJson);
             _memory.RemoveDiary("null"); // junk from before the quest-target guard (week review, finding 2)
+
+            // A saved plan is only today's: an older one belongs to a day that already happened.
+            if (model.TryGetValue("intents", out string? intentsJson)
+                && PlanPersistence.SavedPlan.FromJson(intentsJson) is { } saved
+                && !saved.Delivered && saved.Day == GameClock.DayIndex(Now(0)))
+            {
+                _planToday = saved.Candidates.ToList();
+                foreach (IntentCandidate candidate in saved.Candidates)
+                    _intentsToday.Add(candidate.Npc);
+                _planCollectedLinesToday = saved.Candidates.Count;
+            }
+            if (model.TryGetValue("recentLines", out string? linesJson))
+            {
+                foreach (PlanPersistence.RecentLine line in PlanPersistence.RecentLine.FromJson(linesJson))
+                {
+                    if (!_recentLines.TryGetValue(line.Npc, out List<PlanPersistence.RecentLine>? mine))
+                        _recentLines[line.Npc] = mine = new List<PlanPersistence.RecentLine>();
+                    mine.Add(line);
+                }
+            }
             return;
         }
 
