@@ -79,6 +79,8 @@ Roadmap step 3 (the Laya decision layer) landed in PR #7: `DecisionState` and th
 
 The step-3 in-game week (spring 10-16, shadow mode, Laya on the GPU) passed its acceptance test as plumbing (0/171 fallbacks, 0 drops, plan collected every morning) but its review found the decisions not ready for steps 5/6. PR #9 fixed the bugs (festival notes now saved; no more `null` quest diary; shadow `IgnoredBy` no longer written; habit leads need 12 evidence and never point where the seeker already is). PR #10 is the news-ranking redesign: speakers ranked by news score (not the compressed yes/no band), the pick blends model probabilities with news (veto kept, degenerate answers fall back to news weights), `MinNews` 2.0, `SpeakThreshold` 0.25 as a veto floor, and plain-sentence model states matching the eval phrasing; eval re-run live (typed-decisions 5/6, english 4/6). 647 tests green.
 
+The NPC Minds viewer (a debug tool, `docs/spec/debug-tools.md`, "Live viewer") came next: a read-only page at `http://127.0.0.1:8765/` that the mod serves while the game runs, showing each NPC's urge, rung, open attempt, what it knows of the player, where it would look, today's line, tonight's likely news and recent diary, plus feeds of ladder events and every model call with its probabilities and latency. It changes nothing in the game. 703 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NPC Minds</title>
+<style>
+  :root {
+    --bg: #f6f3ec; --panel: #fffdf8; --ink: #2b2620; --muted: #7a7064; --line: #e4ddd0;
+    --accent: #3f7d4e; --warm: #c7772e; --cool: #3c6f9c; --bad: #b0453a; --flash: #ffe38a;
+    --bar: #e9e2d4; --chip: #efe8da;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17150f; --panel: #211e17; --ink: #ece5d8; --muted: #9c9283; --line: #353026;
+      --accent: #6fbf7f; --warm: #e39a55; --cool: #79a9d6; --bad: #e0776b; --flash: #6b5a17;
+      --bar: #332e24; --chip: #2c2820;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
+           padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+  h1 { font-size: 17px; margin: 0; letter-spacing: .02em; }
+  .clock { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stat b { color: var(--ink); font-weight: 600; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: middle; }
+  .dot.ok { background: var(--accent); } .dot.bad { background: var(--bad); }
+  .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  @media (max-width: 640px) { .controls { margin-left: 0; flex-wrap: wrap; } input[type=search] { flex: 1; min-width: 0; } }
+  input[type=search], select { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
+  label.check { color: var(--muted); user-select: none; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; padding: 16px; align-items: start; }
+  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .6s; }
+  .card.recent { border-color: var(--warm); }
+  .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; }
+  .hearts { color: var(--bad); font-size: 12px; font-weight: 500; }
+  .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+  .badge.line { background: var(--accent); color: var(--panel); }
+  .badge.open { background: var(--warm); color: var(--panel); }
+  .urge { margin: 8px 0 4px; }
+  .urgebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; overflow: visible; }
+  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--cool), var(--warm)); transition: width .8s ease; }
+  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--muted); opacity: .55; }
+  .tick.next { background: var(--ink); opacity: 1; width: 2px; }
+  .urgeline { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .delta { font-weight: 600; }
+  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
+  dl { margin: 6px 0 0; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  .news { margin: 0; padding: 0; list-style: none; }
+  .news li { display: flex; gap: 6px; }
+  .score { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 26px; }
+  details { margin-top: 6px; font-size: 12.5px; }
+  summary { cursor: pointer; color: var(--muted); }
+  .diary { margin: 4px 0 0; padding: 0; list-style: none; }
+  .diary li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px; padding: 1px 0; }
+  .when { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .flash { animation: flash 6s ease-out; border-radius: 4px; }
+  @keyframes flash { 0% { background: var(--flash); } 100% { background: transparent; } }
+  aside { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 80px); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 0; display: flex; flex-direction: column; }
+  .panel h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 6px; }
+  .tabs button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+  .tabs button.on { color: var(--ink); border-color: var(--ink); }
+  .feed { overflow-y: auto; min-height: 0; flex: 1; margin: 0; padding: 0; list-style: none; font-size: 12.5px; }
+  .feed li { padding: 5px 0; border-top: 1px solid var(--line); }
+  .feed li:first-child { border-top: 0; }
+  .feed .meta { color: var(--muted); font-size: 11.5px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .kind { font-weight: 600; }
+  .k-attempt { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
+  .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
+  .fb { color: var(--bad); font-weight: 600; }
+  .probs { margin-top: 3px; display: grid; gap: 2px; }
+  .prob { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 6px; align-items: center; }
+  .prob .lbl { position: relative; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cool); opacity: .22; border-radius: 3px; }
+  .prob .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .plan li { padding: 3px 0; }
+  .empty { color: var(--muted); font-style: italic; }
+  .waiting { padding: 40px 16px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>NPC Minds</h1>
+  <span class="clock" id="clock">waiting for the game</span>
+  <span class="stat" id="model"></span>
+  <span class="stat" id="ladder"></span>
+  <span class="stat" id="plan"></span>
+  <span class="controls">
+    <span class="stat"><span class="dot" id="conn"></span><span id="age">connecting</span></span>
+    <input type="search" id="filter" placeholder="Filter villagers" aria-label="Filter villagers">
+    <select id="sort" aria-label="Sort">
+      <option value="urge">Sort by urge</option>
+      <option value="changed">Recently changed</option>
+      <option value="name">Sort by name</option>
+    </select>
+    <label class="check"><input type="checkbox" id="onlyKnown" checked> knows you</label>
+  </span>
+</header>
+<main>
+  <section>
+    <div class="grid" id="grid"></div>
+    <div class="waiting" id="waiting">Load a save in Stardew Valley. This page updates by itself every couple of seconds.</div>
+  </section>
+  <aside>
+    <div class="panel">
+      <h3>Today's planned lines</h3>
+      <ul class="feed plan" id="planned"></ul>
+    </div>
+    <div class="panel" style="flex:1">
+      <div class="tabs">
+        <button id="tabEvents" class="on">Events</button>
+        <button id="tabCalls">Model calls</button>
+      </div>
+      <ul class="feed" id="events"></ul>
+      <ul class="feed" id="calls" hidden></ul>
+    </div>
+  </aside>
+</main>
+<script>
+"use strict";
+const POLL_MS = 2000;
+const $ = id => document.getElementById(id);
+const cards = new Map();      // name -> { root, fields, prev }
+const changedAt = new Map();  // name -> Date.now() of the last change
+let lastSeq = -1, lastCallSeq = -1, lastEventSeq = -1, lastOk = 0, snapshot = null;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function flash(e) { e.classList.remove("flash"); void e.offsetWidth; e.classList.add("flash"); }
+function pct(v) { return isFinite(v) ? Math.round(v * 100) + "%" : "n/a"; }
+function fmt(v, d = 2) { return isFinite(v) ? Number(v).toFixed(d) : "n/a"; }
+function hearts(n) { return n > 0 ? "♥ " + n : ""; }
+
+function makeCard(npc, s) {
+  const root = el("article", "card");
+  const h = el("h2");
+  const name = el("span", "", npc.name);
+  const heartsEl = el("span", "hearts");
+  const lineBadge = el("span", "badge line", "has a line today");
+  const openBadge = el("span", "badge open");
+  h.append(name, heartsEl, lineBadge, openBadge);
+
+  const urge = el("div", "urge");
+  const bar = el("div", "urgebar");
+  const fill = el("div", "urgefill");
+  bar.append(fill);
+  const ticks = (s.stepThresholds || []).map((t, i) => {
+    const tk = el("div", "tick"); tk.style.left = (t * 100) + "%"; tk.title = s.stepNames[i] + " at " + t; bar.append(tk); return tk;
+  });
+  const urgeLine = el("div", "urgeline");
+  const urgeText = el("span"); const rungText = el("span");
+  urgeLine.append(urgeText, rungText);
+  urge.append(bar, urgeLine);
+
+  const dl = el("dl");
+  const row = label => { const dt = el("dt", "", label), dd = el("dd"); dl.append(dt, dd); return dd; };
+  const lastSeen = row("Last saw you");
+  const lead = row("Would look");
+  const planned = row("Today's line");
+  const news = row("Tonight");
+
+  const det = el("details");
+  const sum = el("summary");
+  const diary = el("ul", "diary");
+  det.append(sum, diary);
+
+  root.append(h, urge, dl, det);
+  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary }, prev: null };
+}
+
+function updateCard(c, npc, first) {
+  const f = c.fields, p = c.prev;
+  let changed = false;
+  f.heartsEl.textContent = hearts(npc.hearts);
+  f.lineBadge.hidden = !npc.intentToday;
+  f.openBadge.hidden = !npc.openStep;
+  f.openBadge.textContent = npc.openStep ? npc.openStep + " open " + (npc.openForTicks * 10) + " min" : "";
+
+  f.fill.style.width = Math.max(0, Math.min(1, npc.urge)) * 100 + "%";
+  f.ticks.forEach((t, i) => t.classList.toggle("next", i === npc.rung));
+  let delta = "";
+  if (p && Math.abs(npc.urge - p.urge) >= 0.005) {
+    const d = npc.urge - p.urge;
+    delta = ` <span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : ""}${d.toFixed(2)}</span>`;
+    changed = true;
+  }
+  f.urgeText.innerHTML = "urge <b>" + fmt(npc.urge) + "</b>" + delta;
+  const rung = "rung " + npc.rung + " " + npc.rungName + (npc.nextThreshold != null ? " at " + fmt(npc.nextThreshold) : "") +
+               (npc.attemptsToday ? " · " + npc.attemptsToday + " tried today" : "");
+  if (p && (p.rung !== npc.rung || p.attemptsToday !== npc.attemptsToday || p.openStep !== npc.openStep)) { flash(f.rungText); changed = true; }
+  f.rungText.textContent = rung;
+
+  const fields = [
+    [f.lastSeen, npc.lastSeen ? npc.lastSeen.summary : "never seen or heard of you"],
+    [f.lead, npc.lead ? npc.lead.summary : "no lead"],
+    [f.planned, npc.plannedLine ? "“" + npc.plannedLine + "”" : "none"],
+  ];
+  for (const [e, text] of fields) {
+    if (e.textContent !== text) { if (!first) { flash(e); changed = true; } e.textContent = text; }
+  }
+
+  const newsKey = JSON.stringify(npc.newsTonight);
+  if (!p || newsKey !== JSON.stringify(p.newsTonight)) {
+    f.news.replaceChildren();
+    if (!npc.newsTonight.length) f.news.append(el("span", "empty", "nothing newsworthy yet"));
+    else {
+      const ul = el("ul", "news");
+      for (const n of npc.newsTonight) { const li = el("li"); li.append(el("span", "score", fmt(n.score, 1)), el("span", "", n.sentence)); ul.append(li); }
+      f.news.append(ul);
+    }
+    if (!first) { flash(f.news); changed = true; }
+  }
+
+  const diaryKey = npc.diary.length ? npc.diary[0].absoluteTick + npc.diary[0].text : "";
+  const prevKey = p && p.diary.length ? p.diary[0].absoluteTick + p.diary[0].text : "";
+  f.sum.textContent = "Diary (" + npc.diaryCount + ")" + (npc.diary.length ? ": " + npc.diary[0].text : "");
+  if (first || diaryKey !== prevKey || npc.diaryCount !== p.diaryCount) {
+    f.diary.replaceChildren();
+    for (const d of npc.diary) { const li = el("li"); li.append(el("span", "when", d.when), el("span", "", d.text)); f.diary.append(li); }
+    if (!first && diaryKey !== prevKey) { flash(f.sum); changed = true; }
+  }
+
+  c.prev = npc;
+  if (changed) changedAt.set(npc.name, Date.now());
+}
+
+function render(s) {
+  snapshot = s;
+  $("waiting").hidden = s.npcs.length > 0;
+  $("clock").textContent = s.date ? s.date + " · " + s.time : "no save loaded";
+  const st = s.stats;
+  let model = `<span class="dot ${s.modelUp ? "ok" : "bad"}"></span>${s.backend}`;
+  if (st.calls >= 0) model += ` · <b>${st.calls}</b> calls · <b>${st.fallbacks}</b> fallbacks · median <b>${Math.round(st.medianMs)}</b> ms · p95 <b>${Math.round(st.p95Ms)}</b> ms`;
+  $("model").innerHTML = model;
+  $("ladder").innerHTML = `ladder backlog <b>${st.backlog}</b> · dropped <b>${st.dropped}</b>`;
+  $("plan").innerHTML = `overnight plan <b>${s.planState}</b>`;
+
+  const seen = new Set();
+  for (const npc of s.npcs) {
+    seen.add(npc.name);
+    let c = cards.get(npc.name);
+    const first = !c;
+    if (!c) { c = makeCard(npc, s); cards.set(npc.name, c); }
+    updateCard(c, npc, first);
+  }
+  for (const [name, c] of cards) if (!seen.has(name)) { c.root.remove(); cards.delete(name); }
+  layout();
+
+  const planned = $("planned");
+  planned.replaceChildren();
+  if (!s.planToday.length) planned.append(el("li", "empty", "No lines planned for today."));
+  for (const l of s.planToday) {
+    const li = el("li");
+    li.append(el("b", "", l.npc + ": "), document.createTextNode("“" + l.line + "”"));
+    const meta = el("div", "meta", "news " + fmt(l.news, 1) + " · " + l.reason);
+    li.append(meta);
+    planned.append(li);
+  }
+
+  const events = $("events");
+  const newestEvent = s.feed.length ? s.feed[0].seq : -1;
+  if (newestEvent !== lastEventSeq) {
+    events.replaceChildren();
+    if (!s.feed.length) events.append(el("li", "empty", "Nothing has happened yet."));
+    for (const ev of s.feed) {
+      const li = el("li");
+      const meta = el("div", "meta");
+      meta.append(el("span", "", ev.when), el("span", "kind k-" + ev.kind.toLowerCase(), ev.kind));
+      li.append(meta, el("div", "", ev.text));
+      if (lastEventSeq >= 0 && ev.seq > lastEventSeq) flash(li);
+      events.append(li);
+    }
+    lastEventSeq = newestEvent;
+  }
+}
+
+function renderCalls(calls) {
+  const list = $("calls");
+  const newest = calls.length ? calls[0].seq : -1;
+  if (newest === lastCallSeq) { updateCallAges(); return; }
+  list.replaceChildren();
+  if (!calls.length) list.append(el("li", "empty", "No model calls yet."));
+  for (const c of calls) {
+    const li = el("li");
+    li.title = c.contextHead;
+    const meta = el("div", "meta");
+    const age = el("span", "age"); age.dataset.at = c.atUtc;
+    meta.append(age, el("span", "kind", c.caller), el("span", "", c.type), el("span", "", Math.round(c.ms) + " ms"));
+    if (c.fellBack) meta.append(el("span", "fb", "fallback"));
+    li.append(meta, el("div", "", (c.npc ? c.npc + ": " : "") + c.question));
+    const probs = el("div", "probs");
+    for (const a of c.answers) {
+      const row = el("div", "prob");
+      const lbl = el("span", "lbl");
+      const fillEl = el("i"); fillEl.style.width = (isFinite(a.value) ? Math.max(0, Math.min(1, a.value)) * 100 : 0) + "%";
+      lbl.append(fillEl, document.createTextNode(a.label));
+      lbl.title = a.label;
+      row.append(lbl, el("span", "v", a.label.startsWith("score") ? fmt(a.value) : pct(a.value)));
+      probs.append(row);
+    }
+    li.append(probs);
+    if (lastCallSeq >= 0 && c.seq > lastCallSeq) flash(li);
+    list.append(li);
+  }
+  lastCallSeq = newest;
+  updateCallAges();
+}
+
+function updateCallAges() {
+  for (const a of document.querySelectorAll("#calls .age")) {
+    const secs = Math.max(0, Math.round((Date.now() - Date.parse(a.dataset.at)) / 1000));
+    a.textContent = secs < 60 ? secs + "s ago" : Math.round(secs / 60) + "m ago";
+  }
+}
+
+function layout() {
+  if (!snapshot) return;
+  const grid = $("grid");
+  const q = $("filter").value.trim().toLowerCase();
+  const onlyKnown = $("onlyKnown").checked;
+  const sort = $("sort").value;
+  const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q)) && (!onlyKnown || n.lastSeen || n.urge > 0));
+  list.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name)
+    : sort === "changed" ? (changedAt.get(b.name) || 0) - (changedAt.get(a.name) || 0) || a.name.localeCompare(b.name)
+    : b.urge - a.urge || a.name.localeCompare(b.name));
+  const now = Date.now();
+  const nodes = list.map(n => { const c = cards.get(n.name); c.root.classList.toggle("recent", now - (changedAt.get(n.name) || 0) < 10000); return c.root; });
+  const current = Array.from(grid.children);
+  if (current.length !== nodes.length || current.some((n, i) => n !== nodes[i])) grid.replaceChildren(...nodes);
+}
+
+async function poll() {
+  try {
+    const r = await fetch("state.json", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    lastOk = Date.now();
+    if (data.snapshot.seq !== lastSeq) { render(data.snapshot); lastSeq = data.snapshot.seq; }
+    else layout();
+    renderCalls(data.calls);
+  } catch (e) {
+    // the game is closed or loading: keep the last picture and try again
+  }
+  const secs = lastOk ? Math.round((Date.now() - lastOk) / 1000) : -1;
+  $("conn").className = "dot " + (lastOk && secs < 6 ? "ok" : "bad");
+  $("age").textContent = !lastOk ? "can't reach the game" : secs < 6 ? "live" : "last update " + secs + "s ago";
+  setTimeout(poll, POLL_MS);
+}
+
+$("filter").addEventListener("input", layout);
+$("sort").addEventListener("change", layout);
+$("onlyKnown").addEventListener("change", layout);
+for (const [btn, show, hide, other] of [["tabEvents", "events", "calls", "tabCalls"], ["tabCalls", "calls", "events", "tabEvents"]]) {
+  $(btn).addEventListener("click", () => { $(show).hidden = false; $(hide).hidden = true; $(btn).classList.add("on"); $(other).classList.remove("on"); });
+}
+poll();
+</script>
+</body>
+</html>

@@ -29,4 +29,12 @@ public sealed class ModConfig
     /// work finishes (docs/spec/laya.md, "A morning wait"). 0 disables it: lines arrive whenever
     /// the plan is ready, as before.</summary>
     public int MorningWaitMs { get; set; } = 10_000;
+
+    /// <summary>Serve the NPC Minds viewer, a read-only page showing what every NPC knows and
+    /// wants, at http://127.0.0.1:{MindsViewerPort}/ (docs/spec/debug-tools.md, "Live viewer").
+    /// Loopback only. On while the mod is in development.</summary>
+    public bool MindsViewer { get; set; } = true;
+
+    /// <summary>Port for the viewer. Not 8000: the Laya server uses that.</summary>
+    public int MindsViewerPort { get; set; } = 8765;
 }

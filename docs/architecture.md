@@ -36,6 +36,7 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
+| `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html` | NpcMemory, NpcDecision, NpcIntents, NpcInitiation | yes (read-only) |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
 | `mod/StardewNpcMod` | `ModEntry` (every game hook), `ModConfig`, `manifest.json` | the five "yes" projects; game + SMAPI via `Pathoschild.Stardew.ModBuildConfig` 4.3.1 | - |
@@ -102,7 +103,8 @@ TimeChanged(e.NewTime)                                     game thread
  |        append TriedToReach / IgnoredBy lines to the diaries (IgnoredBy only once the rung is
 |        live — `RecordIgnoredBy`); log [shadow] events
  |- 7. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
-                                   fill _intentsToday
+ |                                 fill _intentsToday
+ |- 8. PublishMinds()              the viewer's snapshot (read-only; see NPC Minds viewer)
 ```
 
 Festival capture is NOT in the tick: the clock is stopped for the whole festival
@@ -537,6 +539,59 @@ only (no live positions, no model calls):
 [shadow] Willy would go looking for you at the beach (you're usually there at this hour, 80% of the time; urge 0.64)
 ```
 
+## NPC Minds viewer (`src/NpcMinds`)
+
+A read-only debug page Sid watches beside the game (`docs/spec/debug-tools.md`, "Live viewer";
+`docs/decisions.md`, D22). While a save is loaded, `http://127.0.0.1:8765/` shows one card per
+NPC that has a diary, a feed of what happened, and a feed of model calls. It updates every two
+seconds and highlights whatever changed since the last update.
+
+| Per NPC | From |
+|---|---|
+| urge, rung and its threshold, attempts today, open attempt and how long it has waited | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state |
+| hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
+| today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
+| "tonight" | today's diary entries scored by `Newsworthiness` the way the planner scores them (skip kinds out, one per summary, `MinNews`), top 3; a preview only, the real plan also asks the model and samples |
+| diary | the newest 8 entries, in plain words, with the game time |
+
+**How it fits together.**
+
+```
+game thread (end of each TimeChanged, SaveLoaded, DayStarted)
+  PublishMinds() -> MindsSnapshotBuilder.Build(_memory, inputs) -> immutable MindsSnapshot
+                 -> MindsServer.Publish(snapshot)              one reference swap
+ladder worker / plan job
+  RecordingDecisionClient -> RingLog<DecisionCall>             every question and answer
+viewer thread (MindsServer, TcpListener on 127.0.0.1)
+  GET /           the embedded page
+  GET /state.json { snapshot, calls } serialized here, on request
+```
+
+- **Read-only.** The builder only reads `MemoryStore` and the inputs (a test compares
+  `MemoryStore.ToJson()` before and after). `RecordingDecisionClient` wraps each
+  `ResilientDecisionClient` that `Guarded(caller, budget)` builds and returns its answers
+  unchanged; "fell back" is the wrapped client's `Fallbacks` counter before and after the call
+  (one wrapper per caller, one thread per caller). With `MindsViewer` off, no wrapper and no
+  server exist.
+- **Threads.** The snapshot is built on the game thread (it reads memory), is immutable, and is
+  handed over by one volatile reference. Serialization, sockets and the call log never touch
+  `Game1`. The feed (`RingLog<FeedItem>`) is filled on the game thread where the `[shadow]`
+  lines are logged: ladder events, "asked around" and planned lines.
+- **Cost on the game thread.** One pass over the diaries (newest 8 each, today's entries for the
+  news preview), the ladder JSON parsed once, the beliefs grouped by observer once. No model
+  calls, no I/O.
+- **Server.** A raw `TcpListener` bound to `IPAddress.Loopback`, so Windows needs no URL
+  reservation or admin rights. GET only (`/`, `/state.json`, `/health`), `Connection: close`,
+  2-second socket timeouts, a request whose `Host` is not `127.0.0.1`/`localhost`/`[::1]` gets 403
+  (a DNS-rebinding page can't read it), no CORS header. A port already in use logs a warning and
+  the mod runs without the viewer. `Mod.Dispose` stops it.
+- **The page** is plain HTML, CSS and JavaScript with no external loads, in
+  `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
+  `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Light and dark follow the
+  system. Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
+  toggle hide NPCs with no view of the player and no urge.
+- **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
+
 ## Shadow harness and schedule extractor
 
 Neither runs inside the mod. **`src/NpcShadow`** is the step-3 test bed: `ShadowSimulator` follows one
@@ -605,7 +660,7 @@ on the model: the ladder part is the last finished state.
 `%USERPROFILE%\stardewvalley.targets`, on the owner's PC
 `D:\SteamLibrary\steamapps\common\Stardew Valley`; the mod compiles against the game and SMAPI there.
 
-**Test:** `dotnet test NpcSchedules.sln` runs six xUnit projects. It does **not** build the mod: no
+**Test:** `dotnet test NpcSchedules.sln` runs eight xUnit projects (703 tests on the viewer branch; the table below is from `c97a829`). It does **not** build the mod: no
 test project references it. At `c97a829` all 386 pass:
 
 | Project | Tests | | Project | Tests |
@@ -622,7 +677,7 @@ this SDK's compiler, so they don't load. Harmless.
 build never touches the game. `mod/StardewNpcMod/bin/Debug/net6.0/` holds six DLLs, five library PDBs
 (the mod's own PDB is embedded; ModBuildConfig sets `DebugType=embedded`), `regions.json` (copied from
 `data/regions.json`) and `StardewNpcMod.deps.json` (not needed). `manifest.json` is **not** in bin;
-take it from `mod/StardewNpcMod/`. With the game closed, from the repo root (bash version: `AGENTS.md`):
+take it from `mod/StardewNpcMod/`. The viewer page is inside `NpcMinds.dll`, so nothing extra is copied for it. With the game closed, from the repo root (bash version: `AGENTS.md`):
 
 ```powershell
 $out = "mod\StardewNpcMod\bin\Debug\net6.0"
@@ -646,6 +701,9 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | `DecisionTimeoutMs` | 1500 | per-call timeout; slower answers fall back |
 | `PlanningBudgetMs` | 20000 | total time overnight planning may spend on the model |
 | `LadderMaxBacklog` | 6 | ladder operations that may wait before new ticks are dropped |
+| `MorningWaitMs` | 10000 | how long the morning wait may hold the day for the overnight plan; 0 disables |
+| `MindsViewer` | `true` | serve the NPC Minds viewer on loopback (read-only) |
+| `MindsViewerPort` | `8765` | its port; not 8000, which Laya uses |
 
 **Logs:** `%APPDATA%\StardewValley\ErrorLogs\SMAPI-latest.txt`; the mod's lines are tagged
 `Stardew NPC Mod`. `[shadow]` lines say what would have happened:
@@ -654,6 +712,7 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 |---|---|---|
 | `Shadow mode ready: co-location radius 8 tiles, decision backend FakeDecisionClient.` | Info | started; names the backend |
 | `Memory saved (23 NPC diaries, 74 beliefs).` (also `Memory loaded: ...`) | Info | written at `Saving`, read at `SaveLoaded` |
+| `NPC Minds viewer: open http://127.0.0.1:8765/ in a browser (read-only).` | Info | the viewer is serving (`NPC Minds viewer is off: port ... is not available` at Warn if the port is taken) |
 | `Migrated memory from the previous save format (...)` | Info | a version-1 save was converted |
 | `[shadow] planning tomorrow's intents in the background (19 NPC diaries).` | Info | `DayEnding`: the plan job started |
 | `[shadow] Abigail would say: "I saw Pierre at Pierre's General Store yesterday." (cited "Saw Pierre at Pierre's General Store" (sampled p=1))` | Info | a planned line, the diary entry it cites and the chosen option's probability (1 = the only option) |

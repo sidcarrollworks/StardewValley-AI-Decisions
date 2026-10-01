@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NpcMinds</RootNamespace>
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NpcMemory\NpcMemory.csproj" />
+    <ProjectReference Include="..\NpcDecision\NpcDecision.csproj" />
+    <ProjectReference Include="..\NpcIntents\NpcIntents.csproj" />
+    <ProjectReference Include="..\NpcInitiation\NpcInitiation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The viewer page ships inside the DLL, so the usual deploy copy (*.dll) carries it. -->
+    <EmbeddedResource Include="viewer\index.html" LogicalName="NpcMinds.viewer.html" />
+  </ItemGroup>
+
+</Project>

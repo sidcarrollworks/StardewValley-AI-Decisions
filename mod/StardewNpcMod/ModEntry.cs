@@ -4,6 +4,7 @@ using NpcDiaryEvents;
 using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
+using NpcMinds;
 using NpcSchedules;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -72,6 +73,17 @@ public class ModEntry : Mod
     private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _festivalTalked = new(StringComparer.OrdinalIgnoreCase);
 
+    // NPC Minds viewer (docs/spec/debug-tools.md, "Live viewer"): read-only. The game thread
+    // builds a snapshot after each tick and swaps it in; the server thread only serializes it.
+    // The call log is written by the model workers through RecordingDecisionClient.
+    private readonly RingLog<DecisionCall> _calls = new(200);
+    private readonly RingLog<FeedItem> _feed = new(300);
+    private readonly MindsSnapshotBuilder _mindsBuilder = new();
+    private MindsServer? _minds;
+    private long _mindsSeq;
+    private IReadOnlyList<InitiationInput> _lastLadderInputs = Array.Empty<InitiationInput>();
+    private IReadOnlyList<IntentCandidate> _planToday = Array.Empty<IntentCandidate>();
+
     public override void Entry(IModHelper helper)
     {
         _config = helper.ReadConfig<ModConfig>();
@@ -89,6 +101,7 @@ public class ModEntry : Mod
         helper.Events.Display.MenuChanged += OnMenuChanged;
 
         ApplyPatches();
+        StartMindsViewer();
 
         Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
     }
@@ -156,7 +169,8 @@ public class ModEntry : Mod
         return laya;
     }
 
-    private IDecisionClient Guarded(CancellationToken budget = default)
+    /// <param name="caller">"ladder" or "plan": labels the call in the NPC Minds viewer.</param>
+    private IDecisionClient Guarded(string caller, CancellationToken budget = default)
     {
         // Budget pass-through (docs/spec/laya.md): session-scoped calls run through a view of the
         // shared client with this session's token, so a cancelled budget aborts the in-flight HTTP
@@ -164,8 +178,11 @@ public class ModEntry : Mod
         IDecisionClient inner = budget != default && _model is LayaDecisionClient laya
             ? laya.WithBudget(budget)
             : _model;
-        return new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
+        var resilient = new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
             isDown: () => _model is LayaDecisionClient && !_layaUp);
+        // The recorder returns the resilient client's answers unchanged; it only copies them to
+        // the viewer's call log.
+        return _config.MindsViewer ? new RecordingDecisionClient(resilient, _calls, caller) : resilient;
     }
 
     /// <summary>Re-check health every 6 ticks (one in-game hour) off the game thread and log only
@@ -189,8 +206,8 @@ public class ModEntry : Mod
     {
         int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // VERIFY: per-save id
         InitiationLadder ladder = json is null
-            ? new InitiationLadder(Guarded(), seed)
-            : InitiationLadder.FromJson(json, Guarded(), seed);
+            ? new InitiationLadder(Guarded("ladder"), seed)
+            : InitiationLadder.FromJson(json, Guarded("ladder"), seed);
         return new BackgroundLadder(ladder, _config.LadderMaxBacklog);
     }
 
@@ -206,11 +223,16 @@ public class ModEntry : Mod
             foreach (string key in Game1.player.team.completedSpecialOrders)
                 _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
+            _feed.Clear();
+            _calls.Clear();
+            _lastLadderInputs = Array.Empty<InitiationInput>();
+            _planToday = Array.Empty<IntentCandidate>();
         }
         catch (Exception ex)
         {
             Monitor.Log($"Failed to load memory: {ex}", LogLevel.Error);
         }
+        PublishMinds();
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -227,6 +249,7 @@ public class ModEntry : Mod
         }
 
         OpenMorningWaitIfNeeded();
+        PublishMinds();
     }
 
     /// <summary>The morning wait (docs/spec/laya.md, "A morning wait"): if the overnight plan is
@@ -290,6 +313,8 @@ public class ModEntry : Mod
         {
             Monitor.Log($"Shadow ladder failed: {ex}", LogLevel.Error);
         }
+
+        PublishMinds(); // last: the viewer sees this tick's memory, ladder results and plan
     }
 
     /// <summary>Festival capture runs here, not on TimeChanged: the clock is stopped for the whole
@@ -356,6 +381,11 @@ public class ModEntry : Mod
         _backlogAtTickStart = 0;
         _planCollectedLinesToday = -1;
         QuestPatch.Reset();
+        _feed.Clear();
+        _calls.Clear();
+        _lastLadderInputs = Array.Empty<InitiationInput>();
+        _planToday = Array.Empty<IntentCandidate>();
+        _minds?.Publish(MindsSnapshot.Idle(++_mindsSeq, BackendName()));
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
 
@@ -439,7 +469,9 @@ public class ModEntry : Mod
             LedgerView learned = ev.Learned;
             string heard = learned.HopCount > 1 ? "heard you were" : "saw you";
             string where = learned.Place is null ? "" : $" at {PlaceNames.Display(learned.Place)}";
-            Monitor.Log($"[shadow] {ev.Seeker} asked {string.Join(", ", ev.Asked)} about you: {learned.ToldBy} {heard}{where} {Ago(learned.AgeTicks)}.", LogLevel.Info);
+            string text = $"{ev.Seeker} asked {string.Join(", ", ev.Asked)} about you: {learned.ToldBy} {heard}{where} {Ago(learned.AgeTicks)}.";
+            Monitor.Log("[shadow] " + text, LogLevel.Info);
+            AddFeed(now, "Asked", ev.Seeker, text);
         }
     }
 
@@ -455,6 +487,7 @@ public class ModEntry : Mod
             Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes);
             inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
         }
+        _lastLadderInputs = inputs; // the viewer shows what the ladder saw (views, leads, hearts)
         _backlogAtTickStart = _ladder.Backlog; // read BEFORE enqueueing: this tick's work is still running
         if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
@@ -464,13 +497,17 @@ public class ModEntry : Mod
             foreach ((string npc, DiaryEntry entry) in result.DiaryLines)
                 _memory.DiaryOf(npc).Append(entry);
             foreach (InitiationEvent ev in result.Events)
-                Monitor.Log(ev switch
+            {
+                string text = ev switch
                 {
                     { Kind: "Attempt", Lead: { } lead } =>
-                        $"[shadow] {ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00}) (shadow: {ev.Npc} did not move)",
-                    { Kind: "Attempt" } => $"[shadow] {ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})",
-                    _ => $"[shadow] {ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00}; {ev.Reason})",
-                }, LogLevel.Info);
+                        $"{ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00}) (shadow: {ev.Npc} did not move)",
+                    { Kind: "Attempt" } => $"{ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})",
+                    _ => $"{ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00}; {ev.Reason})",
+                };
+                Monitor.Log("[shadow] " + text, LogLevel.Info);
+                AddFeed(ev.AbsoluteTick, ev.Kind, ev.Npc, text);
+            }
         }
     }
 
@@ -506,6 +543,7 @@ public class ModEntry : Mod
         _planJob = null;
         _intentsToday.Clear(); // today's lines are over; tomorrow's arrive when the new plan is collected
         _planCollectedLinesToday = -1;
+        _planToday = Array.Empty<IntentCandidate>();
 
         IReadOnlyDictionary<string, string> homes = ResolveHomes();
         var snapshots = _memory.Diaries
@@ -529,7 +567,7 @@ public class ModEntry : Mod
         int today = GameClock.DayIndex(Now(0));
         int seed = today; // deterministic per day
         _planJob = IntentPlanJob.Start(
-            budget => new IntentPlanner(Guarded(budget), new LineRenderer(), new Newsworthiness())
+            budget => new IntentPlanner(Guarded("plan", budget), new LineRenderer(), new Newsworthiness())
                 .Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
@@ -755,11 +793,14 @@ public class ModEntry : Mod
                 : $"[shadow] collected overnight plan: {plan.Candidates.Count} line(s) for today.";
         Monitor.Log(summary, LogLevel.Info);
         _planCollectedLinesToday = plan.Candidates.Count;
+        _planToday = plan.Candidates.ToList();
 
+        int tick = TimeUtils.TickIndex(Game1.timeOfDay);
         foreach (IntentCandidate candidate in plan.Candidates)
         {
             _intentsToday.Add(candidate.Npc);
             Monitor.Log($"[shadow] {candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})", LogLevel.Info);
+            AddFeed(Now(Math.Max(0, tick)), "Line", candidate.Npc, $"{candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})");
         }
 
         _planJob.Dispose();
@@ -792,6 +833,102 @@ public class ModEntry : Mod
                     _ladder.Dropped, plan, planCollectedLines: _planCollectedLinesToday),
                 LogLevel.Info);
         }
+    }
+
+    // ---- NPC Minds viewer (read-only) -------------------------------------------------------------
+
+    /// <summary>Starts the loopback viewer server (config MindsViewer). A port already in use only
+    /// logs a warning; the mod runs the same without the viewer.</summary>
+    private void StartMindsViewer()
+    {
+        if (!_config.MindsViewer)
+            return;
+        var server = new MindsServer(_calls, MindsSnapshot.Idle(++_mindsSeq, BackendName()));
+        if (server.TryStart(_config.MindsViewerPort, out string? error))
+        {
+            _minds = server;
+            Monitor.Log($"NPC Minds viewer: open http://127.0.0.1:{server.Port}/ in a browser (read-only).", LogLevel.Info);
+        }
+        else
+        {
+            server.Dispose();
+            Monitor.Log($"NPC Minds viewer is off: port {_config.MindsViewerPort} is not available ({error}). Set MindsViewerPort in config.json to another port.", LogLevel.Warn);
+        }
+    }
+
+    /// <summary>Builds the viewer's snapshot on the game thread and hands it to the server. It
+    /// reads memory, the ladder's last finished state and the plan, and changes nothing; a
+    /// failure only means the viewer shows the previous snapshot.</summary>
+    private void PublishMinds()
+    {
+        if (_minds is null || !Context.IsWorldReady)
+            return;
+        try
+        {
+            int tick = TimeUtils.TickIndex(Game1.timeOfDay);
+            int now = Now(tick < 0 ? 119 : tick);
+
+            MindsStats stats = _model is LayaDecisionClient laya
+                ? LayaStats(laya)
+                : new MindsStats(_ladder.Backlog, _ladder.Dropped, -1, -1, -1, -1);
+            string planState = _planJob is null ? "none" : _planJob.IsCompleted ? "ready" : "running";
+
+            // Tonight's-news preview: the same NewsContext the planner gets, but with the live
+            // beliefs (the builder runs right here on the game thread and only reads them).
+            IReadOnlyDictionary<string, string> homes = ResolveHomes();
+            var beliefs = new Dictionary<string, Dictionary<string, RoutineBelief>>(StringComparer.OrdinalIgnoreCase);
+            foreach ((string key, RoutineBelief belief) in _memory.Beliefs)
+            {
+                int split = key.IndexOf('>');
+                if (split <= 0)
+                    continue;
+                string observer = key[..split];
+                if (!beliefs.TryGetValue(observer, out Dictionary<string, RoutineBelief>? mine))
+                    beliefs[observer] = mine = new Dictionary<string, RoutineBelief>(StringComparer.OrdinalIgnoreCase);
+                mine[key[(split + 1)..]] = belief;
+            }
+            NewsContext NewsFor(string npc) => new(npc, homes,
+                beliefs.TryGetValue(npc, out Dictionary<string, RoutineBelief>? mine) ? mine : new Dictionary<string, RoutineBelief>(),
+                _regions, HeartsFor(npc), Array.Empty<(string, string)>());
+
+            var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
+                stats, planState, _ladder.LatestJson, _lastLadderInputs, _intentsToday.ToList(), _planToday,
+                _feed.Newest(), NewsFor);
+            _minds.Publish(_mindsBuilder.Build(_memory, inputs));
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"NPC Minds snapshot failed (the game is unaffected): {ex.Message}", LogLevel.Trace);
+        }
+    }
+
+    private MindsStats LayaStats(LayaDecisionClient laya)
+    {
+        (double median, double p95) = laya.Latency();
+        return new MindsStats(_ladder.Backlog, _ladder.Dropped, laya.Calls, laya.CallFallbacks, median, p95);
+    }
+
+    /// <summary>One line for the viewer's event feed, stamped with the game clock.</summary>
+    private void AddFeed(int absoluteTick, string kind, string? npc, string text)
+    {
+        if (_minds is null)
+            return;
+        string when = MindsSnapshotBuilder.Clock(GameClock.FromAbsoluteTick(absoluteTick).Tick);
+        _feed.Add(seq => new FeedItem(seq, absoluteTick, when, kind, npc, text));
+    }
+
+    private string BackendName() => _model switch
+    {
+        LayaDecisionClient => "Laya",
+        VariedFakeDecisionClient => "Varied",
+        _ => "Fake",
+    };
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            _minds?.Dispose();
+        base.Dispose(disposing);
     }
 
     // ---- persistence ----------------------------------------------------------------------------

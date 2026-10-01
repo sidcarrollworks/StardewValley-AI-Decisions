@@ -80,6 +80,10 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 
 - **Timing.** Close the game first; changes load on the next launch.
 - **Log.** `%APPDATA%\StardewValley\ErrorLogs\SMAPI-latest.txt`. Filter for `[shadow]`.
+- **Viewer.** While the game runs, open `http://127.0.0.1:8765/` in a browser: the NPC Minds page
+  shows every NPC's urge, rung, knowledge of the player, plan and diary, live, plus every model
+  call. It only reads. The page is `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll`,
+  so the usual copy deploys it.
 - **Settings.** `Mods/StardewNpcMod/config.json` is created on first run. `DecisionBackend` is
   `Fake` or `Laya`; the Laya server setup is in `sidecar/README.md`.
 - **Test save.** Sid tests with the save `BUNKO_450391925`.
@@ -112,3 +116,4 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 | A new ladder step | the end of `InitiationStep`, `Available`, the `StepThresholds` array, the response window in `ResolveAt` | Add a cap if it's passive |
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |
 | A setting | `ModConfig` | Document it in `docs/architecture.md` |
+| Something to show in the viewer | `NpcMinds.Models` (a field at the end), `MindsSnapshotBuilder`, `viewer/index.html` | Build it from memory on the game thread; never call the model or change state for it |

@@ -271,6 +271,24 @@ close options, and every other question (bubble, emote, approach, pick direction
 **Known weakness.** `MissedFestival` still goes to every 4+ heart villager, including ones who
 never attend festivals (tracked in `docs/spec/diary.md`).
 
+### D22. A live viewer served from the mod, read-only
+**Decision.** The mod serves a read-only "NPC Minds" page on `127.0.0.1:8765` (config
+`MindsViewer`, `MindsViewerPort`) that Sid keeps open on a second monitor while playing. The game
+thread builds an immutable snapshot after each tick from memory, the ladder's last finished state
+and the plan; a background thread serves it with the newest model calls. A pass-through
+`RecordingDecisionClient` copies every question and answer to a ring log without changing them.
+**Why.** Watching changes over a test week is much easier than reading the `[shadow]` log
+(Sid, 2026-09-30). A browser page can show every NPC at once, highlight what moved, and show the
+model's probabilities, which the in-game tab in `debug-tools.md` can't do without covering the
+game. A local HTTP page rather than a file: a browser can't poll a local file. A raw
+`TcpListener` rather than `HttpListener`: no URL reservation or admin rights on Windows. Serving
+on request rather than writing files keeps disk I/O off the game thread.
+**Rules it keeps.** Shadow mode (it only reads; a test pins that building a snapshot leaves
+memory unchanged), no model calls or `Game1` access off the game thread, loopback only (and
+non-loopback `Host` headers refused), and every failure is caught so the game is never affected.
+**Not decided.** Whether the in-game tab and console commands in `debug-tools.md` are still
+wanted now that the viewer exists. Turn `MindsViewer` off for any release.
+
 ---
 
 ## Open work and known issues
