@@ -28,6 +28,7 @@ page is possible later (see [multiplayer-compat.md](multiplayer-compat.md)).
 | `MorningWaitMs` | 10000 | how long the "valley is waking up" wait may hold the morning for unfinished overnight work; 0 disables it ([laya.md](laya.md), "Speed") | planned |
 | `ShowMindsTab` | true in development | the "NPC Minds" tab in the game menu ([debug-tools.md](debug-tools.md)) | planned |
 | `MindsKey` | `F8` | opens the Minds page as its own menu (fallback if the tab can't be added) | planned |
+| `PlaytestLog` | true in development | writes the per-day JSON-lines playtest log ([debug-tools.md](debug-tools.md), "Playtest log") | planned |
 
 Not in config, on purpose: every tuning class (`InitiationOptions`, `IntentPlannerOptions`, ledger
 thresholds, `NewsworthinessOptions`, ...). They are code defaults so tests pin them. Promote one to

@@ -66,6 +66,9 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `StartedDating`, `Engaged`, `Married`, `Divorced`, `Anniversary` | Player | `status` | the daily status poll sees a change, or the wedding's anniversary ([romance.md](romance.md)) | 5 |
 | `ChattedWith`, `MetUpWith`, `LookedFor` | the other NPC | `place`, `seen` (0/1: the player was there) | town-life scenes ([town-life.md](town-life.md)) | 1; 2 if the player saw it |
 | `HeldAGrudge` | Player | `points` | the grudge penalty applies ([motives.md](motives.md)); never shared or cited directly | 0 (skipped) |
+| `SharedNews` | who it was said to | `kind`, `subject`, `motive` | a line, bubble or letter carrying a motive is delivered ([motives.md](motives.md)); it uses that motive up; never shared | 0 (skipped) |
+| `Argued` | the other NPC | `place`, `seen` (0/1) | a span between two NPCs ends with an argument ([town-life.md](town-life.md)) | 2; 3 if the player saw it |
+| `SawRummaging` | Player | `place` | the NPC is co-located with the player when the player searches a garbage can (**verify** the vanilla reaction in the 1.6.15 decompile, [motives.md](motives.md)) | 3 |
 
 The weights are the base for newsworthiness, below. `IgnoredBy` stays; `PassedBy`,
 `BirthdayForgotten`, `StoodUp` and `MissedVisit` are the other forms of "being ignored". This table

@@ -27,7 +27,7 @@ It's easier to watch changes visually than through the logs." That became the li
   | `npcmod_ledger <name>` | every ledger entry the NPC holds, with detail and hops |
   | `npcmod_motives [name]` | motive table for one NPC, or the top motive of each |
   | `npcmod_plan` | tonight's or today's planned lines and why |
-  | `npcmod_summary [days]` | a playtest digest of the last n days: attempts by rung, responses, lines, visits, trades, grudges, model fallbacks, off-screen sim events |
+  | `npcmod_summary [days]` | a playtest digest of the last n days: attempts by rung, responses, lines, visits, trades, grudges, model fallbacks, town social events (chats, arguments, regard changes) |
   | `npcmod_newcomer ...`, `npcmod_live off` | already specced ([newcomer-week.md](newcomer-week.md), [rollout.md](rollout.md)) |
   | `npcmod_simulate <event>` | test hooks (shadow only), e.g. `npcmod_simulate gift Haley (O)421` writes a diary entry as if it happened |
 
@@ -36,20 +36,55 @@ It's easier to watch changes visually than through the logs." That became the li
   per NPC with a diary: urge as a bar with the rung thresholds marked, the rung and its threshold,
   attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
   ("saw you at Pierre's General Store, 3 hours ago", "Emily told them you were at Pelican Town"),
-  it would look and why, today's planned line, tonight's likely news (today's top three
-  entries by news score), the newest eight diary entries, its resting urge and today's mood
-  roll once motives land ([motives.md](motives.md)), and (collapsed) its seed temperament
+  where it would look and why, today's planned line, tonight's likely news (today's top three
+  entries by news score), the newest eight diary entries, and (collapsed) its seed temperament
   from [temperament.md](temperament.md): the twelve values as bars around 0.5, the strongest
   leanings in words, and the game's own personality words. A side panel lists today's planned
   lines, the event feed (attempts, outcomes, asking around, planned lines) and every model call
   (who asked, about whom, the question, each answer's probability as a bar, the latency, and
-  and whether it fell back). A side panel shows **"while you were away"** — a day digest from the
-  off-screen sim ([town-life.md](town-life.md)): the chats, arguments, opinion shifts and how far
-  the player's own news travelled that day. Anything that changed since the last update flashes,
-  the urge shows its
+  whether it fell back). Anything that changed since the last update flashes, the urge shows its
   change ("+0.03"), and cards can be sorted by most recently changed. It updates every two
   seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
   viewer".
+- **Viewer, when motives land** ([motives.md](motives.md)): the urge bar gives way to the NPC's
+  motives (each with subject, strength and sources), the net feeling per subject, today's outlook
+  (earned and roll), and its best act now as `effective boldness vs cost` with the parts; regard
+  toward the player and its strongest NPC regards; whether the last decision was clear or a close
+  call, and Laya's answer before and after the mood tilt. A side panel shows **"while you were
+  away"**, built at `DayEnding` from the day's diary ([town-life.md](town-life.md)): the chats and
+  arguments the player didn't see, regard changes, and how far the player's own news travelled.
+
+## Playtest log
+
+Sid, 2026-10-01: *"Any info we can log while playtesting we should, to give us more data about the
+game as well."* Every number in [motives.md](motives.md) and [ledger-gossip.md](ledger-gossip.md)
+is a first guess, so the log records each decision's parts, not only its outcome, and records what
+the game itself does so specs can be checked against it.
+
+- **Where:** one JSON-lines file per save and in-game day,
+  `Mods/StardewNpcMod/playtest/<save>/<year>-<season>-<day>.jsonl`, one object per line with
+  `tick`, `type` and fields. Written through a buffered writer flushed at the 6:00 tick and on
+  `Saving`, never waiting on disk during a tick. Setting `PlaytestLog` (default on in development,
+  off in a release; [config.md](config.md)). Old days are kept; deleting the folder is safe.
+- **Reads only.** Logging never changes state, and it never feeds a decision. Live positions appear
+  only in the `presence` records, written from `CollectPresences` output, the one place allowed to
+  read them (AGENTS.md rule 2).
+
+| `type` | Fields | Why |
+|---|---|---|
+| `decision` | npc, subject, motive(s) and strengths, net feeling, outlook (earned, roll, tail), act tried, cost, boldness, familiarity, intensity, frustration, margin, clear or close, Laya p, tilt, final, cap or cooldown that blocked it | tune every act-rule constant |
+| `stress` | npc, subject, diary kind, magnitude after sensitivity, elastic part, plastic part, retention, severe or not, yield crossed | tune the stressor table |
+| `regard` | each change: observer, subject, before, after, cause; plus a daily snapshot of every pair | watch grudges and bonds form and heal |
+| `gossip` | teller, listener, story (kind, subject, original tick), juiciness before and after, knows-someone bonus, hops, relevance, confirmed or not | check how far and how fast news travels |
+| `social` | span ended: pair, location, length, chat and argument draws and results | check how often the town talks and fights |
+| `presence` | per tick: every villager's location and tile, and the player's | ground truth: where NPCs actually go (versus schedules), how much they overlap, whether off-screen movement looks right |
+| `game` | weather, festival, the player's gifts (item and taste), quests completed, garbage cans searched and who reacted, conversations, letters read | the events the diary hooks should be catching; misses show up as gaps |
+| `memory` | per NPC per day: diary entries added and trimmed, ledger size, regard pairs | check the 500-entry cap and the elastic window |
+| `model` | question, answers, latency, fallback, queue depth | what the model costs and how often it fails |
+| `perf` | ms spent in our tick, `Observe`, the ladder, the planner | keep the game smooth |
+
+`tools/` gets a small script that turns a folder of these files into per-day tables (decisions by
+outcome, stresses by kind, gossip routes), so a playtest week can be read in one place.
 
 ## Data model
 
@@ -96,12 +131,16 @@ model calls, a 2-second poll.
 
 - Unit: the formatter for each command (pure functions over memory snapshots), the `DailyStats`
   rollover, `npcmod_simulate` refused when live.
+- Unit: each playtest record type round-trips; with `PlaytestLog` off nothing is written; a
+  failed write is logged once and never throws into the tick.
 - In-game: the tab appears, opens, scrolls, closes; switching between vanilla tabs still works; with
   the tab off nothing changes; every command prints for a known NPC and fails politely for an
   unknown name.
 
 ## Status
 
+- **Playtest log:** not started; build it with the first motives step, so the first motives
+  playtest has data.
 - **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 43 tests: the snapshot is
   read-only and shows what the ladder saw, the recorder never changes an answer, the server is
   GET-only and loopback-only and survives a busy port). Checked in a browser against a scratch

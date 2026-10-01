@@ -312,45 +312,49 @@ non-loopback `Host` headers refused), and every failure is caught so the game is
 **Not decided.** Whether the in-game tab and console commands in `debug-tools.md` are still
 wanted now that the viewer exists. Turn `MindsViewer` off for any release.
 
-### D24. Social physics: diary-driven motives, resting urge, and the elastic/plastic mood model
-**Decision (Sid, 2026-10-01).** The urge clock dies. Urge no longer accrues over the day for no
-reason; it is `resting(temperament) + today's mood roll + the sum of motive stresses`, and an NPC
-with nothing to feel sits at its resting level. Motives are a **view over the diary** — each diary
-kind is a stressor profile (magnitude, decay, plasticity) and strengths are recomputed every tick,
-never saved. Stresses sit on a spectrum from elastic (proximity, small talk: springs back fast) to
-plastic (grudges, being stood up: accumulates), with a yield point where repeated elastic strains
-become plastic — the same physics the ladder's ignore-escalation already implements. Resting urge
-comes from the temperament seed (boldness, warmth, chattiness), spread below the first threshold
-so personality decides who naturally approaches. Sensitivity is the amplitude (how much events
-shake a character, and the bounds of the daily mood roll); boldness is the expression (how much of
-that state reaches behavior). Each day rolls a deterministic mood offset — bounded by sensitivity,
-skewed by emotion biases, dampened by the mood the player earned, with rare uncharacteristic tail
-days. The same engine takes NPC subjects, so **opinions** between NPCs are the same physics over
-diary entries about each other, with no new saved state.
-**Why.** The spring 16-18 playtest: everyone climbed toward 0.8 urge on an empty day, Linus topped
-the table without seeing the player, and ~25 gossip-asks fired in an afternoon. A flat 0.5 resting
-for everyone would have recreated that in disguise; the spread below the first threshold makes
-personality discriminate. Rejected: the old draft formula `BaseGainPerTick x (0.5 + Σ motives)`,
-which kept half the clock. The diary stays the single source of truth (Sid); the response-dialogue
-system (step 6+) later adds stressor *producers* (`Praised`/`BrushedOff`/`Criticized`), not new
-plumbing.
-**Notes.** The simulation core (memory, diary, stressor physics, deterministic rolls) is kept
-game-agnostic on purpose: it is meant to port to a standalone town sim without Stardew's schedule
-lock.
+### D24. Motives and boldness replace the urge; feelings are elastic or plastic
+**Decision (Sid, 2026-10-01, second pass the same day).** No urge number decides any more. A
+character acts only when it has a **motive** with a subject (no motive, no act) and its **effective
+boldness** toward that subject (temperament boldness + familiarity + the motive's intensity)
+reaches the act's **cost**. The ladder's steps become acts with costs; hostile acts cost much more,
+and negative regard counts as familiarity for them only weakly. Feelings come from the diary as
+**stresses**: an **elastic** part, recomputed from the recent diary and fading, and a **plastic**
+part saved as signed **regard** per (observer, subject), the player included; the grudge is
+negative regard toward the player. How much plastic stress a character keeps depends on the person
+(`retention`; Pam forgets most slights, Robin doesn't), except severe ones. Feelings toward one
+subject **net**, swayed by the day's mood. **Mood** is mostly earned from recent events, plus a
+small deterministic daily roll; it tips close calls: clear calls skip the model, close calls ask
+Laya and the mood shifts the answer before a cut at 0.5. Opinions between NPCs are the same
+machinery with NPC subjects.
+**Why.** The spring 16-18 playtest: urge grew on a clock, so everyone climbed toward 0.8 on an empty
+day and Linus topped the table without seeing the player. The morning draft of this decision
+(urge = a resting level from temperament + mood roll + stresses) was rejected: on the draft
+temperament table the resting level put all 34 villagers between 0.35 and 0.64, past the first
+threshold, which recreated the clock, and it counted boldness twice. Regard is saved, not
+recomputed, because diaries are trimmed to 500 entries and a grudge must not vanish with its
+causes. Sid: *"For a character to act they need a motive and a certain level of boldness. The
+boldness required to do the act also depends on the relationship with the subject."*
+**Notes.** All constants are first guesses; the playtest log (`docs/spec/debug-tools.md`) records
+each decision's parts so they can be tuned from data. The simulation core (memory, diary, stresses,
+regard, deterministic rolls) stays game-agnostic so it can port to a standalone town sim. Spec:
+`docs/spec/motives.md`.
 
-### D25. Gossip magnitude: news travels as far as it matters, then fades
-**Decision (Sid, 2026-10-01).** A hard one-hop cap on event gossip is boring. Each shareable event
-carries a **magnitude** equal to its news weight; a `Heard` entry can be retold while its
-remaining magnitude is above 1, each retelling passes it on at magnitude - 1, and unretold entries
-lose 1 magnitude at each 6:00. Weight-4 news (a quest helped) crosses three listeners; weight-2
-news (a saw) dies at the first — today's behavior, but as the tail of a rule instead of a
-hardcode. Dedupe per listener stays, so the fan-out never loops.
-**Why.** "Gossip can get a magnitude value applied to it which helps determine how many times the
-gossip hops or fades" (Sid). It also serves the alive-world goal: the player's deeds keep rippling
-back through NPCs they never told, which is the payoff of the off-screen sim
-([town-life.md](town-life.md)).
-**Notes.** Positions do not get magnitude: a last-seen position stays under the D9 two-hop cap and
-a rumour never refreshes anyone's last-seen view.
+### D25. Gossip has juiciness; hearsay is elastic until confirmed
+**Decision (Sid, 2026-10-01).** Replaces the fixed one-hop rule for event gossip. Each diary kind has
+a base **juiciness**; disgust and surprise make a story juicy ("I saw X here" is 1, rummaging in
+the trash is 4). A story is volunteered in a chat only at juiciness 2 or more for that listener
+(a bonus when the listener knows someone in it); below that it is told only when asked
+(`AskAround`). Each retelling passes it on at 0.7 of its juiciness, and juiciness fades fast (half
+a day; slower for scandals). A teller tells one story to at most three listeners a day. The
+listener's reaction scales with relevance: a liked gift is casual news, except to someone who loves
+the giver. Hearsay moves only the listener's elastic feelings; it becomes plastic (regard) when
+confirmed first-hand, by someone who was in the event, or (by half) by two independent tellers.
+**Why.** *"Gossip exists on a scale... Unless gossip is crazy it really should fade fast"* and
+*"hearsay would be an example of the elastic. If verified from the source it turns into plastic"*
+(Sid). A morning draft gave every story a magnitude equal to its news weight, which limited depth
+but not breadth: one Saloon evening could carry a story to most of the town.
+**Notes.** Positions keep the D9 two-hop cap, and a rumour never refreshes a last-seen view. Spec:
+`docs/spec/ledger-gossip.md`.
 
 ---
 

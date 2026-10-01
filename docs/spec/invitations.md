@@ -5,6 +5,10 @@ letters, including ones asking the player to come and see them. Quest-like reque
 mechanics are a later idea, sketched at the end. Builds on the ladder's `Mail` rung
 ([ladder.md](ladder.md)) and the mail channel in [text.md](text.md).
 
+When motives land (D24, [motives.md](motives.md)), the urge changes below become motive changes:
+`Accepted` uses the motive up and writes `AcceptedInvite` (a warm stress), `StoodUp` writes
+`StoodUp` (a severe, plastic stress) and counts as an ignored attempt for frustration.
+
 ## Player-visible behavior
 
 - **Letters in the character's voice.** When the ladder's `Mail` rung fires, the player gets a letter

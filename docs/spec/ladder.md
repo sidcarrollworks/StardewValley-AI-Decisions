@@ -76,15 +76,21 @@ the urge allows and that is available; caps (2 per NPC a day, 6 in total, 2 queu
 below `p`.
 
 Planned additions:
-- **Motives drive the urge** ([motives.md](motives.md)): the idle clock is gone — no
-  `BaseGainPerTick` growth, no overnight halving. Urge becomes
-  `resting(temperament) + mood roll + motive stresses`, decaying toward resting when nothing
-  pushes it; the intent boost becomes the `News` motive, and `Hurt` lowers the pull to approach
-  while favoring letters. Rungs, thresholds and caps are unchanged; the ladder's ignore-escalation
-  is the reference implementation of the yield point that turns repeated elastic strains plastic.
+- **Motives replace the urge** ([motives.md](motives.md), D24): no urge number decides any more.
+  An attempt needs a motive with a subject, and effective boldness (temperament boldness +
+  familiarity with the subject + the motive's intensity) at or above the act's cost. The steps
+  become acts with costs (`StepThresholds` becomes `ActCost`); hostile acts cost more. Clear calls
+  skip the model; close calls ask a reworded Laya question and the day's mood tips them. Rung
+  escalation becomes frustration (bold characters push harder after being ignored, shy ones back
+  off), `IgnorePenalty` and `RespondRelief` become a motive being used up, and the intent boost
+  becomes the `News` motive. Caps and cooldowns stay, with 2 of the day's 6 attempts reserved for
+  strong motives. The saved `Urge` stays in the format, unused.
 - **Temperament floor** (deterministic, before the model): NPCs whose `Data/Characters`
   `SocialAnxiety` is `Shy` (`NpcSocialAnxiety.Shy`; read with `npc.GetData()`) never use `Bubble` or `ForcedDialogue`; they skip to the
-  next available step. Their news shows up as letters instead, matching brief decision 6.
+  next available step. Their news shows up as letters instead, matching brief decision 6. With
+  motives this becomes mostly a consequence of low boldness; keep the hard floor until playtest
+  logs show the boldness costs alone do the same, except that a very strong feeling may then break
+  it (Sid, 2026-10-01: intensity can override shyness).
 - **Spouse and children:** excluded from the ladder when live (they have their own game logic).
   Children are `Data/Characters` `Age == NpcAge.Child` (Jas, Vincent); the player's own children
   are the separate `StardewValley.Characters.Child` class and aren't villagers.
@@ -97,8 +103,9 @@ Planned additions:
 ## Tuning constants
 
 All in `InitiationOptions` (`src/NpcInitiation/Models.cs`), none saved: `BaseGainPerTick` 0.004,
-`HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5 (replaced by the motives
-model when it lands, [motives.md](motives.md)), `IgnorePenalty` 0.2,
+`HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5, `IgnorePenalty` 0.2 (these
+five and `RespondRelief` go when motives land; `StepThresholds` becomes `ActCost`,
+[motives.md](motives.md)),
 `RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `MaxAttemptsPerNpcPerDay` 2,
 `MaxAttemptsPerDay` 6, `MaxQueuedLinesPerDay` 2, `MaxMailPerDay` 1, `MaxForcedPerWeek` 1,
 `StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3; a seventh threshold 0.90 for `Visit` and the visit caps ([find.md](find.md)).

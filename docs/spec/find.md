@@ -4,6 +4,13 @@
 it is doing and walking to another map to find the player), NPCs looking for each other, and any
 live movement are not started. Brief goal 4; D18; architecture, "Finding the player".
 
+**When motives land (D24, [motives.md](motives.md)), read "urge" here as follows.** The urge gates
+below describe the built ladder. Under motives, asking around starts when a motive's best act is a
+walk-up or a visit and the NPC has no fresh first-hand sighting; a visit is the act `Visit` with
+cost 0.70, allowed only for `MissingYou`, `Worried`, `Hurt` and big `News`; an ignored visit adds
+frustration and an `IgnoredBy` entry instead of "urge -0.2"; `GaveUp` vents the motive instead of
+halving urge. Caps, hours and exclusions below are unchanged.
+
 **Sid's decision (2026-09-30):** NPCs should come and find the player, but only when they want to
 very badly. A shop may close for a while because its keeper went out; that is realism, as long as it
 is rare. Target: **1 to 2 visits a week on average, across the whole town**. Some characters are
