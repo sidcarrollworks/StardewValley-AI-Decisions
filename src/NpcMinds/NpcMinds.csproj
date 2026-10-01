@@ -13,6 +13,7 @@
     <ProjectReference Include="..\NpcDecision\NpcDecision.csproj" />
     <ProjectReference Include="..\NpcIntents\NpcIntents.csproj" />
     <ProjectReference Include="..\NpcInitiation\NpcInitiation.csproj" />
+    <ProjectReference Include="..\NpcTemperament\NpcTemperament.csproj" />
   </ItemGroup>
 
   <ItemGroup>

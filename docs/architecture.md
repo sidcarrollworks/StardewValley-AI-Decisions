@@ -123,7 +123,7 @@ assumes `TimeChanged` fires once per ten-minute tick (verify).
 
 | Other hook | What the mod does |
 |---|---|
-| `Entry` | reads `config.json`; loads `regions.json` from the mod folder (a missing or invalid file throws before any event is hooked, so the mod does nothing); builds the decision backend; `ApplyPatches()` (the read-only Harmony postfixes, one list); logs `Shadow mode ready: ...` |
+| `Entry` | reads `config.json`; loads `regions.json` from the mod folder (a missing or invalid file throws before any event is hooked, so the mod does nothing); loads `temperament.json` plus `temperament-overrides.json` (missing or invalid: a warning, and only the viewer loses temperaments); builds the decision backend; `ApplyPatches()` (the read-only Harmony postfixes, one list); logs `Shadow mode ready: ...` |
 | `SaveLoaded` | `LoadMemory()`: fresh memory and ladder, then the save's data (see Persistence); seeds the special-order diff set |
 | `MenuChanged` | response detection for the ladder (see the ladder section); first daily conversation -> `Talked`; conversations during a festival feed the Festival `with` key |
 | `OneSecondUpdateTicked` | `CaptureFestival()` while `Game1.isFestival()` (attended + actor names); gated on `Context.IsWorldReady` |
@@ -556,6 +556,7 @@ seconds and highlights whatever changed since the last update.
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
 | "tonight" | today's diary entries scored by `Newsworthiness` the way the planner scores them (skip kinds out, one per summary, `MinNews`), top 3; a preview only, the real plan also asks the model and samples |
 | diary | the newest 8 entries, in plain words, with the game time |
+| temperament (collapsed) | the seed table from PR #11 (`temperament.json` with overrides applied, loaded at `Entry`): six traits and six emotions as bars around 0.5, a summary of the strongest leanings ("holds grudges, quick to anger"; at most three, 0.1+ from the middle), and the game's own Data/Characters words. Built once per NPC per save (`MindsSnapshotBuilder.TemperamentOf`). Display only: no decision reads it yet |
 
 **How it fits together.**
 
@@ -677,7 +678,7 @@ on the model: the ladder part is the last finished state.
 `%USERPROFILE%\stardewvalley.targets`, on the owner's PC
 `D:\SteamLibrary\steamapps\common\Stardew Valley`; the mod compiles against the game and SMAPI there.
 
-**Test:** `dotnet test NpcSchedules.sln` runs eight xUnit projects (703 tests on the viewer branch; the table below is from `c97a829`). It does **not** build the mod: no
+**Test:** `dotnet test NpcSchedules.sln` runs eight xUnit projects (731 tests after the viewer's temperament section; the table below is from `c97a829`). It does **not** build the mod: no
 test project references it. At `c97a829` all 386 pass:
 
 | Project | Tests | | Project | Tests |
@@ -693,13 +694,14 @@ this SDK's compiler, so they don't load. Harmless.
 **Deploy** is a manual copy: the csproj sets `EnableModDeploy=false` and `EnableModZip=false`, so a
 build never touches the game. `mod/StardewNpcMod/bin/Debug/net6.0/` holds six DLLs, five library PDBs
 (the mod's own PDB is embedded; ModBuildConfig sets `DebugType=embedded`), `regions.json` (copied from
-`data/regions.json`) and `StardewNpcMod.deps.json` (not needed). `manifest.json` is **not** in bin;
+`data/regions.json`), `temperament.json` and `temperament-overrides.json` (copied from
+`fixtures/game/temperament/`) and `StardewNpcMod.deps.json` (not needed). `manifest.json` is **not** in bin;
 take it from `mod/StardewNpcMod/`. The viewer page is inside `NpcMinds.dll`, so nothing extra is copied for it. With the game closed, from the repo root (bash version: `AGENTS.md`):
 
 ```powershell
 $out = "mod\StardewNpcMod\bin\Debug\net6.0"
 $mod = "D:\SteamLibrary\steamapps\common\Stardew Valley\Mods\StardewNpcMod"   # <GamePath>\Mods\StardewNpcMod
-Copy-Item "$out\*.dll", "$out\*.pdb", "$out\regions.json" $mod -Force
+Copy-Item "$out\*.dll", "$out\*.pdb", "$out\*.json" $mod -Force
 Copy-Item "mod\StardewNpcMod\manifest.json" $mod -Force
 ```
 

@@ -24,10 +24,14 @@
     <ProjectReference Include="..\..\src\NpcInitiation\NpcInitiation.csproj" />
     <ProjectReference Include="..\..\src\NpcDiaryEvents\NpcDiaryEvents.csproj" />
     <ProjectReference Include="..\..\src\NpcMinds\NpcMinds.csproj" />
+    <ProjectReference Include="..\..\src\NpcTemperament\NpcTemperament.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\data\regions.json" Link="regions.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The seed temperament table (docs/spec/temperament.md); the viewer shows it. -->
+    <None Include="..\..\fixtures\game\temperament\temperament.json" Link="temperament.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\fixtures\game\temperament\temperament-overrides.json" Link="temperament-overrides.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
