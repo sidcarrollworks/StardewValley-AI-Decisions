@@ -1,8 +1,12 @@
 # 5. Routine learning
 
-**Status: partial.** Beliefs learn from co-presence, weighted by hearts for the player, and Find
-uses `BestGuessAt`. Family and friend priors, decay and a use for "unlocked" are not wired. Brief
-goal 5 and design decision 5; D11; architecture, "RoutineBelief".
+**Status: partial (priors and decay wired; one asset-path bug fixed 2026-10-02).** Beliefs learn
+from co-presence, weighted by hearts for the player, and Find uses `BestGuessAt`. Family priors,
+daily decay and the `Seeded` flag are wired (PR #16). The seeding bug from #16 is fixed: the mod
+loads `Characters/schedules/<Name>` (not `Data/Schedules`, which threw on the first villager and
+seeded nothing), one missing asset skips only that villager, and a failed run never sets `Seeded`,
+so misses seed on the next load. A use for "unlocked" is not wired. Brief goal 5 and design
+decision 5; D11; architecture, "RoutineBelief".
 
 ## Player-visible behavior
 
@@ -105,7 +109,13 @@ flag and the `LastObservedDay` day tracker), `src/NpcSchedules/RoutinePrior.cs`,
 `RoutineExtractor.cs`. Step 7 landed: the saved `UnlockThreshold` is ignored on read (tuning is
 not saved — an old 999 reads as the default 240), `MemoryStore.DecayBeliefs` runs at `DayEnding`
 (`DailyDecay` 0.97 on every belief untouched that day), and the mod seeds family priors from the
-game's own `Data/Schedules` once per save (same-home pairs, `FamilyStrength` 40, spouse skipped).
+game's own schedules once per save (same-home pairs, `FamilyStrength` 40, spouse skipped).
+Fixed 2026-10-02: the seeding loop loaded `Data/Schedules/<Name>`, which does not exist in 1.6 —
+the first load threw, the outer catch swallowed it, and no priors were ever seeded in-game
+(`stardew-source-notes.md`, "Motives verify pass", "Schedules": the asset is
+`Characters/schedules/<Name>`, NPC.cs:5993). The loop now loads that asset through
+`Helper.GameContent.Load` (other mods' edits included), one missing asset skips only that
+villager (Trace), and since a failed run never sets `Seeded`, misses seed on the next load.
 The one gap from the acceptance list: with the playtest's `MinHabitEvidence` 12, a fresh prior
 (about 3-4 pseudo-counts per block) does not alone clear the lead floor — priors sharpen real
 co-presence rather than inventing leads. Revisit when distinct-day evidence lands.

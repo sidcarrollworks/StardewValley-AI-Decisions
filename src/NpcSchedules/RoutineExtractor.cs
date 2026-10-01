@@ -82,6 +82,41 @@ public sealed class RoutineExtractor
         return routine;
     }
 
+    /// <summary>
+    /// Extract a routine for every NPC whose schedule asset the loader can provide. A loader
+    /// exception (a missing or unreadable asset) skips only that NPC and records the name in
+    /// <paramref name="missing"/>, so one bad villager never stops the others — the mod seeds
+    /// whatever it can and retries the misses on the next save load. NPCs are processed in name
+    /// order; an asset with no entries simply yields no routine.
+    /// </summary>
+    /// <param name="npcs">The villagers to load, in any order.</param>
+    /// <param name="load">Loads one asset by its <see cref="ScheduleAssets.NameFor"/> name and
+    /// returns the parsed schedule dictionary; may throw for a missing asset.</param>
+    /// <param name="missing">Receives the names whose asset could not be loaded, in name order.</param>
+    public Dictionary<string, NpcRoutine> ExtractAll(
+        IReadOnlyCollection<string> npcs,
+        Func<string, Dictionary<string, string>> load,
+        ICollection<string>? missing = null)
+    {
+        var routines = new Dictionary<string, NpcRoutine>(StringComparer.OrdinalIgnoreCase);
+        foreach (string npc in npcs.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            Dictionary<string, string> schedules;
+            try
+            {
+                schedules = load(ScheduleAssets.NameFor(npc));
+            }
+            catch
+            {
+                missing?.Add(npc);
+                continue;
+            }
+            if (schedules is { Count: > 0 })
+                routines[npc] = Extract(npc, schedules, new ExtractorOptions());
+        }
+        return routines;
+    }
+
     private Dictionary<string, int[]> BuildEmptyMatrix()
     {
         var matrix = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase);

@@ -86,6 +86,8 @@ Seed temperaments (2026-09-30, draft PR): six traits per villager (warmth, sensi
 
 Motives redesign (2026-10-01, design only, PR #17; D24, D25): the urge clock goes. An NPC acts only with a motive and enough boldness for the act (boldness + familiarity + the feeling's intensity against the act's cost); feelings are elastic stresses from the diary plus saved per-pair regard; mood is earned from recent events with a small daily roll that tips close calls; gossip spreads by juiciness and hearsay sticks only when confirmed; a per-day playtest log records each decision's parts. Specified in `docs/spec/motives.md`; nothing built yet.
 
+Step 7 follow-up (2026-10-02): the family-prior seeding from PR #16 loaded `Data/Schedules/<Name>`, which does not exist in 1.6, so the outer catch swallowed the first load error and no priors were ever seeded in-game. Fixed: the asset is `Characters/schedules/<Name>` (loaded through `Helper.GameContent.Load`, other mods' edits included), a villager without a schedule asset skips only that villager, and a failed run never sets `Seeded`, so misses seed on the next load.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

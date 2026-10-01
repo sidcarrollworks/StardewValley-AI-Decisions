@@ -246,17 +246,22 @@ public class ModEntry : Mod
         {
             string spouse = Game1.player.getSpouse()?.Name ?? "";
             var extractor = new RoutineExtractor(_regions);
-            var routines = new Dictionary<string, NpcRoutine>(StringComparer.OrdinalIgnoreCase);
-            foreach (string npc in Game1.characterData.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
-            {
-                if (string.Equals(npc, spouse, StringComparison.OrdinalIgnoreCase))
-                    continue; // VERIFY: a spouse's schedule is the marriage one; priors about it are wrong
-                // VERIFY: schedules live at Data/Schedules/<name> as Dictionary<string, string>.
-                Dictionary<string, string> schedules =
-                    Game1.content.Load<Dictionary<string, string>>("Data/Schedules/" + npc);
-                if (schedules is { Count: > 0 })
-                    routines[npc] = extractor.Extract(npc, schedules, new ExtractorOptions());
-            }
+            var missing = new List<string>();
+            Dictionary<string, NpcRoutine> routines = extractor.ExtractAll(
+                // VERIFY: a spouse's schedule is the marriage one; priors about it are wrong.
+                Game1.characterData.Keys
+                    .Where(npc => !string.Equals(npc, spouse, StringComparison.OrdinalIgnoreCase))
+                    .ToList(),
+                // Schedules live at Characters/schedules/<Name> (ScheduleAssets.NameFor), NOT
+                // Data/Schedules — verified in stardew-source-notes.md, "Motives verify pass",
+                // "Schedules" (NPC.cs:5993). Helper.GameContent.Load also picks up other mods'
+                // schedule edits. A villager with no schedule asset skips only that villager
+                // (logged below); the misses seed on the next load, since a failed run never
+                // sets the belief's Seeded flag.
+                name => Helper.GameContent.Load<Dictionary<string, string>>(name),
+                missing);
+            foreach (string npc in missing)
+                Monitor.Log($"No schedule asset for {npc}; its family priors are skipped.", LogLevel.Trace);
 
             int seeded = _memory.SeedPriors(routines, ResolveHomes(),
                 Game1.uniqueIDForThisGame.ToString(),

@@ -22,10 +22,10 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tools/ScheduleExtractor/` | Command-line wrapper: schedule JSON files in, counts out. |
 | `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). Not in the mod yet. |
 | `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
-| `tests/NpcSchedules.Tests/` | xUnit tests (68). |
+| `tests/NpcSchedules.Tests/` | xUnit tests (71). |
 | `tests/NpcMemory.Tests/` | xUnit tests (159). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
-| `tests/NpcDecision.Tests/` | xUnit tests (118). |
+| `tests/NpcDecision.Tests/` | xUnit tests (119). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (176). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (65). |
