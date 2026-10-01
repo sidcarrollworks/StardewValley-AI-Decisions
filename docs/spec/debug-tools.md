@@ -156,8 +156,20 @@ model calls, a 2-second poll.
 
 ## Status
 
-- **Playtest log:** not started; build it with the first motives step, so the first motives
-  playtest has data.
+- **Playtest log: built** (`src/NpcMinds/Playtest`, `tools/playtest_summary.py`; step 14 part 1,
+  2026-10-02). The writer (one JSON-lines file per save and day under
+  `Mods/StardewNpcMod/playtest/<save>/`, in-memory buffering flushed at the 6:00 tick and on
+  Saving, a worker queue for model-call records drained on the game thread, fail-once at Warn
+  and never throw) and the eight record types that have data today: `presence` (deltas only,
+  from CollectPresences), `ladder` (attempts, blocks, outcomes, urge, threshold, model p),
+  `gossip` (Heard lines and AskAround answers), `game` (weather, festival attendance, gifts,
+  quests, talks), `plan` (the overnight plan's lines with news scores), `memory` (the per-NPC
+  diary/ledger/belief census including trims against the 500 cap), `model` (every call from the
+  recording client's view) and `perf` (tick, Observe, ladder, plan). Adding a type is one record
+  class plus one Append call. The summary tool prints per-day tables: attempts by step, gossip
+  routes, model calls with fallbacks, diary growth against the cap, slowest ticks. The
+  motives-only types (`decision`, `stress`, `regard`, `social`) wait for the motives PRs, which
+  is why the log was built first.
 - **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 48 tests: the snapshot is
   read-only and shows what the ladder saw, the recorder never changes an answer, the server is
   GET-only and loopback-only and survives a busy port). Checked in a browser against a scratch

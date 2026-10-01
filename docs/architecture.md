@@ -608,6 +608,22 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
   toggle hide NPCs with no view of the player and no urge.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
+## Playtest log (`src/NpcMinds/Playtest`)
+
+Every number in the tuning tables is a first guess, so the mod records each decision's parts
+while Sid plays (`docs/spec/debug-tools.md`, "Playtest log"). One JSON-lines file per save and
+in-game day under `Mods/StardewNpcMod/playtest/<save>/<year>-<season>-<day>.jsonl`, one object
+per line with `tick`, `type` and fields. The game thread appends to an in-memory buffer that
+flushes at the 6:00 tick and on Saving; model-call records arrive from the ladder worker through
+a thread-safe queue drained on the game thread (nothing touches a file off the game thread). A
+failed write is logged once at Warn and disables the log — it never throws into the game loop.
+The setting is `PlaytestLog` (`ModConfig`, default true in development). Reads only: records
+never feed a decision, and live positions appear only in `presence` records, built solely from
+`CollectPresences` output as per-tick deltas. `tools/playtest_summary.py` turns a save's folder
+into per-day tables (attempts by step, gossip routes, model calls and fallbacks, diary growth
+against the 500 cap, slowest ticks). Adding a record type is one class in
+`src/NpcMinds/Playtest/PlaytestRecords.cs` plus one `Append`/`QueueFromWorker` call.
+
 ## Shadow harness and schedule extractor
 
 Neither runs inside the mod. **`src/NpcShadow`** is the step-3 test bed: `ShadowSimulator` follows one
