@@ -6,7 +6,8 @@
 <title>NPC Minds</title>
 <style>
   /* Neutral theme on the Radix Colors "sand" scale (radix-ui.com/colors): sand1-12 for surfaces,
-     borders and text; color for status: urge bars, badges, deltas, answer bars and feed kinds
+     borders, text, highlights and anything behind text; color only on status marks: urge bars,
+     status dots, deltas, answer bars and feed kinds
      (Radix step 9 fills, step 11 text). Always dark
      (Sid's choice), whatever the system setting. */
   :root {
@@ -15,7 +16,7 @@
     --sand7: #494844; --sand8: #62605b; --sand9: #6f6d66; --sand10: #7c7b74; --sand11: #b5b3ad; --sand12: #eeeeec;
     --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --line: var(--sand6);
     --bar: var(--sand4); --chip: var(--sand3); --fill: var(--sand11); --tick: var(--sand8); --edge: var(--sand9);
-    --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: #302008;
+    --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: var(--sand5);
     /* Radix step 9 solids for status fills: bars, badges, dots. */
     --grass9: #46a758; --amber9: #ffc53d; --blue9: #0090ff; --tomato9: #e54d2e;
   }
@@ -38,12 +39,13 @@
   @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .6s; }
-  .card.recent { border-color: var(--amber9); }
+  .card.recent { border-color: var(--edge); }
   .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; }
   .hearts { color: var(--tomato9); font-size: 12px; font-weight: 500; }
   .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--muted); }
-  .badge.line { background: var(--grass9); color: var(--sand1); }
-  .badge.open { background: var(--amber9); color: var(--sand1); }
+  .badge::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--sand9); }
+  .badge.line::before { background: var(--grass9); }
+  .badge.open::before { background: var(--amber9); }
   .urge { margin: 8px 0 4px; }
   .urgebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; overflow: visible; }
   .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
@@ -80,9 +82,10 @@
   .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
   .fb { color: var(--bad); font-weight: 600; }
   .probs { margin-top: 3px; display: grid; gap: 2px; }
-  .prob { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 6px; align-items: center; }
-  .prob .lbl { position: relative; z-index: 0; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue9); opacity: .35; border-radius: 3px; z-index: -1; }
+  .prob { display: grid; grid-template-columns: minmax(0, 1fr) 64px 38px; gap: 6px; align-items: center; }
+  .prob .lbl { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .prob .track { height: 6px; background: var(--bar); border-radius: 3px; overflow: hidden; }
+  .prob .track i { display: block; height: 100%; background: var(--blue9); border-radius: 3px; }
   .prob .v { text-align: right; font-variant-numeric: tabular-nums; }
   .plan li { padding: 3px 0; }
   .empty { color: var(--muted); font-style: italic; }
@@ -311,9 +314,10 @@ function renderCalls(calls) {
       const row = el("div", "prob");
       const lbl = el("span", "lbl");
       const fillEl = el("i"); fillEl.style.width = (isFinite(a.value) ? Math.max(0, Math.min(1, a.value)) * 100 : 0) + "%";
-      lbl.append(fillEl, document.createTextNode(a.label));
+      lbl.textContent = a.label;
+      const track = el("span", "track"); track.append(fillEl);
       lbl.title = a.label;
-      row.append(lbl, el("span", "v", a.label.startsWith("score") ? fmt(a.value) : pct(a.value)));
+      row.append(lbl, track, el("span", "v", a.label.startsWith("score") ? fmt(a.value) : pct(a.value)));
       probs.append(row);
     }
     li.append(probs);

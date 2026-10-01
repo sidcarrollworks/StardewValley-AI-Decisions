@@ -588,7 +588,7 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
 - **The page** is plain HTML, CSS and JavaScript with no external loads, in
   `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
   `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Always dark (Sid's choice),
-  on the neutral Radix Colors sand scale, with color kept for status (urge bars blue to amber to red, badges, deltas, answer bars, feed kinds). Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
+  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds), never on borders or behind text. Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
   toggle hide NPCs with no view of the player and no urge.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
