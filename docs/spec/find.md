@@ -4,6 +4,12 @@
 it is doing and walking to another map to find the player), NPCs looking for each other, and any
 live movement are not started. Brief goal 4; D18; architecture, "Finding the player".
 
+**Farm visits by appointment come first** (Sid, 2026-10-01; [invitations.md](invitations.md),
+"Farm visits by appointment"): a letter announces the visit, and the NPC's schedule for that one
+day walks it to the farm and back with the game's own pathing. That covers "comes to find you" for
+most characters without the travel code below. The unannounced `Visit` here stays for urgent cases
+(`Worried`, strong `Hurt`, big news) and still needs the travel spike.
+
 **When motives land (D24, [motives.md](motives.md)), read "urge" here as follows.** The urge gates
 below describe the built ladder. Under motives, asking around starts when a motive's best act is a
 walk-up or a visit and the NPC has no fresh first-hand sighting; a visit is the act `Visit` with

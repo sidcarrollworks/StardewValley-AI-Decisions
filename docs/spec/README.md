@@ -87,6 +87,7 @@ From the Get Started guide, and already true here unless noted:
 | 19 | [romance.md](romance.md) | Dating, engagement, marriage, divorce: partners, jealousy, milestones, spouses at home | not started |
 | 20 | [town-life.md](town-life.md) | NPCs chatting, meeting up and looking for each other, rendered only when the player is there | not started |
 | 21 | [temperament.md](temperament.md) | Seed personality values per villager (warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) and Ekman emotion biases (anger, disgust, fear, happiness, sadness, surprise) from their dialogue and game traits | partial (tool and draft table; not wired) |
+| 22 | [vanilla-sources.md](vanilla-sources.md) | What the game already gives: signals to read (dialogue answers, heart events, festivals, movies, conversation topics), character data to mine, and vanilla channels to act through (emotes, one-day schedules, quests, phone calls) | not started (verification running) |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 | - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 

@@ -23,15 +23,19 @@ When motives land (D24, [motives.md](motives.md)), the urge changes below become
   there, the NPC remembers it ("Thanks for coming by last night"). If the player talks to the NPC
   there, it opens with a line about it. If the player doesn't come, the NPC remembers that too ("I
   waited for you at the saloon last night"), and its urge drops as if it had been ignored.
+- **"I'd like to come by your farm."** A letter can also announce a visit: a character asks to
+  come to the farm at a set time on a set day, and on that day the game walks them there (their
+  schedule for the day is replaced, so the game does the pathing) and they wait by the farmhouse
+  for an hour. Details below, "Farm visits by appointment".
 - **Rare.** At most one letter a day across the whole town (the existing cap), and at most two
-  invitations a week.
+  invitations a week, farm visits included.
 - **Shadow:** `[shadow] Shane would write: invitation to the Stardrop Saloon, 7 PM to 10 PM (p=0.61)`,
   then `[shadow] Shane: invitation accepted` or `... stood up`.
 
 ## Data model
 
-- `LetterKind` enum: `MissedYou = 0`, `News = 1`, `Invitation = 2` (saved as an int in pending
-  letters, so append only).
+- `LetterKind` enum: `MissedYou = 0`, `News = 1`, `Invitation = 2`, `FarmVisit = 3` (saved as an
+  int in pending letters, so append only).
 - `PendingLetter(Npc, LetterKind, ArrivalDay, MailId, Line)` and
   `Invitation(Npc, Location, FromTick, ToTick, DayIndex, State = Open | Accepted | StoodUp)`, saved
   under a new save-data key `letters` ([persistence.md](persistence.md)).
@@ -69,7 +73,8 @@ built, add that clarification to D2 in `docs/decisions.md`.
 
 | Question | Type | Options | Fallback |
 |---|---|---|---|
-| "What would <npc> write to the player about?" | `choice` | the eligible kinds among "say they miss the player", "share some news" (only if it has a planned line), "invite the player to meet up" (only if an invitation is possible) | uniform |
+| "What would <npc> write to the player about?" | `choice` | the eligible kinds among "say they miss the player", "share some news" (only if it has a planned line), "invite the player to meet up" (only if an invitation is possible), "ask to come by the farm" (only if a farm visit is possible) | uniform |
+| "When would <npc> come by the farm?" | `choice` | up to 3 free slots in the next `VisitLeadDays` days, e.g. "Thursday, 2 PM" | uniform |
 | "Where would <npc> ask the player to meet?" | `choice` | up to 3 candidate slots from its schedule, e.g. "the Stardrop Saloon, 7 PM to 10 PM" | uniform |
 
 Both share the NPC card and relationship state ([laya.md](laya.md)) and can go in one batched
@@ -118,6 +123,92 @@ In-game: a letter arrives the morning after a shadow `Mail` attempt (once live);
 place the NPC really is at that time; going there marks it accepted; skipping it writes `StoodUp`;
 the next overnight lines can cite either.
 
+## Farm visits by appointment (Sid, 2026-10-01)
+
+Sid: *"Editing the schedule is a good idea, also plays well with sending mail. 'I want to visit you
+at your farm at this time on this day' provides an opportunity for negative interaction: you could
+stand up the character. Next message you see from that character: 'I came to your farm to see you
+and waited for an hour but you weren't there.'"*
+
+This is the preferred form of a visit: announced, planned the night before, and walked by the
+game's own pathing through a schedule for that one day. It needs no travel spike for the movement
+itself; the unannounced visits in [find.md](find.md) stay for later.
+
+**Player-visible behavior**
+- A letter: "I'd love to see how the farm is coming along. Could I come by on Thursday around 2?
+  I'll wait by your door for a bit. - Leah". The day and time come from the NPC's real free time.
+- On the day, the NPC leaves at the right time, walks to the farm, stands near the farmhouse door
+  (`FarmVisitWaitTicks`, 6 = one hour), then goes home or back to its usual schedule.
+- **Met:** the player is on the farm and the NPC sees them, or the player is inside the farmhouse
+  (the NPC knocks; see below). If they talk, the NPC has its visit line ("So this is your farm!
+  It's lovely."). Diary: `FarmVisited` (`talked` 0/1), a warm stress.
+- **Stood up:** the player is elsewhere for the whole hour. Diary: `StoodUp` with `place=Farm` and
+  `waited=<ticks>`, a severe plastic stress ([motives.md](motives.md)). The next time the player
+  talks to the NPC, or in its next letter, it says so: "I came to your farm to see you and waited
+  for an hour, but you weren't there." Gossip: a stand-up is juicy (3), so others may hear of it.
+- **Seen but ignored:** the player is on the farm and the NPC sees them, but they never talk during
+  the hour. Diary: `StoodUp` with `seen=1`; it hurts more than missing it.
+- Shadow: `[shadow] Leah would write: farm visit, Thursday 14:00 (MissingYou 0.48)`, then on the day
+  `[shadow] Leah would walk to the farm at 13:10 and wait until 15:00`, then `... met you` or
+  `... was stood up`.
+
+**Data model**
+- `FarmVisit(Npc, DayIndex, ArriveTick, WaitTicks, State = Planned | OnTheWay | Waiting | Met |
+  StoodUp | Cancelled)`, saved under `letters` with the invitations.
+- New diary kind `FarmVisited` (subject Player; `talked`; news weight 3; juiciness 1).
+  `StoodUp` gains the keys `place=Farm`, `waited`, `seen`.
+- Mail id as for other letters; the visit's day schedule key: `squid.StardewNpcMod.visit.<dayIndex>`.
+
+**Triggers and game hooks**
+
+| When | What |
+|---|---|
+| a motive's best act is `FarmVisit` ([motives.md](motives.md), "The act rule") | choose the day and slot (below), reserve tomorrow's letter |
+| `DayEnding` before the visit day | build that day's schedule for the NPC: its normal schedule up to `leave`, then the farm (`Farm` at the farmhouse door tile) by `ArriveTick`, wait, then its normal schedule from the next entry; serve it through `AssetRequested` on `Data/Schedules` or the one-day schedule API (**verify**, [vanilla-sources.md](vanilla-sources.md) A2) |
+| each tick while `Waiting` | Met if the NPC's **own** ledger has a first-hand sighting of the player on the farm or at the door (below); talking during the window sets `talked=1` |
+| the end of the wait | `Met` or `StoodUp`; the NPC continues its schedule |
+
+**The player inside the farmhouse.** The NPC can't see into the house, but a real visitor would
+knock. Perception handles it, so rule 2 holds: `MemoryStore.Observe` (the one place that reads
+positions) treats an NPC within 2 tiles of the farmhouse door and the player inside `FarmHouse` as
+co-located, as if the door was answered, and writes the usual first-hand ledger entry. The visit
+code only reads that memory. Live, the knock is shown as a HUD message "Leah is at your door" and a
+knock sound (**verify** the HUD message and sound calls); in shadow, a log line.
+
+**Deterministic rules**
+- Eligible when: hearts >= `FarmVisitMinHearts` (4); no other open invitation or farm visit,
+  town-wide; within the invitation caps; not the NPC's spouse or a child; not in `data/visits.json`
+  (characters who never leave, e.g. remote ones).
+- **Slots** are the NPC's own free time in the next `VisitLeadDays` (1 to 3) days: a gap of at least
+  `FarmVisitTravelTicks + FarmVisitWaitTicks` between 9:00 and 18:00 where its schedule doesn't keep
+  it at work (its shop or workplace), on a non-festival day, starting at least
+  `FarmVisitTravelTicks` after the previous stop so it can get there in time. Shopkeepers therefore
+  come on their days off or after hours; nobody's shop closes for a planned visit.
+- A visit day's schedule is the only schedule change. If the visit day turns stormy or becomes a
+  festival, the visit is `Cancelled` and the NPC writes a short note (no stress either way).
+- Stood up counts once: one `StoodUp` per visit, however long the player stays away.
+- The NPC never enters the farmhouse or any farm building.
+
+**Live switch**: `FarmVisits`, default off ([rollout.md](rollout.md)). It edits a schedule for one
+day, so it comes after `Mail`; the movement uses the game's own pathing, so it doesn't wait on the
+travel spike.
+
+**Tuning constants**: `FarmVisitMinHearts` 4, `VisitLeadDays` 1-3, `FarmVisitWaitTicks` 6,
+`FarmVisitTravelTicks` per home region (from the extracted schedules' travel times; **verify**),
+slots 9:00 to 18:00. Not saved.
+
+**Acceptance tests**
+- Slot finder: fixture schedules give slots only in free time; a shopkeeper's working hours never
+  give one; festival days give none.
+- The day schedule: built from the normal one, with the farm stop inserted, and the normal entries
+  after it unchanged.
+- States: a first-hand sighting during the wait is `Met`; `Observe` turns the NPC at the door and
+  the player in the farmhouse into a first-hand sighting (a knock), so that is `Met` too; no sighting is `StoodUp` with `waited=6`; seen-but-not-talked is `StoodUp` with `seen=1`;
+  a storm cancels with no stress.
+- In-game (switch on): the NPC arrives on time, waits by the door, leaves on time, and is back on
+  its usual schedule afterward; its shop opened on schedule; the stand-up line appears the next time
+  the player talks to it.
+
 ## Status
 
 Not started. Today the `Mail` rung only logs `would try Mail`.
@@ -139,7 +230,10 @@ decompile (`LetterViewerMenu`, `Quest`, `NPC.checkForNewCurrentDialogue`).
 
 Recommended first request type when the time comes: the letter with an item-delivery quest, because
 it reuses mail (built here), the quest log tracks completion for us, and the NPC's diary gets a
-natural `QuestHelped` entry ([diary.md](diary.md)).
+natural `QuestHelped` entry ([diary.md](diary.md)). Under motives this is how `NeedsHelp` is
+expressed ([motives.md](motives.md)); what to ask for comes from the NPC's own gift tastes and
+needs ([vanilla-sources.md](vanilla-sources.md)). Phone calls (1.6) are a further channel between a
+letter and a visit, once verified ([vanilla-sources.md](vanilla-sources.md)).
 
 ## Open questions
 

@@ -64,7 +64,7 @@ A character acts only when both hold:
 
 `Motive` enum, saved as an int, append only: `MissingYou = 0`, `News = 1`, `Grateful = 2`,
 `Hurt = 3`, `Curious = 4`, `Worried = 5`, `WantsToTrade = 6` ([trades.md](trades.md)),
-`Jealous = 7` ([romance.md](romance.md)), `Greeting = 8`. Every motive has a **subject**: the
+`Jealous = 7` ([romance.md](romance.md)), `Greeting = 8`, `NeedsHelp = 9`. Every motive has a **subject**: the
 player or another NPC ([town-life.md](town-life.md)).
 
 Motives come in two families:
@@ -72,7 +72,7 @@ Motives come in two families:
 | Family | Motives | Valence | How they combine |
 |---|---|---|---|
 | **Feelings** about the subject | `Grateful`, `MissingYou`, `Greeting`, `Curious` (+); `Hurt`, `Jealous` (-) | signed | **net** into one feeling per subject (below) |
-| **Tasks** with the subject | `News`, `Worried`, `WantsToTrade` | none | each stands alone; the net feeling sets its tone |
+| **Tasks** with the subject | `News`, `Worried`, `WantsToTrade`, `NeedsHelp` | none | each stands alone; the net feeling sets its tone |
 
 ### Stressor profiles
 
@@ -107,6 +107,15 @@ First-guess defaults (tune from playtest logs):
 | `PassedBy` | sadness | - | 0.15 | 0.5 | 0 (yields) | 0 |
 | `SawGift` (giver is someone the observer is drawn to) | sadness | - | 0.3 | 0.7 | 0 (until confirmed) | see gossip |
 | `SawRummaging` (planned kind, below) | disgust | - | 0.3 | 0.8 | 0.1 | 4 |
+| `Praised` (the player's answer to a vanilla question, [vanilla-sources.md](vanilla-sources.md)) | happiness | + | 0.3 | 0.7 | 0.1 | 1 |
+| `BrushedOff` | sadness | - | 0.15 | 0.5 | 0 (yields) | 0 |
+| `Criticized` | anger | - | 0.4 | 0.8 | 0.3 | 2 |
+| `HeartEvent` (the player saw the NPC's heart event) | happiness | + | 0.6 | 0.9 | 0.5 | 3 if another villager was in it, else 1 |
+| `DanceAsked` accepted / declined (Flower Dance) | happiness / sadness | + / - | 0.5 / 0.4 | 0.85 | 0.3 / 0.2 | 3 |
+| `MovieTogether` loved / disliked the film | happiness / disgust | + / - | 0.4 / 0.15 | 0.8 | 0.2 / 0 | 2 |
+| `FarmVisited` ([invitations.md](invitations.md)) | happiness | + | 0.4 | 0.8 | 0.2 | 1 |
+| `StoodUp` at the farm, `seen=1` (seen but ignored) | anger | - | 0.85 | 0.85 | 0.6 | 3 |
+| `TownNews` (a vanilla conversation topic) | surprise | none | 0 | - | 0 | 2 |
 | `Argued` (NPC to NPC, [town-life.md](town-life.md)) | anger | - | 0.4 | 0.8 | 0.3 | 3 |
 | `ChattedWith` | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
 | `Heard` | the original's | the original's | original x `HearsayFactor` 0.5 | 0.6 | 0 until confirmed | the original's, faded |
@@ -190,6 +199,7 @@ All values 0..1, pure, in `src/NpcInitiation/Motives.cs`. `d` = days since the s
 | `Worried` | hearts >= 4 and no own sighting and no tip for 3+ days | `min(1, (days - 2) / 5) x (0.5 + fear)` |
 | `Jealous` | `Heard`/`SawGift` of the subject giving a Love gift to someone else, when the observer is drawn to the giver ([romance.md](romance.md)) | the elastic part; plastic only when confirmed ([ledger-gossip.md](ledger-gossip.md)) |
 | `WantsToTrade` | an open trade offer ([trades.md](trades.md)) | the offer's want strength |
+| `NeedsHelp` | something the NPC wants done or brought, from its own data: a loved or liked item it hasn't had in a while (`Data/NPCGiftTastes`), its work (Willy's fish, Robin's wood), a vanilla request it already posts ([vanilla-sources.md](vanilla-sources.md)) | `0.3 + 0.3 x (days since last asked / 14)`, capped at 0.6; at most one open request per NPC; expressed as a quest ([invitations.md](invitations.md), "Later") |
 
 `MissingYou` (near-miss), from the first pass, is kept as a source of `MissingYou`: when the NPC's
 routine belief ([routines.md](routines.md)) says the player is usually here at this hour and today
@@ -239,8 +249,14 @@ guesses):
 | Queued line | `QueuedLine` | 0.30 | any |
 | Letter | `Mail` | 0.25 | any but `Greeting`, `Curious` |
 | Interrupt | `ForcedDialogue` | 0.80 | `Hurt`, `Worried`, `News` with score >= 4 |
-| Visit | `Visit` ([find.md](find.md)) | 0.70 | `MissingYou`, `Worried`, `Hurt`, `News` with score >= 4 |
+| Farm visit by appointment (a letter, then a scheduled walk) | `Mail` + a schedule for that day ([invitations.md](invitations.md)) | 0.45 | `MissingYou`, `Grateful`, `Curious` at 4+ hearts, `News` with score >= 3 |
+| Ask for help (a quest) | `Mail` with a quest, or in person with a bubble ([invitations.md](invitations.md)) | 0.30 | `NeedsHelp` |
+| Visit (unannounced) | `Visit` ([find.md](find.md)) | 0.70 | `MissingYou`, `Worried`, `Hurt`, `News` with score >= 4 |
 | Kiss | romance ([romance.md](romance.md)) | 0.95 | romantic `Grateful`/`MissingYou` at partner status; shadow only until romance goes live |
+
+The **emote** shows the feeling's emotion (ids confirmed in the 1.6.15 decompile): anger 12,
+sadness 28, happiness 32, surprise 16, fear 8, and for a warm romantic feeling heart 20 or blush 60
+(blush for shy characters). Disgust has no emote and uses anger.
 
 **Hostile acts** (a sharp bubble, a cold letter, a confrontation) cost `HostileSurcharge` (0.30)
 more. Avoiding someone is not an act: it costs nothing and shows only as an absence and a shadow
@@ -327,10 +343,13 @@ This is the one place the mod changes friendship. It has its own live switch,
   **verify** in the 1.6.15 decompile: the vanilla garbage-can code, the radius in which villagers
   react, which villagers are exempt (Linus, from memory) and the friendship change it already
   applies. Only the reaction's existence and the actors matter here; the mod changes nothing.
-- When live dialogue lands (step 6), the response options become the richest source of stresses:
-  a positive, neutral or negative answer to "what do you think of my new shoes?" writes `Praised`,
-  `BrushedOff` or `Criticized`, each with a profile (elastic for a brush-off, plastic for a
-  cut-down). The physics is built first; dialogue only adds sources.
+- `Praised`, `BrushedOff`, `Criticized`: the player's answers to the questions vanilla dialogue
+  already asks (`$q`/`$r`/`$y`), classed by the friendship effect vanilla attaches to each answer
+  (positive, zero, negative). This works in shadow mode now, from vanilla dialogue alone
+  ([vanilla-sources.md](vanilla-sources.md); the answer hook is being verified). When our own
+  dialogue lands (step 6), its questions add more of the same.
+- `HeartEvent`, `DanceAsked`, `MovieTogether`, `TownNews`, `FarmVisited`: from the vanilla signals in
+  [vanilla-sources.md](vanilla-sources.md) and the farm visits in [invitations.md](invitations.md).
 
 ## Weather and seasons
 

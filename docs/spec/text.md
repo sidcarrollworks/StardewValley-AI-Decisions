@@ -71,6 +71,12 @@ Lines that sound a little different per NPC and per occasion, never contain inte
   a hostile act (a sharp bubble, a cold letter) uses the `Hurt` or `Jealous` variant even when the
   act carries `News`, and the character's strongest emotion bias picks between an angry and a sad
   wording where a bucket has both ([temperament.md](temperament.md)).
+- **Farm visits** ([invitations.md](invitations.md)): per NPC, `mail.FarmVisit` (names the day and
+  time), `line.FarmVisited` (said on arrival or when the player talks to them there), and
+  `line.StoodUp.Farm` ("I came to your farm to see you and waited for an hour, but you weren't
+  there"), with `seen` variants for being ignored on the farm.
+- **Portraits** (pending Sid, [vanilla-sources.md](vanilla-sources.md)): the template system may
+  append a portrait code from a fixed list per emotion after sanitizing; the model never picks it.
 - **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
   language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
   haven't written for.

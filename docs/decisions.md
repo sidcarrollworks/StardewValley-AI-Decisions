@@ -356,6 +356,30 @@ but not breadth: one Saloon evening could carry a story to most of the town.
 **Notes.** Positions keep the D9 two-hop cap, and a rumour never refreshes a last-seen view. Spec:
 `docs/spec/ledger-gossip.md`.
 
+### D26. Lean on the vanilla game: its data to stay in character, its mechanics to act
+**Decision (Sid, 2026-10-01).** Get as much information from the vanilla game as possible, because
+it is the best data for keeping characters in character, and act through the game's own mechanisms
+before building new ones. Concretely: read more player-action signals (answers to vanilla dialogue
+questions, heart events seen, festivals, movies, garbage cans, conversation topics) as diary
+entries; mine the game's content offline for seeds (how villagers talk about each other, who appears
+together in heart events, gift tastes); and act through vanilla channels (emotes matched to the
+emotion, a schedule for one day, quests, later phone calls). The first use: **farm visits by
+appointment**. A letter says "I'd like to come by your farm on Thursday at 2"; that day's schedule
+walks the NPC there with the game's pathing; it waits an hour by the door; if the player isn't
+there it is a stand-up, remembered and mentioned ("I came to your farm to see you and waited for an
+hour, but you weren't there").
+**Why.** *"I'd like to get as much info from the vanilla game as we can, as it is the best data to
+help influence our characters and keep them in character"* and *"editing the schedule is a good
+idea, also plays well with sending mail... provides an opportunity for negative interaction"*
+(Sid). A schedule for one day uses movement the game already does every day, so announced visits
+and meet-ups don't wait on the travel spike, and an appointment gives the player a fair chance to
+show up, which makes a stand-up a real choice.
+**Notes.** Reading stays read-only (postfixes, daily diffs); every channel used to act has its own
+switch. New keys (a mail id, a quest, a one-day schedule) may be added to game data; vanilla entries
+are never changed. Whether to add dialogue keys for conversation topics, and portrait codes in our
+lines, is still Sid's call. Many facts here are being verified in the decompile (DeepSeek,
+2026-10-01). Spec: `docs/spec/vanilla-sources.md`.
+
 ---
 
 ## Open work and known issues

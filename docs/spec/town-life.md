@@ -28,8 +28,11 @@ Off-screen, the same things happen in memory only (diary and ledger), with no mo
 - **Regard** replaces the planned `NpcBond` (2026-10-01): `Regard(A, B)` is directional (A's view
   of B), signed -1..1, saved sparse in `MemoryStore`, and is the same record the motives keep for the
   player ([motives.md](motives.md), "Regard"). Seeded on first load from `FriendsAndFamily`
-  (household = family 0.8, listed = friend 0.5, else none) and a small `data/bonds.json` for
-  tensions (negative seeds); moved by the plastic share of what A feels about B.
+  (household = family 0.8, listed = friend 0.5, else none), then from the game's own content: how
+  each villager's dialogue talks about the others and who appears together in heart events, mined
+  offline into a reviewed fixture (`fixtures/game/regard/`, [vanilla-sources.md](vanilla-sources.md));
+  plus a small `data/bonds.json` for tensions (negative seeds) and hand overrides. Moved afterward by
+  the plastic share of what A feels about B.
 - Diary kinds `ChattedWith` (subject: the other NPC; news weight 1, or 2 if the player saw it),
   `Argued`, `MetUpWith`, `LookedFor`.
 
@@ -77,8 +80,10 @@ Off-screen, the same things happen in memory only (diary and ledger), with no mo
 - The day digest is built at `DayEnding`, before the overnight plan job, from memory only.
 - A scene is **rendered** only if the player is in that location: bubbles via `showTextAboveHead`
   (the text from `i18n/`, [text.md](text.md)). Otherwise it's recorded silently.
-- Meet-ups and looking-for need movement: live only after the travel spike ([roadmap.md](roadmap.md),
-  step 11), behind `Live.TownLife`.
+- Meet-ups are planned overnight and use a schedule for that one day, like farm visits
+  ([invitations.md](invitations.md), [vanilla-sources.md](vanilla-sources.md)): the game paths both
+  NPCs to the meeting place, so planned meet-ups don't wait on the travel spike. Same-day
+  looking-for still does ([roadmap.md](roadmap.md), step 11). Behind `Live.TownLife`.
 
 ## Laya questions
 
