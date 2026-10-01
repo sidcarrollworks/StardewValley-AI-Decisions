@@ -627,6 +627,9 @@ never feed a decision, and live positions appear only in `presence` records, bui
 into per-day tables (attempts by step, gossip routes, model calls and fallbacks, diary growth
 against the 500 cap, slowest ticks). Adding a record type is one class in
 `src/NpcMinds/Playtest/PlaytestRecords.cs` plus one `Append`/`QueueFromWorker` call.
+The ladder's `Blocked` events (a step the urge cleared but a gate or cap passed over; at most one
+per NPC per step per day) go to the playtest log only, at Trace in the SMAPI log: they are tuning
+data, and as events they would crowd real attempts out of the log and the viewer's feed.
 
 ## Shadow harness and schedule extractor
 

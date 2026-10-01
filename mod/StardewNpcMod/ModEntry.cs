@@ -691,6 +691,19 @@ public class ModEntry : Mod
                 _memory.DiaryOf(npc).Append(entry);
             foreach (InitiationEvent ev in result.Events)
             {
+                if (ev.Kind == "Blocked")
+                {
+                    // Near-attempts are tuning data, not events: up to one per NPC per step per day,
+                    // which would crowd real attempts out of the SMAPI log and the viewer's
+                    // 300-item feed. They go to the playtest log only (Trace in the SMAPI log).
+                    Monitor.Log($"[shadow] {ev.Npc}: {ev.Step} blocked (urge {ev.UrgeBefore:0.00}; {ev.Reason})", LogLevel.Trace);
+                    _playtest.Append(new LadderRecord(ev.Npc, ev.Kind, ev.Step.ToString(), ev.UrgeBefore, ev.UrgeAfter,
+                        ev.Threshold, ev.ModelP, ev.Reason, ev.Lead?.Place)
+                    {
+                        Tick = ev.AbsoluteTick,
+                    });
+                    continue;
+                }
                 string text = ev switch
                 {
                     { Kind: "Attempt", Lead: { } lead } =>
