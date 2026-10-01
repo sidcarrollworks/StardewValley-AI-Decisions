@@ -46,8 +46,22 @@
   .badge::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--sand9); }
   .badge.line::before { background: var(--grass9); }
   .badge.open::before { background: var(--amber9); }
-  .urge { margin: 8px 0 4px; }
-  .urgebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; overflow: visible; }
+  .who { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .face { width: 48px; height: 48px; border-radius: 8px; background: var(--chip); image-rendering: pixelated; object-fit: cover; }
+  .initials { display: grid; place-items: center; font-weight: 700; color: var(--muted); font-size: 16px; }
+  .tline { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+  /* Daring: a display-only preview of the motives act rule (docs/spec/motives.md, D24). */
+  .dare { margin: 8px 0 2px; }
+  .darebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; }
+  .darebar .base { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--grass9); transition: width .8s ease; }
+  .darebar .reach { position: absolute; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: repeating-linear-gradient(135deg, var(--grass9) 0 3px, transparent 3px 6px); opacity: .55; transition: left .8s ease; }
+  .darebar .cost { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
+  .dareline { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .dareline b { color: var(--ink); font-weight: 600; }
+  .legacy { margin: 8px 0 4px; padding-top: 6px; border-top: 1px dashed var(--line); }
+  .legacy .tag { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .urge { margin: 4px 0 4px; }
+  .urgebar { position: relative; height: 6px; background: var(--bar); border-radius: 5px; overflow: visible; }
   .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
   .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
   .tick.next { background: var(--ink); opacity: 1; width: 2px; }
@@ -97,7 +111,7 @@
   .mark.nofollow { background: var(--tomato9); color: #fff; }
   .mark.few { background: var(--chip); color: var(--muted); }
   .dots { display: flex; gap: 2px; margin: 3px 0; flex-wrap: wrap; }
-  .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--bar); }
+  .sdot { width: 9px; height: 9px; border-radius: 2px; background: var(--bar); }
   .spread-list { margin-top: 4px; font-size: 12px; color: var(--muted); }
   .spread-list .npc { display: flex; gap: 8px; justify-content: space-between; }
   .spread-list .npc b { color: var(--ink); font-weight: 600; }
@@ -123,12 +137,15 @@
   <span class="stat" id="model"></span>
   <span class="stat" id="ladder"></span>
   <span class="stat" id="plan"></span>
+  <span class="stat" title="docs/spec/motives.md, D24: an NPC acts on a motive when boldness + familiarity + feeling reaches the act's cost. Until step 14 is built, attempts still come from the urge ladder.">motives: designed, not built · attempts still use the urge ladder</span>
   <span class="controls">
     <span class="stat"><span class="dot" id="conn"></span><span id="age">connecting</span></span>
     <input type="search" id="filter" placeholder="Filter villagers" aria-label="Filter villagers">
     <select id="sort" aria-label="Sort">
-      <option value="urge">Sort by urge</option>
       <option value="changed">Recently changed</option>
+      <option value="boldness">Sort by boldness</option>
+      <option value="hearts">Sort by hearts</option>
+      <option value="urge">Sort by urge (current ladder)</option>
       <option value="name">Sort by name</option>
     </select>
     <label class="check"><input type="checkbox" id="onlyKnown" checked> knows you</label>
@@ -177,6 +194,26 @@ function pct(v) { return isFinite(v) ? Math.round(v * 100) + "%" : "n/a"; }
 function fmt(v, d = 2) { return isFinite(v) ? Number(v).toFixed(d) : "n/a"; }
 function hearts(n) { return n > 0 ? "♥ " + n : ""; }
 
+// The motives act rule, previewed for display only (docs/spec/motives.md, "The act rule", D24):
+// an NPC can afford an act when boldness + familiarity + 0.5 x feeling reaches its cost. These
+// are the spec's first-guess costs; when step 14 lands, the snapshot should carry the real
+// numbers and this table should go. Nothing here feeds a decision.
+const ACTS = [["Emote", 0.20], ["Letter", 0.25], ["Queued line", 0.30], ["Bubble", 0.35],
+              ["Farm visit", 0.45], ["Walk up", 0.50], ["Visit", 0.70], ["Interrupt", 0.80]];
+const DARE_MAX = 1.2, FAMILIARITY_PER_HEART = 0.03, STRONG_FEELING = 0.25; // 0.5 x intensity 0.5
+function traitOf(npc, name) {
+  const t = npc.temperament && npc.temperament.traits.find(x => x.name === name);
+  return t ? t.value : NaN;
+}
+function daring(npc) {
+  const b = traitOf(npc, "boldness");
+  if (!isFinite(b)) return null;
+  const base = b + FAMILIARITY_PER_HEART * Math.max(0, Math.min(10, npc.hearts));
+  return { boldness: b, base, reach: base + STRONG_FEELING };
+}
+function loadPref(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
+function savePref(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
 function makeCard(npc, s) {
   const root = el("article", "card");
   const h = el("h2");
@@ -185,7 +222,30 @@ function makeCard(npc, s) {
   const lineBadge = el("span", "badge line", "has a line today");
   const openBadge = el("span", "badge open");
   h.append(name, heartsEl, lineBadge, openBadge);
+  const tline = el("div", "tline", npc.temperament ? npc.temperament.summary : "");
+  // The portrait comes from the player's own game, served by the mod from memory
+  // (/portrait/<Name>.png); without one, the card shows the villager's initials.
+  const face = el("img", "face");
+  face.alt = ""; face.loading = "lazy"; face.src = "portrait/" + encodeURIComponent(npc.name) + ".png";
+  face.addEventListener("error", () => face.replaceWith(el("div", "face initials", npc.name.slice(0, 2))));
+  const who = el("div", "who"), whoText = el("div");
+  whoText.append(h);
+  if (npc.temperament) whoText.append(tline);
+  who.append(face, whoText);
 
+  const dare = el("div", "dare");
+  const dbar = el("div", "darebar");
+  const dbase = el("div", "base"), dreach = el("div", "reach");
+  dbar.append(dbase, dreach);
+  for (const [label, cost] of ACTS) {
+    const c = el("div", "cost"); c.style.left = (cost / DARE_MAX * 100) + "%"; c.title = label + " costs " + cost; dbar.append(c);
+  }
+  dbar.title = "Daring preview (motives.md, D24): boldness + 0.03 per heart, striped to + a strong feeling. Ticks are act costs. Display only.";
+  const dline = el("div", "dareline");
+  dare.append(dbar, dline);
+
+  const legacy = el("div", "legacy");
+  legacy.append(el("span", "tag", "Current ladder (urge, until motives replace it)"));
   const urge = el("div", "urge");
   const bar = el("div", "urgebar");
   const fill = el("div", "urgefill");
@@ -197,6 +257,7 @@ function makeCard(npc, s) {
   const urgeText = el("span"); const rungText = el("span");
   urgeLine.append(urgeText, rungText);
   urge.append(bar, urgeLine);
+  legacy.append(urge);
 
   const dl = el("dl");
   const row = label => { const dt = el("dt", "", label), dd = el("dd"); dl.append(dt, dd); return dd; };
@@ -237,10 +298,12 @@ function makeCard(npc, s) {
   const diary = el("ul", "diary");
   det.append(sum, diary);
 
-  root.append(h, urge, dl);
+  root.append(who);
+  if (daring(npc)) root.append(dare);
+  root.append(dl, legacy);
   if (npc.temperament) root.append(temper);
   root.append(det);
-  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary }, prev: null };
+  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary, dbase, dreach, dline }, prev: null };
 }
 
 function updateCard(c, npc, first) {
@@ -250,6 +313,20 @@ function updateCard(c, npc, first) {
   f.lineBadge.hidden = !npc.intentToday;
   f.openBadge.hidden = !npc.openStep;
   f.openBadge.textContent = npc.openStep ? npc.openStep + " open " + (npc.openForTicks * 10) + " min" : "";
+
+  const d = daring(npc);
+  if (d) {
+    const w = v => Math.max(0, Math.min(1, v / DARE_MAX)) * 100;
+    f.dbase.style.width = w(d.base) + "%";
+    f.dreach.style.left = w(d.base) + "%";
+    f.dreach.style.width = (w(d.reach) - w(d.base)) + "%";
+    const top = v => { const ok = ACTS.filter(a => a[1] <= v); return ok.length ? ok[ok.length - 1][0] : null; };
+    const now = top(d.base), strong = top(d.reach);
+    const text = "dares <b>" + fmt(d.base) + "</b> (boldness " + fmt(d.boldness) + " + hearts " + fmt(d.base - d.boldness) + ")"
+      + " · reaches <b>" + (now || "nothing yet") + "</b>"
+      + (strong && strong !== now ? " · strongly felt: <b>" + strong + "</b>" : "");
+    if (f.dline.innerHTML !== text) { if (!first && p && p.hearts !== npc.hearts) { flash(f.dline); changed = true; } f.dline.innerHTML = text; }
+  }
 
   const u = Math.max(0, Math.min(1, npc.urge));
   f.fill.style.width = u * 100 + "%";
@@ -374,7 +451,7 @@ function renderSpread(s) {
           " \u00b7 calibrated " + fmt(r.calibrationMedian) + " / " + fmt(r.calibrationSpread)));
     const dots = el("div", "dots");
     for (const n of r.npcs) {
-      const d = el("span", "dot");
+      const d = el("span", "sdot");
       d.title = n.name + " " + fmt(n.mean, 3);
       d.style.background = "rgba(113,208,131," + (0.12 + 0.88 * Math.max(0, Math.min(1, n.mean))) + ")";
       dots.append(d);
@@ -439,10 +516,16 @@ function layout() {
   const q = $("filter").value.trim().toLowerCase();
   const onlyKnown = $("onlyKnown").checked;
   const sort = $("sort").value;
-  const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q)) && (!onlyKnown || n.lastSeen || n.urge > 0));
-  list.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name)
-    : sort === "changed" ? (changedAt.get(b.name) || 0) - (changedAt.get(a.name) || 0) || a.name.localeCompare(b.name)
-    : b.urge - a.urge || a.name.localeCompare(b.name));
+  const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q)) && (!onlyKnown || n.lastSeen || n.hearts > 0 || n.urge > 0));
+  const num = v => (isFinite(v) ? v : -1);
+  const by = {
+    name: (a, b) => a.name.localeCompare(b.name),
+    changed: (a, b) => (changedAt.get(b.name) || 0) - (changedAt.get(a.name) || 0),
+    boldness: (a, b) => num(traitOf(b, "boldness")) - num(traitOf(a, "boldness")),
+    hearts: (a, b) => b.hearts - a.hearts,
+    urge: (a, b) => b.urge - a.urge,
+  }[sort] || ((a, b) => 0);
+  list.sort((a, b) => by(a, b) || a.name.localeCompare(b.name));
   const now = Date.now();
   const nodes = list.map(n => { const c = cards.get(n.name); c.root.classList.toggle("recent", now - (changedAt.get(n.name) || 0) < 10000); return c.root; });
   const current = Array.from(grid.children);
@@ -468,7 +551,9 @@ async function poll() {
 }
 
 $("filter").addEventListener("input", layout);
-$("sort").addEventListener("change", layout);
+$("sort").value = loadPref("mindsSort", "changed");
+if (!$("sort").value) $("sort").value = "changed";
+$("sort").addEventListener("change", () => { savePref("mindsSort", $("sort").value); layout(); });
 $("onlyKnown").addEventListener("change", layout);
 for (const [btn, show, hide, other] of [["tabEvents", "events", "calls", "tabCalls"], ["tabCalls", "calls", "events", "tabEvents"]]) {
   $(btn).addEventListener("click", () => { $(show).hidden = false; $(hide).hidden = true; $(btn).classList.add("on"); $(other).classList.remove("on"); });

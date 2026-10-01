@@ -292,7 +292,48 @@ public class ModEntry : Mod
         {
             Monitor.Log($"Failed to load memory: {ex}", LogLevel.Error);
         }
+        PublishPortraits();
         PublishMinds();
+    }
+
+    /// <summary>
+    /// The viewer's card portraits: each villager's neutral portrait, cut from the player's own
+    /// installed game content and handed to the viewer server as PNG bytes in memory. Nothing is
+    /// written to disk or the repo (the art is the game's). Runs on the game thread at save load,
+    /// so content packs that change portraits show up; any failure skips that villager only and
+    /// the page falls back to initials. Display only: nothing reads these back.
+    /// </summary>
+    private void PublishPortraits()
+    {
+        MindsServer? minds = _minds;
+        if (minds is null)
+            return;
+        var pngs = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (string name in Game1.characterData.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                // VERIFY: NPC.Portrait is the loaded portrait sheet for the NPC's current
+                // appearance, laid out in 64x64 frames with frame 0 the neutral face ($0,
+                // stardew-source-notes.md "Dialogue system").
+                Microsoft.Xna.Framework.Graphics.Texture2D? sheet = Game1.getCharacterFromName(name)?.Portrait;
+                if (sheet is null || sheet.Width < 64 || sheet.Height < 64)
+                    continue;
+                var pixels = new Microsoft.Xna.Framework.Color[64 * 64];
+                sheet.GetData(0, new Microsoft.Xna.Framework.Rectangle(0, 0, 64, 64), pixels, 0, pixels.Length);
+                using var frame = new Microsoft.Xna.Framework.Graphics.Texture2D(Game1.graphics.GraphicsDevice, 64, 64);
+                frame.SetData(pixels);
+                using var png = new MemoryStream();
+                frame.SaveAsPng(png, 64, 64);
+                pngs[name] = png.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"NPC Minds viewer: no portrait for {name} ({ex.GetType().Name}: {ex.Message}).", LogLevel.Trace);
+            }
+        }
+        minds.PublishPortraits(pngs);
+        Monitor.Log($"NPC Minds viewer: {pngs.Count} portraits ready.", LogLevel.Trace);
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)

@@ -119,4 +119,37 @@ public sealed class MindsServerTests
         Assert.Contains("NPC Minds", page);
         Assert.DoesNotContain("missing from NpcMinds.dll", page);
     }
+
+    private static readonly byte[] FakePng = { 0x89, 0x50, 0x4E, 0x47, 1, 2, 3 };
+
+    private static MindsServer WithPortraits()
+    {
+        var server = new MindsServer(new RingLog<DecisionCall>(10), MindsSnapshot.Idle(1, "Fake"));
+        server.PublishPortraits(new Dictionary<string, byte[]> { ["Abigail"] = FakePng, ["../evil"] = FakePng, ["Empty"] = Array.Empty<byte>() });
+        return server;
+    }
+
+    [Fact]
+    public void ServesAPublishedPortraitAsPng()
+    {
+        using MindsServer server = WithPortraits();
+        (int status, string type, byte[] body) = server.Route("GET /portrait/Abigail.png HTTP/1.1\r\nHost: 127.0.0.1");
+        Assert.Equal(200, status);
+        Assert.Equal("image/png", type);
+        Assert.Equal(FakePng, body);
+        // Names match case-insensitively, like the game's own NPC names in the snapshot.
+        Assert.Equal(200, server.Route("GET /portrait/abigail.png HTTP/1.1").Status);
+    }
+
+    [Fact]
+    public void UnknownOrUnsafePortraitNamesAre404()
+    {
+        using MindsServer server = WithPortraits();
+        Assert.Equal(404, server.Route("GET /portrait/Shane.png HTTP/1.1").Status);       // not published
+        Assert.Equal(404, server.Route("GET /portrait/../evil.png HTTP/1.1").Status);     // never a path
+        Assert.Equal(404, server.Route("GET /portrait/Empty.png HTTP/1.1").Status);       // empty bytes dropped
+        Assert.Equal(404, server.Route("GET /portrait/Abigail.gif HTTP/1.1").Status);     // png only
+        Assert.False(MindsServer.IsPortraitName("../evil"));
+        Assert.True(MindsServer.IsPortraitName("Mister_Qi"));
+    }
 }

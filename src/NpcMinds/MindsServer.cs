@@ -9,8 +9,10 @@ namespace NpcMinds;
 
 /// <summary>
 /// A tiny read-only HTTP server on the loopback interface for the NPC Minds viewer
-/// (docs/spec/debug-tools.md, "Live viewer"). It serves the viewer page at <c>/</c> and the
-/// latest snapshot plus recent model calls at <c>/state.json</c>; nothing else, and only GET.
+/// (docs/spec/debug-tools.md, "Live viewer"). It serves the viewer page at <c>/</c>, the
+/// latest snapshot plus recent model calls at <c>/state.json</c>, and each villager's portrait at
+/// <c>/portrait/&lt;Name&gt;.png</c> (PNG bytes the mod made from the player's own game content and
+/// handed over with <see cref="PublishPortraits"/>); nothing else, and only GET.
 /// <para>
 /// It runs on its own background thread and never touches the game: the game thread publishes
 /// an immutable <see cref="MindsSnapshot"/> by swapping one reference, and serialization happens
@@ -34,6 +36,8 @@ public sealed class MindsServer : IDisposable
     private readonly RingLog<DecisionCall> _calls;
     private readonly byte[] _page;
     private volatile MindsSnapshot _snapshot;
+    private volatile IReadOnlyDictionary<string, byte[]> _portraits =
+        new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
     private TcpListener? _listener;
     private Thread? _thread;
     private volatile bool _stopping;
@@ -58,6 +62,23 @@ public sealed class MindsServer : IDisposable
     }
 
     public MindsSnapshot Current => _snapshot;
+
+    /// <summary>Replaces the portrait PNGs (villager name -> bytes). Called from the game thread
+    /// after a save loads; the dictionary is copied, so the caller may reuse its own.</summary>
+    public void PublishPortraits(IReadOnlyDictionary<string, byte[]> portraits)
+    {
+        if (portraits is null)
+            return;
+        _portraits = new Dictionary<string, byte[]>(
+            portraits.Where(kv => IsPortraitName(kv.Key) && kv.Value is { Length: > 0 })
+                     .ToDictionary(kv => kv.Key, kv => kv.Value),
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Portrait names are plain villager names: letters, digits and underscores only, so a
+    /// request path can never reach anything else.</summary>
+    public static bool IsPortraitName(string name)
+        => !string.IsNullOrEmpty(name) && name.Length <= 64 && name.All(c => char.IsLetterOrDigit(c) || c == '_');
 
     /// <summary>Binds 127.0.0.1:<paramref name="port"/> and starts serving. False (with the reason)
     /// if the port can't be bound, for example because another program already uses it.</summary>
@@ -184,6 +205,13 @@ public sealed class MindsServer : IDisposable
 
         try
         {
+            if (path.StartsWith("/portrait/", StringComparison.Ordinal) && path.EndsWith(".png", StringComparison.Ordinal))
+            {
+                string name = path.Substring("/portrait/".Length, path.Length - "/portrait/".Length - ".png".Length);
+                return IsPortraitName(name) && _portraits.TryGetValue(name, out byte[]? png)
+                    ? (200, "image/png", png)
+                    : Text(404, "no portrait");
+            }
             return path switch
             {
                 "/" or "/index.html" => (200, "text/html; charset=utf-8", _page),

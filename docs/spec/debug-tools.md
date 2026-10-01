@@ -33,7 +33,12 @@ It's easier to watch changes visually than through the logs." That became the li
 
 - **A live viewer in the browser** (built; `docs/decisions.md` D23). While the game runs, the mod
   serves a read-only page at `http://127.0.0.1:8765/` to keep open on a second monitor. One card
-  per NPC with a diary: urge as a bar with the rung thresholds marked, the rung and its threshold,
+  per NPC with a diary, led by the villager's portrait (read from the player's own game content
+  and served from memory; never stored), its temperament summary and a **daring** bar: a display-only preview
+  of the motives act rule (boldness + familiarity from hearts, and the extra reach of a strong
+  feeling, against the act costs; [motives.md](motives.md)), naming the biggest act it can reach.
+  Below the card's facts, under "Current ladder", the urge as a bar with the rung thresholds
+  marked, the rung and its threshold (the urge ladder still drives attempts until step 14),
   attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
   ("saw you at Pierre's General Store, 3 hours ago", "Emily told them you were at Pelican Town"),
   where it would look and why, today's planned line, tonight's likely news (today's top three
@@ -43,7 +48,8 @@ It's easier to watch changes visually than through the logs." That became the li
   lines, the event feed (attempts, outcomes, asking around, planned lines) and every model call
   (who asked, about whom, the question, each answer's probability as a bar, the latency, and
   whether it fell back). Anything that changed since the last update flashes, the urge shows its
-  change ("+0.03"), and cards can be sorted by most recently changed. It updates every two
+  change ("+0.03"), and cards can be sorted by most recently changed (the default), boldness,
+  hearts, urge or name. It updates every two
   seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
   viewer".
 - **Viewer: the model spread panel** (Sid, 2026-10-02; [laya.md](laya.md), "Character spread").
