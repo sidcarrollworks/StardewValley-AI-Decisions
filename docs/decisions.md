@@ -135,8 +135,23 @@ dropped (settled Sep 2026).
 cost. It needs Python, so it can't live inside the game process.
 **Sources.** Only the Laya GitHub repo and the Hugging Face model card are trusted. The community
 Hugging Face blog post links mostly to a domain that isn't TypeSafe's.
-**Open.** The default checkpoint is `typed-decisions`. Whether `english` answers NPC questions
-better is untested; A/B them once the server is running.
+**Open.** ~~The default checkpoint is `typed-decisions`. Whether `english` answers NPC questions
+better is untested; A/B them once the server is running.~~ Settled in two passes: the directional
+eval (D13-era, 2026-09-30: typed-decisions 5/6 vs 3/6) and the character-spread eval (2026-10-02:
+english follows personality better on the motives' close-call questions, which are not live yet).
+D26 reaffirms typed-decisions and sets the revisit point.
+
+### D26. Keep typed-decisions until motives' close calls are live
+**Decision (Sid, 2026-10-02).** The default checkpoint stays `typed-decisions`. English is NOT
+switched in, globally or per question, despite the spread eval showing it follows personality on
+7 of 9 question types.
+**Why.** The questions where english looked better — the close calls, the hostile acts and the
+choice variant — belong to the motives system (step 14), which is not built; today Laya only
+answers the ladder's attention questions and the planner's news and pick questions. On those live
+questions english is not clearly better: the speak question is a 0.25 veto that carries no
+personality on either checkpoint, and english's approach answers barely varied at all. The
+decision matters when step 14 lands and close calls start reading Laya's answers; by then the
+viewer's spread panel will have real playtest data to compare against, per question.
 
 ### D14. Model calls never run on the game thread
 **Decision.**

@@ -1,3 +1,4 @@
+using NpcDecision;
 using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
@@ -24,7 +25,10 @@ public sealed record MindsInputs(
     IReadOnlyList<IntentCandidate> PlanToday,
     IReadOnlyList<FeedItem> Feed,
     Func<string, NewsContext?>? NewsFor = null,     // null: no tonight's-news preview
-    Func<string, TemperamentView?>? TemperamentFor = null); // null: no temperament shown
+    Func<string, TemperamentView?>? TemperamentFor = null, // null: no temperament shown
+    IReadOnlyList<SpreadEntry>? SpreadEntries = null,     // the day's (template, NPC) answer table copy
+    NpcDecision.LayaCalibration? Calibration = null,      // the committed calibration table
+    SpreadOptions? SpreadOptions = null);                  // panel tuning (defaults when null)
 
 /// <summary>
 /// Builds a <see cref="MindsSnapshot"/> on the game thread. Pure and read-only: it only reads
@@ -108,7 +112,137 @@ public sealed class MindsSnapshotBuilder
             npcs,
             (inputs.PlanToday ?? Array.Empty<IntentCandidate>())
                 .Select(c => new PlannedLine(c.Npc, c.Line, c.Reason, c.News)).ToList(),
-            inputs.Feed ?? Array.Empty<FeedItem>());
+            inputs.Feed ?? Array.Empty<FeedItem>(),
+            SpreadRows(inputs.SpreadEntries, inputs.Calibration, inputs.TemperamentFor,
+                inputs.SpreadOptions ?? new SpreadOptions()));
+    }
+
+    /// <summary>The model spread panel's rows: per question template, the NPCs' mean answers,
+    /// the 90/10 spread and median, the rank correlation with the trait the question should
+    /// follow, the flat and doesn't-follow marks, and the calibration values. Pure.</summary>
+    public static IReadOnlyList<SpreadRow> SpreadRows(
+        IReadOnlyList<SpreadEntry>? entries, LayaCalibration? calibration,
+        Func<string, TemperamentView?>? temperamentFor, SpreadOptions options)
+    {
+        if (entries is null || entries.Count == 0)
+            return Array.Empty<SpreadRow>();
+
+        var rows = new List<SpreadRow>();
+        foreach (IGrouping<string, SpreadEntry> group in entries.GroupBy(e => e.Template))
+        {
+            // One mean per NPC (the table already aggregates repeated calls per (template, NPC)).
+            List<SpreadEntry> byNpc = group
+                .GroupBy(e => e.Npc, StringComparer.Ordinal)
+                .Select(g => g.OrderBy(e => e.Count).Last())
+                .ToList();
+            List<SpreadNpc> npcs = byNpc
+                .Select(e => new SpreadNpc(e.Npc, e.Mean))
+                .OrderByDescending(n => n.Mean)
+                .ThenBy(n => n.Name, StringComparer.Ordinal)
+                .ToList();
+            double[] sortedMeans = npcs.Select(n => n.Mean).OrderBy(m => m).ToArray();
+            double spread = Percentile(sortedMeans, 0.9) - Percentile(sortedMeans, 0.1);
+            double median = Median(sortedMeans);
+
+            string? evalId = LayaCalibration.NormalizeTemplate(group.Key);
+            double? calibrationMedian = null, calibrationSpread = null;
+            if (evalId is not null && calibration?.Of(evalId) is { } row && !row.A.NotCalibrated)
+            {
+                calibrationMedian = row.A.Median;
+                calibrationSpread = row.A.Spread;
+            }
+
+            bool? flat = null, follows = null;
+            double? correlation = null;
+            if (byNpc.Count >= options.MinNpcsForSpread)
+            {
+                flat = spread < options.FlatSpread;
+                if (LayaCalibration.TraitForTemplate(group.Key) is { } trait
+                    && temperamentFor is not null)
+                {
+                    // Means and trait values paired per NPC, then sorted by the mean, so the
+                    // correlation compares the same order (display order is mean-descending).
+                    (double Mean, double Trait)[] pairs = npcs
+                        .Select(n => (n.Mean, Trait: TraitOf(n.Name, trait.Trait, temperamentFor)))
+                        .OrderBy(p => p.Mean).ToArray();
+                    double[] means = pairs.Select(p => p.Mean).ToArray();
+                    double[] values = pairs.Select(p => p.Trait).ToArray();
+                    correlation = Spearman(means, values);
+                    follows = correlation is { } r
+                        && (trait.Direction > 0 ? r >= options.FollowsTraitMin : r <= -options.FollowsTraitMin);
+                }
+            }
+
+            rows.Add(new SpreadRow(group.Key, evalId, npcs, spread, median, correlation,
+                flat, follows, calibrationMedian, calibrationSpread));
+        }
+        return rows;
+    }
+
+    private static double TraitOf(string name, string traitName, Func<string, TemperamentView?> temperamentFor)
+    {
+        TemperamentView? view = temperamentFor(name);
+        return view is null ? double.NaN : view.Traits
+            .Where(t => t.Name == traitName)
+            .Select(t => t.Value)
+            .DefaultIfEmpty(double.NaN).First();
+    }
+
+    private static double Percentile(double[] sorted, double q)
+    {
+        if (sorted.Length == 0)
+            return double.NaN;
+        double pos = (sorted.Length - 1) * q;
+        int low = (int)pos;
+        int high = Math.Min(low + 1, sorted.Length - 1);
+        return sorted[low] + (sorted[high] - sorted[low]) * (pos - low);
+    }
+
+    private static double Median(double[] sorted)
+    {
+        if (sorted.Length == 0)
+            return double.NaN;
+        int mid = sorted.Length / 2;
+        return sorted.Length % 2 == 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    }
+
+    /// <summary>Spearman's rank correlation (Pearson on average ranks); NaN pairs are dropped.</summary>
+    public static double Spearman(double[] a, double[] b)
+    {
+        double[][] pairs = a.Zip(b).Where(p => !double.IsNaN(p.First) && !double.IsNaN(p.Second))
+            .Select(p => new[] { p.First, p.Second }).ToArray();
+        if (pairs.Length < 2)
+            return double.NaN;
+        double[] ra = Ranks(pairs.Select(p => p[0]).ToArray());
+        double[] rb = Ranks(pairs.Select(p => p[1]).ToArray());
+        int n = pairs.Length;
+        double ma = ra.Average(), mb = rb.Average();
+        double cov = 0, va = 0, vb = 0;
+        for (int i = 0; i < n; i++)
+        {
+            cov += (ra[i] - ma) * (rb[i] - mb);
+            va += (ra[i] - ma) * (ra[i] - ma);
+            vb += (rb[i] - mb) * (rb[i] - mb);
+        }
+        return va == 0 || vb == 0 ? double.NaN : cov / Math.Sqrt(va * vb);
+    }
+
+    private static double[] Ranks(double[] values)
+    {
+        int[] order = values.Select((v, i) => i).OrderBy(i => values[i]).ToArray();
+        var ranks = new double[values.Length];
+        int i = 0;
+        while (i < order.Length)
+        {
+            int j = i;
+            while (j + 1 < order.Length && values[order[j + 1]] == values[order[i]])
+                j++;
+            double avg = (i + j) / 2.0 + 1;
+            for (int k = i; k <= j; k++)
+                ranks[order[k]] = avg;
+            i = j + 1;
+        }
+        return ranks;
     }
 
     private static string StepName(int rung)

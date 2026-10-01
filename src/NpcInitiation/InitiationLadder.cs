@@ -201,7 +201,7 @@ public sealed class InitiationLadder
             state.Urge, input.Hearts, step.Value, view.Detail, view.AgeTicks,
             view.HopCount == 0 ? "first-hand" : $"hearsay ({view.HopCount} hops)",
             lead is null ? "" : $"; would look for them at {lead.Place} ({lead.Source})");
-        double p = _decision.YesNo(context, $"should {input.Npc} try to get the player's attention with {step.Value} now?");
+        double p = _decision.YesNo(context, AttentionProposition(input.Npc, step.Value.ToString()));
         if (double.IsNaN(p) || !(Uniform(input.Npc, absoluteTick) < p))
             return null;
 
@@ -222,6 +222,12 @@ public sealed class InitiationLadder
                 state.Urge, _options.StepThresholds[(int)step.Value], state.Rung, p),
             lead);
     }
+
+    /// <summary>The ladder's attention question for one step ("Emote", "Bubble", "Approach"...).
+    /// Public so the spread panel's template-mapper test can pin the EXACT wording by calling
+    /// this instead of repeating the string.</summary>
+    public static string AttentionProposition(string npc, string step)
+        => $"should {npc} try to get the player's attention with {step} now?";
 
     /// <summary>The mildest step at or above the NPC's rung that is available and whose threshold the urge meets.</summary>
     private InitiationStep? Candidate(InitiationInput input, NpcState state)

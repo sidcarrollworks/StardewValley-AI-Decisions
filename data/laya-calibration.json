@@ -1,0 +1,109 @@
+{
+  "note": "Per-question medians and spreads of the model's answers over all villagers' cards, from the character-spread eval (sidecar/eval/run_spread.py, the hearts-4 reference run; the welcome question from the hearts-0 newcomer run). Keyed by the question templates the mod asks (see LayaCalibration.KnownTemplates). The corrections (RelativeScale and w) are deliberately absent: they stay off until a spread run says a question needs them (docs/spec/laya.md, 'Character spread').",
+  "checkpoint": "typed-decisions",
+  "reference_hearts": 4,
+  "flat_spread": 0.05,
+  "follows_min": 0.3,
+  "questions": {
+    "attention_emote": {
+      "A": {
+        "median": 0.39849999999999997,
+        "spread": 0.23258999999999996
+      },
+      "B": {
+        "median": 0.43195,
+        "spread": 0.16215000000000002
+      }
+    },
+    "attention_bubble": {
+      "A": {
+        "median": 0.38634999999999997,
+        "spread": 0.24660999999999994
+      },
+      "B": {
+        "median": 0.45485,
+        "spread": 0.19507000000000002
+      }
+    },
+    "attention_approach": {
+      "A": {
+        "median": 0.57245,
+        "spread": 0.07352999999999987
+      },
+      "B": {
+        "median": 0.5606,
+        "spread": 0.04901
+      }
+    },
+    "speak": {
+      "A": {
+        "median": 0.47795,
+        "spread": 0.034150000000000014
+      },
+      "B": {
+        "median": 0.4676,
+        "spread": 0.034609999999999974
+      }
+    },
+    "hold_against": {
+      "A": {
+        "median": 0.42405000000000004,
+        "spread": 0.13463999999999998
+      },
+      "B": {
+        "median": 0.43035,
+        "spread": 0.14612999999999998
+      }
+    },
+    "close_friendly": {
+      "A": {
+        "median": 0.6136,
+        "spread": 0.07043999999999995
+      },
+      "B": {
+        "median": 0.5908,
+        "spread": 0.11073999999999995
+      }
+    },
+    "close_hostile": {
+      "A": {
+        "median": 0.6577500000000001,
+        "spread": 0.10858000000000001
+      },
+      "B": {
+        "median": 0.6386499999999999,
+        "spread": 0.14525
+      }
+    },
+    "choose": {
+      "A": {
+        "median": 0.5084,
+        "spread": 0.07536999999999999
+      },
+      "B": {
+        "median": 0.5109,
+        "spread": 0.12053000000000003
+      }
+    },
+    "welcome_newcomer": {
+      "A": {
+        "median": 0.3955,
+        "spread": 0.28889999999999993
+      },
+      "B": {
+        "median": 0.401,
+        "spread": 0.26432000000000005
+      }
+    },
+    "choose_bring_up": {
+      "A": {
+        "median": null,
+        "spread": null
+      },
+      "B": {
+        "median": null,
+        "spread": null
+      }
+    }
+  }
+}
