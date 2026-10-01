@@ -1,7 +1,8 @@
 # 12. Save data and persistence
 
 **Status: partial.** Version 2 saves memory and the ladder; version-1 saves migrate. The overnight
-plan, recent lines, newcomer state and several small pieces are not saved. D19; architecture,
+plan and recent lines are saved (`intents`, `recentLines` — step 5); newcomer state and several
+small pieces are not saved. D19; architecture,
 "Persistence".
 
 ## Player-visible behavior
@@ -23,8 +24,8 @@ remote host (the save lives on the host's computer).
 | `version` | `MemoryStore.CurrentVersion` | done (2) |
 | `memory` | ledger, diaries, beliefs (`MemoryStore.ToJson`) | done |
 | `ladder` | per-NPC ladder state, global counters | done |
-| `intents` | today's `PlannedLine`s, with their day and delivered flag ([intents.md](intents.md)) | planned |
-| `recentLines` | per NPC, last 20 delivered lines with day and cited (kind, subject) | planned |
+| `intents` | today's `PlannedLine`s, with their day and delivered flag ([intents.md](intents.md)) | done (step 5) |
+| `recentLines` | per NPC, last 20 delivered lines with day and cited (kind, subject) | done (step 5; empty until step 6 delivers) |
 | `newcomer` | `NewcomerPlan` ([newcomer-week.md](newcomer-week.md)) | planned |
 | `talkedToday` | NPCs talked to today, for `Talked` and `PassedBy` ([diary.md](diary.md)) | planned |
 | `letters` | pending letters and invitations ([invitations.md](invitations.md)) | planned |

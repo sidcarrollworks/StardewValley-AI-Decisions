@@ -19,4 +19,8 @@ public sealed class IntentPlannerOptions
     /// <summary>Diary kinds that are never talked about. "TriedToReach" is the initiation ladder's
     /// bookkeeping of its own attempt; what matters is the outcome ("IgnoredBy"), not the attempt.</summary>
     public IReadOnlyCollection<string> SkipKinds { get; set; } = new[] { "TriedToReach" };
+
+    /// <summary>How many days back a delivered (kind, subject) counts as "recently cited" for the
+    /// news cite cooldown (intents.md). 0 disables the cooldown.</summary>
+    public int CiteCooldownDays { get; set; } = 3;
 }
