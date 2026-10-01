@@ -41,6 +41,41 @@ public sealed class LayaCalibration
     public QuestionRow? Of(string template)
         => _questions.TryGetValue(template, out QuestionRow? row) ? row : null;
 
+    /// <summary>The spread eval's id for a live question template (the proposition with the NPC
+    /// name replaced by &lt;npc&gt;), or null when the eval did not measure that template.</summary>
+    public static string? EvalIdForTemplate(string template)
+    {
+        if (template.StartsWith("Should <npc> try to get the player's attention with an emote", StringComparison.Ordinal))
+            return "attention_emote";
+        if (template.StartsWith("Should <npc> try to get the player's attention with a speech bubble", StringComparison.Ordinal))
+            return "attention_bubble";
+        if (template.StartsWith("Should <npc> drop what they are doing and go looking for the player", StringComparison.Ordinal))
+            return "attention_approach";
+        if (template.StartsWith("Does <npc> have news for the player?", StringComparison.Ordinal))
+            return "speak";
+        if (template.StartsWith("Would <npc> hold this against the player?", StringComparison.Ordinal))
+            return "hold_against";
+        if (template.StartsWith("Would <npc> go out of their way to welcome a newcomer in person?", StringComparison.Ordinal))
+            return "welcome_newcomer";
+        return null;
+    }
+
+    /// <summary>The trait a live question template should follow and the expected direction
+    /// (+1: more of the trait means a higher answer; -1: the inverse), or null when the template
+    /// has no trait mapping.</summary>
+    public static (string Trait, int Direction)? TraitForTemplate(string template)
+    {
+        string? eval = EvalIdForTemplate(template);
+        return eval switch
+        {
+            "attention_emote" or "attention_bubble" or "attention_approach" or
+                "close_friendly" or "close_hostile" or "welcome_newcomer" => ("boldness", +1),
+            "speak" => ("chattiness", +1),
+            "hold_against" => ("forgiveness", -1),
+            _ => null,
+        };
+    }
+
     public static LayaCalibration FromJson(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);

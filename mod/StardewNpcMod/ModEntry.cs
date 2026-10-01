@@ -95,6 +95,8 @@ public class ModEntry : Mod
     // The call log is written by the model workers through RecordingDecisionClient.
     private readonly RingLog<DecisionCall> _calls = new(200);
     private readonly RingLog<FeedItem> _feed = new(300);
+    private readonly SpreadTable _spread = new(); // the spread panel's per-day answer table
+    private LayaCalibration? _calibration;       // data/laya-calibration.json, read once in Entry
     private readonly MindsSnapshotBuilder _mindsBuilder = new();
     private MindsServer? _minds;
     private long _mindsSeq;
@@ -121,6 +123,7 @@ public class ModEntry : Mod
 
         ApplyPatches();
         _temperaments = LoadTemperaments();
+        _calibration = LoadCalibration();
         StartMindsViewer();
 
         Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
@@ -201,8 +204,8 @@ public class ModEntry : Mod
         var resilient = new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
             isDown: () => _model is LayaDecisionClient && !_layaUp);
         // The recorder returns the resilient client's answers unchanged; it only copies them to
-        // the viewer's call log.
-        return _config.MindsViewer ? new RecordingDecisionClient(resilient, _calls, caller) : resilient;
+        // the viewer's call log and spread table.
+        return _config.MindsViewer ? new RecordingDecisionClient(resilient, _calls, caller, _spread) : resilient;
     }
 
     /// <summary>Re-check health every 6 ticks (one in-game hour) off the game thread and log only
@@ -335,7 +338,10 @@ public class ModEntry : Mod
             return; // outside the 600..2600 live day
         int now = Now(tick);
         if (tick == 0)
+        {
             _talkedToday.Clear(); // the new day: the day-end notes already used yesterday's set
+            _spread.Reset();      // the spread panel starts a fresh day at 6:00
+        }
 
         if (_model is LayaDecisionClient && tick % 6 == 0)
             Task.Run(RecheckLayaHealth);
@@ -974,7 +980,7 @@ public class ModEntry : Mod
 
             var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
                 stats, planState, _ladder.LatestJson, _lastLadderInputs, _intentsToday.ToList(), _planToday,
-                _feed.Newest(), NewsFor, TemperamentViewOf);
+                _feed.Newest(), NewsFor, TemperamentViewOf, _spread.Copy(), _calibration);
             _minds.Publish(_mindsBuilder.Build(_memory, inputs));
         }
         catch (Exception ex)
@@ -1011,6 +1017,28 @@ public class ModEntry : Mod
 
     /// <summary>One NPC's temperament for the viewer, built once per save (the table and
     /// Data/Characters don't change while playing).</summary>
+    /// <summary>The committed Laya calibration table (data/laya-calibration.json), shown beside
+    /// the viewer's spread panel numbers. Missing or unreadable: the panel just shows no
+    /// calibration column; nothing else reads it. It never feeds a decision.</summary>
+    private LayaCalibration? LoadCalibration()
+    {
+        try
+        {
+            string path = Path.Combine(Helper.DirectoryPath, "laya-calibration.json");
+            if (!File.Exists(path))
+            {
+                Monitor.Log("laya-calibration.json is missing from the mod folder; the spread panel will not compare against it.", LogLevel.Warn);
+                return null;
+            }
+            return LayaCalibration.FromJson(File.ReadAllText(path));
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Could not read laya-calibration.json; the spread panel will not compare against it. {ex.Message}", LogLevel.Warn);
+            return null;
+        }
+    }
+
     private TemperamentView? TemperamentViewOf(string npc)
     {
         if (_temperaments is null)

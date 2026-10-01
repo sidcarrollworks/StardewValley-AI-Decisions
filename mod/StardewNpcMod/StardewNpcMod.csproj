@@ -32,6 +32,9 @@
     <!-- The seed temperament table (docs/spec/temperament.md); the viewer shows it. -->
     <None Include="..\..\fixtures\game\temperament\temperament.json" Link="temperament.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\fixtures\game\temperament\temperament-overrides.json" Link="temperament-overrides.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The Laya calibration table (docs/spec/laya.md, "Character spread"); the viewer's spread
+         panel compares against it. Never read into a decision. -->
+    <None Include="..\..\data\laya-calibration.json" Link="laya-calibration.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
