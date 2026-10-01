@@ -23,6 +23,7 @@ public sealed class LineRenderer : ILineRenderer
     private const string QuestHelpedKind = "QuestHelped";
     private const string FestivalKind = "Festival";
     private const string MissedFestivalKind = "MissedFestival";
+    private const string HeardKind = "Heard";
     private const string PlayerSubject = "Player";
 
     private readonly Func<string?, string> _placeName;
@@ -72,6 +73,10 @@ public sealed class LineRenderer : ILineRenderer
                 : $"I saw you at the festival {When(daysAgo)}.";
         else if (string.Equals(entry.Kind, MissedFestivalKind, StringComparison.OrdinalIgnoreCase) && IsPlayer(entry.Subject))
             line = $"You missed the festival {When(daysAgo)}.";
+        else if (string.Equals(entry.Kind, HeardKind, StringComparison.OrdinalIgnoreCase))
+            line = DiaryDetail.Parse(entry.Detail).TryGetValue("from", out string? from)
+                ? $"I heard about {Who(entry.Subject)} from {from} {When(daysAgo)}."
+                : $"I heard about {Who(entry.Subject)} {When(daysAgo)}.";
         else
             line = $"I've been thinking about {Who(entry.Subject)}.";
 

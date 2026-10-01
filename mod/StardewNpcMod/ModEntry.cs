@@ -81,6 +81,15 @@ public class ModEntry : Mod
     /// <summary>Planner tuning shared between the mod's news context and the plan job.</summary>
     private readonly IntentPlannerOptions _plannerOptions = new();
 
+    /// <summary>Ambient chat tuning (docs/spec/ledger-gossip.md); never saved.</summary>
+    private readonly ChatOptions _chatOptions = new();
+
+    /// <summary>The daily belief decay factor (docs/spec/routines.md, `DailyDecay`); never saved.</summary>
+    private const double DailyDecay = 0.97;
+
+    /// <summary>Per-save deterministic seed for simulated chats and priors.</summary>
+    private int MemorySeed() => unchecked((int)Fnv1a.Seed("memory", Game1.uniqueIDForThisGame.ToString()));
+
     // NPC Minds viewer (docs/spec/debug-tools.md, "Live viewer"): read-only. The game thread
     // builds a snapshot after each tick and swaps it in; the server thread only serializes it.
     // The call log is written by the model workers through RecordingDecisionClient.
@@ -215,11 +224,46 @@ public class ModEntry : Mod
 
     private BackgroundLadder NewLadder(string? json)
     {
-        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // VERIFY: per-save id
+        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // per-save id
+        // (Game1.cs:2252/3309: NewUniqueIdForThisGame at creation, the save's startingGameSeed on load)
         InitiationLadder ladder = json is null
             ? new InitiationLadder(Guarded("ladder"), seed)
             : InitiationLadder.FromJson(json, Guarded("ladder"), seed);
         return new BackgroundLadder(ladder, _config.LadderMaxBacklog);
+    }
+
+    /// <summary>
+    /// Seed family routine priors from the game's own schedule data, once per save (step 7,
+    /// docs/spec/routines.md). Skips the player's spouse (their schedule is the marriage one) and
+    /// every pair that already knows anything. Deterministic per save seed.
+    /// </summary>
+    private void SeedPriors()
+    {
+        try
+        {
+            string spouse = Game1.player.getSpouse()?.Name ?? "";
+            var extractor = new RoutineExtractor(_regions);
+            var routines = new Dictionary<string, NpcRoutine>(StringComparer.OrdinalIgnoreCase);
+            foreach (string npc in Game1.characterData.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+            {
+                if (string.Equals(npc, spouse, StringComparison.OrdinalIgnoreCase))
+                    continue; // VERIFY: a spouse's schedule is the marriage one; priors about it are wrong
+                // VERIFY: schedules live at Data/Schedules/<name> as Dictionary<string, string>.
+                Dictionary<string, string> schedules =
+                    Game1.content.Load<Dictionary<string, string>>("Data/Schedules/" + npc);
+                if (schedules is { Count: > 0 })
+                    routines[npc] = extractor.Extract(npc, schedules, new ExtractorOptions());
+            }
+
+            int seeded = _memory.SeedPriors(routines, ResolveHomes(),
+                Game1.uniqueIDForThisGame.ToString(),
+                new PriorOptions { Kind = RelationshipKind.Family });
+            Monitor.Log($"[shadow] Seeded {seeded} family routine priors from {routines.Count} schedules.", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Routine seeding failed (the game is unaffected): {ex}", LogLevel.Warn);
+        }
     }
 
     // ---- events --------------------------------------------------------------------------------
@@ -233,6 +277,7 @@ public class ModEntry : Mod
             _seenSpecialOrders.Clear();
             foreach (string key in Game1.player.team.completedSpecialOrders)
                 _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
+            SeedPriors(); // family routine priors, once per save (routines.md, step 7)
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
             _feed.Clear();
             _calls.Clear();
@@ -283,7 +328,8 @@ public class ModEntry : Mod
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        // VERIFY: TimeChanged fires on the ten-minute tick (and may also fire at other clock jumps).
+        // TimeChanged is SMAPI's watcher on Game1.timeOfDay: one event per value change, however
+        // big the jump; it does not fire on the tick a save loads or while saving (verified).
         int tick = TimeUtils.TickIndex(e.NewTime);
         if (tick < 0)
             return; // outside the 600..2600 live day
@@ -309,6 +355,8 @@ public class ModEntry : Mod
         {
             _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
             AskAround(now);
+            foreach (DiaryEntry heard in _memory.Chat(now, NewsScore, _chatOptions))
+                Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
         }
         catch (Exception ex)
         {
@@ -352,6 +400,7 @@ public class ModEntry : Mod
         {
             _events.Drain(_memory, Now(119), Monitor); // gifts/quests after the last tick still
                                                        // make tonight's plan
+            _memory.DecayBeliefs(Now(119), DailyDecay); // beliefs untouched today age (routines.md)
             NoteDayEnd();
             StartPlanning();
         }
@@ -379,7 +428,7 @@ public class ModEntry : Mod
         // Fresh memory per save; a different save must start clean.
         _planJob?.Dispose();
         _planJob = null;
-        _memory = new MemoryStore();
+        _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
         _search = new PlayerSearch();
         _intentsToday.Clear();
@@ -417,9 +466,10 @@ public class ModEntry : Mod
         var presences = new List<Presence>();
         var seen = new HashSet<GameLocation>();
 
-        // VERIFY: Game1.locations holds the static maps (town buildings included); building interiors
-        // on the farm are not listed, so the player's own location is added explicitly. Also unverified:
-        // whether off-screen NPCs' positions update in real time (brief, open question).
+        // Game1.locations holds the static maps only (verified); building interiors are reached
+        // through Utility.ForEachLocation(includeInteriors). Off-screen NPCs do move every tick
+        // on the host (Game1.UpdateLocations -> updateEvenIfFarmerIsntHere), so positions here
+        // are current. The player's own location is added explicitly for the interiors case.
         IEnumerable<GameLocation> locations = Game1.locations;
         if (Game1.player.currentLocation is { } playerLocation)
             locations = locations.Append(playerLocation);
@@ -443,13 +493,15 @@ public class ModEntry : Mod
     }
 
     private static int HeartsFor(string npc)
-        => Game1.player.getFriendshipHeartLevelForNPC(npc); // VERIFY: 1.6 name
+        => Game1.player.getFriendshipHeartLevelForNPC(npc); // Farmer.cs:2785 (1.6 name, verified)
 
     /// <summary>
     /// Every conversation counts as the player responding to that NPC (talking, or the NPC's reaction
-    /// to a gift), not just the first of the day. VERIFY: a character's dialogue opens a
-    /// <see cref="DialogueBox"/> whose <c>characterDialogue.speaker</c> is that NPC; question boxes
-    /// and letters have no speaker and are ignored.
+    /// to a gift), not just the first of the day. Verified: a character's dialogue opens a
+    /// <see cref="DialogueBox"/> whose <c>characterDialogue</c> (DialogueBox.cs:14, set by the
+    /// Dialogue ctor at :140) carries <c>speaker</c> as that NPC (Dialogue.cs:211/375); question
+    /// boxes use the string+responses ctor (DialogueBox.cs:115), which never sets
+    /// <c>characterDialogue</c>, and letters have no speaker — both are ignored.
     /// </summary>
     private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
     {
@@ -604,8 +656,9 @@ public class ModEntry : Mod
 
     /// <summary>The card's "today" line, describing the delivery day (the plan runs at DayEnding
     /// but the lines arrive tomorrow morning): tomorrow's date in English (the checkpoint is
-    /// English), tomorrow's weather, and a fixed morning time. VERIFY: the weatherForTomorrow key
-    /// to word mapping (the game's own weather strings are "Sun", "Rain", "Snow", "Wind", "Storm").</summary>
+    /// English), tomorrow's weather, and a fixed morning time. Verified: the weatherForTomorrow
+    /// values are the game's weather strings ("Sun", "Rain", "Snow", "Wind", "Storm") plus
+    /// "Wedding" on a wedding morning (Game1.cs:182/3171/8837).</summary>
     private static string TomorrowLine()
     {
         // TotalDays has a setter that recomputes day/season/year (WorldDate.cs, verified).
@@ -615,6 +668,7 @@ public class ModEntry : Mod
             "Rain" or "Storm" => "rainy",
             "Snow" => "snowy",
             "Wind" => "windy",
+            "Wedding" => "your wedding day",
             _ => "sunny",
         };
         return $"{SeasonWord(tomorrow.Season)} {tomorrow.DayOfMonth} ({tomorrow.DayOfWeek}), {weather}, morning";
@@ -782,6 +836,17 @@ public class ModEntry : Mod
                 result[key[prefix.Length..]] = belief.Snapshot();
         return result;
     }
+
+    /// <summary>The news score for one of <paramref name="npc"/>'s diary entries, with a fresh
+    /// context (ambient chat's shareable-event ranking; docs/spec/ledger-gossip.md).</summary>
+    private double NewsScore(string npc, DiaryEntry entry)
+    {
+        var news = new NewsContext(npc, ResolveHomes(), BeliefsOf(npc), _regions, HeartsFor(npc),
+            Array.Empty<(string, string)>());
+        return _news.Score(entry, news);
+    }
+
+    private static readonly Newsworthiness _news = new();
 
     /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>
     private void CollectPlan(bool morning)
@@ -1014,7 +1079,7 @@ public class ModEntry : Mod
     private void LoadMemory()
     {
         var model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
-        _memory = new MemoryStore();
+        _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
         if (model is null)
             return;

@@ -122,6 +122,24 @@ public sealed class Newsworthiness
             return true;
         }
 
+        if (string.Equals(entry.Kind, "Heard", StringComparison.OrdinalIgnoreCase))
+        {
+            // Event gossip (docs/spec/ledger-gossip.md): the original kind's weight minus 1, at
+            // least 0. The detail carries kind=<original> plus the original's keys, so the
+            // original scoring rules run on the Heard entry unchanged.
+            IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(entry.Detail);
+            if (detail.TryGetValue("kind", out string? original)
+                && !string.IsNullOrEmpty(original)
+                && !original.Equals("Heard", StringComparison.OrdinalIgnoreCase))
+            {
+                var copy = new DiaryEntry(entry.AbsoluteTick, entry.Subject, original, entry.Detail);
+                if (TryScoreBase(copy, context, out double originalScore))
+                    score = Math.Max(0.0, originalScore - 1.0);
+                return true;
+            }
+            return false; // malformed Heard: not news
+        }
+
         if (string.Equals(entry.Kind, "WentLooking", StringComparison.OrdinalIgnoreCase))
         {
             score = WentLookingScore(entry);

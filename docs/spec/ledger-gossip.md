@@ -1,8 +1,10 @@
 # 4. Last-seen ledger and gossip
 
-**Status: partial.** The ledger, decay and on-demand gossip (when an NPC asks around) are done.
-Ambient gossip (news spreading while NPCs spend time together) and gossip about events rather than
-positions are not started. Brief goal 4 and design decision 4; D7, D8, D9, D18; architecture,
+**Status: done in shadow.** The ledger, decay and on-demand gossip (when an NPC asks around) were
+done; step 7 added ambient gossip (`MemoryStore.Chat`, once per span with a deterministic
+FNV-1a draw, both sides pass their view of the player) and the `Heard` diary kind (original kind's
+news weight minus 1, one hop, at most once per listener). Brief goal 4 and design decision 4;
+D7, D8, D9, D18; architecture,
 "Ledger".
 
 ## Player-visible behavior
