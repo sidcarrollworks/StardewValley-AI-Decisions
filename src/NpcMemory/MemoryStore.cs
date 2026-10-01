@@ -22,7 +22,8 @@ public sealed class MemoryStore
     /// <summary>Save-format version. 1 = step-4/5 saves (ticks without a year, player-side memory).</summary>
     public const int CurrentVersion = 2;
 
-    // VERIFY/tune: "seen" means the same location and within this many tiles (Chebyshev square).
+    // Tuning, not a game fact: "seen" means the same location and within this many tiles
+    // (Chebyshev square). The 8-tile radius is a placeholder to tune (brief).
     public int CoLocationRadius { get; set; } = Proximity.DefaultRadius;
 
     /// <summary>Oldest entries are dropped past this many per NPC diary.</summary>

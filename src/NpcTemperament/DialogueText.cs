@@ -18,8 +18,10 @@ public static class DialogueText
 {
     // Commands whose segment holds no line the character says (the player's answers, branches).
     // $q, $r and $y are confirmed in the 1.6.15 decompile (Dialogue.parseDialogueString: $r takes the
-    // NEXT segment as the player's answer). VERIFY: $p/$d/$c/$k/$t/$v layouts are from the modding
-    // wiki; skipping the whole segment is safe either way (we only lose a few lines).
+    // NEXT segment as the player's answer). $p/$d/$c/$k/$t/$v are the same switch, verified as the
+    // dialoguePrerequisite/dialogueDependingOnWorldState/dialogueChance/dialogueKill/
+    // dialogueStartConversationTopic/dialogueEvent constants (Dialogue.cs:41-68); skipping the whole
+    // segment is safe (we only lose a few lines).
     private static readonly Regex CommandSegment = new(@"^\s*\$(q|r|p|d|y|c|k|t|v|action|query)\b", RegexOptions.CultureInvariant);
     private static readonly Regex Portrait = new(@"\$(h|s|u|l|a|neutral|\d+)(?![A-Za-z])", RegexOptions.CultureInvariant);
     private static readonly Regex Tokens = new(@"\$[a-z]\b|%\w+|\[[^\]]*\]|\{[^}]*\}|\*[^*]*\*", RegexOptions.CultureInvariant);

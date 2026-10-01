@@ -217,7 +217,8 @@ public class ModEntry : Mod
 
     private BackgroundLadder NewLadder(string? json)
     {
-        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // VERIFY: per-save id
+        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // per-save id
+        // (Game1.cs:2252/3309: NewUniqueIdForThisGame at creation, the save's startingGameSeed on load)
         InitiationLadder ladder = json is null
             ? new InitiationLadder(Guarded("ladder"), seed)
             : InitiationLadder.FromJson(json, Guarded("ladder"), seed);
@@ -320,7 +321,8 @@ public class ModEntry : Mod
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
-        // VERIFY: TimeChanged fires on the ten-minute tick (and may also fire at other clock jumps).
+        // TimeChanged is SMAPI's watcher on Game1.timeOfDay: one event per value change, however
+        // big the jump; it does not fire on the tick a save loads or while saving (verified).
         int tick = TimeUtils.TickIndex(e.NewTime);
         if (tick < 0)
             return; // outside the 600..2600 live day
@@ -455,9 +457,10 @@ public class ModEntry : Mod
         var presences = new List<Presence>();
         var seen = new HashSet<GameLocation>();
 
-        // VERIFY: Game1.locations holds the static maps (town buildings included); building interiors
-        // on the farm are not listed, so the player's own location is added explicitly. Also unverified:
-        // whether off-screen NPCs' positions update in real time (brief, open question).
+        // Game1.locations holds the static maps only (verified); building interiors are reached
+        // through Utility.ForEachLocation(includeInteriors). Off-screen NPCs do move every tick
+        // on the host (Game1.UpdateLocations -> updateEvenIfFarmerIsntHere), so positions here
+        // are current. The player's own location is added explicitly for the interiors case.
         IEnumerable<GameLocation> locations = Game1.locations;
         if (Game1.player.currentLocation is { } playerLocation)
             locations = locations.Append(playerLocation);
@@ -481,13 +484,15 @@ public class ModEntry : Mod
     }
 
     private static int HeartsFor(string npc)
-        => Game1.player.getFriendshipHeartLevelForNPC(npc); // VERIFY: 1.6 name
+        => Game1.player.getFriendshipHeartLevelForNPC(npc); // Farmer.cs:2785 (1.6 name, verified)
 
     /// <summary>
     /// Every conversation counts as the player responding to that NPC (talking, or the NPC's reaction
-    /// to a gift), not just the first of the day. VERIFY: a character's dialogue opens a
-    /// <see cref="DialogueBox"/> whose <c>characterDialogue.speaker</c> is that NPC; question boxes
-    /// and letters have no speaker and are ignored.
+    /// to a gift), not just the first of the day. Verified: a character's dialogue opens a
+    /// <see cref="DialogueBox"/> whose <c>characterDialogue</c> (DialogueBox.cs:14, set by the
+    /// Dialogue ctor at :140) carries <c>speaker</c> as that NPC (Dialogue.cs:211/375); question
+    /// boxes use the string+responses ctor (DialogueBox.cs:115), which never sets
+    /// <c>characterDialogue</c>, and letters have no speaker — both are ignored.
     /// </summary>
     private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
     {
@@ -640,8 +645,9 @@ public class ModEntry : Mod
 
     /// <summary>The card's "today" line, describing the delivery day (the plan runs at DayEnding
     /// but the lines arrive tomorrow morning): tomorrow's date in English (the checkpoint is
-    /// English), tomorrow's weather, and a fixed morning time. VERIFY: the weatherForTomorrow key
-    /// to word mapping (the game's own weather strings are "Sun", "Rain", "Snow", "Wind", "Storm").</summary>
+    /// English), tomorrow's weather, and a fixed morning time. Verified: the weatherForTomorrow
+    /// values are the game's weather strings ("Sun", "Rain", "Snow", "Wind", "Storm") plus
+    /// "Wedding" on a wedding morning (Game1.cs:182/3171/8837).</summary>
     private static string TomorrowLine()
     {
         // TotalDays has a setter that recomputes day/season/year (WorldDate.cs, verified).
@@ -651,6 +657,7 @@ public class ModEntry : Mod
             "Rain" or "Storm" => "rainy",
             "Snow" => "snowy",
             "Wind" => "windy",
+            "Wedding" => "your wedding day",
             _ => "sunny",
         };
         return $"{SeasonWord(tomorrow.Season)} {tomorrow.DayOfMonth} ({tomorrow.DayOfWeek}), {weather}, morning";
