@@ -215,7 +215,13 @@ first.
   an hour. With nobody around, it asks as soon as someone arrives.
 - **Answers.** They follow the gossip rules (D9). The player is never asked.
 - **Where to look.** `MemoryStore.LookFor` answers from, in order: the NPC's own sighting today, a
-  tip from today, the habit for this hour (at least 3 evidence and a 50% share), then unknown.
+  tip from today, the habit for this hour (at least 12 evidence and a 50% share), then unknown.
+  Amended by the playtest review (PR #14): a sighting or tip must be fresh (`MaxLeadAgeTicks` 24,
+  four game hours — 8-hour-old tips were sending NPCs across town; the trade-off against the
+  ledger's location coarsening at 48 ticks is Sid's to revisit) and must not point into the
+  seeker's own region as of its last observed tick (span-tracker memory; the same guard the
+  habit branch already had). A rejected lead keeps its knowledge but loses its place: what an NPC
+  knows never shrinks, it just stops being somewhere to go.
 - **Going to look.** The ladder's Approach step becomes available from a distance when the NPC
   has a lead with a place. So an NPC keen enough (0.60) goes looking before it resorts to writing
   a letter (0.80).
@@ -272,6 +278,11 @@ deterministic news score is the reliable signal; the model keeps the veto, the s
 close options, and every other question (bubble, emote, approach, pick direction).
 **Known weakness.** `MissedFestival` still goes to every 4+ heart villager, including ones who
 never attend festivals (tracked in `docs/spec/diary.md`).
+**Amended (playtest review, PR #14).** A player `Saw` is dropped when the day's diary also holds a
+`Talked` entry: the NPC already talked to the player, so "I saw you at the saloon yesterday" from
+the saloon conversation reads oddly (this also means the flat yes/no no longer picks among tied
+saws for NPCs who actually spoke to the player; options (b) and (c) from the review remain open).
+A one-option pick skips the pick question entirely: the model call is the speak yes/no alone.
 
 ### D22. Temperament is counted from the game's own text, not hand-picked or model-judged
 **Decision (2026-09-30, draft for Sid's review).** Each villager gets six seed traits (warmth,

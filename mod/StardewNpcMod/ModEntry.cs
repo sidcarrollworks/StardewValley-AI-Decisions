@@ -489,7 +489,7 @@ public class ModEntry : Mod
         foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
             LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
-            Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes);
+            Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes, regions: _regions);
             inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
         }
         _lastLadderInputs = inputs; // the viewer shows what the ladder saw (views, leads, hearts)

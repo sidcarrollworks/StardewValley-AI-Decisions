@@ -84,9 +84,8 @@ public class PlannerNewsTests
     {
         var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
         {
-            new(10, "Caroline", "Saw", "SeedShop"),                                  // housemate at home: 0
-            new(20, "Player", "Talked", DiaryDetail.Format(("hearts", "2"))),        // 1: under MinNews 2
-            new(30, "Player", "Saw", "Town"),                                        // 2: news
+            new(10, "Caroline", "Saw", "SeedShop"),      // housemate at home: 0, dropped
+            new(30, "Player", "Saw", "Town"),            // 2: the only news
         }, Array.Empty<string>(), Context("Abigail"));
 
         var client = new RecordingDecisionClient();
@@ -94,9 +93,7 @@ public class PlannerNewsTests
 
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal("Saw", candidate.Source.Kind);
-        Assert.Equal(1, client.ChooseCalls);
-        string option = Assert.Single(client.ChooseOptions[0]);
-        Assert.StartsWith("yesterday Abigail saw the player at", option); // plain phrase, not "Saw Player at ..."
+        Assert.Equal(0, client.ChooseCalls); // a single option skips the pick question
         Assert.Equal("does Abigail have news for the player?", Assert.Single(client.YesNoPropositions));
     }
 
@@ -184,6 +181,73 @@ public class PlannerNewsTests
 
         Assert.Equal(new[] { "Abigail", "Willy" }, plan.Candidates.Select(c => c.Npc).ToArray());
         Assert.Equal(new[] { 4.0, 2.0 }, plan.Candidates.Select(c => c.News).ToArray());
+    }
+
+    [Fact]
+    public void SawIsDropped_WhenTheNpcTalkedToThePlayerToday()
+    {
+        // Playtest review: "I saw you at the saloon yesterday" from the NPC you talked to at the
+        // saloon reads oddly. The Talked entry (news 1, under MinNews) still silences the Saw.
+        var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "Saw", "Town"),                                     // 2
+            new(20, "Player", "Talked", DiaryDetail.Format(("hearts", "2"))),      // 1: chit-chat, dropped anyway
+        }, Array.Empty<string>(), Context("Abigail"));
+
+        var client = new RecordingDecisionClient();
+        IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        Assert.Empty(plan.Candidates); // they already talked: the sighting is not the news
+        Assert.Equal(0, client.YesNoCalls);
+        Assert.Equal(0, client.ChooseCalls);
+    }
+
+    [Fact]
+    public void RealNewsSurvives_EvenWhenTheNpcTalkedToday()
+    {
+        var snapshot = new NpcMemorySnapshot("Abigail", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "Saw", "Town"),                                      // dropped (talked today)
+            new(20, "Player", "Talked", DiaryDetail.Format(("hearts", "2"))),      // the reason it dropped
+            new(30, "Player", "GiftReceived", "taste=Love"),                       // 5: the real news
+        }, Array.Empty<string>(), Context("Abigail"));
+
+        var client = new RecordingDecisionClient();
+        IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        IntentCandidate candidate = Assert.Single(plan.Candidates);
+        Assert.Equal("GiftReceived", candidate.Source.Kind);
+        Assert.Equal(0, client.ChooseCalls); // one option: the pick question is skipped
+        Assert.Equal("does Abigail have news for the player?", Assert.Single(client.YesNoPropositions));
+    }
+
+    [Fact]
+    public void SingleOption_SkipsThePickQuestion()
+    {
+        // A one-option pick is not a question: the model call is the speak yes/no alone.
+        var snapshot = Snap("Abigail", 20, "Player", "Saw", "Town");
+        var client = new RecordingDecisionClient();
+
+        IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        Assert.Equal("Saw", Assert.Single(plan.Candidates).Source.Kind);
+        Assert.Equal(1, client.YesNoCalls);
+        Assert.Equal(0, client.ChooseCalls);
+    }
+
+    [Fact]
+    public void BatchBackend_SingleOption_AsksOnlyTheSpeakQuestion()
+    {
+        var snapshot = Snap("Haley", 20, "Player", "Saw", "Town");
+        var client = new BatchRecordingClient();
+
+        IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);
+
+        Assert.Equal(1, client.AskCalls);
+        YesNoQuestion yesNo = Assert.Single(client.LastQuestions!.OfType<YesNoQuestion>());
+        Assert.Equal("does Haley have news for the player?", yesNo.Proposition);
+        Assert.DoesNotContain(client.LastQuestions, q => q is ChoiceQuestion);
+        Assert.Equal("Saw", Assert.Single(plan.Candidates).Source.Kind);
     }
 
     [Fact]
@@ -370,7 +434,11 @@ public class PlannerNewsTests
     {
         // A batch-capable backend gets ONE Ask carrying the speak and pick questions
         // (docs/spec/laya.md, "Data model"): half the round trips per NPC.
-        var snapshot = Snap("Haley", 20, "Player", "Saw", "Town"); // 2: above MinNews
+        var snapshot = new NpcMemorySnapshot("Haley", "voice", new DiaryEntry[]
+        {
+            new(10, "Player", "Saw", "Town"),
+            new(20, "Player", "GiftReceived", "taste=Love"),
+        }, Array.Empty<string>(), Context("Haley"));
         var client = new BatchRecordingClient();
 
         IntentPlan plan = Planner(client).Plan(new[] { snapshot }, 42, sourceDay: 0);

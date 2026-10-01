@@ -23,12 +23,12 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). Not in the mod yet. |
 | `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (68). |
-| `tests/NpcMemory.Tests/` | xUnit tests (155). |
+| `tests/NpcMemory.Tests/` | xUnit tests (159). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (113). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
-| `tests/NpcIntents.Tests/` | xUnit tests (164). |
-| `tests/NpcInitiation.Tests/` | xUnit tests (64). |
+| `tests/NpcIntents.Tests/` | xUnit tests (168). |
+| `tests/NpcInitiation.Tests/` | xUnit tests (65). |
 | `tests/NpcMinds.Tests/` | xUnit tests (48). |
 | `tests/NpcTemperament.Tests/` | xUnit tests (23). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |

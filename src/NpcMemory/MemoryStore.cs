@@ -212,7 +212,11 @@ public sealed class MemoryStore
     /// this hour (its routine belief, when learned well enough), else Unknown. A sighting that has
     /// faded to "earlier today" has no place, so the habit is preferred when there is one.
     /// </summary>
-    public Whereabouts LookFor(string seeker, string subject, int nowTick, int blockMinutes, WhereaboutsOptions? options = null)
+    /// <param name="regions">Optional: enables the own-region guard on sighting leads. Callers
+    /// that decide (the mod) MUST pass it; without it the guard silently turns off and only the
+    /// age cap applies.</param>
+    public Whereabouts LookFor(string seeker, string subject, int nowTick, int blockMinutes,
+        WhereaboutsOptions? options = null, RegionMap? regions = null)
     {
         options ??= new WhereaboutsOptions();
         LedgerView? view = Ledger.View(seeker, subject, nowTick);
@@ -226,7 +230,21 @@ public sealed class MemoryStore
             string? place = view.Place == RegionMap.OtherRegion ? null : view.Place; // an unmapped region is nowhere to go
             sighting = new Whereabouts(seeker, subject, source, place, view.Detail, view.AgeTicks, view.HopCount, view.ToldBy, 0);
             if (sighting.HasPlace)
-                return sighting;
+            {
+                // Playtest review: a lead must be fresh and must not point where the seeker
+                // already is (same span-tracker memory as the habit guard; rule 2 holds). A
+                // rejected lead keeps its knowledge but loses its place, so what the NPC knows
+                // never shrinks: a stale sighting is "seen today, but no longer a place to go".
+                string? sightingRegion = regions?.RegionFor(sighting.Place) ?? RegionMap.OtherRegion;
+                string? ownRegion = LastObservedRegion(seeker);
+                bool stale = view.AgeTicks > options.MaxLeadAgeTicks;
+                bool ownRegionLead = sightingRegion != RegionMap.OtherRegion
+                    && ownRegion is not null && ownRegion != RegionMap.OtherRegion
+                    && string.Equals(sightingRegion, ownRegion, StringComparison.OrdinalIgnoreCase);
+                if (!stale && !ownRegionLead)
+                    return sighting;
+                sighting = sighting with { Place = null }; // the habit below may still answer
+            }
         }
 
         int block = TimeUtils.BlockIndex(nowTick % GameClock.TicksPerDay, blockMinutes);

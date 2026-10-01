@@ -348,7 +348,9 @@ public sealed class InitiationLadder
         ladder._forcedThisWeek = dto.ForcedThisWeek;
         foreach (var n in dto.Npcs ?? new List<NpcDto>())
         {
-            if (string.IsNullOrEmpty(n.Npc))
+            // Skip nameless states AND the literal "null" the game uses for a quest with no
+            // target (playtest review: the saved ladder carried a "null" NPC at urge 0).
+            if (string.IsNullOrEmpty(n.Npc) || string.Equals(n.Npc, "null", StringComparison.OrdinalIgnoreCase))
                 continue;
             ladder._npcs[n.Npc] = new NpcState
             {
