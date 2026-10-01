@@ -6,7 +6,8 @@
 <title>NPC Minds</title>
 <style>
   /* Neutral theme on the Radix Colors "sand" scale (radix-ui.com/colors): sand1-12 for surfaces,
-     borders and text; color only as small status accents (Radix step 11 text colors). Always dark
+     borders and text; color for status: urge bars, badges, deltas, answer bars and feed kinds
+     (Radix step 9 fills, step 11 text). Always dark
      (Sid's choice), whatever the system setting. */
   :root {
     color-scheme: dark;
@@ -15,6 +16,8 @@
     --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --line: var(--sand6);
     --bar: var(--sand4); --chip: var(--sand3); --fill: var(--sand11); --tick: var(--sand8); --edge: var(--sand9);
     --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: #302008;
+    /* Radix step 9 solids for status fills: bars, badges, dots. */
+    --grass9: #46a758; --amber9: #ffc53d; --blue9: #0090ff; --tomato9: #e54d2e;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
@@ -26,7 +29,7 @@
   .stat { color: var(--muted); font-variant-numeric: tabular-nums; }
   .stat b { color: var(--ink); font-weight: 600; }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: middle; }
-  .dot.ok { background: var(--accent); } .dot.bad { background: var(--bad); }
+  .dot.ok { background: var(--grass9); } .dot.bad { background: var(--tomato9); }
   .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   @media (max-width: 640px) { .controls { margin-left: 0; flex-wrap: wrap; } input[type=search] { flex: 1; min-width: 0; } }
   input[type=search], select { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
@@ -35,20 +38,20 @@
   @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .6s; }
-  .card.recent { border-color: var(--edge); }
+  .card.recent { border-color: var(--amber9); }
   .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; }
-  .hearts { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .hearts { color: var(--tomato9); font-size: 12px; font-weight: 500; }
   .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--muted); }
-  .badge.line { background: var(--ink); color: var(--bg); }
-  .badge.open { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--sand8); }
+  .badge.line { background: var(--grass9); color: var(--sand1); }
+  .badge.open { background: var(--amber9); color: var(--sand1); }
   .urge { margin: 8px 0 4px; }
   .urgebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; overflow: visible; }
-  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--fill); transition: width .8s ease; }
+  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
   .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
   .tick.next { background: var(--ink); opacity: 1; width: 2px; }
   .urgeline { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
   .delta { font-weight: 600; }
-  .delta.up { color: var(--ink); } .delta.down { color: var(--muted); }
+  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
   dl { margin: 6px 0 0; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
   dt { color: var(--muted); }
   dd { margin: 0; overflow-wrap: anywhere; }
@@ -74,12 +77,12 @@
   .feed .meta { color: var(--muted); font-size: 11.5px; display: flex; gap: 6px; flex-wrap: wrap; }
   .kind { font-weight: 600; }
   .k-attempt { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
-  .k-asked { color: var(--muted); } .k-line { color: var(--accent); }
+  .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
   .fb { color: var(--bad); font-weight: 600; }
   .probs { margin-top: 3px; display: grid; gap: 2px; }
   .prob { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 6px; align-items: center; }
   .prob .lbl { position: relative; z-index: 0; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--sand5); border-radius: 3px; z-index: -1; }
+  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue9); opacity: .35; border-radius: 3px; z-index: -1; }
   .prob .v { text-align: right; font-variant-numeric: tabular-nums; }
   .plan li { padding: 3px 0; }
   .empty { color: var(--muted); font-style: italic; }
@@ -188,7 +191,10 @@ function updateCard(c, npc, first) {
   f.openBadge.hidden = !npc.openStep;
   f.openBadge.textContent = npc.openStep ? npc.openStep + " open " + (npc.openForTicks * 10) + " min" : "";
 
-  f.fill.style.width = Math.max(0, Math.min(1, npc.urge)) * 100 + "%";
+  const u = Math.max(0, Math.min(1, npc.urge));
+  f.fill.style.width = u * 100 + "%";
+  // The gradient spans the whole bar, so the fill ends in the color of its level: blue low, amber mid, red high.
+  f.fill.style.backgroundSize = (u > 0 ? 100 / u : 100) + "% 100%";
   f.ticks.forEach((t, i) => t.classList.toggle("next", i === npc.rung));
   let delta = "";
   if (p && Math.abs(npc.urge - p.urge) >= 0.005) {
