@@ -66,7 +66,8 @@ public sealed class IntentPlanner
             {
                 // Playtest review: a player Saw right after a conversation reads oddly ("I saw you
                 // at the saloon yesterday" from the NPC you talked to there). Drop the Saw when
-                // the same diary holds a Talked entry from the day just ended.
+                // the same diary holds a Talked entry from the offered day (the day just ended
+                // when sourceDay is set, which the mod always passes).
                 bool talkedToday = diary.Any(e =>
                     e.Kind != null && e.Kind.Equals("Talked", StringComparison.OrdinalIgnoreCase)
                     && IsPlayerSubject(e.Subject));

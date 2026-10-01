@@ -47,8 +47,12 @@ public sealed class WhereaboutsOptions
     /// <summary>...and only if one region holds at least this share of that weight.</summary>
     public double MinHabitShare { get; set; } = 0.5;
 
-    /// <summary>A sighting or a neighbour's tip older than this (in ticks; 12 = two game hours) is
-    /// not a lead: the seeker falls through to its habit or to nothing. Added after the playtest
-    /// review found 8-hour-old tips sending NPCs across town. SeenNow (age 0) is never stale.</summary>
-    public double MaxLeadAgeTicks { get; set; } = 12.0;
+    /// <summary>A sighting or a neighbour's tip older than this (in ticks; 24 = four game hours)
+    /// is not a lead: the seeker falls through to its habit or to nothing. The playtest review
+    /// found 8-hour-old tips sending NPCs across town; 24 kills those while keeping "heard you
+    /// were at the beach this morning" leads. The trade-off (Sid's call, review of PR #14): the
+    /// ledger coarsens location detail to a region at 48 ticks, so region-detail leads are dead
+    /// for Find at 24 — raise to 48 if a 4-hour cap proves too strict. SeenNow (age 0) is never
+    /// stale.</summary>
+    public double MaxLeadAgeTicks { get; set; } = 24.0;
 }

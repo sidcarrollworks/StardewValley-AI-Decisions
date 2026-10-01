@@ -118,12 +118,12 @@ public sealed class WhereaboutsTests
 
         Whereabouts found = store.LookFor("Gus", Player, 40, 120); // 30 ticks = five hours later
 
-        Assert.Equal(WhereaboutsSource.Unknown, found.Source);
-        Assert.False(found.HasPlace);
+        Assert.Equal(WhereaboutsSource.SeenToday, found.Source); // knowledge never shrinks...
+        Assert.False(found.HasPlace);                            // ...but it is no longer a lead
     }
 
     [Fact]
-    public void AStaleTipIsNotALead()
+    public void AStaleTipKeepsTheKnowledgeButNotThePlace()
     {
         // Sam saw the player in Town at tick 5; Abigail is told at 10 but only looks at 40.
         var store = new MemoryStore();
@@ -133,8 +133,25 @@ public sealed class WhereaboutsTests
 
         Whereabouts found = store.LookFor("Abigail", Player, 40, 120);
 
-        Assert.Equal(WhereaboutsSource.Unknown, found.Source);
+        Assert.Equal(WhereaboutsSource.Told, found.Source); // still knows who said so
+        Assert.Equal("Sam", found.ToldBy);
         Assert.False(found.HasPlace);
+    }
+
+    [Fact]
+    public void AnUnmappedSightingRegionIsNotRejectedAsTheSeekersOwn()
+    {
+        // Both the seeker and the sighting are in unmapped locations: "Other" must not mean
+        // "my own region", or every unmapped sighting would be rejected as a lead.
+        var store = new MemoryStore();
+        RegionMap regions = TestHelpers.Regions();
+        Tick(store, 10, You("SomewhereElse", 5, 5), Npc("Gus", "SomewhereElse", 6, 6));
+        Tick(store, 12, Npc("Gus", "AnotherPlace", 40, 40));
+
+        Whereabouts found = store.LookFor("Gus", Player, 14, 120, regions: regions);
+
+        Assert.Equal(WhereaboutsSource.SeenToday, found.Source);
+        Assert.Equal("SomewhereElse", found.Place);
     }
 
     [Fact]
@@ -146,7 +163,8 @@ public sealed class WhereaboutsTests
 
         Whereabouts found = store.LookFor("Gus", Player, 14, 120, regions: regions);
 
-        Assert.Equal(WhereaboutsSource.Unknown, found.Source); // "go looking where I am standing"
+        Assert.Equal(WhereaboutsSource.SeenToday, found.Source); // knowledge stays...
+        Assert.False(found.HasPlace);                            // ...but "go looking where I am standing" is no lead
 
         // One tick elsewhere and the same sighting is a real lead again.
         Tick(store, 15, Npc("Gus", "Beach", 40, 40));

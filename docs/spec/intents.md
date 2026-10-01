@@ -146,7 +146,9 @@ In-game:
   ranking (options by news score, zero-news entries never offered, ties by name); the news-ranking
   redesign (PR #10): speakers by best news then yes/no, blended pick (p x news, model veto,
   degenerate answers fall back to news weights), `MinNews` 2.0, `SpeakThreshold` 0.25 as a veto
-  floor, plain-sentence states and options (`NewsPhrasing`); the mod's `StartPlanning`
+  floor, plain-sentence states and options (`NewsPhrasing`); the playtest fixes (PR #14): a
+  player `Saw` is dropped when the NPC talked to the player that day, and a one-option pick skips
+  the pick question; the mod's `StartPlanning`
   (builds a `NewsContext` per NPC) and `CollectPlan`; tests in `tests/NpcIntents.Tests` (164).
 - Not started: novelty wiring (`RecentLines` is always empty today), plan persistence, delivery.
 
