@@ -1206,7 +1206,7 @@ public class ModEntry : Mod
             Diary diary = _memory.Diaries[npc];
             int added = diary.Entries.Count(e => GameClock.DayIndex(e.AbsoluteTick) == censusDay);
             _playtest.Append(new MemoryRecord(npc, diary.Entries.Count, added, diary.TakeTrimmedToday(),
-                _memory.Ledger.EntryCountFor(npc), _memory.Beliefs.Count)
+                _memory.Ledger.EntryCountFor(npc), _memory.Beliefs.Values.Count(b => b.Observer == npc))
             {
                 Tick = now,
             });
