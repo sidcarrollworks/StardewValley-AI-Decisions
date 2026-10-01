@@ -1,0 +1,209 @@
+{
+  "note": "Personality fields from the game's Data/Characters (1.6.15), decoded from Content/Data/Characters.xnb with tools/TemperamentExtractor/character_traits.py. Characters with a birthday only (the villagers).",
+  "characters": {
+    "Abigail": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Neutral",
+      "Age": "Teen"
+    },
+    "Alex": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Caroline": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Clint": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    },
+    "Demetrius": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Dwarf": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Elliott": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Emily": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Evelyn": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "George": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    },
+    "Gus": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Haley": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Harvey": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Jas": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Positive",
+      "Age": "Child"
+    },
+    "Jodi": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Kent": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    },
+    "Krobus": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Leah": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Leo": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Neutral",
+      "Age": "Child"
+    },
+    "Lewis": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Linus": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Marnie": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Maru": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Teen"
+    },
+    "Pam": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    },
+    "Penny": {
+      "Manner": "Polite",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Positive",
+      "Age": "Teen"
+    },
+    "Pierre": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Robin": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Sam": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Teen"
+    },
+    "Sandy": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Adult"
+    },
+    "Sebastian": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Negative",
+      "Age": "Teen"
+    },
+    "Shane": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Shy",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    },
+    "Vincent": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Outgoing",
+      "Optimism": "Positive",
+      "Age": "Child"
+    },
+    "Willy": {
+      "Manner": "Neutral",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Neutral",
+      "Age": "Adult"
+    },
+    "Wizard": {
+      "Manner": "Rude",
+      "SocialAnxiety": "Neutral",
+      "Optimism": "Negative",
+      "Age": "Adult"
+    }
+  }
+}

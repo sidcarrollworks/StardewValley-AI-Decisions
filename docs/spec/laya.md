@@ -50,7 +50,8 @@ Planned:
 2. **The NPC card**, a shared first section built on the game thread and passed as a copy:
    ```
    npc: Haley
-   temperament: manners neutral, outgoing, optimistic      (Data/Characters Manner, SocialAnxiety, Optimism)
+   temperament: manners neutral, outgoing, optimistic      (Data/Characters Manner, SocialAnxiety, Optimism;
+                                                            later plus words from temperament.md)
    voice: sunny, a little vain, warms up slowly             (VoiceSheets)
    hearts with the player: 4 of 10
    today: spring 13 (Wednesday), sunny, morning
