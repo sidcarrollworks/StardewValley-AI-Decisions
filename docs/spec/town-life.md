@@ -132,12 +132,9 @@ Not started. Builds on ambient gossip ([ledger-gossip.md](ledger-gossip.md)), mo
 
 - Which tensions (if any) belong in `data/bonds.json`? Recommendation: keep it tiny and mild;
   vanilla characters rarely fight.
-- **The town message board** (Sid's idea, to think about): characters get the impulse to post
-  there, and posts receive likes and dislikes from other villagers. It would ride on the same
-  machinery (a post is a diary entry with juiciness, the reactions are elastic stresses), and
-  the vanilla bulletin board only shows the player's own quests, so a real board would need its
-  own rendering — a later, live feature. Keep the data shape in mind: a `PostedToBoard` diary
-  kind is all the sim needs to hold it up.
+- **The town notice board**: now its own spec, [notice-board.md](notice-board.md) (Sid,
+  2026-10-02): a physical cork board in the square rather than a digital feed. Villagers walk
+  there to pin notes, the player can pin typed notes, and Laya picks how each reader reacts.
 - How the player meets the off-screen history: the digest is for development; in-game, lines that
   cite an unseen event ("I heard about your quest from Jodi") are the payoff, and they work
   through existing `Heard` lines. No new UI in v1.
