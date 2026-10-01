@@ -208,7 +208,9 @@ question). Results (2026-10-02, `sidecar/eval/RESULTS.md`, revised after review)
   "leanings line is the fix" was too strong — it is a candidate, judged by the panel in real
   play.
 - **The choice variant separates characters better only on english** (+0.32/+0.54 vs
-  typed-decisions -0.02/-0.10); the checkpoint matters more than the question form.
+  typed-decisions -0.02/-0.10); the checkpoint matters more than the question form. This does not
+  switch the default: the questions english wins are the motives' close calls, which are not live
+  yet; revisit per question when step 14 lands and the spread panel has real playtest data (D26).
 
 **Watched: the viewer's spread panel** ([debug-tools.md](debug-tools.md), "model spread panel"):
 the same numbers from real play, per question, live, with the flat and doesn't-follow marks and
