@@ -5,16 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NPC Minds</title>
 <style>
+  /* Neutral theme on the Radix Colors "sand" scale (radix-ui.com/colors): sand1-12 for surfaces,
+     borders and text; color only as small status accents (Radix step 11 text colors). */
   :root {
-    --bg: #f6f3ec; --panel: #fffdf8; --ink: #2b2620; --muted: #7a7064; --line: #e4ddd0;
-    --accent: #3f7d4e; --warm: #c7772e; --cool: #3c6f9c; --bad: #b0453a; --flash: #ffe38a;
-    --bar: #e9e2d4; --chip: #efe8da;
+    --sand1: #fdfdfc; --sand2: #f9f9f8; --sand3: #f1f0ef; --sand4: #e9e8e6; --sand5: #e2e1de; --sand6: #dad9d6;
+    --sand7: #cfceca; --sand8: #bcbbb5; --sand9: #8d8d86; --sand10: #82827c; --sand11: #63635e; --sand12: #21201c;
+    --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --line: var(--sand6);
+    --bar: var(--sand4); --chip: var(--sand3); --fill: var(--sand11); --tick: var(--sand8); --edge: var(--sand9);
+    --accent: #2a7e3b; --warm: #ab6400; --cool: #0d74ce; --bad: #d13415; --flash: #fff7c2;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #17150f; --panel: #211e17; --ink: #ece5d8; --muted: #9c9283; --line: #353026;
-      --accent: #6fbf7f; --warm: #e39a55; --cool: #79a9d6; --bad: #e0776b; --flash: #6b5a17;
-      --bar: #332e24; --chip: #2c2820;
+      --sand1: #111110; --sand2: #191918; --sand3: #222221; --sand4: #2a2a28; --sand5: #31312e; --sand6: #3b3a37;
+      --sand7: #494844; --sand8: #62605b; --sand9: #6f6d66; --sand10: #7c7b74; --sand11: #b5b3ad; --sand12: #eeeeec;
+      --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: #302008;
     }
   }
   * { box-sizing: border-box; }
@@ -36,20 +40,20 @@
   @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .6s; }
-  .card.recent { border-color: var(--warm); }
+  .card.recent { border-color: var(--edge); }
   .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; }
-  .hearts { color: var(--bad); font-size: 12px; font-weight: 500; }
+  .hearts { color: var(--muted); font-size: 12px; font-weight: 500; }
   .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--muted); }
-  .badge.line { background: var(--accent); color: var(--panel); }
-  .badge.open { background: var(--warm); color: var(--panel); }
+  .badge.line { background: var(--ink); color: var(--bg); }
+  .badge.open { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--sand8); }
   .urge { margin: 8px 0 4px; }
   .urgebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; overflow: visible; }
-  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--cool), var(--warm)); transition: width .8s ease; }
-  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--muted); opacity: .55; }
+  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--fill); transition: width .8s ease; }
+  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
   .tick.next { background: var(--ink); opacity: 1; width: 2px; }
   .urgeline { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
   .delta { font-weight: 600; }
-  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
+  .delta.up { color: var(--ink); } .delta.down { color: var(--muted); }
   dl { margin: 6px 0 0; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
   dt { color: var(--muted); }
   dd { margin: 0; overflow-wrap: anywhere; }
@@ -75,12 +79,12 @@
   .feed .meta { color: var(--muted); font-size: 11.5px; display: flex; gap: 6px; flex-wrap: wrap; }
   .kind { font-weight: 600; }
   .k-attempt { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
-  .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
+  .k-asked { color: var(--muted); } .k-line { color: var(--accent); }
   .fb { color: var(--bad); font-weight: 600; }
   .probs { margin-top: 3px; display: grid; gap: 2px; }
   .prob { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 6px; align-items: center; }
-  .prob .lbl { position: relative; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cool); opacity: .22; border-radius: 3px; }
+  .prob .lbl { position: relative; z-index: 0; padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .prob .lbl i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--sand5); border-radius: 3px; z-index: -1; }
   .prob .v { text-align: right; font-variant-numeric: tabular-nums; }
   .plan li { padding: 3px 0; }
   .empty { color: var(--muted); font-style: italic; }
