@@ -41,21 +41,33 @@ public sealed class LayaCalibration
     public QuestionRow? Of(string template)
         => _questions.TryGetValue(template, out QuestionRow? row) ? row : null;
 
-    /// <summary>The spread eval's id for a live question template (the proposition with the NPC
-    /// name replaced by &lt;npc&gt;), or null when the eval did not measure that template.</summary>
-    public static string? EvalIdForTemplate(string template)
+    /// <summary>The spread eval's id for a live question template — the proposition the mod
+    /// really asks, matched case-insensitively:
+    /// the ladder's "should &lt;npc&gt; try to get the player's attention with {Step} now?"
+    /// (InitiationLadder.cs:204, step = Emote/Bubble/Approach), the planner's
+    /// "does &lt;npc&gt; have news for the player?" (IntentPlanner.cs:108), the motives'
+    /// "would &lt;npc&gt; hold this against the player?", and the newcomer welcome. Returns null
+    /// when the eval did not measure that template.</summary>
+    public static string? NormalizeTemplate(string template)
     {
-        if (template.StartsWith("Should <npc> try to get the player's attention with an emote", StringComparison.Ordinal))
-            return "attention_emote";
-        if (template.StartsWith("Should <npc> try to get the player's attention with a speech bubble", StringComparison.Ordinal))
-            return "attention_bubble";
-        if (template.StartsWith("Should <npc> drop what they are doing and go looking for the player", StringComparison.Ordinal))
-            return "attention_approach";
-        if (template.StartsWith("Does <npc> have news for the player?", StringComparison.Ordinal))
+        string q = template.Trim();
+        const string attention = "should <npc> try to get the player's attention with ";
+        if (q.StartsWith(attention, StringComparison.OrdinalIgnoreCase))
+        {
+            string rest = q.Substring(attention.Length).TrimEnd('?', ' ');
+            return rest.Split(' ')[0].ToLowerInvariant() switch
+            {
+                "emote" => "attention_emote",
+                "bubble" => "attention_bubble",
+                "approach" => "attention_approach",
+                _ => null,
+            };
+        }
+        if (q.StartsWith("does <npc> have news for the player?", StringComparison.OrdinalIgnoreCase))
             return "speak";
-        if (template.StartsWith("Would <npc> hold this against the player?", StringComparison.Ordinal))
+        if (q.StartsWith("would <npc> hold this against the player?", StringComparison.OrdinalIgnoreCase))
             return "hold_against";
-        if (template.StartsWith("Would <npc> go out of their way to welcome a newcomer in person?", StringComparison.Ordinal))
+        if (q.StartsWith("would <npc> go out of their way to welcome a newcomer in person?", StringComparison.OrdinalIgnoreCase))
             return "welcome_newcomer";
         return null;
     }
@@ -65,7 +77,7 @@ public sealed class LayaCalibration
     /// has no trait mapping.</summary>
     public static (string Trait, int Direction)? TraitForTemplate(string template)
     {
-        string? eval = EvalIdForTemplate(template);
+        string? eval = NormalizeTemplate(template);
         return eval switch
         {
             "attention_emote" or "attention_bubble" or "attention_approach" or

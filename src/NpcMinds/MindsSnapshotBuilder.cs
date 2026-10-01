@@ -144,7 +144,7 @@ public sealed class MindsSnapshotBuilder
             double spread = Percentile(sortedMeans, 0.9) - Percentile(sortedMeans, 0.1);
             double median = Median(sortedMeans);
 
-            string? evalId = LayaCalibration.EvalIdForTemplate(group.Key);
+            string? evalId = LayaCalibration.NormalizeTemplate(group.Key);
             double? calibrationMedian = null, calibrationSpread = null;
             if (evalId is not null && calibration?.Of(evalId) is { } row && !row.A.NotCalibrated)
             {

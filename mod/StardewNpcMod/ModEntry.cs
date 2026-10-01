@@ -338,10 +338,9 @@ public class ModEntry : Mod
             return; // outside the 600..2600 live day
         int now = Now(tick);
         if (tick == 0)
-        {
             _talkedToday.Clear(); // the new day: the day-end notes already used yesterday's set
-            _spread.Reset();      // the spread panel starts a fresh day at 6:00
-        }
+        // (the spread panel's table was reset at DayEnding, before the overnight plan; the 6:00
+        // tick must NOT clear it, or the plan's answers would vanish from the day they belong to)
 
         if (_model is LayaDecisionClient && tick % 6 == 0)
             Task.Run(RecheckLayaHealth);
@@ -408,6 +407,9 @@ public class ModEntry : Mod
                                                        // make tonight's plan
             _memory.DecayBeliefs(Now(119), DailyDecay); // beliefs untouched today age (routines.md)
             NoteDayEnd();
+            _spread.Reset(); // the spread panel's day starts here: the overnight plan's answers
+                             // count toward the day they plan for (SpreadPanelTests pins the
+                             // order: only an explicit Reset clears, nothing at the 6:00 tick)
             StartPlanning();
         }
         catch (Exception ex)

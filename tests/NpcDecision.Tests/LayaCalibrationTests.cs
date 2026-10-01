@@ -49,4 +49,31 @@ public class LayaCalibrationTests
         Assert.True(choose.A.NotCalibrated && choose.B.NotCalibrated,
             "the planner's choose question is not measured by the spread eval; it must stay an explicit 'not calibrated' row");
     }
+
+    [Fact]
+    public void NormalizeTemplateMatchesTheModsRealQuestions()
+    {
+        // The exact strings the mod produces (the name replaced by <npc>):
+        // InitiationLadder.cs:204 — "should {npc} try to get the player's attention with {step.Value} now?"
+        Assert.Equal("attention_emote",
+            LayaCalibration.NormalizeTemplate("should <npc> try to get the player's attention with Emote now?"));
+        Assert.Equal("attention_bubble",
+            LayaCalibration.NormalizeTemplate("should <npc> try to get the player's attention with Bubble now?"));
+        Assert.Equal("attention_approach",
+            LayaCalibration.NormalizeTemplate("should <npc> try to get the player's attention with Approach now?"));
+        // IntentPlanner.cs:108 — "does {npc} have news for the player?"
+        Assert.Equal("speak", LayaCalibration.NormalizeTemplate("does <npc> have news for the player?"));
+        // motives.md — "would <npc> hold this against the player?" and the newcomer welcome.
+        Assert.Equal("hold_against", LayaCalibration.NormalizeTemplate("would <npc> hold this against the player?"));
+        Assert.Equal("welcome_newcomer",
+            LayaCalibration.NormalizeTemplate("Would <npc> go out of their way to welcome a newcomer in person?"));
+        // Unknown steps and unrelated questions stay unmapped.
+        Assert.Null(LayaCalibration.NormalizeTemplate("should <npc> try to get the player's attention with Mail now?"));
+        Assert.Null(LayaCalibration.NormalizeTemplate("anything else"));
+        // The trait mapping follows the normalized id.
+        Assert.Equal(("boldness", +1), LayaCalibration.TraitForTemplate(
+            "should <npc> try to get the player's attention with Emote now?"));
+        Assert.Equal(("chattiness", +1), LayaCalibration.TraitForTemplate("does <npc> have news for the player?"));
+        Assert.Equal(("forgiveness", -1), LayaCalibration.TraitForTemplate("would <npc> hold this against the player?"));
+    }
 }

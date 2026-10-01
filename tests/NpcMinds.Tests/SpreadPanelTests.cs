@@ -26,11 +26,11 @@ public sealed class SpreadPanelTests
     public void TemplatesGroupAcrossNpcs()
     {
         // The same question with different NPC names becomes one template; the rest is kept.
-        string a = SpreadTable.ReplaceNpc("Should Abigail try to get the player's attention with an emote now?", "Abigail");
-        string s = SpreadTable.ReplaceNpc("Should Sam try to get the player's attention with an emote now?", "Sam");
+        string a = SpreadTable.ReplaceNpc("Should Abigail try to get the player's attention with Emote now?", "Abigail");
+        string s = SpreadTable.ReplaceNpc("Should Sam try to get the player's attention with Emote now?", "Sam");
         Assert.Equal(a, s);
         Assert.Contains("<npc>", a);
-        Assert.Contains("emote", a);
+        Assert.Contains("Emote", a);
         // A name that is not in the question leaves it unchanged.
         Assert.Equal("Does anyone have news?", SpreadTable.ReplaceNpc("Does anyone have news?", null));
         Assert.Equal("Should <npc> go now?", SpreadTable.ReplaceNpc("Should Linus go now?", "Linus"));
@@ -39,10 +39,10 @@ public sealed class SpreadPanelTests
     [Fact]
     public void MeansAndSpreadAreRightOnFixedAnswers()
     {
-        // Ten NPCs with means 0.0, 0.1, ..., 0.9: spread = p90 - p10 = 0.8, median = 0.45.
+        // Ten NPCs with means 0.0, 0.1, ..., 0.9: interpolated p90-p10 = 0.72, median = 0.45.
         var calls = new List<(string, string, double)>();
         for (int i = 0; i < 10; i++)
-            calls.Add(("Should <npc> try to get the player's attention with an emote now?", $"N{i}", i / 10.0));
+            calls.Add(("Should <npc> try to get the player's attention with Emote now?", $"N{i}", i / 10.0));
         IReadOnlyList<SpreadRow> rows = MindsSnapshotBuilder.SpreadRows(Table(calls.ToArray()).Copy(), null, null, Options);
         SpreadRow row = Assert.Single(rows);
         Assert.Equal(10, row.Npcs.Count);
@@ -56,7 +56,7 @@ public sealed class SpreadPanelTests
     [Fact]
     public void FlatAndFollowsMarksAppearAtTheirThresholds()
     {
-        const string template = "Should <npc> try to get the player's attention with a speech bubble now?";
+        const string template = "Should <npc> try to get the player's attention with Bubble now?";
         // Flat: six NPCs, all answers within a 0.04 band.
         var flat = new List<(string, string, double)>();
         for (int i = 0; i < 6; i++)
@@ -96,6 +96,29 @@ public sealed class SpreadPanelTests
         table.Reset();
         Assert.Empty(table.Copy());
         Assert.Empty(MindsSnapshotBuilder.SpreadRows(table.Copy(), null, null, Options));
+    }
+
+    [Fact]
+    public void OvernightPlanAnswersSurviveUntilTheNextReset()
+    {
+        // The mod resets at DayEnding, just before the plan job starts, so the overnight plan's
+        // answers count toward the day they plan for; nothing clears them at the 6:00 tick.
+        // The table's only clearing path is an explicit Reset — recording and copying never
+        // drop entries (ModEntry: OnDayEnding resets, OnTimeChanged does not).
+        SpreadTable table = Table(("Does <npc> have news for the player?", "Haley", 0.4));
+        table.Record("Does <npc> have news for the player?", "Sam", 0.6);
+
+        // "6:00": the new day's tick does nothing to the table.
+        IReadOnlyList<SpreadEntry> morning = table.Copy();
+        Assert.Equal(2, morning.Count);
+        // Copying for the snapshot is a read: the table is unchanged afterwards.
+        Assert.Equal(2, table.Copy().Count);
+
+        // The next DayEnding resets, and the fresh table starts collecting the new plan.
+        table.Reset();
+        Assert.Empty(table.Copy());
+        table.Record("Does <npc> have news for the player?", "Haley", 0.5);
+        Assert.Single(table.Copy());
     }
 
     [Fact]
