@@ -570,10 +570,12 @@ schedules (loaded in-game with `npc.getMasterScheduleRawData()` or `GameContent.
 wired yet.
 
 **`src/NpcTemperament` + `tools/TemperamentExtractor`** compute a seed temperament per villager
-(warmth, sensitivity, forgiveness, chattiness, curiosity, boldness, each 0..1 with 0.5 typical) from
+(warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) and six Ekman emotion biases
+(anger, disgust, fear, happiness, sadness, surprise), each 0..1 with 0.5 typical, from
 the game's dialogue files, gift reaction lines and `Data/Characters` traits: count signals per page
 (portrait moods, `?`, `!`, `...`, thanks/sorry/welcome/dismissive/gossip words, words per page),
 z-score them across the cast, and add them to offsets from Manner, SocialAnxiety, Optimism and Age.
+Fear, disgust and surprise have no portrait code, so they rest on words alone and move half as far.
 Hand edits go in an overrides file applied last. The draft table is in `fixtures/game/temperament/`;
 the mod does not read it yet. Method, inputs and how to regenerate: `docs/spec/temperament.md`.
 

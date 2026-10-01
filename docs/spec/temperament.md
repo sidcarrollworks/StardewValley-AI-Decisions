@@ -5,7 +5,8 @@ built; nothing in the mod reads the table yet. Today each character's personalit
 only as the three game traits in words on the NPC card ([laya.md](laya.md), "The NPC card") and a
 one-line voice (`VoiceSheets`). The motives ([motives.md](motives.md)) use the same factors for
 everyone, so Shane forgives as fast as Emily. This spec gives every villager six numbers, derived
-from the game's own data by a repeatable method, that the motives, ladder and card can use.
+from the game's own data by a repeatable method, that the motives, ladder and card can use, plus six
+emotion biases after Paul Ekman's basic emotions (Sid, 2026-10-01) for how each one tends to feel.
 
 ## Player-visible behavior
 
@@ -29,6 +30,32 @@ All 0..1; 0.5 is the town's typical villager (the scale is relative to the vanil
 
 Six, not more: each one maps to a factor a spec already has. A trait nothing reads would only be
 noise to tune.
+
+## Emotion biases (Ekman)
+
+Added at Sid's request on 2026-10-01. The behaviour traits say what a character *does*; the emotion
+biases say how they tend to *feel* about the same event, after Ekman's six basic emotions. A
+forgotten birthday makes Shane sad (sadness 0.76) and Haley cross (anger 0.77). Same 0..1 scale,
+0.5 typical.
+
+| Emotion | Signal | Will drive |
+|---|---|---|
+| `anger` | `$a` portraits + anger words ("angry", "annoyed", "ugh") | how `Hurt` shows: anger-leaning characters go cold or short ([motives.md](motives.md)); the line's tone bucket and portrait ([text.md](text.md)) |
+| `sadness` | `$s` portraits + sad words ("lonely", "sigh") | how `Hurt` shows: sadness-leaning characters write a sad note or go quiet |
+| `happiness` | `$h` portraits + happy words ("glad", "wonderful") | how `Grateful` shows (comes to say thanks), the happy line variant |
+| `fear` | fear words only ("scared", "nervous", "worried") | `Worried` strength (storms, the mines) |
+| `disgust` | disgust words only ("gross", "yuck") | reaction to hated gifts (line tone) |
+| `surprise` | surprise words only ("wow", "whoa", "can't believe") | reaction to big news (line tone) |
+
+The game has no fear, disgust or surprise portrait, so those three rest on a handful of words per
+character (2 to 5 hits for the strongest). They move half as far (`WordsOnlyDamping` 0.5, so at most
+0.15 from dialogue) and are starred in the review table as weaker numbers. Game-trait offsets:
+Polite -0.05 anger, Rude +0.05; Outgoing -0.05 fear, Shy +0.05; Positive +0.05 happiness and -0.05
+sadness, Negative the reverse; Child +0.05 surprise. `$l` (love) and `$u` (unique) portraits are
+not Ekman emotions; love feeds warmth, unique is ignored.
+
+The emotion is a tilt on how a reaction looks, never whether it happens: which motive wins stays
+with the motive strengths and the model's choice ([motives.md](motives.md)).
 
 ## Inputs (what the game gives us)
 
@@ -69,6 +96,7 @@ Code: `src/NpcTemperament` (pure, tested), CLI `tools/TemperamentExtractor`.
    | chattiness | Outgoing +0.10, Shy -0.10 |
    | curiosity | Outgoing +0.05, Shy -0.05; Child +0.05 |
    | boldness | Outgoing +0.15, Shy -0.15 |
+   | emotions | see "Emotion biases" above |
 
 3. **Dialogue part** (`TemperamentScorer.Recipes`): each feature is turned into a z-score against
    all characters in the run (clamped to +-2), signed, averaged per trait, times `Spread` (0.15). So
@@ -82,6 +110,8 @@ Code: `src/NpcTemperament` (pure, tested), CLI `tools/TemperamentExtractor`.
    | chattiness | words per page, gossip, `!` | `...` |
    | curiosity | `?`, gossip | - |
    | boldness | `!` | `...`, sorry |
+   | anger / sadness / happiness | their portrait + their words | - |
+   | fear / disgust / surprise | their words (half spread) | - |
 
 4. Seed = clamp(0.5 + offsets + dialogue part, 0, 1), rounded to 2 places. Characters with fewer
    than `MinPages` (20) pages get the offsets only. Characters are processed in name order, files
@@ -123,7 +153,7 @@ display name it decodes). Redo all three after a game update.
 
 ## Data model and where it will live
 
-`Temperament` record (six doubles, `Temperament.Neutral` = all 0.5 for any character not in the
+`Temperament` record (six behaviour traits then six emotions, positional, new fields only at the end; `Temperament.Neutral` = all 0.5 for any character not in the
 table, such as a modded NPC), `TemperamentTable` (load, overrides, JSON). Not saved per save: it is
 data, like `regions.json`, so edits apply to old saves (`AGENTS.md`, "Tuning is not saved").
 
@@ -137,7 +167,7 @@ Custom NPCs without a row could get a value from their `Data/Characters` fields 
 
 None new. When wired, the NPC card's `temperament:` line gains plain words for the strongest traits
 ("quick to forgive, talkative"), still within the card's ~60-token budget ([laya.md](laya.md)).
-Numbers never go into the state.
+Numbers never go into the state. The strongest emotion bias can add one word ("quick to anger").
 
 ## Deterministic rules (when wired)
 
@@ -151,18 +181,20 @@ distant ones. The temperament floor in [ladder.md](ladder.md) (shy never uses `B
 
 ## Tuning constants
 
-`TemperamentScorer.Spread` 0.15, `MinPages` 20, the z clamp 2, the offsets above, and the word
+`TemperamentScorer.Spread` 0.15, `WordsOnlyDamping` 0.5, `MinPages` 20, the z clamp 2, the offsets above, and the word
 lists in `DialogueFeatures`. Changing any of them means regenerating the table in the same PR.
 Planned: `MotiveOptions.TemperamentWeight` (1.0; 0 turns temperament off), `BoldnessStepBias`.
 
 ## Acceptance tests
 
-Done (`tests/NpcTemperament.Tests`, 20): page splitting, portraits, gender variants, tokens, skipped
+Done (`tests/NpcTemperament.Tests`, 23): page splitting, portraits, gender variants, tokens, skipped
 `$q`/`$r` segments; feature rates and case-sensitive names; game traits alone when features are
 equal or pages are few; angrier dialogue lowers forgiveness; output independent of input order and
 in range; overrides apply last, clamp, reject unknown traits; JSON round trip; the committed table
 covers all 34 characters and keeps known orderings (Shane forgives less than Emily, Penny is less
-bold than Robin).
+bold than Robin); emotion words counted; portrait and words both raise an emotion; words-only
+emotions move half as far; the committed table's emotion orderings (Shane sadder than Robin, Robin
+happier than Shane, Haley and Sebastian angrier than Emily).
 
 When wired: motive tests with two fixture characters at opposite temperaments; in-game, stand up
 Shane and Emily on the same day and see Shane's grudge outlast Emily's in the shadow log.

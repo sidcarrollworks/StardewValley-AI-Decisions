@@ -286,6 +286,11 @@ never reads or writes free text" for anything that decides. Hand-picked numbers 
 redone for a game update or a modded cast; asking the model to judge personality from lines would
 be a free-text task it isn't built for. The game traits alone are too coarse (Shane and Sebastian
 share all three), which is why the dialogue matters.
+**Emotions (Sid, 2026-10-01).** Six Ekman emotion biases (anger, disgust, fear, happiness,
+sadness, surprise) sit beside the behaviour traits, computed the same way: the game's `$a`/`$s`/`$h`
+portraits plus emotion words; fear, disgust and surprise have no portrait, so they use words only
+and move half as far. The behaviour traits decide what a character does; the emotions decide how
+it shows (hurt as anger or sadness, the line's tone and portrait).
 **Not wired yet.** The mod still uses only the three game traits on the card; wiring comes with
 motives (roadmap step 14).
 

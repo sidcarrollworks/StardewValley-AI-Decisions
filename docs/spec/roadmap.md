@@ -43,7 +43,7 @@ packaging, including starting the Laya server with the game ([laya.md](laya.md),
 lifecycle"), filling `UpdateKeys` in `mod/StardewNpcMod/manifest.json` (empty today) for the site it's
 published on, and a release zip (`EnableModZip`); multiplayer itself.
 
-**Drafted 2026-09-30:** seed temperaments for the 34 villagers ([temperament.md](temperament.md)),
+**Drafted 2026-09-30:** seed temperaments and Ekman emotion biases for the 34 villagers ([temperament.md](temperament.md)),
 computed by `tools/TemperamentExtractor` from their dialogue and `Data/Characters` traits; a table
 for Sid to review, not read by the mod yet.
 

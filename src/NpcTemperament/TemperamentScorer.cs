@@ -20,6 +20,10 @@ public static class TemperamentScorer
     /// <summary>How far dialogue can move a trait: at most 2 x Spread either way.</summary>
     public const double Spread = 0.15;
 
+    /// <summary>Words-only emotions (no portrait signal) move half as far: their counts are a handful of
+    /// lines per character, so a single "wow" shouldn't make someone the town's most surprised.</summary>
+    public const double WordsOnlyDamping = 0.5;
+
     /// <summary>Characters with fewer pages than this get the game-trait part only.</summary>
     public const int MinPages = 20;
 
@@ -41,7 +45,18 @@ public static class TemperamentScorer
                 { (f => f.Question, +1), (f => f.Gossip, +1) },
             ["boldness"] = new (Func<DialogueFeatures, double>, int)[]
                 { (f => f.Exclaim, +1), (f => f.Trailing, -1), (f => f.Sorry, -1) },
+            // Ekman emotions: portrait moods where the game has one, plus emotion words.
+            ["anger"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.Angry, +1), (f => f.AngerWords, +1) },
+            ["disgust"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.DisgustWords, +1) },
+            ["fear"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.FearWords, +1) },
+            ["happiness"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.Happy, +1), (f => f.HappyWords, +1) },
+            ["sadness"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.Sad, +1), (f => f.SadWords, +1) },
+            ["surprise"] = new (Func<DialogueFeatures, double>, int)[] { (f => f.SurpriseWords, +1) },
         };
+
+    /// <summary>Emotions with no portrait code in the game: words are their only signal, so they are
+    /// weaker numbers (marked in the review table).</summary>
+    public static readonly IReadOnlySet<string> WordsOnly = new HashSet<string> { "disgust", "fear", "surprise" };
 
     /// <summary>The game-trait offsets (added to 0.5 before dialogue).</summary>
     public static Temperament TraitOffsets(GameTraits t)
@@ -56,7 +71,13 @@ public static class TemperamentScorer
             Forgiveness: 0.08 * polite + 0.04 * positive,
             Chattiness: 0.10 * outgoing,
             Curiosity: 0.05 * outgoing + 0.05 * child,
-            Boldness: 0.15 * outgoing);
+            Boldness: 0.15 * outgoing,
+            Anger: -0.05 * polite,
+            Disgust: 0,
+            Fear: -0.05 * outgoing,
+            Happiness: 0.05 * positive,
+            Sadness: -0.05 * positive,
+            Surprise: 0.05 * child);
     }
 
     public static IReadOnlyList<ScoredCharacter> Score(IEnumerable<CharacterInput> inputs)
@@ -88,7 +109,8 @@ public static class TemperamentScorer
         double sum = 0;
         foreach (var (feature, sign) in recipe)
             sum += sign * Z(feature(f), population.Select(feature).ToList());
-        return Spread * sum / recipe.Length;
+        double spread = WordsOnly.Contains(trait) ? Spread * WordsOnlyDamping : Spread;
+        return spread * sum / recipe.Length;
     }
 
     private static double Z(double value, List<double> population)

@@ -75,6 +75,19 @@ public class DialogueFeaturesTests
     }
 
     [Fact]
+    public void CountsEkmanEmotionWords()
+    {
+        var f = DialogueFeatures.Compute(P("I'm so glad!", "Ew, gross.", "I'm scared of the dark.", "Wow, really?"), Array.Empty<string>());
+
+        Assert.Equal(0.25, f.HappyWords);
+        Assert.Equal(0.25, f.DisgustWords);
+        Assert.Equal(0.25, f.FearWords);
+        Assert.Equal(0.25, f.SurpriseWords);
+        Assert.Equal(0, f.AngerWords);
+        Assert.Equal(0, f.SadWords);
+    }
+
+    [Fact]
     public void NoPagesGivesZeros()
     {
         var f = DialogueFeatures.Compute(Array.Empty<DialoguePage>(), new[] { "Sam" });

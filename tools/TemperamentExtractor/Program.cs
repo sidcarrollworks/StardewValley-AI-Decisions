@@ -118,28 +118,39 @@ public static class Program
         sb.AppendLine("Method: [docs/spec/temperament.md](../../../docs/spec/temperament.md). 0.5 is the town's typical villager.");
         sb.AppendLine("Each cell is `seed (game traits alone)`: the difference is what the dialogue added.");
         sb.AppendLine();
-        sb.AppendLine("| Character | Warmth | Sensitivity | Forgiveness | Chattiness | Curiosity | Boldness |");
-        sb.AppendLine("|---|---|---|---|---|---|---|");
-        foreach (var s in scored)
+        void Table(string title, IReadOnlyList<string> traits)
         {
-            var seed = table.Of(s.Name);
-            sb.Append("| ").Append(s.Name);
-            foreach (string trait in Temperament.TraitNames)
-                sb.Append(" | ").Append(F(seed.Get(trait))).Append(" (").Append(F(s.FromTraits.Get(trait))).Append(')');
-            sb.AppendLine(" |");
+            sb.AppendLine("## " + title);
+            sb.AppendLine();
+            sb.AppendLine("| Character | " + string.Join(" | ", traits.Select(t =>
+                char.ToUpperInvariant(t[0]) + t[1..] + (TemperamentScorer.WordsOnly.Contains(t) ? "*" : ""))) + " |");
+            sb.AppendLine("|---|" + string.Concat(traits.Select(_ => "---|")));
+            foreach (var s in scored)
+            {
+                var seed = table.Of(s.Name);
+                sb.Append("| ").Append(s.Name);
+                foreach (string trait in traits)
+                    sb.Append(" | ").Append(F(seed.Get(trait))).Append(" (").Append(F(s.FromTraits.Get(trait))).Append(')');
+                sb.AppendLine(" |");
+            }
+            sb.AppendLine();
         }
+        Table("Behaviour traits", Temperament.BehaviourTraits);
+        Table("Emotion biases (Ekman)", Temperament.EmotionTraits);
+        sb.AppendLine(@"\* words only: the game has no portrait for this emotion, so these are weaker numbers.");
         sb.AppendLine();
         sb.AppendLine("## Dialogue features");
         sb.AppendLine();
-        sb.AppendLine("Share of pages (%) with each signal; words is the mean words per page.");
+        sb.AppendLine("Share of pages (%) with each signal; words is the mean words per page; \"w\" columns are emotion words.");
         sb.AppendLine();
-        sb.AppendLine("| Character | Pages | Happy | Sad | Angry | Love | ? | ! | ... | Words | Thanks | Sorry | Welcome | Dismiss | Gossip |");
-        sb.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+        sb.AppendLine("| Character | Pages | Happy | Sad | Angry | Love | ? | ! | ... | Words | Thanks | Sorry | Welcome | Dismiss | Gossip | Joy w | Sad w | Anger w | Fear w | Disgust w | Surprise w |");
+        sb.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
         foreach (var s in scored)
         {
             var f = s.Features;
             sb.AppendLine($"| {s.Name} | {f.Pages} | {P(f.Happy)} | {P(f.Sad)} | {P(f.Angry)} | {P(f.Love)} | {P(f.Question)} | {P(f.Exclaim)} | {P(f.Trailing)} | "
-                + $"{f.WordsPerPage.ToString("0.0", CultureInfo.InvariantCulture)} | {P(f.Thanks)} | {P(f.Sorry)} | {P(f.Welcome)} | {P(f.Dismiss)} | {P(f.Gossip)} |");
+                + $"{f.WordsPerPage.ToString("0.0", CultureInfo.InvariantCulture)} | {P(f.Thanks)} | {P(f.Sorry)} | {P(f.Welcome)} | {P(f.Dismiss)} | {P(f.Gossip)} | "
+                + $"{P(f.HappyWords)} | {P(f.SadWords)} | {P(f.AngerWords)} | {P(f.FearWords)} | {P(f.DisgustWords)} | {P(f.SurpriseWords)} |");
         }
         return sb.ToString().Replace("\r\n", "\n"); // same bytes on every OS
     }

@@ -48,6 +48,38 @@ public class ScorerTests
     }
 
     [Fact]
+    public void PortraitAndWordsBothRaiseAnEmotion()
+    {
+        var scored = TemperamentScorer.Score(new[]
+        {
+            new CharacterInput("Calm", Plain, F()),
+            new CharacterInput("Cross", Plain, F(angry: 0.2) with { AngerWords = 0.1 }),
+            new CharacterInput("Mid", Plain, F(angry: 0.05) with { AngerWords = 0.02 }),
+        }).ToDictionary(s => s.Name);
+
+        Assert.True(scored["Cross"].Seed.Anger > scored["Mid"].Seed.Anger);
+        Assert.True(scored["Mid"].Seed.Anger > scored["Calm"].Seed.Anger);
+    }
+
+    [Fact]
+    public void WordsOnlyEmotionsMoveHalfAsFar()
+    {
+        // the same spread of signal: fear (words only) moves half as far as sadness (portrait + words)
+        var scored = TemperamentScorer.Score(new[]
+        {
+            new CharacterInput("Low", Plain, F() with { Sad = 0, SadWords = 0, FearWords = 0 }),
+            new CharacterInput("High", Plain, F() with { Sad = 0.2, SadWords = 0.2, FearWords = 0.2 }),
+        }).ToDictionary(s => s.Name);
+
+        double sadness = scored["High"].Seed.Sadness - 0.5;
+        double fear = scored["High"].Seed.Fear - 0.5;
+        double expected = sadness * TemperamentScorer.WordsOnlyDamping;
+        Assert.InRange(fear, expected - 0.01, expected + 0.01); // seeds are rounded to 2 places
+        Assert.Contains("fear", TemperamentScorer.WordsOnly);
+        Assert.DoesNotContain("sadness", TemperamentScorer.WordsOnly);
+    }
+
+    [Fact]
     public void FewPagesMeansGameTraitsOnly()
     {
         var scored = TemperamentScorer.Score(new[]
@@ -158,5 +190,10 @@ public class CommittedTableTests
         // Penny (shy) is less bold than Robin (outgoing); Robin talks more.
         Assert.True(table.Of("Penny").Boldness < table.Of("Robin").Boldness);
         Assert.True(table.Of("Robin").Chattiness > 0.6);
+        // Emotions: Shane leans sad, Robin happy, Haley and Sebastian quick to anger.
+        Assert.True(table.Of("Shane").Sadness > table.Of("Robin").Sadness);
+        Assert.True(table.Of("Robin").Happiness > table.Of("Shane").Happiness);
+        Assert.True(table.Of("Haley").Anger > table.Of("Emily").Anger);
+        Assert.True(table.Of("Sebastian").Anger > table.Of("Emily").Anger);
     }
 }

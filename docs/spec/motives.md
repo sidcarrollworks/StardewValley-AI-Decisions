@@ -101,7 +101,8 @@ tends toward letters or silence, an outgoing one's gratitude toward visits. Per-
 values (warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) derived from each
 villager's dialogue and game traits are specified in [temperament.md](temperament.md); when wired
 they scale the factors above per character (for example forgiveness sets the grudge's decay and
-the "hold it against" fallback).
+the "hold it against" fallback). The same spec adds Ekman emotion biases, which set how a motive
+shows (hurt as anger or as sadness), not whether it fires.
 
 ## Tuning constants
 
