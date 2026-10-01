@@ -22,6 +22,10 @@ public sealed class InitiationLadder
 
     private readonly Dictionary<string, NpcState> _npcs = new(StringComparer.OrdinalIgnoreCase);
 
+    // Blocked events log at most once per (npc, step) per day: the last day each pair was
+    // logged. Bounded by NPCs x steps, so it is never cleared. Keys are "{npc}|{step}".
+    private readonly Dictionary<string, int> _blockedLastLoggedDay = new(StringComparer.OrdinalIgnoreCase);
+
     // Global counters (across all NPCs).
     private int _day = int.MinValue;     // day index the daily counters belong to
     private int _attemptsToday;
@@ -127,7 +131,7 @@ public sealed class InitiationLadder
             state.Urge = Clamp01(urge);
 
             // (4) Maybe attempt.
-            var attempt = MaybeAttempt(absoluteTick, input, state);
+            var attempt = MaybeAttempt(absoluteTick, input, state, events);
             if (attempt is not null)
             {
                 events.Add(attempt);
@@ -175,7 +179,8 @@ public sealed class InitiationLadder
 
     // ---- Attempt decision --------------------------------------------------------------------
 
-    private InitiationEvent? MaybeAttempt(int absoluteTick, InitiationInput input, NpcState state)
+    private InitiationEvent? MaybeAttempt(
+        int absoluteTick, InitiationInput input, NpcState state, List<InitiationEvent> events)
     {
         // Caps and cooldown first, so the decision client is only asked when an attempt could happen.
         if (state.OpenStep is not null)
@@ -189,7 +194,7 @@ public sealed class InitiationLadder
         if (state.LastContactTick is { } contact && absoluteTick - contact < _options.CooldownTicks)
             return null;
 
-        var step = Candidate(input, state);
+        var step = Candidate(absoluteTick, input, state, events);
         if (step is null)
             return null;
 
@@ -220,7 +225,9 @@ public sealed class InitiationLadder
         return new InitiationEvent(absoluteTick, input.Npc, "Attempt", step.Value, state.Urge, state.Urge,
             string.Format(CultureInfo.InvariantCulture, "urge {0:0.00} >= {1:0.00} at rung {2}; p={3:0.00}",
                 state.Urge, _options.StepThresholds[(int)step.Value], state.Rung, p),
-            lead);
+            lead,
+            Threshold: _options.StepThresholds[(int)step.Value],
+            ModelP: p);
     }
 
     /// <summary>The ladder's attention question for one step ("Emote", "Bubble", "Approach"...).
@@ -229,8 +236,14 @@ public sealed class InitiationLadder
     public static string AttentionProposition(string npc, string step)
         => $"should {npc} try to get the player's attention with {step} now?";
 
-    /// <summary>The mildest step at or above the NPC's rung that is available and whose threshold the urge meets.</summary>
-    private InitiationStep? Candidate(InitiationInput input, NpcState state)
+    /// <summary>
+    /// The mildest step at or above the NPC's rung that is available and whose threshold the urge
+    /// meets. A step the urge cleared but that its gate or a cap passed over is a near-attempt and
+    /// is recorded as a "Blocked" event (at most one per NPC per step per day), so the playtest
+    /// log can see what the ladder weighed and set aside. Steps below the urge's bar stay silent.
+    /// </summary>
+    private InitiationStep? Candidate(
+        int absoluteTick, InitiationInput input, NpcState state, List<InitiationEvent> events)
     {
         var thresholds = _options.StepThresholds;
         for (int rung = Math.Max(0, state.Rung); rung <= (int)InitiationStep.ForcedDialogue; rung++)
@@ -238,18 +251,65 @@ public sealed class InitiationLadder
             var step = (InitiationStep)rung;
             if (rung >= thresholds.Length || state.Urge < thresholds[rung])
                 continue;
+            double threshold = thresholds[rung];
             if (!Available(step, input))
+            {
+                NoteBlocked(absoluteTick, input, state, step, threshold, events,
+                    "unavailable: " + UnavailableReason(step, input));
                 continue;
+            }
             if (step == InitiationStep.ForcedDialogue && _forcedThisWeek >= _options.MaxForcedPerWeek)
+            {
+                NoteBlocked(absoluteTick, input, state, step, threshold, events,
+                    string.Format(CultureInfo.InvariantCulture, "cap: forced dialogue ({0} of {1} this week)",
+                        _forcedThisWeek, _options.MaxForcedPerWeek));
                 continue;
+            }
             if (step == InitiationStep.QueuedLine && _queuedLinesToday >= _options.MaxQueuedLinesPerDay)
+            {
+                NoteBlocked(absoluteTick, input, state, step, threshold, events,
+                    string.Format(CultureInfo.InvariantCulture, "cap: queued line ({0} of {1} today)",
+                        _queuedLinesToday, _options.MaxQueuedLinesPerDay));
                 continue;
+            }
             if (step == InitiationStep.Mail && _mailToday >= _options.MaxMailPerDay)
+            {
+                NoteBlocked(absoluteTick, input, state, step, threshold, events,
+                    string.Format(CultureInfo.InvariantCulture, "cap: mail ({0} of {1} today)",
+                        _mailToday, _options.MaxMailPerDay));
                 continue;
+            }
             return step;
         }
         return null;
     }
+
+    /// <summary>Record a near-attempt the ladder passed over, at most once per (npc, step) per
+    /// day: a blocked step logs once and then stays quiet until tomorrow, not every tick.</summary>
+    private void NoteBlocked(
+        int absoluteTick, InitiationInput input, NpcState state, InitiationStep step, double threshold,
+        List<InitiationEvent> events, string reason)
+    {
+        int day = DayIndex(absoluteTick);
+        string key = $"{input.Npc}|{step}";
+        if (_blockedLastLoggedDay.TryGetValue(key, out int lastDay) && lastDay == day)
+            return;
+        _blockedLastLoggedDay[key] = day;
+        events.Add(new InitiationEvent(absoluteTick, input.Npc, "Blocked", step, state.Urge, state.Urge,
+            reason, Threshold: threshold));
+    }
+
+    /// <summary>A short reason why <see cref="Available"/> said no, for a Blocked event's text.
+    /// Mail is the one gate with two clauses: say which one failed.</summary>
+    private static string UnavailableReason(InitiationStep step, InitiationInput input) => step switch
+    {
+        InitiationStep.Emote or InitiationStep.Bubble or InitiationStep.ForcedDialogue
+            => "player out of sight",
+        InitiationStep.Approach => "player out of sight and no lead",
+        InitiationStep.QueuedLine => "player not seen today",
+        InitiationStep.Mail => IsSeenToday(input.PlayerView) ? "player seen today" : "hearts below 2",
+        _ => "not available",
+    };
 
     private static bool Available(InitiationStep step, InitiationInput input) => step switch
     {

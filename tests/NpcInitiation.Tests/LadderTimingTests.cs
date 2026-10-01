@@ -48,7 +48,7 @@ public sealed class LadderTimingTests
         var diaries = new Diaries();
         var ladder = new InitiationLadder(new Always(), 1, Eager());
 
-        Assert.Equal(InitiationStep.Mail, Assert.Single(One(ladder, diaries, 10, "Leah", Gone("Leah", 10))).Step);
+        Assert.Equal(InitiationStep.Mail, Assert.Single(One(ladder, diaries, 10, "Leah", Gone("Leah", 10)), e => e.Kind == "Attempt").Step);
 
         // Later the same day and all of the next day: still waiting for a visit.
         for (int t = 11; t < 2 * Day; t++)
@@ -103,7 +103,7 @@ public sealed class LadderTimingTests
     {
         var diaries = new Diaries();
         var ladder = new InitiationLadder(new Always(), 1, Eager());
-        Assert.Equal(InitiationStep.QueuedLine, Assert.Single(One(ladder, diaries, 10, "Gus", SeenEarlier("Gus", 10))).Step);
+        Assert.Equal(InitiationStep.QueuedLine, Assert.Single(One(ladder, diaries, 10, "Gus", SeenEarlier("Gus", 10)), e => e.Kind == "Attempt").Step);
         double urge = ladder.Urge("Gus");
 
         for (int t = 11; t < Day; t++)

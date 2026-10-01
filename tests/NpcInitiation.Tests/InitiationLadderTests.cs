@@ -1,3 +1,4 @@
+using System.Text.Json;
 using NpcDecision;
 using NpcMemory;
 using Xunit;
@@ -173,10 +174,12 @@ public sealed class InitiationLadderTests
         Assert.Equal(InitiationStep.Mail, attempt.Step);
 
         var stranger = new InitiationLadder(new StubDecision(1.0), 1, Opts(1.0));
-        Assert.Empty(TickOne(stranger, new Diaries(), 0, "Abigail", Gone, hearts: 1));
+        // No attempt: the stranger gate is hearts, not the urge (the Blocked events for the
+        // steps weighed on the way are a different matter now).
+        Assert.DoesNotContain(TickOne(stranger, new Diaries(), 0, "Abigail", Gone, hearts: 1), e => e.Kind == "Attempt");
 
         var lowUrge = new InitiationLadder(new StubDecision(1.0), 1, Opts(0.79));
-        Assert.Empty(TickOne(lowUrge, new Diaries(), 0, "Abigail", Gone, hearts: 5));
+        Assert.DoesNotContain(TickOne(lowUrge, new Diaries(), 0, "Abigail", Gone, hearts: 5), e => e.Kind == "Attempt");
     }
 
     [Fact]
@@ -188,7 +191,7 @@ public sealed class InitiationLadderTests
         Assert.Equal(InitiationStep.Mail, attempt.Step);
 
         var stranger = new InitiationLadder(new StubDecision(1.0), 1, Opts(1.0));
-        Assert.Empty(TickOne(stranger, new Diaries(), 0, "Abigail", Hearsay, hearts: 0));
+        Assert.DoesNotContain(TickOne(stranger, new Diaries(), 0, "Abigail", Hearsay, hearts: 0), e => e.Kind == "Attempt");
     }
 
     [Fact]
@@ -454,6 +457,102 @@ public sealed class InitiationLadderTests
         Assert.Contains(Enumerable.Range(1, 20), s => !Scenario(s).SequenceEqual(a));
     }
 
+    // ---- Thresholds, model answers, Blocked near-attempts (the playtest log's needs) ----------
+
+    [Fact]
+    public void AnAttemptCarriesTheStepsThresholdAndTheModelsAnswer()
+    {
+        // Custom thresholds, so the value can only come from the options.
+        var decision = new StubDecision(1.0);
+        var ladder = new InitiationLadder(decision, 1,
+            Opts(0.35, o => o.StepThresholds = new[] { 0.20, 0.45, 0.60, 0.70, 0.80, 0.95 }));
+        var attempt = SingleAttempt(TickOne(ladder, new Diaries(), 0, "Abigail", Near));
+        Assert.Equal(InitiationStep.Emote, attempt.Step);
+        Assert.Equal(0.20, attempt.Threshold);
+        Assert.Equal(1.0, attempt.ModelP);
+
+        // A fractional answer flows through as-is, not rounded to a yes. (Seed 1's uniform for
+        // Abigail at tick 0 is ~0.366, so p=0.5 is a deterministic yes here.)
+        var fractional = new InitiationLadder(new StubDecision(0.5), 1, Opts(1.0));
+        var attempts = Run(fractional, new Diaries(), 0, 40, "Abigail", Near)
+            .Where(e => e.Kind == "Attempt").ToList();
+        Assert.NotEmpty(attempts);
+        Assert.All(attempts, e => Assert.Equal(0.5, e.ModelP));
+        Assert.All(attempts, e => Assert.Equal(new InitiationOptions().StepThresholds[(int)e.Step], e.Threshold));
+    }
+
+    [Fact]
+    public void ACappedNearAttemptLogsOneBlockedEventPerNpcStepAndDay()
+    {
+        // Only QueuedLine is within reach (every other step needs more urge than anyone has).
+        var ladder = new InitiationLadder(new StubDecision(1.0), 1, Opts(1.0, o =>
+        {
+            o.StepThresholds = new[] { 2.0, 2.0, 2.0, 0.70, 2.0, 2.0 };
+            o.MaxQueuedLinesPerDay = 1;
+        }));
+        var diaries = new Diaries();
+        InitiationInput[] Inputs(int t) => new[]
+        {
+            In("Alex", SeenEarlier("Alex", t), hearts: 2),
+            In("Emily", SeenEarlier("Emily", t), hearts: 2),
+        };
+
+        // Alex takes the one queued-line slot; Emily's near-attempt is blocked and logged.
+        var first = ladder.Tick(10, Inputs(10), diaries.For);
+        Assert.Equal("Alex", SingleAttempt(first).Npc);
+        var blocked = Assert.Single(first, e => e.Kind == "Blocked");
+        Assert.Equal("Emily", blocked.Npc);
+        Assert.Equal(InitiationStep.QueuedLine, blocked.Step);
+        Assert.Equal("cap: queued line (1 of 1 today)", blocked.Reason);
+        Assert.Equal(0.70, blocked.Threshold);
+        Assert.Null(blocked.ModelP);
+
+        // The same block later the same day: one event, not one per tick.
+        Assert.Empty(ladder.Tick(11, Inputs(11), diaries.For).Where(e => e.Kind == "Blocked"));
+
+        // The next day the cap resets, so the block is logged again.
+        var next = ladder.Tick(Day + 10, Inputs(Day + 10), diaries.For);
+        var again = Assert.Single(next, e => e.Kind == "Blocked");
+        Assert.Equal("Emily", again.Npc);
+        Assert.Equal("cap: queued line (1 of 1 today)", again.Reason);
+        Assert.Equal(Day + 10, again.AbsoluteTick);
+    }
+
+    [Fact]
+    public void UnavailableNearAttemptsLogWhyTheyWerePassedOver()
+    {
+        // Seen today but not right here: Emote, Bubble and Approach are weighed and blocked on
+        // their gates; the queued line is the first step that fits.
+        var ladder = new InitiationLadder(new StubDecision(1.0), 1, Opts(1.0));
+        var events = TickOne(ladder, new Diaries(), 10, "Abigail", SeenEarlier, hearts: 10);
+
+        var blocked = events.Where(e => e.Kind == "Blocked").ToList();
+        Assert.Equal(new[] { InitiationStep.Emote, InitiationStep.Bubble, InitiationStep.Approach },
+            blocked.Select(e => e.Step));
+        Assert.Equal(new[]
+        {
+            "unavailable: player out of sight",
+            "unavailable: player out of sight",
+            "unavailable: player out of sight and no lead",
+        }, blocked.Select(e => e.Reason));
+        Assert.Equal(new double?[] { 0.30, 0.45, 0.60 }, blocked.Select(e => e.Threshold));
+        Assert.All(blocked, e => Assert.Null(e.ModelP));
+        Assert.All(blocked, e => Assert.Equal(1.0, e.UrgeBefore));
+
+        Assert.Equal(InitiationStep.QueuedLine, SingleAttempt(events).Step);
+    }
+
+    [Fact]
+    public void AnUrgeBelowEveryThresholdLogsNoBlockedEvents()
+    {
+        var ladder = new InitiationLadder(new StubDecision(1.0), 1, Opts(0.01));
+        var events = Run(ladder, new Diaries(), 0, 20, "Abigail", Gone, hearts: 5);
+
+        Assert.Equal(0.20, ladder.Urge("Abigail"), 9); // grew, but nowhere near the mildest 0.30
+        Assert.DoesNotContain(events, e => e.Kind == "Blocked");
+        Assert.DoesNotContain(events, e => e.Kind == "Attempt");
+    }
+
     // ---- Persistence -----------------------------------------------------------------------
 
     [Fact]
@@ -492,6 +591,35 @@ public sealed class InitiationLadderTests
         var abigail = Enumerable.Range(3, 20)
             .SelectMany(t => restored.Tick(t, new[] { In("Abigail", Near("Abigail", t)) }, diaries.For));
         Assert.DoesNotContain(abigail, e => e.Kind == "Attempt");
+    }
+
+    [Fact]
+    public void InitiationEventSurvivesAJsonRoundTrip()
+    {
+        // The playtest log reads Threshold/ModelP off the event, so both must survive the same
+        // serialization the ladder uses for its own state (WriteIndented = false; nulls written).
+        var options = new JsonSerializerOptions { WriteIndented = false };
+
+        var attempt = new InitiationEvent(12, "Abigail", "Attempt", InitiationStep.Emote, 0.5, 0.5,
+            "urge 0.50 >= 0.30 at rung 0; p=0.77", null, 0.30, 0.77);
+        var attemptBack = JsonSerializer.Deserialize<InitiationEvent>(JsonSerializer.Serialize(attempt, options), options);
+        Assert.Equal(attempt, attemptBack);
+        Assert.Equal(0.30, attemptBack!.Threshold);
+        Assert.Equal(0.77, attemptBack.ModelP);
+
+        var blocked = new InitiationEvent(13, "Sam", "Blocked", InitiationStep.Mail, 0.9, 0.9,
+            "cap: mail (1 of 1 today)", Threshold: 0.80);
+        var blockedBack = JsonSerializer.Deserialize<InitiationEvent>(JsonSerializer.Serialize(blocked, options), options);
+        Assert.Equal(blocked, blockedBack);
+        Assert.Equal(0.80, blockedBack!.Threshold);
+        Assert.Null(blockedBack.ModelP);
+
+        // A line written before these fields existed still reads back as null, not as an error.
+        var old = JsonSerializer.Deserialize<InitiationEvent>(
+            "{\"AbsoluteTick\":1,\"Npc\":\"Gus\",\"Kind\":\"Ignored\",\"Step\":1,\"UrgeBefore\":0.4,\"UrgeAfter\":0.2,\"Reason\":\"no response within 6 ticks\"}",
+            options);
+        Assert.Null(old!.Threshold);
+        Assert.Null(old.ModelP);
     }
 
     [Fact]
