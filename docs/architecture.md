@@ -701,11 +701,12 @@ take it from `mod/StardewNpcMod/`. The viewer page is inside `NpcMinds.dll`, so 
 ```powershell
 $out = "mod\StardewNpcMod\bin\Debug\net6.0"
 $mod = "D:\SteamLibrary\steamapps\common\Stardew Valley\Mods\StardewNpcMod"   # <GamePath>\Mods\StardewNpcMod
-Copy-Item "$out\*.dll", "$out\*.pdb", "$out\*.json" $mod -Force
+Copy-Item "$out\*.dll", "$out\*.pdb", "$out\regions.json", "$out\temperament*.json" $mod -Force
 Copy-Item "mod\StardewNpcMod\manifest.json" $mod -Force
 ```
 
-Don't overwrite the `config.json` there. A `shadow-log.txt` in that folder is left over from an old
+Don't overwrite the `config.json` there: copy the data files by name, never `*.json` (the build
+output has no config today, but a wildcard would take one if it ever appeared). A `shadow-log.txt` in that folder is left over from an old
 build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\StardewModdingAPI.exe`).
 
 **`config.json`** (`mod/StardewNpcMod/ModConfig.cs`; SMAPI creates it on first run; read once in
