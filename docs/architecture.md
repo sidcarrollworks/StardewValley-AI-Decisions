@@ -562,7 +562,8 @@ seconds and highlights whatever changed since the last update.
 
 | Per NPC | From |
 |---|---|
-| urge, rung and its threshold, attempts today, open attempt and how long it has waited | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state |
+| temperament line and "daring" bar (top of the card) | the seed temperament's summary, and a **display-only preview of the motives act rule** ([motives.md](spec/motives.md), D24) computed in the page: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs (Emote 0.20 ... Interrupt 0.80), naming the biggest act each reaches. The costs live in the page until step 14 puts the real numbers in the snapshot; nothing reads them back |
+| urge, rung and its threshold, attempts today, open attempt and how long it has waited (under "Current ladder", below the card's facts) | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state. Still what drives attempts until motives replace it |
 | hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
 | "tonight" | today's diary entries scored by `Newsworthiness` the way the planner scores them (skip kinds out, one per summary, `MinNews`), top 3; a preview only, the real plan also asks the model and samples |
@@ -604,8 +605,10 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
 - **The page** is plain HTML, CSS and JavaScript with no external loads, in
   `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
   `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Always dark (Sid's choice),
-  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds), never on borders or behind text. Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
-  toggle hide NPCs with no view of the player and no urge.
+  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds), never on borders or behind text. Cards sort by most recently changed (the default), boldness, hearts, urge or name; the choice is
+  remembered in the browser. A filter box and a "knows you" toggle hide NPCs with no view of the
+  player, no hearts and no urge. The header says motives are designed but not built, so the
+  attempts in the feed still come from the urge ladder.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
 ## Shadow harness and schedule extractor
