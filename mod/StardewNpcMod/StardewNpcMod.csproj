@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\src\NpcIntents\NpcIntents.csproj" />
     <ProjectReference Include="..\..\src\NpcInitiation\NpcInitiation.csproj" />
     <ProjectReference Include="..\..\src\NpcDiaryEvents\NpcDiaryEvents.csproj" />
+    <ProjectReference Include="..\..\src\NpcMinds\NpcMinds.csproj" />
   </ItemGroup>
 
   <ItemGroup>

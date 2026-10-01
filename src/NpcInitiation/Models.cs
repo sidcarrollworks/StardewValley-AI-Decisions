@@ -42,6 +42,19 @@ public sealed record InitiationEvent(
     string Reason,
     Whereabouts? Lead = null); // for an Approach made from a distance: where the NPC would go and why
 
+/// <summary>One NPC's ladder state as saved (<see cref="InitiationLadder.ReadStates"/>): a
+/// read-only copy for display, never fed back into the ladder.</summary>
+public sealed record LadderNpcState(
+    string Npc,
+    double Urge,
+    int Rung,
+    int Day,
+    int AttemptsToday,
+    int? LastAttemptTick,
+    int? LastContactTick,
+    InitiationStep? OpenStep,
+    int? OpenTick);
+
 /// <summary>Tuning for the ladder. Never persisted, so changes take effect on old saves.</summary>
 public sealed class InitiationOptions
 {

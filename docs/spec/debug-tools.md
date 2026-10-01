@@ -1,8 +1,10 @@
 # 18. Debug and playtest tools
 
-**Status: not started.** Sid, 2026-09-30: "we need a tab in the in-game menu that shows some of
-this data. Console commands work too." Without a way to look inside an NPC, "does it feel right?"
-can't be judged, so these come early on the roadmap.
+**Status: the live viewer is built; the tab and commands are not started.** Sid, 2026-09-30: "we
+need a tab in the in-game menu that shows some of this data. Console commands work too." Without a
+way to look inside an NPC, "does it feel right?" can't be judged, so these come early on the
+roadmap. Later the same day: "a visualization tool that I can watch while I play the test week.
+It's easier to watch changes visually than through the logs." That became the live viewer below.
 
 ## Player-visible behavior
 
@@ -28,6 +30,20 @@ can't be judged, so these come early on the roadmap.
   | `npcmod_summary [days]` | a playtest digest of the last n days: attempts by rung, responses, lines, visits, trades, grudges, model fallbacks |
   | `npcmod_newcomer ...`, `npcmod_live off` | already specced ([newcomer-week.md](newcomer-week.md), [rollout.md](rollout.md)) |
   | `npcmod_simulate <event>` | test hooks (shadow only), e.g. `npcmod_simulate gift Haley (O)421` writes a diary entry as if it happened |
+
+- **A live viewer in the browser** (built; `docs/decisions.md` D23). While the game runs, the mod
+  serves a read-only page at `http://127.0.0.1:8765/` to keep open on a second monitor. One card
+  per NPC with a diary: urge as a bar with the rung thresholds marked, the rung and its threshold,
+  attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
+  ("saw you at Pierre's General Store, 3 hours ago", "Emily told them you were at Pelican Town"),
+  where it would look and why, today's planned line, tonight's likely news (today's top three
+  entries by news score), and the newest eight diary entries. A side panel lists today's planned
+  lines, the event feed (attempts, outcomes, asking around, planned lines) and every model call
+  (who asked, about whom, the question, each answer's probability as a bar, the latency, and
+  whether it fell back). Anything that changed since the last update flashes, the urge shows its
+  change ("+0.03"), and cards can be sorted by most recently changed. It updates every two
+  seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
+  viewer".
 
 ## Data model
 
@@ -66,7 +82,9 @@ None.
 
 ## Tuning constants
 
-`ShowMindsTab` (config), `MindsKey` (config), `StatsDays` 28.
+`ShowMindsTab` (config), `MindsKey` (config), `StatsDays` 28. Viewer: `MindsViewer` (config,
+default on), `MindsViewerPort` (config, 8765), 8 diary lines, 3 news picks, 300 feed items, 200
+model calls, a 2-second poll.
 
 ## Acceptance tests
 
@@ -78,7 +96,12 @@ None.
 
 ## Status
 
-Not started.
+- **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 43 tests: the snapshot is
+  read-only and shows what the ladder saw, the recorder never changes an answer, the server is
+  GET-only and loopback-only and survives a busy port). Checked in a browser against a scratch
+  driver over the real ladder and the varied fake; not yet watched during a real game session.
+- **In-game tab and console commands:** not started. The viewer may cover most of what they were
+  for; decide before building them.
 
 ## Open questions
 

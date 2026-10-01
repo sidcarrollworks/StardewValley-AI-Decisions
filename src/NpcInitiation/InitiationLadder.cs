@@ -366,6 +366,33 @@ public sealed class InitiationLadder
         return ladder;
     }
 
+    /// <summary>
+    /// Each NPC's saved ladder state, read back from <see cref="ToJson"/> output (for example
+    /// <see cref="BackgroundLadder.LatestJson"/>), in name order. Read-only: the NPC Minds viewer
+    /// uses it to show rungs and open attempts without touching the live ladder, which belongs to
+    /// the worker. Malformed or empty JSON gives an empty list.
+    /// </summary>
+    public static IReadOnlyList<LadderNpcState> ReadStates(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return Array.Empty<LadderNpcState>();
+        LadderDto? dto;
+        try
+        {
+            dto = JsonSerializer.Deserialize<LadderDto>(json, JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<LadderNpcState>();
+        }
+        return (dto?.Npcs ?? new List<NpcDto>())
+            .Where(n => !string.IsNullOrEmpty(n.Npc))
+            .OrderBy(n => n.Npc, StringComparer.OrdinalIgnoreCase)
+            .Select(n => new LadderNpcState(n.Npc, Clamp01(n.Urge), n.Rung, n.Day, n.AttemptsToday,
+                n.LastAttemptTick, n.LastContactTick, n.OpenStep, n.OpenTick))
+            .ToList();
+    }
+
     private sealed class NpcState
     {
         public double Urge;
