@@ -46,6 +46,9 @@
   .badge::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--sand9); }
   .badge.line::before { background: var(--grass9); }
   .badge.open::before { background: var(--amber9); }
+  .who { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .face { width: 48px; height: 48px; border-radius: 8px; background: var(--chip); image-rendering: pixelated; object-fit: cover; }
+  .initials { display: grid; place-items: center; font-weight: 700; color: var(--muted); font-size: 16px; }
   .tline { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
   /* Daring: a display-only preview of the motives act rule (docs/spec/motives.md, D24). */
   .dare { margin: 8px 0 2px; }
@@ -220,6 +223,15 @@ function makeCard(npc, s) {
   const openBadge = el("span", "badge open");
   h.append(name, heartsEl, lineBadge, openBadge);
   const tline = el("div", "tline", npc.temperament ? npc.temperament.summary : "");
+  // The portrait comes from the player's own game, served by the mod from memory
+  // (/portrait/<Name>.png); without one, the card shows the villager's initials.
+  const face = el("img", "face");
+  face.alt = ""; face.loading = "lazy"; face.src = "portrait/" + encodeURIComponent(npc.name) + ".png";
+  face.addEventListener("error", () => face.replaceWith(el("div", "face initials", npc.name.slice(0, 2))));
+  const who = el("div", "who"), whoText = el("div");
+  whoText.append(h);
+  if (npc.temperament) whoText.append(tline);
+  who.append(face, whoText);
 
   const dare = el("div", "dare");
   const dbar = el("div", "darebar");
@@ -286,8 +298,7 @@ function makeCard(npc, s) {
   const diary = el("ul", "diary");
   det.append(sum, diary);
 
-  root.append(h);
-  if (npc.temperament) root.append(tline);
+  root.append(who);
   if (daring(npc)) root.append(dare);
   root.append(dl, legacy);
   if (npc.temperament) root.append(temper);

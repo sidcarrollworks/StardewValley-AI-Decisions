@@ -33,7 +33,8 @@ It's easier to watch changes visually than through the logs." That became the li
 
 - **A live viewer in the browser** (built; `docs/decisions.md` D23). While the game runs, the mod
   serves a read-only page at `http://127.0.0.1:8765/` to keep open on a second monitor. One card
-  per NPC with a diary, led by its temperament summary and a **daring** bar: a display-only preview
+  per NPC with a diary, led by the villager's portrait (read from the player's own game content
+  and served from memory; never stored), its temperament summary and a **daring** bar: a display-only preview
   of the motives act rule (boldness + familiarity from hearts, and the extra reach of a strong
   feeling, against the act costs; [motives.md](motives.md)), naming the biggest act it can reach.
   Below the card's facts, under "Current ladder", the urge as a bar with the rung thresholds
