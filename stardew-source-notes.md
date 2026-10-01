@@ -255,6 +255,189 @@ facts"). File names are the decompiled classes. Everything here is **verified**.
 - Harmony: SMAPI ships Harmony 2.2.2 and needs no opt-in (it logs "patched game code"); the
   `harmony_summary` console command lists patches per method.
 
+### Motives verify pass (2026-10-01)
+
+Added for the motives work ([motives.md](spec/motives.md)); every fact grepped from the local
+1.6.15 decompile. NOT FOUND items are listed so they land in the in-game checklist instead.
+
+**Dialogue answers and questions**
+
+- Answer flow: `DialogueBox.selectedResponse` (public int) is the picked index; on confirm the box
+  calls `characterDialogue.chooseResponse(responses[selectedResponse])` (DialogueBox.cs:400-403),
+  else `Game1.currentLocation.answerDialogue` / `currentEvent.answerDialogue` (:387/:392).
+- `Dialogue.chooseResponse` (Dialogue.cs:1582) matches by `responseKey`; `$r` answers apply
+  `farmer.changeFriendship(playerResponses[i].friendshipChange, speaker)` (Dialogue.cs:1618),
+  `addSeenResponse` (`Farmer.dialogueQuestionsAnswered`, Farmer.cs:9106), optional
+  `friend_<NPC>_<n>` extraArgument, then parses the answer text (:1635); `$y` quick answers swap
+  the NPC's stack entry (1601-1610); festivals route to `Event.answerDialogueQuestion` with no
+  friendship (1611-1617). The `$r` syntax is `$r <answerId> <friendshipDelta> <responseKey> <text>`
+  (Dialogue.cs:745); `$y` answers carry -1 (:800).
+- A read-only postfix on `Dialogue.chooseResponse(Response)` sees: `__instance.speaker` (NPC),
+  `__instance.TranslationKey` (`Characters/Dialogue/<Name>:<key>`), the response's
+  responseKey/responseText, and — castable to `NPCDialogueResponse` — friendshipChange, id,
+  extraArgument. The chosen INDEX is a loop-local: compute it in a prefix from
+  `getResponseOptions()` (public, :1568; cleared by postfix time at :596) or read
+  `DialogueBox.selectedResponse`.
+- Vanilla `$q` questions (real game content, not the decompile): 17 in 9 villager files —
+  Abigail 4, Alex 3, Haley 2, Maru 2, Sebastian 2, Clint/Leah/Penny/Sam 1 each; plus 5 in
+  `Data/ExtraDialogue` (Morris_* keys) and 46 inside `Data/Events` scripts. MarriageDialogue and
+  rainy have none.
+- Portrait/emotion commands are parsed by `checkEmotions` (Dialogue.cs:588-605, 1485-1561):
+  `$h/$s/$u/$l/$a` match ANYWHERE in their `#`-segment (h->s->u->l->a, then stripped); the
+  numbered form is the first `$`-digits in the segment (`$0..$n`; `getPortraitIndex` :554-582 maps
+  $neutral=0,$h=1,$s=2,$u=3,$l=4,$a=5). So a portrait command APPENDED at the end of the text
+  works; block commands (`$e $b $k $c $t $q $r $p $d $y $action $query`) must start the segment.
+
+**Schedules**
+
+- 1.6 schedules are NOT `Data/Schedules`: each NPC loads `Characters/schedules/<Name>`
+  (NPC.cs:5993), cached in `_masterScheduleData`, re-read only after `InvalidateMasterSchedule()`
+  (:5983-6012). `NPC.Schedule` has a private setter (:534); mods go through `TryLoadSchedule`
+  (key / key+raw / parsed, :5911/5932/5951) or `ClearSchedule()`.
+- **One-day replacement**: from `GameLoop.DayStarted` (after the day's schedules exist), call
+  `npc.TryLoadSchedule("mymod_day", rawScript)` — `resetForNewDay` sets `ignoreScheduleToday =
+  false` (NPC.cs:6194) and rebuilds from data next morning (:6216). A pure AssetRequested edit
+  persists for every matching day AND is ignored until `InvalidateMasterSchedule()`.
+- The day's schedule is built in `Game1._newDayAfterFade` -> `NPC.dayUpdate` -> `resetForNewDay`
+  -> `TryLoadSchedule()` (Game1.cs:8442, NPC.cs:6087/6166/6216). A mid-day `TryLoadSchedule`
+  replacement fires for all not-yet-reached times (checkSchedule compares against
+  `lastAttemptedSchedule`, NPC.cs:4112-4121; clear `npc.queuedSchedulePaths` to drop queued
+  stops). `Game1.warpCharacter` never touches `Schedule`, so replacements survive warps.
+- `endOfRouteMessage` / `endOfRouteBehavior` are per-stop (parseMasterScheduleImpl, NPC.cs:5674-5690;
+  SchedulePathDescription.cs:14/16). Behavior values: `change_beach`/`change_normal` (4636-4640),
+  anything containing `square_`, or any `Data/AnimationDescriptions` key (105 shipped keys, e.g.
+  abigail_videogames, haley_photo). The message is pushed via `setTemporaryMessages`; the literal
+  `silent` suppresses dialogue (4307-4313).
+- **Farm routing is excluded.** `Farm.ShouldExcludeFromNpcPathfinding()` returns true (Farm.cs:946)
+  and `WarpPathfindingCache.IgnoreLocationNames = { Backwoods, Cellar, Farm }`
+  (Pathfinding/WarpPathfindingCache.cs:15), so `pathfindToNextScheduleLocation` produces an empty
+  path to Farm/FarmHouse and normal schedules cannot route there. Married NPCs bypass routing with
+  direct warps (`Game1.warpCharacter(this, "Farm", ...)`, `arriveAtFarmHouse` NPC.cs:6965-6984) —
+  that is the only farm entry. NOT FOUND: vanilla schedules that visit the farm (content files).
+
+**Quests, special orders, mail**
+
+- `new ItemDeliveryQuest(targetNpcName, itemId)` or the 6-arg ctor (Quests/ItemDeliveryQuest.cs:48/60;
+  `target` is the NPC internal name). Add with `Game1.player.questLog.Add(q)` (public
+  NetObjectList, Farmer.cs:199) or `Farmer.addQuest(id)` (Farmer.cs:7993) — the latter warns and
+  adds NOTHING for ids not in `Data/Quests` (Quest.cs:275-281). `%item quest <id> %%` in mail also
+  goes through `Farmer.addQuest`, so a Data/Quests entry IS required; it respects `NOQUEST_<id>`.
+- Special orders: `Game1.player.team.AddSpecialOrder(id)` (FarmerTeam.cs:682) or mail
+  `%item specialorder <id> true %%`; `Data/SpecialOrders` entries carry `Requester` (SpecialOrderData.cs:13).
+  Automatic rewards on claim: `MoneyReward` (Amount x Multiplier), `FriendshipReward` (TargetName
+  defaults to the Requester, Amount defaults to 250 -> `changeFriendship`), plus Mail/Object/Gems/
+  ResetEvent rewards; claiming also bumps `specialOrderPrizeTickets` except Qi/DesertFestival
+  orders (SpecialOrder.cs:876-884).
+
+**Conversation topics** (every vanilla id, trigger, days)
+
+- `Introduction` 6 (Farmer.cs:2076); `firstVisit_<location>` (:2280); `fishCaught_<item>` (3016);
+  `houseUpgrade_<n>` (3550); `divorced_<npc>` / `divorced_once` / `divorced_twice` (3725/3748-3750);
+  `married_<spouse>` / `married` / `married_twice` / `roommates_<spouse>` (Game1.cs:7969-7977);
+  `achievement_<n>` (10643); `eventSeen_<id>` (GameLocation.cs:15770); `mineArea_<n>`
+  (MineShaft.cs:3401); `dating_<npc>` / `dating` (NPC.cs:2157-2158); `questComplete_<id>`
+  (Quest.cs:638); `emilyFiber` 2 (635); `cropMatured_<n>` (Crop.cs:907, Bush.cs:245);
+  `purchasedAnimal_<n>` (AnimalHouse.cs:157); `structureBuilt_<n>` (Building.cs:1578); `wonGrange`
+  (Event.cs:12049); `gotPet` (13088); `wonEggHunt` (13480); `wonIceFishing` (13541);
+  `GreenRainFinished` 1 (Game1.cs:8397); `joja_Begin` 7 (JojaMart.cs:168); `movieTheater` 3
+  (WorldChangeEvent.cs:322); `cc_Greenhouse` 3, `cc_Bus`/`cc_Minecart`/`cc_Bridge`/`cc_Boulder` 7;
+  `pamHouseUpgrade` 4 (Event.cs:10987); `FullCrabPond` 14 (FishPond.cs:657);
+  `lucky_pants_lewis` 28 (NPC.cs:1838); `dumped_Guys`/`dumped_Girls` 7,
+  `secondChance_Guys`/`secondChance_Girls` 14 (Event.cs:3665-3671); `DesertMakeover` 0 marker
+  (DesertFestival.cs:434). `pennyRedecorating` is only ever READ — content must add it.
+- Content paths: `$t <id> [days=4]` (Dialogue.cs:854), event `addConversationTopic`,
+  trigger `AddConversationTopic`, mail `%item conversationtopic <id> <days> %%`, or
+  `Farmer.addEvent(id, days)` / `autoGenerateActiveDialogueEvent(id, 4)` (Farmer.cs:7117/3675).
+  `Farmer.dayupdate` decrements each topic nightly (3521/3594-3609) and copies it to
+  `previousActiveDialogueEvents`, which spawns `<topic>_memory_oneday/_oneweek/_twoweeks/
+  _fourweeks/_eightweeks/_oneyear` at 1/7/14/28/56/104 days (3613-3638).
+- An NPC with no dialogue key for a topic simply skips it — `checkForNewCurrentDialogue`
+  `continue`s on a null key and the topic is NOT consumed (NPC.cs:3913-3920); the
+  `FallbackDialogueForError` "..." path is only for load errors (NPC.cs:4724), not missing topics.
+
+**Feelings sources**
+
+- **Garbage cans**: `GameLocation.CheckGarbage` (GameLocation.cs:8349-8524) from the map action
+  `Garbage <id>`; once-per-can per day via `NetWorldState.CheckedGarbage`. The FIRST villager
+  within 7 tiles (Euclidean, Utility.cs:5086-5095) reacts: friendship
+  `data?.DumpsterDiveFriendshipEffect ?? -25` (GameLocation.cs:8477), emote `DumpsterDiveEmote`
+  else by Age (child 28, teen 8, other 12), plus a `DumpsterDiveComment` line. Linus is
+  special-cased only for a chat message (8472-8475); his +5 friendship is data — NOT FOUND in
+  decompile. No hat check exists anywhere in the path.
+- **Heart events**: `Data/Events/<Location>` keys are `<eventId>/<precondition>...`; the NPC+hearts
+  binding exists only as the `f <NpcName> <points>` precondition (Preconditions.cs:219-233, raw
+  points, 250/heart). `eventsSeen` (Farmer.cs:237) gains the id in `Event.exitEvent` (Event.cs:4743-4752).
+  NOT FOUND: any code-level way to tell a heart event from a cutscene, and any structured
+  two-villager participant data (events are plain scripts).
+- **Flower Dance**: accept iff spouse OR (`!HasPartnerForDance && friendship >= 1000` (4 hearts)
+  `&& !isMarried`) with +250 friendship (Event.cs:12109-12160); who can be asked comes from
+  Data/Characters `FlowerDanceCanDance`. `Farmer.dancePartner` (NetDancePartner) resets in
+  `Farmer.dayupdate` (Farmer.cs:3532) — NOT readable after the festival day.
+- **Luau soup**: `Event.governorTaste` (Event.cs:13396-13447) over `FarmerTeam.luauIngredients`:
+  quality 4/3/2/1/edible-invalid -> +120/+60/0/-50/-100 friendship immediately to every NPC whose
+  `HomeRegion` is Town (Utility.improveFriendshipWithEveryoneInRegion). No numeric result is
+  stored; ingredients clear in `FarmerTeam.NewDay`. **Grange**: `Event.judgeGrange` ->
+  `Event.grangeScore` (only while the event object lives); the durable bits are
+  `player.festivalScore` (>=90 +1000 +achievement, >=75 +500, >=60 +250, shorts +750, else +50,
+  Event.cs:12525-12556), reset in `Farmer.dayupdate` — so festivalScore is readable AT DayEnding.
+  **Egg hunt**: winner compared by festivalScore thresholds (Event.cs:13449-13508); the durable
+  marker is the `wonEggHunt` topic. All three festivals run AFTER SMAPI `DayEnding`, so the
+  friendship deltas and `festivalScore` are DayEnding-readable.
+- **Movies**: invitation via `tryToReceiveActiveObject` on the NPC (NPC.cs:1713/1920) with the
+  villager/socialize/once-per-week/no-festival/before-21:00 gates; reaction love/like/dislike/
+  reject = `MovieTheater.GetResponseForMovie` (MovieTheater.cs:1257-1284), deterministic from
+  `Data/MoviesReactions` + the date's movie — love +200/emote 20, like +100/emote 56, dislike
+  0/emote 24 (MovieTheaterScreeningEvent.cs:745-800). The reaction is NOT stored: readable traces
+  are `NPC.lastSeenMovieWeek` (set at screening start) and the friendship points; a mod must
+  recompute `GetResponseForMovie`. `Farmer.lastSeenMovieWeek` set on movie end (FarmerTeam.cs:937).
+- **Passing out**: stamina <= -15 or time >= 2600 (Game1.cs:6453-6464) -> `Farmer.performPassoutWarp`
+  (Farmer.cs:5841-5925): cost = min(location MaxPassOutCost, money/10); the letter id comes from
+  `LocationContextData.PassOutMail` as `<id>_{Billed|NotBilled}_{Male|Female}` (fallback
+  `passedOut2`) and goes to `mailForTomorrow`. The rescuer NAMES live in the Data/mail letters —
+  NOT FOUND in decompile. `passedOut*` letters are deliberately not added to `mailReceived`
+  (GameLocation.cs:10552-10555). Mine death is separate: `PlayerKilled` event with the rescuer
+  chosen in code (Robin/Clint/Maru/Linus, 10% spouse; island: Willy/Leo), no mail (GameLocation.cs:15558-15597).
+- **Resort**: `IslandSouth.SetupIslandSchedules` (IslandSouth.cs:839-970): 40% -> 5 random
+  eligible NPCs, else one of 12 hard-coded name groups filled to 5; eligibility via
+  `CanVisitIslandToday` (Data/Characters game-state query, CanSocialize, not on Farm, no hospital).
+  Result stored in `Game1.netWorldState.Value.IslandVisitors` (:966; check
+  `Game1.IsVisitingIslandToday`, Game1.cs:9273-9276) — readable in the morning; computed in
+  `_newDayAfterFade` and on save load.
+- **Friendship decay**: `Farmer.resetFriendshipsForNewDay` (Farmer.cs:4102-4137), called from
+  `Farmer.dayUpdate` — i.e. AFTER SMAPI `DayEnding`. Rules: spouse/roommate not talked to -20/day
+  (the spouse path is x0.66 in changeFriendship, Farmer.cs:5581); dating/engaged not talked and
+  Points < 2500: -8/day; plus a -2 branch for (not talked AND (non-datable-or-dating, not married,
+  < 2500) OR (datable, not dating, not married, < 2000)). So bouquet-dating decays -10/day until
+  10 hearts, pre-bouquet datable -2/day until 8 hearts, ordinary friends -2/day until 10 hearts,
+  spouse -20/day (no stop; cap 14 hearts). The wiki's "no decay below 2 hearts" threshold does NOT
+  exist in code — the only gates are 2500/2000 points.
+
+**Channels**
+
+- **Phone (1.6)**: `Data/IncomingPhoneCalls` -> `IncomingPhoneCallData` with `TriggerCondition` /
+  `RingCondition` (GSQs), `FromNpc`/`FromPortrait`/`FromDisplayName`, `Dialogue` (tokenizable),
+  `IgnoreBaseChance`, `MaxCalls` (default 1) (IncomingPhoneCallData.cs:12-50).
+  `DefaultPhoneHandler.CheckForIncomingCall` rolls 1% per ten-minute tick (DefaultPhoneHandler.cs:39-51);
+  a day-specific call = an entry with a date GSQ in `TriggerCondition` + `IgnoreBaseChance=true`;
+  exact timing needs an `IPhoneHandler` or the public `Phone.Ring(callId)` (Phone.cs:184-196).
+- **Trigger actions** (exact names): `AddMail <Current|Host|All> <mailId> [MailType]` (default
+  Tomorrow), `RemoveMail ...`, `AddConversationTopic <topicId> [daysDuration=4]`,
+  `RemoveConversationTopic <topicId>`, `AddFriendshipPoints <npcName> <points>` — all public
+  statics registered in `TriggerActionManager.DefaultActions` (TriggerActionManager.cs:657-671,
+  bodies :112-255). Mail runs them via `%action <action string>%%`
+  (LetterViewerMenu.cs:267-294; skipped from the collections tab). There is NO `%commands` in 1.6;
+  the dialogue equivalent is `$action <action>` (Dialogue.cs:624-642).
+
+**In-game checks pending** (what the decompile could not settle; Sid runs these on
+`BUNKO_450391925`): (1) a garbage-can dive next to a villager — confirm radius/friendship/emote
+and Linus's data-only +5; (2) one `$q` answer both ways — confirm the per-answer friendship
+deltas and that the choice is not visible to the mod; (3) a movie — confirm the reaction
+love/like/dislike line and emote (the reaction is never stored; a producer recomputes it from
+`Data/MoviesReactions` + the date); (4) pass out once — read the rescue letter for the finder
+names that live only in Data/mail; (5, optional) dump `Data/Events` keys to confirm the
+`f <Npc> <points>` heart-event precondition; (6) grep `Characters/schedules/*` for Farm/FarmHouse
+entries; (7) Linus's garbage special-case chat.
+
 ## Tools
 
 - **SMAPI:** `GameLoop.Saving`, `DayStarted`, `DayEnding`, `helper.Data.WriteSaveData` (verified in-game, SMAPI 4.5.2 / 1.6.15). Night order seen in the SMAPI log: `DayEnding` -> the "NewDay" task -> `TimeChanged` with NewTime 600 (the date is already the new day) -> `Saving` -> `DayStarted`. So the 6:00 tick runs before the save and before `DayStarted`. The day-end notes run at `DayEnding`, which SMAPI raises before the game's `newDayAfterFade` (`SCore.cs:1357`); `Friendship.GiftsToday` is reset later, in `Farmer.updateFriendshipGifts` (`Farmer.cs:4150`), so reading it at `DayEnding` sees the day that just ended.
