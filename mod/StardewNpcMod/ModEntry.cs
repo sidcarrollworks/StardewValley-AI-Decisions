@@ -74,6 +74,15 @@ public class ModEntry : Mod
     private readonly HashSet<string> _festivalActors = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _festivalTalked = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Ambient chat tuning (docs/spec/ledger-gossip.md); never saved.</summary>
+    private readonly ChatOptions _chatOptions = new();
+
+    /// <summary>The daily belief decay factor (docs/spec/routines.md, `DailyDecay`); never saved.</summary>
+    private const double DailyDecay = 0.97;
+
+    /// <summary>Per-save deterministic seed for simulated chats and priors.</summary>
+    private int MemorySeed() => unchecked((int)Fnv1a.Seed("memory", Game1.uniqueIDForThisGame.ToString()));
+
     // NPC Minds viewer (docs/spec/debug-tools.md, "Live viewer"): read-only. The game thread
     // builds a snapshot after each tick and swaps it in; the server thread only serializes it.
     // The call log is written by the model workers through RecordingDecisionClient.
@@ -215,6 +224,40 @@ public class ModEntry : Mod
         return new BackgroundLadder(ladder, _config.LadderMaxBacklog);
     }
 
+    /// <summary>
+    /// Seed family routine priors from the game's own schedule data, once per save (step 7,
+    /// docs/spec/routines.md). Skips the player's spouse (their schedule is the marriage one) and
+    /// every pair that already knows anything. Deterministic per save seed.
+    /// </summary>
+    private void SeedPriors()
+    {
+        try
+        {
+            string spouse = Game1.player.getSpouse()?.Name ?? "";
+            var extractor = new RoutineExtractor(_regions);
+            var routines = new Dictionary<string, NpcRoutine>(StringComparer.OrdinalIgnoreCase);
+            foreach (string npc in Game1.characterData.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+            {
+                if (string.Equals(npc, spouse, StringComparison.OrdinalIgnoreCase))
+                    continue; // VERIFY: a spouse's schedule is the marriage one; priors about it are wrong
+                // VERIFY: schedules live at Data/Schedules/<name> as Dictionary<string, string>.
+                Dictionary<string, string> schedules =
+                    Game1.content.Load<Dictionary<string, string>>("Data/Schedules/" + npc);
+                if (schedules is { Count: > 0 })
+                    routines[npc] = extractor.Extract(npc, schedules, new ExtractorOptions());
+            }
+
+            int seeded = _memory.SeedPriors(routines, ResolveHomes(),
+                Game1.uniqueIDForThisGame.ToString(),
+                new PriorOptions { Kind = RelationshipKind.Family });
+            Monitor.Log($"[shadow] Seeded {seeded} family routine priors from {routines.Count} schedules.", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Routine seeding failed (the game is unaffected): {ex}", LogLevel.Warn);
+        }
+    }
+
     // ---- events --------------------------------------------------------------------------------
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -226,6 +269,7 @@ public class ModEntry : Mod
             _seenSpecialOrders.Clear();
             foreach (string key in Game1.player.team.completedSpecialOrders)
                 _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
+            SeedPriors(); // family routine priors, once per save (routines.md, step 7)
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
             _feed.Clear();
             _calls.Clear();
@@ -302,6 +346,8 @@ public class ModEntry : Mod
         {
             _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
             AskAround(now);
+            foreach (DiaryEntry heard in _memory.Chat(now, NewsScore, _chatOptions))
+                Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
         }
         catch (Exception ex)
         {
@@ -345,6 +391,7 @@ public class ModEntry : Mod
         {
             _events.Drain(_memory, Now(119), Monitor); // gifts/quests after the last tick still
                                                        // make tonight's plan
+            _memory.DecayBeliefs(Now(119), DailyDecay); // beliefs untouched today age (routines.md)
             NoteDayEnd();
             StartPlanning();
         }
@@ -372,7 +419,7 @@ public class ModEntry : Mod
         // Fresh memory per save; a different save must start clean.
         _planJob?.Dispose();
         _planJob = null;
-        _memory = new MemoryStore();
+        _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
         _search = new PlayerSearch();
         _intentsToday.Clear();
@@ -772,6 +819,17 @@ public class ModEntry : Mod
         return result;
     }
 
+    /// <summary>The news score for one of <paramref name="npc"/>'s diary entries, with a fresh
+    /// context (ambient chat's shareable-event ranking; docs/spec/ledger-gossip.md).</summary>
+    private double NewsScore(string npc, DiaryEntry entry)
+    {
+        var news = new NewsContext(npc, ResolveHomes(), BeliefsOf(npc), _regions, HeartsFor(npc),
+            Array.Empty<(string, string)>());
+        return _news.Score(entry, news);
+    }
+
+    private static readonly Newsworthiness _news = new();
+
     /// <summary>Non-blocking: if the overnight plan is ready, log the would-be lines and drop it.</summary>
     private void CollectPlan(bool morning)
     {
@@ -993,7 +1051,7 @@ public class ModEntry : Mod
     private void LoadMemory()
     {
         var model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
-        _memory = new MemoryStore();
+        _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
         if (model is null)
             return;
