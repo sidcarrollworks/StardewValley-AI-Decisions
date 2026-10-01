@@ -39,6 +39,8 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html` | NpcMemory, NpcDecision, NpcIntents, NpcInitiation | yes (read-only) |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
+| `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | no (not wired yet) |
+| `tools/TemperamentExtractor` | command line: unpacked dialogue + game traits in, seed table out | NpcTemperament | no |
 | `mod/StardewNpcMod` | `ModEntry` (every game hook), `ModConfig`, `manifest.json` | the five "yes" projects; game + SMAPI via `Pathoschild.Stardew.ModBuildConfig` 4.3.1 | - |
 | `tests/<Name>.Tests` | xUnit tests for `src/<Name>` | that project only | no |
 
@@ -50,6 +52,7 @@ mod/StardewNpcMod --+--> NpcIntents -----+--> NpcMemory --> NpcSchedules
 
 src/NpcShadow ----------> NpcMemory, NpcSchedules   (tests only)
 tools/ScheduleExtractor -> NpcSchedules             (command line)
+tools/TemperamentExtractor -> NpcTemperament        (command line)
 ```
 
 ## The time model
@@ -542,7 +545,7 @@ only (no live positions, no model calls):
 ## NPC Minds viewer (`src/NpcMinds`)
 
 A read-only debug page Sid watches beside the game (`docs/spec/debug-tools.md`, "Live viewer";
-`docs/decisions.md`, D22). While a save is loaded, `http://127.0.0.1:8765/` shows one card per
+`docs/decisions.md`, D23). While a save is loaded, `http://127.0.0.1:8765/` shows one card per
 NPC that has a diary, a feed of what happened, and a feed of model calls. It updates every two
 seconds and highlights whatever changed since the last update.
 
@@ -620,6 +623,20 @@ This writes `out/routines.json` and `out/routines.csv`, and with `--seed` also
 `TimeUtils`, `RegionMap` and `Fnv1a`. Seeding family and friends' beliefs with `SeedPrior` from real
 schedules (loaded in-game with `npc.getMasterScheduleRawData()` or `GameContent.Load`: verify) is not
 wired yet.
+
+**`src/NpcTemperament` + `tools/TemperamentExtractor`** compute a seed temperament per villager
+(warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) and six Ekman emotion biases
+(anger, disgust, fear, happiness, sadness, surprise), each 0..1 with 0.5 typical, from
+the game's dialogue files, gift reaction lines and `Data/Characters` traits: count signals per page
+(portrait moods, `?`, `!`, `...`, thanks/sorry/welcome/dismissive/gossip words, words per page),
+z-score them across the cast, and add them to offsets from Manner, SocialAnxiety, Optimism and Age.
+Fear, disgust and surprise have no portrait code, so they rest on words alone and move half as far.
+Hand edits go in an overrides file applied last. The draft table is in `fixtures/game/temperament/`;
+the mod does not read it yet. Method, inputs and how to regenerate: `docs/spec/temperament.md`.
+
+```
+dotnet run --project tools/TemperamentExtractor -- --dialogue <unpacked dialogue>   --characters fixtures/game/temperament/characters.json --out fixtures/game/temperament
+```
 
 ## Persistence
 

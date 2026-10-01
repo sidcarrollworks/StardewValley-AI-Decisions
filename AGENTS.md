@@ -117,3 +117,4 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |
 | A setting | `ModConfig` | Document it in `docs/architecture.md` |
 | Something to show in the viewer | `NpcMinds.Models` (a field at the end), `MindsSnapshotBuilder`, `viewer/index.html` | Build it from memory on the game thread; never call the model or change state for it |
+| A temperament trait or signal | `TemperamentScorer.Recipes` / `DialogueFeatures` | Regenerate `fixtures/game/temperament/` in the same PR (`docs/spec/temperament.md`) |

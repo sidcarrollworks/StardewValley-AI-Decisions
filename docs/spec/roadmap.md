@@ -31,7 +31,7 @@ week with Laya on, plus the speak-question rewording experiments the eval points
 | 11 | **Travel spike, then movement:** an in-game experiment that walks an NPC to another map and restores its schedule; then `ApproachNear` and `ForcedDialogue` | M | [ladder.md](ladder.md), [find.md](find.md) | 8 |
 | 12 | **Visits:** the `Visit` rung, 1 to 2 a week, shops close while the keeper is out; shadow first, with the pacing test | L | [find.md](find.md) | 11 (live part); the shadow part can start after 7 |
 | 13 | **Multiplayer research:** answer the list in [multiplayer-compat.md](multiplayer-compat.md) from SMAPI docs and decompiled 1.6, and estimate | S | [multiplayer-compat.md](multiplayer-compat.md) | none; any time |
-| 14 | **Motives:** named motives from the diary drive urge growth and the choice of action and line; hurt and grudges in shadow, then the friendship penalty behind its own switch | M | [motives.md](motives.md) | 1, 2 (diary kinds); can run in shadow before 6 |
+| 14 | **Motives:** named motives from the diary drive urge growth and the choice of action and line; hurt and grudges in shadow, then the friendship penalty behind its own switch; per-character temperament scales the factors (the seed table is drafted) | M | [motives.md](motives.md), [temperament.md](temperament.md) | 1, 2 (diary kinds); can run in shadow before 6 |
 | 15 | **Trades:** the offer table, barter shops through `Data/Shops`, the question box, `WantsToTrade` | M | [trades.md](trades.md) | 8 (mail and the live switches); table text drafted with step 4 |
 | 16 | **Debug tools:** console commands first, then the NPC Minds tab (spike the tab; fall back to a hotkey menu) | M | [debug-tools.md](debug-tools.md) | none; commands can start right after 1 |
 | 17 | **Romance:** status milestones, partner multipliers, jealousy, date invitations, spouse behavior | M | [romance.md](romance.md) | 14 (motives), 8 (invitations) |
@@ -42,6 +42,10 @@ week with Laya on, plus the speak-question rewording experiments the eval points
 packaging, including starting the Laya server with the game ([laya.md](laya.md), "Sidecar
 lifecycle"), filling `UpdateKeys` in `mod/StardewNpcMod/manifest.json` (empty today) for the site it's
 published on, and a release zip (`EnableModZip`); multiplayer itself.
+
+**Drafted 2026-09-30:** seed temperaments and Ekman emotion biases for the 34 villagers ([temperament.md](temperament.md)),
+computed by `tools/TemperamentExtractor` from their dialogue and `Data/Characters` traits; a table
+for Sid to review, not read by the mod yet.
 
 **Done 2026-09-30:** a local decompile of the game settled the spec's "verify" items
 ([README.md](README.md), "Verifying game facts"; findings in `stardew-source-notes.md`). The biggest

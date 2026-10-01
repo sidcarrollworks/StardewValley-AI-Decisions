@@ -250,6 +250,8 @@ field lets future formats migrate instead of wiping memory.
 - region membership: `data/regions.json`, editable without rebuilding
 - player-facing place names: `PlaceNames`
 - voice sheets: `VoiceSheets`
+- seed temperaments: `fixtures/game/temperament/temperament.json` (generated; hand edits in the
+  overrides file beside it), D22
 
 **Why.** These will be tuned often and by non-programmers. Each table has tests that pin known
 entries. The fish shop was in the wrong region until an audit caught it (now Beach).
@@ -271,7 +273,28 @@ close options, and every other question (bubble, emote, approach, pick direction
 **Known weakness.** `MissedFestival` still goes to every 4+ heart villager, including ones who
 never attend festivals (tracked in `docs/spec/diary.md`).
 
-### D22. A live viewer served from the mod, read-only
+### D22. Temperament is counted from the game's own text, not hand-picked or model-judged
+**Decision (2026-09-30, draft for Sid's review).** Each villager gets six seed traits (warmth,
+sensitivity, forgiveness, chattiness, curiosity, boldness), each tied to a factor a spec already has
+(motives, ladder, gossip, newcomer week). They are computed by a counting method over the game's
+data: `Data/Characters` Manner/SocialAnxiety/Optimism/Age set small offsets from 0.5, and the
+character's dialogue pages (portrait moods, punctuation, a few word lists, gossip, words per page)
+move them by z-score against the cast, at most 0.3. Hand edits live in a separate overrides file.
+**Why.** Reproducible (same game files, same bytes), explainable in a review (the report shows each
+character's signals and what the game traits alone would give), and consistent with "the model
+never reads or writes free text" for anything that decides. Hand-picked numbers drift and can't be
+redone for a game update or a modded cast; asking the model to judge personality from lines would
+be a free-text task it isn't built for. The game traits alone are too coarse (Shane and Sebastian
+share all three), which is why the dialogue matters.
+**Emotions (Sid, 2026-10-01).** Six Ekman emotion biases (anger, disgust, fear, happiness,
+sadness, surprise) sit beside the behaviour traits, computed the same way: the game's `$a`/`$s`/`$h`
+portraits plus emotion words; fear, disgust and surprise have no portrait, so they use words only
+and move half as far. The behaviour traits decide what a character does; the emotions decide how
+it shows (hurt as anger or sadness, the line's tone and portrait).
+**Not wired yet.** The mod still uses only the three game traits on the card; wiring comes with
+motives (roadmap step 14).
+
+### D23. A live viewer served from the mod, read-only
 **Decision.** The mod serves a read-only "NPC Minds" page on `127.0.0.1:8765` (config
 `MindsViewer`, `MindsViewerPort`) that Sid keeps open on a second monitor while playing. The game
 thread builds an immutable snapshot after each tick from memory, the ladder's last finished state

@@ -31,7 +31,7 @@ It's easier to watch changes visually than through the logs." That became the li
   | `npcmod_newcomer ...`, `npcmod_live off` | already specced ([newcomer-week.md](newcomer-week.md), [rollout.md](rollout.md)) |
   | `npcmod_simulate <event>` | test hooks (shadow only), e.g. `npcmod_simulate gift Haley (O)421` writes a diary entry as if it happened |
 
-- **A live viewer in the browser** (built; `docs/decisions.md` D22). While the game runs, the mod
+- **A live viewer in the browser** (built; `docs/decisions.md` D23). While the game runs, the mod
   serves a read-only page at `http://127.0.0.1:8765/` to keep open on a second monitor. One card
   per NPC with a diary: urge as a bar with the rung thresholds marked, the rung and its threshold,
   attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
