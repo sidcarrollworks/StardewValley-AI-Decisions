@@ -388,8 +388,10 @@ show up, which makes a stand-up a real choice.
 **Notes.** Reading stays read-only (postfixes, daily diffs); every channel used to act has its own
 switch. New keys (a mail id, a quest, a one-day schedule) may be added to game data; vanilla entries
 are never changed. Whether to add dialogue keys for conversation topics, and portrait codes in our
-lines, is still Sid's call. Many facts here are being verified in the decompile (DeepSeek,
-2026-10-01). Spec: `docs/spec/vanilla-sources.md`.
+lines, is still Sid's call. The facts were verified in the decompile the same day (DeepSeek, PR #18).
+One changed the plan: the farm is excluded from NPC routing, so a one-day schedule brings the
+visitor to the farm's edge and the mod walks it onto the farm (a small spike of its own). Spec:
+`docs/spec/vanilla-sources.md`.
 
 ---
 

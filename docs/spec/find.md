@@ -6,8 +6,10 @@ live movement are not started. Brief goal 4; D18; architecture, "Finding the pla
 
 **Farm visits by appointment come first** (Sid, 2026-10-01; [invitations.md](invitations.md),
 "Farm visits by appointment"): a letter announces the visit, and the NPC's schedule for that one
-day walks it to the farm and back with the game's own pathing. That covers "comes to find you" for
-most characters without the travel code below. The unannounced `Visit` here stays for urgent cases
+day walks it to the farm's edge and back with the game's own pathing; the mod moves it onto the
+farm itself, because the farm is excluded from NPC routing (confirmed, 2026-10-01). That covers
+"comes to find you" for most characters with a small spike instead of the travel code below. The
+same exclusion applies to the unannounced `Visit` when its lead is on the farm. The unannounced `Visit` here stays for urgent cases
 (`Worried`, strong `Hurt`, big news) and still needs the travel spike.
 
 **When motives land (D24, [motives.md](motives.md)), read "urge" here as follows.** The urge gates

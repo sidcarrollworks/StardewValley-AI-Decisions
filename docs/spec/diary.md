@@ -68,14 +68,14 @@ e.g.  "item=(O)421;name=Sunflower;taste=Love;birthday=0"
 | `HeldAGrudge` | Player | `points` | the grudge penalty applies ([motives.md](motives.md)); never shared or cited directly | 0 (skipped) |
 | `SharedNews` | who it was said to | `kind`, `subject`, `motive` | a line, bubble or letter carrying a motive is delivered ([motives.md](motives.md)); it uses that motive up; never shared | 0 (skipped) |
 | `Argued` | the other NPC | `place`, `seen` (0/1) | a span between two NPCs ends with an argument ([town-life.md](town-life.md)) | 2; 3 if the player saw it |
-| `Praised`, `BrushedOff`, `Criticized` | Player | `question` (dialogue key), `answer` (index), `points` (vanilla's friendship effect) | the player answers a question in the NPC's vanilla dialogue ([vanilla-sources.md](vanilla-sources.md); hook **verify**) | 2, 1, 3 |
-| `HeartEvent` | Player | `event` (id), `hearts`, `with` (other villagers in it) | a new id appears in `Farmer.eventsSeen` and maps to this NPC (**verify** the mapping) | 4 |
-| `DanceAsked` | Player | `accepted` (0/1) | the player asks this NPC to the Flower Dance (**verify**) | 4 |
-| `MovieTogether` | Player | `liked` (love, like, dislike) | the NPC watches a movie with the player (**verify**) | 3 |
-| `PassedOut` | Player | `place`, `found` (0/1: this NPC found them) | the player collapses and this NPC is the rescuer (**verify**) | 3 |
+| `Praised`, `BrushedOff`, `Criticized` | Player | `question` (dialogue key), `answer` (id), `points` (vanilla's friendship effect) | the player answers a question in the NPC's vanilla dialogue or a heart event: a read-only postfix on `Dialogue.chooseResponse` ([vanilla-sources.md](vanilla-sources.md)) | 2, 1, 3 |
+| `HeartEvent` | Player | `event` (id), `hearts`, `with` (other villagers in it, from the offline parse) | a new id appears in `Farmer.eventsSeen` and its `Data/Events` key has an `f <Npc> <points>` precondition for this NPC | 4 |
+| `DanceAsked` | Player | `accepted` (0/1) | the player asks this NPC to the Flower Dance; captured during the festival (`Farmer.dancePartner` resets overnight) | 4 |
+| `MovieTogether` | Player | `liked` (love, like, dislike) | `NPC.lastSeenMovieWeek` changes; the reaction is recomputed with `MovieTheater.GetResponseForMovie` (vanilla never stores it) | 3 |
+| `PassedOut` | Player | `place`, `found` (0/1: this NPC found them) | the player passes out (the rescue letter names the rescuer; ids mapped in-game) or dies in the mines (the `PlayerKilled` event's rescuer) | 3 |
 | `TownNews` | none (`topic`) | `topic`, `days` | a vanilla conversation topic starts; written for every villager | 2 |
 | `FarmVisited` | Player | `talked` (0/1) | a farm visit by appointment meets the player ([invitations.md](invitations.md)) | 3 |
-| `SawRummaging` | Player | `place` | the NPC is co-located with the player when the player searches a garbage can (**verify** the vanilla reaction in the 1.6.15 decompile, [motives.md](motives.md)) | 3 |
+| `SawRummaging` | Player | `place` | the player searches a garbage can and this NPC is vanilla's witness (the first villager within 7 tiles, found as the NPC whose friendship changed in `GameLocation.CheckGarbage`) | 3 |
 
 The weights are the base for newsworthiness, below. `IgnoredBy` stays; `PassedBy`,
 `BirthdayForgotten`, `StoodUp` and `MissedVisit` are the other forms of "being ignored". This table

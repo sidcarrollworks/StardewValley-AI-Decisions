@@ -76,7 +76,8 @@ Lines that sound a little different per NPC and per occasion, never contain inte
   `line.StoodUp.Farm` ("I came to your farm to see you and waited for an hour, but you weren't
   there"), with `seen` variants for being ignored on the farm.
 - **Portraits** (pending Sid, [vanilla-sources.md](vanilla-sources.md)): the template system may
-  append a portrait code from a fixed list per emotion after sanitizing; the model never picks it.
+  append a portrait code from a fixed list per emotion after sanitizing (`$s`, `$a`, `$h`; confirmed
+  that a code at the end of a line is read); the model never picks it.
 - **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
   language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
   haven't written for.

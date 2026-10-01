@@ -339,10 +339,11 @@ This is the one place the mod changes friendship. It has its own live switch,
 ## Planned diary kinds this needs
 
 - `SharedNews` (`kind`, `subject`, `motive`): what got said, so a motive is used up. Never shared.
-- `SawRummaging`: an NPC co-located with the player when the player searches a garbage can.
-  **verify** in the 1.6.15 decompile: the vanilla garbage-can code, the radius in which villagers
-  react, which villagers are exempt (Linus, from memory) and the friendship change it already
-  applies. Only the reaction's existence and the actors matter here; the mod changes nothing.
+- `SawRummaging`: the villager vanilla picks as the witness when the player searches a garbage can
+  (`GameLocation.CheckGarbage`: the first villager within 7 tiles, -25 friendship by default, an
+  emote by age; confirmed). The witness is found as the NPC whose friendship changed in that call.
+  Linus reacts differently in vanilla (a chat line; his data may make it positive, in-game check
+  pending), so his stressor row is overridden to neutral. The mod changes nothing.
 - `Praised`, `BrushedOff`, `Criticized`: the player's answers to the questions vanilla dialogue
   already asks (`$q`/`$r`/`$y`), classed by the friendship effect vanilla attaches to each answer
   (positive, zero, negative). This works in shadow mode now, from vanilla dialogue alone

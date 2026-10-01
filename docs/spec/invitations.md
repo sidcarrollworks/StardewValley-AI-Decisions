@@ -130,9 +130,27 @@ at your farm at this time on this day' provides an opportunity for negative inte
 stand up the character. Next message you see from that character: 'I came to your farm to see you
 and waited for an hour but you weren't there.'"*
 
-This is the preferred form of a visit: announced, planned the night before, and walked by the
-game's own pathing through a schedule for that one day. It needs no travel spike for the movement
-itself; the unannounced visits in [find.md](find.md) stay for later.
+This is the preferred form of a visit: announced, planned ahead, and walked mostly by the game's
+own pathing through a schedule for that one day. The unannounced visits in [find.md](find.md) stay
+for later.
+
+**The farm is outside the game's routing** (verify pass, 2026-10-01: `Farm` returns true from
+`ShouldExcludeFromNpcPathfinding`, and the warp-route cache ignores `Farm`, `Backwoods` and
+`Cellar`; married NPCs reach the farm only by direct warps). So a schedule can bring the NPC to the
+farm's doorstep but not onto it. The visit is done in three legs:
+1. **To the farm's edge, by schedule.** The day's schedule walks the NPC to the Bus Stop tile at the
+   farm's east exit (the side every farm type has; **verify** per farm type), arriving
+   `FarmWalkTicks` before the appointment. Pure vanilla pathing.
+2. **Onto the farm, by the mod.** On arrival the mod warps the NPC to the farm's matching entrance
+   tile with `Game1.warpCharacter` (the call married NPCs use, confirmed), which looks exactly like
+   walking through a map exit, then walks it to the farmhouse door with the in-map pathfinder
+   (`PathFindController`; **verify** it paths on the farm map, as spouses do outdoors). It waits,
+   then walks back and is warped back to the Bus Stop.
+3. **Back to its day, by schedule.** The rest of the one-day schedule resumes; a schedule replaced
+   for the day survives warps (confirmed).
+Leg 2 is a small spike of its own (one map, one known pattern), much smaller than the general
+travel spike. **Fallback** if the in-farm walk misbehaves: the NPC waits at the farm's gate on the
+Bus Stop side, and the letter says so ("I'll wait by your gate").
 
 **Player-visible behavior**
 - A letter: "I'd love to see how the farm is coming along. Could I come by on Thursday around 2?
@@ -164,7 +182,8 @@ itself; the unannounced visits in [find.md](find.md) stay for later.
 | When | What |
 |---|---|
 | a motive's best act is `FarmVisit` ([motives.md](motives.md), "The act rule") | choose the day and slot (below), reserve tomorrow's letter |
-| `DayEnding` before the visit day | build that day's schedule for the NPC: its normal schedule up to `leave`, then the farm (`Farm` at the farmhouse door tile) by `ArriveTick`, wait, then its normal schedule from the next entry; serve it through `AssetRequested` on `Data/Schedules` or the one-day schedule API (**verify**, [vanilla-sources.md](vanilla-sources.md) A2) |
+| `DayStarted` on the visit day (after the game built the day's schedules) | build the day's raw schedule: its normal stops up to the visit, then the Bus Stop farm exit by `ArriveTick - FarmWalkTicks`, then its normal stops after the visit; apply it with `npc.TryLoadSchedule("squid.StardewNpcMod.visit", raw)` (confirmed: a one-day replacement; tomorrow rebuilds from data). Never edit `Characters/schedules/<Name>` itself: an asset edit persists for every matching day |
+| the NPC reaches the farm exit | warp onto the farm, walk to the door (leg 2) |
 | each tick while `Waiting` | Met if the NPC's **own** ledger has a first-hand sighting of the player on the farm or at the door (below); talking during the window sets `talked=1` |
 | the end of the wait | `Met` or `StoodUp`; the NPC continues its schedule |
 
@@ -189,12 +208,13 @@ knock sound (**verify** the HUD message and sound calls); in shadow, a log line.
 - Stood up counts once: one `StoodUp` per visit, however long the player stays away.
 - The NPC never enters the farmhouse or any farm building.
 
-**Live switch**: `FarmVisits`, default off ([rollout.md](rollout.md)). It edits a schedule for one
-day, so it comes after `Mail`; the movement uses the game's own pathing, so it doesn't wait on the
-travel spike.
+**Live switch**: `FarmVisits`, default off ([rollout.md](rollout.md)). It replaces a schedule for
+one day and moves the NPC onto the farm, so it comes after `Mail` and after the leg-2 spike (the
+general travel spike is not needed).
 
 **Tuning constants**: `FarmVisitMinHearts` 4, `VisitLeadDays` 1-3, `FarmVisitWaitTicks` 6,
-`FarmVisitTravelTicks` per home region (from the extracted schedules' travel times; **verify**),
+`FarmVisitTravelTicks` per home (measured from the NPC's home to the Bus Stop exit in the first
+in-game runs), `FarmWalkTicks` 2 (the walk from the farm entrance to the door),
 slots 9:00 to 18:00. Not saved.
 
 **Acceptance tests**
@@ -205,9 +225,10 @@ slots 9:00 to 18:00. Not saved.
 - States: a first-hand sighting during the wait is `Met`; `Observe` turns the NPC at the door and
   the player in the farmhouse into a first-hand sighting (a knock), so that is `Met` too; no sighting is `StoodUp` with `waited=6`; seen-but-not-talked is `StoodUp` with `seen=1`;
   a storm cancels with no stress.
-- In-game (switch on): the NPC arrives on time, waits by the door, leaves on time, and is back on
-  its usual schedule afterward; its shop opened on schedule; the stand-up line appears the next time
-  the player talks to it.
+- In-game (switch on): the NPC arrives at the Bus Stop exit on time, appears at the farm entrance,
+  walks to the door, waits, walks back out and is back on its usual schedule afterward; its shop
+  opened on schedule; the stand-up line appears the next time the player talks to it. Run it on at
+  least two farm types.
 
 ## Status
 
