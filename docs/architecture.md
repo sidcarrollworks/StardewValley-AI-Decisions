@@ -315,12 +315,16 @@ which diary entry; the words come from templates.
    quest at 0.49), or NaN, and the NPC is skipped.
 4. Options. With news (the mod always attaches a `NewsContext`): every entry scores through
    `Newsworthiness`; entries under `MinNews` (2.0) are dropped, and an NPC with none left is skipped
-   without a model call. The top `MaxRecentDiaryEntries` (5) by news score (ties: newest first) are
-   the options, as plain sentences. Without news (the legacy path, tests and tools): the newest
+   without a model call. A player `Saw` is dropped outright when the day's diary also holds a
+   `Talked` entry (the NPC already talked to the player; "I saw you at the saloon yesterday" from
+   the saloon conversation reads oddly — playtest review). The top `MaxRecentDiaryEntries` (5) by
+   news score (ties: newest first) are the options, as plain sentences. Without news (the legacy
+   path, tests and tools): the newest
    `MaxRecentDiaryEntries` (5) entries, deduplicated by summary (the newest copy kept). A summary
    is `Saw Player at Pierre's General Store` for `Saw` (the detail is a place, through
    `PlaceNames`) and `IgnoredBy Player (Emote)` for anything else.
-5. `Choose(options, context)`, then **sample** one option from the blended pick weights: each
+5. `Choose(options, context)` — asked only when there are two or more options (a one-option pick
+   is not a question; playtest review), then **sample** one option from the blended pick weights: each
    model probability times the option's news score (a zero probability is a veto; a missing,
    all-zero or non-finite answer leaves the pure news weights, which in the legacy no-news path
    means a uniform pick). Never argmax. One `Random(seed)` serves the whole plan,
@@ -522,10 +526,15 @@ only (no live positions, no model calls):
    | Source | When | Place |
    |---|---|---|
    | `SeenNow` | own view, age 0, NamedSpot | location |
-   | `SeenToday` | own view from today, older | location, or region once it has coarsened |
+   | `SeenToday` | own view from today, fresh | location, or region once it has coarsened |
    | `Told` | a tip from today (1-2 hops) | location or region; `ToldBy` says who |
-   | `Habit` | no usable sighting, and `RoutineBelief.BestGuessAt(this block)` has Evidence >= 3 and Share >= 0.5 | region |
+   | `Habit` | no usable sighting, and `RoutineBelief.BestGuessAt(this block)` has Evidence >= 12 and Share >= 0.5 | region |
    | `Unknown` | none of the above | none |
+
+   A sighting or tip is usable only while fresh (`MaxLeadAgeTicks` 12 = two game hours) and only
+   when its region is not the seeker's own region as of its last observed tick (the same
+   span-tracker memory as the habit guard; playtest review). A rejected lead falls through to the
+   habit.
 
    A sighting that has faded to "earlier today" (no place) falls back to the habit. The region
    `Other` is never treated as a place. Habits come from time spent together, weighted by hearts

@@ -46,4 +46,9 @@ public sealed class WhereaboutsOptions
 
     /// <summary>...and only if one region holds at least this share of that weight.</summary>
     public double MinHabitShare { get; set; } = 0.5;
+
+    /// <summary>A sighting or a neighbour's tip older than this (in ticks; 12 = two game hours) is
+    /// not a lead: the seeker falls through to its habit or to nothing. Added after the playtest
+    /// review found 8-hour-old tips sending NPCs across town. SeenNow (age 0) is never stale.</summary>
+    public double MaxLeadAgeTicks { get; set; } = 12.0;
 }

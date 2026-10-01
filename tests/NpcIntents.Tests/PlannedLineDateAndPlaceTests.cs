@@ -97,8 +97,8 @@ public class PlannedLineDateAndPlaceTests
 
         IntentPlan plan = planner.Plan(new[] { snapshot }, seed: 2, sourceDay: 3);
 
-        Assert.Equal(new[] { "yesterday Abigail tried to get the player's attention (an emote) and got none" },
-            Assert.Single(decision.ChooseCalls));
+        // A single option means the pick question is skipped entirely (playtest review).
+        Assert.Empty(decision.ChooseCalls);
         IntentCandidate candidate = Assert.Single(plan.Candidates);
         Assert.Equal("I tried to get your attention yesterday. You must have been busy.", candidate.Line);
         Assert.DoesNotContain("Player", candidate.Line);

@@ -81,9 +81,13 @@ finding 5). The speaker ranking is news score first, the yes/no answer second.
 ## Deterministic rules
 
 Today (done): skip `TriedToReach`; only entries from the day just ended; news filter at
-`MinNews` (2.0); the top 5 by news score (ties: newest first) offered as plain sentences; speak
+`MinNews` (2.0); a player `Saw` is dropped when the same diary already holds a `Talked` entry from
+that day ("I saw you at the saloon yesterday" from the NPC you talked to at the saloon reads
+oddly — playtest review); the top 5 by news score (ties: newest first) offered as plain sentences;
+speak
 gate at `SpeakThreshold` (0.25, a veto floor: the compressed 0.2-0.5 answer band must not veto
-real news); sample from the blended pick weights (model probabilities x news
+real news); with a single option the pick question is skipped entirely (there is nothing to pick);
+sample from the blended pick weights (model probabilities x news
 score; a zero probability is a veto; a missing answer leaves the pure news weights); one
 `Random(seed)`, seed = DayIndex; render with `daysAgo`; drop a line equal to a recent one; rank
 speakers by best news score, then the yes/no probability, then name; keep the top 3.

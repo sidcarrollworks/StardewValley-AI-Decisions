@@ -158,7 +158,9 @@ the time" claims), `HabitMinShare` 0.5 (`WhereaboutsOptions`). New in `Initiatio
 `SearchMaxTicks` 6. None saved. Distinct-day evidence tracking is still open (step 7). A Habit
 lead to the seeker's own region (as of its last observed tick — span-tracker memory, not a live
 position) is rejected: the seeker's belief only contains places it itself was, so such a lead is
-"go looking where I am standing".
+"go looking where I am standing". The playtest review extended both guards to sightings and tips:
+`MaxLeadAgeTicks` 12 (two game hours; older falls through to the habit, or to nothing) and the
+same own-region rejection for any sighting's place. `SeenNow` (age 0) is never stale.
 
 ## Acceptance tests
 

@@ -212,7 +212,8 @@ public sealed class MemoryStore
     /// this hour (its routine belief, when learned well enough), else Unknown. A sighting that has
     /// faded to "earlier today" has no place, so the habit is preferred when there is one.
     /// </summary>
-    public Whereabouts LookFor(string seeker, string subject, int nowTick, int blockMinutes, WhereaboutsOptions? options = null)
+    public Whereabouts LookFor(string seeker, string subject, int nowTick, int blockMinutes,
+        WhereaboutsOptions? options = null, RegionMap? regions = null)
     {
         options ??= new WhereaboutsOptions();
         LedgerView? view = Ledger.View(seeker, subject, nowTick);
@@ -226,7 +227,17 @@ public sealed class MemoryStore
             string? place = view.Place == RegionMap.OtherRegion ? null : view.Place; // an unmapped region is nowhere to go
             sighting = new Whereabouts(seeker, subject, source, place, view.Detail, view.AgeTicks, view.HopCount, view.ToldBy, 0);
             if (sighting.HasPlace)
-                return sighting;
+            {
+                // Playtest review: a lead must be fresh (12 ticks) and must not point where the
+                // seeker already is (same span-tracker memory as the habit guard; rule 2 holds).
+                bool stale = view.AgeTicks > options.MaxLeadAgeTicks;
+                bool ownRegion = regions is not null
+                    && string.Equals(regions.RegionFor(sighting.Place) ?? RegionMap.OtherRegion,
+                        LastObservedRegion(seeker), StringComparison.OrdinalIgnoreCase);
+                if (!stale && !ownRegion)
+                    return sighting;
+                sighting = null; // not a lead any more; the habit below may still answer
+            }
         }
 
         int block = TimeUtils.BlockIndex(nowTick % GameClock.TicksPerDay, blockMinutes);

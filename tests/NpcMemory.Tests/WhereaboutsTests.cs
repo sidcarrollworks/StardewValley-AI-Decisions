@@ -1,3 +1,4 @@
+using NpcSchedules;
 using Xunit;
 
 namespace NpcMemory.Tests;
@@ -107,6 +108,51 @@ public sealed class WhereaboutsTests
         Assert.Equal("Saloon", found.Place);
         Assert.Equal(3, found.AgeTicks);
         Assert.Equal(0, found.HopCount);
+    }
+
+    [Fact]
+    public void AStaleSightingIsNotALead()
+    {
+        var store = new MemoryStore();
+        Tick(store, 10, You("Saloon", 5, 5), Npc("Gus", "Saloon", 6, 6));
+
+        Whereabouts found = store.LookFor("Gus", Player, 40, 120); // 30 ticks = five hours later
+
+        Assert.Equal(WhereaboutsSource.Unknown, found.Source);
+        Assert.False(found.HasPlace);
+    }
+
+    [Fact]
+    public void AStaleTipIsNotALead()
+    {
+        // Sam saw the player in Town at tick 5; Abigail is told at 10 but only looks at 40.
+        var store = new MemoryStore();
+        Tick(store, 5, You("Town", 40, 20), Npc("Sam", "Town", 42, 21));
+        Tick(store, 10, Npc("Abigail", "Saloon", 5, 5), Npc("Sam", "Saloon", 6, 6));
+        store.AskAround("Abigail", Player, 10);
+
+        Whereabouts found = store.LookFor("Abigail", Player, 40, 120);
+
+        Assert.Equal(WhereaboutsSource.Unknown, found.Source);
+        Assert.False(found.HasPlace);
+    }
+
+    [Fact]
+    public void ASightingInTheSeekersOwnRegionIsNotALead()
+    {
+        var store = new MemoryStore();
+        RegionMap regions = TestHelpers.Regions();
+        Tick(store, 10, You("Town", 5, 5), Npc("Gus", "Town", 6, 6)); // Gus saw you in Town and stayed there
+
+        Whereabouts found = store.LookFor("Gus", Player, 14, 120, regions: regions);
+
+        Assert.Equal(WhereaboutsSource.Unknown, found.Source); // "go looking where I am standing"
+
+        // One tick elsewhere and the same sighting is a real lead again.
+        Tick(store, 15, Npc("Gus", "Beach", 40, 40));
+        Whereabouts moved = store.LookFor("Gus", Player, 16, 120, regions: regions);
+        Assert.Equal(WhereaboutsSource.SeenToday, moved.Source);
+        Assert.Equal("Town", moved.Place);
     }
 
     [Fact]

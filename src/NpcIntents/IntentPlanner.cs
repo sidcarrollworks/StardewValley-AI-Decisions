@@ -64,9 +64,19 @@ public sealed class IntentPlanner
             List<(DiaryEntry Entry, double Score)> offered;
             if (_news is not null && snapshot.News is { } newsContext)
             {
+                // Playtest review: a player Saw right after a conversation reads oddly ("I saw you
+                // at the saloon yesterday" from the NPC you talked to there). Drop the Saw when
+                // the same diary holds a Talked entry from the day just ended.
+                bool talkedToday = diary.Any(e =>
+                    e.Kind != null && e.Kind.Equals("Talked", StringComparison.OrdinalIgnoreCase)
+                    && IsPlayerSubject(e.Subject));
                 var candidates = new List<(DiaryEntry Entry, double Score)>();
                 foreach (DiaryEntry e in Distinct(diary))
                 {
+                    if (talkedToday
+                        && e.Kind != null && e.Kind.Equals("Saw", StringComparison.OrdinalIgnoreCase)
+                        && IsPlayerSubject(e.Subject))
+                        continue; // already talked today: the sighting is not the news
                     double score = _news.Score(e, newsContext);
                     if (score >= _news.Options.MinNews)
                         candidates.Add((e, score));
@@ -101,26 +111,29 @@ public sealed class IntentPlanner
 
             // 1b + 2b. Who speaks and about what: one batched request when the backend supports
             // it (docs/spec/laya.md, "Data model": halves the overnight round trips); the
-            // YesNo-then-Choose pair otherwise. Missing answers fall back per question.
+            // YesNo-then-Choose pair otherwise. Missing answers fall back per question. With a
+            // single option there is nothing to pick: the pick question is skipped entirely.
             double speak;
             IReadOnlyList<double> probabilities;
             if (_decision is IBatchDecisionClient batch)
             {
-                IReadOnlyList<Answer> answers = batch.Ask(context, new Question[]
-                {
-                    new YesNoQuestion("speak", speakProposition),
-                    new ChoiceQuestion("pick", options),
-                });
+                var questions = new List<Question> { new YesNoQuestion("speak", speakProposition) };
+                if (options.Count > 1)
+                    questions.Add(new ChoiceQuestion("pick", options));
+                IReadOnlyList<Answer> answers = batch.Ask(context, questions);
                 Answer? speakAnswer = answers.FirstOrDefault(a => a.Id == "speak");
                 Answer? pickAnswer = answers.FirstOrDefault(a => a.Id == "pick");
                 speak = speakAnswer?.YesNo ?? 0.5;
-                probabilities = pickAnswer?.Probabilities
-                    ?? options.Select(_ => 1.0 / options.Count).ToArray();
+                probabilities = options.Count > 1
+                    ? pickAnswer?.Probabilities ?? options.Select(_ => 1.0 / options.Count).ToArray()
+                    : new[] { 1.0 };
             }
             else
             {
                 speak = _decision.YesNo(context, speakProposition);
-                probabilities = _decision.Choose(options, context) ?? Array.Empty<double>();
+                probabilities = options.Count > 1
+                    ? _decision.Choose(options, context) ?? Array.Empty<double>()
+                    : new[] { 1.0 };
             }
 
             // NaN-safe comparison: a NaN probability can never pass.
@@ -227,6 +240,9 @@ public sealed class IntentPlanner
     private bool Skipped(string? kind)
         => kind is not null && _options.SkipKinds is { } skip
            && skip.Any(k => string.Equals(k, kind, StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsPlayerSubject(string? subject)
+        => string.Equals(subject, MemoryStore.PlayerName, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>A short option string for one diary entry, e.g. "Saw Player at Pierre's General Store"
     /// (a "Saw" detail is a place) or "IgnoredBy Player (Emote)" (any other detail is not). This is
