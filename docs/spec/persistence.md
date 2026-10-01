@@ -30,7 +30,7 @@ remote host (the save lives on the host's computer).
 | `letters` | pending letters and invitations ([invitations.md](invitations.md)) | planned |
 | `trades` | today's trade offers and which were taken ([trades.md](trades.md)) | planned |
 | `stats` | 28 days of daily counters for the playtest digest ([debug-tools.md](debug-tools.md)) | planned |
-| `bonds` | NPC-to-NPC bonds, sparse ([town-life.md](town-life.md)) | planned |
+| `regard` | signed regard per (observer, subject), sparse, the player included: the plastic part of feelings, the grudge, and NPC-to-NPC bonds ([motives.md](motives.md), [town-life.md](town-life.md)); replaces the planned `bonds` key | planned |
 
 **Additive keys need no version bump.** The loader already reads keys it finds and ignores the rest.
 A new key is read with a default when missing, so a version-2 save loads fine into a build that adds
@@ -85,7 +85,7 @@ lines), then lower `MaxDiaryEntries`.
 ## Status
 
 Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`,
-`InitiationLadder.ToJson`/`FromJson`. Not started: the eight planned keys, size logging, pruning. Visit counters and each NPC's grudge go inside the existing `ladder` value ([find.md](find.md), [motives.md](motives.md)).
+`InitiationLadder.ToJson`/`FromJson`. Not started: the eight planned keys, size logging, pruning. Visit counters and each NPC's last friendship-penalty day go inside the existing `ladder` value ([find.md](find.md)); the grudge is the negative part of `regard` ([motives.md](motives.md)).
 
 ## Open questions
 

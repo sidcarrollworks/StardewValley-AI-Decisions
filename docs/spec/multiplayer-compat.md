@@ -44,8 +44,9 @@ What has to change (each a design question to answer before building):
    Hearts are per farmer already in the game (`friendshipData` lives on each `Farmer`).
 2. **Perception on the host.** `CollectPresences` adds every online farmer in `Game1.getOnlineFarmers()`,
    each with its own location and tile.
-3. **One ladder per (NPC, farmer).** Urge, rungs and caps per farmer; the daily caps probably stay
-   town-wide so a busy server doesn't flood.
+3. **Motives per (NPC, farmer).** Regard, motives and frustration per farmer; mood stays per NPC
+   (a villager has one day, whoever it meets), and the daily caps probably stay town-wide so a busy
+   server doesn't flood ([motives.md](motives.md)).
 4. **Dialogue lives in each player's own game, not in the shared world.** Checked in the decompile:
    `NPC.CurrentDialogue` reads `Game1.npcDialogues[name]`, a per-instance static that is not synced.
    So a line pushed on the host is shown only to the host, and a farmhand's line must be pushed by

@@ -67,7 +67,17 @@ Lines that sound a little different per NPC and per occasion, never contain inte
 - **Motive variants:** where a kind can be said in different moods, the key carries the motive
   after the kind (`line.Saw.Player.Hurt.Shane.1` vs `line.Saw.Player.Grateful.Shane.1`), chosen by
   the character's leading motive ([motives.md](motives.md)); lookup falls back to the key without a
-  motive.
+  motive. Under motives (D24) a line's tone also follows the **net feeling** toward the subject:
+  a hostile act (a sharp bubble, a cold letter) uses the `Hurt` or `Jealous` variant even when the
+  act carries `News`, and the character's strongest emotion bias picks between an angry and a sad
+  wording where a bucket has both ([temperament.md](temperament.md)).
+- **Farm visits** ([invitations.md](invitations.md)): per NPC, `mail.FarmVisit` (names the day and
+  time), `line.FarmVisited` (said on arrival or when the player talks to them there), and
+  `line.StoodUp.Farm` ("I came to your farm to see you and waited for an hour, but you weren't
+  there"), with `seen` variants for being ignored on the farm.
+- **Portraits** (pending Sid, [vanilla-sources.md](vanilla-sources.md)): the template system may
+  append a portrait code from a fixed list per emotion after sanitizing (`$s`, `$a`, `$h`; confirmed
+  that a code at the end of a line is read); the model never picks it.
 - **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
   language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
   haven't written for.

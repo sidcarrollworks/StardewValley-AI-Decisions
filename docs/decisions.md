@@ -323,6 +323,76 @@ non-loopback `Host` headers refused), and every failure is caught so the game is
 **Not decided.** Whether the in-game tab and console commands in `debug-tools.md` are still
 wanted now that the viewer exists. Turn `MindsViewer` off for any release.
 
+### D24. Motives and boldness replace the urge; feelings are elastic or plastic
+**Decision (Sid, 2026-10-01, second pass the same day).** No urge number decides any more. A
+character acts only when it has a **motive** with a subject (no motive, no act) and its **effective
+boldness** toward that subject (temperament boldness + familiarity + the motive's intensity)
+reaches the act's **cost**. The ladder's steps become acts with costs; hostile acts cost much more,
+and negative regard counts as familiarity for them only weakly. Feelings come from the diary as
+**stresses**: an **elastic** part, recomputed from the recent diary and fading, and a **plastic**
+part saved as signed **regard** per (observer, subject), the player included; the grudge is
+negative regard toward the player. How much plastic stress a character keeps depends on the person
+(`retention`; Pam forgets most slights, Robin doesn't), except severe ones. Feelings toward one
+subject **net**, swayed by the day's mood. **Mood** is mostly earned from recent events, plus a
+small deterministic daily roll; it tips close calls: clear calls skip the model, close calls ask
+Laya and the mood shifts the answer before a cut at 0.5. Opinions between NPCs are the same
+machinery with NPC subjects.
+**Why.** The spring 16-18 playtest: urge grew on a clock, so everyone climbed toward 0.8 on an empty
+day and Linus topped the table without seeing the player. The morning draft of this decision
+(urge = a resting level from temperament + mood roll + stresses) was rejected: on the draft
+temperament table the resting level put all 34 villagers between 0.35 and 0.64, past the first
+threshold, which recreated the clock, and it counted boldness twice. Regard is saved, not
+recomputed, because diaries are trimmed to 500 entries and a grudge must not vanish with its
+causes. Sid: *"For a character to act they need a motive and a certain level of boldness. The
+boldness required to do the act also depends on the relationship with the subject."*
+**Notes.** All constants are first guesses; the playtest log (`docs/spec/debug-tools.md`) records
+each decision's parts so they can be tuned from data. The simulation core (memory, diary, stresses,
+regard, deterministic rolls) stays game-agnostic so it can port to a standalone town sim. Spec:
+`docs/spec/motives.md`.
+
+### D25. Gossip has juiciness; hearsay is elastic until confirmed
+**Decision (Sid, 2026-10-01).** Replaces the fixed one-hop rule for event gossip. Each diary kind has
+a base **juiciness**; disgust and surprise make a story juicy ("I saw X here" is 1, rummaging in
+the trash is 4). A story is volunteered in a chat only at juiciness 2 or more for that listener
+(a bonus when the listener knows someone in it); below that it is told only when asked
+(`AskAround`). Each retelling passes it on at 0.7 of its juiciness, and juiciness fades fast (half
+a day; slower for scandals). A teller tells one story to at most three listeners a day. The
+listener's reaction scales with relevance: a liked gift is casual news, except to someone who loves
+the giver. Hearsay moves only the listener's elastic feelings; it becomes plastic (regard) when
+confirmed first-hand, by someone who was in the event, or (by half) by two independent tellers.
+**Why.** *"Gossip exists on a scale... Unless gossip is crazy it really should fade fast"* and
+*"hearsay would be an example of the elastic. If verified from the source it turns into plastic"*
+(Sid). A morning draft gave every story a magnitude equal to its news weight, which limited depth
+but not breadth: one Saloon evening could carry a story to most of the town.
+**Notes.** Positions keep the D9 two-hop cap, and a rumour never refreshes a last-seen view. Spec:
+`docs/spec/ledger-gossip.md`.
+
+### D26. Lean on the vanilla game: its data to stay in character, its mechanics to act
+**Decision (Sid, 2026-10-01).** Get as much information from the vanilla game as possible, because
+it is the best data for keeping characters in character, and act through the game's own mechanisms
+before building new ones. Concretely: read more player-action signals (answers to vanilla dialogue
+questions, heart events seen, festivals, movies, garbage cans, conversation topics) as diary
+entries; mine the game's content offline for seeds (how villagers talk about each other, who appears
+together in heart events, gift tastes); and act through vanilla channels (emotes matched to the
+emotion, a schedule for one day, quests, later phone calls). The first use: **farm visits by
+appointment**. A letter says "I'd like to come by your farm on Thursday at 2"; that day's schedule
+walks the NPC there with the game's pathing; it waits an hour by the door; if the player isn't
+there it is a stand-up, remembered and mentioned ("I came to your farm to see you and waited for an
+hour, but you weren't there").
+**Why.** *"I'd like to get as much info from the vanilla game as we can, as it is the best data to
+help influence our characters and keep them in character"* and *"editing the schedule is a good
+idea, also plays well with sending mail... provides an opportunity for negative interaction"*
+(Sid). A schedule for one day uses movement the game already does every day, so announced visits
+and meet-ups don't wait on the travel spike, and an appointment gives the player a fair chance to
+show up, which makes a stand-up a real choice.
+**Notes.** Reading stays read-only (postfixes, daily diffs); every channel used to act has its own
+switch. New keys (a mail id, a quest, a one-day schedule) may be added to game data; vanilla entries
+are never changed. Whether to add dialogue keys for conversation topics, and portrait codes in our
+lines, is still Sid's call. The facts were verified in the decompile the same day (DeepSeek, PR #18).
+One changed the plan: the farm is excluded from NPC routing, so a one-day schedule brings the
+visitor to the farm's edge and the mod walks it onto the farm (a small spike of its own). Spec:
+`docs/spec/vanilla-sources.md`.
+
 ---
 
 ## Open work and known issues

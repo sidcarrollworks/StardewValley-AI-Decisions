@@ -43,7 +43,7 @@ Planned:
 | `DayEnding` | snapshot diaries (plus news context and recent lines), start `IntentPlanJob` | game, then background |
 | every `TimeChanged`, and `DayStarted` | `CollectPlan`: non-blocking take; log; fill `_intentsToday`; (live) queue lines | game |
 | live, when collected | for each planned NPC: `npc.setNewDialogue(new Dialogue(npc, "squid.StardewNpcMod:intent", line), add: true, clearOnMovement: false)` | game |
-| live, `MenuChanged` | if the opened `DialogueBox.characterDialogue` is our `Dialogue` (compare the reference we pushed, or its translation key `squid.StardewNpcMod:intent`), mark it delivered, append to recent lines | game |
+| live, `MenuChanged` | if the opened `DialogueBox.characterDialogue` is our `Dialogue` (compare the reference we pushed, or its translation key `squid.StardewNpcMod:intent`), mark it delivered, append to recent lines; once motives land, also append a `SharedNews` diary entry so the motive behind the line is used up ([motives.md](motives.md)) | game |
 | the next day | nothing: the game drops it (below) | - |
 
 What the 1.6.15 code does with it (decompile, `NPC.cs`, `Dialogue.cs`, `Game1.cs`):

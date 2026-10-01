@@ -51,6 +51,10 @@ Recommended order, least invasive first:
 | - | `Trades` | any time after `Mail`: uses the vanilla shop menu, gives items from `data/trades.json` | balance; covered by the table test |
 | - | `TownLife` | bubbles between NPCs can go live early (after `Bubble`); meet-ups need the travel spike | chatter volume; capped at 6 rendered scenes a day |
 | - | `FriendshipEffects` | only after motives have run in shadow long enough to trust the grudge numbers | the one change to friendship points; capped at 20 points per character per week |
+| - | `FarmVisits` | after `Mail` and the farm-entry spike: a letter, then a schedule for one day to the farm's edge, and the mod walks the NPC onto the farm and back ([invitations.md](invitations.md)) | an NPC stuck on the farm; it must be back on its schedule the same day |
+| - | `Requests` | after `Mail`: `NeedsHelp` posts a quest through a letter ([invitations.md](invitations.md), [motives.md](motives.md)) | the quest log fills; at most one open request per NPC and few a week |
+| - | `HostileActs` | after the rung it uses is live and motives have run in shadow: sharp bubbles, cold letters, confrontations ([motives.md](motives.md)) | characters feel mean; hostile acts cost far more than friendly ones, so they stay rare |
+| - | `RomanceActs` | after romance milestones run in shadow: a kiss and other big romantic acts ([romance.md](romance.md)) | a scene at the wrong moment; partner status required, never during events |
 
 ## Safety invariants (live)
 

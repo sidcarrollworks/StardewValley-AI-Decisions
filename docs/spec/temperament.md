@@ -1,7 +1,10 @@
 # 21. Temperament: seed personality values per character
 
 **Status: partial.** Proposed to Sid on 2026-09-30. The method, the tool and a draft table are
-built; nothing in the mod reads the table yet. Today each character's personality reaches decisions
+built; nothing in the mod reads the table yet. The motives redesign with Sid on 2026-10-01 gives
+the traits their final roles (below, "How the motives use the traits") and adds a seventh,
+hand-set value, `retention`; both wait on the motives work. Today
+each character's personality reaches decisions
 only as the three game traits in words on the NPC card ([laya.md](laya.md), "The NPC card") and a
 one-line voice (`VoiceSheets`). The motives ([motives.md](motives.md)) use the same factors for
 everyone, so Shane forgives as fast as Emily. This spec gives every villager six numbers, derived
@@ -21,12 +24,12 @@ All 0..1; 0.5 is the town's typical villager (the scale is relative to the vanil
 
 | Trait | Meaning | What it will drive |
 |---|---|---|
-| `warmth` | how much they like company and miss the player | `MissingYou` growth, `Grateful` weight ([motives.md](motives.md)) |
-| `sensitivity` | how easily they are hurt | `Hurt` weight per bad act |
+| `warmth` | how much they like company and miss the player | `MissingYou` and `Greeting` strength ([motives.md](motives.md)) |
+| `sensitivity` | how easily they are hurt | the **amplitude**: every stress's magnitude, and how far the daily mood roll moves the outlook ([motives.md](motives.md)) |
 | `forgiveness` | how fast hurt fades | `GrudgeDailyDecay`, the fallback for "would <npc> hold this against the player?" |
-| `chattiness` | how much they talk and pass news on | `News` weight, gossip spread chance ([ledger-gossip.md](ledger-gossip.md)), [town-life.md](town-life.md) chats |
+| `chattiness` | how much they talk and pass news on | `News` strength, gossip spread chance ([ledger-gossip.md](ledger-gossip.md)), [town-life.md](town-life.md) chats |
 | `curiosity` | interest in the newcomer and in what others do | `Curious` strength ([newcomer-week.md](newcomer-week.md)) |
-| `boldness` | in person rather than from a distance | the ladder's step choice: low boldness prefers `Mail`/`Note` over `Visit`/`Bubble` ([ladder.md](ladder.md)) |
+| `boldness` | in person rather than from a distance | the **expression**: the base of effective boldness, which must reach an act's cost ([motives.md](motives.md), "The act rule"); low boldness ends up at letters and queued lines, high at walking up and visits |
 
 Six, not more: each one maps to a factor a spec already has. A trait nothing reads would only be
 noise to tune.
@@ -56,6 +59,36 @@ not Ekman emotions; love feeds warmth, unique is ignored.
 
 The emotion is a tilt on how a reaction looks, never whether it happens: which motive wins stays
 with the motive strengths and the model's choice ([motives.md](motives.md)).
+
+## How the motives use the traits
+
+Agreed with Sid on 2026-10-01 ([motives.md](motives.md), D24). The morning draft's resting urge
+(`0.5 + 0.6 x (0.4 boldness + 0.3 warmth + 0.3 chattiness - 0.5)`) is dropped: on the draft table
+it put every villager between 0.35 and 0.64, all past the ladder's first threshold, and it counted
+boldness twice.
+
+- **boldness** is the base of effective boldness: `boldness + familiarity + 0.5 x intensity` must
+  reach the act's cost. Shane (0.16) needs to know someone, or feel strongly; Pam (0.57) greets
+  acquaintances readily.
+- **sensitivity** scales every stress (`x (0.5 + sensitivity)`) and how much the daily roll moves
+  the outlook.
+- **warmth, chattiness, curiosity** scale the motives they name; **forgiveness** sets how fast
+  negative regard heals.
+- **Emotion biases** skew the daily mood roll (`happiness - (anger + sadness) / 2`) and pick how a
+  feeling shows; the fear bias scales `Worried`.
+
+### `retention`: how much a character keeps
+
+Sid, 2026-10-01: what goes into long-term memory depends on the person; Pam, a drinker, forgets most
+slights that Robin would keep, unless the slight is terrible. `retention` (0..1, 0.5 typical) scales
+how much of each plastic stress reaches regard (`0.5 + retention`); severe stresses ignore it
+([motives.md](motives.md), "Regard").
+
+The dialogue gives no clear signal for it, so it is **hand-set**, not derived: 0.5 for everyone,
+with values in `temperament-overrides.json` for characters whose writing makes it obvious (Pam
+low, first). The extractor's overrides step must accept the new key; until it does, the mod reads
+the default. This is the one temperament value the method doesn't produce, so the table marks it
+as hand-set.
 
 ## Inputs (what the game gives us)
 

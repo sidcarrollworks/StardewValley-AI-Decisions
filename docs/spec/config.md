@@ -22,12 +22,13 @@ page is possible later (see [multiplayer-compat.md](multiplayer-compat.md)).
 | `PlanningBudgetMs` | 20000 | overnight model budget | done |
 | `LadderMaxBacklog` | 6 | ladder queue before ticks drop | done |
 | `LaunchSidecar` | false | start the Laya server with the game and stop it on exit ([laya.md](laya.md)). Decided (Sid, 2026-09-30): off while we develop; a public release ships with it on | planned |
-| `Live` | all false | per-behavior live switches, including `Letters`, `Visit`, `Trades` and `FriendshipEffects` ([rollout.md](rollout.md)) | planned |
+| `Live` | all false | per-behavior live switches, including `Letters`, `FarmVisits`, `Requests`, `Visit`, `Trades`, `HostileActs`, `RomanceActs` and `FriendshipEffects` ([rollout.md](rollout.md)) | planned |
 | `DayLengthMinutes` | 0 (vanilla) | real minutes per game day ([day-length.md](day-length.md)) | planned |
 | `LogDiary` | false | log every new diary line at Trace | planned |
 | `MorningWaitMs` | 10000 | how long the "valley is waking up" wait may hold the morning for unfinished overnight work; 0 disables it ([laya.md](laya.md), "Speed") | planned |
 | `ShowMindsTab` | true in development | the "NPC Minds" tab in the game menu ([debug-tools.md](debug-tools.md)) | planned |
 | `MindsKey` | `F8` | opens the Minds page as its own menu (fallback if the tab can't be added) | planned |
+| `PlaytestLog` | true in development | writes the per-day JSON-lines playtest log ([debug-tools.md](debug-tools.md), "Playtest log") | planned |
 
 Not in config, on purpose: every tuning class (`InitiationOptions`, `IntentPlannerOptions`, ledger
 thresholds, `NewsworthinessOptions`, ...). They are code defaults so tests pin them. Promote one to

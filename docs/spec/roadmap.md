@@ -31,14 +31,14 @@ week with Laya on, plus the speak-question rewording experiments the eval points
 | 11 | **Travel spike, then movement:** an in-game experiment that walks an NPC to another map and restores its schedule; then `ApproachNear` and `ForcedDialogue` | M | [ladder.md](ladder.md), [find.md](find.md) | 8 |
 | 12 | **Visits:** the `Visit` rung, 1 to 2 a week, shops close while the keeper is out; shadow first, with the pacing test | L | [find.md](find.md) | 11 (live part); the shadow part can start after 7 |
 | 13 | **Multiplayer research:** answer the list in [multiplayer-compat.md](multiplayer-compat.md) from SMAPI docs and decompiled 1.6, and estimate | S | [multiplayer-compat.md](multiplayer-compat.md) | none; any time |
-| 14 | **Motives:** named motives from the diary drive urge growth and the choice of action and line; hurt and grudges in shadow, then the friendship penalty behind its own switch; per-character temperament scales the factors (the seed table is drafted) | M | [motives.md](motives.md), [temperament.md](temperament.md) | 1, 2 (diary kinds); can run in shadow before 6 |
+| 14 | **Motives:** a motive plus enough boldness for the act replaces the urge (D24); elastic stresses from the diary and saved regard; mood tips close calls; gossip juiciness (D25); the playtest log first, so tuning has data; hurt and grudges in shadow, then the friendship penalty behind its own switch | L | [motives.md](motives.md), [temperament.md](temperament.md) | 1, 2 (diary kinds); can run in shadow before 6 |
 | 15 | **Trades:** the offer table, barter shops through `Data/Shops`, the question box, `WantsToTrade` | M | [trades.md](trades.md) | 8 (mail and the live switches); table text drafted with step 4 |
 | 16 | **Debug tools:** console commands first, then the NPC Minds tab (spike the tab; fall back to a hotkey menu) | M | [debug-tools.md](debug-tools.md) | none; commands can start right after 1 |
 | 17 | **Romance:** status milestones, partner multipliers, jealousy, date invitations, spouse behavior | M | [romance.md](romance.md) | 14 (motives), 8 (invitations) |
-| 18 | **Town life:** NPC chats as bubbles (shadow, then live), bonds, then meet-ups and looking for each other | M | [town-life.md](town-life.md) | 7 (ambient gossip); 11 for movement |
+| 18 | **Town life:** NPC chats as bubbles (shadow, then live), regard between NPCs, then meet-ups (one-day schedules) and looking for each other | M | [town-life.md](town-life.md) | 7 (ambient gossip); 19 for meet-ups; 11 for same-day looking-for |
+| 19 | **Vanilla sources:** settle the verification list (running), then the read-only signals first (dialogue answers, heart events, garbage cans, festivals, movies, conversation topics), the regard-seed tool, then the one-day schedule channel and farm visits by appointment (shadow; a small farm-entry spike, since the farm is outside NPC routing; then `FarmVisits`), then requests as quests (`NeedsHelp`, `Requests`). Facts verified in PR #18; in-game checks pending | L | [vanilla-sources.md](vanilla-sources.md), [invitations.md](invitations.md) | signals: 2 (Harmony set-up); farm visits: 8 (mail); can run in shadow alongside 14 |
 
-**Later, not scheduled:** requests and quests from vanilla mechanics ([invitations.md](invitations.md),
-"Later"); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
+**Later, not scheduled:** phone calls and special orders ([vanilla-sources.md](vanilla-sources.md)); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
 packaging, including starting the Laya server with the game ([laya.md](laya.md), "Sidecar
 lifecycle"), filling `UpdateKeys` in `mod/StardewNpcMod/manifest.json` (empty today) for the site it's
 published on, and a release zip (`EnableModZip`); multiplayer itself.
@@ -105,6 +105,9 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
 | 13 | Debug view | An in-game menu tab showing NPC data, plus console commands | [debug-tools.md](debug-tools.md) |
 | 14 | Romance | The mod should work well with dating and spouses | [romance.md](romance.md) |
 | 15 | NPCs with each other, weather and seasons | Yes to both | [town-life.md](town-life.md), [motives.md](motives.md) |
+| 16 | What makes a character act? (2026-10-01) | A motive and enough boldness for the act, eased by familiarity and strong feeling; no idle urge (D24) | [motives.md](motives.md) |
+| 17 | How does gossip spread? (2026-10-01) | By juiciness, fading fast; hearsay sticks only when confirmed (D25) | [ledger-gossip.md](ledger-gossip.md) |
+| 18 | Vanilla data and mechanics (2026-10-01) | Get as much as possible from the vanilla game, and act through vanilla channels; farm visits by appointment through one-day schedules, with stand-ups remembered (D26) | [vanilla-sources.md](vanilla-sources.md), [invitations.md](invitations.md) |
 
 ## Still open (none block the next steps)
 
