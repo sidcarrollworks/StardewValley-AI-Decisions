@@ -75,14 +75,24 @@ public sealed class PlaytestLog : IDisposable
             _workerQueue.Enqueue(record);
     }
 
+    /// <summary>Move records queued by the worker thread into the pending buffer (game thread
+    /// only). The mod calls this once per tick so model calls are handed off promptly;
+    /// <see cref="Flush"/> drains the queue too, so a skipped tick loses nothing.</summary>
+    public void DrainWorkerQueue()
+    {
+        if (!_enabled)
+            return;
+        while (_workerQueue.TryDequeue(out PlaytestRecord? queued))
+            _pending.Add(queued);
+    }
+
     /// <summary>Write everything buffered so far to the current day file. Game thread only;
     /// never throws.</summary>
     public void Flush()
     {
         if (!_enabled || _currentPath is null)
             return;
-        while (_workerQueue.TryDequeue(out PlaytestRecord? queued))
-            _pending.Add(queued);
+        DrainWorkerQueue();
         if (_pending.Count == 0)
             return;
         try
@@ -124,6 +134,11 @@ public sealed class PlaytestLog : IDisposable
         if (_writer is not null)
             return;
         Directory.CreateDirectory(_root);
-        _writer = new StreamWriter(_currentPath!, append: true) { AutoFlush = false };
+        // FileShare.ReadWrite: the day's file stays readable while the game runs (tailing it,
+        // tools/playtest_summary.py), and .NET readers (File.ReadAllLines) do not collide.
+        _writer = new StreamWriter(new FileStream(_currentPath!, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+        {
+            AutoFlush = false,
+        };
     }
 }

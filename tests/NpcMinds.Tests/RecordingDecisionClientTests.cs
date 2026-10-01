@@ -1,4 +1,6 @@
+using System.Text.Json;
 using NpcDecision;
+using NpcMinds.Playtest;
 using Xunit;
 
 namespace NpcMinds.Tests;
@@ -105,4 +107,36 @@ public sealed class RecordingDecisionClientTests
     [InlineData(null, null, null)]
     public void TheNpcIsReadFromTheCardOrTheProposition(string? context, string? proposition, string? expected)
         => Assert.Equal(expected, RecordingDecisionClient.NpcOf(context, proposition));
+
+    [Fact]
+    public void ThePlaytestLogGetsEveryCallTheRecorderWatches()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "npcmod-playtest-tests", Guid.NewGuid().ToString("N"), "playtest");
+        var playtest = new PlaytestLog(root, enabled: true, _ => { });
+        var client = new RecordingDecisionClient(new ResilientDecisionClient(new FakeDecisionClient()),
+            new RingLog<DecisionCall>(50), "ladder", spread: null, playtest: playtest);
+
+        double answer = client.YesNo("npc: Abigail\nurge=0.31",
+            "should Abigail try to get the player's attention with Emote now?");
+
+        Assert.Equal(0.5, answer); // the wrapped client's answer still comes back unchanged
+        Assert.Equal(1, playtest.PendingFromWorker); // queued for the game thread, never written here
+
+        playtest.OpenDay(1, "spring", 1);
+        playtest.DrainWorkerQueue();
+        playtest.Flush();
+
+        string line = Assert.Single(TestFiles.ReadLines(Path.Combine(root, "1-spring-1.jsonl")));
+        using JsonDocument doc = JsonDocument.Parse(line);
+        JsonElement record = doc.RootElement;
+        Assert.Equal("model", record.GetProperty("type").GetString());
+        Assert.Equal("ladder", record.GetProperty("caller").GetString());
+        Assert.Equal("yesno", record.GetProperty("kind").GetString());
+        Assert.Equal("Abigail", record.GetProperty("npc").GetString());
+        Assert.Equal("should <npc> try to get the player's attention with Emote now?",
+            record.GetProperty("template").GetString());
+        Assert.Equal(0.5, record.GetProperty("answer").GetDouble());
+        Assert.False(record.GetProperty("fellBack").GetBoolean());
+        Assert.Equal(0, record.GetProperty("tick").GetInt32()); // no game clock on the worker (yet)
+    }
 }

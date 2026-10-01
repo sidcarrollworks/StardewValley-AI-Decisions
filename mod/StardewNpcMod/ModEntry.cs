@@ -5,6 +5,7 @@ using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
 using NpcMinds;
+using NpcMinds.Playtest;
 using NpcSchedules;
 using NpcTemperament;
 using StardewModdingAPI;
@@ -16,6 +17,7 @@ using StardewValley.Menus;
 using StardewValley.Quests;
 using StardewValley.SpecialOrders;
 using StardewNpcMod.Patches;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace StardewNpcMod;
@@ -46,6 +48,12 @@ public class ModEntry : Mod
     private BackgroundLadder _ladder = null!;
     private PlayerSearch _search = new();
     private IntentPlanJob? _planJob;
+
+    // Playtest log (docs/spec/debug-tools.md, "Playtest log"): the per-save, per-day JSON-lines
+    // record. Appended on the game thread only; model calls arrive through its worker queue.
+    private PlaytestLog _playtest = null!;
+    private readonly Dictionary<string, (string Location, int X, int Y)> _lastPresencePositions = new();
+    private DateTime _planJobStartedUtc;
 
     // NPCs with a planned line for today (feeds the ladder's intent boost).
     private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
@@ -204,8 +212,11 @@ public class ModEntry : Mod
         var resilient = new ResilientDecisionClient(inner, TimeSpan.FromMilliseconds(_config.DecisionTimeoutMs), budget,
             isDown: () => _model is LayaDecisionClient && !_layaUp);
         // The recorder returns the resilient client's answers unchanged; it only copies them to
-        // the viewer's call log and spread table.
-        return _config.MindsViewer ? new RecordingDecisionClient(resilient, _calls, caller, _spread) : resilient;
+        // the viewer's call log and spread table, and queues the playtest log's model records.
+        // Built with the playtest log on even when the viewer is off, so its model records do not
+        // depend on an unrelated setting.
+        return _config.MindsViewer || _playtest is { Enabled: true }
+            ? new RecordingDecisionClient(resilient, _calls, caller, _spread, _playtest) : resilient;
     }
 
     /// <summary>Re-check health every 6 ticks (one in-game hour) off the game thread and log only
@@ -275,6 +286,16 @@ public class ModEntry : Mod
     {
         try
         {
+            // The playtest log is per save (the folder is the save's), built here before any tick
+            // can append (docs/spec/debug-tools.md, "Playtest log").
+            _playtest?.Dispose();
+            _playtest = new PlaytestLog(
+                // VERIFY: SaveFolderName is set before SaveLoaded fires (SMAPI sets CurrentSavePath
+                // while loading a save; it is null only at the title screen).
+                Path.Combine(Helper.DirectoryPath, "playtest", Constants.SaveFolderName!),
+                _config.PlaytestLog,
+                message => Monitor.Log(message, LogLevel.Warn));
+            _lastPresencePositions.Clear(); // a previous save's tiles must not suppress this save's
             LoadMemory();
             _talkedToday.Clear(); // a load starts a fresh day; never carry a previous session's set
             _seenSpecialOrders.Clear();
@@ -301,6 +322,8 @@ public class ModEntry : Mod
         // before the save and before DayStarted (seen in the SMAPI log), and usually collects the plan.
         try
         {
+            // After a mid-day load the 6:00 tick never fired this session; same-day calls are no-ops.
+            _playtest.OpenDay(Game1.year, Game1.currentSeason, Game1.dayOfMonth);
             CollectPlan(morning: true);
         }
         catch (Exception ex)
@@ -336,9 +359,15 @@ public class ModEntry : Mod
         int tick = TimeUtils.TickIndex(e.NewTime);
         if (tick < 0)
             return; // outside the 600..2600 live day
+        var tickWatch = Stopwatch.StartNew(); // the playtest log's whole-tick perf record
         int now = Now(tick);
         if (tick == 0)
+        {
             _talkedToday.Clear(); // the new day: the day-end notes already used yesterday's set
+            // The playtest log's new day file (the 6:00 tick is already the new date): switched
+            // before this tick's records are buffered, so they land in the right day.
+            _playtest.OpenDay(Game1.year, Game1.currentSeason, Game1.dayOfMonth);
+        }
         // (the spread panel's table was reset at DayEnding, before the overnight plan; the 6:00
         // tick must NOT clear it, or the plan's answers would vanish from the day they belong to)
 
@@ -358,10 +387,20 @@ public class ModEntry : Mod
 
         try
         {
-            _memory.Observe(now, CollectPresences(), _regions, HeartsFor);
+            var observeWatch = Stopwatch.StartNew();
+            List<Presence> presences = CollectPresences();
+            _memory.Observe(now, presences, _regions, HeartsFor);
+            observeWatch.Stop();
+            _playtest.Append(new PerfRecord("observe", observeWatch.Elapsed.TotalMilliseconds) { Tick = now });
+            // Presence records only, built from this tick's CollectPresences list (AGENTS.md rule 2).
+            foreach (PresenceRecord delta in PlaytestRecords.PresenceDeltas(presences, _lastPresencePositions, now))
+                _playtest.Append(delta);
             AskAround(now);
-            foreach (DiaryEntry heard in _memory.Chat(now, NewsScore, _chatOptions))
+            foreach ((string listener, DiaryEntry heard) in _memory.ChatHeard(now, NewsScore, _chatOptions))
+            {
                 Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
+                _playtest.Append(HeardRecord(listener, heard));
+            }
         }
         catch (Exception ex)
         {
@@ -370,7 +409,7 @@ public class ModEntry : Mod
 
         try
         {
-            RunLadder(now);
+            RunLadder(now); // appends its own ladder perf record
             LogHeartbeat(tick); // before CollectPlan, so "ready" can appear for the finishing tick
             CollectPlan(morning: false);
         }
@@ -379,7 +418,24 @@ public class ModEntry : Mod
             Monitor.Log($"Shadow ladder failed: {ex}", LogLevel.Error);
         }
 
+        if (tick == 0)
+        {
+            try
+            {
+                PlaytestMorning(now); // weather, census, yesterday's game events; then flushes
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Playtest morning block failed (the game is unaffected): {ex.Message}", LogLevel.Trace);
+            }
+        }
+
+        _playtest.DrainWorkerQueue(); // hand off the model-call records the workers queued this tick
+
         PublishMinds(); // last: the viewer sees this tick's memory, ladder results and plan
+
+        tickWatch.Stop();
+        _playtest.Append(new PerfRecord("tick", tickWatch.Elapsed.TotalMilliseconds) { Tick = now });
     }
 
     /// <summary>Festival capture runs here, not on TimeChanged: the clock is stopped for the whole
@@ -426,6 +482,7 @@ public class ModEntry : Mod
         try
         {
             SaveMemory();
+            _playtest.Flush(); // the playtest buffer goes to disk here too (never during a tick)
         }
         catch (Exception ex)
         {
@@ -458,6 +515,9 @@ public class ModEntry : Mod
         _calls.Clear();
         _lastLadderInputs = Array.Empty<InitiationInput>();
         _planToday = Array.Empty<IntentCandidate>();
+        _playtest.Flush(); // keep this session's buffered records before the writer closes
+        _playtest.Dispose();
+        _lastPresencePositions.Clear(); // per save state, like everything else here
         _minds?.Publish(MindsSnapshot.Idle(++_mindsSeq, BackendName()));
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
     }
@@ -548,6 +608,16 @@ public class ModEntry : Mod
             string text = $"{ev.Seeker} asked {string.Join(", ", ev.Asked)} about you: {learned.ToldBy} {heard}{where} {Ago(learned.AgeTicks)}.";
             Monitor.Log("[shadow] " + text, LogLevel.Info);
             AddFeed(now, "Asked", ev.Seeker, text);
+
+            // The playtest log's ask-around records: one per neighbour asked, answered or not
+            // (ev.Told names the neighbours whose answer was kept).
+            foreach (string neighbour in ev.Asked)
+                _playtest.Append(new GossipRecord(ev.Seeker, neighbour, "where", MemoryStore.PlayerName,
+                    Hops: 0, Kind: "ask",
+                    Answered: ev.Told?.Contains(neighbour, StringComparer.OrdinalIgnoreCase) == true)
+                {
+                    Tick = ev.AbsoluteTick,
+                });
         }
     }
 
@@ -565,6 +635,7 @@ public class ModEntry : Mod
         }
         _lastLadderInputs = inputs; // the viewer shows what the ladder saw (views, leads, hearts)
         _backlogAtTickStart = _ladder.Backlog; // read BEFORE enqueueing: this tick's work is still running
+        var ladderWatch = Stopwatch.StartNew(); // the playtest log's ladder perf record
         if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
 
@@ -583,8 +654,16 @@ public class ModEntry : Mod
                 };
                 Monitor.Log("[shadow] " + text, LogLevel.Info);
                 AddFeed(ev.AbsoluteTick, ev.Kind, ev.Npc, text);
+                _playtest.Append(new LadderRecord(ev.Npc, ev.Kind, ev.Step.ToString(), ev.UrgeBefore, ev.UrgeAfter,
+                    ev.Threshold, ev.ModelP, ev.Reason, ev.Lead?.Place)
+                {
+                    Tick = ev.AbsoluteTick,
+                });
             }
         }
+
+        ladderWatch.Stop();
+        _playtest.Append(new PerfRecord("ladder", ladderWatch.Elapsed.TotalMilliseconds) { Tick = now });
     }
 
     /// <summary>Why the NPC thinks the player is there, for the log.</summary>
@@ -648,6 +727,7 @@ public class ModEntry : Mod
             budget => new IntentPlanner(Guarded("plan", budget), new LineRenderer(), new Newsworthiness(), _plannerOptions)
                 .Plan(snapshots, seed, sourceDay: today),
             TimeSpan.FromMilliseconds(_config.PlanningBudgetMs));
+        _planJobStartedUtc = DateTime.UtcNow; // the plan perf record measures from here to collection
         Monitor.Log($"[shadow] planning tomorrow's intents in the background ({snapshots.Count} NPC diaries).", LogLevel.Info);
     }
 
@@ -742,12 +822,25 @@ public class ModEntry : Mod
     {
         if (!Game1.isFestival())
             return;
+        bool firstCaptureOfFestival = !_festivalAttended;
         _festivalAttended = true;
-        if (Game1.CurrentEvent is not { } ev)
-            return;
-        foreach (NPC actor in ev.actors)
-            if (actor is not null && !string.IsNullOrEmpty(actor.Name))
-                _festivalActors.Add(actor.Name);
+        if (Game1.CurrentEvent is { } ev)
+        {
+            foreach (NPC actor in ev.actors)
+                if (actor is not null && !string.IsNullOrEmpty(actor.Name))
+                    _festivalActors.Add(actor.Name);
+        }
+        if (firstCaptureOfFestival)
+        {
+            // The playtest log's festival record: written once, when the festival is first seen
+            // (the day-end FestivalNotes still carry the full actor set into the diaries).
+            int tick = TimeUtils.TickIndex(Game1.timeOfDay);
+            _playtest.Append(new GameRecord("festival",
+                $"attended=1; actors={string.Join(", ", _festivalActors.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))}")
+            {
+                Tick = Now(tick < 0 ? 119 : tick),
+            });
+        }
     }
 
     /// <summary>Special orders complete through SpecialOrder.CheckCompletion, not Quest.questComplete:
@@ -884,11 +977,19 @@ public class ModEntry : Mod
         _planToday = plan.Candidates.ToList();
 
         int tick = TimeUtils.TickIndex(Game1.timeOfDay);
-        foreach (IntentCandidate candidate in plan.Candidates)
+        int now = Now(Math.Max(0, tick));
+        // The plan job's wall-clock cost, from StartPlanning to here (the model calls dominate).
+        _playtest.Append(new PerfRecord("plan", (DateTime.UtcNow - _planJobStartedUtc).TotalMilliseconds) { Tick = now });
+        for (int i = 0; i < plan.Candidates.Count; i++)
         {
+            IntentCandidate candidate = plan.Candidates[i];
             _intentsToday.Add(candidate.Npc);
             Monitor.Log($"[shadow] {candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})", LogLevel.Info);
-            AddFeed(Now(Math.Max(0, tick)), "Line", candidate.Npc, $"{candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})");
+            AddFeed(now, "Line", candidate.Npc, $"{candidate.Npc} would say: \"{candidate.Line}\" ({candidate.Reason})");
+            _playtest.Append(new PlanRecord(candidate.Npc, candidate.Line, candidate.Reason, candidate.News, i)
+            {
+                Tick = now,
+            });
         }
 
         _planJob.Dispose();
@@ -1078,8 +1179,95 @@ public class ModEntry : Mod
     protected override void Dispose(bool disposing)
     {
         if (disposing)
+        {
+            _playtest?.Flush(); // a clean unload keeps the day's buffered records
+            _playtest?.Dispose();
             _minds?.Dispose();
+        }
         base.Dispose(disposing);
+    }
+
+    // ---- playtest log (docs/spec/debug-tools.md, "Playtest log") ----------------------------------
+
+    /// <summary>
+    /// The 6:00 playtest block: the new day's weather, the per-NPC memory census, and the game
+    /// events the diary hooks caught, then a flush. The 6:00 tick is already the new date, so
+    /// "the day" here is the one that just ended — the same window the trim counters read below
+    /// accumulated in (Diary.TakeTrimmedToday is read and reset here); counting the new day
+    /// instead would report an empty day, every day, and no entry would ever be counted.
+    /// </summary>
+    private void PlaytestMorning(int now)
+    {
+        _playtest.Append(new GameRecord("weather", WeatherWord()) { Tick = now });
+
+        int censusDay = GameClock.DayIndex(now) - 1;
+        foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            Diary diary = _memory.Diaries[npc];
+            int added = diary.Entries.Count(e => GameClock.DayIndex(e.AbsoluteTick) == censusDay);
+            _playtest.Append(new MemoryRecord(npc, diary.Entries.Count, added, diary.TakeTrimmedToday(),
+                _memory.Ledger.EntryCountFor(npc), _memory.Beliefs.Count)
+            {
+                Tick = now,
+            });
+
+            // The same diaries, same window: the game facts the diary hooks caught (gifts,
+            // quests completed, conversations). Other kinds are not game events.
+            foreach (DiaryEntry entry in diary.Entries)
+            {
+                if (GameClock.DayIndex(entry.AbsoluteTick) != censusDay || PlaytestGameKind(entry.Kind) is not { } kind)
+                    continue;
+                IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(entry.Detail);
+                _playtest.Append(new GameRecord(kind, entry.Detail ?? "")
+                {
+                    Npc = npc,
+                    Item = detail.TryGetValue("name", out string? item) ? item : null,
+                    Taste = detail.TryGetValue("taste", out string? taste) ? taste : null,
+                    Tick = entry.AbsoluteTick,
+                });
+            }
+        }
+
+        _playtest.Flush();
+    }
+
+    /// <summary>The weather word for the playtest log's daily game record. Storms are rainy too,
+    /// so lightning is checked first. Verified against the installed 1.6.15 decompile:
+    /// <c>Game1.isRaining</c>, <c>isSnowing</c> and <c>isLightning</c> are the game's own members
+    /// (there is no static <c>IsRaining</c> property on Game1).</summary>
+    private static string WeatherWord()
+        => Game1.isLightning ? "storm"
+         : Game1.isSnowing ? "snow"
+         : Game1.isRaining ? "rain"
+         : "clear";
+
+    /// <summary>The playtest game-record kind for a diary entry (the GameRecord doc's "game"
+    /// row: gifts, quests completed, conversations), or null for kinds that are not game facts.</summary>
+    private static string? PlaytestGameKind(string? kind) => kind switch
+    {
+        "GiftReceived" => "gift",
+        "QuestHelped" => "quest",
+        "Talked" => "talked",
+        _ => null,
+    };
+
+    /// <summary>A playtest gossip record for one Heard diary line: the line's detail carries who
+    /// told it and the original kind (MemoryStore.TryShareEvent writes "from" and "kind"). A Heard
+    /// line carries no hop count of its own (that lives in the ledger), so Hops is 0.</summary>
+    private static GossipRecord HeardRecord(string listener, DiaryEntry heard)
+    {
+        IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(heard.Detail);
+        return new GossipRecord(
+            Teller: detail.TryGetValue("from", out string? from) ? from : "",
+            Listener: listener,
+            OriginalKind: detail.TryGetValue("kind", out string? kind) ? kind : "",
+            Subject: heard.Subject,
+            Hops: 0,
+            Kind: "heard",
+            Answered: null)
+        {
+            Tick = heard.AbsoluteTick,
+        };
     }
 
     // ---- persistence ----------------------------------------------------------------------------

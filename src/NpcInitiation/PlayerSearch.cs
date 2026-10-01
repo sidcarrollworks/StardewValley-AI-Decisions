@@ -38,7 +38,7 @@ public sealed class PlayerSearch
             _lastAsked[npc] = nowTick;
 
             if (result.Told.Count > 0 && memory.Ledger.View(npc, MemoryStore.PlayerName, nowTick) is { } learned)
-                events.Add(new SearchEvent(nowTick, npc, result.Asked, learned));
+                events.Add(new SearchEvent(nowTick, npc, result.Asked, learned, result.Told));
         }
         return events;
     }
@@ -50,8 +50,10 @@ public sealed class PlayerSearch
 }
 
 /// <summary>One NPC asked around about the player and learned something (<see cref="Learned"/> is
-/// its ledger view afterwards; <see cref="LedgerView.ToldBy"/> says who told it).</summary>
-public sealed record SearchEvent(int AbsoluteTick, string Seeker, IReadOnlyList<string> Asked, LedgerView Learned);
+/// its ledger view afterwards; <see cref="LedgerView.ToldBy"/> says who told it).
+/// <see cref="Told"/> names the neighbours whose answer was kept.</summary>
+public sealed record SearchEvent(int AbsoluteTick, string Seeker, IReadOnlyList<string> Asked, LedgerView Learned,
+    IReadOnlyList<string>? Told = null); // at the end with a default (records grow at the end)
 
 /// <summary>Tuning for <see cref="PlayerSearch"/>. Not saved.</summary>
 public sealed class SearchOptions

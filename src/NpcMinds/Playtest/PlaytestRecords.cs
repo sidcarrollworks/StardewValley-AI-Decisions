@@ -13,10 +13,14 @@ namespace NpcMinds.Playtest;
 /// </summary>
 public abstract record PlaytestRecord
 {
-    /// <summary>The in-game tick (GameClock.AbsoluteTick) the line was recorded at.</summary>
+    /// <summary>The in-game tick (GameClock.AbsoluteTick) the line was recorded at. Ordered
+    /// first so every line starts with <c>{"tick":...</c> (docs/spec/debug-tools.md).</summary>
+    [JsonPropertyOrder(-2)]
     public int Tick { get; init; }
 
-    /// <summary>The record discriminator, matching the spec table's <c>type</c> column.</summary>
+    /// <summary>The record discriminator, matching the spec table's <c>type</c> column. Each
+    /// record puts <c>[JsonPropertyOrder(-1)]</c> on its override so it serializes right after
+    /// the tick (an attribute on the abstract property is not inherited by overrides).</summary>
     public abstract string Type { get; }
 }
 
@@ -27,6 +31,7 @@ public abstract record PlaytestRecord
 /// </summary>
 public sealed record PresenceRecord(string Name, string Location, int X, int Y) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "presence";
 }
 
@@ -45,6 +50,7 @@ public sealed record LadderRecord(
     string Detail,       // the ladder's Reason text
     string? LeadPlace) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "ladder";
 }
 
@@ -60,6 +66,7 @@ public sealed record GossipRecord(
     string Kind,         // "heard" or "ask"
     bool? Answered) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "gossip";
 }
 
@@ -73,6 +80,7 @@ public sealed record GameRecord(
     string? Item = null,
     string? Taste = null) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "game";
 }
 
@@ -81,6 +89,7 @@ public sealed record GameRecord(
 /// </summary>
 public sealed record PlanRecord(string Npc, string Line, string Reason, double News, int Rank) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "plan";
 }
 
@@ -95,6 +104,7 @@ public sealed record MemoryRecord(
     int LedgerEntries,
     int Beliefs) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "memory";
 }
 
@@ -112,6 +122,7 @@ public sealed record ModelCallRecord(
     double Ms,
     bool FellBack) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "model";
 }
 
@@ -121,6 +132,7 @@ public sealed record ModelCallRecord(
 /// </summary>
 public sealed record PerfRecord(string Section, double Ms) : PlaytestRecord
 {
+    [JsonPropertyOrder(-1)]
     public override string Type => "perf";
 }
 
