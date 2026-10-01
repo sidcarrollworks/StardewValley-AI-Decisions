@@ -13,7 +13,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
 | `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `Newsworthiness` (news scoring), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
 | `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
-| `src/NpcMinds/` | The NPC Minds viewer (read-only): `MindsSnapshotBuilder` (what each NPC knows and wants, from memory and the ladder's last state), `RecordingDecisionClient` (copies every model call to a log, answers unchanged), `MindsServer` (a loopback page and `state.json` at `http://127.0.0.1:8765/`). The page is `viewer/index.html`, embedded in the DLL. |
+| `src/NpcMinds/` | The NPC Minds viewer (read-only): `MindsSnapshotBuilder` (what each NPC knows and wants, from memory and the ladder's last state), `RecordingDecisionClient` (copies every model call to a log, answers unchanged), `MindsServer` (a loopback page and `state.json` at `http://127.0.0.1:8765/`). The page is `viewer/index.html`, embedded in the DLL. Each card also shows the NPC's seed temperament (`temperament.json`, shipped in the mod folder). |
 | `src/NpcDiaryEvents/` | Pure diary producers: `GiftNotes`, `SawGiftNotes`, `QuestNotes`, `FestivalNotes` turn plain event records into `DiaryEntry` values (no game types). The mod's read-only Harmony postfixes in `mod/StardewNpcMod/Patches/` capture the events. |
 | `docs/` | `architecture.md` (how it works), `decisions.md` (why) and `spec/` (every feature, built or planned, plus the roadmap). `AGENTS.md` at the root is the entry point for coding agents. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. `sidecar/eval/` holds the golden eval set + runner + results (typed-decisions 5/6 vs english 3/6). |
@@ -29,7 +29,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (168). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (65). |
-| `tests/NpcMinds.Tests/` | xUnit tests (43). |
+| `tests/NpcMinds.Tests/` | xUnit tests (48). |
 | `tests/NpcTemperament.Tests/` | xUnit tests (23). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |

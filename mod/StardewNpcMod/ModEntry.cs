@@ -6,6 +6,7 @@ using NpcIntents;
 using NpcMemory;
 using NpcMinds;
 using NpcSchedules;
+using NpcTemperament;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -83,6 +84,8 @@ public class ModEntry : Mod
     private long _mindsSeq;
     private IReadOnlyList<InitiationInput> _lastLadderInputs = Array.Empty<InitiationInput>();
     private IReadOnlyList<IntentCandidate> _planToday = Array.Empty<IntentCandidate>();
+    private TemperamentTable? _temperaments; // the seed table; only the viewer reads it so far
+    private readonly Dictionary<string, TemperamentView> _temperamentViews = new(StringComparer.OrdinalIgnoreCase);
 
     public override void Entry(IModHelper helper)
     {
@@ -101,6 +104,7 @@ public class ModEntry : Mod
         helper.Events.Display.MenuChanged += OnMenuChanged;
 
         ApplyPatches();
+        _temperaments = LoadTemperaments();
         StartMindsViewer();
 
         Monitor.Log($"Shadow mode ready: co-location radius {_memory.CoLocationRadius} tiles, decision backend {_model.GetType().Name}.", LogLevel.Info);
@@ -227,6 +231,7 @@ public class ModEntry : Mod
             _calls.Clear();
             _lastLadderInputs = Array.Empty<InitiationInput>();
             _planToday = Array.Empty<IntentCandidate>();
+            _temperamentViews.Clear(); // content packs may differ between saves
         }
         catch (Exception ex)
         {
@@ -893,13 +898,54 @@ public class ModEntry : Mod
 
             var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
                 stats, planState, _ladder.LatestJson, _lastLadderInputs, _intentsToday.ToList(), _planToday,
-                _feed.Newest(), NewsFor);
+                _feed.Newest(), NewsFor, TemperamentViewOf);
             _minds.Publish(_mindsBuilder.Build(_memory, inputs));
         }
         catch (Exception ex)
         {
             Monitor.Log($"NPC Minds snapshot failed (the game is unaffected): {ex.Message}", LogLevel.Trace);
         }
+    }
+
+    /// <summary>The seed temperament table shipped beside regions.json (docs/spec/temperament.md),
+    /// with the overrides file applied last. Missing or unreadable: a warning, and the viewer shows
+    /// no temperament; nothing else reads it yet.</summary>
+    private TemperamentTable? LoadTemperaments()
+    {
+        try
+        {
+            string path = Path.Combine(Helper.DirectoryPath, "temperament.json");
+            if (!File.Exists(path))
+            {
+                Monitor.Log("temperament.json is missing from the mod folder; the viewer will not show temperaments.", LogLevel.Warn);
+                return null;
+            }
+            TemperamentTable table = TemperamentTable.FromJson(File.ReadAllText(path));
+            string overrides = Path.Combine(Helper.DirectoryPath, "temperament-overrides.json");
+            if (File.Exists(overrides))
+                table = table.WithOverrides(TemperamentTable.OverridesFromJson(File.ReadAllText(overrides)));
+            return table;
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Could not read the temperament table; the viewer will not show temperaments. {ex.Message}", LogLevel.Warn);
+            return null;
+        }
+    }
+
+    /// <summary>One NPC's temperament for the viewer, built once per save (the table and
+    /// Data/Characters don't change while playing).</summary>
+    private TemperamentView? TemperamentViewOf(string npc)
+    {
+        if (_temperaments is null)
+            return null;
+        if (!_temperamentViews.TryGetValue(npc, out TemperamentView? view))
+        {
+            bool seeded = _temperaments.Rows.ContainsKey(npc);
+            string? game = Game1.characterData is not null && Game1.characterData.ContainsKey(npc) ? TemperamentOf(npc) : null;
+            _temperamentViews[npc] = view = MindsSnapshotBuilder.TemperamentOf(_temperaments.Of(npc), seeded, game);
+        }
+        return view;
     }
 
     private MindsStats LayaStats(LayaDecisionClient laya)

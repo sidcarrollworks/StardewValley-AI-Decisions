@@ -202,9 +202,12 @@ Shane and Emily on the same day and see Shane's grudge outlast Emily's in the sh
 ## Status
 
 Partial. Built: `src/NpcTemperament`, `tools/TemperamentExtractor` (+ `character_traits.py`), the
-draft table in `fixtures/game/temperament/`. Not started: shipping it as `data/temperament.json` and
-the custom asset, reading it in the mod, the card words, and the motive and ladder factors (with
-[motives.md](motives.md), roadmap step 14).
+draft table in `fixtures/game/temperament/`. Shipped and read for display only: the mod build copies
+`temperament.json` and `temperament-overrides.json` from `fixtures/game/temperament/` into the mod
+folder, loads them at `Entry` (overrides last), and the NPC Minds viewer shows each character's
+values ([debug-tools.md](debug-tools.md)); no decision reads them. Not started: moving the file to
+`data/temperament.json` and the custom asset, the card words, and the motive and ladder factors
+(with [motives.md](motives.md), roadmap step 14).
 
 ## Open questions
 

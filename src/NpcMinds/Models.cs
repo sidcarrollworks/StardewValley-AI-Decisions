@@ -52,7 +52,21 @@ public sealed record NpcMind(
     LeadView? Lead,                 // where it would look for the player
     IReadOnlyList<NewsPick> NewsTonight, // today's most newsworthy entries: tonight's likely picks
     IReadOnlyList<DiaryLine> Diary, // newest first
-    int DiaryCount);
+    int DiaryCount,
+    TemperamentView? Temperament = null); // the seed temperament (PR #11); null when not loaded
+
+/// <summary>A character's seed temperament for display (docs/spec/temperament.md): six behaviour
+/// traits and six emotion biases, 0..1 with 0.5 typical, plus the game's own Data/Characters words
+/// and a few plain words for the strongest leanings. <see cref="Seeded"/> is false for a character
+/// with no row in the table (all 0.5).</summary>
+public sealed record TemperamentView(
+    IReadOnlyList<TraitValue> Traits,
+    IReadOnlyList<TraitValue> Emotions,
+    string Summary,
+    string? GameTraits,
+    bool Seeded);
+
+public sealed record TraitValue(string Name, double Value);
 
 public sealed record LastSeenView(string Detail, string? Place, int AgeTicks, int Hops, string? ToldBy, string Summary);
 
