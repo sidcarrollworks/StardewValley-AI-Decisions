@@ -6,20 +6,15 @@
 <title>NPC Minds</title>
 <style>
   /* Neutral theme on the Radix Colors "sand" scale (radix-ui.com/colors): sand1-12 for surfaces,
-     borders and text; color only as small status accents (Radix step 11 text colors). */
+     borders and text; color only as small status accents (Radix step 11 text colors). Always dark
+     (Sid's choice), whatever the system setting. */
   :root {
-    --sand1: #fdfdfc; --sand2: #f9f9f8; --sand3: #f1f0ef; --sand4: #e9e8e6; --sand5: #e2e1de; --sand6: #dad9d6;
-    --sand7: #cfceca; --sand8: #bcbbb5; --sand9: #8d8d86; --sand10: #82827c; --sand11: #63635e; --sand12: #21201c;
+    color-scheme: dark;
+    --sand1: #111110; --sand2: #191918; --sand3: #222221; --sand4: #2a2a28; --sand5: #31312e; --sand6: #3b3a37;
+    --sand7: #494844; --sand8: #62605b; --sand9: #6f6d66; --sand10: #7c7b74; --sand11: #b5b3ad; --sand12: #eeeeec;
     --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --line: var(--sand6);
     --bar: var(--sand4); --chip: var(--sand3); --fill: var(--sand11); --tick: var(--sand8); --edge: var(--sand9);
-    --accent: #2a7e3b; --warm: #ab6400; --cool: #0d74ce; --bad: #d13415; --flash: #fff7c2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --sand1: #111110; --sand2: #191918; --sand3: #222221; --sand4: #2a2a28; --sand5: #31312e; --sand6: #3b3a37;
-      --sand7: #494844; --sand8: #62605b; --sand9: #6f6d66; --sand10: #7c7b74; --sand11: #b5b3ad; --sand12: #eeeeec;
-      --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: #302008;
-    }
+    --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: #302008;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);

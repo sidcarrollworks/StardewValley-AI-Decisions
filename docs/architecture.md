@@ -587,8 +587,8 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
   the mod runs without the viewer. `Mod.Dispose` stops it.
 - **The page** is plain HTML, CSS and JavaScript with no external loads, in
   `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
-  `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Light and dark follow the
-  system, on the neutral Radix Colors sand scale (color only for small status accents). Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
+  `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Always dark (Sid's choice),
+  on the neutral Radix Colors sand scale (color only for small status accents). Cards sort by urge, by most recently changed, or by name; a filter box and a "knows you"
   toggle hide NPCs with no view of the player and no urge.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
