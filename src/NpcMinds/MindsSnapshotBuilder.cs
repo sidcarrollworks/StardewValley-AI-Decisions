@@ -2,6 +2,7 @@ using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
 using NpcSchedules;
+using NpcTemperament;
 
 namespace NpcMinds;
 
@@ -22,7 +23,8 @@ public sealed record MindsInputs(
     IReadOnlyCollection<string> IntentsToday,
     IReadOnlyList<IntentCandidate> PlanToday,
     IReadOnlyList<FeedItem> Feed,
-    Func<string, NewsContext?>? NewsFor = null);    // null: no tonight's-news preview
+    Func<string, NewsContext?>? NewsFor = null,     // null: no tonight's-news preview
+    Func<string, TemperamentView?>? TemperamentFor = null); // null: no temperament shown
 
 /// <summary>
 /// Builds a <see cref="MindsSnapshot"/> on the game thread. Pure and read-only: it only reads
@@ -88,7 +90,8 @@ public sealed class MindsSnapshotBuilder
                 LeadOf(input?.Lead),
                 TonightsNews(npc, diary, today, inputs.NewsFor),
                 diary.Recent(DiaryLines).Select(e => Line(npc, e, inputs.Now)).ToList(),
-                diary.Entries.Count));
+                diary.Entries.Count,
+                inputs.TemperamentFor?.Invoke(npc)));
         }
 
         return new MindsSnapshot(
@@ -137,6 +140,46 @@ public sealed class MindsSnapshotBuilder
             .Take(NewsPicks)
             .Select(x => new NewsPick(Describe(x.Entry), x.Score))
             .ToList();
+    }
+
+    /// <summary>How far from the town's middle (0.5) a trait must be to make the summary.</summary>
+    public const double LeaningThreshold = 0.1;
+
+    // Plain words for a high and a low value of each trait (docs/spec/temperament.md).
+    private static readonly IReadOnlyDictionary<string, (string High, string Low)> TraitWords =
+        new Dictionary<string, (string, string)>
+        {
+            ["warmth"] = ("warm", "cool"),
+            ["sensitivity"] = ("sensitive", "thick-skinned"),
+            ["forgiveness"] = ("forgiving", "holds grudges"),
+            ["chattiness"] = ("chatty", "quiet"),
+            ["curiosity"] = ("curious", "incurious"),
+            ["boldness"] = ("bold", "timid"),
+            ["anger"] = ("quick to anger", "slow to anger"),
+            ["disgust"] = ("easily disgusted", "hard to disgust"),
+            ["fear"] = ("fearful", "fearless"),
+            ["happiness"] = ("cheerful", "glum"),
+            ["sadness"] = ("prone to sadness", "rarely sad"),
+            ["surprise"] = ("easily surprised", "unflappable"),
+        };
+
+    /// <summary>The display form of a seed temperament: every trait in the table's order, and a
+    /// summary of the (at most three) strongest leanings, strongest first, ties by trait order.</summary>
+    public static TemperamentView TemperamentOf(Temperament temperament, bool seeded, string? gameTraits)
+    {
+        Temperament t = temperament ?? Temperament.Neutral;
+        var traits = Temperament.BehaviourTraits.Select(n => new TraitValue(n, t.Get(n))).ToList();
+        var emotions = Temperament.EmotionTraits.Select(n => new TraitValue(n, t.Get(n))).ToList();
+        string summary = string.Join(", ", traits.Concat(emotions)
+            .Select((v, i) => (v, i))
+            .Where(x => Math.Abs(x.v.Value - 0.5) >= LeaningThreshold - 1e-9)
+            .OrderByDescending(x => Math.Abs(x.v.Value - 0.5))
+            .ThenBy(x => x.i)
+            .Take(3)
+            .Select(x => x.v.Value > 0.5 ? TraitWords[x.v.Name].High : TraitWords[x.v.Name].Low));
+        if (summary.Length == 0)
+            summary = seeded ? "even-tempered" : "no seed (town average)";
+        return new TemperamentView(traits, emotions, summary, gameTraits, seeded);
     }
 
     public static LastSeenView? LastSeen(LedgerView? view)

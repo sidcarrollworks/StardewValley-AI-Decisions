@@ -37,7 +37,9 @@ It's easier to watch changes visually than through the logs." That became the li
   attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
   ("saw you at Pierre's General Store, 3 hours ago", "Emily told them you were at Pelican Town"),
   where it would look and why, today's planned line, tonight's likely news (today's top three
-  entries by news score), and the newest eight diary entries. A side panel lists today's planned
+  entries by news score), the newest eight diary entries, and (collapsed) its seed temperament
+  from [temperament.md](temperament.md): the twelve values as bars around 0.5, the strongest
+  leanings in words, and the game's own personality words. A side panel lists today's planned
   lines, the event feed (attempts, outcomes, asking around, planned lines) and every model call
   (who asked, about whom, the question, each answer's probability as a bar, the latency, and
   whether it fell back). Anything that changed since the last update flashes, the urge shows its

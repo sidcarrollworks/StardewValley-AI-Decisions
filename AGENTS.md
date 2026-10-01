@@ -75,7 +75,7 @@ The build never deploys itself (`EnableModDeploy=false`, on purpose). To try a b
 the game. On Sid's PC the game is at `D:\SteamLibrary\steamapps\common\Stardew Valley`:
 
 ```bash
-cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*.pdb mod/StardewNpcMod/bin/Debug/net6.0/regions.json mod/StardewNpcMod/manifest.json "/d/SteamLibrary/steamapps/common/Stardew Valley/Mods/StardewNpcMod/"
+cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*.pdb mod/StardewNpcMod/bin/Debug/net6.0/regions.json mod/StardewNpcMod/bin/Debug/net6.0/temperament*.json mod/StardewNpcMod/manifest.json "/d/SteamLibrary/steamapps/common/Stardew Valley/Mods/StardewNpcMod/"
 ```
 
 - **Timing.** Close the game first; changes load on the next launch.
