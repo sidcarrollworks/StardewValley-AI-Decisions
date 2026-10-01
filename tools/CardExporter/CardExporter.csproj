@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CardExporter</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NpcDecision\NpcDecision.csproj" />
+    <ProjectReference Include="..\..\src\NpcIntents\NpcIntents.csproj" />
+    <ProjectReference Include="..\..\src\NpcTemperament\NpcTemperament.csproj" />
+    <ProjectReference Include="..\..\src\NpcMinds\NpcMinds.csproj" />
+  </ItemGroup>
+
+</Project>

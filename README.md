@@ -25,7 +25,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tests/NpcSchedules.Tests/` | xUnit tests (68). |
 | `tests/NpcMemory.Tests/` | xUnit tests (159). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
-| `tests/NpcDecision.Tests/` | xUnit tests (113). |
+| `tests/NpcDecision.Tests/` | xUnit tests (116). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (176). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (65). |
