@@ -27,7 +27,7 @@ It's easier to watch changes visually than through the logs." That became the li
   | `npcmod_ledger <name>` | every ledger entry the NPC holds, with detail and hops |
   | `npcmod_motives [name]` | motive table for one NPC, or the top motive of each |
   | `npcmod_plan` | tonight's or today's planned lines and why |
-  | `npcmod_summary [days]` | a playtest digest of the last n days: attempts by rung, responses, lines, visits, trades, grudges, model fallbacks |
+  | `npcmod_summary [days]` | a playtest digest of the last n days: attempts by rung, responses, lines, visits, trades, grudges, model fallbacks, off-screen sim events |
   | `npcmod_newcomer ...`, `npcmod_live off` | already specced ([newcomer-week.md](newcomer-week.md), [rollout.md](rollout.md)) |
   | `npcmod_simulate <event>` | test hooks (shadow only), e.g. `npcmod_simulate gift Haley (O)421` writes a diary entry as if it happened |
 
@@ -36,13 +36,17 @@ It's easier to watch changes visually than through the logs." That became the li
   per NPC with a diary: urge as a bar with the rung thresholds marked, the rung and its threshold,
   attempts today, an open attempt and how long it has waited, hearts, what it knows of the player
   ("saw you at Pierre's General Store, 3 hours ago", "Emily told them you were at Pelican Town"),
-  where it would look and why, today's planned line, tonight's likely news (today's top three
-  entries by news score), the newest eight diary entries, and (collapsed) its seed temperament
+  it would look and why, today's planned line, tonight's likely news (today's top three
+  entries by news score), the newest eight diary entries, its resting urge and today's mood
+  roll once motives land ([motives.md](motives.md)), and (collapsed) its seed temperament
   from [temperament.md](temperament.md): the twelve values as bars around 0.5, the strongest
   leanings in words, and the game's own personality words. A side panel lists today's planned
   lines, the event feed (attempts, outcomes, asking around, planned lines) and every model call
   (who asked, about whom, the question, each answer's probability as a bar, the latency, and
-  whether it fell back). Anything that changed since the last update flashes, the urge shows its
+  and whether it fell back). A side panel shows **"while you were away"** — a day digest from the
+  off-screen sim ([town-life.md](town-life.md)): the chats, arguments, opinion shifts and how far
+  the player's own news travelled that day. Anything that changed since the last update flashes,
+  the urge shows its
   change ("+0.03"), and cards can be sorted by most recently changed. It updates every two
   seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
   viewer".

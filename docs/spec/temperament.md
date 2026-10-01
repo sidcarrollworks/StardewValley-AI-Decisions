@@ -1,7 +1,9 @@
 # 21. Temperament: seed personality values per character
 
 **Status: partial.** Proposed to Sid on 2026-09-30. The method, the tool and a draft table are
-built; nothing in the mod reads the table yet. Today each character's personality reaches decisions
+built; nothing in the mod reads the table yet. Two new consumers were designed with Sid on
+2026-10-01 (below, "Resting urge and the daily mood roll") and wait on the motives work. Today
+each character's personality reaches decisions
 only as the three game traits in words on the NPC card ([laya.md](laya.md), "The NPC card") and a
 one-line voice (`VoiceSheets`). The motives ([motives.md](motives.md)) use the same factors for
 everyone, so Shane forgives as fast as Emily. This spec gives every villager six numbers, derived
@@ -21,12 +23,12 @@ All 0..1; 0.5 is the town's typical villager (the scale is relative to the vanil
 
 | Trait | Meaning | What it will drive |
 |---|---|---|
-| `warmth` | how much they like company and miss the player | `MissingYou` growth, `Grateful` weight ([motives.md](motives.md)) |
-| `sensitivity` | how easily they are hurt | `Hurt` weight per bad act |
+| `warmth` | how much they like company and miss the player | `MissingYou` growth, `Grateful` weight ([motives.md](motives.md)); the resting urge composite |
+| `sensitivity` | how easily they are hurt | `Hurt` weight per bad act; the **amplitude** of the social physics: stressor magnitudes and the daily mood roll's bounds ([motives.md](motives.md)) |
 | `forgiveness` | how fast hurt fades | `GrudgeDailyDecay`, the fallback for "would <npc> hold this against the player?" |
-| `chattiness` | how much they talk and pass news on | `News` weight, gossip spread chance ([ledger-gossip.md](ledger-gossip.md)), [town-life.md](town-life.md) chats |
+| `chattiness` | how much they talk and pass news on | `News` weight, gossip spread chance ([ledger-gossip.md](ledger-gossip.md)), [town-life.md](town-life.md) chats; the resting urge composite |
 | `curiosity` | interest in the newcomer and in what others do | `Curious` strength ([newcomer-week.md](newcomer-week.md)) |
-| `boldness` | in person rather than from a distance | the ladder's step choice: low boldness prefers `Mail`/`Note` over `Visit`/`Bubble` ([ladder.md](ladder.md)) |
+| `boldness` | in person rather than from a distance | the ladder's step choice: low boldness prefers `Mail`/`Note` over `Visit`/`Bubble` ([ladder.md](ladder.md)); the **expression** of the social physics (how much internal state reaches behavior — a bold NPC acts on smaller urge swings) and the strongest resting urge weight |
 
 Six, not more: each one maps to a factor a spec already has. A trait nothing reads would only be
 noise to tune.
@@ -56,6 +58,23 @@ not Ekman emotions; love feeds warmth, unique is ignored.
 
 The emotion is a tilt on how a reaction looks, never whether it happens: which motive wins stays
 with the motive strengths and the model's choice ([motives.md](motives.md)).
+
+## Resting urge and the daily mood roll
+
+Two new consumers, agreed with Sid on 2026-10-01 ([motives.md](motives.md), D24):
+
+- **Resting urge** = `0.5 + 0.6 x (0.4 x boldness + 0.3 x warmth + 0.3 x chattiness - 0.5)`, so
+  the town spreads roughly 0.15-0.55. Most villagers rest below the ladder's first threshold
+  (0.30): personality decides who naturally says hi and who (Linus) takes real events to move.
+  Check the draft table's resting column for obvious misfits and hand-tune in
+  `temperament-overrides.json` before wiring.
+- **Daily mood roll**: a deterministic `Fnv1a("mood", save, npc, date)` offset in
+  `[-V, +V]`, `V = 0.05 + 0.20 x sensitivity`, skewed by the anger/sadness vs happiness biases,
+  dampened by recent plastic state (earned mood wins), with a 1/40 tail day. Sensitivity is the
+  amplitude; boldness is the expression (how much of a swing reaches behavior via the ladder's
+  thresholds).
+
+Both land with the motives work; the table itself is unchanged by them.
 
 ## Inputs (what the game gives us)
 

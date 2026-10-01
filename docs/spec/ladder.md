@@ -76,10 +76,12 @@ the urge allows and that is available; caps (2 per NPC a day, 6 in total, 2 queu
 below `p`.
 
 Planned additions:
-- **Motives drive the urge** ([motives.md](motives.md)): growth per tick becomes
-  `BaseGainPerTick x (0.5 + sum of motive strengths)`, the intent boost becomes the `News` motive,
-  and `Hurt` lowers the pull to approach while favoring letters. Rungs, thresholds and caps are
-  unchanged.
+- **Motives drive the urge** ([motives.md](motives.md)): the idle clock is gone — no
+  `BaseGainPerTick` growth, no overnight halving. Urge becomes
+  `resting(temperament) + mood roll + motive stresses`, decaying toward resting when nothing
+  pushes it; the intent boost becomes the `News` motive, and `Hurt` lowers the pull to approach
+  while favoring letters. Rungs, thresholds and caps are unchanged; the ladder's ignore-escalation
+  is the reference implementation of the yield point that turns repeated elastic strains plastic.
 - **Temperament floor** (deterministic, before the model): NPCs whose `Data/Characters`
   `SocialAnxiety` is `Shy` (`NpcSocialAnxiety.Shy`; read with `npc.GetData()`) never use `Bubble` or `ForcedDialogue`; they skip to the
   next available step. Their news shows up as letters instead, matching brief decision 6.
@@ -95,7 +97,8 @@ Planned additions:
 ## Tuning constants
 
 All in `InitiationOptions` (`src/NpcInitiation/Models.cs`), none saved: `BaseGainPerTick` 0.004,
-`HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5, `IgnorePenalty` 0.2,
+`HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5 (replaced by the motives
+model when it lands, [motives.md](motives.md)), `IgnorePenalty` 0.2,
 `RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `MaxAttemptsPerNpcPerDay` 2,
 `MaxAttemptsPerDay` 6, `MaxQueuedLinesPerDay` 2, `MaxMailPerDay` 1, `MaxForcedPerWeek` 1,
 `StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3; a seventh threshold 0.90 for `Visit` and the visit caps ([find.md](find.md)).
