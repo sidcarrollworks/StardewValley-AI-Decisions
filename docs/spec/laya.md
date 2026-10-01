@@ -107,7 +107,10 @@ Every model question in the plan. Anything not listed here is not asked.
 |---|---|---|---|---|
 | Intents | does <npc> have news for the player? | noul | 0.5 | done (wording chosen by the rewording experiment, `sidecar/eval/speak_experiments.md`) |
 | Intents | which of these would <npc> most want to bring up? | choice (≤5) | uniform | done |
-| Ladder | should <npc> try to get the player's attention with <step> now? | noul | 0.5 | done |
+| Ladder | should <npc> try to get the player's attention with <step> now? | noul | 0.5 | done; replaced by the motives' close-call question when motives land |
+| Motives | which of these would <npc> act on first? ([motives.md](motives.md)) | choice (≤5) | the strongest motive | not started |
+| Motives | would <npc> <act> toward <subject> now? (close calls only; the day's mood shifts the answer before a cut at 0.5) | noul | `0.5 + margin / (2 x ClearBand)` | not started |
+| Motives | would <npc> hold this against the player? | noul | 0.5 | not started |
 | Newcomer | would <npc> go out of their way to welcome a newcomer in person? | noul | 0.5 | not started |
 | Visit | would <npc> drop what they are doing right now and go looking for the player? ([find.md](find.md)) | noul | 0.5 | not started |
 | Letters | what would <npc> write to the player about? ([invitations.md](invitations.md)) | choice (≤3) | uniform | not started |

@@ -23,8 +23,13 @@ around them.
 - **Jealousy, in memory and words.** A dating or engaged partner who *learns* (sees it, or hears it
   through gossip, [ledger-gossip.md](ledger-gossip.md)) that the player gave a gift to, or spent a
   long time with, someone else they are dating gets a `Jealous` motive: cooler lines, a pointed
-  letter. It feeds the grudge at half weight ([motives.md](motives.md)). For a **spouse**, a gift
-  vanilla already punished adds nothing more.
+  letter. Seen first-hand it moves regard (the plastic part, [motives.md](motives.md)) at half
+  weight; heard as gossip it stays elastic and fades unless confirmed
+  ([ledger-gossip.md](ledger-gossip.md)). For a **spouse**, a gift vanilla already punished adds
+  nothing more.
+- **Big romantic acts need big feelings.** A kiss is an act with a very high boldness cost
+  (0.95, [motives.md](motives.md), "The act rule"): only a partner with strong, warm feelings and
+  enough familiarity gets there. Shadow only until `RomanceActs` is on ([rollout.md](rollout.md)).
 - **Milestones remembered.** Starting to date, the engagement, the wedding and each anniversary become
   diary entries, so lines can refer to them ("A year ago today..."). An anniversary gets a planned line
   by default.

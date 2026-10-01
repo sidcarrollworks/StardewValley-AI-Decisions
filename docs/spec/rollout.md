@@ -51,6 +51,8 @@ Recommended order, least invasive first:
 | - | `Trades` | any time after `Mail`: uses the vanilla shop menu, gives items from `data/trades.json` | balance; covered by the table test |
 | - | `TownLife` | bubbles between NPCs can go live early (after `Bubble`); meet-ups need the travel spike | chatter volume; capped at 6 rendered scenes a day |
 | - | `FriendshipEffects` | only after motives have run in shadow long enough to trust the grudge numbers | the one change to friendship points; capped at 20 points per character per week |
+| - | `HostileActs` | after the rung it uses is live and motives have run in shadow: sharp bubbles, cold letters, confrontations ([motives.md](motives.md)) | characters feel mean; hostile acts cost far more than friendly ones, so they stay rare |
+| - | `RomanceActs` | after romance milestones run in shadow: a kiss and other big romantic acts ([romance.md](romance.md)) | a scene at the wrong moment; partner status required, never during events |
 
 ## Safety invariants (live)
 

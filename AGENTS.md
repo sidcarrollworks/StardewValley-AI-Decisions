@@ -111,7 +111,7 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 
 | To add... | Start at | Remember |
 |---|---|---|
-| A new diary kind (e.g. a gift) | the mod's event hook, then `MemoryStore.DiaryOf(npc).Append` | Give `LineRenderer` a template, or add the kind to `IntentPlannerOptions.SkipKinds` |
+| A new diary kind (e.g. a gift) | the mod's event hook, then `MemoryStore.DiaryOf(npc).Append` | Give `LineRenderer` a template, or add the kind to `IntentPlannerOptions.SkipKinds`; once motives are built, also give it a row in the stressor table (feeling and juiciness, `docs/spec/motives.md`) |
 | A new model question | `IDecisionClient` callers | Call through `ResilientDecisionClient`, off the game thread; give a deterministic fallback |
 | A new ladder step | the end of `InitiationStep`, `Available`, the `StepThresholds` array, the response window in `ResolveAt` | Add a cap if it's passive |
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |

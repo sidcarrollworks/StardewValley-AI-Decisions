@@ -67,7 +67,10 @@ Lines that sound a little different per NPC and per occasion, never contain inte
 - **Motive variants:** where a kind can be said in different moods, the key carries the motive
   after the kind (`line.Saw.Player.Hurt.Shane.1` vs `line.Saw.Player.Grateful.Shane.1`), chosen by
   the character's leading motive ([motives.md](motives.md)); lookup falls back to the key without a
-  motive.
+  motive. Under motives (D24) a line's tone also follows the **net feeling** toward the subject:
+  a hostile act (a sharp bubble, a cold letter) uses the `Hurt` or `Jealous` variant even when the
+  act carries `News`, and the character's strongest emotion bias picks between an angry and a sad
+  wording where a bucket has both ([temperament.md](temperament.md)).
 - **Every vanilla villager gets its own bucket for every kind** (Sid, 2026-09-30: "I really want the
   language to feel like it matches the character"). Tone buckets are only the fallback for NPCs we
   haven't written for.

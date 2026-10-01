@@ -385,7 +385,8 @@ shows (hurt as anger or as sadness, [temperament.md](temperament.md)), not wheth
 - Pure functions over copied inputs; NPCs in name order; the mood roll and any tie-breaks from
   `Fnv1a` with the per-save seed.
 - No motive, no act. The act rule above is the only way an attempt starts.
-- Hostile acts and the kiss are shadow-only until Sid turns their switches on; until then they log
+- Hostile acts and the kiss are shadow-only until Sid turns their switches on (`HostileActs`,
+  `RomanceActs`, [rollout.md](rollout.md)); until then they log
   `[shadow] ... would ...`.
 - Avoiding (net <= -0.3) blocks in-person friendly acts for that subject only.
 - Spouse, children, events and festivals: as in [ladder.md](ladder.md).
