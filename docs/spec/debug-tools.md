@@ -46,6 +46,18 @@ It's easier to watch changes visually than through the logs." That became the li
   change ("+0.03"), and cards can be sorted by most recently changed. It updates every two
   seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
   viewer".
+- **Viewer: the model spread panel** (Sid, 2026-10-02; [laya.md](laya.md), "Character spread").
+  A side panel lists each model question the day has asked, with the NPC's name replaced by
+  `<npc>` so the same question groups across villagers: how many NPCs were asked, a strip of dots
+  (one per NPC, at its average answer today, hover for the name), the spread (90th minus 10th
+  percentile), the median, and the rank correlation with the trait the question should follow
+  (from the same table as the spread eval). A question asked of 6 or more NPCs whose spread is
+  below `FlatSpread` (0.05) is marked **flat**; one whose correlation is below 0.3 is marked
+  **doesn't follow personality**. Opening a row lists the NPCs in answer order beside their
+  temperament summary, and the calibration file's median and spread for comparison. It resets at
+  the 6:00 tick. Data: `RecordingDecisionClient` keeps a small per-day table of (question
+  template, NPC) -> count and mean answer, beside the existing call log, under a lock (the model
+  workers write, the server reads a copy); it changes no answer.
 - **Viewer, when motives land** ([motives.md](motives.md)): the urge bar gives way to the NPC's
   motives (each with subject, strength and sources), the net feeling per subject, today's outlook
   (earned and roll), and its best act now as `effective boldness vs cost` with the parts; regard
@@ -124,13 +136,17 @@ None.
 ## Tuning constants
 
 `ShowMindsTab` (config), `MindsKey` (config), `StatsDays` 28. Viewer: `MindsViewer` (config,
-default on), `MindsViewerPort` (config, 8765), 8 diary lines, 3 news picks, 300 feed items, 200
+default on), `MindsViewerPort` (config, 8765), `FlatSpread` 0.05, `MinNpcsForSpread` 6, `FollowsTraitMin` 0.3, 8 diary lines, 3 news picks, 300 feed items, 200
 model calls, a 2-second poll.
 
 ## Acceptance tests
 
 - Unit: the formatter for each command (pure functions over memory snapshots), the `DailyStats`
   rollover, `npcmod_simulate` refused when live.
+- Unit (spread panel): question templates group the same question across NPCs (the name is
+  replaced, the rest kept); per-day means and the 90/10 spread are right on fixed answers; the
+  flat and doesn't-follow marks appear at their thresholds; the table resets at 6:00; recording
+  never changes an answer.
 - Unit: each playtest record type round-trips; with `PlaytestLog` off nothing is written; a
   failed write is logged once and never throws into the tick.
 - In-game: the tab appears, opens, scrolls, closes; switching between vanilla tabs still works; with

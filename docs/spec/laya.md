@@ -174,6 +174,43 @@ Planned:
 - **Counters in the heartbeat:** calls, fallbacks, median and p95 latency, added to the
   heartbeat line (`src/NpcInitiation/Heartbeat.cs`, from PR #3).
 
+## Character spread: does the card change the answer? (2026-10-02)
+
+Sid's concern: every villager is judged by the same model, so their choices may trend alike. The
+model can't drift (its weights never change and it keeps no memory between calls; the same text
+always gets the same answer), but it can **start out flat**: if it barely reacts to the card's
+personality words, every villager gets roughly the model's idea of an average villager. The eval
+already shows it: shy Penny vs outgoing Sam differ by only 0.06-0.07 on the emote and bubble
+questions (`sidecar/eval/RESULTS.md`), and the speak answer sits in one compressed band.
+
+The motives design limits the damage, because personality lives in code (boldness, costs,
+sensitivity, retention, regard, mood) and the model only decides close calls
+([motives.md](motives.md), D24). This section adds the means to see the problem and correct it.
+
+1. **Measure: the spread eval** (`sidecar/eval/run_spread.py`). For each question type, one fixed
+   reference situation is asked once per villager, with only the NPC card changing (all 34 from
+   the temperament table). Per question it reports the spread (90th minus 10th percentile of the
+   answers), the median, and whether the order follows the trait the question should depend on
+   (Spearman's rank correlation with that trait: boldness for attention and approach questions,
+   chattiness for the news question, forgiveness, inverted, for "hold it against"). Results go in
+   `sidecar/eval/RESULTS.md`, and the per-question medians and spreads go in a fixed calibration
+   file, `data/laya-calibration.json`, so the mod's use of them is deterministic and versioned.
+2. **Watch: the viewer's spread panel** ([debug-tools.md](debug-tools.md)): the same numbers from
+   real play, per question, live.
+3. **Correct, per question type, only where the data says so:**
+   - **Relative answers.** When a question is flat in absolute terms but its order follows the
+     trait, use the answer relative to the town: `p_rel = 0.5 + (p - median) / spread x
+     RelativeScale`, clamped, with the median and spread from the calibration file. The 0.5 cut
+     for close calls ([motives.md](motives.md)) then reads p_rel.
+   - **Temperament prior.** When a question is flat and its order doesn't follow the trait either,
+     blend in a prior from the trait: `p' = w x p + (1 - w) x prior(trait)`, with `w` per question
+     in the calibration file (1.0 means the model alone).
+   - **Text first.** Before either, check the card: the traits must be in plain words ("shy;
+     rarely starts a conversation"), and the card must never be the part cut by the 512-token
+     budget (it has the highest priority in `DecisionState`).
+   Both corrections default off (`RelativeScale` and `w` absent from the calibration file) until
+   a spread run says a question needs them.
+
 ## Deterministic rules
 
 - Every call goes through `ResilientDecisionClient` off the game thread (D14).
@@ -227,6 +264,11 @@ fits the budget; do it when the ladder's inputs grow); the tokenizer verificatio
 speak-question rewording experiments the eval points at.
 
 ## Open questions
+
+- Is the model flat on personality? The spread eval answers it per question; the corrections above
+  wait on its numbers. A choice question may separate characters better than several yes/no
+  questions ("what would Shane do: write a note / say nothing / walk over"); add that variant to
+  the spread eval.
 
 - ~~Which checkpoint is better for these questions?~~ Answered 2026-09-30 by the eval set:
   `typed-decisions` agreed with 5/6 expected directions vs `english` 3/6; the mod keeps

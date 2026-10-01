@@ -37,6 +37,7 @@ week with Laya on, plus the speak-question rewording experiments the eval points
 | 17 | **Romance:** status milestones, partner multipliers, jealousy, date invitations, spouse behavior | M | [romance.md](romance.md) | 14 (motives), 8 (invitations) |
 | 18 | **Town life:** NPC chats as bubbles (shadow, then live), regard between NPCs, then meet-ups (one-day schedules) and looking for each other | M | [town-life.md](town-life.md) | 7 (ambient gossip); 19 for meet-ups; 11 for same-day looking-for |
 | 19 | **Vanilla sources:** settle the verification list (running), then the read-only signals first (dialogue answers, heart events, garbage cans, festivals, movies, conversation topics), the regard-seed tool, then the one-day schedule channel and farm visits by appointment (shadow; a small farm-entry spike, since the farm is outside NPC routing; then `FarmVisits`), then requests as quests (`NeedsHelp`, `Requests`). Facts verified in PR #18; in-game checks pending | L | [vanilla-sources.md](vanilla-sources.md), [invitations.md](invitations.md) | signals: 2 (Harmony set-up); farm visits: 8 (mail); can run in shadow alongside 14 |
+| 20 | **Character spread:** the spread eval over all 34 cards (`sidecar/eval/run_spread.py`, results and `data/laya-calibration.json`), then the viewer's spread panel; the relative-answer and temperament-prior corrections only for questions the data shows are flat | S | [laya.md](laya.md), [debug-tools.md](debug-tools.md) | none for the eval; the panel any time; corrections before 14's close calls go live |
 
 **Later, not scheduled:** phone calls and special orders ([vanilla-sources.md](vanilla-sources.md)); pairing with content mods ([multiplayer-compat.md](multiplayer-compat.md), "Later"); release
 packaging, including starting the Laya server with the game ([laya.md](laya.md), "Sidecar
@@ -108,6 +109,7 @@ night; and planned lines can be wiped by conversation topics, which step 6 must 
 | 16 | What makes a character act? (2026-10-01) | A motive and enough boldness for the act, eased by familiarity and strong feeling; no idle urge (D24) | [motives.md](motives.md) |
 | 17 | How does gossip spread? (2026-10-01) | By juiciness, fading fast; hearsay sticks only when confirmed (D25) | [ledger-gossip.md](ledger-gossip.md) |
 | 18 | Vanilla data and mechanics (2026-10-01) | Get as much as possible from the vanilla game, and act through vanilla channels; farm visits by appointment through one-day schedules, with stand-ups remembered (D26) | [vanilla-sources.md](vanilla-sources.md), [invitations.md](invitations.md) |
+| 19 | Do villagers' model answers trend alike? (2026-10-02) | Measure it: a spread eval over all villagers' cards and a spread panel in the viewer; correct per question only where the data shows it's flat | [laya.md](laya.md), [debug-tools.md](debug-tools.md) |
 
 ## Still open (none block the next steps)
 
