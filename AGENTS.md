@@ -111,7 +111,8 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 
 | To add... | Start at | Remember |
 |---|---|---|
-| A new diary kind (e.g. a gift) | the mod's event hook, then `MemoryStore.DiaryOf(npc).Append` | Give `LineRenderer` a template, or add the kind to `IntentPlannerOptions.SkipKinds`; once motives are built, also give it a row in the stressor table (feeling and juiciness, `docs/spec/motives.md`) |
+| A new diary kind (e.g. a gift) | the mod's event hook, then `MemoryStore.Note(npc, entry)` (the one writer: it trims and calls the `Noting` hook that applies regard) | Give `LineRenderer` a template, or add the kind to `IntentPlannerOptions.SkipKinds`; if it stirs a feeling, give it a row in `StressorTable.Of` (`src/NpcMotives`; feeling and juiciness, `docs/spec/motives.md`) |
+| A motive, an act or an act's cost | `MotivesEngine.MotivesOf` / `AllowedActs` / `Available`, `MotiveOptions` | `Motive` values are saved as ints: append only. Pacing and "used up" live in `MotivesRunner` |
 | A new model question | `IDecisionClient` callers | Call through `ResilientDecisionClient`, off the game thread; give a deterministic fallback |
 | A new ladder step | the end of `InitiationStep`, `Available`, the `StepThresholds` array, the response window in `ResolveAt` | Add a cap if it's passive |
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |

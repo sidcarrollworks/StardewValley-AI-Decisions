@@ -173,9 +173,16 @@ model calls, a 2-second poll.
   diary/ledger/belief census including trims against the 500 cap), `model` (every call from the
   recording client's view) and `perf` (tick, Observe, ladder, plan). Adding a type is one record
   class plus one Append call. The summary tool prints per-day tables: attempts by step, gossip
-  routes, model calls with fallbacks, diary growth against the cap, slowest ticks. The
-  motives-only types (`decision`, `stress`, `regard`, `social`) wait for the motives PRs, which
-  is why the log was built first.
+  routes, model calls with fallbacks, diary growth against the cap, slowest ticks. The log was
+  built first so that motives would have data from their first day.
+- **Motives records: built** (step 14 part 2, 2026-10-02; `src/NpcMinds/Playtest/MotiveRecords.cs`):
+  `decision` (every part of an act, a pass, a block, an outcome or a grudge: motives and
+  strengths, net, outlook with earned, roll and tail day, act, cost, boldness, familiarity,
+  intensity, frustration, effective, margin, clear or close, Laya p and after the tilt, the
+  model's pick among motives), `stress` (kind, magnitude, plastic share and the mark left,
+  retention, severe, yield crossed) and `regard` (each change with its cause, and a snapshot of
+  every pair at 6:00). The summary tool has Decisions, Stresses and Regard sections. The mod
+  writes them once the runner is wired. `social` waits for town life.
 - **Live viewer: built** (`src/NpcMinds`, `tests/NpcMinds.Tests`, 48 tests: the snapshot is
   read-only and shows what the ladder saw, the recorder never changes an answer, the server is
   GET-only and loopback-only and survives a busy port). Checked in a browser against a scratch
@@ -189,6 +196,12 @@ model calls, a 2-second poll.
   lines. The template mapper normalizes the mod's real question wordings
   (`LayaCalibration.NormalizeTemplate`, pinned by a test against the exact ladder and planner
   strings). Tuning: `FlatSpread` 0.05, `MinNpcsForSpread` 6, `FollowsTraitMin` 0.3.
+- **The viewer's motives view: built** (step 14 part 2, 2026-10-02): `NpcMind.Motives` carries the
+  runner's latest weighing (motives with sources, net, outlook, regard, the act rule's parts and
+  every act weighed, attempts, what is open or waiting, the newest line); the card draws the real
+  daring bar and lines from it, with the page's preview kept for builds without the runner; a sort
+  by feeling. Checked in a browser against a scratch driver over the real runner. The "while you
+  were away" panel is not built.
 - **In-game tab and console commands:** not started. The viewer may cover most of what they were
   for; decide before building them.
 

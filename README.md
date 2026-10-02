@@ -1,6 +1,6 @@
 # Stardew NPC Mod
 
-SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `stardew-npc-project-brief.md` for the design and `stardew-source-notes.md` for the verified game internals. Progress so far: extractor (step 1), NPC memory layer (step 2), shadow-mode harness (step 3), live SMAPI scaffold with persistence + decision client (step 4), overnight intents in shadow mode (step 5), audit fixes (step 6), a real Laya client (step 7), the initiation ladder in shadow mode (step 8), and finding the player (step 9).
+SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `stardew-npc-project-brief.md` for the design and `stardew-source-notes.md` for the verified game internals. Progress so far: extractor (step 1), NPC memory layer (step 2), shadow-mode harness (step 3), live SMAPI scaffold with persistence + decision client (step 4), overnight intents in shadow mode (step 5), audit fixes (step 6), a real Laya client (step 7), the initiation ladder in shadow mode (step 8), and finding the player (step 9). On the roadmap (`docs/spec/roadmap.md`), the motives engine of step 14 is built as a library and waits to be wired into the mod.
 
 **Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why). The full spec and roadmap are in [`docs/spec/`](docs/spec/README.md).
 
@@ -13,23 +13,25 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
 | `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `Newsworthiness` (news scoring), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
 | `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
-| `src/NpcMinds/` | The NPC Minds viewer (read-only): `MindsSnapshotBuilder` (what each NPC knows and wants, from memory and the ladder's last state), `RecordingDecisionClient` (copies every model call to a log, answers unchanged), `MindsServer` (a loopback page and `state.json` at `http://127.0.0.1:8765/`). The page is `viewer/index.html`, embedded in the DLL. Each card also shows the NPC's seed temperament (`temperament.json`, shipped in the mod folder). |
+| `src/NpcMotives/` | Motives (step 14, shadow): a character acts only with a motive and enough boldness for the act. `MotivesEngine` (motives, netting, the act rule, close calls), `Stresses` and `StressorTable` (the fading part of feelings), `RegardBook` and `RegardKeeper` (the lasting part, saved per pair), `MoodRoll`, and `MotivesRunner`/`BackgroundMotives` (pacing, the model's questions and the grudge, on a worker). Built and tested; not wired into the mod yet. |
+| `src/NpcMinds/` | The NPC Minds viewer (read-only): `MindsSnapshotBuilder` (what each NPC knows and wants, from memory and the ladder's last state), `RecordingDecisionClient` (copies every model call to a log, answers unchanged), `MindsServer` (a loopback page and `state.json` at `http://127.0.0.1:8765/`). The page is `viewer/index.html`, embedded in the DLL. Each card also shows the NPC's seed temperament (`temperament.json`, shipped in the mod folder) and, once the motives runner is wired, its motives and the act rule's parts. `Playtest/` is the playtest log (one JSON-lines file per save and day; `tools/playtest_summary.py` reads it). |
 | `src/NpcDiaryEvents/` | Pure diary producers: `GiftNotes`, `SawGiftNotes`, `QuestNotes`, `FestivalNotes` turn plain event records into `DiaryEntry` values (no game types). The mod's read-only Harmony postfixes in `mod/StardewNpcMod/Patches/` capture the events. |
 | `docs/` | `architecture.md` (how it works), `decisions.md` (why) and `spec/` (every feature, built or planned, plus the roadmap). `AGENTS.md` at the root is the entry point for coding agents. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. `sidecar/eval/` holds the golden eval set + runner + results (typed-decisions 5/6 vs english 3/6). |
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |
 | `mod/StardewNpcMod/` | The SMAPI mod (compile-verified against the real game + SMAPI). Hooks SaveLoaded/DayStarted/TimeChanged/DayEnding/Saving/ReturnedToTitle; persists memory per save; each tick every NPC records the player and other NPCs in the same location within 8 tiles; shadow-logs overnight intents and ladder attempts. `config.json`: `DecisionBackend` = `Fake` or `Laya`. While the game runs, the NPC Minds viewer is at `http://127.0.0.1:8765/` (`MindsViewer`, `MindsViewerPort`). |
 | `tools/ScheduleExtractor/` | Command-line wrapper: schedule JSON files in, counts out. |
-| `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). Not in the mod yet. |
+| `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). The mod loads the table for the viewer; the motives engine reads it. |
 | `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (71). |
-| `tests/NpcMemory.Tests/` | xUnit tests (159). |
+| `tests/NpcMemory.Tests/` | xUnit tests (170). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (119). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (176). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (70). |
-| `tests/NpcMinds.Tests/` | xUnit tests (64). |
+| `tests/NpcMinds.Tests/` | xUnit tests (68). |
+| `tests/NpcMotives.Tests/` | xUnit tests (47). |
 | `tests/NpcTemperament.Tests/` | xUnit tests (23). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |

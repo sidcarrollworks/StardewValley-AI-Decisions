@@ -4,7 +4,7 @@ This folder specifies every feature of the mod: what exists, what is planned, an
 planned parts should work. It is written for whoever builds the next piece, including cheaper
 models, so each file can be read on its own.
 
-- **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D20).
+- **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D28).
   **Rules:** `AGENTS.md`. This spec does not repeat them; it links to them and adds what is not
   built yet. When the spec and the code disagree about something marked **done**, the code wins:
   fix the spec.

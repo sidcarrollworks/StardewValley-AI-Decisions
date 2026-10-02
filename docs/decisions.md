@@ -139,7 +139,7 @@ Hugging Face blog post links mostly to a domain that isn't TypeSafe's.
 better is untested; A/B them once the server is running.~~ Settled in two passes: the directional
 eval (D13-era, 2026-09-30: typed-decisions 5/6 vs 3/6) and the character-spread eval (2026-10-02:
 english follows personality better on the motives' close-call questions, which are not live yet).
-D26 reaffirms typed-decisions and sets the revisit point.
+D27 reaffirms typed-decisions and sets the revisit point.
 
 ### D14. Model calls never run on the game thread
 **Decision.**
@@ -407,6 +407,36 @@ questions english is not clearly better: the speak question is a 0.25 veto that 
 personality on either checkpoint, and english's approach answers barely varied at all. The
 decision matters when step 14 lands and close calls start reading Laya's answers; by then the
 viewer's spread panel will have real playtest data to compare against, per question.
+
+### D28. How the motives runner paces attempts and uses motives up, in shadow
+**Decision (Claude, building step 14 part 2, 2026-10-02; for Sid's review).** The spec leaves the
+runner's bookkeeping open; these are the choices, each found by running a scratch day of the real
+runner and reading its log.
+- **Two attempt slots per NPC.** One in-person attempt (emote, bubble, walk-up, interrupt, visit)
+  blocks new attempts until it is answered or its 6-tick window passes; one waiting attempt (letter,
+  queued line, request) blocks only another of its sort. With one slot, as the ladder has, Pam's
+  letter silenced her for two days: she didn't even wave when the player walked up.
+- **A question answered "no" is not asked again** until the situation changes (the candidates or
+  the act in question) or 6 ticks pass. A close call has no random draw, so asking again with the
+  same inputs returns the same answer. A blanket cooldown after every pass was tried first and made
+  NPCs deaf: Pam reacted 20 minutes late to the player arriving.
+- **Shadow treats an attempt as having happened**, as the ladder does: any face-to-face act is the
+  day's greeting; news and thanks count as delivered by an in-person act or a letter at once, and by
+  a queued line only when the player comes to talk; an emote shows a feeling and delivers nothing.
+  A talk with the player answers open attempts and clears frustration.
+- **Worried needs a ledger entry** about the player: without one, a save from before the mod kept
+  memory read as "999 days without news" for every villager at 4+ hearts.
+- **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
+  mark (`HearsayFactor`); from a witness it stays elastic.
+- **The grudge is drawn**, seeded, against the model's answer, once a day at most; the 0.3 rise in
+  regard after it applies in shadow too (the mod's memory, not the game's friendship), or the log
+  would repeat the same would-be penalty every week.
+- **The walk-up close calls use the spread eval's wordings** ("walk over to greet the player",
+  "confront the player"), so the spread panel compares live answers with the calibration file.
+**Why.** Each keeps the shadow log close to what the live system would do, so tuning from it
+carries over, and keeps model calls to the ones whose answer can change.
+**Notes.** Built in `src/NpcMotives` (`MotivesRunner`, `RegardKeeper`); `docs/architecture.md`,
+"Motives", has the full list; the spec (`docs/spec/motives.md`) was updated to match.
 
 ---
 

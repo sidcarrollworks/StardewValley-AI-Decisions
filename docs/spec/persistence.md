@@ -31,7 +31,8 @@ remote host (the save lives on the host's computer).
 | `letters` | pending letters and invitations ([invitations.md](invitations.md)) | planned |
 | `trades` | today's trade offers and which were taken ([trades.md](trades.md)) | planned |
 | `stats` | 28 days of daily counters for the playtest digest ([debug-tools.md](debug-tools.md)) | planned |
-| `regard` | signed regard per (observer, subject), sparse, the player included: the plastic part of feelings, the grudge, and NPC-to-NPC bonds ([motives.md](motives.md), [town-life.md](town-life.md)); replaces the planned `bonds` key | planned |
+| `regard` | signed regard per (observer, subject), sparse, the player included: the plastic part of feelings, the grudge, and NPC-to-NPC bonds ([motives.md](motives.md), [town-life.md](town-life.md)); replaces the planned `bonds` key. `RegardBook.ToJson`: `{"observer\|subject": value}`, rounded to 4 places; a missing, damaged or malformed value loads empty | built (`src/NpcMotives`); saved once motives are wired |
+| `motives` | the motives runner's pacing state: per NPC the day's attempts, frustration, open and waiting attempts, motives used up, recent vents, the last grudge question and penalty day; the town's daily and weekly counters (`MotivesRunner.ToJson`; damaged loads fresh) | built; saved once motives are wired |
 
 **Additive keys need no version bump.** The loader already reads keys it finds and ignores the rest.
 A new key is read with a default when missing, so a version-2 save loads fine into a build that adds
@@ -86,7 +87,10 @@ lines), then lower `MaxDiaryEntries`.
 ## Status
 
 Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`,
-`InitiationLadder.ToJson`/`FromJson`. Not started: the eight planned keys, size logging, pruning. Visit counters and each NPC's last friendship-penalty day go inside the existing `ladder` value ([find.md](find.md)); the grudge is the negative part of `regard` ([motives.md](motives.md)).
+`InitiationLadder.ToJson`/`FromJson`. The `regard` and `motives` values are built and tested and
+are written once the motives runner is wired into the mod (step 14 part 3). Not started: the
+other planned keys, size logging, pruning. Visit counters and each NPC's last friendship-penalty
+day are in the `motives` value; the grudge is the negative part of `regard` ([motives.md](motives.md)).
 
 ## Open questions
 
