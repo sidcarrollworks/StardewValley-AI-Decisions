@@ -1,9 +1,10 @@
 # 24. The player's bedtime journal
 
 **Status: idea, stored for later** (Sid, 2026-10-02: "We can talk more about this later"). Not on
-the roadmap's order yet; listed under "Later, not scheduled". Decided so far: it is offered every
-night, it opens after the player says yes to bed with time stopped, and a page can be stolen when
-the player dies in the mines or passes out, then pinned on the notice board. The rest is open.
+the roadmap's order yet; listed under "Later, not scheduled". Decided so far (Sid, 2026-10-02):
+it is offered every night, it opens after the player says yes to bed with time stopped, entries are
+about two sentences, and a page can be stolen (by chance, anonymously, with no warning beforehand)
+when the player is knocked out in the mines or passes out, then pinned on the notice board.
 
 Sid: *"During the transition it might be interesting to provide a journal for the player to write
 in. It would be right before sleeping and game time would be paused. It would be skippable if they
@@ -14,7 +15,8 @@ don't want to write in it. We would also cap the length of the entry to be small
 - **Every night, as an option** (Sid, 2026-10-02). Never forced; one button (or key) skips it.
 - **When:** the player answers "yes" to going to bed, time stops, then the journal prompt appears,
   before the night's transition.
-- **Short:** the entry has a small length cap.
+- **Short:** about two sentences, nothing long (a cap around 200 characters; the exact number when
+  the text box is chosen).
 
 ## Stolen pages (Sid, 2026-10-02)
 
@@ -31,17 +33,20 @@ happen when you pass out at 2am."*
 - This ties the journal to the board: the board is how a private page becomes town news, and it is
   the reason the journal matters to the world without the mod reading the player's diary itself.
 
-## Ideas to settle when it is picked up
+Decided (Sid, 2026-10-02):
+- **Which page:** a random one to start (seeded, deterministic). Later, possibly Laya chooses the
+  entry, as a typed `choice` over recent entries ("which page would cause the most talk?"); the
+  model still writes nothing.
+- **No warning beforehand.** It is part of the surprise.
+- **Not guaranteed:** a chance on each knock-out or pass-out (seeded), not every time.
+- **The player is told only after it happens:** for example a line on waking, "A page is missing
+  from your journal." (wording with the other lines, [text.md](text.md)).
+- **No villager is blamed.** The page simply turns up on the board; there is no thief character.
 
-- **Which page:** the most recent entry, or a random one from the last week? Only pages written
-  since the last stolen one?
-- **Consent:** the player should know pages can be stolen (a line in the journal's first opening,
-  or a config switch, `JournalPagesCanBeStolen`), since it publishes their own words in-game.
-- **The thief:** anonymous ("someone pinned this up"), or a character with a reason (the vanilla
-  rescuer in the mines; whoever found the player at 2:00)? Anonymous is simpler and keeps blame off
-  any villager.
-- **How often:** every knock-out, or a chance (seeded, deterministic) so it stays a surprise?
-- **Can the player take it down** from the board, and does that change how readers react?
+Still open:
+- The chance per knock-out, and whether it grows with how many pages are written.
+- Only pages written since the last stolen one, or any page?
+- Can the player take the page down from the board, and does that change how readers react?
 
 ## How it would fit the rules (first thoughts)
 
