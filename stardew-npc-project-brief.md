@@ -92,6 +92,8 @@ Playtest log (2026-10-02, step 14 part 1): one JSON-lines file per save and in-g
 
 Motives engine (2026-10-02, step 14 part 2, Claude in the cloud): the whole of `docs/spec/motives.md` that needs no game, as `src/NpcMotives`. The stressor table, elastic stresses, regard (retention, severe hurts, the yield point, drift, confirmed hearsay), the mood roll, motives and netting, the act rule with clear and close calls, and a runner that paces it over time on its own worker (one in-person and one waiting attempt per NPC, the ladder's caps, frustration, motives used up, the model asked only to pick among motives and on close calls, the shadow grudge). A `MemoryStore.Noting` hook applies regard as diary entries are written. The viewer's cards show the runner's real numbers, and the playtest log gains `decision`, `stress` and `regard` records. Not wired into the mod yet: that needs a build against the game (step 14 part 3, local). 840 tests green.
 
+Motives wired in shadow (2026-10-02, step 14 part 3): the engine now runs beside the urge ladder every tick — inputs from the ladder's own views and leads (never live positions), model calls only on its worker through `Guarded("motives")`, acts and grudges as `[shadow]` lines, regard applied through the `MemoryStore.Noting` hook, regard drift and the snapshot at 6:00, `regard` and `motives` saved and loaded, and the viewer showing the runner's real decisions. First motives playtest data now accumulates in the playtest log.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

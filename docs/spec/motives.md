@@ -495,9 +495,12 @@ draft table, past the first threshold, which recreated the clock. Depends on dia
   motives up is in `docs/architecture.md`, "Motives". The acceptance tests above pass except the
   ones that need the mod (save round trip in-game, the in-game week, the grudge in play) and the
   NPC-subject motives.
-- **Part 3, wiring into the mod: next.** It needs a build against the game, so it is local work
-  (the steps are in `docs/architecture.md`, "Wiring it into the mod"). Then a playtest week with
-  the runner beside the ladder, tuning from the log.
+- **Part 3, wiring into the mod: built** (2026-10-02, `deepseek/motives-wiring`). The runner
+  sits beside the ladder in shadow: `RunMotives` after `RunLadder` each tick, inputs from the
+  ladder's own views and leads (never live positions), model calls only on the worker through
+  `Guarded("motives")`; `EnqueueTalked` on dialogue; regard drift and the snapshot at 6:00;
+  `regard` and `motives` saved and loaded; the viewer shows the runner's real decisions and
+  regard. Then a playtest week with the runner beside the ladder, tuning from the log.
 - **Not built:** weather and season effects (`WeatherFacts`), the near-miss source of
   `MissingYou`, `WantsToTrade` and `NeedsHelp` (no sources yet), NPC subjects ([town-life.md](town-life.md)),
   hearsay's relevance (x2 when drawn to someone in the story) and first-hand confirmation (they
