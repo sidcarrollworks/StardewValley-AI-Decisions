@@ -194,7 +194,7 @@ source entry.
 | Motive | From | Strength |
 |---|---|---|
 | `MissingYou` | days since the last talk: the diary's last `Talked` entry, or the runner's saved record of the last talk, which survives the 500-entry diary trim; hearts. No talk on record (a save older than the mod's diaries): none until the first talk | `min(1, days / 7) x (0.3 + 0.07 x hearts) x (0.5 + warmth)`; 0 below 2 hearts |
-| `Greeting` | the subject is near **in the NPC's own ledger view** (a fresh `NamedSpot`, the memory-only fact `IsNear` uses), and is familiar (2+ hearts, or regard >= 0.2) | `0.15 x (0.5 + warmth)` while near, gone within the hour after; once per subject per day. Sid: *"a character is within 8 squares, this might add temporary urge to walk up and say something"* |
+| `Greeting` | the subject is near **in the NPC's own ledger view** (a fresh `NamedSpot`, the memory-only fact `IsNear` uses), and is familiar (2+ hearts, or regard >= 0.2), or an acquaintance (met, under 2 hearts; Sid, 2026-10-02, after year 1 was silent) | familiar `0.15 x (0.5 + warmth)`, acquaintance `0.08 x (0.5 + warmth)` (below a bubble's minimum: bold villagers wave, shy ones mostly don't) while near, gone within the hour after; once per subject per day. Sid: *"a character is within 8 squares, this might add temporary urge to walk up and say something"* |
 | `News` | the best newsworthy diary entry from today or yesterday ([diary.md](diary.md)) | `news score / 5 x (0.5 + chattiness)` |
 | `Grateful` | the elastic part of `GiftReceived` Love/Like, `QuestHelped`, `AcceptedInvite`, trades | summed, capped at 1 |
 | `Hurt` | the elastic part of `IgnoredBy`, `StoodUp`, `BirthdayForgotten`, `PassedBy`, `MissedVisit`, `GiftReceived` Dislike/Hate, plus `max(0, -regard)` | summed, capped at 1 |

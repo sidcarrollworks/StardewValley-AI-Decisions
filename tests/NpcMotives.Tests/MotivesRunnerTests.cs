@@ -67,7 +67,7 @@ public sealed class MotivesRunnerTests
     {
         var model = new Scripted(yes: 1);
         var runner = new MotivesRunner(model);
-        MotiveInputs robin = Inputs("Robin", Robin, hearts: 0, near: true);
+        MotiveInputs robin = Inputs("Robin", Robin, hearts: 0, near: true, met: false) with { KnowsOfPlayer = false }; // a stranger
         List<MotiveEvent> events = Run(runner, robin, 10 * Day, 11 * Day - 1);
         Assert.Empty(events);
         Assert.Equal(0, model.YesNoCalls + model.ChooseCalls);

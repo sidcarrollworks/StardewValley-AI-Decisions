@@ -30,8 +30,9 @@ public sealed class MotivesEngineTests
     [Fact]
     public void NoMotiveNoAct_EvenForTheBoldest()
     {
-        // Robin is the boldest villager; near the player, a stranger, nothing in her diary.
-        MotiveDecision d = _engine.Decide(Inputs("Robin", Robin, hearts: 0, near: true));
+        // Robin is the boldest villager; near the player, a stranger (never met, never heard of),
+        // nothing in her diary.
+        MotiveDecision d = _engine.Decide(Inputs("Robin", Robin, hearts: 0, near: true, met: false) with { KnowsOfPlayer = false });
         Assert.Null(d.Result);
         Assert.Null(d.Chosen);
         Assert.Contains("no motive", d.Reason);
@@ -50,7 +51,7 @@ public sealed class MotivesEngineTests
     [Fact]
     public void Familiarity_ShaneGreetsSomeoneHeKnowsButNotAStranger()
     {
-        MotiveDecision stranger = _engine.Decide(Inputs("Shane", Shane, hearts: 0, near: true));
+        MotiveDecision stranger = _engine.Decide(Inputs("Shane", Shane, hearts: 0, near: true, met: false) with { KnowsOfPlayer = false });
         Assert.Null(stranger.Result);
 
         MotiveDecision friend = _engine.Decide(Inputs("Shane", Shane, hearts: 8, near: true));
@@ -58,6 +59,24 @@ public sealed class MotivesEngineTests
         // A greeting reaches at least an emote: a clear one, or the bubble as a close call that
         // falls back to the emote when the model says no.
         Assert.Equal(Act.Emote, _engine.ResolveClose(friend, p: 0.0));
+    }
+
+    [Fact]
+    public void Acquaintances_BoldOnesWave_ShyOnesMostlyDont()
+    {
+        // Met, 0 hearts: a weak greeting, worth an emote at most.
+        MotiveDecision robin = _engine.Decide(Inputs("Robin", Robin, hearts: 0, near: true, met: true));
+        Assert.Equal(Motive.Greeting, robin.Chosen!.Motive);
+        Assert.Equal(Act.Emote, robin.Result);
+        Assert.Null(robin.Pending);
+        Assert.DoesNotContain(robin.Checks, c => c.Act == Act.Bubble); // too weak for a bubble
+
+        MotiveDecision shane = _engine.Decide(Inputs("Shane", Shane, hearts: 0, near: true, met: true));
+        Assert.True(shane.Result is null || shane.Pending is not null, "shy: a close call at most");
+
+        // Never met: no greeting (curiosity instead).
+        Assert.DoesNotContain(_engine.Decide(Inputs("Robin", Robin, hearts: 0, near: true, met: false)).Motives,
+            m => m.Motive == Motive.Greeting);
     }
 
     [Fact]

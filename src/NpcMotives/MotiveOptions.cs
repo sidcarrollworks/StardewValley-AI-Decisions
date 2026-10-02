@@ -69,6 +69,12 @@ public sealed class MotiveOptions
 
     public double MinStrengthFor(Act act) => ActMinStrength.TryGetValue(act, out double m) ? m : 0;
 
+    /// <summary>Greeting strength before warmth: someone familiar (2+ hearts, or regard 0.2+), and
+    /// an acquaintance (met, fewer hearts). An acquaintance's greeting stays below a bubble's
+    /// minimum, so only an emote: bold villagers wave, shy ones mostly don't (Sid, 2026-10-02).</summary>
+    public double GreetingFamiliar { get; set; } = 0.15;
+    public double GreetingAcquaintance { get; set; } = 0.08;
+
     public double HostileSurcharge { get; set; } = 0.30;
     public double IntensityWeight { get; set; } = 0.5;
     public double ClearBand { get; set; } = 0.15;

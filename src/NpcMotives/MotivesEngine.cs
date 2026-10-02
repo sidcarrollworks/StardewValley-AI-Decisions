@@ -62,9 +62,15 @@ public sealed class MotivesEngine
             }
         }
 
-        // Greeting: near someone familiar, once a day.
-        if (i.PlayerNear && !i.GreetedToday && (hearts >= 2 || i.RegardForPlayer >= 0.2))
-            add(Motive.Greeting, 0.15 * (0.5 + t.Warmth), "the player is right here");
+        // Greeting: near someone it knows, once a day. Familiar people get a real hello; an
+        // acquaintance (met, under 2 hearts) only a weak one (Sid, 2026-10-02: year 1 was silent).
+        if (i.PlayerNear && !i.GreetedToday)
+        {
+            if (hearts >= 2 || i.RegardForPlayer >= 0.2)
+                add(Motive.Greeting, _o.GreetingFamiliar * (0.5 + t.Warmth), "the player is right here");
+            else if (i.HasMetPlayer)
+                add(Motive.Greeting, _o.GreetingAcquaintance * (0.5 + t.Warmth), "an acquaintance is right here");
+        }
 
         // News: the planner's best news, until it is shared.
         if (i.BestNewsScore > 0 && !i.NewsShared)
