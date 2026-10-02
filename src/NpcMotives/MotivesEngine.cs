@@ -47,12 +47,16 @@ public sealed class MotivesEngine
         // MissingYou: days since the last talk, from 2 hearts (motives.md table).
         if (hearts >= 2)
         {
-            DiaryEntry? lastTalk = i.Diary
+            // The diary's last Talked, or the runner's own record of the last talk, which the
+            // 500-entry trim never drops (playtest 2026-10-02: a busy villager adds ~50 entries a day).
+            int? lastTalk = i.Diary
                 .Where(e => e.Kind == "Talked" && Is(e.Subject, Player) && e.AbsoluteTick <= i.Now)
-                .OrderByDescending(e => e.AbsoluteTick).FirstOrDefault();
-            if (lastTalk is not null)
+                .Select(e => (int?)e.AbsoluteTick).DefaultIfEmpty(null).Max();
+            if (i.LastTalkTick is { } kept && kept <= i.Now && (lastTalk is null || kept > lastTalk))
+                lastTalk = kept;
+            if (lastTalk is { } talked)
             {
-                double days = (i.Now - lastTalk.AbsoluteTick) / (double)GameClock.TicksPerDay;
+                double days = (i.Now - talked) / (double)GameClock.TicksPerDay;
                 add(Motive.MissingYou, Math.Min(1, days / 7) * (0.3 + 0.07 * hearts) * (0.5 + t.Warmth),
                     $"last talked {days:0.#} days ago");
             }

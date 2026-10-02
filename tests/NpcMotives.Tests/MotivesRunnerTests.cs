@@ -225,6 +225,23 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void MissingYouSurvivesTheDiaryTrim()
+    {
+        // The runner saw a talk on day 3; by day 10 the diary has trimmed it away. A week apart,
+        // Robin misses the player as if the entry were still there.
+        var runner = new MotivesRunner(new Scripted());
+        runner.NoteTalked("Robin", 3 * Day + 60);
+        runner.Tick(Now, new[] { Inputs("Robin", Robin, hearts: 4) });
+        MotiveStrength missing = Assert.Single(runner.LatestDecisions()["Robin"].Motives, m => m.Motive == Motive.MissingYou);
+        Assert.Contains("last talked 7 days ago", missing.Source);
+
+        // With no talk on record at all (a save older than the mod's diaries), nothing is missed yet.
+        var fresh = new MotivesRunner(new Scripted());
+        fresh.Tick(Now, new[] { Inputs("Robin", Robin, hearts: 4) });
+        Assert.DoesNotContain(fresh.LatestDecisions()["Robin"].Motives, m => m.Motive == Motive.MissingYou);
+    }
+
+    [Fact]
     public void StateRoundTrips_AndDamagedStateStartsFresh()
     {
         var runner = new MotivesRunner(new Scripted());
