@@ -236,11 +236,17 @@ public sealed class MotivesEngine
         double effective = t.Boldness + familiarity + intensityTerm;
 
         var checks = new List<ActCheck>();
+        var tooWeak = new List<Act>();
         foreach (Act act in AllowedActs(chosen.Motive, feeling, i.BestNewsScore)
                      .OrderByDescending(a => _o.ActCost[a]).ThenBy(a => (int)a))
         {
             if (!Available(act, i, friendlyInPerson: !hostile, c.Net))
                 continue;
+            if (intensity < _o.MinStrengthFor(act))
+            {
+                tooWeak.Add(act); // a reason too small for this act, however bold
+                continue;
+            }
             double cost = _o.ActCost[act] + (hostile ? _o.HostileSurcharge : 0);
             double margin = effective - cost;
             CallKind call = margin >= _o.ClearBand ? CallKind.ClearYes : margin <= -_o.ClearBand ? CallKind.ClearNo : CallKind.CloseCall;
@@ -258,6 +264,12 @@ public sealed class MotivesEngine
                 return new MotiveDecision(i.Npc, c.Motives, c.Mood, c.Net, chosen, t.Boldness, familiarity, intensityTerm,
                     frustration, checks, check.Act, check, $"{check.Act}: {check.Effective:0.00} vs cost {check.Cost:0.00}, close call");
         }
+        if (checks.Count == 0 && tooWeak.Count > 0)
+            return Nothing(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "motive {0:0.00} too weak for {1}", intensity,
+                    string.Join(", ", tooWeak.Select(a => string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0} (needs {1:0.00})", MotiveText.ActName(a), _o.MinStrengthFor(a))))),
+                familiarity, intensityTerm, checks);
         if (checks.Count == 0)
         {
             // Say when a cap, not the situation, ruled the acts out.

@@ -271,6 +271,15 @@ sadness 28, happiness 32, surprise 16, fear 8, and for a warm romantic feeling h
 more. Avoiding someone is not an act: it costs nothing and shows only as an absence and a shadow
 line.
 
+### A reason big enough for the act
+
+Sid, 2026-10-02, after the first motives playtest (Haley, bold, wrote a letter over "misses you
+0.10"): boldness decides who dares, but the motive's strength decides whether the reason is worth
+the act. An act is weighed only when the motive's intensity (frustration included) reaches its
+`ActMinStrength`: Emote 0, Bubble 0.10, Queued line 0.15, Walk up 0.20, Letter and Ask for help
+0.30, Farm visit and Visit 0.40, Interrupt 0.60. First guesses for Sid to tune from the log; a pass
+says which acts were too big for the reason ("motive 0.10 too weak for letter (needs 0.30)").
+
 ### Effective boldness
 
 ```
@@ -441,7 +450,7 @@ In `MotiveOptions`, not saved:
 - regard: `RegardHealRate` 0.03, `RegardFadeRate` 0.005, friendly familiarity 0.03 per heart and 0.2
   per positive regard, hostile familiarity 0.15;
 - mood: `RollWeight` 0.3, `RollSkew` 0.3, `TailChance` 1/40, `MoodSway` 0.15, `MoodTilt` 0.10;
-- acts: `ActCost` per act, `HostileSurcharge` 0.30, `IntensityWeight` 0.5, `ClearBand` 0.15,
+- acts: `ActCost` per act, `ActMinStrength` per act (above), `HostileSurcharge` 0.30, `IntensityWeight` 0.5, `ClearBand` 0.15,
   `AvoidLevel` 0.3, `FrustrationStep` 0.1, `VentRelief` 0.5, `StrongReserve` 2,
   `StrongIntensity` 0.5, `MinMotiveForChoice` 0.2;
 - grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7.

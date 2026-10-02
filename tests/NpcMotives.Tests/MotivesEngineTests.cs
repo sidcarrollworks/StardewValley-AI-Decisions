@@ -172,6 +172,21 @@ public sealed class MotivesEngineTests
     }
 
     [Fact]
+    public void AWeakMotiveIsNotWorthALetter_HoweverBold()
+    {
+        // Playtest 2026-10-02: Haley, bold, wrote a letter over "misses you 0.10".
+        var lastTalk = new[] { E(Day + Day / 2, "Talked", "hearts=4") };
+        MotiveDecision weak = _engine.Decide(Inputs("Haley", Robin, hearts: 4, diary: lastTalk));
+        Assert.Equal(Motive.MissingYou, weak.Chosen!.Motive);
+        Assert.Null(weak.Result);
+        Assert.Contains("too weak for letter (needs 0.30)", weak.Reason);
+
+        // A week apart, the same character's reason is big enough.
+        var longAgo = new[] { E(7 * Day, "Talked", "hearts=4") };
+        Assert.Equal(Act.Letter, _engine.Decide(Inputs("Haley", Robin, hearts: 4, diary: longAgo)).Result);
+    }
+
+    [Fact]
     public void Worried_OnlyAboutSomeoneOnceSeen()
     {
         // Five days without news at 6 hearts: worried. No ledger entry at all: nothing to miss yet.

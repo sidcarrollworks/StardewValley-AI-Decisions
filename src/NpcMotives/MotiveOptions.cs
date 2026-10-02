@@ -51,6 +51,24 @@ public sealed class MotiveOptions
         [Act.Interrupt] = 0.80,
     };
 
+    /// <summary>The weakest motive (its intensity, frustration included) worth each act: boldness
+    /// decides who dares, this decides whether the reason is big enough for the act (Sid,
+    /// 2026-10-02, after Haley's letter over "misses you 0.10"). First guesses, to tune.</summary>
+    public Dictionary<Act, double> ActMinStrength { get; set; } = new()
+    {
+        [Act.Emote] = 0.0,
+        [Act.Bubble] = 0.1,
+        [Act.QueuedLine] = 0.15,
+        [Act.WalkUp] = 0.2,
+        [Act.Letter] = 0.3,
+        [Act.AskForHelp] = 0.3,
+        [Act.FarmVisit] = 0.4,
+        [Act.Visit] = 0.4,
+        [Act.Interrupt] = 0.6,
+    };
+
+    public double MinStrengthFor(Act act) => ActMinStrength.TryGetValue(act, out double m) ? m : 0;
+
     public double HostileSurcharge { get; set; } = 0.30;
     public double IntensityWeight { get; set; } = 0.5;
     public double ClearBand { get; set; } = 0.15;
