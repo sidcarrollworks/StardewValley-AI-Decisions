@@ -72,6 +72,20 @@ public sealed class MotiveOptions
     /// isn't held back by the strong reserve (Sid, 2026-10-02).</summary>
     public static bool IsLight(Act act, Motive motive) => act == Act.Emote || (act == Act.Bubble && motive == Motive.Greeting);
 
+    // ---- history at install (docs/spec/vanilla-sources.md; RegardHistory) --------------------
+    /// <summary>Gifts and heart events from before the mod count half: their age is unknown, and
+    /// live regard would have faded since.</summary>
+    public double HistoryFade { get; set; } = 0.5;
+    /// <summary>History's warmth approaches this and never passes it, so play still has room.</summary>
+    public double HistoryMaxWarmth { get; set; } = 0.8;
+    /// <summary>History's grudge stops here, below <see cref="GrudgeThreshold"/>: nobody arrives
+    /// already past the friendship penalty.</summary>
+    public double HistoryMaxGrudge { get; set; } = 0.5;
+    public double HistoryDatingFloor { get; set; } = 0.3;
+    public double HistoryEngagedFloor { get; set; } = 0.4;
+    public double HistoryMarriedFloor { get; set; } = 0.5;
+    public double HistoryDivorcedGrudge { get; set; } = 0.4;
+
     public double MinStrengthFor(Act act) => ActMinStrength.TryGetValue(act, out double m) ? m : 0;
 
     /// <summary>Greeting strength before warmth: someone familiar (2+ hearts, or regard 0.2+), and

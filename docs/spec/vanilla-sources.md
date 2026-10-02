@@ -83,15 +83,28 @@ completion keys), and the order or dates of gifts. So `MissingYou` still waits f
 the mod sees, and no diary entries are invented: history goes into regard only, the lasting part,
 never into the diary's recent events.
 
-- **When:** at `SaveLoaded`, on the game thread, if the save has no `regard` value yet (the
-  install, or a save from before motives). It runs once; the seeded values are then ordinary saved
-  regard, which drifts and changes like any other.
+- **When:** at `SaveLoaded`, on the game thread, once per save: the save-data key
+  `historySeeded` records that it ran (D29). Not "when there is no `regard` yet": saves that ran
+  the motives playtests already have regard, and their history would never be seeded. The seed is
+  **added onto** any regard already there, and leaves out what the mod already saw itself
+  (`NpcHistory.Except(RegardHistory.SeenInDiary(npc, diary))`), so nothing counts twice. The seeded
+  values are then ordinary saved regard, which drifts and changes like any other.
+- **The numbers** (`MotiveOptions`): each gift or heart event leaves the mark the live rule would
+  (`RegardBook.Apply`), halved by `HistoryFade` (0.5), soft-capped at `HistoryMaxWarmth` (0.8)
+  and `HistoryMaxGrudge` (0.5, below the penalty's 0.75); status floors `HistoryDatingFloor` 0.3,
+  `HistoryEngagedFloor` 0.4, `HistoryMarriedFloor` 0.5, and `HistoryDivorcedGrudge` 0.4. With a
+  neutral temperament, one loved gift is about +0.09, and 31 gifts (12 loved, 15 liked, 4 neutral)
+  with 2 heart events about +0.77.
 - **Shadow:** the seed is the mod's own memory, so it changes nothing in the game; it logs
   `[shadow] seeded regard from history: Haley +0.42 (31 gifts: 12 loved, 15 liked, 4 neutral;
   2 heart events)` per villager, and a `regard` playtest record with cause `history`.
-- **Pure core, game reader:** the seeding rule (counts and tastes in, regard out) is a pure
-  function in `src/NpcMotives` with tests; reading `giftedItems`, `eventsSeen` and tastes is a
-  small piece in `ModEntry`.
+- **Pure core, game reader:** the seeding rule is **built** (2026-10-02): `RegardHistory`,
+  `NpcHistory` and `HistorySeed` in `src/NpcMotives`, with tests, and `MotiveRecords.History` for
+  the playtest record. Reading `giftedItems`, `eventsSeen` and tastes is a small piece in
+  `ModEntry` (local, not built yet): per villager, count `giftedItems[npc]` by
+  `GiftNotes.TasteLabel(npc.getGiftTasteForThisItem(item))` (so Stardrop Tea counts as loved, as in
+  play), count the heart events in `eventsSeen` with an `f <Npc>` precondition, and map
+  `Friendship.Status` to `HistoryStatus` (VERIFY the enum's values in the decompile).
 - **To verify** in the decompile: that `giftedItems` keeps gifts from before 1.6 saves were
   converted (old saves), and what it holds for gifts to a spouse.
 

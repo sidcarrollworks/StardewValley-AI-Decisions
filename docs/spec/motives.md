@@ -462,7 +462,10 @@ In `MotiveOptions`, not saved:
   `StrongIntensity` 0.5, `MinMotiveForChoice` 0.2;
 - pacing: `MaxAttemptsPerNpcPerDay` 2, `MaxAttemptsPerDay` 12, `MaxLightActsPerNpcPerDay` 2,
   `MaxQueuedLinesPerDay` 2, `MaxLettersPerDay` 1, `MaxInterruptsPerWeek` 1, `CooldownTicks` 6;
-- grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7.
+- grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7;
+- history at install ([vanilla-sources.md](vanilla-sources.md), D29): `HistoryFade` 0.5,
+  `HistoryMaxWarmth` 0.8, `HistoryMaxGrudge` 0.5, `HistoryDatingFloor` 0.3, `HistoryEngagedFloor`
+  0.4, `HistoryMarriedFloor` 0.5, `HistoryDivorcedGrudge` 0.4.
 `InitiationOptions.BaseGainPerTick`, `HeartsGainPerTick`, `IntentBoost`, `OvernightFactor`,
 `IgnorePenalty` and `RespondRelief` are removed when this lands.
 

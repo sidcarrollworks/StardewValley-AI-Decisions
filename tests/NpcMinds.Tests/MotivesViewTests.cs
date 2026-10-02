@@ -132,6 +132,19 @@ public sealed class MotivesViewTests
     }
 
     [Fact]
+    public void AHistorySeedIsARegardRecordFromZero()
+    {
+        HistorySeed seed = RegardHistory.SeedOf(new NpcHistory("Haley", Loved: 2, HeartEventsSeen: 1), Temperament.Neutral)!;
+        using JsonDocument line = JsonDocument.Parse(PlaytestRecords.ToLine(MotiveRecords.History(seed, Now)));
+        Assert.Equal("regard", line.RootElement.GetProperty("type").GetString());
+        Assert.Equal("Haley", line.RootElement.GetProperty("observer").GetString());
+        Assert.Equal("Player", line.RootElement.GetProperty("subject").GetString());
+        Assert.Equal(0, line.RootElement.GetProperty("before").GetDouble());
+        Assert.Equal(Math.Round(seed.Regard, 4), line.RootElement.GetProperty("after").GetDouble(), 6);
+        Assert.Equal("history: 2 gifts: 2 loved; 1 heart event", line.RootElement.GetProperty("cause").GetString());
+    }
+
+    [Fact]
     public void CloseCallQuestionsGroupAndFollowBoldnessInTheSpreadPanel()
     {
         // Built by the real code, so a wording change breaks this test.

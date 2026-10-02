@@ -38,7 +38,7 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
-| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
+| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
@@ -519,6 +519,7 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 | `StressorTable.Of(entry)` | what a diary kind means: motive, valence, magnitude, per-day decay, plastic share, juiciness, emotion; null for kinds that stir nothing (`Saw`, `TriedToReach`, a neutral gift) |
 | `Stresses.Elastic` | the fading part, from the last 3 days of diary: magnitude x (0.5 + sensitivity) x decay^days; `Heard` at half the original; `SawGift` stirs jealousy only toward a giver the observer is drawn to (the player at 8+ hearts). `Vent` halves the hurt from entries before each hostile act |
 | `RegardBook` | the lasting part, one signed number per (observer, subject), -1..1: retention (Pam 0.2, everyone else 0.5) unless the stress is severe (0.7+ after sensitivity), the yield point (the third ignore, walk-past or brush-off of one subject in 5 days marks 0.3), the 6:00 drift (grudges heal by 0.03 x (0.5 + forgiveness), warmth fades by 0.005), confirmed hearsay at half strength |
+| `RegardHistory` | history at install (D29): `SeedOf`/`Seed` turn what the game remembers (gift counts by taste, heart events seen, relationship status, as an `NpcHistory`) into regard toward the player, added onto what is there; `SeenInDiary` and `NpcHistory.Except` leave out what the mod already noted. Pure; the mod reads the game once per save |
 | `RegardKeeper` | owns the book on the game thread. `OnNoted` is the body of the `MemoryStore.Noting` hook, so each diary write leaves its mark exactly once; hearsay told by the person it happened to is confirmed at once, hearsay from a witness stays elastic. Also `Drift` and `Relieve` |
 | `MoodRoll` | earned mood (the stresses' signed sum) plus 0.3 x (0.5 + sensitivity) x a seeded triangular roll skewed by the emotion biases; 1 day in 40 runs against the character's lean |
 | `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts whose minimum motive strength the intensity reaches (`ActMinStrength`: a letter needs 0.30, an interrupt 0.60), from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
@@ -581,6 +582,11 @@ the worker only as the copied `RegardForPlayer`.
    with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).
 7. `PublishMinds` passes `Motives`, `MotiveStates`, `RegardFor` and the newest line per NPC to
    `MindsInputs`; the cards then show the runner's numbers instead of the page's preview.
+8. History at install (not wired yet): at `SaveLoaded`, after `NewRegard`, if the save data has no
+   `historySeeded`, build an `NpcHistory` per villager from the game, subtract
+   `RegardHistory.SeenInDiary(npc, diary)`, call `RegardHistory.Seed(_regard.Book, ...)`, log each
+   `HistorySeed.Line` as `[shadow]` and append `MotiveRecords.History`; then save
+   `historySeeded = "1"`.
 
 ## Notice-board experiment (`src/NpcBoard`)
 

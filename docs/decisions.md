@@ -444,6 +444,25 @@ carries over, and keeps model calls to the ones whose answer can change.
 
 ---
 
+### D29. History at install seeds once per save, on top of earned regard
+**Decision (Claude, building the seed, 2026-10-02; for Sid's review).** The spec said "seed when
+the save has no `regard` value yet". Sid's own test save already has regard from the motives
+playtests, so that rule would never seed it, and Haley's gifts from before the mod would stay
+invisible. Instead:
+- **Once per save, behind its own flag** (save-data key `historySeeded`), whether or not `regard`
+  exists.
+- **Added onto the regard already there**, not instead of it.
+- **What the mod already saw is left out** (`NpcHistory.Except(RegardHistory.SeenInDiary(...))`):
+  gifts and heart events in the diary already left their mark when they were written. The diary
+  keeps the newest 500 entries per villager, so on a long save a few trimmed ones may count again,
+  at half strength.
+- **The numbers:** each gift and heart event leaves the mark the live rule would, halved
+  (`HistoryFade`, their age is unknown), soft-capped at +0.8 for warmth and -0.5 for a grudge
+  (below the 0.75 penalty threshold, so nobody arrives already past it). Dating, engaged and married
+  set floors of 0.3, 0.4 and 0.5; divorced a lasting grudge of 0.4. One loved gift is about +0.09; a
+  favourite with 31 gifts and 2 heart events about +0.77. Hearts are not used: familiarity already
+  counts them.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
