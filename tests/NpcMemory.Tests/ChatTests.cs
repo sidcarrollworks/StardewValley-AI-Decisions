@@ -251,4 +251,28 @@ public class ChatTests
         // The paired entry is the very line the listener's diary got.
         Assert.Contains(second.DiaryOf("Sam").Entries, e => ReferenceEquals(e, heard));
     }
+
+    [Fact]
+    public void EveryDiaryWriteGoesThroughTheNotingHook_HearsayIncluded()
+    {
+        // The motives' regard keeper listens on Noting (docs/spec/motives.md, "Triggers and game
+        // hooks"): it must see each entry once, with the diary as it was before the entry.
+        var store = new MemoryStore(7);
+        var seen = new List<(string Npc, DiaryEntry Entry, int Before)>();
+        store.Noting = (npc, entry, before) => seen.Add((npc, entry, before.Count));
+
+        store.Note("Abigail", new DiaryEntry(0, Player, "GiftReceived", "taste=Love;name=Sunflower"));
+        Tick(store, 1, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+        Tick(store, 2, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+        Tick(store, 3, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+        store.Chat(3, options: AlwaysChat);
+
+        Assert.Equal(("Abigail", "GiftReceived", 0), (seen[0].Npc, seen[0].Entry.Kind, seen[0].Before));
+        (string listener, DiaryEntry heard, int before) = Assert.Single(seen.Where(s => s.Entry.Kind == "Heard"));
+        Assert.Equal("Sam", listener);
+        Assert.Equal(store.DiaryOf("Sam").Entries.Count - 1, before); // called before the append
+        Assert.Contains(store.DiaryOf("Sam").Entries, e => ReferenceEquals(e, heard));
+        // Every entry in every diary was seen exactly once.
+        Assert.Equal(store.Diaries.Values.Sum(d => d.Entries.Count), seen.Count);
+    }
 }
