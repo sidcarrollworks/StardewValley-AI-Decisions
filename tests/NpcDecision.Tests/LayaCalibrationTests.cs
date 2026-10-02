@@ -77,5 +77,11 @@ public class LayaCalibrationTests
             "should <npc> try to get the player's attention with Emote now?"));
         Assert.Equal(("chattiness", +1), LayaCalibration.TraitForTemplate("does <npc> have news for the player?"));
         Assert.Equal(("forgiveness", -1), LayaCalibration.TraitForTemplate("would <npc> hold this against the player?"));
+        // The motives' walk-up close calls use the eval's wordings, so they compare with it; the
+        // other close calls are unmeasured but still follow boldness.
+        Assert.Equal("close_friendly", LayaCalibration.NormalizeTemplate("would <npc> walk over to greet the player now?"));
+        Assert.Equal("close_hostile", LayaCalibration.NormalizeTemplate("would <npc> confront the player now?"));
+        Assert.Null(LayaCalibration.NormalizeTemplate("would <npc> write the player a letter now?"));
+        Assert.Equal(("boldness", +1), LayaCalibration.TraitForTemplate("would <npc> write the player a letter now?"));
     }
 }

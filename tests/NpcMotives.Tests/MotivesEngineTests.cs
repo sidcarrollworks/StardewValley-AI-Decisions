@@ -163,6 +163,16 @@ public sealed class MotivesEngineTests
     }
 
     [Fact]
+    public void Worried_OnlyAboutSomeoneOnceSeen()
+    {
+        // Five days without news at 6 hearts: worried. No ledger entry at all: nothing to miss yet.
+        MotiveInputs missing = Inputs("Robin", Robin, hearts: 6, daysSinceSighting: 5);
+        Assert.Contains(_engine.Decide(missing).Motives, m => m.Motive == Motive.Worried);
+        MotiveInputs never = missing with { KnowsOfPlayer = false, DaysSinceSighting = MotiveInputBuilder.NeverSeenDays };
+        Assert.DoesNotContain(_engine.Decide(never).Motives, m => m.Motive == Motive.Worried);
+    }
+
+    [Fact]
     public void Deterministic_SameInputsSameDecision()
     {
         MotiveInputs i = Inputs("Shane", Shane, hearts: 8, near: true, diary: new[] { E(Day, "GiftReceived", "taste=Love;item=(O)1") });
@@ -176,6 +186,7 @@ public sealed class MotivesEngineTests
     public void CloseCallPropositionsNameTheAct()
     {
         Assert.Equal("would Shane write the player a cold letter now?", MotivesEngine.CloseCallProposition("Shane", Act.Letter, hostile: true));
-        Assert.Equal("would Pam walk over to the player now?", MotivesEngine.CloseCallProposition("Pam", Act.WalkUp, hostile: false));
+        Assert.Equal("would Pam walk over to greet the player now?", MotivesEngine.CloseCallProposition("Pam", Act.WalkUp, hostile: false));
+        Assert.Equal("would Pam confront the player now?", MotivesEngine.CloseCallProposition("Pam", Act.WalkUp, hostile: true));
     }
 }

@@ -12,6 +12,9 @@ This tool turns such a folder into the per-day tables a PR description wants:
   3. Model calls  grouped by caller + template: calls, fellBack count, median ms
   4. Memory       per-NPC diary census against the 500-entry cap (loud within 10% of it)
   5. Perf         the five slowest ticks (section "tick") and the median ms per section
+  6. Decisions    the motives runner (step 14): outcomes, acts by motive, close calls
+  7. Stresses     diary kinds that stirred a feeling: count, median magnitude, marks left
+  8. Regard       changes by cause, and the strongest grudges in the day's snapshot
 
 Usage:
     python tools/playtest_summary.py <save-folder> [--day <year>-<season>-<day>]
@@ -35,7 +38,10 @@ CAP_WATCH_RATIO = 0.90   # "within 10% of the cap" => call it out loudly
 DAY_FILE_RE = re.compile(r"^(\d+)-([A-Za-z]+)-(\d+)\.jsonl$")
 SEASON_ORDER = {"spring": 0, "summer": 1, "fall": 2, "winter": 3}
 KIND_ORDER = ("attempt", "blocked", "ignored", "completed")  # preferred column order
-KNOWN_TYPES = ("presence", "ladder", "gossip", "game", "plan", "memory", "model", "perf")
+KNOWN_TYPES = ("presence", "ladder", "gossip", "game", "plan", "memory", "model", "perf",
+               "decision", "stress", "regard")
+DECISION_KINDS = ("act", "pass", "blocked", "responded", "ignored", "expired", "grudge")
+GRUDGE_SHOWN = -0.3      # regard at or below this shows in the Regard section's snapshot
 TEMPLATE_WIDTH = 64
 
 
@@ -279,7 +285,89 @@ def perf_section(records):
     return lines
 
 
+def decision_section(records):
+    """The motives runner: outcomes by kind, acts by motive and act, and the close calls."""
+    if not records:
+        return ["  (no decision records)"]
+    kinds = Counter(text(record, "kind").lower() for record in records)
+    ordered = sorted(kinds, key=lambda k: (
+        DECISION_KINDS.index(k) if k in DECISION_KINDS else len(DECISION_KINDS), k))
+    lines = ["  outcomes: " + ", ".join("{} {}".format(kind, kinds[kind]) for kind in ordered)]
+    acts = [record for record in records if text(record, "kind").lower() == "act"]
+    if acts:
+        pairs = Counter((text(r, "motive"), ("hostile " if r.get("hostile") else "") + text(r, "act"))
+                        for r in acts)
+        rows = [[motive, act, count] for (motive, act), count
+                in sorted(pairs.items(), key=lambda kv: (-kv[1], kv[0]))]
+        lines.append("  acts by motive:")
+        lines += table(["motive", "act", "count"], rows, indent="    ", right=(2,))
+        who = Counter(text(r, "npc") for r in acts)
+        lines.append("  most acts: " + ", ".join(
+            "{} {}".format(npc, count) for npc, count in sorted(who.items(), key=lambda kv: (-kv[1], kv[0]))[:8]))
+    asked = [r for r in records if number(r, "modelP") is not None and text(r, "kind").lower() in ("act", "pass")]
+    if asked:
+        said_yes = sum(1 for r in asked if text(r, "kind").lower() == "act" and text(r, "call") == "close")
+        shifts = [number(r, "tilted") - number(r, "modelP") for r in asked if number(r, "tilted") is not None]
+        lines.append("  close calls: {} asked, {} acted on; median Laya p {:.2f}, median mood tilt {}".format(
+            len(asked), said_yes, statistics.median([number(r, "modelP") for r in asked]),
+            "-" if not shifts else "{:+.3f}".format(statistics.median(shifts))))
+    blocked = Counter(text(r, "detail") for r in records if text(r, "kind").lower() == "blocked")
+    if blocked:
+        lines.append("  blocked by: " + ", ".join(
+            "{} x{}".format(reason, count) for reason, count in sorted(blocked.items(), key=lambda kv: (-kv[1], kv[0]))))
+    grudges = [r for r in records if text(r, "kind").lower() == "grudge"]
+    for r in grudges:
+        lines.append("  would lose friendship: {} (grudge {}; {})".format(
+            text(r, "npc"), text(r, "grudge"), clip(text(r, "detail"), 80)))
+    return lines
+
+
+def stress_section(records):
+    """Diary kinds that stirred a feeling: count, median magnitude, and lasting marks."""
+    if not records:
+        return ["  (no stress records)"]
+    kinds = {}
+    for record in records:
+        entry = kinds.setdefault(text(record, "kind"), {"n": 0, "mag": [], "marks": 0, "severe": 0, "yield": 0})
+        entry["n"] += 1
+        entry["mag"].append(number(record, "magnitude"))
+        if (number(record, "plastic") or 0) != 0:
+            entry["marks"] += 1
+        entry["severe"] += 1 if record.get("severe") else 0
+        entry["yield"] += 1 if record.get("yieldCrossed") else 0
+    def median2(values):
+        values = [v for v in values if v is not None]
+        return "{:.2f}".format(statistics.median(values)) if values else "-"
+    rows = [[kind, e["n"], median2(e["mag"]), e["marks"], e["severe"], e["yield"]]
+            for kind, e in sorted(kinds.items(), key=lambda kv: (-kv[1]["n"], kv[0]))]
+    return ["  by kind:"] + table(["kind", "count", "median magnitude", "marks", "severe", "yield"],
+                                  rows, indent="    ", right=(1, 2, 3, 4, 5))
+
+
+def regard_section(records):
+    """Regard changes by cause (the snapshot aside) and the strongest grudges in the snapshot."""
+    if not records:
+        return ["  (no regard records)"]
+    changes = [r for r in records if text(r, "cause") != "snapshot"]
+    lines = []
+    if changes:
+        causes = Counter(text(r, "cause").split(" (")[0] for r in changes)
+        lines.append("  changes: " + ", ".join(
+            "{} x{}".format(cause, count) for cause, count in sorted(causes.items(), key=lambda kv: (-kv[1], kv[0]))))
+    snapshot = [r for r in records if text(r, "cause") == "snapshot"]
+    if snapshot:
+        low = sorted((r for r in snapshot if (number(r, "after") or 0) <= GRUDGE_SHOWN),
+                     key=lambda r: number(r, "after") or 0)
+        lines.append("  snapshot: {} pair(s); {} at or below {}".format(len(snapshot), len(low), GRUDGE_SHOWN))
+        for r in low[:8]:
+            lines.append("    {} -> {}: {:+.2f}".format(text(r, "observer"), text(r, "subject"), number(r, "after") or 0))
+    return lines or ["  (no regard changes)"]
+
+
 SECTIONS = (("Ladder", "ladder", ladder_section),
+            ("Decisions", "decision", decision_section),
+            ("Stresses", "stress", stress_section),
+            ("Regard", "regard", regard_section),
             ("Gossip", "gossip", gossip_section),
             ("Model calls", "model", model_section),
             ("Memory", "memory", memory_section),

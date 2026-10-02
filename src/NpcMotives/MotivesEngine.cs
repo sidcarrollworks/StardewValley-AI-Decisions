@@ -82,8 +82,10 @@ public sealed class MotivesEngine
         if (!i.HasMetPlayer && i.KnowsOfPlayer)
             add(Motive.Curious, (i.NewcomerWeek ? 0.6 : 0.3) * (0.5 + t.Curiosity), "heard of the newcomer");
 
-        // Worried: 4+ hearts and no sighting or tip for 3+ days.
-        if (hearts >= 4 && i.DaysSinceSighting >= 3)
+        // Worried: 4+ hearts and no sighting or tip for 3+ days. Only about someone it has
+        // seen or heard of: with no ledger entry at all there is nothing to miss yet (a save
+        // from before the mod kept memory has hearts but no sightings).
+        if (hearts >= 4 && i.KnowsOfPlayer && i.DaysSinceSighting >= 3)
             add(Motive.Worried, Math.Min(1, (i.DaysSinceSighting - 2) / 5.0) * (0.5 + t.Fear),
                 $"no news of the player for {i.DaysSinceSighting} days");
 
@@ -312,7 +314,9 @@ public sealed class MotivesEngine
             Act.Bubble => hostile ? "say something sharp to the player" : "call out to the player",
             Act.QueuedLine => hostile ? "tell the player off the next time they talk" : "bring something up the next time the player talks to them",
             Act.Letter => hostile ? "write the player a cold letter" : "write the player a letter",
-            Act.WalkUp => hostile ? "walk up and confront the player" : "walk over to the player",
+            // The walk-up wordings are the spread eval's close_friendly and close_hostile, so the
+            // viewer's spread panel can compare them with data/laya-calibration.json.
+            Act.WalkUp => hostile ? "confront the player" : "walk over to greet the player",
             Act.Visit => "go looking for the player",
             Act.Interrupt => "interrupt the player",
             Act.AskForHelp => "ask the player for help",

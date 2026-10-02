@@ -8,8 +8,7 @@ namespace NpcMinds.Playtest;
 /// One line of the playtest log (docs/spec/debug-tools.md, "Playtest log"). Every record type
 /// is one sealed record with a <see cref="Type"/> discriminator; adding a type later is one
 /// record class here and one <c>Append</c>/<c>QueueFromWorker</c> call at the producer. The
-/// motives-only types (decision, stress, regard, social) are deliberately absent until the
-/// motives PRs.
+/// motives types (decision, stress, regard) are in MotiveRecords.cs; social waits for town life.
 /// </summary>
 public abstract record PlaytestRecord
 {

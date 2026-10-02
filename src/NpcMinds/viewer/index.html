@@ -58,6 +58,17 @@
   .darebar .cost { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
   .dareline { font-size: 12px; color: var(--muted); margin-top: 3px; }
   .dareline b { color: var(--ink); font-weight: 600; }
+  /* Motives (step 14): the runner's latest weighing, from the snapshot. */
+  .mind { font-size: 12px; color: var(--muted); }
+  .mind .mline { margin-top: 2px; }
+  .mind .mline b { color: var(--ink); font-weight: 600; }
+  .dare .hostile { color: var(--bad); }
+  .dare .close { color: var(--warm); }
+  .dare .clear { color: var(--accent); }
+  .mind .last { font-style: italic; }
+  .mlist { list-style: none; margin: 3px 0 0; padding: 0; }
+  .mlist li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px; }
+  .mlist .score { font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; }
   .legacy { margin: 8px 0 4px; padding-top: 6px; border-top: 1px dashed var(--line); }
   .legacy .tag { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
   .urge { margin: 4px 0 4px; }
@@ -137,12 +148,13 @@
   <span class="stat" id="model"></span>
   <span class="stat" id="ladder"></span>
   <span class="stat" id="plan"></span>
-  <span class="stat" title="docs/spec/motives.md, D24: an NPC acts on a motive when boldness + familiarity + feeling reaches the act's cost. Until step 14 is built, attempts still come from the urge ladder.">motives: designed, not built · attempts still use the urge ladder</span>
+  <span class="stat" id="motivesStat" title="docs/spec/motives.md, D24: an NPC acts on a motive when boldness + familiarity + feeling reaches the act's cost. In shadow, the urge ladder still runs beside it.">motives: not running yet · attempts use the urge ladder</span>
   <span class="controls">
     <span class="stat"><span class="dot" id="conn"></span><span id="age">connecting</span></span>
     <input type="search" id="filter" placeholder="Filter villagers" aria-label="Filter villagers">
     <select id="sort" aria-label="Sort">
       <option value="changed">Recently changed</option>
+      <option value="feeling">Sort by feeling (motives)</option>
       <option value="boldness">Sort by boldness</option>
       <option value="hearts">Sort by hearts</option>
       <option value="urge">Sort by urge (current ladder)</option>
@@ -194,10 +206,10 @@ function pct(v) { return isFinite(v) ? Math.round(v * 100) + "%" : "n/a"; }
 function fmt(v, d = 2) { return isFinite(v) ? Number(v).toFixed(d) : "n/a"; }
 function hearts(n) { return n > 0 ? "♥ " + n : ""; }
 
-// The motives act rule, previewed for display only (docs/spec/motives.md, "The act rule", D24):
-// an NPC can afford an act when boldness + familiarity + 0.5 x feeling reaches its cost. These
-// are the spec's first-guess costs; when step 14 lands, the snapshot should carry the real
-// numbers and this table should go. Nothing here feeds a decision.
+// The motives act rule (docs/spec/motives.md, "The act rule", D24): an NPC can afford an act when
+// boldness + familiarity + 0.5 x feeling reaches its cost. When the snapshot carries the motives
+// runner's numbers (npc.motives) the card shows those; this table and daring() are the preview
+// for a mod build without the runner. Nothing here feeds a decision.
 const ACTS = [["Emote", 0.20], ["Letter", 0.25], ["Queued line", 0.30], ["Bubble", 0.35],
               ["Farm visit", 0.45], ["Walk up", 0.50], ["Visit", 0.70], ["Interrupt", 0.80]];
 const DARE_MAX = 1.2, FAMILIARITY_PER_HEART = 0.03, STRONG_FEELING = 0.25; // 0.5 x intensity 0.5
@@ -211,8 +223,21 @@ function daring(npc) {
   const base = b + FAMILIARITY_PER_HEART * Math.max(0, Math.min(10, npc.hearts));
   return { boldness: b, base, reach: base + STRONG_FEELING };
 }
+function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function signed(v) { return isFinite(v) ? (v >= 0 ? "+" : "") + Number(v).toFixed(2) : "n/a"; }
 function loadPref(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
 function savePref(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+// Ticks on the daring bar at each act's cost; rebuilt only when the costs change.
+function setCosts(f, acts) {
+  const key = JSON.stringify(acts);
+  if (f.costKey === key) return;
+  f.costKey = key;
+  for (const c of f.dbar.querySelectorAll(".cost")) c.remove();
+  for (const [label, cost] of acts) {
+    const c = el("div", "cost"); c.style.left = Math.min(100, cost / DARE_MAX * 100) + "%"; c.title = label + " costs " + fmt(cost); f.dbar.append(c);
+  }
+}
 
 function makeCard(npc, s) {
   const root = el("article", "card");
@@ -237,12 +262,14 @@ function makeCard(npc, s) {
   const dbar = el("div", "darebar");
   const dbase = el("div", "base"), dreach = el("div", "reach");
   dbar.append(dbase, dreach);
-  for (const [label, cost] of ACTS) {
-    const c = el("div", "cost"); c.style.left = (cost / DARE_MAX * 100) + "%"; c.title = label + " costs " + cost; dbar.append(c);
-  }
-  dbar.title = "Daring preview (motives.md, D24): boldness + 0.03 per heart, striped to + a strong feeling. Ticks are act costs. Display only.";
+  dbar.title = "Daring (motives.md, D24): boldness + familiarity, striped to + the feeling's intensity. Ticks are act costs. Display only.";
   const dline = el("div", "dareline");
-  dare.append(dbar, dline);
+  // Motives (step 14): what the runner last weighed for this NPC; hidden until the mod sends it.
+  const mind = el("div", "mind");
+  const mmood = el("div", "mline"), mlist = el("ul", "mlist"), mstate = el("div", "mline"), mlast = el("div", "mline last");
+  mind.append(mmood, mlist, mstate, mlast);
+  mind.hidden = true;
+  dare.append(dbar, dline, mind);
 
   const legacy = el("div", "legacy");
   legacy.append(el("span", "tag", "Current ladder (urge, until motives replace it)"));
@@ -298,12 +325,11 @@ function makeCard(npc, s) {
   const diary = el("ul", "diary");
   det.append(sum, diary);
 
-  root.append(who);
-  if (daring(npc)) root.append(dare);
-  root.append(dl, legacy);
+  root.append(who, dare, dl, legacy);
   if (npc.temperament) root.append(temper);
   root.append(det);
-  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary, dbase, dreach, dline }, prev: null };
+  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary,
+                           dare, dbar, dbase, dreach, dline, mind, mmood, mlist, mstate, mlast, costKey: null }, prev: null };
 }
 
 function updateCard(c, npc, first) {
@@ -314,12 +340,50 @@ function updateCard(c, npc, first) {
   f.openBadge.hidden = !npc.openStep;
   f.openBadge.textContent = npc.openStep ? npc.openStep + " open " + (npc.openForTicks * 10) + " min" : "";
 
-  const d = daring(npc);
-  if (d) {
-    const w = v => Math.max(0, Math.min(1, v / DARE_MAX)) * 100;
+  const d = daring(npc), m = npc.motives;
+  f.dare.hidden = !d && !m;
+  const w = v => Math.max(0, Math.min(1, v / DARE_MAX)) * 100;
+  if (m) {
+    // The runner's real numbers: boldness + familiarity, striped to + intensity; ticks at the costs it weighed.
+    const base = m.boldness + m.familiarity, reach = base + m.intensity;
+    f.dbase.style.width = w(base) + "%";
+    f.dreach.style.left = w(base) + "%";
+    f.dreach.style.width = Math.max(0, w(reach) - w(base)) + "%";
+    setCosts(f, m.acts.length ? m.acts.map(a => [(a.hostile ? "hostile " : "") + a.act, a.cost]) : ACTS);
+    let text;
+    if (!m.chosen) text = "no motive, no act · boldness <b>" + fmt(m.boldness) + "</b>";
+    else {
+      const best = m.acts.find(a => a.act === m.best);
+      const verdict = !m.best ? esc(m.reason)
+        : "would <b class=\"" + (best && best.hostile ? "hostile" : "") + "\">" + (best && best.hostile ? "hostile " : "") + esc(m.best) + "</b> "
+          + (m.call === "close" ? "<span class=\"close\">close call</span>" : "<span class=\"clear\">clear yes</span>")
+          + (best ? " (" + fmt(best.cost + best.margin) + " vs " + fmt(best.cost) + ")" : "");
+      text = "<b class=\"" + (m.net < 0 ? "hostile" : "") + "\">" + esc(m.chosen) + " " + fmt(m.chosenStrength) + "</b> toward you · " + verdict;
+    }
+    if (f.dline.innerHTML !== text) { if (!first) { flash(f.dline); changed = true; } f.dline.innerHTML = text; }
+    f.mind.hidden = false;
+    f.mmood.innerHTML = "outlook <b>" + signed(m.outlook) + "</b> (earned " + signed(m.earned) + ", roll " + signed(m.roll) + ")"
+      + (m.tailDay ? " · an off day" : "") + " · net " + signed(m.net) + " · regard " + signed(m.regard)
+      + (m.regard <= -0.75 ? " <span class=\"hostile\">grudge</span>" : "");
+    const listKey = JSON.stringify(m.motives);
+    if (!p || !p.motives || listKey !== JSON.stringify(p.motives.motives)) {
+      f.mlist.replaceChildren();
+      for (const x of m.motives) { const li = el("li"); li.append(el("span", "score", fmt(x.strength)), el("span", "", x.motive + " · " + x.source)); f.mlist.append(li); }
+    }
+    const state = [m.attemptsToday + " tried today"];
+    if (m.ignoredToday) state.push(m.ignoredToday + " ignored");
+    if (m.frustration) state.push("frustration " + signed(m.frustration));
+    if (m.openAct) state.push(m.openAct + " open");
+    if (m.waitingAct) state.push(m.waitingAct + " waiting");
+    f.mstate.textContent = state.join(" · ");
+    f.mlast.textContent = m.lastLine || "";
+    f.mlast.hidden = !m.lastLine;
+  } else if (d) {
+    f.mind.hidden = true;
     f.dbase.style.width = w(d.base) + "%";
     f.dreach.style.left = w(d.base) + "%";
     f.dreach.style.width = (w(d.reach) - w(d.base)) + "%";
+    setCosts(f, ACTS);
     const top = v => { const ok = ACTS.filter(a => a[1] <= v); return ok.length ? ok[ok.length - 1][0] : null; };
     const now = top(d.base), strong = top(d.reach);
     const text = "dares <b>" + fmt(d.base) + "</b> (boldness " + fmt(d.boldness) + " + hearts " + fmt(d.base - d.boldness) + ")"
@@ -389,6 +453,9 @@ function render(s) {
   $("model").innerHTML = model;
   $("ladder").innerHTML = `ladder backlog <b>${st.backlog}</b> · dropped <b>${st.dropped}</b>`;
   $("plan").innerHTML = `overnight plan <b>${s.planState}</b>`;
+  $("motivesStat").innerHTML = s.npcs.some(n => n.motives)
+    ? "motives: <b>shadow</b> · the urge ladder still runs beside it"
+    : "motives: not running yet · attempts use the urge ladder";
 
   const seen = new Set();
   for (const npc of s.npcs) {
@@ -516,13 +583,16 @@ function layout() {
   const q = $("filter").value.trim().toLowerCase();
   const onlyKnown = $("onlyKnown").checked;
   const sort = $("sort").value;
-  const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q)) && (!onlyKnown || n.lastSeen || n.hearts > 0 || n.urge > 0));
+  const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q))
+    && (!onlyKnown || n.lastSeen || n.hearts > 0 || n.urge > 0 || (n.motives && n.motives.chosen)));
   const num = v => (isFinite(v) ? v : -1);
+  const feel = n => (n.motives && n.motives.chosen ? n.motives.chosenStrength : -1); // the motive it would act on
   const by = {
     name: (a, b) => a.name.localeCompare(b.name),
     changed: (a, b) => (changedAt.get(b.name) || 0) - (changedAt.get(a.name) || 0),
     boldness: (a, b) => num(traitOf(b, "boldness")) - num(traitOf(a, "boldness")),
     hearts: (a, b) => b.hearts - a.hearts,
+    feeling: (a, b) => feel(b) - feel(a),
     urge: (a, b) => b.urge - a.urge,
   }[sort] || ((a, b) => 0);
   list.sort((a, b) => by(a, b) || a.name.localeCompare(b.name));

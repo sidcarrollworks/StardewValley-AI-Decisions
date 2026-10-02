@@ -14,6 +14,7 @@
     <ProjectReference Include="..\NpcIntents\NpcIntents.csproj" />
     <ProjectReference Include="..\NpcInitiation\NpcInitiation.csproj" />
     <ProjectReference Include="..\NpcTemperament\NpcTemperament.csproj" />
+    <ProjectReference Include="..\NpcMotives\NpcMotives.csproj" />
   </ItemGroup>
 
   <ItemGroup>

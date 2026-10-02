@@ -54,7 +54,8 @@ public sealed record NpcMind(
     IReadOnlyList<NewsPick> NewsTonight, // today's most newsworthy entries: tonight's likely picks
     IReadOnlyList<DiaryLine> Diary, // newest first
     int DiaryCount,
-    TemperamentView? Temperament = null); // the seed temperament (PR #11); null when not loaded
+    TemperamentView? Temperament = null,  // the seed temperament (PR #11); null when not loaded
+    MotivesView? Motives = null);         // the motives runner's latest weighing (step 14); null before it runs
 
 /// <summary>A character's seed temperament for display (docs/spec/temperament.md): six behaviour
 /// traits and six emotion biases, 0..1 with 0.5 typical, plus the game's own Data/Characters words
@@ -68,6 +69,41 @@ public sealed record TemperamentView(
     bool Seeded);
 
 public sealed record TraitValue(string Name, double Value);
+
+/// <summary>
+/// One NPC's motives as the runner last weighed them (docs/spec/debug-tools.md, "Viewer, when
+/// motives land"): every motive toward the player with its source, the net feeling, today's mood,
+/// regard, and the act rule's parts for the motive it would act on. Display only.
+/// </summary>
+public sealed record MotivesView(
+    IReadOnlyList<MotiveView> Motives,   // strongest first
+    double Net,                          // + friendly, - hostile
+    double Outlook,
+    double Earned,
+    double Roll,
+    bool TailDay,                        // a rare out-of-character day
+    double Regard,                       // saved regard toward the player; its negative part is the grudge
+    string? Chosen,                      // the motive it would act on now; null: no motive, no act
+    double? ChosenStrength,
+    double Boldness,
+    double Familiarity,
+    double Intensity,                    // the intensity term (0.5 x the feeling, plus frustration)
+    double Frustration,
+    IReadOnlyList<ActView> Acts,         // every act it weighed, most expensive first
+    string? Best,                        // the act the rule picked: a clear yes or the close call to ask
+    string? Call,                        // "clear" or "close"; null when nothing is picked
+    string Reason,
+    int AttemptsToday,
+    int IgnoredToday,
+    string? OpenAct,                     // an in-person attempt waiting for the player
+    string? WaitingAct,                  // a letter or queued line waiting for the player
+    string? LastLine);                   // the newest [shadow] motives line about this NPC
+
+public sealed record MotiveView(string Motive, double Strength, string Source);
+
+/// <summary>One act the rule weighed: its cost (with the hostile surcharge), the margin
+/// (effective boldness minus cost), and the call: "yes", "close" or "no".</summary>
+public sealed record ActView(string Act, bool Hostile, double Cost, double Margin, string Call);
 
 public sealed record LastSeenView(string Detail, string? Place, int AgeTicks, int Hops, string? ToldBy, string Summary);
 
