@@ -73,6 +73,22 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
     /// <summary>How many question calls failed (timeouts, HTTP errors, malformed answers).</summary>
     public long CallFallbacks => Interlocked.Read(ref _stats.Fallbacks);
 
+    /// <summary>Question calls that failed in a row since the last one that worked. A server can
+    /// answer <c>GET /health</c> with "ok" while every question fails (playtest 2026-10-02: 249
+    /// calls, 249 fallbacks, 4 ms each, the health dot green), so the mod watches this too.</summary>
+    public long ConsecutiveFailures => Interlocked.Read(ref _stats.ConsecutiveFailures);
+
+    /// <summary>The newest failure's reason ("LayaException: HTTP 500 ..."), cut to 200 characters;
+    /// null until a call fails. Thread-safe.</summary>
+    public string? LastError
+    {
+        get
+        {
+            lock (_stats.Lock)
+                return _stats.LastError;
+        }
+    }
+
     /// <summary>The median and p95 of the last 128 call latencies in milliseconds (0, 0 with no
     /// calls yet). Thread-safe snapshot.</summary>
     public (double MedianMs, double P95Ms) Latency()
@@ -92,6 +108,8 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
     {
         public long Calls;
         public long Fallbacks;
+        public long ConsecutiveFailures;
+        public string? LastError;
         public readonly object Lock = new();
         public readonly List<double> LatencyMs = new();
     }
@@ -291,10 +309,15 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
                 RecordLatency(watch.Elapsed.TotalMilliseconds, failed: false);
             return answers;
         }
-        catch
+        catch (Exception ex)
         {
             if (count)
+            {
                 RecordLatency(watch.Elapsed.TotalMilliseconds, failed: true);
+                string reason = $"{ex.GetType().Name}: {ex.Message}";
+                lock (_stats.Lock)
+                    _stats.LastError = reason.Length > 200 ? reason[..200] : reason;
+            }
             throw;
         }
     }
@@ -303,7 +326,12 @@ public sealed class LayaDecisionClient : IDecisionClient, IBatchDecisionClient, 
     {
         Interlocked.Increment(ref _stats.Calls);
         if (failed)
+        {
             Interlocked.Increment(ref _stats.Fallbacks);
+            Interlocked.Increment(ref _stats.ConsecutiveFailures);
+        }
+        else
+            Interlocked.Exchange(ref _stats.ConsecutiveFailures, 0);
         lock (_stats.Lock)
         {
             _stats.LatencyMs.Add(ms);

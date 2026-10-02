@@ -389,13 +389,16 @@ public sealed class MindsSnapshotBuilder
         if (lead is null)
             return null;
         string place = lead.Place is null ? "" : PlaceNames.Display(lead.Place);
+        // Without a place name the summary leaves it out (playtest 2026-10-02 showed
+        // "you're right here ()" and ": saw you there an hour ago").
+        string at = string.IsNullOrWhiteSpace(place) ? "" : place + ": ";
         string summary = lead.Source switch
         {
-            WhereaboutsSource.SeenNow => $"you're right here ({place})",
-            WhereaboutsSource.SeenToday => $"{place}: saw you there {Ago(lead.AgeTicks)}",
-            WhereaboutsSource.Told when lead.HopCount > 1 => $"{place}: {lead.ToldBy} heard you were there {Ago(lead.AgeTicks)}",
-            WhereaboutsSource.Told => $"{place}: {lead.ToldBy} saw you there {Ago(lead.AgeTicks)}",
-            WhereaboutsSource.Habit => $"{place}: you're usually there at this hour ({lead.HabitShare * 100:0}%, evidence {lead.Evidence:0})",
+            WhereaboutsSource.SeenNow => string.IsNullOrWhiteSpace(place) ? "you're right here" : $"you're right here ({place})",
+            WhereaboutsSource.SeenToday => $"{at}saw you there {Ago(lead.AgeTicks)}",
+            WhereaboutsSource.Told when lead.HopCount > 1 => $"{at}{lead.ToldBy} heard you were there {Ago(lead.AgeTicks)}",
+            WhereaboutsSource.Told => $"{at}{lead.ToldBy} saw you there {Ago(lead.AgeTicks)}",
+            WhereaboutsSource.Habit => $"{at}you're usually there at this hour ({lead.HabitShare * 100:0}%, evidence {lead.Evidence:0})",
             _ => "no idea where you are",
         };
         return new LeadView(lead.Source.ToString(), lead.Place, summary);

@@ -540,8 +540,9 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 - Used up: any face-to-face act is the day's greeting; news and thanks are delivered by an in-person
   act or a letter at once, by a queued line only when the player comes to talk; an emote delivers
   nothing; acting on hurt vents it.
-- The model is asked only to pick among motives (when 2+ have strength 0.2+, at most 5; fallback the
-  strongest) and on a close call. A question answered "no" is not asked again until the situation
+- The model is asked only to pick among motives (when 2+ have strength 0.2+ and could act now, at
+  most 5; fallback the strongest; a single actionable one goes without a question) and on a close
+  call. A question answered "no" is not asked again until the situation
   changes or 6 ticks pass.
 - The grudge: once a day, an NPC whose regard for the player is at or below -0.75 is asked "would
   <npc> hold this against the player?", and a seeded draw against the answer decides. A yes is a

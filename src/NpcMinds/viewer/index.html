@@ -62,7 +62,7 @@
   .mind { font-size: 12px; color: var(--muted); }
   .mind .mline { margin-top: 2px; }
   .mind .mline b { color: var(--ink); font-weight: 600; }
-  .dare .hostile { color: var(--bad); }
+  .dare .hostile, .stat .hostile { color: var(--bad); }
   .dare .close { color: var(--warm); }
   .dare .clear { color: var(--accent); }
   .mind .last { font-style: italic; }
@@ -448,8 +448,11 @@ function render(s) {
   $("waiting").hidden = s.npcs.length > 0;
   $("clock").textContent = s.date ? s.date + " · " + s.time : "no save loaded";
   const st = s.stats;
-  let model = `<span class="dot ${s.modelUp ? "ok" : "bad"}"></span>${s.backend}`;
+  // A server can pass its health check while every question fails (playtest 2026-10-02):
+  // the mod then sends the newest failure, and the dot goes red with the reason.
+  let model = `<span class="dot ${s.modelUp && !st.modelError ? "ok" : "bad"}"></span>${s.backend}`;
   if (st.calls >= 0) model += ` · <b>${st.calls}</b> calls · <b>${st.fallbacks}</b> fallbacks · median <b>${Math.round(st.medianMs)}</b> ms · p95 <b>${Math.round(st.p95Ms)}</b> ms`;
+  if (st.modelError) model += ` · <span class="hostile" title="${esc(st.modelError)}">questions failing: ${esc(st.modelError.slice(0, 80))}</span>`;
   $("model").innerHTML = model;
   $("ladder").innerHTML = `ladder backlog <b>${st.backlog}</b> · dropped <b>${st.dropped}</b>`;
   $("plan").innerHTML = `overnight plan <b>${s.planState}</b>`;

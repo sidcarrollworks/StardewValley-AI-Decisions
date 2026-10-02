@@ -121,11 +121,21 @@ public sealed class MotivesRunner
             // situation changes or a cooldown passes: the same inputs would give the same answer.
             MotiveDecision d = preview;
             string? choice = null;
+            // Only motives that could act now go to the model: asking it to pick one the act rule
+            // would then pass on wastes the call (playtest 2026-10-02: Emily was asked "news or
+            // hurt?" every hour while both passed on the day's attempts reserve).
             List<MotiveStrength> pool = _engine.Candidates(i)
                 .Where(m => m.Strength >= _o.MinMotiveForChoice)
                 .OrderByDescending(m => m.Strength).ThenBy(m => (int)m.Motive)
+                .Where(m => _engine.DecideFor(i, m).Result is not null)
                 .Take(Math.Max(1, _o.MaxChoiceOptions))
                 .ToList();
+            if (pool.Count == 1 && pool[0].Motive != preview.Chosen.Motive)
+            {
+                // The strongest can't act but another can: that one goes, no question needed.
+                d = _engine.DecideFor(i, pool[0]);
+                _latest[i.Npc] = d;
+            }
             string askKey = $"{string.Join(",", pool.Select(m => m.Motive))}|{preview.Chosen.Motive}|{preview.Pending?.Act}";
             if (s.LastAskedKey == askKey && s.LastAskedTick is { } askedAt && absoluteTick - askedAt < _o.CooldownTicks)
                 continue;

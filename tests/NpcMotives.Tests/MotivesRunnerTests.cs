@@ -204,6 +204,25 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void TheModelOnlyChoosesAmongMotivesThatCouldAct()
+    {
+        // Robin has news and misses the player, but the town has only its 2 reserved attempts
+        // left and neither motive is strong enough for them: nothing could act, so the model is
+        // never asked to pick between them.
+        var model = new Scripted();
+        var runner = new MotivesRunner(model, new MotiveOptions { MaxAttemptsPerDay = 2, StrongIntensity = 2 });
+        MotiveInputs robin = Inputs("Robin", Robin, hearts: 4, near: true, news: 4, diary: new[] { TalkedDaysAgo(5) });
+        MotiveEvent pass = Assert.Single(runner.Tick(Now, new[] { robin }));
+        Assert.Equal("Pass", pass.Kind);
+        Assert.Equal(0, model.ChooseCalls);
+
+        // With room in the day, both can act, and the model picks.
+        var open = new Scripted();
+        new MotivesRunner(open).Tick(Now, new[] { robin });
+        Assert.Equal(1, open.ChooseCalls);
+    }
+
+    [Fact]
     public void AGrudgeAsksOnceADay_AndPenalizesAtMostOnceAWeek()
     {
         // Out of reach of every act (no hearts, not seen today), so only the grudge question runs.

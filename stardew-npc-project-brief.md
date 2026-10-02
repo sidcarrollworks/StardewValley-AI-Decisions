@@ -98,6 +98,8 @@ First motives playtest (2026-10-02, spring, BUNKO save): the runner ran beside t
 
 Notice-board experiment (2026-10-02, roadmap step 21, first stage): `src/NpcBoard` asks how each villager would react to a note in the player's own words, as a typed choice over six reactions (amused, touched, curious, annoyed, offended, indifferent) with the note as quoted data, and maps the reaction to an emote and a templated line; `sidecar/eval/run_notes.py` runs it against a local Laya for every villager's card and reports how the town split and whether the villagers differ. 859 tests green.
 
+Long playtest (2026-10-02, spring 18 to summer 1): from spring 20 every Laya question failed in about 4 ms while its health check kept saying ok, so the mod used fallbacks for days without saying so. The Laya client now keeps the failures in a row and the newest reason, and the viewer can show "questions failing" in red (the mod passes it; local wiring). The motives runner now asks the model to pick only among motives that could act, after Emily was asked the same "news or hurt?" question every in-game hour. 862 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

@@ -162,6 +162,11 @@ Planned:
   slow one.
 - **Short-circuit when down:** while the last check failed, `ResilientDecisionClient` falls back
   immediately without an HTTP attempt, so a dead server doesn't cost a full timeout per call.
+- **Healthy but failing** (playtest 2026-10-02): the server can answer `/health` with "ok" while
+  every question fails (249 calls, 249 fallbacks, 4 ms each, the viewer's dot still green).
+  `LayaDecisionClient.ConsecutiveFailures` and `LastError` keep the failures in a row and the
+  newest reason; the mod passes the reason to the viewer (`MindsStats.ModelError`, red "questions
+  failing") and logs a warning once when 5 fail in a row (local wiring, not done yet).
 - **Pass the budget token** into `LayaDecisionClient` so the planning budget cancels in-flight HTTP
   calls (`docs/decisions.md`, "Laya and the budget").
 - **Launching (decided 2026-09-30):** manual while we develop (`sidecar/run-laya.ps1`); a public
