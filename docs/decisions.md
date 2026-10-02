@@ -428,6 +428,10 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **Light acts are paced apart** (Sid, 2026-10-02, after the long playtest showed 3 to 5 acts a
+  day, the reserve the top reason for a pass): an emote, or a bubble that only greets, uses none of
+  the day's attempts and has its own cap of 2 per NPC; the town cap went from 6 to 12, to come
+  down after testing if the town is too busy.
 - **The grudge is drawn**, seeded, against the model's answer, once a day at most; the 0.3 rise in
   regard after it applies in shadow too (the mod's memory, not the game's friendship), or the log
   would repeat the same would-be penalty every week.

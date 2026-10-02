@@ -76,7 +76,7 @@ public sealed record MotiveInputs(
     bool GreetedToday,                         // a Greeting was already answered today
     int DaysSinceSighting,                     // own sighting or tip; large when never
     int IgnoredToday,                          // unanswered attempts today (frustration)
-    int AttemptsLeftToday,                     // the town-wide daily cap's remainder
+    int AttemptsLeftToday,                     // the town-wide daily cap's remainder (light acts don't count)
     int Seed,                                  // the per-save seed
     bool NewcomerWeek = false,
     bool HasLead = false,                      // a place to go looking (the ladder's Whereabouts lead)
@@ -85,7 +85,9 @@ public sealed record MotiveInputs(
     IReadOnlyCollection<Act>? Unavailable = null, // acts a cap rules out now (the runner's daily and weekly caps)
     string? Card = null,                       // the NPC card for the model's state (rendered on the game thread)
     string? LeadPlace = null,                  // where the lead points, for the shadow line ("would go looking at ...")
-    int? LastTalkTick = null);                 // the last talk the runner saw; survives the diary's 500-entry trim
+    int? LastTalkTick = null,                  // the last talk the runner saw; survives the diary's 500-entry trim
+    bool AttentionCapped = false,              // the NPC's or the town's daily attempts are used up: only light acts
+    bool LightCapped = false);                 // the NPC's light acts (waves, greeting bubbles) are used up today
 
 /// <summary>One act the rule weighed, with every part, so the playtest log and viewer can show
 /// why (docs/spec/debug-tools.md, "Playtest log", the decision record).</summary>

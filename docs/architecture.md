@@ -531,10 +531,14 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   blocks new attempts until the player answers or its 6-tick window passes, and one **waiting**
   attempt (letter, queued line, request), which blocks only another of its sort. A queued line
   expires at the end of the day; a letter is ignored at the end of the next day.
-- The ladder's pacing holds: 2 attempts per NPC a day, 6 in town, 2 queued lines and 1 letter a day,
-  1 interrupt and 2 visits a week, 6 ticks after an attempt or a talk. A capped act is unavailable,
-  so the rule picks a cheaper one. With 2 or fewer attempts left in town, only motives of intensity
-  0.5+ may act.
+- Pacing: 2 attempts per NPC a day, 12 in town, 2 queued lines and 1 letter a day, 1 interrupt and
+  2 visits a week, 6 ticks after an attempt or a talk. A capped act is unavailable, so the rule
+  picks a cheaper one. With 2 or fewer attempts left in town, only motives of intensity 0.5+ may
+  act.
+- Light acts (an emote, or a bubble that only greets: `MotiveOptions.IsLight`) use none of those
+  attempts and the reserve doesn't hold them back; each NPC has 2 a day of its own. Once its or the
+  town's attempts are used up, an NPC may still wave (`MotiveInputs.AttentionCapped`); it is
+  `Blocked` only when its light acts are used up too.
 - An ignored attempt frustrates for the rest of the day: +0.1 intensity per ignore for the bold
   (boldness 0.5+), -0.1 for the shy. A talk with the player answers open attempts and clears it.
 - Used up: any face-to-face act is the day's greeting; news and thanks are delivered by an in-person

@@ -93,6 +93,8 @@ public sealed class MotivesRunner
                 LastTalkTick = s.LastContactTick,
                 VentTicks = s.VentTicks.ToArray(),
                 Unavailable = CappedActs(s),
+                AttentionCapped = AttentionCap(s) is not null,
+                LightCapped = s.LightToday >= _o.MaxLightActsPerNpcPerDay,
             };
 
             // (4) A grudge past the threshold: would they hold it against the player? (once a day)
@@ -109,7 +111,7 @@ public sealed class MotivesRunner
             // once per NPC and reason a day.
             if (s.Open is not null || InCooldown(s, absoluteTick))
                 continue;
-            if (CapReason(s) is { } cap)
+            if (AttentionCap(s) is { } cap && i.LightCapped)
             {
                 if (FirstToday(i.Npc, cap, day))
                     events.Add(new MotiveEvent(absoluteTick, i.Npc, "Blocked", null, preview.Chosen.Motive, false, cap, preview));
@@ -241,8 +243,10 @@ public sealed class MotivesRunner
 
     // ---- pacing ------------------------------------------------------------------------------
 
-    /// <summary>The daily cap that keeps a motive from being weighed, or null.</summary>
-    private string? CapReason(NpcState s)
+    /// <summary>The daily cap on acts that ask for the player's attention, or null. Light acts
+    /// (<see cref="MotiveOptions.IsLight"/>) may still go while it holds; the NPC is blocked only
+    /// when its light acts are used up too.</summary>
+    private string? AttentionCap(NpcState s)
     {
         if (s.AttemptsToday >= _o.MaxAttemptsPerNpcPerDay)
             return string.Format(CultureInfo.InvariantCulture, "cap: {0} attempts today", s.AttemptsToday);
@@ -296,8 +300,13 @@ public sealed class MotivesRunner
         else
             s.Open = attempt;
         s.LastAttemptTick = tick;
-        s.AttemptsToday++;
-        _attemptsToday++;
+        if (MotiveOptions.IsLight(act, motive))
+            s.LightToday++; // a wave asks nothing of the player: none of the day's attempts
+        else
+        {
+            s.AttemptsToday++;
+            _attemptsToday++;
+        }
         switch (act)
         {
             case Act.QueuedLine: _queuedLinesToday++; break;
@@ -395,6 +404,7 @@ public sealed class MotivesRunner
             return;
         s.Day = day;
         s.AttemptsToday = 0;
+        s.LightToday = 0;
         s.IgnoredToday = 0;
         // Vents only matter while the hurt they relieved is still in the elastic window.
         int keepFrom = GameClock.DayStartTick(day - _o.ElasticWindowDays - 1);
@@ -496,7 +506,8 @@ public sealed class MotivesRunner
     private sealed class NpcState
     {
         public int Day;
-        public int AttemptsToday;
+        public int AttemptsToday;        // acts that ask for attention; light acts are counted apart
+        public int LightToday;
         public int IgnoredToday;
         public int? LastAttemptTick;
         public int? LastContactTick;
@@ -531,6 +542,7 @@ public sealed class MotivesRunner
         public string Npc { get; set; } = "";
         public int Day { get; set; }
         public int AttemptsToday { get; set; }
+        public int LightToday { get; set; }
         public int IgnoredToday { get; set; }
         public int? LastAttemptTick { get; set; }
         public int? LastContactTick { get; set; }
@@ -550,6 +562,7 @@ public sealed class MotivesRunner
             Npc = npc,
             Day = s.Day,
             AttemptsToday = s.AttemptsToday,
+            LightToday = s.LightToday,
             IgnoredToday = s.IgnoredToday,
             LastAttemptTick = s.LastAttemptTick,
             LastContactTick = s.LastContactTick,
@@ -569,6 +582,7 @@ public sealed class MotivesRunner
         {
             Day = Day,
             AttemptsToday = AttemptsToday,
+            LightToday = LightToday,
             IgnoredToday = IgnoredToday,
             LastAttemptTick = LastAttemptTick,
             LastContactTick = LastContactTick,

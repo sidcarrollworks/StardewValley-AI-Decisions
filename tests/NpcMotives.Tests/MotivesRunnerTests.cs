@@ -78,7 +78,7 @@ public sealed class MotivesRunnerTests
     public void AnIgnoredAttemptFrustrates_ThenTheDailyCapHolds()
     {
         var runner = new MotivesRunner(new Scripted());
-        List<MotiveEvent> events = Run(runner, PamMissing(), Now, Now + 13);
+        List<MotiveEvent> events = Run(runner, PamMissing(), Now, Now + 40);
 
         MotiveEvent first = events.First(e => e.Kind == "Act");
         Assert.Equal(Now, first.AbsoluteTick);
@@ -93,10 +93,30 @@ public sealed class MotivesRunnerTests
         MotiveEvent second = events.Where(e => e.Kind == "Act").Skip(1).First();
         Assert.True(second.Decision!.Frustration > 0);
 
-        // Two attempts is the daily cap: one Blocked line, not one per tick.
+        // Two attempts is the daily cap; after it she may still wave, twice (waves use none of
+        // the day's attempts), and then one Blocked line, not one per tick.
+        List<MotiveEvent> acts = events.Where(e => e.Kind == "Act").ToList();
+        Assert.Equal(new[] { Act.WalkUp, Act.WalkUp, Act.Emote, Act.Emote }, acts.Select(e => e.Act!.Value));
         MotiveEvent blocked = Assert.Single(events, e => e.Kind == "Blocked");
         Assert.Contains("cap: 2 attempts today", blocked.Reason);
-        Assert.Equal(2, events.Count(e => e.Kind == "Act"));
+        Assert.True(blocked.AbsoluteTick > acts[^1].AbsoluteTick);
+        Assert.Equal(2, runner.States().Single().AttemptsToday);
+    }
+
+    [Fact]
+    public void WavesAndGreetingsUseNoneOfTheTownsAttempts()
+    {
+        // The town has one attempt today. Alex (first in name order) only greets: his wave or
+        // greeting bubble leaves that attempt for Pam, who misses the player and walks up.
+        var runner = new MotivesRunner(new Scripted(), new MotiveOptions { MaxAttemptsPerDay = 1, StrongReserve = 0 });
+        MotiveInputs alex = Inputs("Alex", Robin, hearts: 6, near: true);
+        List<MotiveEvent> events = runner.Tick(Now, new[] { alex, PamMissing() }).ToList();
+
+        MotiveEvent greeted = Assert.Single(events, e => e.Kind == "Act" && e.Npc == "Alex");
+        Assert.True(MotiveOptions.IsLight(greeted.Act!.Value, greeted.Motive!.Value));
+        Assert.Equal(Act.WalkUp, Assert.Single(events, e => e.Kind == "Act" && e.Npc == "Pam").Act);
+        Assert.Equal(0, runner.States().Single(st => st.Npc == "Alex").AttemptsToday);
+        Assert.Equal(1, runner.States().Single(st => st.Npc == "Pam").AttemptsToday);
     }
 
     [Fact]
@@ -207,10 +227,10 @@ public sealed class MotivesRunnerTests
     public void TheModelOnlyChoosesAmongMotivesThatCouldAct()
     {
         // Robin has news and misses the player, but the town has only its 2 reserved attempts
-        // left and neither motive is strong enough for them: nothing could act, so the model is
-        // never asked to pick between them.
+        // left, neither motive is strong enough for them, and she has waved enough today: nothing
+        // could act, so the model is never asked to pick between them.
         var model = new Scripted();
-        var runner = new MotivesRunner(model, new MotiveOptions { MaxAttemptsPerDay = 2, StrongIntensity = 2 });
+        var runner = new MotivesRunner(model, new MotiveOptions { MaxAttemptsPerDay = 2, StrongIntensity = 2, MaxLightActsPerNpcPerDay = 0 });
         MotiveInputs robin = Inputs("Robin", Robin, hearts: 4, near: true, news: 4, diary: new[] { TalkedDaysAgo(5) });
         MotiveEvent pass = Assert.Single(runner.Tick(Now, new[] { robin }));
         Assert.Equal("Pass", pass.Kind);
