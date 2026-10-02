@@ -1,8 +1,9 @@
 # 24. The player's bedtime journal
 
 **Status: idea, stored for later** (Sid, 2026-10-02: "We can talk more about this later"). Not on
-the roadmap's order yet; listed under "Later, not scheduled". Nothing below is decided; it records
-the idea as Sid gave it and the questions to settle when it is picked up.
+the roadmap's order yet; listed under "Later, not scheduled". Decided so far: it is offered every
+night, it opens after the player says yes to bed with time stopped, and a page can be stolen when
+the player dies in the mines or passes out, then pinned on the notice board. The rest is open.
 
 Sid: *"During the transition it might be interesting to provide a journal for the player to write
 in. It would be right before sleeping and game time would be paused. It would be skippable if they
@@ -10,10 +11,37 @@ don't want to write in it. We would also cap the length of the entry to be small
 
 ## The idea as given
 
-- **When:** at the end of the day, right before sleeping, during the transition to the next day.
-- **Time is paused** while the journal is open.
-- **Skippable:** one button (or key) closes it without writing, every night.
+- **Every night, as an option** (Sid, 2026-10-02). Never forced; one button (or key) skips it.
+- **When:** the player answers "yes" to going to bed, time stops, then the journal prompt appears,
+  before the night's transition.
 - **Short:** the entry has a small length cap.
+
+## Stolen pages (Sid, 2026-10-02)
+
+*"Say you die in the mines and have to be brought back. You could get a page from your diary
+stolen and posted on the bulletin board for characters to react to. I think the same thing could
+happen when you pass out at 2am."*
+
+- When the player is knocked out in the mines (or Skull Cavern) or passes out at 2:00 away from
+  bed, a page of their journal can go missing, like the items and gold the game already takes then.
+- The page turns up pinned on the town notice board ([notice-board.md](notice-board.md)), and
+  villagers who pass by read it and react, exactly as they react to a note the player pinned on
+  purpose: Laya picks each reader's reaction to the text, the reaction is a templated line, emote
+  or memory, never generated text.
+- This ties the journal to the board: the board is how a private page becomes town news, and it is
+  the reason the journal matters to the world without the mod reading the player's diary itself.
+
+## Ideas to settle when it is picked up
+
+- **Which page:** the most recent entry, or a random one from the last week? Only pages written
+  since the last stolen one?
+- **Consent:** the player should know pages can be stolen (a line in the journal's first opening,
+  or a config switch, `JournalPagesCanBeStolen`), since it publishes their own words in-game.
+- **The thief:** anonymous ("someone pinned this up"), or a character with a reason (the vanilla
+  rescuer in the mines; whoever found the player at 2:00)? Anonymous is simpler and keeps blame off
+  any villager.
+- **How often:** every knock-out, or a chance (seeded, deterministic) so it stays a surprise?
+- **Can the player take it down** from the board, and does that change how readers react?
 
 ## How it would fit the rules (first thoughts)
 
@@ -39,10 +67,17 @@ don't want to write in it. We would also cap the length of the entry to be small
   through the player's own actions. Option 2 would let it shape the world without anyone "reading"
   it.
 - **Length cap:** a tweet-sized line (about 140 characters) or a few short lines?
-- **Every night, or only some nights** (after a notable day, or once a week), so it doesn't become a
-  chore even with a skip button?
-- **Where exactly it opens** (verify in the decompile): when the player confirms "Go to bed?"
-  (the sleep question's answer), before the day-end fade, so no game state has moved yet; or at
-  `DayEnding`, which may be too late for a menu. Whether time really stops with a menu open in
-  single-player, and what happens in multiplayer ([multiplayer-compat.md](multiplayer-compat.md)).
-- **Passing out at 2:00** or sleeping elsewhere: skip the journal, or offer it the next morning?
+- **Passing out at 2:00** has no "yes, go to bed": offer the journal the next morning, or skip it
+  that night (its page may be stolen instead, above)?
+
+## To verify in the game's code (for DeepSeek)
+
+- Where to open a menu right after the player answers yes to the sleep question (the bed's
+  question dialogue and its answer handler) and before the night's fade starts, so no game state
+  has moved yet; whether a menu opened there pauses time in single-player, and what it does in
+  multiplayer ([multiplayer-compat.md](multiplayer-compat.md)), where sleeping waits for everyone.
+- Whether `DayEnding` is too late for a menu.
+- The hooks for being knocked out in the mines or Skull Cavern and for passing out at 2:00 (what
+  the game takes, and an event or postfix that fires once), so a stolen page can be decided then.
+- A text-entry menu the game already has that can be reused (as the naming screens do), and its
+  length limit.
