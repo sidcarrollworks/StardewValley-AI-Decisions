@@ -163,6 +163,15 @@ public sealed class MotivesEngineTests
     }
 
     [Fact]
+    public void APlainTalkLiftsTheMoodButIsNothingToThankFor()
+    {
+        // Playtest 2026-10-02: Haley wrote a thank-you letter after an ordinary chat.
+        MotiveDecision d = _engine.Decide(Inputs("Haley", Robin, hearts: 4, diary: new[] { E(Day / 4, "Talked", "hearts=4") }));
+        Assert.DoesNotContain(d.Motives, m => m.Motive == Motive.Grateful);
+        Assert.True(d.Mood.Earned > 0);
+    }
+
+    [Fact]
     public void Worried_OnlyAboutSomeoneOnceSeen()
     {
         // Five days without news at 6 hearts: worried. No ledger entry at all: nothing to miss yet.

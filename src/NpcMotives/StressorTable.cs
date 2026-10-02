@@ -91,6 +91,11 @@ public static class StressorTable
         }
     }
 
+    /// <summary>Kinds that lift the mood and leave warmth in regard but are no reason to act on
+    /// their own: a plain chat is not something to thank anyone for (playtest 2026-10-02: Haley
+    /// wrote "thank you" letters after ordinary talks).</summary>
+    public static bool IsMoodOnly(string kind) => kind is "Talked" or "ChattedWith";
+
     /// <summary>Who an entry's feeling is about. Most kinds are about their subject; a
     /// <c>SawGift</c> is about the giver.</summary>
     public static string TargetOf(DiaryEntry entry)

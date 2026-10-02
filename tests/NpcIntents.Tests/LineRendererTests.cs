@@ -253,10 +253,39 @@ public class LineRendererTests
             _renderer.Render("Haley", "spirited", E("Player", "GiftReceived", "taste=Love;birthday=0")));
     }
 
+    [Theory]
+    [InlineData("Love", "Thanks again for the Daffodil yesterday.")]
+    [InlineData("Neutral", "Thanks for the Daffodil yesterday.")]
+    [InlineData("Dislike", "I'm not sure what to do with the Daffodil you gave me yesterday.")]
+    [InlineData("Hate", "About the Daffodil you gave me yesterday. Please don't do that again.")]
+    public void GiftReceived_OnlyThanksForAGiftItLiked(string taste, string expected)
+    {
+        // Playtest 2026-10-02: Jodi would have thanked the player for a daffodil she hates.
+        Assert.Equal(expected, _renderer.Render("Jodi", "warm", E("Player", "GiftReceived", $"item=(O)18;name=Daffodil;taste={taste};birthday=0")));
+    }
+
+    [Fact]
+    public void SawGift_SaysWhoGaveItAndHowItWentDown()
+    {
+        // Sid, 2026-10-02: the witness saw the reaction too.
+        Assert.Equal("I saw Jodi get a Daffodil from you yesterday, and they hated it.",
+            _renderer.Render("Vincent", "kid", E("Jodi", "SawGift", "giver=Player;name=Daffodil;taste=Hate")));
+    }
+
+    [Fact]
+    public void Heard_SaysWhoToldItAndWhatHappened()
+    {
+        // Playtest 2026-10-02: "I heard about you from Pam yesterday." said nothing.
+        Assert.Equal("Pam told me about a Slime you gave them yesterday. They weren't happy.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Pam;kind=GiftReceived;subject=Player;item=(O)766;name=Slime;taste=Hate")));
+        Assert.Equal("Robin told me you helped them out yesterday.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Robin;kind=QuestHelped;subject=Player")));
+    }
+
     [Fact]
     public void SawGift_NamesTheRecipientAndTheItem()
     {
-        Assert.Equal("I saw Pierre get a Sunflower yesterday.",
+        Assert.Equal("I saw Pierre get a Sunflower from you yesterday, and it made their day.",
             _renderer.Render("Abigail", "spirited", E("Pierre", "SawGift", "giver=Player;name=Sunflower;taste=Love")));
     }
 

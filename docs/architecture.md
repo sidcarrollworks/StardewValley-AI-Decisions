@@ -365,8 +365,9 @@ narrow yes/no band no longer decides the speakers (week review, finding 4;
 | `Talked`, subject Player | `It was nice talking with you {when}.` |
 | `PassedBy`, subject Player | `You walked right past me {when}.` |
 | `BirthdayForgotten`, subject Player | `My birthday was {when}, you know.` |
-| `GiftReceived`, subject Player | `Thanks again for the {name} {when}.` (or `the gift` without a `name`) |
-| `SawGift` | `I saw {who} get a {name} {when}.` |
+| `GiftReceived`, subject Player | by taste: Love or Like `Thanks again for the {name} {when}.`; Neutral `Thanks for the {name} {when}.`; Dislike `I'm not sure what to do with the {name} you gave me {when}.`; Hate `About the {name} you gave me {when}. Please don't do that again.` (`the gift` without a `name`) |
+| `SawGift` | `I saw {who} get a {name} from {giver} {when}, and {reaction}.`: the witness saw the reaction too ("they hated it", "it made their day"; none for a neutral gift) |
+| `Heard`, subject Player | a gift: `{from} told me you gave them a {name} {when}.` (`... They weren't happy.` for a disliked or hated one); a quest: `{from} told me you helped them out {when}.`; else `I heard about {who} from {from} {when}.` |
 | `QuestHelped`, subject Player | `Thanks for helping me out {when}.` |
 | `Festival`, subject Player | `It was nice catching up with you at the festival {when}.` with `with=1`, else `I saw you at the festival {when}.` |
 | `MissedFestival`, subject Player | `You missed the festival {when}.` |

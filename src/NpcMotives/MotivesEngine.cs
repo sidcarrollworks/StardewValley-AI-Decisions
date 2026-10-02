@@ -69,7 +69,8 @@ public sealed class MotivesEngine
         // Feelings from the elastic stresses (plus the grudge for Hurt). A delivered thanks uses
         // up the gratitude for everything before it; the warm part stays in regard.
         int thanked = i.ThankedTick ?? int.MinValue;
-        double grateful = stresses.Where(s => s.Motive == Motive.Grateful && Is(s.Subject, Player) && s.Tick > thanked)
+        double grateful = stresses.Where(s => s.Motive == Motive.Grateful && Is(s.Subject, Player) && s.Tick > thanked
+                                              && !StressorTable.IsMoodOnly(s.Kind))
             .Sum(s => s.Strength);
         add(Motive.Grateful, grateful, "recent kindness");
         double grudge = Math.Max(0, -i.RegardForPlayer);

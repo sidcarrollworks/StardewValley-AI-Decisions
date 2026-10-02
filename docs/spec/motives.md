@@ -100,7 +100,7 @@ First-guess defaults (tune from playtest logs):
 | `GiftReceived` Hate | disgust | - | 0.6 | 0.8 | 0.3 | 3 |
 | `QuestHelped` | happiness | + | 0.5 | 0.8 | 0.3 | 2 |
 | `AcceptedInvite` | happiness | + | 0.4 | 0.8 | 0.2 | 1 |
-| `Talked` | happiness | + | 0.1 | 0.5 | 0.02 | 0 |
+| `Talked` (mood only: lifts the mood and leaves warmth in regard, but is no `Grateful` motive on its own; playtest 2026-10-02) | happiness | + | 0.1 | 0.5 | 0.02 | 0 |
 | `StoodUp` | sadness | - | 0.7 | 0.85 | 0.5 | 3 |
 | `BirthdayForgotten` | sadness | - | 0.6 | 0.85 | 0.4 | 2 |
 | `MissedVisit` | sadness | - | 0.4 | 0.8 | 0.2 | 1 |
@@ -118,7 +118,7 @@ First-guess defaults (tune from playtest logs):
 | `StoodUp` at the farm, `seen=1` (seen but ignored) | anger | - | 0.85 | 0.85 | 0.6 | 3 |
 | `TownNews` (a vanilla conversation topic) | surprise | none | 0 | - | 0 | 2 |
 | `Argued` (NPC to NPC, [town-life.md](town-life.md)) | anger | - | 0.4 | 0.8 | 0.3 | 3 |
-| `ChattedWith` | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
+| `ChattedWith` (mood only, as `Talked`) | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
 | `Heard` | the original's | the original's | original x `HearsayFactor` 0.5 | 0.6 | 0 until confirmed | the original's, faded |
 
 Sensitivity scales every magnitude: `magnitude x (0.5 + sensitivity)`, so a typical villager
