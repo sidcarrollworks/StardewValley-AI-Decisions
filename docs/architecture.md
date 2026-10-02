@@ -40,6 +40,7 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
 | `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
+| `src/NpcLive` | the first live acts (D30): `LiveSwitches`, `LiveOptions`, `LivePlanner` (a runner `Act` event to an emote id or a templated bubble line), `LiveGate` (the last "not now" check), `LiveBreaker` (circuit breaker per switch), `LiveLedger` (shown acts, so an ignored one is written as `IgnoredBy`) | NpcMotives, NpcIntents | not wired yet |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
 | `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | yes: the viewer's temperament line; the motives engine reads it |
@@ -590,6 +591,57 @@ the worker only as the copied `RegardForPlayer`.
    `HistorySeed.Line` as `[shadow]` and append `MotiveRecords.History`; then save
    `historySeeded = "1"`.
 
+## Live emotes and bubbles (`src/NpcLive`)
+
+The first behavior to leave shadow (rollout.md; Sid, 2026-10-02: emotes and bubbles first,
+friendly and hostile; D30). Only the motives runner's acts go live, never the urge ladder's. Each
+has its own switch in `config.json`, off by default.
+
+- **What is shown.** `LivePlanner.From(event, switches, playerName)` takes a runner event of kind
+  `Act` whose act is `Emote` or `Bubble` and whose switch is on. An emote's id follows the motive:
+  happy 32 for a greeting, heart 20 for gratitude, exclamation 16 for missing the player, news or
+  worry, question 8 for curiosity; a hostile one is angry 12 from the bold (boldness 0.5+) and sad
+  28 from the shy. A bubble's line is a template per motive, friendly or hostile, picked with
+  `Fnv1a(npc, motive, tick)`, with the farmer's name filled in and the whole line passed through
+  `LineSanitizer` (the model writes nothing).
+- **The last check.** `LiveGate.WhyNot(act, facts, now)` is the one place outside `CollectPresences`
+  and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in
+  multiplayer, not more than `MaxDelayTicks` (1) after the decision, not during an event or a
+  festival, not while the player is busy, only in the player's location within `EmoteMaxTiles` (10)
+  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking.
+  An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
+  (it decided on the worker and doesn't know).
+- **The breaker.** `LiveBreaker.Run(act, show)` turns one switch off for the session if showing
+  throws, and reports the error once; `TripAll` is the console command `npcmod_live off`.
+- **Ignored for real.** `LiveLedger` keeps the shown acts not yet answered. When the runner reports
+  one `Ignored`, `OnResolved` returns the `IgnoredBy` diary entry to write with `MemoryStore.Note`
+  (in shadow nothing is written, since the player never saw the attempt); `Responded` clears it.
+
+### Wiring it into the mod (local, not done yet)
+
+1. `ModConfig` gains `public LiveSwitches Live { get; set; } = new();` (both off). Read once at
+   `Entry`; keep a `LiveBreaker` and a `LiveLedger`; register `npcmod_live off` with
+   `helper.ConsoleCommands.Add` to call `TripAll`.
+2. Drain the motives events more often than once per ten-minute tick, so the act shows while the
+   player is still there: `BackgroundMotives.Drain()` from `UpdateTicked` (game thread), about once
+   a second. VERIFY that it is safe to drain outside `TimeChanged` (it is a queue; the shadow lines and
+   records stay the same).
+3. For each drained event, `LivePlanner.From(ev, _config.Live, Game1.player.Name)`. If not null,
+   gather `LiveFacts` on the game thread: `!Context.IsMultiplayer`, `Context.IsPlayerFree`,
+   `Game1.eventUp`, `Game1.isFestival()`, the NPC's `currentLocation == Game1.player.currentLocation`,
+   the Chebyshev distance of `npc.Tile` and `Game1.player.Tile`, busy = `npc.isEmoting` or
+   `npc.textAboveHeadTimer > 0`, visible = `!npc.IsInvisible`. VERIFY each name in the decompile;
+   they are recalled, not checked.
+4. `LiveGate.WhyNot(...)`: null means show it, through `_live.Run(act.Act, ...)`:
+   `npc.doEmote(act.EmoteId)` or `npc.showTextAboveHead(act.Text, duration: options.BubbleMs)`
+   (both confirmed in the decompile). Log `[live] ` + `LivePlanner.ShownLine(act)` at Info and
+   `_ledger.Shown(act)`. A reason means log `[live] ` + `LivePlanner.SkippedLine(act, reason)` at
+   Trace. A breaker error logs once at Error.
+5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
+   `_memory.Note(npc, entry)`.
+6. The shadow line for the act stays as it is, so a day with the switches off and one with them on
+   give the same `[shadow]` lines apart from the added `[live]` ones.
+
 ## Notice-board experiment (`src/NpcBoard`)
 
 Roadmap step 21's first stage (`docs/spec/notice-board.md`): how would each villager react to a
@@ -872,6 +924,7 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | Key | Default | Meaning |
 |---|---|---|
 | `DecisionBackend` | `"Fake"` | `"Laya"` (any case) uses the Laya server; anything else, the fake |
+| `Live` | `{ "Emote": false, "Bubble": false }` | the live switches (D30, "Live emotes and bubbles"): `true` shows that act in the game, friendly and hostile; planned, read once at `Entry` (not wired yet) |
 | `LayaUrl` | `"http://127.0.0.1:8000"` | Laya base URL; keep it on loopback |
 | `LayaModel` | `"typed-decisions"` | checkpoint: `typed-decisions`, `english` or `multilingual` |
 | `LayaApiKey` | null | only if the server was started with `LAYA_API_KEY` |

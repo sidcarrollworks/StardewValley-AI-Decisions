@@ -32,10 +32,14 @@ run locally. A deterministic fake is the default.
 
 1. **Shadow mode.** No code path may change game state (dialogue, NPC movement, mail, items,
    friendship) unless Sid has explicitly asked for that behaviour to go live. New behaviour ships
-   as a `[shadow]` log line first.
+   as a `[shadow]` log line first. Asked for so far (2026-10-02): emotes and speech bubbles from
+   the motives runner, friendly and hostile, each behind its own switch in `config.json`, off by
+   default (`src/NpcLive`, D30).
 2. **No true positions in decisions.** Only `ModEntry.CollectPresences` and
    `MemoryStore.Observe` read live positions. Anything that decides reads memory only: ledger
-   views, diaries, routine beliefs, `Whereabouts`.
+   views, diaries, routine beliefs, `Whereabouts`. One exception: `LiveGate` may be given live
+   facts (location, distance, event, menu) just before a live act is shown, only to say "not now";
+   it never chooses what to do (D30).
 3. **Co-located means same location and within 8 tiles** (Chebyshev), never the same region.
 4. **Deterministic.** Use seeded `Random` or `Fnv1a`, never `string.GetHashCode`. Iterate NPCs
    in name order.

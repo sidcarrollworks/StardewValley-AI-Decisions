@@ -1,6 +1,8 @@
 # 11. Shadow-to-live rollout
 
-**Status: not started.** Everything is shadow today (D1, `AGENTS.md` rule 1). This file says how a
+**Status: first switches built (2026-10-02, D30).** `Emote` and `Bubble`, with the gate, the
+circuit breaker and the `[live]` lines, are built and tested in `src/NpcLive`; wiring them into the
+mod is local work. Everything else is shadow (D1, `AGENTS.md` rule 1). This file says how a
 behavior goes from a `[shadow]` line to something that happens in the game, and in which order.
 
 ## Player-visible behavior
@@ -86,11 +88,16 @@ None of its own.
 
 ## Status
 
-Not started: `Live` config, `[live]` logging, circuit breaker, console command.
+Built (2026-10-02, `src/NpcLive`, not wired yet): `LiveSwitches` (`Emote`, `Bubble`), `LiveGate`,
+`LiveBreaker` (the circuit breaker, and `TripAll` for `npcmod_live off`), `LivePlanner` (emote ids
+and bubble lines) and `LiveLedger` (an ignored live act writes `IgnoredBy`). Not started: the other
+switches.
 
 ## Decided
 
 - The first live release is `IntentLines` only (Sid, 2026-09-30). `Emote` and the rest follow one at
   a time, each with Sid's go-ahead.
+- **Changed (Sid, 2026-10-02, D30):** `Emote` and `Bubble` go first, friendly and hostile alike, from
+  the motives runner only. `IntentLines` follows.
 - `ApproachFar` is wanted (Sid, 2026-09-30), as the rare `Visit` rung ([find.md](find.md)); it keeps
   its place at the end of the order because it depends on the travel code.

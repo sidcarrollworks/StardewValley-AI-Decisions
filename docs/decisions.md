@@ -463,6 +463,25 @@ invisible. Instead:
   favourite with 31 gifts and 2 heart events about +0.77. Hearts are not used: familiarity already
   counts them.
 
+### D30. Emotes and bubbles go live first, friendly and hostile, from the motives only
+**Decision (Sid, 2026-10-02).** "Let's do emotes and bubbles first. We can do both friendly and
+hostile." This changes the 2026-09-30 order, where the overnight-planned lines (`IntentLines`)
+went first.
+- **Two switches**, `Live.Emote` and `Live.Bubble`, off by default; hostile acts (a glare, a sharp
+  line) come with them, not behind a later `HostileActs` switch.
+- **Only the motives runner's acts go live.** The urge ladder keeps running in shadow until it is
+  retired; its attempts never show.
+- **A last check with live facts** (`LiveGate`): the one exception to AGENTS.md rule 2. It never
+  chooses an act, only holds one back (an event, a menu, the player gone or too far, the villager
+  busy or hidden, multiplayer, or more than a tick late).
+- **The lines are templates**, not the model's text, and the emote follows the motive; the hostile
+  emote is angry from the bold and sad from the shy. First guesses for Sid to tune.
+- **Being ignored becomes real:** a shown act the player ignores is written as `IgnoredBy`, which
+  the shadow ladder never did (the player never saw those attempts).
+
+**Why.** Emotes and bubbles are the least invasive acts (gone in seconds, nothing to undo), and
+they are what makes the town feel alive.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
