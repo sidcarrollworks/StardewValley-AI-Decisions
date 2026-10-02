@@ -6,6 +6,7 @@ using NpcIntents;
 using NpcMemory;
 using NpcMinds;
 using NpcMinds.Playtest;
+using NpcMotives;
 using NpcSchedules;
 using NpcTemperament;
 using StardewModdingAPI;
@@ -46,6 +47,10 @@ public class ModEntry : Mod
     private IDecisionClient _model = new FakeDecisionClient();
     private MemoryStore _memory = new();
     private BackgroundLadder _ladder = null!;
+    private readonly MotiveOptions _motiveOptions = new();
+    private RegardKeeper _regard = null!;
+    private BackgroundMotives _motives = null!;
+    private readonly Dictionary<string, string> _lastMotiveLines = new(StringComparer.OrdinalIgnoreCase);
     private PlayerSearch _search = new();
     private IntentPlanJob? _planJob;
 
@@ -119,6 +124,8 @@ public class ModEntry : Mod
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
         _model = BuildModel();
         _ladder = NewLadder(null);
+        _motives = NewMotives(null);
+        NewRegard(null);
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
@@ -201,6 +208,34 @@ public class ModEntry : Mod
     }
 
     /// <param name="caller">"ladder" or "plan": labels the call in the NPC Minds viewer.</param>
+    private int MotivesSeed() => unchecked((int)Fnv1a.Seed("motives", Game1.uniqueIDForThisGame.ToString()));
+
+    private BackgroundMotives NewMotives(string? json)
+        => new(MotivesRunner.FromJson(json, Guarded("motives"), _motiveOptions), _config.LadderMaxBacklog);
+
+    /// <summary>A fresh regard keeper on the current store. The Noting hook is not saved: call this
+    /// wherever _memory is replaced (load, migration, title screen).</summary>
+    private void NewRegard(string? json)
+    {
+        _regard = new RegardKeeper(RegardBook.FromJson(json),
+            npc => _temperaments?.Of(npc) ?? Temperament.Neutral, _motiveOptions);
+        _memory.Noting = OnNoting;
+    }
+
+    /// <summary>Runs inside MemoryStore.Note: append the stress/regard playtest records and log a
+    /// regard change. Must not write to _memory (Note is mid-append).</summary>
+    private void OnNoting(string npc, DiaryEntry entry, IReadOnlyList<DiaryEntry> before)
+    {
+        if (_regard.OnNoted(npc, entry, before) is not { } note)
+            return;
+        _playtest?.Append(MotiveRecords.Stress(note, entry.AbsoluteTick));
+        if (note.Before != note.After)
+        {
+            _playtest?.Append(MotiveRecords.Regard(note, entry.AbsoluteTick));
+            Monitor.Log($"[shadow] {npc}: regard for {note.Subject} {note.Before:+0.00;-0.00} -> {note.After:+0.00;-0.00} ({note.Cause})", LogLevel.Trace);
+        }
+    }
+
     private IDecisionClient Guarded(string caller, CancellationToken budget = default)
     {
         // Budget pass-through (docs/spec/laya.md): session-scoped calls run through a view of the
@@ -303,6 +338,7 @@ public class ModEntry : Mod
             _lastPresencePositions.Clear(); // a previous save's tiles must not suppress this save's
             LoadMemory();
             _talkedToday.Clear(); // a load starts a fresh day; never carry a previous session's set
+            _lastMotiveLines.Clear();
             _seenSpecialOrders.Clear();
             foreach (string key in Game1.player.team.completedSpecialOrders)
                 _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
@@ -339,9 +375,10 @@ public class ModEntry : Mod
         {
             try
             {
-                // VERIFY: NPC.Portrait is the loaded portrait sheet for the NPC's current
-                // appearance, laid out in 64x64 frames with frame 0 the neutral face ($0,
-                // stardew-source-notes.md "Dialogue system").
+                // Verified: NPC.Portrait (NPC.cs:506) is the loaded portrait sheet for the NPC's
+                // current appearance (ChooseAppearance loads the appearance's own asset,
+                // NPC.cs:1020), laid out in 64x64 frames (NPC.cs:46-48) with frame 0 the neutral
+                // face (DialogueBox.cs:697 draws portrait index 0 at 64x64).
                 Microsoft.Xna.Framework.Graphics.Texture2D? sheet = Game1.getCharacterFromName(name)?.Portrait;
                 if (sheet is null || sheet.Width < 64 || sheet.Height < 64)
                     continue;
@@ -413,6 +450,11 @@ public class ModEntry : Mod
             // The playtest log's new day file (the 6:00 tick is already the new date): switched
             // before this tick's records are buffered, so they land in the right day.
             _playtest.OpenDay(Game1.year, Game1.currentSeason, Game1.dayOfMonth);
+
+            // Regard drifts toward neutral overnight, then the day's snapshot goes to the log.
+            _regard.Drift();
+            foreach (RegardRecord record in MotiveRecords.Snapshot(_regard.Book, now))
+                _playtest.Append(record);
         }
         // (the spread panel's table was reset at DayEnding, before the overnight plan; the 6:00
         // tick must NOT clear it, or the plan's answers would vanish from the day they belong to)
@@ -462,6 +504,15 @@ public class ModEntry : Mod
         catch (Exception ex)
         {
             Monitor.Log($"Shadow ladder failed: {ex}", LogLevel.Error);
+        }
+
+        try
+        {
+            RunMotives(now); // appends its own motives perf record
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Shadow motives failed: {ex}", LogLevel.Error);
         }
 
         if (tick == 0)
@@ -543,9 +594,12 @@ public class ModEntry : Mod
         _planJob = null;
         _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
+        _motives = NewMotives(null);
+        NewRegard(null);
         _search = new PlayerSearch();
         _intentsToday.Clear();
         _talkedToday.Clear();
+        _lastMotiveLines.Clear();
         _events.Clear();
         _seenSpecialOrders.Clear();
         _festivalAttended = false;
@@ -627,6 +681,7 @@ public class ModEntry : Mod
         if (tick < 0)
             return;
         _ladder.EnqueueResponse(speaker.Name, Now(tick));
+        _motives.EnqueueTalked(speaker.Name, Now(tick));
 
         // First conversation of the day: a Talked diary entry (docs/spec/diary.md).
         if (_talkedToday.Add(speaker.Name))
@@ -688,7 +743,7 @@ public class ModEntry : Mod
         foreach (BackgroundLadder.Result result in _ladder.Drain())
         {
             foreach ((string npc, DiaryEntry entry) in result.DiaryLines)
-                _memory.DiaryOf(npc).Append(entry);
+                _memory.Note(npc, entry); // the one writer: trims, and the Noting hook applies regard
             foreach (InitiationEvent ev in result.Events)
             {
                 if (ev.Kind == "Blocked")
@@ -724,6 +779,50 @@ public class ModEntry : Mod
         ladderWatch.Stop();
         _playtest.Append(new PerfRecord("ladder", ladderWatch.Elapsed.TotalMilliseconds) { Tick = now });
     }
+
+    // ---- motives (shadow, step 14) -------------------------------------------------------------
+
+    /// <summary>Feeds this tick's ladder views and leads (memory only, never live positions) to
+    /// the motives worker, and drains its finished decisions. The worker is the only place that
+    /// calls the model (AGENTS.md rule 5); this method never does.</summary>
+    private void RunMotives(int now)
+    {
+        var watch = Stopwatch.StartNew();
+        int seed = MotivesSeed();
+        var inputs = new List<MotiveInputs>();
+        foreach (InitiationInput ladder in _lastLadderInputs) // this tick's views and leads, built by RunLadder
+        {
+            string npc = ladder.Npc;
+            double news = _planToday.Where(c => string.Equals(c.Npc, npc, StringComparison.OrdinalIgnoreCase))
+                .Select(c => c.News).DefaultIfEmpty(0).Max();
+            string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc), ladder.Hearts, NowLine());
+            bool met = Game1.player.friendshipData.ContainsKey(npc); // VERIFY: the game adds the entry at the first meeting
+            inputs.Add(MotiveInputBuilder.Build(npc, now, _temperaments?.Of(npc) ?? Temperament.Neutral, ladder.Hearts,
+                _memory.DiaryOf(npc).Entries, _regard.Book.Of(npc, MemoryStore.PlayerName), ladder.PlayerView, ladder.Lead,
+                news, seed, met, card));
+        }
+        if (inputs.Count > 0 && !_motives.EnqueueTick(now, inputs))
+            Monitor.Log($"[shadow] motives are behind the model; skipped a tick ({_motives.Dropped} so far).", LogLevel.Trace);
+
+        foreach (MotiveEvent ev in _motives.Drain())
+        {
+            string line = MotiveText.Line(ev);
+            Monitor.Log("[shadow] " + line, ev.Kind is "Act" or "Grudge" or "Responded" ? LogLevel.Info : LogLevel.Trace);
+            _lastMotiveLines[ev.Npc] = line;
+            if (ev.Kind is "Act" or "Grudge")
+                AddFeed(ev.AbsoluteTick, "Motive", ev.Npc, line);
+            _playtest.Append(MotiveRecords.Decision(ev));
+            if (ev.Kind == "Grudge" && ev.RegardRelief > 0)
+                _playtest.Append(MotiveRecords.Regard(_regard.Relieve(ev.Npc, MemoryStore.PlayerName, ev.RegardRelief), ev.AbsoluteTick));
+        }
+        _playtest.Append(new PerfRecord("motives", watch.Elapsed.TotalMilliseconds) { Tick = now });
+    }
+
+    /// <summary>Like TomorrowLine, but for today at the current time: "spring 12 (Friday), sunny,
+    /// 4:20 PM" — the card's day line while the motives worker weighs acts.</summary>
+    private static string NowLine()
+        => $"{SeasonWord(Game1.season)} {Game1.dayOfMonth} ({Game1.Date.DayOfWeek}), {WeatherWord()}, "
+           + Game1.getTimeOfDayString(Game1.timeOfDay); // getTimeOfDayString: Game1.cs:15924, verified
 
     /// <summary>Why the NPC thinks the player is there, for the log.</summary>
     private static string DescribeLead(Whereabouts lead) => lead.Source switch
@@ -1141,7 +1240,11 @@ public class ModEntry : Mod
 
             var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
                 stats, planState, _ladder.LatestJson, _lastLadderInputs, _intentsToday.ToList(), _planToday,
-                _feed.Newest(), NewsFor, TemperamentViewOf, _spread.Copy(), _calibration);
+                _feed.Newest(), NewsFor, TemperamentViewOf, _spread.Copy(), _calibration,
+                Motives: _motives.LatestDecisions,
+                MotiveStates: _motives.LatestStates,
+                RegardFor: npc => _regard.Book.Of(npc, MemoryStore.PlayerName),
+                LastMotiveLines: _lastMotiveLines);
             _minds.Publish(_mindsBuilder.Build(_memory, inputs));
         }
         catch (Exception ex)
@@ -1338,6 +1441,8 @@ public class ModEntry : Mod
             ["version"] = MemoryStore.CurrentVersion.ToString(),
             ["memory"] = _memory.ToJson(),
             ["ladder"] = _ladder.LatestJson, // last finished state; saving never waits on the model
+            ["regard"] = _regard.Book.ToJson(),
+            ["motives"] = _motives.LatestJson,
         };
 
         // The plan survives save-and-quit (persistence.md keys; additive, no version bump).
@@ -1358,7 +1463,11 @@ public class ModEntry : Mod
         _memory = new MemoryStore(MemorySeed());
         _ladder = NewLadder(null);
         if (model is null)
+        {
+            NewRegard(null);
+            _motives = NewMotives(null);
             return;
+        }
 
         // Only step-4/5 saves have no version; anything versioned is read as the current format.
         if (model.ContainsKey("version"))
@@ -1388,11 +1497,15 @@ public class ModEntry : Mod
                     mine.Add(line);
                 }
             }
+            NewRegard(model.GetValueOrDefault("regard")); // missing or damaged values load empty
+            _motives = NewMotives(model.GetValueOrDefault("motives"));
             return;
         }
 
         // Version 1 (steps 4-5): ticks had no year. Migrate relative to today.
         _memory = MemoryStore.FromVersion1(model, new GameTime(GameClock.SeasonIndex(Game1.currentSeason), Game1.dayOfMonth, 0, Game1.year));
         Monitor.Log("Migrated memory from the previous save format (added the year to old timestamps).", LogLevel.Info);
+        NewRegard(null); // version-1 saves predate regard and motives
+        _motives = NewMotives(null);
     }
 }

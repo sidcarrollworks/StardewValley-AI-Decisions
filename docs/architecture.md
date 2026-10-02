@@ -111,7 +111,15 @@ TimeChanged(e.NewTime)                                     game thread
 |        live — `RecordIgnoredBy`); log [shadow] events
  |- 7. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
  |                                 fill _intentsToday
- |- 8. PublishMinds()              the viewer's snapshot (read-only; see NPC Minds viewer)
+ |- 8. RunMotives(now)
+ |      inputs from RunLadder's _lastLadderInputs (the same views, leads and hearts),
+ |      the plan's best news score per NPC, and the NPC card with a "today" line
+ |      _motives.EnqueueTick(now, inputs) ------> worker: MotivesRunner.Tick
+ |                                                 (YesNo via ResilientDecisionClient)
+ |      _motives.Drain() <--------------------- finished decisions; never blocks
+ |        log [shadow] motives lines (Act/Grudge/Responded at Info, the rest at Trace);
+ |        Grudge relief -> RegardKeeper.Relieve; decision/regard playtest records
+ |- 9. PublishMinds()              the viewer's snapshot (read-only; see NPC Minds viewer)
 ```
 
 Festival capture is NOT in the tick: the clock is stopped for the whole festival
@@ -543,7 +551,7 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 calls run on the worker; events are drained on the game thread, which writes the logs. Regard reaches
 the worker only as the copied `RegardForPlayer`.
 
-**Wiring it into the mod** (step 14 part 3; not done, because it needs a build against the game):
+**Wiring it into the mod** (step 14 part 3; done):
 1. `ModEntry` keeps a `RegardKeeper` (temperaments from `_temperaments`, `Temperament.Neutral` when
    missing) and a `BackgroundMotives` whose runner asks through `Guarded("motives")`, and sets
    `_memory.Noting` to a handler that calls `RegardKeeper.OnNoted` and appends
@@ -763,8 +771,8 @@ One SMAPI save-data entry per save, key `squid.StardewNpcMod.memory`, a `Diction
 "memory":  MemoryStore.ToJson()         ledger, diaries, beliefs (see Memory)
 "ladder":  BackgroundLadder.LatestJson  InitiationLadder.ToJson()
 "intents", "recentLines"                today's plan and the lines said (step 5)
-"regard":  RegardBook.ToJson()          once motives are wired: {"observer|subject": value}
-"motives": BackgroundMotives.LatestJson once motives are wired: the runner's pacing state
+"regard":  RegardBook.ToJson()          {"observer|subject": value} (wired, step 14 part 3)
+"motives": BackgroundMotives.LatestJson the runner's pacing state (wired, step 14 part 3)
 ```
 
 It is written at `Saving` (`SaveMemory`) and read at `SaveLoaded` (`LoadMemory`). Saving never waits
