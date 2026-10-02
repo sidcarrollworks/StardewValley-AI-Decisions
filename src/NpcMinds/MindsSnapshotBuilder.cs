@@ -2,6 +2,7 @@ using NpcDecision;
 using NpcInitiation;
 using NpcIntents;
 using NpcMemory;
+using NpcMotives;
 using NpcSchedules;
 using NpcTemperament;
 
@@ -28,7 +29,11 @@ public sealed record MindsInputs(
     Func<string, TemperamentView?>? TemperamentFor = null, // null: no temperament shown
     IReadOnlyList<SpreadEntry>? SpreadEntries = null,     // the day's (template, NPC) answer table copy
     NpcDecision.LayaCalibration? Calibration = null,      // the committed calibration table
-    SpreadOptions? SpreadOptions = null);                  // panel tuning (defaults when null)
+    SpreadOptions? SpreadOptions = null,                   // panel tuning (defaults when null)
+    IReadOnlyDictionary<string, MotiveDecision>? Motives = null, // BackgroundMotives.LatestDecisions
+    IReadOnlyList<MotiveNpcState>? MotiveStates = null,          // BackgroundMotives.LatestStates
+    Func<string, double>? RegardFor = null,                      // regard toward the player (game thread)
+    IReadOnlyDictionary<string, string>? LastMotiveLines = null); // the newest [shadow] motives line per NPC
 
 /// <summary>
 /// Builds a <see cref="MindsSnapshot"/> on the game thread. Pure and read-only: it only reads
@@ -67,6 +72,9 @@ public sealed class MindsSnapshotBuilder
         foreach (IntentCandidate c in inputs.PlanToday ?? Array.Empty<IntentCandidate>())
             planned.TryAdd(c.Npc, c);
         var intents = new HashSet<string>(inputs.IntentsToday ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+        var motiveStates = new Dictionary<string, MotiveNpcState>(StringComparer.OrdinalIgnoreCase);
+        foreach (MotiveNpcState m in inputs.MotiveStates ?? Array.Empty<MotiveNpcState>())
+            motiveStates[m.Npc] = m;
 
         var npcs = new List<NpcMind>();
         foreach (string npc in memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
@@ -95,7 +103,12 @@ public sealed class MindsSnapshotBuilder
                 TonightsNews(npc, diary, today, inputs.NewsFor),
                 diary.Recent(DiaryLines).Select(e => Line(npc, e, inputs.Now)).ToList(),
                 diary.Entries.Count,
-                inputs.TemperamentFor?.Invoke(npc)));
+                inputs.TemperamentFor?.Invoke(npc),
+                MotivesOf(
+                    inputs.Motives is not null && inputs.Motives.TryGetValue(npc, out MotiveDecision? weighed) ? weighed : null,
+                    motiveStates.TryGetValue(npc, out MotiveNpcState? paced) ? paced : null,
+                    inputs.RegardFor?.Invoke(npc) ?? 0,
+                    inputs.LastMotiveLines is not null && inputs.LastMotiveLines.TryGetValue(npc, out string? said) ? said : null)));
         }
 
         return new MindsSnapshot(
@@ -115,6 +128,40 @@ public sealed class MindsSnapshotBuilder
             inputs.Feed ?? Array.Empty<FeedItem>(),
             SpreadRows(inputs.SpreadEntries, inputs.Calibration, inputs.TemperamentFor,
                 inputs.SpreadOptions ?? new SpreadOptions()));
+    }
+
+    /// <summary>One NPC's motives for display, from the runner's latest weighing; null when the
+    /// runner has not weighed this NPC (it isn't running, or the NPC is new). Pure.</summary>
+    public static MotivesView? MotivesOf(MotiveDecision? d, MotiveNpcState? state, double regard, string? lastLine)
+    {
+        if (d is null)
+            return null;
+        static double R(double v) => double.IsNaN(v) ? 0 : Math.Round(v, 3);
+        return new MotivesView(
+            d.Motives.OrderByDescending(m => m.Strength).ThenBy(m => (int)m.Motive)
+                .Select(m => new MotiveView(m.Motive.ToString(), R(m.Strength), m.Source)).ToList(),
+            R(d.NetFeeling),
+            R(d.Mood.Outlook),
+            R(d.Mood.Earned),
+            R(d.Mood.Roll),
+            d.Mood.TailDay,
+            R(regard),
+            d.Chosen?.Motive.ToString(),
+            d.Chosen is null ? null : R(d.Chosen.Strength),
+            R(d.Boldness),
+            R(d.Familiarity),
+            R(d.IntensityTerm),
+            R(d.Frustration),
+            d.Checks.Select(c => new ActView(MotiveText.ActName(c.Act), c.Hostile, R(c.Cost), R(c.Margin),
+                c.Call switch { CallKind.ClearYes => "yes", CallKind.CloseCall => "close", _ => "no" })).ToList(),
+            d.Result is { } act ? MotiveText.ActName(act) : null,
+            d.Pending is not null ? "close" : d.Result is not null ? "clear" : null,
+            d.Reason,
+            state?.AttemptsToday ?? 0,
+            state?.IgnoredToday ?? 0,
+            state?.OpenAct is { } open ? MotiveText.ActName(open) : null,
+            state?.WaitingAct is { } waiting ? MotiveText.ActName(waiting) : null,
+            lastLine);
     }
 
     /// <summary>The model spread panel's rows: per question template, the NPCs' mean answers,

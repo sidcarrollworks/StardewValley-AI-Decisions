@@ -22,6 +22,8 @@ try to get the player's attention (emote, bubble, approach, queued line, letter,
 logs the attempts and how they ended. NPCs that miss the player also ask the NPCs around them and may
 go looking (see Finding the player). Decisions are typed numbers from a local Laya server or a
 deterministic fake; the model never writes text. Memory and ladder state are saved per save file.
+The motives engine that will replace the ladder's urge (roadmap step 14, D24) is built and tested
+in `src/NpcMotives` but not yet wired into the mod (see Motives).
 
 ## Projects and dependencies
 
@@ -36,10 +38,11 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
-| `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html` | NpcMemory, NpcDecision, NpcIntents, NpcInitiation | yes (read-only) |
+| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
+| `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
-| `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | no (not wired yet) |
+| `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | yes: the viewer's temperament line; the motives engine reads it |
 | `tools/TemperamentExtractor` | command line: unpacked dialogue + game traits in, seed table out | NpcTemperament | no |
 | `mod/StardewNpcMod` | `ModEntry` (every game hook), `ModConfig`, `manifest.json` | the five "yes" projects; game + SMAPI via `Pathoschild.Stardew.ModBuildConfig` 4.3.1 | - |
 | `tests/<Name>.Tests` | xUnit tests for `src/<Name>` | that project only | no |
@@ -47,8 +50,9 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 ```
 mod/StardewNpcMod --+--> NpcIntents -----+--> NpcMemory --> NpcSchedules
                     +--> NpcInitiation --+
-                    |                    +--> NpcDecision
-                    +--> NpcMemory, NpcDecision, NpcSchedules (also directly)
+                    +--> NpcMinds -------+--> NpcDecision
+                    |                    +--> NpcMotives --> NpcMemory, NpcDecision, NpcTemperament
+                    +--> NpcMemory, NpcDecision, NpcSchedules, NpcTemperament (also directly)
 
 src/NpcShadow ----------> NpcMemory, NpcSchedules   (tests only)
 tools/ScheduleExtractor -> NpcSchedules             (command line)
@@ -490,6 +494,77 @@ finished operation. `WaitIdle` is for tests only.
 `EnqueueResponse(speaker.Name, now)`. Talking, and the NPC's reaction to a gift, should count;
 question boxes and letters have no speaker. Verify in-game, including whether event dialogue counts.
 
+## Motives (`src/NpcMotives`)
+
+Roadmap step 14 (D24, `docs/spec/motives.md`): a character acts only when it has a **motive** with a
+subject and its **effective boldness** (boldness + familiarity + intensity) reaches the act's
+**cost**. Built and tested as a library (no game types); the mod does not run it yet (see "Wiring it
+into the mod" below). It never reads a live position, never changes the game, and is deterministic:
+NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge draw.
+
+| Piece | What it does |
+|---|---|
+| `StressorTable.Of(entry)` | what a diary kind means: motive, valence, magnitude, per-day decay, plastic share, juiciness, emotion; null for kinds that stir nothing (`Saw`, `TriedToReach`, a neutral gift) |
+| `Stresses.Elastic` | the fading part, from the last 3 days of diary: magnitude x (0.5 + sensitivity) x decay^days; `Heard` at half the original; `SawGift` stirs jealousy only toward a giver the observer is drawn to (the player at 8+ hearts). `Vent` halves the hurt from entries before each hostile act |
+| `RegardBook` | the lasting part, one signed number per (observer, subject), -1..1: retention (Pam 0.2, everyone else 0.5) unless the stress is severe (0.7+ after sensitivity), the yield point (the third ignore, walk-past or brush-off of one subject in 5 days marks 0.3), the 6:00 drift (grudges heal by 0.03 x (0.5 + forgiveness), warmth fades by 0.005), confirmed hearsay at half strength |
+| `RegardKeeper` | owns the book on the game thread. `OnNoted` is the body of the `MemoryStore.Noting` hook, so each diary write leaves its mark exactly once; hearsay told by the person it happened to is confirmed at once, hearsay from a witness stays elastic. Also `Drift` and `Relieve` |
+| `MoodRoll` | earned mood (the stresses' signed sum) plus 0.3 x (0.5 + sensitivity) x a seeded triangular roll skewed by the emotion biases; 1 day in 40 runs against the character's lean |
+| `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
+| `MotivesRunner` | the engine over time (rules below) |
+| `BackgroundMotives` | runs the runner on one worker, like `BackgroundLadder`: `EnqueueTick`, `EnqueueTalked`, `Drain`; `LatestJson`, `LatestDecisions` and `LatestStates` are safe to read from any thread; a full backlog drops ticks and counts them |
+| `MotiveInputBuilder` | one NPC's `MotiveInputs` on the game thread, from its own ledger view (near, seen today, days since a sighting), lead, diary (copied) and regard |
+| `MotiveText` | the model's states (the NPC card, the feelings, the act with its parts, cut to the state budget) and options, and the `[shadow]` lines |
+
+**The runner's rules** (shadow semantics; the numbers are in `MotiveOptions`, not saved):
+- Every tick each NPC is weighed without the model (`Decide`); that is what the viewer shows. No
+  motive, no act.
+- An NPC holds at most one **in-person** attempt (emote, bubble, walk-up, interrupt, visit), which
+  blocks new attempts until the player answers or its 6-tick window passes, and one **waiting**
+  attempt (letter, queued line, request), which blocks only another of its sort. A queued line
+  expires at the end of the day; a letter is ignored at the end of the next day.
+- The ladder's pacing holds: 2 attempts per NPC a day, 6 in town, 2 queued lines and 1 letter a day,
+  1 interrupt and 2 visits a week, 6 ticks after an attempt or a talk. A capped act is unavailable,
+  so the rule picks a cheaper one. With 2 or fewer attempts left in town, only motives of intensity
+  0.5+ may act.
+- An ignored attempt frustrates for the rest of the day: +0.1 intensity per ignore for the bold
+  (boldness 0.5+), -0.1 for the shy. A talk with the player answers open attempts and clears it.
+- Used up: any face-to-face act is the day's greeting; news and thanks are delivered by an in-person
+  act or a letter at once, by a queued line only when the player comes to talk; an emote delivers
+  nothing; acting on hurt vents it.
+- The model is asked only to pick among motives (when 2+ have strength 0.2+, at most 5; fallback the
+  strongest) and on a close call. A question answered "no" is not asked again until the situation
+  changes or 6 ticks pass.
+- The grudge: once a day, an NPC whose regard for the player is at or below -0.75 is asked "would
+  <npc> hold this against the player?", and a seeded draw against the answer decides. A yes is a
+  `Grudge` event, at most one per NPC per 7 days, which only logs in shadow; the game thread then
+  raises that NPC's regard by 0.3 (the mod's memory, never the game's friendship).
+
+**Threads.** Inputs are built and regard is applied on the game thread; the runner and its model
+calls run on the worker; events are drained on the game thread, which writes the logs. Regard reaches
+the worker only as the copied `RegardForPlayer`.
+
+**Wiring it into the mod** (step 14 part 3; not done, because it needs a build against the game):
+1. `ModEntry` keeps a `RegardKeeper` (temperaments from `_temperaments`, `Temperament.Neutral` when
+   missing) and a `BackgroundMotives` whose runner asks through `Guarded("motives")`, and sets
+   `_memory.Noting` to a handler that calls `RegardKeeper.OnNoted` and appends
+   `MotiveRecords.Stress` (and `MotiveRecords.Regard` when regard moved) to the playtest log. The
+   hook is not saved: set it again wherever `_memory` is replaced (load, migration, title screen).
+2. `RunLadder` writes its diary lines with `_memory.Note` instead of `DiaryOf(npc).Append`, so they
+   pass the hook.
+3. Each tick, after `RunLadder`: build one `MotiveInputs` per NPC with `MotiveInputBuilder.Build`
+   (the same ledger view and lead the ladder got; the plan's best news score for that NPC today; the
+   NPC card with a "today" line; `friendshipData.ContainsKey(npc)` as "met", **verify** that the
+   game adds the entry at the first meeting), `EnqueueTick`, then drain: every event gets
+   `MotiveText.Line` in the SMAPI log (Info for Act, Grudge and Responded; Trace for the rest) and a
+   `MotiveRecords.Decision` record; Act and Grudge also go to the viewer's feed; a Grudge calls
+   `RegardKeeper.Relieve` and logs the `regard` record.
+4. `OnMenuChanged`: `EnqueueTalked` beside the ladder's `EnqueueResponse`.
+5. The 6:00 tick: `RegardKeeper.Drift()`, then the `regard` snapshot (`MotiveRecords.Snapshot`).
+6. Save `regard` (`RegardBook.ToJson`) and `motives` (`BackgroundMotives.LatestJson`); load them
+   with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).
+7. `PublishMinds` passes `Motives`, `MotiveStates`, `RegardFor` and the newest line per NPC to
+   `MindsInputs`; the cards then show the runner's numbers instead of the page's preview.
+
 ## Finding the player
 
 **Code.**
@@ -563,7 +638,7 @@ seconds and highlights whatever changed since the last update.
 | Per NPC | From |
 |---|---|
 | portrait (top left of the card) | the villager's neutral portrait (frame 0 of `NPC.Portrait`, 64x64; **verify** the frame layout and that `Portrait` is the current appearance's sheet), cut from the player's own installed game content at `SaveLoaded` on the game thread (`ModEntry.PublishPortraits`), encoded as PNG in memory and handed to the server, which serves `/portrait/<Name>.png` (names are letters, digits and `_` only). Never written to disk or the repo: the art is the game's. A villager without one shows its initials |
-| temperament line and "daring" bar (top of the card) | the seed temperament's summary, and a **display-only preview of the motives act rule** ([motives.md](spec/motives.md), D24) computed in the page: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs (Emote 0.20 ... Interrupt 0.80), naming the biggest act each reaches. The costs live in the page until step 14 puts the real numbers in the snapshot; nothing reads them back |
+| temperament line and "daring" bar (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
 | urge, rung and its threshold, attempts today, open attempt and how long it has waited (under "Current ladder", below the card's facts) | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state. Still what drives attempts until motives replace it |
 | hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
@@ -606,10 +681,10 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
 - **The page** is plain HTML, CSS and JavaScript with no external loads, in
   `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
   `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Always dark (Sid's choice),
-  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds), never on borders or behind text. Cards sort by most recently changed (the default), boldness, hearts, urge or name; the choice is
+  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds, and the motives line: hostile, close call, clear yes), never on borders or behind text. Cards sort by most recently changed (the default), feeling (the strength of the motive each would act on), boldness, hearts, urge or name; the choice is
   remembered in the browser. A filter box and a "knows you" toggle hide NPCs with no view of the
-  player, no hearts and no urge. The header says motives are designed but not built, so the
-  attempts in the feed still come from the urge ladder.
+  player, no hearts, no urge and no motive. The header says whether the motives runner is running
+  (in shadow, beside the urge ladder) or not yet.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
 ## Playtest log (`src/NpcMinds/Playtest`)
@@ -625,8 +700,13 @@ The setting is `PlaytestLog` (`ModConfig`, default true in development). Reads o
 never feed a decision, and live positions appear only in `presence` records, built solely from
 `CollectPresences` output as per-tick deltas. `tools/playtest_summary.py` turns a save's folder
 into per-day tables (attempts by step, gossip routes, model calls and fallbacks, diary growth
-against the 500 cap, slowest ticks). Adding a record type is one class in
-`src/NpcMinds/Playtest/PlaytestRecords.cs` plus one `Append`/`QueueFromWorker` call.
+against the 500 cap, slowest ticks; and for motives: outcomes, acts by motive, close calls with the
+median model answer and mood tilt, the caps that blocked, would-be friendship losses, stresses by
+kind, regard changes and the strongest grudges). Adding a record type is one class in
+`src/NpcMinds/Playtest/PlaytestRecords.cs` plus one `Append`/`QueueFromWorker` call. The motives
+records are in `MotiveRecords.cs`: `decision` (every part of an act, pass, block, outcome or grudge),
+`stress` (what one diary entry stirred and the mark it left) and `regard` (each change, and a
+snapshot of every pair at 6:00); the mod writes them once the runner is wired.
 The ladder's `Blocked` events (a step the urge cleared but a gate or cap passed over; at most one
 per NPC per step per day) go to the playtest log only, at Trace in the SMAPI log: they are tuning
 data, and as events they would crowd real attempts out of the log and the viewer's feed.
@@ -682,6 +762,9 @@ One SMAPI save-data entry per save, key `squid.StardewNpcMod.memory`, a `Diction
 "version": "2"                          MemoryStore.CurrentVersion
 "memory":  MemoryStore.ToJson()         ledger, diaries, beliefs (see Memory)
 "ladder":  BackgroundLadder.LatestJson  InitiationLadder.ToJson()
+"intents", "recentLines"                today's plan and the lines said (step 5)
+"regard":  RegardBook.ToJson()          once motives are wired: {"observer|subject": value}
+"motives": BackgroundMotives.LatestJson once motives are wired: the runner's pacing state
 ```
 
 It is written at `Saving` (`SaveMemory`) and read at `SaveLoaded` (`LoadMemory`). Saving never waits
@@ -793,15 +876,18 @@ records (`LedgerView`, `InitiationInput`, `InitiationEvent`, `Whereabouts`) only
 defaults.
 
 **A new diary kind**
-1. Append it on the game thread:
-   `_memory.DiaryOf(npc).Append(new DiaryEntry(now, subject, "MyKind", detail))`. Diaries are not
-   thread-safe; a worker hands lines back the way `BackgroundLadder.Result.DiaryLines` does. Only
-   `Observe` trims, so call `TrimTo(_memory.MaxDiaryEntries)` if you append a lot.
-2. The planner will offer it as news unless it is in `IntentPlannerOptions.SkipKinds`. Its option text
+1. Write it on the game thread with `_memory.Note(npc, new DiaryEntry(now, subject, "MyKind",
+   detail))`: the one writer, which trims to `MaxDiaryEntries` and calls the `Noting` hook (regard).
+   Diaries are not thread-safe; a worker hands lines back the way
+   `BackgroundLadder.Result.DiaryLines` does.
+2. If it stirs a feeling, give it a row in `StressorTable.Of` (`src/NpcMotives`): motive, valence,
+   magnitude, decay, plastic share, juiciness, emotion (the table in `docs/spec/motives.md`).
+3. The planner will offer it as news unless it is in `IntentPlannerOptions.SkipKinds`. Its option text
    is `MyKind Subject (detail)` (`IntentPlanner.Summarize`; only `Saw` treats the detail as a place).
-3. Give it a template in `LineRenderer.Render`, or it renders as "I've been thinking about {who}." Keep
+4. Give it a template in `LineRenderer.Render`, or it renders as "I've been thinking about {who}." Keep
    "you" for the player and `LineSanitizer.Sanitize` last.
-4. Tests: `tests/NpcIntents.Tests/LineRendererTests.cs`, `PlannedLineDateAndPlaceTests.cs`.
+5. Tests: `tests/NpcIntents.Tests/LineRendererTests.cs`, `PlannedLineDateAndPlaceTests.cs`, and for a
+   stressor row `tests/NpcMotives.Tests`.
 
 **A new decision question**
 - Ask through `IDecisionClient` from a background thread only, via the mod's `Guarded(budget)`. Copy

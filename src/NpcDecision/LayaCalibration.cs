@@ -46,8 +46,9 @@ public sealed class LayaCalibration
     /// the ladder's "should &lt;npc&gt; try to get the player's attention with {Step} now?"
     /// (InitiationLadder.cs:204, step = Emote/Bubble/Approach), the planner's
     /// "does &lt;npc&gt; have news for the player?" (IntentPlanner.cs:108), the motives'
-    /// "would &lt;npc&gt; hold this against the player?", and the newcomer welcome. Returns null
-    /// when the eval did not measure that template.</summary>
+    /// "would &lt;npc&gt; hold this against the player?" and their walk-up close calls
+    /// (MotivesEngine.ActPhrase: "walk over to greet the player", "confront the player"), and the
+    /// newcomer welcome. Returns null when the eval did not measure that template.</summary>
     public static string? NormalizeTemplate(string template)
     {
         string q = template.Trim();
@@ -67,6 +68,10 @@ public sealed class LayaCalibration
             return "speak";
         if (q.StartsWith("would <npc> hold this against the player?", StringComparison.OrdinalIgnoreCase))
             return "hold_against";
+        if (q.StartsWith("would <npc> walk over to greet the player now?", StringComparison.OrdinalIgnoreCase))
+            return "close_friendly";
+        if (q.StartsWith("would <npc> confront the player now?", StringComparison.OrdinalIgnoreCase))
+            return "close_hostile";
         if (q.StartsWith("would <npc> go out of their way to welcome a newcomer in person?", StringComparison.OrdinalIgnoreCase))
             return "welcome_newcomer";
         return null;
@@ -84,8 +89,18 @@ public sealed class LayaCalibration
                 "close_friendly" or "close_hostile" or "welcome_newcomer" => ("boldness", +1),
             "speak" => ("chattiness", +1),
             "hold_against" => ("forgiveness", -1),
+            // Every other motives close call ("would <npc> write the player a letter now?"): a
+            // close call is about daring, so it should follow boldness too (motives.md).
+            null when IsCloseCall(template) => ("boldness", +1),
             _ => null,
         };
+    }
+
+    private static bool IsCloseCall(string template)
+    {
+        string q = template.Trim();
+        return q.StartsWith("would <npc> ", StringComparison.OrdinalIgnoreCase)
+               && q.EndsWith(" now?", StringComparison.OrdinalIgnoreCase);
     }
 
     public static LayaCalibration FromJson(string json)

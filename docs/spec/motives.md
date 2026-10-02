@@ -1,6 +1,7 @@
 # 16. Motives: why a character acts, and whether it dares
 
-**Status: designed, not built.** Redesigned twice with Sid on 2026-10-01; the second pass retires
+**Status: built in shadow as a library (`src/NpcMotives`, 2026-10-02), not yet wired into the mod**
+(see Status). Redesigned twice with Sid on 2026-10-01; the second pass retires
 the urge number as the thing that decides. Today a character has one number, the ladder's urge
 ([ladder.md](ladder.md)), which grows on a clock and fires a rung when it crosses a threshold. The
 spring 16-18 playtest showed what that costs: by evening a dozen villagers want the player for no
@@ -156,9 +157,10 @@ vanish with the entries that caused it.
   (`RegardFadeRate` 0.005) with time apart. A kind act heals by its own plastic share, as above.
 - Save format: a new additive `regard` key ([persistence.md](persistence.md)), so no version
   bump: a missing key loads empty, and NPC pairs are seeded once from `FriendsAndFamily`
-  ([town-life.md](town-life.md)) with a `seeded` flag. `LastFriendshipPenaltyDay` stays in the
-  ladder's state. The ladder's saved `Urge` and `IntentBoostDay` stay in its format, unused, so old
-  saves load and older builds can still read new saves.
+  ([town-life.md](town-life.md)) with a `seeded` flag. Each NPC's last penalty day is in the
+  motives runner's state, with its pacing, under its own additive key `motives`. The ladder's saved
+  `Urge` and `IntentBoostDay` stay in its format, unused, so old saves load and older builds can
+  still read new saves.
 
 ### Mood: earned, with a small daily tilt
 
@@ -186,7 +188,8 @@ mood roll would push it over either way. Is this character optimistic or pessimi
 
 ## How each motive is computed (deterministic, from memory only)
 
-All values 0..1, pure, in `src/NpcInitiation/Motives.cs`. `d` = days since the source entry.
+All values 0..1, pure, in `src/NpcMotives/MotivesEngine.cs` (`MotivesOf`). `d` = days since the
+source entry.
 
 | Motive | From | Strength |
 |---|---|---|
@@ -196,7 +199,7 @@ All values 0..1, pure, in `src/NpcInitiation/Motives.cs`. `d` = days since the s
 | `Grateful` | the elastic part of `GiftReceived` Love/Like, `QuestHelped`, `AcceptedInvite`, trades | summed, capped at 1 |
 | `Hurt` | the elastic part of `IgnoredBy`, `StoodUp`, `BirthdayForgotten`, `PassedBy`, `MissedVisit`, `GiftReceived` Dislike/Hate, plus `max(0, -regard)` | summed, capped at 1 |
 | `Curious` | no `Talked` entry ever, but a ledger entry about the player (seen or told) | `(0.6 in newcomer week, else 0.3) x (0.5 + curiosity)` ([newcomer-week.md](newcomer-week.md)) |
-| `Worried` | hearts >= 4 and no own sighting and no tip for 3+ days | `min(1, (days - 2) / 5) x (0.5 + fear)` |
+| `Worried` | hearts >= 4, a ledger entry about the player (seen or told), and no own sighting and no tip for 3+ days. With no entry at all there is nothing to miss yet: a save from before the mod kept memory has hearts but no sightings | `min(1, (days - 2) / 5) x (0.5 + fear)` |
 | `Jealous` | `Heard`/`SawGift` of the subject giving a Love gift to someone else, when the observer is drawn to the giver ([romance.md](romance.md)) | the elastic part; plastic only when confirmed ([ledger-gossip.md](ledger-gossip.md)) |
 | `WantsToTrade` | an open trade offer ([trades.md](trades.md)) | the offer's want strength |
 | `NeedsHelp` | something the NPC wants done or brought, from its own data: a loved or liked item it hasn't had in a while (`Data/NPCGiftTastes`), its work (Willy's fish, Robin's wood), a vanilla request it already posts ([vanilla-sources.md](vanilla-sources.md)) | `0.3 + 0.3 x (days since last asked / 14)`, capped at 0.6; at most one open request per NPC; expressed as a quest ([invitations.md](invitations.md), "Later") |
@@ -233,6 +236,12 @@ A motive stops once it is satisfied, or the character repeats itself after every
 | `Hurt`, `Jealous` | never by acting; acting on them **vents**: the elastic part drops by `VentRelief` (0.5), regard is unchanged |
 | `Worried` | a fresh sighting or tip |
 | `WantsToTrade` | the offer taken or expired |
+
+In shadow nothing reaches the player, so the runner treats an attempt as if it happened (as the
+ladder does): any face-to-face act (emote, bubble, walk-up, interrupt) counts as the day's
+greeting; news and thanks count as delivered by an in-person act or a letter at once, and by a
+queued line only if the player comes to talk that day; an emote shows a feeling but delivers
+nothing. Venting applies to the stresses from entries at or before the hostile act.
 
 ## The act rule
 
@@ -310,7 +319,8 @@ Rung escalation is replaced by frustration. When an attempt goes unanswered:
   for the rest of the day, so they can afford a bigger act;
 - shy ones back off: `-FrustrationStep`, so they drop to a letter or give up.
 
-It resets at the 6:00 tick. Across days, ignored attempts leave `IgnoredBy` entries, which yield
+It resets at the 6:00 tick, and when the player answers (talks to them). Across days, ignored
+attempts leave `IgnoredBy` entries, which yield
 into regard as above. In shadow `RecordIgnoredBy` is off, so the cross-day part only runs in unit
 tests until a rung goes live; the shadow log still reports frustration within the day.
 
@@ -332,7 +342,10 @@ behavior:
 - at most once per `PenaltyCooldownDays` (7) per character, never below 0 points;
 - then regard moves up by 0.3, so it takes more bad acts to repeat;
 - a diary line `HeldAGrudge` (not shared in gossip, never cited directly);
-- only when the Laya question "would <npc> hold this against the player?" draws yes.
+- only when the Laya question "would <npc> hold this against the player?" draws yes: a seeded
+  FNV-1a draw (per save, NPC and day) against the answer; asked at most once a day per NPC.
+  The 0.3 rise in regard applies in shadow too: it is the mod's own memory, not the game's
+  friendship, and without it the shadow log would repeat the same would-be penalty every week.
 This is the one place the mod changes friendship. It has its own live switch,
 `Live.FriendshipEffects`, default off ([rollout.md](rollout.md)); in shadow it only logs.
 
@@ -388,7 +401,7 @@ mod passes a small `WeatherFacts` record into the tick.
 | Question | Type | State | Fallback |
 |---|---|---|---|
 | "Which of these would <npc> act on first?" | `choice` over motives with strength >= 0.2 (at most 5), phrased from their sources ("the player gave her a sunflower yesterday") | NPC card + motives + outlook | the strongest motive |
-| "would <npc> <act> toward <subject> now?" (close calls only) | `noul` | NPC card + the motive, its sources, the act, effective boldness and cost | `0.5 + margin / (2 x ClearBand)` |
+| "would <npc> <act> now?" (close calls only), the act in plain words: "walk over to greet the player" and "confront the player" (the spread eval's `close_friendly` and `close_hostile` wordings, so the spread panel compares them with the calibration file), "write the player a cold letter", "call out to the player"... (`MotivesEngine.ActPhrase`) | `noul` | NPC card + the motives and their sources, net feeling, outlook, the act, effective boldness and cost (`MotiveText.CloseCallState`) | `0.5 + margin / (2 x ClearBand)` |
 | "would <npc> hold this against the player?" | `noul` | NPC card + the grudge's source entries | 0.5 |
 
 **Character spread.** Every villager is judged by the same model, so if it reacts only weakly to
@@ -466,10 +479,30 @@ In `MotiveOptions`, not saved:
 
 ## Status
 
-Designed (Sid, 2026-10-01, second pass); not built. Replaces the 2026-09-30 draft and the morning
-2026-10-01 resting-urge draft: a resting urge from temperament put every villager between 0.35 and
-0.64 on the draft table, past the first threshold, which recreated the clock. Depends on diary
-enrichment ([diary.md](diary.md)) for most sources and on [temperament.md](temperament.md).
+Designed (Sid, 2026-10-01, second pass). Replaces the 2026-09-30 draft and the morning 2026-10-01
+resting-urge draft: a resting urge from temperament put every villager between 0.35 and 0.64 on the
+draft table, past the first threshold, which recreated the clock. Depends on diary enrichment
+([diary.md](diary.md)) for most sources and on [temperament.md](temperament.md).
+
+- **Part 1, the playtest log: built** (PR #24; [debug-tools.md](debug-tools.md)).
+- **Part 2, the engine in shadow: built** (2026-10-02; `src/NpcMotives`, `tests/NpcMotives.Tests`):
+  the stressor table, elastic stresses, regard with retention, severity, the yield point, drift and
+  confirmed hearsay, the mood roll, motives, netting, the act rule with clear and close calls and
+  the mood tilt, and a runner over time (pacing, response windows, frustration, motives used up,
+  the model's choice and close-call questions, the shadow grudge) on its own worker; the
+  `MemoryStore.Noting` hook that applies regard as entries are written; the viewer's motives view
+  and the `decision`, `stress` and `regard` playtest records. How the runner paces and uses
+  motives up is in `docs/architecture.md`, "Motives". The acceptance tests above pass except the
+  ones that need the mod (save round trip in-game, the in-game week, the grudge in play) and the
+  NPC-subject motives.
+- **Part 3, wiring into the mod: next.** It needs a build against the game, so it is local work
+  (the steps are in `docs/architecture.md`, "Wiring it into the mod"). Then a playtest week with
+  the runner beside the ladder, tuning from the log.
+- **Not built:** weather and season effects (`WeatherFacts`), the near-miss source of
+  `MissingYou`, `WantsToTrade` and `NeedsHelp` (no sources yet), NPC subjects ([town-life.md](town-life.md)),
+  hearsay's relevance (x2 when drawn to someone in the story) and first-hand confirmation (they
+  matter once retelling goes past one hop, [ledger-gossip.md](ledger-gossip.md)), retiring the
+  urge ladder, and the friendship penalty's live switch.
 
 ## Open questions
 

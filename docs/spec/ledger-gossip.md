@@ -153,7 +153,13 @@ did not meet that day; a quest-help line appears days later from an NPC the play
 ## Status
 
 Done: `src/NpcMemory/Ledger.cs`, `MemoryStore.AskAround`, `MemoryStore.Chat` and `Heard` (PR #16).
-Not started: juiciness (above).
+Built with motives (2026-10-02, `src/NpcMotives`): how the listener takes it, in part. A `Heard`
+puts the original's stress at `HearsayFactor` on the listener (elastic); told by the person it
+happened to, it is confirmed at once and leaves half the original's lasting mark in regard
+(`RegardKeeper`); told by a witness, it stays elastic. Today's gossip passes on only the teller's
+own entries, one hop, so a `Heard` `GiftReceived` or `QuestHelped` always comes from the source.
+Not started: juiciness (above), relevance, first-hand confirmation and the two-routes half (they
+matter once retelling goes past one hop).
 
 ## Open questions
 

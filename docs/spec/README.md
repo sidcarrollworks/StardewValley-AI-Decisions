@@ -4,7 +4,7 @@ This folder specifies every feature of the mod: what exists, what is planned, an
 planned parts should work. It is written for whoever builds the next piece, including cheaper
 models, so each file can be read on its own.
 
-- **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D20).
+- **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D28).
   **Rules:** `AGENTS.md`. This spec does not repeat them; it links to them and adds what is not
   built yet. When the spec and the code disagree about something marked **done**, the code wins:
   fix the spec.
@@ -88,7 +88,7 @@ From the Get Started guide, and already true here unless noted:
 | 20 | [town-life.md](town-life.md) | NPCs chatting, meeting up and looking for each other, rendered only when the player is there | not started |
 | 21 | [temperament.md](temperament.md) | Seed personality values per villager (warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) and Ekman emotion biases (anger, disgust, fear, happiness, sadness, surprise) from their dialogue and game traits | partial (tool and draft table; not wired) |
 | 22 | [vanilla-sources.md](vanilla-sources.md) | What the game already gives: signals to read (dialogue answers, heart events, festivals, movies, conversation topics), character data to mine, and vanilla channels to act through (emotes, one-day schedules, quests, phone calls) | not started (verification running) |
-| 23 | [notice-board.md](notice-board.md) | A cork board in the town square: villagers walk there to pin notes, the player pins typed notes, and Laya chooses how each reader reacts | idea, not scheduled |
+| 23 | [notice-board.md](notice-board.md) | A cork board in the town square: villagers walk there to pin notes, the player pins typed notes, and Laya chooses how each reader reacts | not started (roadmap step 21) |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 | - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 

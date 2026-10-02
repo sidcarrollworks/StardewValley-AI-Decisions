@@ -70,10 +70,20 @@ public sealed class MemoryStore
         return diary;
     }
 
+    /// <summary>
+    /// Called by <see cref="Note"/> for every entry, just before it is appended: the NPC, the
+    /// entry, and the diary as it was (oldest first). The motives' regard keeper listens here, so
+    /// each entry's lasting mark is applied exactly once, on the game thread, by whoever owns the
+    /// store (docs/spec/motives.md, "Triggers and game hooks"). Not saved: set it again on a store
+    /// made by <see cref="FromJson"/> or a migration. It must not write to this store.
+    /// </summary>
+    public Action<string, DiaryEntry, IReadOnlyList<DiaryEntry>>? Noting { get; set; }
+
     /// <summary>The one diary writer: append and trim to <see cref="MaxDiaryEntries"/>.</summary>
     public void Note(string npc, DiaryEntry entry)
     {
         Diary diary = DiaryOf(npc);
+        Noting?.Invoke(npc, entry, diary.Entries);
         diary.Append(entry);
         diary.TrimTo(MaxDiaryEntries);
     }
@@ -534,7 +544,7 @@ public sealed class MemoryStore
 
         var heard = new DiaryEntry(best.AbsoluteTick, best.Subject ?? PlayerName, "Heard",
             DiaryDetail.Format(pairs.ToArray()));
-        DiaryOf(listener).Append(heard);
+        Note(listener, heard); // through the one writer, so the Noting hook sees hearsay too
         return heard;
     }
 
