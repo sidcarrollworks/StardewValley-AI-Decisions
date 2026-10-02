@@ -125,6 +125,9 @@ the next overnight lines can cite either.
 
 ## Farm visits by appointment (Sid, 2026-10-01)
 
+**Deferred** (Sid, 2026-10-02): the town notice board ([notice-board.md](notice-board.md)) comes
+first. The design below stays as written for when this is picked up.
+
 Sid: *"Editing the schedule is a good idea, also plays well with sending mail. 'I want to visit you
 at your farm at this time on this day' provides an opportunity for negative interaction: you could
 stand up the character. Next message you see from that character: 'I came to your farm to see you

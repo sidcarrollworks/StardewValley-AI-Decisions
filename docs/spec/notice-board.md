@@ -1,7 +1,7 @@
 # 23. The town notice board
 
-**Status: idea, not scheduled.** Sid, 2026-10-02. Stored for later; nothing here is decided beyond
-the shape below.
+**Status: not started; scheduled as roadmap step 21** (Sid, 2026-10-02: preferred over farm visits
+by appointment, which are deferred). The details below are a first design, not yet decided.
 
 Sid: *"One of Stardew Valley's story and world aspects is unplugging from technology. Instead of a
 digital board we could add a new board in the downtown square that people can leave notes on. To
