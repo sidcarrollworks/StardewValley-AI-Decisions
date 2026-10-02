@@ -726,10 +726,45 @@ A read-only debug page Sid watches beside the game (`docs/spec/debug-tools.md`, 
 NPC that has a diary, a feed of what happened, and a feed of model calls. It updates every two
 seconds and highlights whatever changed since the last update.
 
+**How a card reads** (redesigned 2026-10-02, after Sid: "It's hard to see the important values ...
+Make it easier to know where to look"). Top to bottom, the most important first:
+1. **A status pill**, in words and a color, worked out by the page from the motives view:
+   - green "would wave" (it acts);
+   - red when hostile ("would glare", "confronted you · waiting on you");
+   - amber "close call: ...?";
+   - blue "waved · waiting on you" (an attempt is open);
+   - grey "holding back", with the runner's reason in plain words ("can't: today's letter used up",
+     "you're not around", "saving today's last tries");
+   - grey "calm" for no motive.
+
+   The card's left edge takes the same color. Calm cards are shaded and drop to the bottom of the
+   default sort, "Most active first" (state, then the strongest feeling).
+2. **The feeling** it would act on: the motive, its strength as a big number and a bar (green
+   friendly, red hostile), and the next strongest motives.
+3. **"What it would dare"**, the act ladder, which replaces the unlabelled daring bar. Every act is
+   shown cheapest first, by name ("wave", "letter", "walk over"; hostile names when the feeling is
+   hostile), marked from the runner's checks:
+   - ✓ yes;
+   - ? close call;
+   - struck through: out of reach;
+   - faded: not weighed now;
+   - outlined: its pick.
+
+   The tooltip gives the daring and cost.
+4. **Four tiles:** regard, mood, tries today, saw you.
+5. **Today's planned line**, if it has one.
+6. **A row of tabs** for the rest: Why (the motives and sources, the mood sum, the daring sum, the
+   newest shadow line), About you, Old ladder, Temperament, Diary.
+
+The header gives the clock, the model's health (red when questions fail), and clickable counts of
+villagers per state ("3 waiting on you", "1 hostile") that filter the grid; the rest of the stats
+go on a small second line. "How to read a card" is a legend above the grid; the page remembers
+whether it was closed.
+
 | Per NPC | From |
 |---|---|
 | portrait (top left of the card) | the villager's neutral portrait (frame 0 of `NPC.Portrait`, 64x64; **verify** the frame layout and that `Portrait` is the current appearance's sheet), cut from the player's own installed game content at `SaveLoaded` on the game thread (`ModEntry.PublishPortraits`), encoded as PNG in memory and handed to the server, which serves `/portrait/<Name>.png` (names are letters, digits and `_` only). Never written to disk or the repo: the art is the game's. A villager without one shows its initials |
-| temperament line and "daring" bar (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
+| temperament line, status pill, feeling and the act ladder (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
 | urge, rung and its threshold, attempts today, open attempt and how long it has waited (under "Current ladder", below the card's facts) | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state. Still what drives attempts until motives replace it |
 | hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
