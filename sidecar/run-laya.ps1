@@ -41,14 +41,14 @@ $env:PYTHONUNBUFFERED = '1'   # print lines as they happen, not when a buffer fi
 $env:PYTHONIOENCODING = 'utf-8'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 # Python writes its log to stderr; with Stop, PowerShell would treat the first stderr line as an
-# error, so relax it for the server's run. VERIFY on Sid's PC: lines appear in the window and the log.
+# error, so relax it for the server's run. Checked on Sid's PC: lines appear in the window and the log.
 $ErrorActionPreference = 'Continue'
 # Each line goes to the window and the log; Add-Content rather than Tee-Object, which writes
 # UTF-16 in Windows PowerShell 5.1.
 & $exe 2>&1 | ForEach-Object {
     # Lines the server writes to stderr arrive as error records; an empty one printed as
     # "System.Management.Automation.RemoteException". The record's TargetObject is the text
-    # itself. VERIFY on Sid's PC that blank lines now stay blank.
+    # itself. Checked on Sid's PC: blank lines stay blank.
     $line = if ($_ -is [System.Management.Automation.ErrorRecord]) { "$($_.TargetObject)" } else { "$_" }
     Write-Host $line
     Add-Content -Path $log -Value $line -Encoding UTF8
