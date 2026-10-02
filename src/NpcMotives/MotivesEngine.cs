@@ -47,20 +47,30 @@ public sealed class MotivesEngine
         // MissingYou: days since the last talk, from 2 hearts (motives.md table).
         if (hearts >= 2)
         {
-            DiaryEntry? lastTalk = i.Diary
+            // The diary's last Talked, or the runner's own record of the last talk, which the
+            // 500-entry trim never drops (playtest 2026-10-02: a busy villager adds ~50 entries a day).
+            int? lastTalk = i.Diary
                 .Where(e => e.Kind == "Talked" && Is(e.Subject, Player) && e.AbsoluteTick <= i.Now)
-                .OrderByDescending(e => e.AbsoluteTick).FirstOrDefault();
-            if (lastTalk is not null)
+                .Select(e => (int?)e.AbsoluteTick).DefaultIfEmpty(null).Max();
+            if (i.LastTalkTick is { } kept && kept <= i.Now && (lastTalk is null || kept > lastTalk))
+                lastTalk = kept;
+            if (lastTalk is { } talked)
             {
-                double days = (i.Now - lastTalk.AbsoluteTick) / (double)GameClock.TicksPerDay;
+                double days = (i.Now - talked) / (double)GameClock.TicksPerDay;
                 add(Motive.MissingYou, Math.Min(1, days / 7) * (0.3 + 0.07 * hearts) * (0.5 + t.Warmth),
                     $"last talked {days:0.#} days ago");
             }
         }
 
-        // Greeting: near someone familiar, once a day.
-        if (i.PlayerNear && !i.GreetedToday && (hearts >= 2 || i.RegardForPlayer >= 0.2))
-            add(Motive.Greeting, 0.15 * (0.5 + t.Warmth), "the player is right here");
+        // Greeting: near someone it knows, once a day. Familiar people get a real hello; an
+        // acquaintance (met, under 2 hearts) only a weak one (Sid, 2026-10-02: year 1 was silent).
+        if (i.PlayerNear && !i.GreetedToday)
+        {
+            if (hearts >= 2 || i.RegardForPlayer >= 0.2)
+                add(Motive.Greeting, _o.GreetingFamiliar * (0.5 + t.Warmth), "the player is right here");
+            else if (i.HasMetPlayer)
+                add(Motive.Greeting, _o.GreetingAcquaintance * (0.5 + t.Warmth), "an acquaintance is right here");
+        }
 
         // News: the planner's best news, until it is shared.
         if (i.BestNewsScore > 0 && !i.NewsShared)
@@ -69,7 +79,8 @@ public sealed class MotivesEngine
         // Feelings from the elastic stresses (plus the grudge for Hurt). A delivered thanks uses
         // up the gratitude for everything before it; the warm part stays in regard.
         int thanked = i.ThankedTick ?? int.MinValue;
-        double grateful = stresses.Where(s => s.Motive == Motive.Grateful && Is(s.Subject, Player) && s.Tick > thanked)
+        double grateful = stresses.Where(s => s.Motive == Motive.Grateful && Is(s.Subject, Player) && s.Tick > thanked
+                                              && !StressorTable.IsMoodOnly(s.Kind))
             .Sum(s => s.Strength);
         add(Motive.Grateful, grateful, "recent kindness");
         double grudge = Math.Max(0, -i.RegardForPlayer);
@@ -235,11 +246,17 @@ public sealed class MotivesEngine
         double effective = t.Boldness + familiarity + intensityTerm;
 
         var checks = new List<ActCheck>();
+        var tooWeak = new List<Act>();
         foreach (Act act in AllowedActs(chosen.Motive, feeling, i.BestNewsScore)
                      .OrderByDescending(a => _o.ActCost[a]).ThenBy(a => (int)a))
         {
             if (!Available(act, i, friendlyInPerson: !hostile, c.Net))
                 continue;
+            if (intensity < _o.MinStrengthFor(act))
+            {
+                tooWeak.Add(act); // a reason too small for this act, however bold
+                continue;
+            }
             double cost = _o.ActCost[act] + (hostile ? _o.HostileSurcharge : 0);
             double margin = effective - cost;
             CallKind call = margin >= _o.ClearBand ? CallKind.ClearYes : margin <= -_o.ClearBand ? CallKind.ClearNo : CallKind.CloseCall;
@@ -257,6 +274,12 @@ public sealed class MotivesEngine
                 return new MotiveDecision(i.Npc, c.Motives, c.Mood, c.Net, chosen, t.Boldness, familiarity, intensityTerm,
                     frustration, checks, check.Act, check, $"{check.Act}: {check.Effective:0.00} vs cost {check.Cost:0.00}, close call");
         }
+        if (checks.Count == 0 && tooWeak.Count > 0)
+            return Nothing(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "motive {0:0.00} too weak for {1}", intensity,
+                    string.Join(", ", tooWeak.Select(a => string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0} (needs {1:0.00})", MotiveText.ActName(a), _o.MinStrengthFor(a))))),
+                familiarity, intensityTerm, checks);
         if (checks.Count == 0)
         {
             // Say when a cap, not the situation, ruled the acts out.

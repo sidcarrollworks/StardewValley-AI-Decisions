@@ -84,7 +84,8 @@ public sealed record MotiveInputs(
     IReadOnlyList<int>? VentTicks = null,      // hostile acts: each vents the hurt from entries at or before it
     IReadOnlyCollection<Act>? Unavailable = null, // acts a cap rules out now (the runner's daily and weekly caps)
     string? Card = null,                       // the NPC card for the model's state (rendered on the game thread)
-    string? LeadPlace = null);                 // where the lead points, for the shadow line ("would go looking at ...")
+    string? LeadPlace = null,                  // where the lead points, for the shadow line ("would go looking at ...")
+    int? LastTalkTick = null);                 // the last talk the runner saw; survives the diary's 500-entry trim
 
 /// <summary>One act the rule weighed, with every part, so the playtest log and viewer can show
 /// why (docs/spec/debug-tools.md, "Playtest log", the decision record).</summary>

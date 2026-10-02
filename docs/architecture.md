@@ -365,8 +365,9 @@ narrow yes/no band no longer decides the speakers (week review, finding 4;
 | `Talked`, subject Player | `It was nice talking with you {when}.` |
 | `PassedBy`, subject Player | `You walked right past me {when}.` |
 | `BirthdayForgotten`, subject Player | `My birthday was {when}, you know.` |
-| `GiftReceived`, subject Player | `Thanks again for the {name} {when}.` (or `the gift` without a `name`) |
-| `SawGift` | `I saw {who} get a {name} {when}.` |
+| `GiftReceived`, subject Player | by taste: Love or Like `Thanks again for the {name} {when}.`; Neutral `Thanks for the {name} {when}.`; Dislike `I'm not sure what to do with the {name} you gave me {when}.`; Hate `About the {name} you gave me {when}. Please don't do that again.` (`the gift` without a `name`) |
+| `SawGift` | `I saw {who} get a {name} from {giver} {when}, and {reaction}.`: the witness saw the reaction too ("they hated it", "it made their day"; none for a neutral gift) |
+| `Heard`, subject Player | a gift: `{from} told me you gave them a {name} {when}.` (`... They weren't happy.` for a disliked or hated one); a quest: `{from} told me you helped them out {when}.`; else `I heard about {who} from {from} {when}.` |
 | `QuestHelped`, subject Player | `Thanks for helping me out {when}.` |
 | `Festival`, subject Player | `It was nice catching up with you at the festival {when}.` with `with=1`, else `I saw you at the festival {when}.` |
 | `MissedFestival`, subject Player | `You missed the festival {when}.` |
@@ -517,7 +518,7 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 | `RegardBook` | the lasting part, one signed number per (observer, subject), -1..1: retention (Pam 0.2, everyone else 0.5) unless the stress is severe (0.7+ after sensitivity), the yield point (the third ignore, walk-past or brush-off of one subject in 5 days marks 0.3), the 6:00 drift (grudges heal by 0.03 x (0.5 + forgiveness), warmth fades by 0.005), confirmed hearsay at half strength |
 | `RegardKeeper` | owns the book on the game thread. `OnNoted` is the body of the `MemoryStore.Noting` hook, so each diary write leaves its mark exactly once; hearsay told by the person it happened to is confirmed at once, hearsay from a witness stays elastic. Also `Drift` and `Relieve` |
 | `MoodRoll` | earned mood (the stresses' signed sum) plus 0.3 x (0.5 + sensitivity) x a seeded triangular roll skewed by the emotion biases; 1 day in 40 runs against the character's lean |
-| `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
+| `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts whose minimum motive strength the intensity reaches (`ActMinStrength`: a letter needs 0.30, an interrupt 0.60), from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
 | `MotivesRunner` | the engine over time (rules below) |
 | `BackgroundMotives` | runs the runner on one worker, like `BackgroundLadder`: `EnqueueTick`, `EnqueueTalked`, `Drain`; `LatestJson`, `LatestDecisions` and `LatestStates` are safe to read from any thread; a full backlog drops ticks and counts them |
 | `MotiveInputBuilder` | one NPC's `MotiveInputs` on the game thread, from its own ledger view (near, seen today, days since a sighting), lead, diary (copied) and regard |

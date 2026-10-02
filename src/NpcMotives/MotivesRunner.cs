@@ -90,6 +90,7 @@ public sealed class MotivesRunner
                 IgnoredToday = s.IgnoredToday,
                 AttemptsLeftToday = Math.Max(0, _o.MaxAttemptsPerDay - _attemptsToday),
                 ThankedTick = s.ThankedTick,
+                LastTalkTick = s.LastContactTick,
                 VentTicks = s.VentTicks.ToArray(),
                 Unavailable = CappedActs(s),
             };

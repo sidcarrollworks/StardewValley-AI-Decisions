@@ -25,6 +25,28 @@ public class NewsPhrasingTests
     }
 
     [Fact]
+    public void Heard_PhrasesTheOriginalAndWhoToldIt()
+    {
+        // Playtest 2026-10-02: the model was offered "Heard Player (from=Pam;kind=GiftReceived;...)".
+        var heard = new DiaryEntry(100, "Player", "Heard", "from=Pam;kind=GiftReceived;subject=Player;item=(O)766;name=Slime;taste=Hate;birthday=0");
+        Assert.Equal("Emily heard from Pam that yesterday the player gave Pam a Slime (a hated gift)",
+            NewsPhrasing.Sentence("Emily", heard, 1));
+
+        var odd = new DiaryEntry(100, "Player", "Heard", "from=Pam;kind=SomethingNew");
+        string fallback = NewsPhrasing.Sentence("Emily", odd, 1);
+        Assert.Equal("yesterday Emily heard something from Pam about the player", fallback);
+        Assert.DoesNotContain("=", fallback);
+    }
+
+    [Fact]
+    public void SawGift_SaysWhoGaveItAndHowItWentDown()
+    {
+        var saw = new DiaryEntry(100, "Jodi", "SawGift", "giver=Player;name=Daffodil;taste=Hate");
+        Assert.Equal("yesterday Vincent saw the player give Jodi a Daffodil (Jodi hated it)",
+            NewsPhrasing.Sentence("Vincent", saw, 1));
+    }
+
+    [Fact]
     public void GiftReceived_WithoutAName_FallsBackToAGenericGift()
     {
         var entry = new DiaryEntry(100, "Player", "GiftReceived", "taste=Hate");

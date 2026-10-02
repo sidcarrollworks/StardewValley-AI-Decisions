@@ -94,6 +94,8 @@ Motives engine (2026-10-02, step 14 part 2, Claude in the cloud): the whole of `
 
 Motives wired in shadow (2026-10-02, step 14 part 3): the engine now runs beside the urge ladder every tick — inputs from the ladder's own views and leads (never live positions), model calls only on its worker through `Guarded("motives")`, acts and grudges as `[shadow]` lines, regard applied through the `MemoryStore.Noting` hook, regard drift and the snapshot at 6:00, `regard` and `motives` saved and loaded, and the viewer showing the runner's real decisions. First motives playtest data now accumulates in the playtest log.
 
+First motives playtest (2026-10-02, spring, BUNKO save): the runner ran beside the ladder with Laya up (about 35 ms a call, no fallbacks). Fixes from reading the log: the overnight lines thanked the player for hated gifts ("Thanks again for the Daffodil" to Jodi, while her motives were Hurt), now by taste; a seen gift says who gave it and how it went down (Sid: the witness saw the reaction); hearsay lines and the model's hearsay options say who told what instead of raw detail; and a plain talk no longer counts as a reason to thank someone (Haley's daily thank-you letters). Each act now also needs a big enough reason (`ActMinStrength`; a letter 0.30), so a bold villager no longer writes over a passing thought. 850 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

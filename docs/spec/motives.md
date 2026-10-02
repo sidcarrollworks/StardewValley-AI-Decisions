@@ -100,7 +100,7 @@ First-guess defaults (tune from playtest logs):
 | `GiftReceived` Hate | disgust | - | 0.6 | 0.8 | 0.3 | 3 |
 | `QuestHelped` | happiness | + | 0.5 | 0.8 | 0.3 | 2 |
 | `AcceptedInvite` | happiness | + | 0.4 | 0.8 | 0.2 | 1 |
-| `Talked` | happiness | + | 0.1 | 0.5 | 0.02 | 0 |
+| `Talked` (mood only: lifts the mood and leaves warmth in regard, but is no `Grateful` motive on its own; playtest 2026-10-02) | happiness | + | 0.1 | 0.5 | 0.02 | 0 |
 | `StoodUp` | sadness | - | 0.7 | 0.85 | 0.5 | 3 |
 | `BirthdayForgotten` | sadness | - | 0.6 | 0.85 | 0.4 | 2 |
 | `MissedVisit` | sadness | - | 0.4 | 0.8 | 0.2 | 1 |
@@ -118,7 +118,7 @@ First-guess defaults (tune from playtest logs):
 | `StoodUp` at the farm, `seen=1` (seen but ignored) | anger | - | 0.85 | 0.85 | 0.6 | 3 |
 | `TownNews` (a vanilla conversation topic) | surprise | none | 0 | - | 0 | 2 |
 | `Argued` (NPC to NPC, [town-life.md](town-life.md)) | anger | - | 0.4 | 0.8 | 0.3 | 3 |
-| `ChattedWith` | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
+| `ChattedWith` (mood only, as `Talked`) | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
 | `Heard` | the original's | the original's | original x `HearsayFactor` 0.5 | 0.6 | 0 until confirmed | the original's, faded |
 
 Sensitivity scales every magnitude: `magnitude x (0.5 + sensitivity)`, so a typical villager
@@ -193,8 +193,8 @@ source entry.
 
 | Motive | From | Strength |
 |---|---|---|
-| `MissingYou` | days since the last `Talked` entry, hearts | `min(1, days / 7) x (0.3 + 0.07 x hearts) x (0.5 + warmth)`; 0 below 2 hearts |
-| `Greeting` | the subject is near **in the NPC's own ledger view** (a fresh `NamedSpot`, the memory-only fact `IsNear` uses), and is familiar (2+ hearts, or regard >= 0.2) | `0.15 x (0.5 + warmth)` while near, gone within the hour after; once per subject per day. Sid: *"a character is within 8 squares, this might add temporary urge to walk up and say something"* |
+| `MissingYou` | days since the last talk: the diary's last `Talked` entry, or the runner's saved record of the last talk, which survives the 500-entry diary trim; hearts. No talk on record (a save older than the mod's diaries): none until the first talk | `min(1, days / 7) x (0.3 + 0.07 x hearts) x (0.5 + warmth)`; 0 below 2 hearts |
+| `Greeting` | the subject is near **in the NPC's own ledger view** (a fresh `NamedSpot`, the memory-only fact `IsNear` uses), and is familiar (2+ hearts, or regard >= 0.2), or an acquaintance (met, under 2 hearts; Sid, 2026-10-02, after year 1 was silent) | familiar `0.15 x (0.5 + warmth)`, acquaintance `0.08 x (0.5 + warmth)` (below a bubble's minimum: bold villagers wave, shy ones mostly don't) while near, gone within the hour after; once per subject per day. Sid: *"a character is within 8 squares, this might add temporary urge to walk up and say something"* |
 | `News` | the best newsworthy diary entry from today or yesterday ([diary.md](diary.md)) | `news score / 5 x (0.5 + chattiness)` |
 | `Grateful` | the elastic part of `GiftReceived` Love/Like, `QuestHelped`, `AcceptedInvite`, trades | summed, capped at 1 |
 | `Hurt` | the elastic part of `IgnoredBy`, `StoodUp`, `BirthdayForgotten`, `PassedBy`, `MissedVisit`, `GiftReceived` Dislike/Hate, plus `max(0, -regard)` | summed, capped at 1 |
@@ -270,6 +270,15 @@ sadness 28, happiness 32, surprise 16, fear 8, and for a warm romantic feeling h
 **Hostile acts** (a sharp bubble, a cold letter, a confrontation) cost `HostileSurcharge` (0.30)
 more. Avoiding someone is not an act: it costs nothing and shows only as an absence and a shadow
 line.
+
+### A reason big enough for the act
+
+Sid, 2026-10-02, after the first motives playtest (Haley, bold, wrote a letter over "misses you
+0.10"): boldness decides who dares, but the motive's strength decides whether the reason is worth
+the act. An act is weighed only when the motive's intensity (frustration included) reaches its
+`ActMinStrength`: Emote 0, Bubble 0.10, Queued line 0.15, Walk up 0.20, Letter and Ask for help
+0.30, Farm visit and Visit 0.40, Interrupt 0.60. First guesses for Sid to tune from the log; a pass
+says which acts were too big for the reason ("motive 0.10 too weak for letter (needs 0.30)").
 
 ### Effective boldness
 
@@ -441,7 +450,7 @@ In `MotiveOptions`, not saved:
 - regard: `RegardHealRate` 0.03, `RegardFadeRate` 0.005, friendly familiarity 0.03 per heart and 0.2
   per positive regard, hostile familiarity 0.15;
 - mood: `RollWeight` 0.3, `RollSkew` 0.3, `TailChance` 1/40, `MoodSway` 0.15, `MoodTilt` 0.10;
-- acts: `ActCost` per act, `HostileSurcharge` 0.30, `IntensityWeight` 0.5, `ClearBand` 0.15,
+- acts: `ActCost` per act, `ActMinStrength` per act (above), `HostileSurcharge` 0.30, `IntensityWeight` 0.5, `ClearBand` 0.15,
   `AvoidLevel` 0.3, `FrustrationStep` 0.1, `VentRelief` 0.5, `StrongReserve` 2,
   `StrongIntensity` 0.5, `MinMotiveForChoice` 0.2;
 - grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7.

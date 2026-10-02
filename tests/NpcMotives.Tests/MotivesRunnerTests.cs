@@ -67,7 +67,7 @@ public sealed class MotivesRunnerTests
     {
         var model = new Scripted(yes: 1);
         var runner = new MotivesRunner(model);
-        MotiveInputs robin = Inputs("Robin", Robin, hearts: 0, near: true);
+        MotiveInputs robin = Inputs("Robin", Robin, hearts: 0, near: true, met: false) with { KnowsOfPlayer = false }; // a stranger
         List<MotiveEvent> events = Run(runner, robin, 10 * Day, 11 * Day - 1);
         Assert.Empty(events);
         Assert.Equal(0, model.YesNoCalls + model.ChooseCalls);
@@ -222,6 +222,23 @@ public sealed class MotivesRunnerTests
         var holds = new MotivesRunner(no);
         Run(holds, shane, Now, Now + 10);
         Assert.Equal(1, no.YesNoCalls); // asked once today, never drawn
+    }
+
+    [Fact]
+    public void MissingYouSurvivesTheDiaryTrim()
+    {
+        // The runner saw a talk on day 3; by day 10 the diary has trimmed it away. A week apart,
+        // Robin misses the player as if the entry were still there.
+        var runner = new MotivesRunner(new Scripted());
+        runner.NoteTalked("Robin", 3 * Day + 60);
+        runner.Tick(Now, new[] { Inputs("Robin", Robin, hearts: 4) });
+        MotiveStrength missing = Assert.Single(runner.LatestDecisions()["Robin"].Motives, m => m.Motive == Motive.MissingYou);
+        Assert.Contains("last talked 7 days ago", missing.Source);
+
+        // With no talk on record at all (a save older than the mod's diaries), nothing is missed yet.
+        var fresh = new MotivesRunner(new Scripted());
+        fresh.Tick(Now, new[] { Inputs("Robin", Robin, hearts: 4) });
+        Assert.DoesNotContain(fresh.LatestDecisions()["Robin"].Motives, m => m.Motive == Motive.MissingYou);
     }
 
     [Fact]

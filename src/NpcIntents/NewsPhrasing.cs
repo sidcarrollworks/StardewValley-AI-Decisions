@@ -44,7 +44,18 @@ public static class NewsPhrasing
         }
 
         if (kind.Equals("SawGift", StringComparison.OrdinalIgnoreCase))
-            return $"{when} {npc} saw the player give {entry.Subject} a gift";
+        {
+            // What the witness saw includes the reaction (the taste).
+            IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(entry.Detail);
+            string giver = detail.TryGetValue("giver", out string? g) && !IsPlayer(g) ? g : "the player";
+            string gift = detail.TryGetValue("name", out string? name) && !string.IsNullOrWhiteSpace(name) ? $"a {name}" : "a gift";
+            string reaction = (detail.TryGetValue("taste", out string? taste) ? TasteAdjective(taste) : "fine") switch
+            {
+                "fine" => string.Empty,
+                var adjective => $" ({entry.Subject} {adjective} it)",
+            };
+            return $"{when} {npc} saw {giver} give {entry.Subject} {gift}{reaction}";
+        }
 
         if (kind.Equals("QuestHelped", StringComparison.OrdinalIgnoreCase))
             return $"{when} the player completed the request for {npc}";
@@ -71,6 +82,21 @@ public static class NewsPhrasing
 
         if (kind.Equals("BirthdayForgotten", StringComparison.OrdinalIgnoreCase))
             return $"{when} was {npc}'s birthday and the player forgot";
+
+        if (kind.Equals("Heard", StringComparison.OrdinalIgnoreCase))
+        {
+            // The original event, phrased as if it were the teller's own entry, then attributed
+            // (playtest 2026-10-02: the option was the raw "Heard Player (from=Pam;kind=...)").
+            IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(entry.Detail);
+            string teller = detail.TryGetValue("from", out string? from) ? from : "someone";
+            if (detail.TryGetValue("kind", out string? original) && !original.Equals("Heard", StringComparison.OrdinalIgnoreCase))
+            {
+                string told = Sentence(teller, entry with { Kind = original }, daysAgo);
+                if (!told.StartsWith(original, StringComparison.OrdinalIgnoreCase)) // a phrased kind, not the fallback
+                    return $"{npc} heard from {teller} that {told}";
+            }
+            return $"{when} {npc} heard something from {teller} about {(IsPlayer(entry.Subject) ? "the player" : entry.Subject)}";
+        }
 
         return Summarize(entry);
     }
