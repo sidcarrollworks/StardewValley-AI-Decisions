@@ -89,6 +89,7 @@ From the Get Started guide, and already true here unless noted:
 | 21 | [temperament.md](temperament.md) | Seed personality values per villager (warmth, sensitivity, forgiveness, chattiness, curiosity, boldness) and Ekman emotion biases (anger, disgust, fear, happiness, sadness, surprise) from their dialogue and game traits | partial (tool and draft table; not wired) |
 | 22 | [vanilla-sources.md](vanilla-sources.md) | What the game already gives: signals to read (dialogue answers, heart events, festivals, movies, conversation topics), character data to mine, and vanilla channels to act through (emotes, one-day schedules, quests, phone calls) | not started (verification running) |
 | 23 | [notice-board.md](notice-board.md) | A cork board in the town square: villagers walk there to pin notes, the player pins typed notes, and Laya chooses how each reader reacts | not started (roadmap step 21) |
+| 24 | [journal.md](journal.md) | A short, skippable bedtime journal the player can write in, with time paused | idea, stored for later (Sid, 2026-10-02) |
 | - | [roadmap.md](roadmap.md) | Prioritized build order, and the decisions only Sid can make | - |
 | - | [references.md](references.md) | Links to keep (SMAPI API pages, wiki data pages, Laya), mapped to the specs that use them | - |
 
