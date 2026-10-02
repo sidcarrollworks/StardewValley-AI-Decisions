@@ -119,6 +119,16 @@ public static class MotiveText
     }
 
     /// <summary>The <c>[shadow]</c> line for one runner event (the mod adds the prefix).</summary>
+    /// <summary>The shadow line for a regard change, or null when it rounds to nothing at two
+    /// decimals (a talk's lasting mark is about 0.002: playtest 2026-10-02 logged 27
+    /// "+0.00 -> +0.00" lines in four days). The playtest record keeps every change.</summary>
+    public static string? RegardLine(RegardNote note)
+    {
+        string before = note.Before.ToString("+0.00;-0.00", CultureInfo.InvariantCulture);
+        string after = note.After.ToString("+0.00;-0.00", CultureInfo.InvariantCulture);
+        return before == after ? null : $"{note.Observer}: regard for {note.Subject} {before} -> {after} ({note.Cause})";
+    }
+
     public static string Line(MotiveEvent e) => e.Kind switch
     {
         "Act" or "Pass" when e.Decision is not null => DecisionLine(e, e.Decision),

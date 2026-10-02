@@ -287,7 +287,7 @@ public sealed class MotivesEngine
             return Nothing(heldBack.All(a => MotiveOptions.IsLight(a, chosen.Motive))
                     ? "waved enough today"
                     : i.AttentionCapped
-                        ? "the day's attempts are used up; only a wave is left"
+                        ? "no attempts left today (its own or the town's); only a wave is left"
                         : $"only {i.AttemptsLeftToday} attempts left today; kept for strong motives",
                 familiarity, intensityTerm, checks);
         if (checks.Count == 0 && tooWeak.Count > 0)
