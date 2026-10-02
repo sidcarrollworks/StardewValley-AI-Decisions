@@ -50,7 +50,22 @@ public sealed class Diary
     {
         int excess = _entries.Count - Math.Max(0, max);
         if (excess > 0)
+        {
             _entries.RemoveRange(0, excess);
+            TrimmedToday += excess;
+        }
+    }
+
+    /// <summary>Entries dropped by <see cref="TrimTo"/> today (the playtest log reads it once a
+    /// day at 6:00).</summary>
+    public int TrimmedToday { get; private set; }
+
+    /// <summary>Read and reset the day's trim count (the 6:00 memory census uses this).</summary>
+    public int TakeTrimmedToday()
+    {
+        int trimmed = TrimmedToday;
+        TrimmedToday = 0;
+        return trimmed;
     }
 
     /// <summary>Rewrite every entry's tick (save migration, e.g. adding the year to old ticks).</summary>

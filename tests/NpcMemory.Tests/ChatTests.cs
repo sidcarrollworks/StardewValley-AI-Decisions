@@ -222,4 +222,33 @@ public class ChatTests
         Assert.Equal(WhereaboutsSource.Habit,
             store.LookFor("Jas", "Vincent", 10, 120, lenient).Source);
     }
+
+    [Fact]
+    public void ChatHeardPairsEachHeardLineWithItsListener()
+    {
+        var first = new MemoryStore(7);
+        var second = new MemoryStore(7);
+        foreach (MemoryStore store in new[] { first, second })
+        {
+            store.Note("Abigail", new DiaryEntry(0, Player, "GiftReceived", "taste=Love;name=Sunflower"));
+            Tick(store, 1, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+            Tick(store, 2, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+            Tick(store, 3, Npc("Abigail", "Town", 6, 6), Npc("Sam", "Town", 7, 7));
+        }
+
+        IReadOnlyList<(string Listener, DiaryEntry Entry)> pairs = first.ChatHeard(3, options: AlwaysChat);
+        IReadOnlyList<DiaryEntry> lines = second.Chat(3, options: AlwaysChat);
+
+        // Chat is ChatHeard without the listener: the same records, in the same order.
+        Assert.Equal(
+            lines.Select(e => (e.AbsoluteTick, e.Subject, e.Kind, e.Detail)),
+            pairs.Select(p => (p.Entry.AbsoluteTick, p.Entry.Subject, p.Entry.Kind, p.Entry.Detail)));
+
+        DiaryEntry heard = Assert.Single(lines.Where(l => l.Kind == "Heard"));
+        (string listener, DiaryEntry entry) = Assert.Single(pairs.Where(p => p.Entry.Kind == "Heard"));
+        Assert.Equal("Sam", listener);
+        Assert.Equal(heard, entry);
+        // The paired entry is the very line the listener's diary got.
+        Assert.Contains(second.DiaryOf("Sam").Entries, e => ReferenceEquals(e, heard));
+    }
 }

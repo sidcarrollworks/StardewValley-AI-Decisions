@@ -454,10 +454,15 @@ public sealed class MemoryStore
     /// newest instead. The mod passes Newsworthiness.Score with a per-teller context.</param>
     /// <returns>The `Heard` entries written (for logging).</returns>
     public IReadOnlyList<DiaryEntry> Chat(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null)
+        => ChatHeard(nowTick, newsScore, options).Select(pair => pair.Entry).ToList();
+
+    /// <summary>Same as <see cref="Chat"/>, but each `Heard` line is paired with the listener
+    /// whose diary it was written to (the playtest log records both sides of a share).</summary>
+    public IReadOnlyList<(string Listener, DiaryEntry Entry)> ChatHeard(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null)
     {
         options ??= new ChatOptions();
         int today = GameClock.DayIndex(nowTick);
-        var written = new List<DiaryEntry>();
+        var written = new List<(string Listener, DiaryEntry Entry)>();
 
         foreach (string key in _prevCoLocated)
         {
@@ -485,7 +490,7 @@ public sealed class MemoryStore
             foreach ((string teller, string listener) in new[] { (a, b), (b, a) })
             {
                 if (TryShareEvent(teller, listener, today, newsScore) is { } heard)
-                    written.Add(heard);
+                    written.Add((listener, heard));
             }
         }
 

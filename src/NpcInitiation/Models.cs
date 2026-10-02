@@ -30,7 +30,8 @@ public sealed record InitiationInput(
 
 /// <summary>
 /// One thing the ladder would do, or an outcome it recorded. <see cref="Kind"/> is
-/// "Attempt", "Ignored", "Responded", or "Expired" (a queued line the player never came to hear).
+/// "Attempt", "Ignored", "Responded", "Expired" (a queued line the player never came to hear),
+/// or "Blocked" (a near-attempt the step's gate or a cap passed over).
 /// </summary>
 public sealed record InitiationEvent(
     int AbsoluteTick,
@@ -40,7 +41,9 @@ public sealed record InitiationEvent(
     double UrgeBefore,
     double UrgeAfter,
     string Reason,
-    Whereabouts? Lead = null); // for an Approach made from a distance: where the NPC would go and why
+    Whereabouts? Lead = null, // for an Approach made from a distance: where the NPC would go and why
+    double? Threshold = null, // the step's threshold when the ladder weighed it; null on kinds that never weighed one
+    double? ModelP = null);   // the model's yes/no answer; null when the model was not asked (e.g. a Blocked event)
 
 /// <summary>One NPC's ladder state as saved (<see cref="InitiationLadder.ReadStates"/>): a
 /// read-only copy for display, never fed back into the ladder.</summary>

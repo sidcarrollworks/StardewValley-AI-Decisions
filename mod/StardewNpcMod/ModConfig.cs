@@ -37,4 +37,9 @@ public sealed class ModConfig
 
     /// <summary>Port for the viewer. Not 8000: the Laya server uses that.</summary>
     public int MindsViewerPort { get; set; } = 8765;
+
+    /// <summary>Write the playtest log, one JSON-lines file per save and in-game day under
+    /// playtest/&lt;save&gt;/ (docs/spec/debug-tools.md, "Playtest log"). On in development;
+    /// reads only, never feeds a decision.</summary>
+    public bool PlaytestLog { get; set; } = true;
 }

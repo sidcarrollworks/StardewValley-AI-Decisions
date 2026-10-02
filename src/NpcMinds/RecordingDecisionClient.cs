@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using NpcDecision;
+using NpcMinds.Playtest;
 
 namespace NpcMinds;
 
@@ -26,14 +27,16 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
     private readonly RingLog<DecisionCall> _log;
     private readonly string _caller;
     private readonly SpreadTable? _spread;
+    private readonly PlaytestLog? _playtest; // the playtest log's model records (docs/spec/debug-tools.md)
 
     public RecordingDecisionClient(ResilientDecisionClient inner, RingLog<DecisionCall> log, string caller,
-        SpreadTable? spread = null)
+        SpreadTable? spread = null, PlaytestLog? playtest = null)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _caller = caller ?? "";
         _spread = spread;
+        _playtest = playtest;
     }
 
     public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
@@ -88,8 +91,21 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
             // The spread panel's table: observe (never alter) the answer under the question
             // template. Choice calls have per-call options, so they carry no single number; the
             // per-question recording for batches is in Ask.
+            string template = SpreadTable.ReplaceNpc(question, npc);
             if (_spread is not null && type is "yesno" or "score" && shown.Count > 0)
-                _spread.Record(SpreadTable.ReplaceNpc(question, npc), npc, shown[0].Value);
+                _spread.Record(template, npc, shown[0].Value);
+
+            // The playtest log's model record (docs/spec/debug-tools.md, "Playtest log"): the same
+            // view the call log gets, queued for the game thread. Reads only; a model failure must
+            // never change a decision, so recording stays best effort.
+            double? answer = (type is "yesno" or "score") && shown.Count > 0 ? shown[0].Value : null;
+            if (answer is { } value && double.IsNaN(value))
+                answer = null; // JSON cannot carry NaN; the spread table drops it too
+            _playtest?.QueueFromWorker(new ModelCallRecord(_caller, type, npc, template, question, answer,
+                clock.Elapsed.TotalMilliseconds, fellBack)
+            {
+                Tick = 0, // Record has no game-clock context on the worker (the parent wires a tick later)
+            });
         }
         catch
         {
