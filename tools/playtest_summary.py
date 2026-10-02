@@ -311,6 +311,14 @@ def decision_section(records):
         lines.append("  close calls: {} asked, {} acted on; median Laya p {:.2f}, median mood tilt {}".format(
             len(asked), said_yes, statistics.median([number(r, "modelP") for r in asked]),
             "-" if not shifts else "{:+.3f}".format(statistics.median(shifts))))
+    passes = Counter((text(r, "motive"), re.sub(r"\d+(\.\d+)?", "#", text(r, "detail")))
+                     for r in records if text(r, "kind").lower() == "pass")
+    if passes:
+        lines.append("  passes by motive and reason (numbers as #):")
+        lines += table(["motive", "reason", "count"],
+                       [[motive, clip(reason, 70), count] for (motive, reason), count
+                        in sorted(passes.items(), key=lambda kv: (-kv[1], kv[0]))[:12]],
+                       indent="    ", right=(2,))
     blocked = Counter(text(r, "detail") for r in records if text(r, "kind").lower() == "blocked")
     if blocked:
         lines.append("  blocked by: " + ", ".join(
