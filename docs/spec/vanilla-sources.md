@@ -60,6 +60,41 @@ quests, festivals, `friendshipData` (hearts, status), weather. All confirmed.
 | Conversation topics | `Farmer.activeDialogueEvents`; the full vanilla list with triggers and days is in the source notes (`Introduction`, `cc_*`, `joja_Begin`, `married_*`, `dating_*`, `divorced_*`, `wonGrange`, `pamHouseUpgrade`, `movieTheater`, `GreenRainFinished`, ...). The game also spawns `<topic>_memory_oneday` ... `_oneyear` at 1, 7, 14, 28, 56 and 104 days, its own anniversaries | `TownNews` (`topic`, `days`); `_memory_*` ids as anniversaries ("a week since the bridge was fixed") | `News`, gossip, opinions of the player |
 | NPCs away at the resort | `Game1.netWorldState.Value.IslandVisitors` (or `Game1.IsVisitingIslandToday`), set overnight, readable in the morning | none: a known absence | keeps `Worried` and "looked for you" quiet |
 
+### History at install (Sid, 2026-10-02)
+
+Sid: *"Is there any way to get the gift history or relationship history? That way if people
+install the mod halfway through their playthrough it feels normal."* In the first motives
+playtests Haley reacted strongly because of gifts given during play, but years of gifts given
+before the mod was installed are invisible to it: regard starts at zero for everyone. The game
+keeps part of that history, and the mod can read it **once per save**, the first time it loads
+without a `regard` value, to seed regard toward the player.
+
+| What the game keeps (confirmed unless marked) | Seeds |
+|---|---|
+| `Farmer.giftedItems`: NPC name -> item id -> count, every gift ever given (no dates) | each gift's taste for that NPC (`NPC.getGiftTasteForThisItem`, as today) gives its stressor row (loved, liked, disliked, hated); the plastic marks are summed, faded by `HistoryFade` (0.5: their age is unknown) with retention, and soft-capped, so fifty loved gifts read as deeply warm, not past 1 |
+| `Friendship.LastGiftDate` per NPC | when the last gift was; the item is unknown, so it only dates the history, nothing more |
+| `Farmer.eventsSeen` and the `f <Npc> <points>` preconditions in `Data/Events` (above) | each heart event already seen: a warm mark like `HeartEvent` |
+| `Friendship.Status`: dating, engaged, married, divorced | a floor (dating, married) or a lasting grudge (divorced) on the partner's regard ([romance.md](romance.md)) |
+| The `divorced_*` and `dating_*` conversation topics, `mailReceived` | dates for the above where they exist |
+| Hearts (friendship points) | **not** seeded into regard: familiarity already uses hearts, so seeding them would count the friendship twice |
+
+Not kept by the game: conversations, which quests were done for whom (only the special orders'
+completion keys), and the order or dates of gifts. So `MissingYou` still waits for the first talk
+the mod sees, and no diary entries are invented: history goes into regard only, the lasting part,
+never into the diary's recent events.
+
+- **When:** at `SaveLoaded`, on the game thread, if the save has no `regard` value yet (the
+  install, or a save from before motives). It runs once; the seeded values are then ordinary saved
+  regard, which drifts and changes like any other.
+- **Shadow:** the seed is the mod's own memory, so it changes nothing in the game; it logs
+  `[shadow] seeded regard from history: Haley +0.42 (31 gifts: 12 loved, 15 liked, 4 neutral;
+  2 heart events)` per villager, and a `regard` playtest record with cause `history`.
+- **Pure core, game reader:** the seeding rule (counts and tastes in, regard out) is a pure
+  function in `src/NpcMotives` with tests; reading `giftedItems`, `eventsSeen` and tastes is a
+  small piece in `ModEntry`.
+- **To verify** in the decompile: that `giftedItems` keeps gifts from before 1.6 saves were
+  converted (old saves), and what it holds for gifts to a spouse.
+
 ### Character data to mine (offline, in the tools)
 
 | Source | What it gives | Used by |

@@ -84,5 +84,7 @@ Still open:
 - Whether `DayEnding` is too late for a menu.
 - The hooks for being knocked out in the mines or Skull Cavern and for passing out at 2:00 (what
   the game takes, and an event or postfix that fires once), so a stolen page can be decided then.
+  Partly known already ([vanilla-sources.md](vanilla-sources.md), "The player passing out"):
+  `Farmer.performPassoutWarp` for passing out, the `PlayerKilled` event for the mines.
 - A text-entry menu the game already has that can be reused (as the naming screens do), and its
   length limit.

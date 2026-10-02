@@ -96,6 +96,8 @@ Motives wired in shadow (2026-10-02, step 14 part 3): the engine now runs beside
 
 First motives playtest (2026-10-02, spring, BUNKO save): the runner ran beside the ladder with Laya up (about 35 ms a call, no fallbacks). Fixes from reading the log: the overnight lines thanked the player for hated gifts ("Thanks again for the Daffodil" to Jodi, while her motives were Hurt), now by taste; a seen gift says who gave it and how it went down (Sid: the witness saw the reaction); hearsay lines and the model's hearsay options say who told what instead of raw detail; and a plain talk no longer counts as a reason to thank someone (Haley's daily thank-you letters). Each act now also needs a big enough reason (`ActMinStrength`; a letter 0.30), so a bold villager no longer writes over a passing thought. 850 tests green.
 
+Notice-board experiment (2026-10-02, roadmap step 21, first stage): `src/NpcBoard` asks how each villager would react to a note in the player's own words, as a typed choice over six reactions (amused, touched, curious, annoyed, offended, indifferent) with the note as quoted data, and maps the reaction to an emote and a templated line; `sidecar/eval/run_notes.py` runs it against a local Laya for every villager's card and reports how the town split and whether the villagers differ. 859 tests green.
+
 **From here on**, the plan lives in `docs/spec/`: a spec for every feature and a prioritized roadmap (`docs/spec/roadmap.md`) with the decisions still open for Sid.
 
 ## Side ideas

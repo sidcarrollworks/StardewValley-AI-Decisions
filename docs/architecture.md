@@ -574,6 +574,20 @@ the worker only as the copied `RegardForPlayer`.
 7. `PublishMinds` passes `Motives`, `MotiveStates`, `RegardFor` and the newest line per NPC to
    `MindsInputs`; the cards then show the runner's numbers instead of the page's preview.
 
+## Notice-board experiment (`src/NpcBoard`)
+
+Roadmap step 21's first stage (`docs/spec/notice-board.md`): how would each villager react to a
+note the player wrote? `NoteReactions.React(decision, readers, note)` cleans the note (the line
+sanitizer's characters stripped, double quotes made single so the note can't close its own quote,
+space folded, cut to about two sentences, `MaxNoteChars` 200), and asks each reader one typed
+`choice` over six reactions (amused, touched, curious, annoyed, offended, indifferent). The state
+is the reader's NPC card, the note as quoted data, and how the reader feels about the author.
+Flat answers (a fallback, or the plain fake) read as indifference. Each reaction maps to an emote
+(ids confirmed in the decompile) and a templated line; `Report` prints the town's split and the
+spread across villagers. It calls the model, so it runs off the game thread. Not in the mod yet;
+`sidecar/eval/run_notes.py` sends the identical question to a local Laya for every card in
+`sidecar/eval/cards.json`.
+
 ## Finding the player
 
 **Code.**
