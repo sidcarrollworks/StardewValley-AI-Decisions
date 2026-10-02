@@ -99,7 +99,7 @@ the game itself does so specs can be checked against it.
 | `presence` | per tick: every villager's location and tile, and the player's | ground truth: where NPCs actually go (versus schedules), how much they overlap, whether off-screen movement looks right |
 | `game` | weather, festival, the player's gifts (item and taste), quests completed, garbage cans searched and who reacted, conversations, letters read | the events the diary hooks should be catching; misses show up as gaps |
 | `memory` | per NPC per day: diary entries added and trimmed, ledger size, regard pairs | check the 500-entry cap and the elastic window |
-| `model` | question, answers, latency, fallback, queue depth | what the model costs and how often it fails |
+| `model` | question, answers, latency, fallback and why (`error`, left out when answered), queue depth | what the model costs, how often it fails, and why |
 | `perf` | ms spent in our tick, `Observe`, the ladder, the planner | keep the game smooth |
 
 `tools/` gets a small script that turns a folder of these files into per-day tables (decisions by

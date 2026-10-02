@@ -119,7 +119,8 @@ public sealed record ModelCallRecord(
     string Question,
     double? Answer,
     double Ms,
-    bool FellBack) : PlaytestRecord
+    bool FellBack,
+    string? Error = null) : PlaytestRecord // why it fell back; null (left out of the line) when answered
 {
     [JsonPropertyOrder(-1)]
     public override string Type => "model";

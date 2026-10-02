@@ -282,7 +282,10 @@ Callers: the overnight planner (`YesNo`, `Choose`) and the ladder (`YesNo`). Not
 timeout, the call runs on a thread-pool task and the caller waits at most that long, so it blocks the
 calling thread: use it only off the game thread. An optional **budget token** caps a batch: once it is
 cancelled, every remaining call falls back at once without touching the inner client. Any exception
-also falls back; `Fallbacks` counts them.
+also falls back; `Fallbacks` counts them, and `LastFallbackReason` says why the newest one happened
+(the budget, the health gate, the timeout, the inner error as "Type: message" cut to 200
+characters, or a question a batch left out). `RecordingDecisionClient` copies the reason into the
+viewer's call log (`DecisionCall.Error`) and the playtest `model` record (`error`).
 
 **`LayaDecisionClient`** speaks the `laya-serve` v0.3.22 protocol (verified from the Laya repo; not
 yet run against a live server):

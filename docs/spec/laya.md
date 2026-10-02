@@ -167,6 +167,23 @@ Planned:
   `LayaDecisionClient.ConsecutiveFailures` and `LastError` keep the failures in a row and the
   newest reason; the mod passes the reason to the viewer (`MindsStats.ModelError`, red "questions
   failing") and logs a warning once when 5 fail in a row (local wiring, not done yet).
+  - **The cause that time** (DeepSeek, from `sidecar/laya.log`): 257 repetitions of
+    `torch.AcceleratorError: CUDA error: unknown error` ("sticky error", `CUDA_ERROR_UNKNOWN`), each
+    followed by a 500. The server process lost its GPU context and could not recover without a
+    restart; `/health` never touches the GPU, so it kept answering 200. Likely triggers: a display
+    driver reset (Windows TDR), sleep and wake, or other programs loading the same GPU (not
+    confirmed which).
+  - **Every fallback now says why** (2026-10-02): `ResilientDecisionClient.LastFallbackReason`
+    (the budget, the health gate, the timeout, the inner error as "Type: message" cut to 200
+    characters, or a question a batch left out). The recorder copies it into the viewer's call log
+    (`DecisionCall.Error`, shown under the call) and the playtest `model` record (`error`), and
+    `tools/playtest_summary.py` counts fallbacks by reason.
+  - **The server's own output is kept:** `run-laya.sh` and `run-laya.ps1` append everything the
+    server prints to `sidecar/laya.log` (`LAYA_LOG` moves it; empty in bash, or `off` in
+    PowerShell, turns it off).
+  - **Proposed, not built:** after 5 failures in a row, treat the server as down and recheck it with
+    one small real question instead of `/health`, so a server that is up but can't answer stops
+    costing a request per call and the mod says "Laya went down".
 - **Pass the budget token** into `LayaDecisionClient` so the planning budget cancels in-flight HTTP
   calls (`docs/decisions.md`, "Laya and the budget").
 - **Launching (decided 2026-09-30):** manual while we develop (`sidecar/run-laya.ps1`); a public

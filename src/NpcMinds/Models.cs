@@ -133,7 +133,8 @@ public sealed record DecisionCall(
     IReadOnlyList<CallAnswer> Answers,
     double Ms,
     bool FellBack,
-    string ContextHead);            // the first part of the state the model read
+    string ContextHead,             // the first part of the state the model read
+    string? Error = null);          // why it fell back (ResilientDecisionClient.LastFallbackReason); null when answered
 
 public sealed record CallAnswer(string Label, double Value);
 

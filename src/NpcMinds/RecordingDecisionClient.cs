@@ -80,6 +80,7 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
         T result = call(); // the resilient wrapper never throws on a model failure
         clock.Stop();
         bool fellBack = _inner.Fallbacks != before;
+        string? error = fellBack ? _inner.LastFallbackReason : null;
 
         try
         {
@@ -87,7 +88,7 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
             string? npc = NpcOf(context, proposition);
             _log.Add(seq => new DecisionCall(seq, DateTime.UtcNow, _caller, type,
                 npc, question, shown, clock.Elapsed.TotalMilliseconds,
-                fellBack, Head(context)));
+                fellBack, Head(context), error));
             // The spread panel's table: observe (never alter) the answer under the question
             // template. Choice calls have per-call options, so they carry no single number; the
             // per-question recording for batches is in Ask.
@@ -102,7 +103,7 @@ public sealed class RecordingDecisionClient : IDecisionClient, IBatchDecisionCli
             if (answer is { } value && double.IsNaN(value))
                 answer = null; // JSON cannot carry NaN; the spread table drops it too
             _playtest?.QueueFromWorker(new ModelCallRecord(_caller, type, npc, template, question, answer,
-                clock.Elapsed.TotalMilliseconds, fellBack)
+                clock.Elapsed.TotalMilliseconds, fellBack, error)
             {
                 Tick = 0, // Record has no game-clock context on the worker (the parent wires a tick later)
             });

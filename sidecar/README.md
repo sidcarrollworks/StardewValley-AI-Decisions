@@ -117,3 +117,15 @@ After the mod has run once, SMAPI creates `config.json` next to the mod. Set:
 The SMAPI log says whether Laya answered its health check. If it is down or slow, every decision
 falls back to the deterministic default (per-call timeout `DecisionTimeoutMs`, overnight budget
 `PlanningBudgetMs`), and model calls never run on the game thread.
+
+## When questions fail
+
+- **The server's log:** both run scripts append everything the server prints to
+  `sidecar/laya.log` (not committed), with a line marking each start. Errors such as
+  `CUDA error: unknown error` show up there. Set `LAYA_LOG` to another path to move it; to turn it
+  off, set it empty (`LAYA_LOG= ./run-laya.sh`) or, in PowerShell, to `off`.
+- **The mod's side:** each fallback in the viewer's call log shows why it fell back, and so does
+  the `error` field of the playtest `model` records; `python tools/playtest_summary.py <folder>`
+  counts fallbacks by reason.
+- **`/health` can say ok while every question fails** (it doesn't touch the GPU). If the GPU
+  context is lost, restart the server; it doesn't recover in-process.

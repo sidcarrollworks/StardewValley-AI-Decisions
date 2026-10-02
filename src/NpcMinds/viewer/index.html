@@ -130,6 +130,7 @@
   .k-attempt { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
   .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
   .fb { color: var(--bad); font-weight: 600; }
+  .fb-why { color: var(--bad); font-size: 12px; overflow-wrap: anywhere; }
   .probs { margin-top: 3px; display: grid; gap: 2px; }
   .prob { display: grid; grid-template-columns: minmax(0, 1fr) 64px 38px; gap: 6px; align-items: center; }
   .prob .lbl { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -552,8 +553,13 @@ function renderCalls(calls) {
     const meta = el("div", "meta");
     const age = el("span", "age"); age.dataset.at = c.atUtc;
     meta.append(age, el("span", "kind", c.caller), el("span", "", c.type), el("span", "", Math.round(c.ms) + " ms"));
-    if (c.fellBack) meta.append(el("span", "fb", "fallback"));
+    if (c.fellBack) {
+      const fb = el("span", "fb", "fallback");
+      if (c.error) fb.title = c.error;
+      meta.append(fb);
+    }
     li.append(meta, el("div", "", (c.npc ? c.npc + ": " : "") + c.question));
+    if (c.fellBack && c.error) li.append(el("div", "fb-why", "why: " + c.error));
     const probs = el("div", "probs");
     for (const a of c.answers) {
       const row = el("div", "prob");
