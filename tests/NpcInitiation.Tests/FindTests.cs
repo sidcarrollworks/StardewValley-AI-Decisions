@@ -63,6 +63,32 @@ public sealed class FindTests
         Assert.Equal(lead, attempt.Lead);
     }
 
+    private sealed class Never : IDecisionClient
+    {
+        public int YesNoCalls;
+        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context) => options.Select(_ => 0.0).ToArray();
+        public double Score(string context, double min, double max) => min;
+        public double YesNo(string context, string proposition) { YesNoCalls++; return 0.0; }
+    }
+
+    [Fact]
+    public void ATurnedDownApproachIsNotAskedAgainEveryTick()
+    {
+        // Playtest 2026-10-02: with the player on the farm, Jodi was asked "Approach now?" every
+        // tick. A no now waits AskAgainAfterTicks (6) before the same question is asked again.
+        var model = new Never();
+        var ladder = new InitiationLadder(model, 1, new InitiationOptions { BaseGainPerTick = 0.65, HeartsGainPerTick = 0 });
+        var lead = Lead("Jodi", WhereaboutsSource.Told, "Beach", hops: 1, toldBy: "Willy");
+        for (int t = 10; t < 22; t++)
+            ladder.Tick(t, new[] { new InitiationInput("Jodi", Told("Jodi", t), false, 3, lead) }, _ => new Diary());
+        Assert.Equal(2, model.YesNoCalls); // ticks 10 and 16, not 12
+
+        // A different lead is a different question: asked at once.
+        var elsewhere = Lead("Jodi", WhereaboutsSource.Told, "Town", hops: 1, toldBy: "Gus");
+        ladder.Tick(22, new[] { new InitiationInput("Jodi", Told("Jodi", 22), false, 3, elsewhere) }, _ => new Diary());
+        Assert.Equal(3, model.YesNoCalls);
+    }
+
     [Fact]
     public void WithoutALeadAFriendStillWritesInstead()
     {

@@ -106,7 +106,8 @@ All in `InitiationOptions` (`src/NpcInitiation/Models.cs`), none saved: `BaseGai
 `HeartsGainPerTick` 0.0005, `IntentBoost` 0.25, `OvernightFactor` 0.5, `IgnorePenalty` 0.2 (these
 five and `RespondRelief` go when motives land; `StepThresholds` becomes `ActCost`,
 [motives.md](motives.md)),
-`RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `MaxAttemptsPerNpcPerDay` 2,
+`RespondRelief` 0.5, `ResponseWindowTicks` 6, `CooldownTicks` 6, `AskAgainAfterTicks` 6 (a
+turned-down step and lead waits that long before the model is asked again), `MaxAttemptsPerNpcPerDay` 2,
 `MaxAttemptsPerDay` 6, `MaxQueuedLinesPerDay` 2, `MaxMailPerDay` 1, `MaxForcedPerWeek` 1,
 `StepThresholds` {0.30, 0.45, 0.60, 0.70, 0.80, 0.95}. New: `ForcedMaxTiles` 3; a seventh threshold 0.90 for `Visit` and the visit caps ([find.md](find.md)).
 

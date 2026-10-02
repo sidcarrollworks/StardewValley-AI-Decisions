@@ -477,7 +477,9 @@ lead.
    `p = YesNo(context, "should <npc> try to get the player's attention with <step> now?")` (context:
    urge, hearts, step, the view's detail, age and hop count, and the lead for an Approach from a
    distance). It attempts when a deterministic uniform from FNV-1a(seed, npc, tick) is below `p`,
-   then opens the step, counts it, and writes a `TriedToReach` diary line.
+   then opens the step, counts it, and writes a `TriedToReach` diary line. When the draw says no,
+   the same step with the same lead is not asked again for `AskAgainAfterTicks` (6): Jodi was asked
+   "Approach now?" every tick while the player was on the farm (playtest 2026-10-02).
 
 **Conversations:** `NoteResponded(npc, tick)` means the player talked to the NPC: urge x 0.5, rung 0,
 and the 6-tick cooldown starts. An open attempt becomes `Responded` (no diary line). An NPC the ladder
