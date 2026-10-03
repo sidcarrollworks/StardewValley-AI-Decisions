@@ -7,6 +7,7 @@ using NpcMemory;
 using NpcMinds;
 using NpcMinds.Playtest;
 using NpcMotives;
+using NpcLive;
 using NpcSchedules;
 using NpcTemperament;
 using StardewModdingAPI;
@@ -51,6 +52,11 @@ public class ModEntry : Mod
     private RegardKeeper _regard = null!;
     private BackgroundMotives _motives = null!;
     private readonly Dictionary<string, string> _lastMotiveLines = new(StringComparer.OrdinalIgnoreCase);
+    private readonly LiveBreaker _live = new();
+    private readonly LiveLedger _liveLedger = new();
+    private readonly LiveOptions _liveOptions = new();
+    private bool _layaWarned; // the viewer's "questions failing" Warn fires once per failure streak
+    private bool _historySeeded; // set once the save's regard was seeded from the game's history
     private PlayerSearch _search = new();
     private IntentPlanJob? _planJob;
 
@@ -134,6 +140,11 @@ public class ModEntry : Mod
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
         helper.Events.GameLoop.OneSecondUpdateTicked += OnOneSecondUpdateTicked;
+        helper.ConsoleCommands.Add("npcmod_live", "Turn the live emotes and bubbles off for this session.\n\nUsage: npcmod_live off", (_, _) =>
+        {
+            _live.TripAll();
+            Monitor.Log("[live] all live acts turned off for this session.", LogLevel.Info);
+        });
         helper.Events.Display.MenuChanged += OnMenuChanged;
 
         ApplyPatches();
@@ -344,6 +355,7 @@ public class ModEntry : Mod
             foreach (string key in Game1.player.team.completedSpecialOrders)
                 _seenSpecialOrders.Add(key); // old completions must not re-fire QuestHelped
             SeedPriors(); // family routine priors, once per save (routines.md, step 7)
+            HistoryAtInstall(); // seed regard from the game's own history, once per save
             Monitor.Log($"Memory loaded: {_memory.Diaries.Count} NPC diaries, {_memory.Beliefs.Count} routine beliefs.", LogLevel.Info);
             _feed.Clear();
             _calls.Clear();
@@ -551,6 +563,16 @@ public class ModEntry : Mod
         {
             Monitor.Log($"Festival capture failed: {ex}", LogLevel.Error);
         }
+        try
+        {
+            // Drain the motives queue about once a second too, so a live wave shows while the
+            // player is still there (docs/architecture.md, "Live emotes and bubbles").
+            DrainMotives();
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Live motives drain failed: {ex}", LogLevel.Error);
+        }
     }
 
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -601,6 +623,7 @@ public class ModEntry : Mod
         _intentsToday.Clear();
         _talkedToday.Clear();
         _lastMotiveLines.Clear();
+        _historySeeded = false;
         _events.Clear();
         _seenSpecialOrders.Clear();
         _festivalAttended = false;
@@ -783,6 +806,98 @@ public class ModEntry : Mod
 
     // ---- motives (shadow, step 14) -------------------------------------------------------------
 
+    /// <summary>Seeds regard toward the player from the game's own history, once per save
+    /// (docs/spec/vanilla-sources.md, "History at install"): every gift ever given (counted by
+    /// the villager's taste for it), the heart events seen (the <c>f &lt;Npc&gt; &lt;points&gt;</c>
+    /// preconditions on the Data/Events keys), and the relationship status, minus what the mod
+    /// already saw in the diary. Verified: Farmer.giftedItems is NPC name -> item id -> count
+    /// (Farmer.cs:766); eventsSeen holds the event id strings, and an event's id is the first
+    /// /-segment of its Data/Events key (GameLocation.cs:15711-15715, Event.cs:4751); the
+    /// FriendshipStatus values map one-to-one onto HistoryStatus (FriendshipStatus.cs); Stardrop
+    /// Tea tastes 7, which TasteLabel reads as Love. Marked with historySeeded so it never runs
+    /// twice.</summary>
+    private void HistoryAtInstall()
+    {
+        Dictionary<string, string>? model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
+        _historySeeded = model is not null && model.ContainsKey("historySeeded");
+        if (_historySeeded)
+            return;
+
+        var histories = new List<NpcHistory>();
+        foreach (string npc in Game1.characterData.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            NPC? character = Game1.getCharacterFromName(npc);
+            if (character is null)
+                continue;
+            NpcHistory history = new(npc);
+
+            // Every gift ever given to this villager, counted by their taste for it.
+            if (Game1.player.giftedItems.TryGetValue(npc, out var byItem))
+            {
+                foreach ((string id, int count) in byItem)
+                {
+                    if (ItemRegistry.Create(id, 1) is not { } item)
+                        continue;
+                    switch (GiftNotes.TasteLabel(character.getGiftTasteForThisItem(item)))
+                    {
+                        case "Love": history = history with { Loved = history.Loved + count }; break;
+                        case "Like": history = history with { Liked = history.Liked + count }; break;
+                        case "Dislike": history = history with { Disliked = history.Disliked + count }; break;
+                        case "Hate": history = history with { Hated = history.Hated + count }; break;
+                        default: history = history with { Neutral = history.Neutral + count }; break;
+                    }
+                }
+            }
+
+            // Heart events seen: every seen event whose Data/Events key carries a
+            // "f <Npc> <points>" precondition counts as a heart event for that NPC.
+            int heartEvents = 0;
+            Utility.ForEachLocation(location =>
+            {
+                if (!location.TryGetLocationEvents(out _, out Dictionary<string, string>? events))
+                    return true;
+                foreach ((string key, _) in events)
+                {
+                    string[] segments = Event.SplitPreconditions(key);
+                    if (segments.Length < 2 || !Game1.player.eventsSeen.Contains(segments[0]))
+                        continue;
+                    foreach (string precondition in segments.Skip(1))
+                    {
+                        string[] parts = precondition.Split(' ');
+                        if (parts.Length >= 3 && parts[0] == "f"
+                            && string.Equals(parts[1], npc, StringComparison.OrdinalIgnoreCase)
+                            && int.TryParse(parts[2], out _))
+                            heartEvents++;
+                    }
+                }
+                return true;
+            });
+            history = history with { HeartEventsSeen = heartEvents };
+
+            // The relationship status; the enums' values coincide (Friendly -> None, the rest as-is).
+            if (Game1.player.friendshipData.TryGetValue(npc, out Friendship? friendship))
+                history = history with { Status = friendship.Status == FriendshipStatus.Friendly
+                    ? HistoryStatus.None : (HistoryStatus)(int)friendship.Status };
+
+            // Leave out what the mod already saw itself, so nothing counts twice.
+            history = history.Except(RegardHistory.SeenInDiary(npc, _memory.DiaryOf(npc).Entries));
+
+            histories.Add(history);
+        }
+
+        int tick = Now(TimeUtils.TickIndex(Game1.timeOfDay));
+        foreach (HistorySeed seed in RegardHistory.Seed(_regard.Book, histories,
+                     npc => _temperaments?.Of(npc) ?? Temperament.Neutral, _motiveOptions))
+        {
+            Monitor.Log("[shadow] " + seed.Line, LogLevel.Info);
+            _playtest.Append(MotiveRecords.History(seed, tick));
+        }
+
+        // Remembered here and written by SaveMemory with the rest of the data (writing now would
+        // be lost anyway: the next save rebuilds the data dict from scratch).
+        _historySeeded = true;
+    }
+
     /// <summary>Feeds this tick's ladder views and leads (memory only, never live positions) to
     /// the motives worker, and drains its finished decisions. The worker is the only place that
     /// calls the model (AGENTS.md rule 5); this method never does.</summary>
@@ -805,6 +920,17 @@ public class ModEntry : Mod
         if (inputs.Count > 0 && !_motives.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] motives are behind the model; skipped a tick ({_motives.Dropped} so far).", LogLevel.Trace);
 
+        DrainMotives();
+        _playtest.Append(new PerfRecord("motives", watch.Elapsed.TotalMilliseconds) { Tick = now });
+    }
+
+    /// <summary>Processes every finished motives decision exactly once: the [shadow] line, the
+    /// viewer feed and the playtest records stay exactly as before, and when a live switch is on,
+    /// the act is shown through LiveGate (or held back with a [live] reason). Called from
+    /// RunMotives at each TimeChanged tick and about once a second from OnOneSecondUpdateTicked,
+    /// so a wave shows while the player is still there. Never calls the model (AGENTS.md rule 5).</summary>
+    private void DrainMotives()
+    {
         foreach (MotiveEvent ev in _motives.Drain())
         {
             string line = MotiveText.Line(ev);
@@ -815,8 +941,61 @@ public class ModEntry : Mod
             _playtest.Append(MotiveRecords.Decision(ev));
             if (ev.Kind == "Grudge" && ev.RegardRelief > 0)
                 _playtest.Append(MotiveRecords.Regard(_regard.Relieve(ev.Npc, MemoryStore.PlayerName, ev.RegardRelief), ev.AbsoluteTick));
+
+            ShowLive(ev);
+            if (_liveLedger.OnResolved(ev) is { } entry)
+                _memory.Note(ev.Npc, entry);
         }
-        _playtest.Append(new PerfRecord("motives", watch.Elapsed.TotalMilliseconds) { Tick = now });
+    }
+
+    /// <summary>The first behavior to leave shadow (docs/spec/rollout.md, D30): the motives
+    /// runner's Emote and Bubble acts, each behind its own switch, both off by default. LiveFacts
+    /// is the one place besides CollectPresences/Observe that reads live state (AGENTS.md rule 2),
+    /// and only to say "not now".</summary>
+    private void ShowLive(MotiveEvent ev)
+    {
+        LiveAct? act = LivePlanner.From(ev, _config.Live, Game1.player.Name);
+        if (act is null)
+            return;
+        NPC? npc = Game1.getCharacterFromName(act.Npc);
+        if (npc is null)
+            return;
+        var facts = new LiveFacts(
+            SinglePlayer: !Context.IsMultiplayer,
+            PlayerFree: Context.IsPlayerFree,
+            EventUp: Game1.eventUp,
+            Festival: Game1.isFestival(),
+            SameLocation: npc.currentLocation == Game1.player.currentLocation,
+            DistanceTiles: Math.Max(Math.Abs(npc.TilePoint.X - Game1.player.TilePoint.X), Math.Abs(npc.TilePoint.Y - Game1.player.TilePoint.Y)),
+            // isEmoting is public (NPC.cs:145); textAboveHeadTimer is protected int (NPC.cs:160),
+            // so an already-showing bubble cannot be read — our own isEmoting flag is the busy
+            // signal the gate gets.
+            NpcBusy: npc.isEmoting,
+            NpcVisible: !npc.IsInvisible);
+
+        int now = Now(TimeUtils.TickIndex(Game1.timeOfDay));
+        if (LiveGate.WhyNot(act, facts, now, _liveOptions) is { } why)
+        {
+            Monitor.Log("[live] " + LivePlanner.SkippedLine(act, why), LogLevel.Trace);
+            return;
+        }
+
+        bool wasOpen = _live.IsOpen(act.Act);
+        string? breaker = _live.Run(act.Act, () =>
+        {
+            if (act.Act == Act.Emote)
+                npc.doEmote(act.EmoteId);
+            else
+                npc.showTextAboveHead(act.Text, duration: _liveOptions.BubbleMs);
+        });
+        if (breaker is not null)
+        {
+            // Error exactly once (the trip); the repeats while the switch stays off are Trace.
+            Monitor.Log("[live] " + breaker, wasOpen ? LogLevel.Error : LogLevel.Trace);
+            return;
+        }
+        Monitor.Log("[live] " + LivePlanner.ShownLine(act), LogLevel.Info);
+        _liveLedger.Shown(act);
     }
 
     /// <summary>Like TomorrowLine, but for today at the current time: "spring 12 (Friday), sunny,
@@ -1320,7 +1499,24 @@ public class ModEntry : Mod
     private MindsStats LayaStats(LayaDecisionClient laya)
     {
         (double median, double p95) = laya.Latency();
-        return new MindsStats(_ladder.Backlog, _ladder.Dropped, laya.Calls, laya.CallFallbacks, median, p95);
+        // The viewer's red "questions failing" header + a one-time Warn when the failures streak
+        // reaches 5 (docs/spec/debug-tools.md), and one Info when it clears again.
+        string? modelError = null;
+        if (laya.ConsecutiveFailures >= 5)
+        {
+            modelError = laya.LastError;
+            if (!_layaWarned)
+            {
+                _layaWarned = true;
+                Monitor.Log($"Laya questions keep failing ({laya.ConsecutiveFailures} in a row; last: {laya.LastError}). Decisions fall back until it recovers.", LogLevel.Warn);
+            }
+        }
+        else if (_layaWarned)
+        {
+            _layaWarned = false;
+            Monitor.Log("Laya questions are succeeding again.", LogLevel.Info);
+        }
+        return new MindsStats(_ladder.Backlog, _ladder.Dropped, laya.Calls, laya.CallFallbacks, median, p95, modelError);
     }
 
     /// <summary>One line for the viewer's event feed, stamped with the game clock.</summary>
@@ -1445,6 +1641,8 @@ public class ModEntry : Mod
             ["regard"] = _regard.Book.ToJson(),
             ["motives"] = _motives.LatestJson,
         };
+        if (_historySeeded)
+            data["historySeeded"] = "1"; // or the next load would seed the history a second time
 
         // The plan survives save-and-quit (persistence.md keys; additive, no version bump).
         if (_planToday.Count > 0)
