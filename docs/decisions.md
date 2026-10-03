@@ -428,6 +428,9 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **After today's talk, acts wait for no answer** (Sid's live test, 2026-10-03): the game opens no
+  second conversation with a villager that day, so a wave after the talk could never be answered and
+  always counted as ignored, which in live also writes `IgnoredBy`.
 - **Light acts are paced apart** (Sid, 2026-10-02, after the long playtest showed 3 to 5 acts a
   day, the reserve the top reason for a pass): an emote, or a bubble that only greets, uses none of
   the day's attempts and has its own cap of 2 per NPC; the town cap went from 6 to 12, to come

@@ -120,6 +120,31 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void AfterTodaysTalkAnActWaitsForNoAnswer()
+    {
+        // Sid's live test (2026-10-03): after the day's talk the game opens no second conversation,
+        // so a wave then could never be answered and always ended up ignored. Now it waits for
+        // nothing: no open attempt, no Ignored, no frustration.
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs emily = Inputs("Emily", Robin with { Boldness = 0.74 }, hearts: 2, near: true,
+            diary: new[] { E(Day / 4, "GiftReceived", "taste=Hate;item=(O)92;name=Sap") });
+        runner.NoteTalked("Emily", Now - 1);
+        List<MotiveEvent> events = Run(runner, emily, Now + 5, Now + 30);
+
+        MotiveEvent act = events.First(e => e.Kind == "Act");
+        Assert.Contains("no answer expected", act.Reason);
+        Assert.DoesNotContain(events, e => e.Kind == "Ignored");
+        Assert.Null(runner.States().Single().OpenAct);
+        Assert.Equal(0, runner.States().Single().IgnoredToday);
+
+        // The next day the talk is forgotten: an act waits for an answer again.
+        var tomorrow = new MotivesRunner(new Scripted());
+        tomorrow.NoteTalked("Emily", Now - Day);
+        MotiveEvent fresh = Run(tomorrow, emily, Now + 5, Now + 30).First(e => e.Kind == "Act");
+        Assert.DoesNotContain("no answer expected", fresh.Reason);
+    }
+
+    [Fact]
     public void TalkingAnswersAnOpenAttempt()
     {
         var runner = new MotivesRunner(new Scripted());
