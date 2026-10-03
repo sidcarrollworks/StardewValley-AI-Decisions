@@ -35,8 +35,9 @@ run locally. A deterministic fake is the default.
    as a `[shadow]` log line first. Asked for so far (2026-10-02): emotes and speech bubbles from
    the motives runner, friendly and hostile, each behind its own switch in `config.json`, off by
    default (`src/NpcLive`, D30).
-2. **No true positions in decisions.** Only `ModEntry.CollectPresences` and
-   `MemoryStore.Observe` read live positions. Anything that decides reads memory only: ledger
+2. **No true positions in decisions.** Only `ModEntry.CollectPresences`, `ModEntry.MeetPlayer`,
+   `MemoryStore.Observe` and `MemoryStore.NoteMeetings` read live positions, and only to record
+   sightings. Anything that decides reads memory only: ledger
    views, diaries, routine beliefs, `Whereabouts`. One exception: `LiveGate` may be given live
    facts (location, distance, event, menu) just before a live act is shown, only to say "not now";
    it never chooses what to do (D30).

@@ -558,6 +558,14 @@ public class ModEntry : Mod
         }
         try
         {
+            MeetPlayer(); // a villager the player just ran into decides now, not at the next tick
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Meeting check failed: {ex}", LogLevel.Error);
+        }
+        try
+        {
             // Drain the motives queue about once a second too, so a live wave shows while the
             // player is still there (docs/architecture.md, "Live emotes and bubbles").
             DrainMotives();
@@ -741,15 +749,56 @@ public class ModEntry : Mod
     /// best lead on where the player is, both from memory, never a live position. The motives read
     /// them (RunMotives) and so does the viewer. The urge ladder that used to run on them is retired
     /// (D31); the records keep their old name, InitiationInput.</summary>
+    private InitiationInput ViewOf(string npc, int now)
+    {
+        LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
+        Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes, regions: _regions);
+        return new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead);
+    }
+
+    /// <summary>
+    /// Meetings between ticks (live test 2026-10-03: the player ran past villagers between two
+    /// ten-minute ticks and nobody noticed). About once a second: the villagers in the player's
+    /// location within the co-location radius who have not seen the player this tick record the
+    /// sighting now (MemoryStore.NoteMeetings), and the motives decide again for those villagers
+    /// alone, so a wave shows while the player is still there. Reads live positions only to record
+    /// the sighting, like CollectPresences (AGENTS.md rule 2); the decision reads memory. Skipped
+    /// while the player is busy: nothing in person would be decided then anyway.
+    /// </summary>
+    private void MeetPlayer()
+    {
+        int tick = TimeUtils.TickIndex(Game1.timeOfDay);
+        if (tick < 0 || !Context.IsPlayerFree || Game1.player.currentLocation is not { } here)
+            return;
+        int now = Now(tick);
+        var presences = new List<Presence>();
+        foreach (NPC npc in here.characters)
+        {
+            if (npc.IsVillager)
+                presences.Add(new Presence(npc.Name, here.Name, npc.TilePoint.X, npc.TilePoint.Y));
+        }
+        presences.Add(new Presence(MemoryStore.PlayerName, here.Name, Game1.player.TilePoint.X, Game1.player.TilePoint.Y, IsPlayer: true));
+
+        IReadOnlyList<string> met = _memory.NoteMeetings(now, presences, _regions);
+        if (met.Count == 0)
+            return;
+        var fresh = new HashSet<string>(met, StringComparer.OrdinalIgnoreCase);
+        List<InitiationInput> views = _lastLadderInputs.Select(v => fresh.Contains(v.Npc) ? ViewOf(v.Npc, now) : v).ToList();
+        foreach (string npc in met)
+        {
+            if (!views.Any(v => string.Equals(v.Npc, npc, StringComparison.OrdinalIgnoreCase)))
+                views.Add(ViewOf(npc, now)); // its first diary entry was just written
+        }
+        _lastLadderInputs = views.OrderBy(v => v.Npc, StringComparer.OrdinalIgnoreCase).ToList();
+        Monitor.Log($"[shadow] met you between ticks: {string.Join(", ", met)}", LogLevel.Trace);
+        RunMotives(now, fresh);
+    }
+
     private void BuildViews(int now)
     {
         var inputs = new List<InitiationInput>();
         foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
-        {
-            LedgerView? view = _memory.Ledger.View(npc, MemoryStore.PlayerName, now);
-            Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes, regions: _regions);
-            inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
-        }
+            inputs.Add(ViewOf(npc, now));
         _lastLadderInputs = inputs;
         _backlogAtTickStart = _motives.Backlog; // read BEFORE this tick's motives are enqueued
     }
@@ -851,7 +900,9 @@ public class ModEntry : Mod
     /// <summary>Feeds this tick's ladder views and leads (memory only, never live positions) to
     /// the motives worker, and drains its finished decisions. The worker is the only place that
     /// calls the model (AGENTS.md rule 5); this method never does.</summary>
-    private void RunMotives(int now)
+    /// <param name="only">Null: every NPC (the tick). Otherwise only these, after a meeting
+    /// between ticks (MeetPlayer).</param>
+    private void RunMotives(int now, IReadOnlySet<string>? only = null)
     {
         var watch = Stopwatch.StartNew();
         int seed = MotivesSeed();
@@ -862,6 +913,8 @@ public class ModEntry : Mod
         foreach (InitiationInput ladder in _lastLadderInputs) // this tick's views and leads, built by BuildViews
         {
             string npc = ladder.Npc;
+            if (only is not null && !only.Contains(npc))
+                continue;
             double news = _planToday.Where(c => string.Equals(c.Npc, npc, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.News).DefaultIfEmpty(0).Max();
             string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc), ladder.Hearts, NowLine());

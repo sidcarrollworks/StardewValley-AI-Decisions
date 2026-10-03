@@ -506,6 +506,16 @@ the motives.
   `config.json` and now bounds the motives worker.
 - **Not yet:** deleting `InitiationLadder`/`BackgroundLadder` and their tests.
 
+### D32. Villagers notice the player between ticks
+**Decision (Sid, 2026-10-03: "That sounds like a good fix to me").** Sightings and decisions ran
+only at the ten-minute tick (about 7 real seconds), so a player running past a villager between two
+ticks was never seen, and an act decided at the tick was often held back because the player had
+already left. About once a second the mod now checks the player's location only; a villager who
+just came within 8 tiles records the sighting (`MemoryStore.NoteMeetings`) and decides at once,
+alone. Positions are read only to record the sighting, as `CollectPresences` does (AGENTS.md rule 2
+now names both); the decision reads memory. Nothing else changes per second: no routine learning, no
+NPC-to-NPC sightings, no second `Saw` line.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

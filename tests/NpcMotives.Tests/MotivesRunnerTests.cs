@@ -120,6 +120,20 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void AMeetingBetweenTicksDecidesAgainWithinTheSameTick()
+    {
+        // Live test 2026-10-03: the player ran past villagers between two ticks. The mod now notes
+        // the meeting and runs the motives again for that villager alone, at the same tick.
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs gus = Inputs("Gus", Robin, hearts: 6, near: false);
+        Assert.DoesNotContain(runner.Tick(Now, new[] { gus }), e => e.Kind == "Act"); // the tick: far away
+        MotiveEvent wave = Assert.Single(runner.Tick(Now, new[] { gus with { PlayerNear = true, SeenPlayerToday = true } }), e => e.Kind == "Act");
+        Assert.True(MotiveOptions.IsLight(wave.Act!.Value, wave.Motive!.Value));
+        // The same tick again: the cooldown holds, no second wave.
+        Assert.DoesNotContain(runner.Tick(Now, new[] { gus with { PlayerNear = true, SeenPlayerToday = true } }), e => e.Kind == "Act");
+    }
+
+    [Fact]
     public void WavesAndGreetingBubblesAreNeverIgnored()
     {
         // Sid, 2026-10-03: "Let's not count waves or greeting bubbles as ignored. They happen often

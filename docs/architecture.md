@@ -554,6 +554,13 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   attempts and the reserve doesn't hold them back; each NPC has 2 a day of its own. Once its or the
   town's attempts are used up, an NPC may still wave (`MotiveInputs.AttentionCapped`); it is
   `Blocked` only when its light acts are used up too.
+- **Meetings between ticks** (D32): about once a second the mod checks the player's location
+  (`ModEntry.MeetPlayer`). A villager there within the co-location radius that hasn't seen the player
+  this tick records the sighting at once (`MemoryStore.NoteMeetings`: a ledger sighting and the
+  `Saw` diary entry, marked so the next tick's `Observe` continues the span instead of writing a
+  second one), and the motives decide again for those villagers alone (`RunMotives(now, only)`). A
+  player running past no longer slips between two ten-minute ticks. Pacing holds: the cooldown
+  stops a second act in the same tick. Skipped while the player is busy.
 - While the player is busy (a talk, a menu, a scene or a warp's fade: `MotiveInputs.PlayerBusy`,
   set by the mod from `!Context.IsPlayerFree`), no in-person act is decided; the NPC tries again the
   next tick. In the first live test three villagers acted the moment the player walked into the
