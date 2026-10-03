@@ -307,6 +307,7 @@ function plainReason(r) {
   if (!r) return "holding back";
   let m;
   if ((m = /capped or already waiting: (.+)$/.exec(r))) return "can't: today's " + m[1] + " used up";
+  if (/player is busy/.test(r)) return "waiting until you're free";
   if (/no allowed act is possible/.test(r)) return "you're not around";
   if ((m = /too weak for (.+?) \(needs/.exec(r))) return "feeling too weak for a " + m[1];
   if (/too weak/.test(r)) return "feeling too weak to act";

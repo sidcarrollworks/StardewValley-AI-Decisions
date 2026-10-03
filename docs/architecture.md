@@ -546,6 +546,11 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   attempts and the reserve doesn't hold them back; each NPC has 2 a day of its own. Once its or the
   town's attempts are used up, an NPC may still wave (`MotiveInputs.AttentionCapped`); it is
   `Blocked` only when its light acts are used up too.
+- While the player is busy (a talk, a menu, a scene or a warp's fade: `MotiveInputs.PlayerBusy`,
+  set by the mod from `!Context.IsPlayerFree`), no in-person act is decided; the NPC tries again the
+  next tick. In the first live test three villagers acted the moment the player walked into the
+  Saloon, the gate held all three back, and the runner had already counted them (two later read as
+  ignored). This is game state, not a position (AGENTS.md rule 2 is about positions).
 - After the player's talk with an NPC that day, its in-person acts wait for no answer: the game
   opens no second conversation that day, so the player couldn't answer, and the act would always
   end up ignored (Sid's live test, 2026-10-03). No open attempt, no `Ignored`, no frustration; the
@@ -643,7 +648,9 @@ has its own switch in `config.json`, off by default.
    Trace. A breaker error logs once at Error.
 5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
    `_memory.Note(npc, entry)`.
-6. The shadow line for the act stays as it is, so a day with the switches off and one with them on
+6. In `RunMotives`, set each input's `PlayerBusy = !Context.IsPlayerFree` (one line, `with`), so
+   nothing in person is decided while the player is talking, in a menu or a scene.
+7. The shadow line for the act stays as it is, so a day with the switches off and one with them on
    give the same `[shadow]` lines apart from the added `[live]` ones.
 
 ## Notice-board experiment (`src/NpcBoard`)

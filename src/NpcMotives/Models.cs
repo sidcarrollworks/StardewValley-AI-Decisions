@@ -87,7 +87,8 @@ public sealed record MotiveInputs(
     string? LeadPlace = null,                  // where the lead points, for the shadow line ("would go looking at ...")
     int? LastTalkTick = null,                  // the last talk the runner saw; survives the diary's 500-entry trim
     bool AttentionCapped = false,              // the NPC's or the town's daily attempts are used up: only light acts
-    bool LightCapped = false);                 // the NPC's light acts (waves, greeting bubbles) are used up today
+    bool LightCapped = false,                  // the NPC's light acts (waves, greeting bubbles) are used up today
+    bool PlayerBusy = false);                  // a talk, a menu, a scene or a warp's fade: no in-person act now (the mod sets it)
 
 /// <summary>One act the rule weighed, with every part, so the playtest log and viewer can show
 /// why (docs/spec/debug-tools.md, "Playtest log", the decision record).</summary>

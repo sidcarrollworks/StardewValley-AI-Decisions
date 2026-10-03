@@ -428,6 +428,9 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **Nothing in person while the player is busy** (Sid's live test, 2026-10-03): acts decided during
+  a warp's fade or a conversation were held back by the live gate after the runner had counted them,
+  and two later read as ignored; the runner now doesn't decide them until the player is free.
 - **After today's talk, acts wait for no answer** (Sid's live test, 2026-10-03): the game opens no
   second conversation with a villager that day, so a wave after the talk could never be answered and
   always counted as ignored, which in live also writes `IgnoredBy`.

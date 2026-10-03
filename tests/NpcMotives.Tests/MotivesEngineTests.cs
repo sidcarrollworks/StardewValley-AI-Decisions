@@ -164,6 +164,24 @@ public sealed class MotivesEngineTests
     }
 
     [Fact]
+    public void WhileThePlayerIsBusyNothingInPersonIsDecided()
+    {
+        // Sid's live test (2026-10-03): three villagers acted the moment the player walked into the
+        // Saloon (the warp's fade) and the gate held all three back, though the runner had counted
+        // them. Now nothing in person is decided while the player is busy; it waits for a tick.
+        MotiveDecision free = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true));
+        Assert.NotNull(free.Result);
+        MotiveDecision busy = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true) with { PlayerBusy = true });
+        Assert.Null(busy.Result);
+        Assert.Contains("busy", busy.Reason);
+
+        // A letter needs no face to face: still possible while the player is busy.
+        var grateful = new[] { E(Day, "GiftReceived", "taste=Love;item=(O)1") };
+        MotiveDecision letter = _engine.Decide(Inputs("Robin", Robin, hearts: 4, diary: grateful) with { PlayerBusy = true });
+        Assert.Equal(Act.Letter, letter.Result);
+    }
+
+    [Fact]
     public void Frustration_BoldPushHarder_ShyBackOff()
     {
         var diary = new[] { E(Day, "GiftReceived", "taste=Love;item=(O)1") };
