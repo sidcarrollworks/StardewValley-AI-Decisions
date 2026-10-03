@@ -44,7 +44,7 @@ run locally. A deterministic fake is the default.
 4. **Deterministic.** Use seeded `Random` or `Fnv1a`, never `string.GetHashCode`. Iterate NPCs
    in name order.
 5. **No model calls on the game thread**, including during the save. Use `IntentPlanJob` or
-   `BackgroundLadder`, always through `ResilientDecisionClient` (timeout plus fallback). Never
+   `BackgroundMotives`, always through `ResilientDecisionClient` (timeout plus fallback). Never
    touch `Game1` from a background thread.
 6. **The model never writes text.** It answers typed questions (choice, score, yes/no). Lines are
    templated and must pass `LineSanitizer.Sanitize`, which strips `#`, `$`, `%`, `{` and `[`.
@@ -94,7 +94,7 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 
 ## Things that will bite you
 
-- **Two threads, two owners.** `MemoryStore` belongs to the game thread; the ladder belongs to its
+- **Two threads, two owners.** `MemoryStore` belongs to the game thread; the motives runner belongs to its
   worker. Pass copies or immutable records between them.
 - **The night order.** `DayEnding` → the 6:00 `TimeChanged` (already the new date) → `Saving` →
   `DayStarted`. Most "morning" work actually happens at that 6:00 tick, before `DayStarted`.

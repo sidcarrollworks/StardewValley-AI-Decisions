@@ -491,6 +491,21 @@ went first.
 **Why.** Emotes and bubbles are the least invasive acts (gone in seconds, nothing to undo), and
 they are what makes the town feel alive.
 
+### D31. The urge ladder is retired; the motives decide every attempt
+**Decision (Sid, 2026-10-03: "Let's retire the old urge ladder").** The mod stops running
+`BackgroundLadder`. It had kept running beside the motives in shadow and made its own model calls
+(Jodi was asked "Approach now?" every tick on the farm), while the live acts already came only from
+the motives.
+- **Kept:** each tick's views and leads (`InitiationInput`, built by `BuildViews`); asking around,
+  now triggered when a villager misses the player, worries or has news at
+  `MotiveOptions.AskAroundStrength` (0.2; the ladder used urge 0.45); the heartbeat, now
+  "strongest motive" and the motives worker's backlog (`MotiveDrive`).
+- **Gone from the mod:** the ladder's model calls, its `[shadow]` lines and `ladder` playtest records,
+  `TriedToReach` diary entries, the viewer's urge (the "Old ladder" tab and the urge sort), and the
+  saved `ladder` value (an old one is left unread). `LadderMaxBacklog` keeps its name in
+  `config.json` and now bounds the motives worker.
+- **Not yet:** deleting `InitiationLadder`/`BackgroundLadder` and their tests.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

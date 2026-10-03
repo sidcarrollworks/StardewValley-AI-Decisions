@@ -47,7 +47,6 @@ public class ModEntry : Mod
     private RegionMap _regions = null!;
     private IDecisionClient _model = new FakeDecisionClient();
     private MemoryStore _memory = new();
-    private BackgroundLadder _ladder = null!;
     private readonly MotiveOptions _motiveOptions = new();
     private RegardKeeper _regard = null!;
     private BackgroundMotives _motives = null!;
@@ -129,9 +128,9 @@ public class ModEntry : Mod
         _config = helper.ReadConfig<ModConfig>();
         _regions = RegionMap.Load(Path.Combine(Helper.DirectoryPath, "regions.json"));
         _model = BuildModel();
-        _ladder = NewLadder(null);
         _motives = NewMotives(null);
         NewRegard(null);
+        _search = NewSearch();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
@@ -283,15 +282,9 @@ public class ModEntry : Mod
             laya.TryWarmUp(); // a checkpoint may have lazy-loaded while down; warm it
     }
 
-    private BackgroundLadder NewLadder(string? json)
-    {
-        int seed = Fnv1a.Seed("ladder", Game1.uniqueIDForThisGame.ToString()); // per-save id
-        // (Game1.cs:2252/3309: NewUniqueIdForThisGame at creation, the save's startingGameSeed on load)
-        InitiationLadder ladder = json is null
-            ? new InitiationLadder(Guarded("ladder"), seed)
-            : InitiationLadder.FromJson(json, Guarded("ladder"), seed);
-        return new BackgroundLadder(ladder, _config.LadderMaxBacklog);
-    }
+    /// <summary>Asking around for the player, triggered by the motives (the urge ladder is retired,
+    /// D31): a villager who misses the player, worries or has news asks at AskAroundStrength.</summary>
+    private PlayerSearch NewSearch() => new(new SearchOptions { AskUrge = _motiveOptions.AskAroundStrength });
 
     /// <summary>
     /// Seed family routine priors from the game's own schedule data, once per save (step 7,
@@ -510,13 +503,13 @@ public class ModEntry : Mod
 
         try
         {
-            RunLadder(now); // appends its own ladder perf record
+            BuildViews(now); // each NPC's view of the player and its lead, for the motives
             LogHeartbeat(tick); // before CollectPlan, so "ready" can appear for the finishing tick
             CollectPlan(morning: false);
         }
         catch (Exception ex)
         {
-            Monitor.Log($"Shadow ladder failed: {ex}", LogLevel.Error);
+            Monitor.Log($"Shadow views or plan failed: {ex}", LogLevel.Error);
         }
 
         try
@@ -616,10 +609,9 @@ public class ModEntry : Mod
         _planJob?.Dispose();
         _planJob = null;
         _memory = new MemoryStore(MemorySeed());
-        _ladder = NewLadder(null);
         _motives = NewMotives(null);
         NewRegard(null);
-        _search = new PlayerSearch();
+        _search = NewSearch();
         _intentsToday.Clear();
         _talkedToday.Clear();
         _lastMotiveLines.Clear();
@@ -704,7 +696,6 @@ public class ModEntry : Mod
         int tick = TimeUtils.TickIndex(Game1.timeOfDay);
         if (tick < 0)
             return;
-        _ladder.EnqueueResponse(speaker.Name, Now(tick));
         _motives.EnqueueTalked(speaker.Name, Now(tick));
 
         // First conversation of the day: a Talked diary entry (docs/spec/diary.md).
@@ -719,13 +710,13 @@ public class ModEntry : Mod
             _festivalTalked.Add(speaker.Name); // "talked there" for the Festival note
     }
 
-    // ---- initiation ladder (shadow) -------------------------------------------------------------
+    // ---- views and asking around (the urge ladder is retired, D31) -----------------------------
 
-    /// <summary>NPCs who miss the player ask the NPCs around them (memory only, game thread). The
-    /// urges come from the ladder's last finished tick.</summary>
+    /// <summary>NPCs who miss the player ask the NPCs around them (memory only, game thread). How
+    /// much each wants to find the player comes from the motives worker's last finished tick.</summary>
     private void AskAround(int now)
     {
-        foreach (SearchEvent ev in _search.Tick(_memory, now, _ladder.LatestUrges))
+        foreach (SearchEvent ev in _search.Tick(_memory, now, MotiveDrive.Seeking(_motives.LatestDecisions)))
         {
             LedgerView learned = ev.Learned;
             string heard = learned.HopCount > 1 ? "heard you were" : "saw you";
@@ -746,10 +737,11 @@ public class ModEntry : Mod
         }
     }
 
-    /// <summary>Hand the ladder this tick's inputs (each NPC's own ledger view of the player and its
-    /// best lead on where the player is, both from memory, never a live position) and log whatever
-    /// the worker finished.</summary>
-    private void RunLadder(int now)
+    /// <summary>This tick's view of the player for every NPC with a diary: its own ledger view and its
+    /// best lead on where the player is, both from memory, never a live position. The motives read
+    /// them (RunMotives) and so does the viewer. The urge ladder that used to run on them is retired
+    /// (D31); the records keep their old name, InitiationInput.</summary>
+    private void BuildViews(int now)
     {
         var inputs = new List<InitiationInput>();
         foreach (string npc in _memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
@@ -758,50 +750,8 @@ public class ModEntry : Mod
             Whereabouts lead = _memory.LookFor(npc, MemoryStore.PlayerName, now, _regions.BlockMinutes, regions: _regions);
             inputs.Add(new InitiationInput(npc, view, _intentsToday.Contains(npc), HeartsFor(npc), lead));
         }
-        _lastLadderInputs = inputs; // the viewer shows what the ladder saw (views, leads, hearts)
-        _backlogAtTickStart = _ladder.Backlog; // read BEFORE enqueueing: this tick's work is still running
-        var ladderWatch = Stopwatch.StartNew(); // the playtest log's ladder perf record
-        if (inputs.Count > 0 && !_ladder.EnqueueTick(now, inputs))
-            Monitor.Log($"[shadow] ladder is behind the model; skipped a tick ({_ladder.Dropped} so far).", LogLevel.Trace);
-
-        foreach (BackgroundLadder.Result result in _ladder.Drain())
-        {
-            foreach ((string npc, DiaryEntry entry) in result.DiaryLines)
-                _memory.Note(npc, entry); // the one writer: trims, and the Noting hook applies regard
-            foreach (InitiationEvent ev in result.Events)
-            {
-                if (ev.Kind == "Blocked")
-                {
-                    // Near-attempts are tuning data, not events: up to one per NPC per step per day,
-                    // which would crowd real attempts out of the SMAPI log and the viewer's
-                    // 300-item feed. They go to the playtest log only (Trace in the SMAPI log).
-                    Monitor.Log($"[shadow] {ev.Npc}: {ev.Step} blocked (urge {ev.UrgeBefore:0.00}; {ev.Reason})", LogLevel.Trace);
-                    _playtest.Append(new LadderRecord(ev.Npc, ev.Kind, ev.Step.ToString(), ev.UrgeBefore, ev.UrgeAfter,
-                        ev.Threshold, ev.ModelP, ev.Reason, ev.Lead?.Place)
-                    {
-                        Tick = ev.AbsoluteTick,
-                    });
-                    continue;
-                }
-                string text = ev switch
-                {
-                    { Kind: "Attempt", Lead: { } lead } =>
-                        $"{ev.Npc} would go looking for you at {PlaceNames.Display(lead.Place)} ({DescribeLead(lead)}; urge {ev.UrgeBefore:0.00}) (shadow: {ev.Npc} did not move)",
-                    { Kind: "Attempt" } => $"{ev.Npc} would try {ev.Step} (urge {ev.UrgeBefore:0.00}; {ev.Reason})",
-                    _ => $"{ev.Npc}: {ev.Step} {ev.Kind.ToLowerInvariant()} (urge {ev.UrgeBefore:0.00} -> {ev.UrgeAfter:0.00}; {ev.Reason})",
-                };
-                Monitor.Log("[shadow] " + text, LogLevel.Info);
-                AddFeed(ev.AbsoluteTick, ev.Kind, ev.Npc, text);
-                _playtest.Append(new LadderRecord(ev.Npc, ev.Kind, ev.Step.ToString(), ev.UrgeBefore, ev.UrgeAfter,
-                    ev.Threshold, ev.ModelP, ev.Reason, ev.Lead?.Place)
-                {
-                    Tick = ev.AbsoluteTick,
-                });
-            }
-        }
-
-        ladderWatch.Stop();
-        _playtest.Append(new PerfRecord("ladder", ladderWatch.Elapsed.TotalMilliseconds) { Tick = now });
+        _lastLadderInputs = inputs;
+        _backlogAtTickStart = _motives.Backlog; // read BEFORE this tick's motives are enqueued
     }
 
     // ---- motives (shadow, step 14) -------------------------------------------------------------
@@ -909,7 +859,7 @@ public class ModEntry : Mod
         // A talk, a menu, a scene or a warp's fade: nothing in person is decided now; the NPC tries
         // again next tick (live test 2026-10-03). Game state, not a position (AGENTS.md rule 2).
         bool busy = !Context.IsPlayerFree;
-        foreach (InitiationInput ladder in _lastLadderInputs) // this tick's views and leads, built by RunLadder
+        foreach (InitiationInput ladder in _lastLadderInputs) // this tick's views and leads, built by BuildViews
         {
             string npc = ladder.Npc;
             double news = _planToday.Where(c => string.Equals(c.Npc, npc, StringComparison.OrdinalIgnoreCase))
@@ -1351,16 +1301,16 @@ public class ModEntry : Mod
         {
             (double median, double p95) = laya.Latency();
             Monitor.Log(
-                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _backlogAtTickStart,
-                    _ladder.Dropped, plan, laya.Calls, laya.CallFallbacks, median, p95,
+                Heartbeat.Format(tick, _memory.Diaries.Count, MotiveDrive.Strongest(_motives.LatestDecisions), _backlogAtTickStart,
+                    _motives.Dropped, plan, laya.Calls, laya.CallFallbacks, median, p95,
                     planCollectedLines: _planCollectedLinesToday),
                 LogLevel.Info);
         }
         else
         {
             Monitor.Log(
-                Heartbeat.Format(tick, _memory.Diaries.Count, _ladder.LatestUrges, _backlogAtTickStart,
-                    _ladder.Dropped, plan, planCollectedLines: _planCollectedLinesToday),
+                Heartbeat.Format(tick, _memory.Diaries.Count, MotiveDrive.Strongest(_motives.LatestDecisions), _backlogAtTickStart,
+                    _motives.Dropped, plan, planCollectedLines: _planCollectedLinesToday),
                 LogLevel.Info);
         }
     }
@@ -1400,7 +1350,7 @@ public class ModEntry : Mod
 
             MindsStats stats = _model is LayaDecisionClient laya
                 ? LayaStats(laya)
-                : new MindsStats(_ladder.Backlog, _ladder.Dropped, -1, -1, -1, -1);
+                : new MindsStats(_motives.Backlog, _motives.Dropped, -1, -1, -1, -1);
             string planState = _planJob is null ? "none" : _planJob.IsCompleted ? "ready" : "running";
 
             // Tonight's-news preview: the same NewsContext the planner gets, but with the live
@@ -1422,7 +1372,7 @@ public class ModEntry : Mod
                 _regions, HeartsFor(npc), Array.Empty<(string, string)>());
 
             var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
-                stats, planState, _ladder.LatestJson, _lastLadderInputs, _intentsToday.ToList(), _planToday,
+                stats, planState, null, _lastLadderInputs, _intentsToday.ToList(), _planToday,
                 _feed.Newest(), NewsFor, TemperamentViewOf, _spread.Copy(), _calibration,
                 Motives: _motives.LatestDecisions,
                 MotiveStates: _motives.LatestStates,
@@ -1519,7 +1469,7 @@ public class ModEntry : Mod
             _layaWarned = false;
             Monitor.Log("Laya questions are succeeding again.", LogLevel.Info);
         }
-        return new MindsStats(_ladder.Backlog, _ladder.Dropped, laya.Calls, laya.CallFallbacks, median, p95, modelError);
+        return new MindsStats(_motives.Backlog, _motives.Dropped, laya.Calls, laya.CallFallbacks, median, p95, modelError);
     }
 
     /// <summary>One line for the viewer's event feed, stamped with the game clock.</summary>
@@ -1640,7 +1590,6 @@ public class ModEntry : Mod
         {
             ["version"] = MemoryStore.CurrentVersion.ToString(),
             ["memory"] = _memory.ToJson(),
-            ["ladder"] = _ladder.LatestJson, // last finished state; saving never waits on the model
             ["regard"] = _regard.Book.ToJson(),
             ["motives"] = _motives.LatestJson,
         };
@@ -1663,7 +1612,6 @@ public class ModEntry : Mod
     {
         var model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
         _memory = new MemoryStore(MemorySeed());
-        _ladder = NewLadder(null);
         if (model is null)
         {
             NewRegard(null);
@@ -1676,8 +1624,7 @@ public class ModEntry : Mod
         {
             if (model.TryGetValue("memory", out string? memoryJson))
                 _memory = MemoryStore.FromJson(memoryJson);
-            if (model.TryGetValue("ladder", out string? ladderJson))
-                _ladder = NewLadder(ladderJson);
+            // An old "ladder" value (the retired urge ladder, D31) is left unread and not written again.
             _memory.RemoveDiary("null"); // junk from before the quest-target guard (week review, finding 2)
 
             // A saved plan is only today's: an older one belongs to a day that already happened.

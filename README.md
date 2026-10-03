@@ -12,7 +12,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcMemory/` | NPC memory layer: `Diary` (event log), `Ledger` (last-seen + same-day decay, gone at the next 6:00, two-hop gossip that never overwrites fresher knowledge), `RoutineBelief` (co-presence routine learning, best guess per hour), `Proximity` (tile-radius co-location), `MemoryStore` (per-tick observation from the NPC side, asking around and looking for someone, save format and migration), `GameClock` (year-aware ticks). References NpcSchedules. |
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
 | `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `Newsworthiness` (news scoring), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
-| `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
+| `src/NpcInitiation/` | `InitiationInput` (each tick's views and leads), `PlayerSearch` (who asks around) and `Heartbeat`. The urge ladder (`InitiationLadder`, `BackgroundLadder`) is retired (D31): the mod no longer runs it; the motives decide every attempt. |
 | `src/NpcMotives/` | Motives (step 14, shadow): a character acts only with a motive and enough boldness for the act. `MotivesEngine` (motives, netting, the act rule, close calls), `Stresses` and `StressorTable` (the fading part of feelings), `RegardBook` and `RegardKeeper` (the lasting part, saved per pair), `MoodRoll`, and `MotivesRunner`/`BackgroundMotives` (pacing, the model's questions and the grudge, on a worker). Built and tested; not wired into the mod yet. |
 | `src/NpcLive/` | The first live acts (D30): emotes and speech bubbles from the motives runner, each behind its own switch (off by default). `LivePlanner` picks the emote or the templated line, `LiveGate` holds an act back at a bad moment, `LiveBreaker` turns a switch off after an error, `LiveLedger` writes an ignored live act to the diary. Built and tested; not wired into the mod yet. |
 | `src/NpcBoard/` | The notice-board experiment (roadmap step 21): `NoteReactions` asks how each villager would react to a note in the player's words (a typed choice over six reactions; the note is quoted data, cleaned and capped at about two sentences) and maps the reaction to a confirmed emote and a templated line. `sidecar/eval/run_notes.py` runs the same question against a local Laya. Not in the mod yet. |
@@ -33,7 +33,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `tests/NpcIntents.Tests/` | xUnit tests (184). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (71). |
 | `tests/NpcMinds.Tests/` | xUnit tests (71). |
-| `tests/NpcMotives.Tests/` | xUnit tests (67). |
+| `tests/NpcMotives.Tests/` | xUnit tests (68). |
 | `tests/NpcBoard.Tests/` | xUnit tests (7). |
 | `tests/NpcLive.Tests/` | xUnit tests (7). |
 | `tests/NpcTemperament.Tests/` | xUnit tests (23). |

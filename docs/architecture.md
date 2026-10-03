@@ -440,6 +440,14 @@ delivered in-game, and the plan is not saved.
 
 ## Initiation ladder (`src/NpcInitiation`)
 
+**Retired (2026-10-03, D31).** The mod no longer runs the ladder: the motives decide every attempt
+and the live acts come only from them. What stays in use from this project: `InitiationInput` (each
+tick's views and leads, built by `ModEntry.BuildViews` and read by `RunMotives` and the viewer),
+`PlayerSearch` (asking around, now triggered by `MotiveDrive.Seeking`) and `Heartbeat` (now
+"strongest motive" and the motives worker's backlog). `InitiationLadder` and `BackgroundLadder` stay
+as a tested library until they are deleted; an old save's `ladder` value is left unread and no longer
+written. The rest of this section describes the ladder as it was.
+
 Each NPC carries an **urge** (0..1) to get the player's attention. When it is high enough the ladder
 picks the mildest step that fits and records what it **would** do; it never touches the game. Its
 knowledge of the player comes only from memory: the NPC's own `LedgerView` of "Player", plus a Find
@@ -513,8 +521,8 @@ question boxes and letters have no speaker. Verify in-game, including whether ev
 
 Roadmap step 14 (D24, `docs/spec/motives.md`): a character acts only when it has a **motive** with a
 subject and its **effective boldness** (boldness + familiarity + intensity) reaches the act's
-**cost**. Built and tested as a library (no game types); the mod does not run it yet (see "Wiring it
-into the mod" below). It never reads a live position, never changes the game, and is deterministic:
+**cost**. Built and tested as a library (no game types); the mod runs it every tick, and since the
+urge ladder was retired (D31) it alone decides attempts. It never reads a live position, never changes the game, and is deterministic:
 NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge draw.
 
 | Piece | What it does |
@@ -593,7 +601,7 @@ the worker only as the copied `RegardForPlayer`.
    `MotiveText.Line` in the SMAPI log (Info for Act, Grudge and Responded; Trace for the rest) and a
    `MotiveRecords.Decision` record; Act and Grudge also go to the viewer's feed; a Grudge calls
    `RegardKeeper.Relieve` and logs the `regard` record.
-4. `OnMenuChanged`: `EnqueueTalked` beside the ladder's `EnqueueResponse`.
+4. `OnMenuChanged`: `EnqueueTalked` (the ladder's `EnqueueResponse` went with the ladder, D31).
 5. The 6:00 tick: `RegardKeeper.Drift()`, then the `regard` snapshot (`MotiveRecords.Snapshot`).
 6. Save `regard` (`RegardBook.ToJson`) and `motives` (`BackgroundMotives.LatestJson`); load them
    with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).

@@ -529,8 +529,10 @@ draft table, past the first threshold, which recreated the clock. Depends on dia
 - **Not built:** weather and season effects (`WeatherFacts`), the near-miss source of
   `MissingYou`, `WantsToTrade` and `NeedsHelp` (no sources yet), NPC subjects ([town-life.md](town-life.md)),
   hearsay's relevance (x2 when drawn to someone in the story) and first-hand confirmation (they
-  matter once retelling goes past one hop, [ledger-gossip.md](ledger-gossip.md)), retiring the
-  urge ladder, and the friendship penalty's live switch.
+  matter once retelling goes past one hop, [ledger-gossip.md](ledger-gossip.md)), and the
+  friendship penalty's live switch.
+- **Retiring the urge ladder: done** (2026-10-03, D31). The motives decide every attempt; asking
+  around and the heartbeat read them through `MotiveDrive`.
 
 ## Open questions
 
