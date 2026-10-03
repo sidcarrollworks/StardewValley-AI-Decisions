@@ -1,5 +1,7 @@
 namespace StardewNpcMod;
 
+using NpcLive;
+
 /// <summary>Player-editable settings (config.json, created by SMAPI on first run).</summary>
 public sealed class ModConfig
 {
@@ -42,4 +44,9 @@ public sealed class ModConfig
     /// playtest/&lt;save&gt;/ (docs/spec/debug-tools.md, "Playtest log"). On in development;
     /// reads only, never feeds a decision.</summary>
     public bool PlaytestLog { get; set; } = true;
+
+    /// <summary>The live switches (docs/spec/rollout.md, D30): which acts leave shadow and really
+    /// show in the game. Both off by default; "Live": { "Emote": true, "Bubble": true } in
+    /// config.json turns the motives runner's emotes and speech bubbles on.</summary>
+    public LiveSwitches Live { get; set; } = new();
 }

@@ -599,7 +599,7 @@ the worker only as the copied `RegardForPlayer`.
    with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).
 7. `PublishMinds` passes `Motives`, `MotiveStates`, `RegardFor` and the newest line per NPC to
    `MindsInputs`; the cards then show the runner's numbers instead of the page's preview.
-8. History at install (not wired yet): at `SaveLoaded`, after `NewRegard`, if the save data has no
+8. History at install (wired): at `SaveLoaded`, after `NewRegard`, if the save data has no
    `historySeeded`, build an `NpcHistory` per villager from the game, subtract
    `RegardHistory.SeenInDiary(npc, diary)`, call `RegardHistory.Seed(_regard.Book, ...)`, log each
    `HistorySeed.Line` as `[shadow]` and append `MotiveRecords.History`; then save
@@ -631,7 +631,7 @@ has its own switch in `config.json`, off by default.
   one `Ignored`, `OnResolved` returns the `IgnoredBy` diary entry to write with `MemoryStore.Note`
   (in shadow nothing is written, since the player never saw the attempt); `Responded` clears it.
 
-### Wiring it into the mod (local, not done yet)
+### Wiring it into the mod (done, 2026-10-02, `deepseek/live-emotes`)
 
 1. `ModConfig` gains `public LiveSwitches Live { get; set; } = new();` (both off). Read once at
    `Entry`; keep a `LiveBreaker` and a `LiveLedger`; register `npcmod_live off` with
@@ -643,14 +643,15 @@ has its own switch in `config.json`, off by default.
 3. For each drained event, `LivePlanner.From(ev, _config.Live, Game1.player.Name)`. If not null,
    gather `LiveFacts` on the game thread: `!Context.IsMultiplayer`, `Context.IsPlayerFree`,
    `Game1.eventUp`, `Game1.isFestival()`, the NPC's `currentLocation == Game1.player.currentLocation`,
-   the Chebyshev distance of `npc.Tile` and `Game1.player.Tile`, busy = `npc.isEmoting` or
-   `npc.textAboveHeadTimer > 0`, visible = `!npc.IsInvisible`. VERIFY each name in the decompile;
-   they are recalled, not checked.
+   the Chebyshev distance of `npc.TilePoint` and `Game1.player.TilePoint` (`Character.Tile` is a
+   float `Vector2`; the tile is the int `TilePoint`), busy = `npc.isEmoting` (public, NPC.cs:145;
+   `textAboveHeadTimer` is protected int, NPC.cs:160, so an already-showing bubble cannot be read),
+   visible = `!npc.IsInvisible`. All verified in the 1.6.15 decompile.
 4. `LiveGate.WhyNot(...)`: null means show it, through `_live.Run(act.Act, ...)`:
    `npc.doEmote(act.EmoteId)` or `npc.showTextAboveHead(act.Text, duration: options.BubbleMs)`
-   (both confirmed in the decompile). Log `[live] ` + `LivePlanner.ShownLine(act)` at Info and
-   `_ledger.Shown(act)`. A reason means log `[live] ` + `LivePlanner.SkippedLine(act, reason)` at
-   Trace. A breaker error logs once at Error.
+   (both confirmed in the decompile, NPC.cs:1373). Log `[live] ` + `LivePlanner.ShownLine(act)` at
+   Info and `_ledger.Shown(act)`. A reason means log `[live] ` + `LivePlanner.SkippedLine(act, reason)`
+   at Trace. A breaker error logs once at Error.
 5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
    `_memory.Note(npc, entry)`.
 6. In `RunMotives`, set each input's `PlayerBusy = !Context.IsPlayerFree` (one line, `with`), so
