@@ -21,5 +21,15 @@ else
     exit 1
 fi
 
+# Everything the server prints also goes to a log, so the reason for a failed question survives
+# the window closing. Appended, with a start line per run. LAYA_LOG= (empty) turns it off.
+log="${LAYA_LOG-$here/laya.log}"
+
 echo "Starting Laya on http://$LAYA_HOST:$LAYA_PORT (models: $LAYA_MODELS). First run downloads weights; this can take a while."
-exec "$exe"
+if [ -z "$log" ]; then
+    exec "$exe"
+fi
+echo "Logging to $log"
+echo "==== $(date '+%Y-%m-%d %H:%M:%S') laya-serve on $LAYA_HOST:$LAYA_PORT, models $LAYA_MODELS ====" >> "$log"
+export PYTHONUNBUFFERED=1   # print lines as they happen, not when a buffer fills
+"$exe" 2>&1 | tee -a "$log"   # pipefail (above) keeps the server's exit code

@@ -89,6 +89,12 @@ public sealed class InitiationOptions
     /// with the player and the NPC's next attempt.</summary>
     public int CooldownTicks { get; set; } = 6;
 
+    /// <summary>After the draw says no, the same step (and the same lead) is not put to the model
+    /// again for this many ticks. Without it Jodi was asked "Approach now?" every tick while the
+    /// player was on the farm (playtest 2026-10-02): the answer barely moves tick to tick, so asking
+    /// again only spends calls.</summary>
+    public int AskAgainAfterTicks { get; set; } = 6;
+
     public int MaxAttemptsPerNpcPerDay { get; set; } = 2;
 
     /// <summary>Across all NPCs and all steps.</summary>

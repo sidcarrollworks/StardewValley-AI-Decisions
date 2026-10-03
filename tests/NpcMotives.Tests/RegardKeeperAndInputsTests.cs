@@ -154,4 +154,15 @@ public sealed class RegardKeeperAndInputsTests
         Assert.Contains("thinking about: call out to the player", state);
         Assert.True(state.Length <= NpcDecision.DecisionState.StateBudgetChars);
     }
+
+    [Fact]
+    public void ARegardChangeTooSmallToShowIsNotLogged()
+    {
+        // A talk's lasting mark is about 0.002: the line would read "+0.00 -> +0.00".
+        RegardNote talk = new("Gus", "Player", "Talked", 0.1, 0.02, 1, false, false, 0.050, 0.052, "Talked (hearts=0)");
+        Assert.Null(MotiveText.RegardLine(talk));
+
+        RegardNote gift = talk with { Kind = "GiftReceived", After = 0.15, Cause = "a loved gift" };
+        Assert.Equal("Gus: regard for Player +0.05 -> +0.15 (a loved gift)", MotiveText.RegardLine(gift));
+    }
 }

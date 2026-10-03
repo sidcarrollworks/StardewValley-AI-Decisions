@@ -336,11 +336,18 @@ tests until a rung goes live; the shadow log still reports frustration within th
 ### Which motive goes first
 
 When several motives (feelings toward different subjects, tasks) can act, the existing Laya
-`choice` question picks one (fallback: the strongest). The pacing caps still hold: 2 attempts per
-NPC a day, 6 in total, 2 queued lines, 1 letter, 1 interrupt a week, 6-tick cooldown. When fewer
-than `StrongReserve` (2) of the day's 6 attempts remain, only motives with intensity >=
-`StrongIntensity` (0.5) may use them, so cheap greetings can't crowd out a character with a real
-reason.
+`choice` question picks one (fallback: the strongest). The pacing caps: 2 attempts per NPC a day,
+12 in total, 2 queued lines, 1 letter, 1 interrupt a week, 6-tick cooldown. When `StrongReserve`
+(2) or fewer of the day's attempts remain, only motives with intensity >= `StrongIntensity` (0.5)
+may use them, so cheap reasons can't crowd out a character with a real one.
+
+**Light acts count toward none of these** (Sid, 2026-10-02): an emote (a wave or a glare), or a
+bubble whose motive is only a greeting (`MotiveOptions.IsLight`). They don't ask for the player's
+time, so they use none of the day's attempts and the reserve doesn't hold them back; once an NPC's
+or the town's attempts are used up, it may still wave. Each NPC has its own cap of 2 light acts a
+day (`MaxLightActsPerNpcPerDay`). The town cap went from 6 to 12 at the same time, after the long
+playtest (spring 18 to summer 1) showed 3 to 5 acts a day with the reserve the top reason for a
+pass; it may come back down after testing.
 
 ## Grudge and friendship loss
 
@@ -453,7 +460,12 @@ In `MotiveOptions`, not saved:
 - acts: `ActCost` per act, `ActMinStrength` per act (above), `HostileSurcharge` 0.30, `IntensityWeight` 0.5, `ClearBand` 0.15,
   `AvoidLevel` 0.3, `FrustrationStep` 0.1, `VentRelief` 0.5, `StrongReserve` 2,
   `StrongIntensity` 0.5, `MinMotiveForChoice` 0.2;
-- grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7.
+- pacing: `MaxAttemptsPerNpcPerDay` 2, `MaxAttemptsPerDay` 12, `MaxLightActsPerNpcPerDay` 2,
+  `MaxQueuedLinesPerDay` 2, `MaxLettersPerDay` 1, `MaxInterruptsPerWeek` 1, `CooldownTicks` 6;
+- grudge: `GrudgeThreshold` 0.75, `FriendshipPenalty` 20, `PenaltyCooldownDays` 7;
+- history at install ([vanilla-sources.md](vanilla-sources.md), D29): `HistoryFade` 0.5,
+  `HistoryMaxWarmth` 0.8, `HistoryMaxGrudge` 0.5, `HistoryDatingFloor` 0.3, `HistoryEngagedFloor`
+  0.4, `HistoryMarriedFloor` 0.5, `HistoryDivorcedGrudge` 0.4.
 `InitiationOptions.BaseGainPerTick`, `HeartsGainPerTick`, `IntentBoost`, `OvernightFactor`,
 `IgnorePenalty` and `RespondRelief` are removed when this lands.
 
@@ -498,7 +510,8 @@ draft table, past the first threshold, which recreated the clock. Depends on dia
   the stressor table, elastic stresses, regard with retention, severity, the yield point, drift and
   confirmed hearsay, the mood roll, motives, netting, the act rule with clear and close calls and
   the mood tilt, and a runner over time (pacing, response windows, frustration, motives used up,
-  the model's choice and close-call questions, the shadow grudge) on its own worker; the
+  the model's choice and close-call questions, the shadow grudge; light acts paced apart) on its
+  own worker; the
   `MemoryStore.Noting` hook that applies regard as entries are written; the viewer's motives view
   and the `decision`, `stress` and `regard` playtest records. How the runner paces and uses
   motives up is in `docs/architecture.md`, "Motives". The acceptance tests above pass except the

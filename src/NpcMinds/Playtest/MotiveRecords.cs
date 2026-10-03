@@ -132,6 +132,11 @@ public static class MotiveRecords
     public static RegardRecord Regard(RegardNote n, int tick)
         => new(n.Observer, n.Subject, Round(n.Before), Round(n.After), n.Cause) { Tick = tick };
 
+    /// <summary>A regard seeded from history at install (RegardHistory): from 0, cause
+    /// "history: 31 gifts: 12 loved, ...".</summary>
+    public static RegardRecord History(HistorySeed seed, int tick)
+        => new(seed.Npc, NpcMemory.MemoryStore.PlayerName, 0, Round(seed.Regard), "history: " + seed.Because) { Tick = tick };
+
     /// <summary>The 6:00 snapshot: one record per pair, cause "snapshot".</summary>
     public static IEnumerable<RegardRecord> Snapshot(RegardBook book, int tick)
         => book.Pairs().Select(p => new RegardRecord(p.Observer, p.Subject, Round(p.Value), Round(p.Value), "snapshot") { Tick = tick });

@@ -9,7 +9,7 @@ This tool turns such a folder into the per-day tables a PR description wants:
 
   1. Ladder       step x kind counts (attempts, blocks, ignored, completed, ...)
   2. Gossip       distinct stories (subject + originalKind) with max hops, AskAround answers
-  3. Model calls  grouped by caller + template: calls, fellBack count, median ms
+  3. Model calls  grouped by caller + template: calls, fellBack count, median ms; then fallbacks by reason
   4. Memory       per-NPC diary census against the 500-entry cap (loud within 10% of it)
   5. Perf         the five slowest ticks (section "tick") and the median ms per section
   6. Decisions    the motives runner (step 14): outcomes, acts by motive, close calls
@@ -43,6 +43,7 @@ KNOWN_TYPES = ("presence", "ladder", "gossip", "game", "plan", "memory", "model"
 DECISION_KINDS = ("act", "pass", "blocked", "responded", "ignored", "expired", "grudge")
 GRUDGE_SHOWN = -0.3      # regard at or below this shows in the Regard section's snapshot
 TEMPLATE_WIDTH = 64
+REASON_WIDTH = 90
 
 
 def text(record, key, default="?"):
@@ -200,9 +201,23 @@ def model_section(records):
         -kv[1]["calls"], kv[0][0].lower(), kv[0][1].lower()))
     rows = [[caller, clip(template), entry["calls"], entry["fell_back"], median_text(entry["ms"])]
             for (caller, template), entry in ordered]
-    return ["  calls by caller + template:"] + table(
+    lines = ["  calls by caller + template:"] + table(
         ["caller", "template", "calls", "fellBack", "median ms"], rows,
         indent="    ", right=(2, 3, 4))
+    # Why calls fell back (the record's "error"; older logs have none). Digits are folded so one
+    # cause counts once whatever the number in it ("no answer within 1500 ms").
+    reasons = {}
+    for record in records:
+        if record.get("fellBack") is True:
+            why = record.get("error")
+            key = re.sub(r"\d+", "N", why) if isinstance(why, str) and why else "(no reason recorded)"
+            reasons[key] = reasons.get(key, 0) + 1
+    if reasons:
+        ordered_reasons = sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0]))
+        lines += ["  fallbacks by reason:"] + table(
+            ["reason", "calls"], [[clip(why, REASON_WIDTH), count] for why, count in ordered_reasons],
+            indent="    ", right=(1,))
+    return lines
 
 
 def memory_section(records):

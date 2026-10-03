@@ -235,8 +235,10 @@ public sealed class MotivesEngine
         bool feeling = IsFeeling(chosen.Motive);
         bool hostile = feeling && c.Net < 0;
         double intensity = Math.Max(0, chosen.Strength + frustration);
-        if (i.AttemptsLeftToday <= _o.StrongReserve && intensity < _o.StrongIntensity)
-            return Nothing($"only {i.AttemptsLeftToday} attempts left today; kept for strong motives");
+        // A weak motive near the end of the day's attempts, or any motive once they are used up,
+        // may still use a light act: a wave asks nothing of the player.
+        bool reserved = i.AttemptsLeftToday <= _o.StrongReserve && intensity < _o.StrongIntensity;
+        bool lightOnly = reserved || i.AttentionCapped;
 
         int hearts = Math.Clamp(i.Hearts, 0, 14);
         double familiarity = hostile
@@ -247,11 +249,18 @@ public sealed class MotivesEngine
 
         var checks = new List<ActCheck>();
         var tooWeak = new List<Act>();
+        var heldBack = new List<Act>(); // ruled out by the day's attempts or the light-act cap
         foreach (Act act in AllowedActs(chosen.Motive, feeling, i.BestNewsScore)
                      .OrderByDescending(a => _o.ActCost[a]).ThenBy(a => (int)a))
         {
             if (!Available(act, i, friendlyInPerson: !hostile, c.Net))
                 continue;
+            bool light = MotiveOptions.IsLight(act, chosen.Motive);
+            if (light ? i.LightCapped : lightOnly)
+            {
+                heldBack.Add(act);
+                continue;
+            }
             if (intensity < _o.MinStrengthFor(act))
             {
                 tooWeak.Add(act); // a reason too small for this act, however bold
@@ -274,6 +283,13 @@ public sealed class MotivesEngine
                 return new MotiveDecision(i.Npc, c.Motives, c.Mood, c.Net, chosen, t.Boldness, familiarity, intensityTerm,
                     frustration, checks, check.Act, check, $"{check.Act}: {check.Effective:0.00} vs cost {check.Cost:0.00}, close call");
         }
+        if (checks.Count == 0 && heldBack.Count > 0 && tooWeak.Count == 0)
+            return Nothing(heldBack.All(a => MotiveOptions.IsLight(a, chosen.Motive))
+                    ? "waved enough today"
+                    : i.AttentionCapped
+                        ? "no attempts left today (its own or the town's); only a wave is left"
+                        : $"only {i.AttemptsLeftToday} attempts left today; kept for strong motives",
+                familiarity, intensityTerm, checks);
         if (checks.Count == 0 && tooWeak.Count > 0)
             return Nothing(string.Format(System.Globalization.CultureInfo.InvariantCulture,
                     "motive {0:0.00} too weak for {1}", intensity,

@@ -52,6 +52,17 @@ It's easier to watch changes visually than through the logs." That became the li
   hearts, urge or name. It updates every two
   seconds; a game tick is about seven real seconds. Details: `docs/architecture.md`, "NPC Minds
   viewer".
+- **Viewer: the card redesign** (Sid, 2026-10-02: "It's hard to see the important values ... Make
+  it easier to know where to look"). Each card now leads with what matters:
+  - a status pill in words and a color (acting, hostile, close call, waiting on you, holding back
+    with the reason, calm);
+  - the feeling it would act on, as a big number with a bar;
+  - an act ladder that names every act and marks which it would dare, replacing the unlabelled
+    daring bar;
+  - four tiles: regard, mood, tries, saw you.
+
+  The rest sits behind a row of tabs. Calm villagers shade and sort last; the header counts
+  villagers per state and filters on a click. Details: `docs/architecture.md`, "How a card reads".
 - **Viewer: the model spread panel** (Sid, 2026-10-02; [laya.md](laya.md), "Character spread").
   A side panel lists each model question the day has asked, with the NPC's name replaced by
   `<npc>` so the same question groups across villagers: how many NPCs were asked, a strip of dots
@@ -99,7 +110,7 @@ the game itself does so specs can be checked against it.
 | `presence` | per tick: every villager's location and tile, and the player's | ground truth: where NPCs actually go (versus schedules), how much they overlap, whether off-screen movement looks right |
 | `game` | weather, festival, the player's gifts (item and taste), quests completed, garbage cans searched and who reacted, conversations, letters read | the events the diary hooks should be catching; misses show up as gaps |
 | `memory` | per NPC per day: diary entries added and trimmed, ledger size, regard pairs | check the 500-entry cap and the elastic window |
-| `model` | question, answers, latency, fallback, queue depth | what the model costs and how often it fails |
+| `model` | question, answers, latency, fallback and why (`error`, left out when answered), queue depth | what the model costs, how often it fails, and why |
 | `perf` | ms spent in our tick, `Observe`, the ladder, the planner | keep the game smooth |
 
 `tools/` gets a small script that turns a folder of these files into per-day tables (decisions by

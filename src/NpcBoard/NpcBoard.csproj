@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NpcBoard</RootNamespace>
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NpcDecision\NpcDecision.csproj" />
+    <ProjectReference Include="..\NpcIntents\NpcIntents.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -340,6 +340,27 @@ public class LayaDecisionClientTests
            + noul.ToString(System.Globalization.CultureInfo.InvariantCulture)
            + ",\"confidence\":0.9,\"answer_confidence\":0.9}}}";
 
+    [Fact]
+    public void FailuresInARowAndTheLastReasonAreKept_ASuccessResetsTheCount()
+    {
+        // Playtest 2026-10-02: /health said ok while every question failed in 4 ms.
+        bool fail = true;
+        var stub = new StubHandler(_ => fail
+            ? Respond(HttpStatusCode.InternalServerError, "{\"detail\":\"CUDA out of memory\"}")
+            : Respond(HttpStatusCode.OK, "{\"answers\":{\"q\":{\"type\":\"noul\",\"noul\":0.7,\"confidence\":0.9,\"answer_confidence\":0.9}}}"));
+        using var client = new LayaDecisionClient(stub, new LayaOptions());
+        Assert.Null(client.LastError);
+        for (int i = 0; i < 3; i++)
+            Assert.ThrowsAny<Exception>(() => client.YesNo("npc: Sam", "is it?"));
+        Assert.Equal(3, client.ConsecutiveFailures);
+        Assert.Contains("500", client.LastError);
+
+        fail = false;
+        client.YesNo("npc: Sam", "is it?");
+        Assert.Equal(0, client.ConsecutiveFailures);
+        Assert.NotNull(client.LastError); // the newest failure stays readable
+    }
+
     private static HttpResponseMessage Respond(HttpStatusCode status, string body)
         => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 

@@ -201,6 +201,10 @@ public sealed class InitiationLadder
         var view = input.PlayerView!;
         // An Approach without the player in sight means going to where the NPC believes they are.
         Whereabouts? lead = step == InitiationStep.Approach && !IsNear(view) ? input.Lead : null;
+        // The same question the draw just turned down waits a while before it is asked again.
+        string askKey = step.Value + "|" + lead?.Place;
+        if (state.LastAskedKey == askKey && state.LastAskedTick is { } asked && absoluteTick - asked < _options.AskAgainAfterTicks)
+            return null;
         string context = string.Format(CultureInfo.InvariantCulture,
             "urge={0:0.00}; hearts={1}; step={2}; player last seen: {3}, {4} ticks ago, {5}{6}",
             state.Urge, input.Hearts, step.Value, view.Detail, view.AgeTicks,
@@ -208,7 +212,11 @@ public sealed class InitiationLadder
             lead is null ? "" : $"; would look for them at {lead.Place} ({lead.Source})");
         double p = _decision.YesNo(context, AttentionProposition(input.Npc, step.Value.ToString()));
         if (double.IsNaN(p) || !(Uniform(input.Npc, absoluteTick) < p))
+        {
+            state.LastAskedKey = askKey;
+            state.LastAskedTick = absoluteTick;
             return null;
+        }
 
         state.OpenStep = step.Value;
         state.OpenTick = absoluteTick;
@@ -472,6 +480,8 @@ public sealed class InitiationLadder
         public InitiationStep? OpenStep; // unresolved attempt, if any
         public int? OpenTick;
         public int? IntentBoostDay;      // day the intent boost was last applied
+        public string? LastAskedKey;     // step and lead of the last question the draw turned down; not saved
+        public int? LastAskedTick;
     }
 
     private sealed class LadderDto

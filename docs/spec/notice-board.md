@@ -1,7 +1,11 @@
 # 23. The town notice board
 
-**Status: not started; scheduled as roadmap step 21** (Sid, 2026-10-02: preferred over farm visits
-by appointment, which are deferred). The details below are a first design, not yet decided.
+**Status: the console experiment's core is built** (2026-10-02): `src/NpcBoard/NoteReactions.cs`
+(the reactions, the question and its state, the emotes and lines, a report with the spread
+across villagers) and `sidecar/eval/run_notes.py`, which asks a local Laya the same question for
+every villager's card, so the experiment runs before any mod change. Next: a console command in
+the mod (`npcmod_note "text"`, local build). The board itself is roadmap step 21's later stages.
+The details below are a first design, not yet decided.
 
 Sid: *"One of Stardew Valley's story and world aspects is unplugging from technology. Instead of a
 digital board we could add a new board in the downtown square that people can leave notes on. To

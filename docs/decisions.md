@@ -428,6 +428,10 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **Light acts are paced apart** (Sid, 2026-10-02, after the long playtest showed 3 to 5 acts a
+  day, the reserve the top reason for a pass): an emote, or a bubble that only greets, uses none of
+  the day's attempts and has its own cap of 2 per NPC; the town cap went from 6 to 12, to come
+  down after testing if the town is too busy.
 - **The grudge is drawn**, seeded, against the model's answer, once a day at most; the 0.3 rise in
   regard after it applies in shadow too (the mod's memory, not the game's friendship), or the log
   would repeat the same would-be penalty every week.
@@ -439,6 +443,44 @@ carries over, and keeps model calls to the ones whose answer can change.
 "Motives", has the full list; the spec (`docs/spec/motives.md`) was updated to match.
 
 ---
+
+### D29. History at install seeds once per save, on top of earned regard
+**Decision (Claude, building the seed, 2026-10-02; for Sid's review).** The spec said "seed when
+the save has no `regard` value yet". Sid's own test save already has regard from the motives
+playtests, so that rule would never seed it, and Haley's gifts from before the mod would stay
+invisible. Instead:
+- **Once per save, behind its own flag** (save-data key `historySeeded`), whether or not `regard`
+  exists.
+- **Added onto the regard already there**, not instead of it.
+- **What the mod already saw is left out** (`NpcHistory.Except(RegardHistory.SeenInDiary(...))`):
+  gifts and heart events in the diary already left their mark when they were written. The diary
+  keeps the newest 500 entries per villager, so on a long save a few trimmed ones may count again,
+  at half strength.
+- **The numbers:** each gift and heart event leaves the mark the live rule would, halved
+  (`HistoryFade`, their age is unknown), soft-capped at +0.8 for warmth and -0.5 for a grudge
+  (below the 0.75 penalty threshold, so nobody arrives already past it). Dating, engaged and married
+  set floors of 0.3, 0.4 and 0.5; divorced a lasting grudge of 0.4. One loved gift is about +0.09; a
+  favourite with 31 gifts and 2 heart events about +0.77. Hearts are not used: familiarity already
+  counts them.
+
+### D30. Emotes and bubbles go live first, friendly and hostile, from the motives only
+**Decision (Sid, 2026-10-02).** "Let's do emotes and bubbles first. We can do both friendly and
+hostile." This changes the 2026-09-30 order, where the overnight-planned lines (`IntentLines`)
+went first.
+- **Two switches**, `Live.Emote` and `Live.Bubble`, off by default; hostile acts (a glare, a sharp
+  line) come with them, not behind a later `HostileActs` switch.
+- **Only the motives runner's acts go live.** The urge ladder keeps running in shadow until it is
+  retired; its attempts never show.
+- **A last check with live facts** (`LiveGate`): the one exception to AGENTS.md rule 2. It never
+  chooses an act, only holds one back (an event, a menu, the player gone or too far, the villager
+  busy or hidden, multiplayer, or more than a tick late).
+- **The lines are templates**, not the model's text, and the emote follows the motive; the hostile
+  emote is angry from the bold and sad from the shy. First guesses for Sid to tune.
+- **Being ignored becomes real:** a shown act the player ignores is written as `IgnoredBy`, which
+  the shadow ladder never did (the player never saw those attempts).
+
+**Why.** Emotes and bubbles are the least invasive acts (gone in seconds, nothing to undo), and
+they are what makes the town feel alive.
 
 ## Open work and known issues
 

@@ -145,9 +145,18 @@ public sealed class MotivesEngineTests
     [Fact]
     public void Caps_TheLastAttemptsAreKeptForStrongMotives()
     {
+        // A weak motive may only use a light act near the end of the day: a wave asks nothing of
+        // the player, so it uses none of the day's attempts.
         MotiveDecision greeting = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true, attemptsLeft: 2));
-        Assert.Null(greeting.Result);
-        Assert.Contains("strong motives", greeting.Reason);
+        Assert.NotNull(greeting.Result);
+        Assert.True(MotiveOptions.IsLight(greeting.Result!.Value, greeting.Chosen!.Motive));
+        Assert.Equal(_engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true)).Result, greeting.Result);
+        MotiveDecision usedUp = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true) with { AttentionCapped = true });
+        Assert.Equal(greeting.Result, usedUp.Result);
+
+        MotiveDecision waved = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true, attemptsLeft: 2) with { LightCapped = true });
+        Assert.Null(waved.Result);
+        Assert.Contains("waved enough today", waved.Reason);
 
         MotiveDecision hurt = _engine.Decide(Inputs("Robin", Robin, hearts: 6, near: true, attemptsLeft: 2,
             diary: new[] { E(Day / 2, "StoodUp", "place=Saloon;seen=1") }, regard: -0.5));

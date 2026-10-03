@@ -134,6 +134,16 @@ public sealed class MindsSnapshotBuilderTests
     }
 
     [Fact]
+    public void ALeadWithoutAPlaceNameLeavesItOut()
+    {
+        // Playtest 2026-10-02: "you're right here ()" and ": saw you there an hour ago".
+        Assert.Equal("you're right here",
+            MindsSnapshotBuilder.LeadOf(new Whereabouts("Haley", "Player", WhereaboutsSource.SeenNow, null, null, 0, 0, null, 0))!.Summary);
+        Assert.Equal("saw you there an hour ago",
+            MindsSnapshotBuilder.LeadOf(new Whereabouts("Lewis", "Player", WhereaboutsSource.SeenToday, null, LedgerDetail.Location, 6, 0, null, 0))!.Summary);
+    }
+
+    [Fact]
     public void AnNpcTheLadderHasNoInputForShowsNoView()
     {
         MindsSnapshot s = new MindsSnapshotBuilder().Build(Memory(), Inputs(ladderInputs: Array.Empty<InitiationInput>()));

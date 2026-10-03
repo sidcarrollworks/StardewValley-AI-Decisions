@@ -67,6 +67,25 @@ public sealed class MotiveOptions
         [Act.Interrupt] = 0.6,
     };
 
+    /// <summary>A light act: an emote (a wave or a glare), or a bubble whose motive is only a
+    /// greeting. It doesn't ask for the player's time, so it uses none of the daily attempts and
+    /// isn't held back by the strong reserve (Sid, 2026-10-02).</summary>
+    public static bool IsLight(Act act, Motive motive) => act == Act.Emote || (act == Act.Bubble && motive == Motive.Greeting);
+
+    // ---- history at install (docs/spec/vanilla-sources.md; RegardHistory) --------------------
+    /// <summary>Gifts and heart events from before the mod count half: their age is unknown, and
+    /// live regard would have faded since.</summary>
+    public double HistoryFade { get; set; } = 0.5;
+    /// <summary>History's warmth approaches this and never passes it, so play still has room.</summary>
+    public double HistoryMaxWarmth { get; set; } = 0.8;
+    /// <summary>History's grudge stops here, below <see cref="GrudgeThreshold"/>: nobody arrives
+    /// already past the friendship penalty.</summary>
+    public double HistoryMaxGrudge { get; set; } = 0.5;
+    public double HistoryDatingFloor { get; set; } = 0.3;
+    public double HistoryEngagedFloor { get; set; } = 0.4;
+    public double HistoryMarriedFloor { get; set; } = 0.5;
+    public double HistoryDivorcedGrudge { get; set; } = 0.4;
+
     public double MinStrengthFor(Act act) => ActMinStrength.TryGetValue(act, out double m) ? m : 0;
 
     /// <summary>Greeting strength before warmth: someone familiar (2+ hearts, or regard 0.2+), and
@@ -90,8 +109,14 @@ public sealed class MotiveOptions
     public int MaxChoiceOptions { get; set; } = 5;
 
     // ---- pacing (the ladder's caps, kept: motives.md, "Which motive goes first") ---------------
+    // Light acts (an emote, or a bubble that only greets: IsLight) count toward none of these:
+    // a wave doesn't ask for the player's time (Sid, 2026-10-02). They have their own cap per NPC.
     public int MaxAttemptsPerNpcPerDay { get; set; } = 2;
-    public int MaxAttemptsPerDay { get; set; } = 6;
+
+    /// <summary>The town's daily attempts that ask for the player's attention. 12, up from 6 once
+    /// waves stopped counting (Sid, 2026-10-02: raise it, lower it after testing if need be).</summary>
+    public int MaxAttemptsPerDay { get; set; } = 12;
+    public int MaxLightActsPerNpcPerDay { get; set; } = 2;
     public int MaxQueuedLinesPerDay { get; set; } = 2;
 
     /// <summary>Letters and requests by letter, across all NPCs.</summary>

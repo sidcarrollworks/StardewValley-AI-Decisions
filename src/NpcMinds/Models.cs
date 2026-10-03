@@ -30,8 +30,10 @@ public sealed record MindsSnapshot(
 }
 
 /// <summary>The heartbeat numbers: ladder backlog and drops, model calls, fallbacks, latency
-/// (-1 where the backend does not report it).</summary>
-public sealed record MindsStats(int Backlog, int Dropped, long Calls, long Fallbacks, double MedianMs, double P95Ms)
+/// (-1 where the backend does not report it), and, when the model's questions keep failing while
+/// its health check still says ok, the newest failure's reason (null otherwise).</summary>
+public sealed record MindsStats(int Backlog, int Dropped, long Calls, long Fallbacks, double MedianMs, double P95Ms,
+    string? ModelError = null)
 {
     public static readonly MindsStats None = new(0, 0, -1, -1, -1, -1);
 }
@@ -131,7 +133,8 @@ public sealed record DecisionCall(
     IReadOnlyList<CallAnswer> Answers,
     double Ms,
     bool FellBack,
-    string ContextHead);            // the first part of the state the model read
+    string ContextHead,             // the first part of the state the model read
+    string? Error = null);          // why it fell back (ResilientDecisionClient.LastFallbackReason); null when answered
 
 public sealed record CallAnswer(string Label, double Value);
 

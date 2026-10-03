@@ -81,7 +81,34 @@ public sealed class RecordingDecisionClientTests
         double p = client.YesNo("ctx", "should Sam wave?");
 
         Assert.Equal(0.5, p);
-        Assert.True(Assert.Single(log.Newest()).FellBack);
+        DecisionCall call = Assert.Single(log.Newest());
+        Assert.True(call.FellBack);
+        Assert.Equal("InvalidOperationException: Operation is not valid due to the current state of the object.", call.Error);
+    }
+
+    [Fact]
+    public void AFallbackCarriesItsReasonIntoThePlaytestLog_AndAnAnswerCarriesNone()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "npcmod-playtest-tests", Guid.NewGuid().ToString("N"), "playtest");
+        var playtest = new PlaytestLog(root, enabled: true, _ => { });
+        var log = new RingLog<DecisionCall>(50);
+        var failing = new RecordingDecisionClient(new ResilientDecisionClient(new Throws()), log, "motives", playtest: playtest);
+        var answering = new RecordingDecisionClient(new ResilientDecisionClient(new FakeDecisionClient()), log, "motives", playtest: playtest);
+
+        failing.YesNo("npc: Sam", "would Sam wave at the player now?");
+        answering.YesNo("npc: Sam", "would Sam wave at the player now?");
+        playtest.OpenDay(1, "spring", 1);
+        playtest.DrainWorkerQueue();
+        playtest.Flush();
+
+        string[] lines = TestFiles.ReadLines(Path.Combine(root, "1-spring-1.jsonl")).ToArray();
+        Assert.Equal(2, lines.Length);
+        using JsonDocument fell = JsonDocument.Parse(lines[0]);
+        Assert.True(fell.RootElement.GetProperty("fellBack").GetBoolean());
+        Assert.StartsWith("InvalidOperationException", fell.RootElement.GetProperty("error").GetString());
+        using JsonDocument fine = JsonDocument.Parse(lines[1]);
+        Assert.False(fine.RootElement.TryGetProperty("error", out _));
+        Assert.Null(log.Newest().First().Error); // newest first: the answered call
     }
 
     [Fact]

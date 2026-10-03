@@ -39,6 +39,27 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
     public int Fallbacks => _fallbacks;
     private int _fallbacks;
 
+    /// <summary>Why the newest fallback happened, in plain words: the budget ran out, the model is
+    /// marked down, no answer within the timeout, the inner client's error (its type and message,
+    /// cut to <see cref="MaxReasonChars"/>), or a question the batch left out. Null until the first
+    /// fallback. Read it right after a call on the same thread (the recorder does).</summary>
+    public string? LastFallbackReason => Volatile.Read(ref _lastReason);
+    private string? _lastReason;
+
+    public const int MaxReasonChars = 200;
+
+    /// <summary>"Type: message" of the innermost cause (a task's AggregateException unwrapped),
+    /// cut to <see cref="MaxReasonChars"/>.</summary>
+    public static string ReasonOf(Exception ex)
+    {
+        while (ex is AggregateException { InnerExceptions.Count: 1 } agg)
+            ex = agg.InnerExceptions[0];
+        string reason = $"{ex.GetType().Name}: {ex.Message}";
+        return reason.Length > MaxReasonChars ? reason[..MaxReasonChars] : reason;
+    }
+
+    private void Because(string reason) => Volatile.Write(ref _lastReason, reason);
+
     public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context)
         => Call(() => _inner.Choose(options, context), () => FakeDecisionClient.Uniform(options));
 
@@ -59,7 +80,10 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
 
         // An exhausted budget caps the whole batch: every question falls back, no inner call.
         if (_budget.IsCancellationRequested)
+        {
+            Because(BudgetReason);
             return AllFallbacks(questions);
+        }
 
         if (_inner is IBatchDecisionClient batch)
         {
@@ -81,7 +105,10 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
                 if (byId.TryGetValue(question.Id, out Answer? answer) && answer is not null)
                     result.Add(answer);
                 else
+                {
+                    Because($"the model's answer left out question {question.Id}");
                     result.Add(FallbackAnswer(question));
+                }
             }
             return result;
         }
@@ -125,14 +152,23 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
         _ => throw new ArgumentException($"Unknown question type {question.GetType().Name}.", nameof(question)),
     };
 
+    private const string BudgetReason = "the time budget ran out";
+
     private T Call<T>(Func<T> call, Func<T> fallback)
         => TryCall(call, out T result) ? result : Fallback(fallback);
 
     /// <summary>Runs one call under the timeout and budget; false (instead of throwing) on any failure.</summary>
     private bool TryCall<T>(Func<T> call, out T result)
     {
-        if (_budget.IsCancellationRequested || (_isDown?.Invoke() ?? false))
+        if (_budget.IsCancellationRequested)
         {
+            Because(BudgetReason);
+            result = default!;
+            return false;
+        }
+        if (_isDown?.Invoke() ?? false)
+        {
+            Because("skipped: the model is marked down");
             result = default!;
             return false;
         }
@@ -153,11 +189,15 @@ public sealed class ResilientDecisionClient : IDecisionClient, IBatchDecisionCli
                 return true;
             }
 
+            Because(_budget.IsCancellationRequested
+                ? BudgetReason
+                : $"no answer within {_timeout.Value.TotalMilliseconds:0} ms");
             result = default!;
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Because(_budget.IsCancellationRequested && ex is OperationCanceledException ? BudgetReason : ReasonOf(ex));
             result = default!;
             return false;
         }

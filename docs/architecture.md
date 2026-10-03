@@ -38,8 +38,9 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
-| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
+| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
+| `src/NpcLive` | the first live acts (D30): `LiveSwitches`, `LiveOptions`, `LivePlanner` (a runner `Act` event to an emote id or a templated bubble line), `LiveGate` (the last "not now" check), `LiveBreaker` (circuit breaker per switch), `LiveLedger` (shown acts, so an ignored one is written as `IgnoredBy`) | NpcMotives, NpcIntents | not wired yet |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
 | `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | yes: the viewer's temperament line; the motives engine reads it |
@@ -282,7 +283,10 @@ Callers: the overnight planner (`YesNo`, `Choose`) and the ladder (`YesNo`). Not
 timeout, the call runs on a thread-pool task and the caller waits at most that long, so it blocks the
 calling thread: use it only off the game thread. An optional **budget token** caps a batch: once it is
 cancelled, every remaining call falls back at once without touching the inner client. Any exception
-also falls back; `Fallbacks` counts them.
+also falls back; `Fallbacks` counts them, and `LastFallbackReason` says why the newest one happened
+(the budget, the health gate, the timeout, the inner error as "Type: message" cut to 200
+characters, or a question a batch left out). `RecordingDecisionClient` copies the reason into the
+viewer's call log (`DecisionCall.Error`) and the playtest `model` record (`error`).
 
 **`LayaDecisionClient`** speaks the `laya-serve` v0.3.22 protocol (verified from the Laya repo; not
 yet run against a live server):
@@ -474,7 +478,9 @@ lead.
    `p = YesNo(context, "should <npc> try to get the player's attention with <step> now?")` (context:
    urge, hearts, step, the view's detail, age and hop count, and the lead for an Approach from a
    distance). It attempts when a deterministic uniform from FNV-1a(seed, npc, tick) is below `p`,
-   then opens the step, counts it, and writes a `TriedToReach` diary line.
+   then opens the step, counts it, and writes a `TriedToReach` diary line. When the draw says no,
+   the same step with the same lead is not asked again for `AskAgainAfterTicks` (6): Jodi was asked
+   "Approach now?" every tick while the player was on the farm (playtest 2026-10-02).
 
 **Conversations:** `NoteResponded(npc, tick)` means the player talked to the NPC: urge x 0.5, rung 0,
 and the 6-tick cooldown starts. An open attempt becomes `Responded` (no diary line). An NPC the ladder
@@ -516,6 +522,7 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 | `StressorTable.Of(entry)` | what a diary kind means: motive, valence, magnitude, per-day decay, plastic share, juiciness, emotion; null for kinds that stir nothing (`Saw`, `TriedToReach`, a neutral gift) |
 | `Stresses.Elastic` | the fading part, from the last 3 days of diary: magnitude x (0.5 + sensitivity) x decay^days; `Heard` at half the original; `SawGift` stirs jealousy only toward a giver the observer is drawn to (the player at 8+ hearts). `Vent` halves the hurt from entries before each hostile act |
 | `RegardBook` | the lasting part, one signed number per (observer, subject), -1..1: retention (Pam 0.2, everyone else 0.5) unless the stress is severe (0.7+ after sensitivity), the yield point (the third ignore, walk-past or brush-off of one subject in 5 days marks 0.3), the 6:00 drift (grudges heal by 0.03 x (0.5 + forgiveness), warmth fades by 0.005), confirmed hearsay at half strength |
+| `RegardHistory` | history at install (D29): `SeedOf`/`Seed` turn what the game remembers (gift counts by taste, heart events seen, relationship status, as an `NpcHistory`) into regard toward the player, added onto what is there; `SeenInDiary` and `NpcHistory.Except` leave out what the mod already noted. Pure; the mod reads the game once per save |
 | `RegardKeeper` | owns the book on the game thread. `OnNoted` is the body of the `MemoryStore.Noting` hook, so each diary write leaves its mark exactly once; hearsay told by the person it happened to is confirmed at once, hearsay from a witness stays elastic. Also `Drift` and `Relieve` |
 | `MoodRoll` | earned mood (the stresses' signed sum) plus 0.3 x (0.5 + sensitivity) x a seeded triangular roll skewed by the emotion biases; 1 day in 40 runs against the character's lean |
 | `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts whose minimum motive strength the intensity reaches (`ActMinStrength`: a letter needs 0.30, an interrupt 0.60), from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
@@ -531,17 +538,22 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   blocks new attempts until the player answers or its 6-tick window passes, and one **waiting**
   attempt (letter, queued line, request), which blocks only another of its sort. A queued line
   expires at the end of the day; a letter is ignored at the end of the next day.
-- The ladder's pacing holds: 2 attempts per NPC a day, 6 in town, 2 queued lines and 1 letter a day,
-  1 interrupt and 2 visits a week, 6 ticks after an attempt or a talk. A capped act is unavailable,
-  so the rule picks a cheaper one. With 2 or fewer attempts left in town, only motives of intensity
-  0.5+ may act.
+- Pacing: 2 attempts per NPC a day, 12 in town, 2 queued lines and 1 letter a day, 1 interrupt and
+  2 visits a week, 6 ticks after an attempt or a talk. A capped act is unavailable, so the rule
+  picks a cheaper one. With 2 or fewer attempts left in town, only motives of intensity 0.5+ may
+  act.
+- Light acts (an emote, or a bubble that only greets: `MotiveOptions.IsLight`) use none of those
+  attempts and the reserve doesn't hold them back; each NPC has 2 a day of its own. Once its or the
+  town's attempts are used up, an NPC may still wave (`MotiveInputs.AttentionCapped`); it is
+  `Blocked` only when its light acts are used up too.
 - An ignored attempt frustrates for the rest of the day: +0.1 intensity per ignore for the bold
   (boldness 0.5+), -0.1 for the shy. A talk with the player answers open attempts and clears it.
 - Used up: any face-to-face act is the day's greeting; news and thanks are delivered by an in-person
   act or a letter at once, by a queued line only when the player comes to talk; an emote delivers
   nothing; acting on hurt vents it.
-- The model is asked only to pick among motives (when 2+ have strength 0.2+, at most 5; fallback the
-  strongest) and on a close call. A question answered "no" is not asked again until the situation
+- The model is asked only to pick among motives (when 2+ have strength 0.2+ and could act now, at
+  most 5; fallback the strongest; a single actionable one goes without a question) and on a close
+  call. A question answered "no" is not asked again until the situation
   changes or 6 ticks pass.
 - The grudge: once a day, an NPC whose regard for the player is at or below -0.75 is asked "would
   <npc> hold this against the player?", and a seeded draw against the answer decides. A yes is a
@@ -573,6 +585,76 @@ the worker only as the copied `RegardForPlayer`.
    with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).
 7. `PublishMinds` passes `Motives`, `MotiveStates`, `RegardFor` and the newest line per NPC to
    `MindsInputs`; the cards then show the runner's numbers instead of the page's preview.
+8. History at install (not wired yet): at `SaveLoaded`, after `NewRegard`, if the save data has no
+   `historySeeded`, build an `NpcHistory` per villager from the game, subtract
+   `RegardHistory.SeenInDiary(npc, diary)`, call `RegardHistory.Seed(_regard.Book, ...)`, log each
+   `HistorySeed.Line` as `[shadow]` and append `MotiveRecords.History`; then save
+   `historySeeded = "1"`.
+
+## Live emotes and bubbles (`src/NpcLive`)
+
+The first behavior to leave shadow (rollout.md; Sid, 2026-10-02: emotes and bubbles first,
+friendly and hostile; D30). Only the motives runner's acts go live, never the urge ladder's. Each
+has its own switch in `config.json`, off by default.
+
+- **What is shown.** `LivePlanner.From(event, switches, playerName)` takes a runner event of kind
+  `Act` whose act is `Emote` or `Bubble` and whose switch is on. An emote's id follows the motive:
+  happy 32 for a greeting, heart 20 for gratitude, exclamation 16 for missing the player, news or
+  worry, question 8 for curiosity; a hostile one is angry 12 from the bold (boldness 0.5+) and sad
+  28 from the shy. A bubble's line is a template per motive, friendly or hostile, picked with
+  `Fnv1a(npc, motive, tick)`, with the farmer's name filled in and the whole line passed through
+  `LineSanitizer` (the model writes nothing).
+- **The last check.** `LiveGate.WhyNot(act, facts, now)` is the one place outside `CollectPresences`
+  and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in
+  multiplayer, not more than `MaxDelayTicks` (1) after the decision, not during an event or a
+  festival, not while the player is busy, only in the player's location within `EmoteMaxTiles` (10)
+  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking.
+  An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
+  (it decided on the worker and doesn't know).
+- **The breaker.** `LiveBreaker.Run(act, show)` turns one switch off for the session if showing
+  throws, and reports the error once; `TripAll` is the console command `npcmod_live off`.
+- **Ignored for real.** `LiveLedger` keeps the shown acts not yet answered. When the runner reports
+  one `Ignored`, `OnResolved` returns the `IgnoredBy` diary entry to write with `MemoryStore.Note`
+  (in shadow nothing is written, since the player never saw the attempt); `Responded` clears it.
+
+### Wiring it into the mod (local, not done yet)
+
+1. `ModConfig` gains `public LiveSwitches Live { get; set; } = new();` (both off). Read once at
+   `Entry`; keep a `LiveBreaker` and a `LiveLedger`; register `npcmod_live off` with
+   `helper.ConsoleCommands.Add` to call `TripAll`.
+2. Drain the motives events more often than once per ten-minute tick, so the act shows while the
+   player is still there: `BackgroundMotives.Drain()` from `UpdateTicked` (game thread), about once
+   a second. VERIFY that it is safe to drain outside `TimeChanged` (it is a queue; the shadow lines and
+   records stay the same).
+3. For each drained event, `LivePlanner.From(ev, _config.Live, Game1.player.Name)`. If not null,
+   gather `LiveFacts` on the game thread: `!Context.IsMultiplayer`, `Context.IsPlayerFree`,
+   `Game1.eventUp`, `Game1.isFestival()`, the NPC's `currentLocation == Game1.player.currentLocation`,
+   the Chebyshev distance of `npc.Tile` and `Game1.player.Tile`, busy = `npc.isEmoting` or
+   `npc.textAboveHeadTimer > 0`, visible = `!npc.IsInvisible`. VERIFY each name in the decompile;
+   they are recalled, not checked.
+4. `LiveGate.WhyNot(...)`: null means show it, through `_live.Run(act.Act, ...)`:
+   `npc.doEmote(act.EmoteId)` or `npc.showTextAboveHead(act.Text, duration: options.BubbleMs)`
+   (both confirmed in the decompile). Log `[live] ` + `LivePlanner.ShownLine(act)` at Info and
+   `_ledger.Shown(act)`. A reason means log `[live] ` + `LivePlanner.SkippedLine(act, reason)` at
+   Trace. A breaker error logs once at Error.
+5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
+   `_memory.Note(npc, entry)`.
+6. The shadow line for the act stays as it is, so a day with the switches off and one with them on
+   give the same `[shadow]` lines apart from the added `[live]` ones.
+
+## Notice-board experiment (`src/NpcBoard`)
+
+Roadmap step 21's first stage (`docs/spec/notice-board.md`): how would each villager react to a
+note the player wrote? `NoteReactions.React(decision, readers, note)` cleans the note (the line
+sanitizer's characters stripped, double quotes made single so the note can't close its own quote,
+space folded, cut to about two sentences, `MaxNoteChars` 200), and asks each reader one typed
+`choice` over six reactions (amused, touched, curious, annoyed, offended, indifferent). The state
+is the reader's NPC card, the note as quoted data, and how the reader feels about the author.
+Flat answers (a fallback, or the plain fake) read as indifference. Each reaction maps to an emote
+(ids confirmed in the decompile) and a templated line; `Report` prints the town's split and the
+spread across villagers. It calls the model, so it runs off the game thread. Not in the mod yet;
+`sidecar/eval/run_notes.py` sends the identical question to a local Laya for every card in
+`sidecar/eval/cards.json`.
 
 ## Finding the player
 
@@ -644,10 +726,45 @@ A read-only debug page Sid watches beside the game (`docs/spec/debug-tools.md`, 
 NPC that has a diary, a feed of what happened, and a feed of model calls. It updates every two
 seconds and highlights whatever changed since the last update.
 
+**How a card reads** (redesigned 2026-10-02, after Sid: "It's hard to see the important values ...
+Make it easier to know where to look"). Top to bottom, the most important first:
+1. **A status pill**, in words and a color, worked out by the page from the motives view:
+   - green "would wave" (it acts);
+   - red when hostile ("would glare", "confronted you · waiting on you");
+   - amber "close call: ...?";
+   - blue "waved · waiting on you" (an attempt is open);
+   - grey "holding back", with the runner's reason in plain words ("can't: today's letter used up",
+     "you're not around", "saving today's last tries");
+   - grey "calm" for no motive.
+
+   The card's left edge takes the same color. Calm cards are shaded and drop to the bottom of the
+   default sort, "Most active first" (state, then the strongest feeling).
+2. **The feeling** it would act on: the motive, its strength as a big number and a bar (green
+   friendly, red hostile), and the next strongest motives.
+3. **"What it would dare"**, the act ladder, which replaces the unlabelled daring bar. Every act is
+   shown cheapest first, by name ("wave", "letter", "walk over"; hostile names when the feeling is
+   hostile), marked from the runner's checks:
+   - ✓ yes;
+   - ? close call;
+   - struck through: out of reach;
+   - faded: not weighed now;
+   - outlined: its pick.
+
+   The tooltip gives the daring and cost.
+4. **Four tiles:** regard, mood, tries today, saw you.
+5. **Today's planned line**, if it has one.
+6. **A row of tabs** for the rest: Why (the motives and sources, the mood sum, the daring sum, the
+   newest shadow line), About you, Old ladder, Temperament, Diary.
+
+The header gives the clock, the model's health (red when questions fail), and clickable counts of
+villagers per state ("3 waiting on you", "1 hostile") that filter the grid; the rest of the stats
+go on a small second line. "How to read a card" is a legend above the grid; the page remembers
+whether it was closed.
+
 | Per NPC | From |
 |---|---|
 | portrait (top left of the card) | the villager's neutral portrait (frame 0 of `NPC.Portrait`, 64x64; **verify** the frame layout and that `Portrait` is the current appearance's sheet), cut from the player's own installed game content at `SaveLoaded` on the game thread (`ModEntry.PublishPortraits`), encoded as PNG in memory and handed to the server, which serves `/portrait/<Name>.png` (names are letters, digits and `_` only). Never written to disk or the repo: the art is the game's. A villager without one shows its initials |
-| temperament line and "daring" bar (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
+| temperament line, status pill, feeling and the act ladder (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
 | urge, rung and its threshold, attempts today, open attempt and how long it has waited (under "Current ladder", below the card's facts) | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state. Still what drives attempts until motives replace it |
 | hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
@@ -842,6 +959,7 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | Key | Default | Meaning |
 |---|---|---|
 | `DecisionBackend` | `"Fake"` | `"Laya"` (any case) uses the Laya server; anything else, the fake |
+| `Live` | `{ "Emote": false, "Bubble": false }` | the live switches (D30, "Live emotes and bubbles"): `true` shows that act in the game, friendly and hostile; planned, read once at `Entry` (not wired yet) |
 | `LayaUrl` | `"http://127.0.0.1:8000"` | Laya base URL; keep it on loopback |
 | `LayaModel` | `"typed-decisions"` | checkpoint: `typed-decisions`, `english` or `multilingual` |
 | `LayaApiKey` | null | only if the server was started with `LAYA_API_KEY` |

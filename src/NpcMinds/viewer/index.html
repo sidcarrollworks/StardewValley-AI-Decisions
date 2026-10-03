@@ -6,89 +6,145 @@
 <title>NPC Minds</title>
 <style>
   /* Neutral theme on the Radix Colors "sand" scale (radix-ui.com/colors): sand1-12 for surfaces,
-     borders, text, highlights and anything behind text; color only on status marks: urge bars,
-     status dots, deltas, answer bars and feed kinds
-     (Radix step 9 fills, step 11 text). Always dark
-     (Sid's choice), whatever the system setting. */
+     borders and text; color only where it carries meaning: a card's status pill, the feeling bar
+     (friendly or hostile), the act ladder's marks, signed values, model answers and feed kinds
+     (Radix step 9 fills, step 11 text). Always dark (Sid's choice), whatever the system setting.
+     Every color comes with a word or a symbol, so nothing is told by color alone. */
   :root {
     color-scheme: dark;
     --sand1: #111110; --sand2: #191918; --sand3: #222221; --sand4: #2a2a28; --sand5: #31312e; --sand6: #3b3a37;
     --sand7: #494844; --sand8: #62605b; --sand9: #6f6d66; --sand10: #7c7b74; --sand11: #b5b3ad; --sand12: #eeeeec;
-    --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --line: var(--sand6);
-    --bar: var(--sand4); --chip: var(--sand3); --fill: var(--sand11); --tick: var(--sand8); --edge: var(--sand9);
+    --bg: var(--sand1); --panel: var(--sand2); --ink: var(--sand12); --muted: var(--sand11); --faint: var(--sand10); --line: var(--sand6);
+    --bar: var(--sand4); --chip: var(--sand3); --tick: var(--sand8); --edge: var(--sand9);
     --accent: #71d083; --warm: #ffca16; --cool: #70b8ff; --bad: #ff977d; --flash: var(--sand5);
-    /* Radix step 9 solids for status fills: bars, badges, dots. */
+    /* Radix step 9 solids for status fills: bars, pills, dots. */
     --grass9: #46a758; --amber9: #ffc53d; --blue9: #0090ff; --tomato9: #e54d2e;
+    /* Step 3 tints for pill backgrounds (Radix grass3/amber3/blue3/tomato3, dark). */
+    --grass3: #132d21; --amber3: #302008; --blue3: #0d2847; --tomato3: #391714;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  b { font-weight: 600; }
+
+  /* ---- header: the game's state, the town at a glance, then the controls ---- */
   header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
-           padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
-  h1 { font-size: 17px; margin: 0; letter-spacing: .02em; }
+           padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  h1 { font-size: 16px; margin: 0; letter-spacing: .02em; }
   .clock { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat { color: var(--muted); font-variant-numeric: tabular-nums; }
-  .stat b { color: var(--ink); font-weight: 600; }
+  .stat { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+  .stat b { color: var(--ink); }
+  .minor { color: var(--faint); font-size: 12px; }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: middle; }
   .dot.ok { background: var(--grass9); } .dot.bad { background: var(--tomato9); }
+  .town { display: flex; gap: 6px; flex-wrap: wrap; }
   .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   @media (max-width: 640px) { .controls { margin-left: 0; flex-wrap: wrap; } input[type=search] { flex: 1; min-width: 0; } }
   input[type=search], select { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
   label.check { color: var(--muted); user-select: none; }
+  .failing { color: var(--bad); font-weight: 600; }
+
+  /* Status pills: the one place a card says, in words, what the villager is doing. */
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 8px;
+          border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--muted); white-space: nowrap; }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sand9); flex: none; }
+  .pill.act { background: var(--grass3); border-color: var(--grass9); color: var(--accent); } .pill.act::before { background: var(--grass9); }
+  .pill.hostile { background: var(--tomato3); border-color: var(--tomato9); color: var(--bad); } .pill.hostile::before { background: var(--tomato9); }
+  .pill.close { background: var(--amber3); border-color: var(--amber9); color: var(--warm); } .pill.close::before { background: var(--amber9); }
+  .pill.open { background: var(--blue3); border-color: var(--blue9); color: var(--cool); } .pill.open::before { background: var(--blue9); }
+  button.pill { font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  button.pill.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+
   main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; padding: 16px; align-items: start; }
   @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .help { margin: 0 0 12px; font-size: 13px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  .help summary { color: var(--ink); }
+  .help dl { grid-template-columns: 120px minmax(0, 1fr); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+
+  /* ---- a villager's card ---- */
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: border-color .6s; }
   .card.recent { border-color: var(--edge); }
-  .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; }
-  .hearts { color: var(--tomato9); font-size: 12px; font-weight: 500; }
-  .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--muted); }
-  .badge::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--sand9); }
-  .badge.line::before { background: var(--grass9); }
-  .badge.open::before { background: var(--amber9); }
-  .who { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .card.st-act { border-left: 3px solid var(--grass9); }
+  .card.st-hostile { border-left: 3px solid var(--tomato9); }
+  .card.st-close { border-left: 3px solid var(--amber9); }
+  .card.st-open { border-left: 3px solid var(--blue9); }
+  .card.calm { background: var(--bg); }
+  .card.calm .face { width: 36px; height: 36px; }
+  .who { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
   .face { width: 48px; height: 48px; border-radius: 8px; background: var(--chip); image-rendering: pixelated; object-fit: cover; }
   .initials { display: grid; place-items: center; font-weight: 700; color: var(--muted); font-size: 16px; }
-  .tline { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
-  /* Daring: a display-only preview of the motives act rule (docs/spec/motives.md, D24). */
-  .dare { margin: 8px 0 2px; }
-  .darebar { position: relative; height: 10px; background: var(--bar); border-radius: 5px; }
-  .darebar .base { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--grass9); transition: width .8s ease; }
-  .darebar .reach { position: absolute; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: repeating-linear-gradient(135deg, var(--grass9) 0 3px, transparent 3px 6px); opacity: .55; transition: left .8s ease; }
-  .darebar .cost { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
-  .dareline { font-size: 12px; color: var(--muted); margin-top: 3px; }
-  .dareline b { color: var(--ink); font-weight: 600; }
-  /* Motives (step 14): the runner's latest weighing, from the snapshot. */
-  .mind { font-size: 12px; color: var(--muted); }
-  .mind .mline { margin-top: 2px; }
-  .mind .mline b { color: var(--ink); font-weight: 600; }
-  .dare .hostile { color: var(--bad); }
-  .dare .close { color: var(--warm); }
-  .dare .clear { color: var(--accent); }
-  .mind .last { font-style: italic; }
-  .mlist { list-style: none; margin: 3px 0 0; padding: 0; }
-  .mlist li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px; }
-  .mlist .score { font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; }
-  .legacy { margin: 8px 0 4px; padding-top: 6px; border-top: 1px dashed var(--line); }
-  .legacy .tag { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .urge { margin: 4px 0 4px; }
-  .urgebar { position: relative; height: 6px; background: var(--bar); border-radius: 5px; overflow: visible; }
-  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
-  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
-  .tick.next { background: var(--ink); opacity: 1; width: 2px; }
-  .urgeline { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .delta { font-weight: 600; }
-  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
-  dl { margin: 6px 0 0; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
+  .card h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .hearts { color: var(--tomato9); font-size: 12px; font-weight: 600; }
+  .tline { color: var(--faint); font-size: 12px; margin-top: 1px; }
+  .status { margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .status .why { font-size: 12px; color: var(--muted); }
+  .status .pill { white-space: normal; }
+
+  /* The feeling it would act on: the motive, its strength as a number and a bar (green
+     friendly, red hostile), and who it is about. */
+  .feel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; margin-top: 10px; }
+  .feel .name { font-size: 15px; font-weight: 600; }
+  .feel .name .to { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .feel .num { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .feel.hostile .num, .feel.hostile .name { color: var(--bad); }
+  .meter { grid-column: 1 / -1; height: 6px; background: var(--bar); border-radius: 3px; overflow: hidden; }
+  .meter i { display: block; height: 100%; border-radius: 3px; background: var(--grass9); transition: width .8s ease; }
+  .feel.hostile .meter i { background: var(--tomato9); }
+  .feel .other { grid-column: 1 / -1; font-size: 12px; color: var(--faint); }
+
+  /* The act ladder: every act, cheapest first, marked with what the act rule said. */
+  .ladderlbl { margin-top: 8px; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; }
+  .acts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .acts span { font-size: 11.5px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--faint); white-space: nowrap; }
+  .acts .yes { color: var(--ink); border-color: var(--sand8); background: var(--sand4); }
+  .acts .yes::before { content: "✓ "; color: var(--accent); }
+  .acts .close { color: var(--warm); border-color: var(--amber9); border-style: dashed; }
+  .acts .close::before { content: "? "; }
+  .acts .no { text-decoration: line-through; text-decoration-color: var(--sand8); }
+  .acts .off { opacity: .55; }
+  .acts .pick { outline: 2px solid var(--ink); outline-offset: 0; font-weight: 600; }
+  .acts .hostile.yes::before { color: var(--bad); }
+
+  /* Four numbers worth a glance. */
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .tile { background: var(--bg); border: 1px solid var(--sand4); border-radius: 6px; padding: 3px 6px; min-width: 0; }
+  .card.calm .tile { background: var(--panel); }
+  .tile .k { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
+  .tile .v { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pos { color: var(--accent); } .neg { color: var(--bad); } .zero { color: var(--muted); }
+  .quote { margin-top: 8px; font-size: 13px; color: var(--ink); border-left: 2px solid var(--sand8); padding-left: 8px; }
+  .quote .k { display: block; font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
+
+  dl { margin: 6px 0 0; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 3px 8px; font-size: 12.5px; }
   dt { color: var(--muted); }
   dd { margin: 0; overflow-wrap: anywhere; }
+  details { margin-top: 6px; font-size: 12.5px; }
+  /* A card's details: one row of small tabs; one click opens one section, a second click closes it. */
+  .ctabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--sand4); }
+  .ctabs button { font: inherit; font-size: 11.5px; color: var(--muted); background: transparent; border: 1px solid var(--sand5);
+                  border-radius: 5px; padding: 1px 7px; cursor: pointer; }
+  .ctabs button:hover { color: var(--ink); }
+  .ctabs button.on { color: var(--ink); border-color: var(--sand9); background: var(--sand4); }
+  .cpane { margin-top: 6px; font-size: 12.5px; }
+  summary { cursor: pointer; color: var(--muted); }
+  .mlist { list-style: none; margin: 4px 0 0; padding: 0; }
+  .mlist li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 6px; }
+  .score { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; }
+  .mlist .score { color: var(--ink); }
+  .last { font-style: italic; color: var(--muted); margin-top: 4px; }
   .news { margin: 0; padding: 0; list-style: none; }
   .news li { display: flex; gap: 6px; }
-  .score { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 26px; }
-  details { margin-top: 6px; font-size: 12.5px; }
-  summary { cursor: pointer; color: var(--muted); }
+  .urgebar { position: relative; height: 6px; background: var(--bar); border-radius: 5px; margin-top: 4px; }
+  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
+  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
+  .tick.next { background: var(--ink); width: 2px; }
+  .urgeline { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .delta { font-weight: 600; }
+  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
   .temper { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; margin-top: 4px; }
-  .temper h4 { grid-column: span 1; margin: 2px 0; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .temper h4 { margin: 2px 0; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
   .trait { display: grid; grid-template-columns: 74px minmax(0, 1fr) 28px; gap: 6px; align-items: center; font-size: 12px; }
   .trait .n { color: var(--muted); }
   .trait .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -102,9 +158,12 @@
   .when { color: var(--muted); font-variant-numeric: tabular-nums; }
   .flash { animation: flash 6s ease-out; border-radius: 4px; }
   @keyframes flash { 0% { background: var(--flash); } 100% { background: transparent; } }
+
+  /* ---- the side column ---- */
   aside { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 80px); }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 0; display: flex; flex-direction: column; }
   .panel h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .panel.small { max-height: 30vh; }
   .tabs { display: flex; gap: 6px; margin-bottom: 6px; }
   .tabs button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
   .tabs button.on { color: var(--ink); border-color: var(--ink); }
@@ -125,11 +184,12 @@
   .sdot { width: 9px; height: 9px; border-radius: 2px; background: var(--bar); }
   .spread-list { margin-top: 4px; font-size: 12px; color: var(--muted); }
   .spread-list .npc { display: flex; gap: 8px; justify-content: space-between; }
-  .spread-list .npc b { color: var(--ink); font-weight: 600; }
+  .spread-list .npc b { color: var(--ink); }
   .kind { font-weight: 600; }
-  .k-attempt { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
+  .k-attempt, .k-motive { color: var(--warm); } .k-responded { color: var(--accent); } .k-ignored, .k-expired { color: var(--bad); }
   .k-asked { color: var(--cool); } .k-line { color: var(--accent); }
   .fb { color: var(--bad); font-weight: 600; }
+  .fb-why { color: var(--bad); font-size: 12px; overflow-wrap: anywhere; }
   .probs { margin-top: 3px; display: grid; gap: 2px; }
   .prob { display: grid; grid-template-columns: minmax(0, 1fr) 64px 38px; gap: 6px; align-items: center; }
   .prob .lbl { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -146,34 +206,43 @@
   <h1>NPC Minds</h1>
   <span class="clock" id="clock">waiting for the game</span>
   <span class="stat" id="model"></span>
-  <span class="stat" id="ladder"></span>
-  <span class="stat" id="plan"></span>
-  <span class="stat" id="motivesStat" title="docs/spec/motives.md, D24: an NPC acts on a motive when boldness + familiarity + feeling reaches the act's cost. In shadow, the urge ladder still runs beside it.">motives: not running yet · attempts use the urge ladder</span>
+  <span class="town" id="town" title="How many villagers are in each state right now. Click one to show only those."></span>
   <span class="controls">
     <span class="stat"><span class="dot" id="conn"></span><span id="age">connecting</span></span>
     <input type="search" id="filter" placeholder="Filter villagers" aria-label="Filter villagers">
     <select id="sort" aria-label="Sort">
+      <option value="feeling">Most active first</option>
       <option value="changed">Recently changed</option>
-      <option value="feeling">Sort by feeling (motives)</option>
-      <option value="boldness">Sort by boldness</option>
-      <option value="hearts">Sort by hearts</option>
-      <option value="urge">Sort by urge (current ladder)</option>
-      <option value="name">Sort by name</option>
+      <option value="boldness">Boldness</option>
+      <option value="hearts">Hearts</option>
+      <option value="urge">Urge (old ladder)</option>
+      <option value="name">Name</option>
     </select>
     <label class="check"><input type="checkbox" id="onlyKnown" checked> knows you</label>
   </span>
+  <span class="minor" id="minor"></span>
 </header>
 <main>
   <section>
+    <details class="help" id="help">
+      <summary>How to read a card</summary>
+      <dl>
+        <dt>Status pill</dt><dd>What the villager is doing now, in words. <span class="pill act">would wave</span> it acts; <span class="pill hostile">would glare</span> it acts on a hurt; <span class="pill close">close call</span> the model decides; <span class="pill open">waved · waiting on you</span> it tried to get your attention and waits for you to answer (talk to it); <span class="pill">holding back</span> it has a reason but can't act, and says why; <span class="pill">calm</span> nothing on its mind.</dd>
+        <dt>Feeling</dt><dd>The motive it would act on and how strong it is, 0 to 1. Green is friendly, red hostile. Below it, the other feelings it has.</dd>
+        <dt>What it would dare</dt><dd>Every act, cheapest first. <b>✓</b> it would do it; <b>?</b> a close call for the model; struck through: too shy for it; faded: not possible now (you're away, a letter is already out, or the feeling is too weak for it). The outlined one is its pick.</dd>
+        <dt>Tiles</dt><dd><b>Regard</b> is its lasting feeling toward you (-1 to +1; -0.75 is a grudge). <b>Mood</b> is today's outlook. <b>Tries</b> counts today's attempts. <b>Saw you</b> is when it last saw you.</dd>
+        <dt>Tabs</dt><dd><b>Why</b>: its feelings and where they come from, its mood and its daring sum. <b>About you</b>: where it saw you, where it would look, tonight's news. Then the old urge ladder, its temperament and its diary.</dd>
+      </dl>
+    </details>
     <div class="grid" id="grid"></div>
     <div class="waiting" id="waiting">Load a save in Stardew Valley. This page updates by itself every couple of seconds.</div>
   </section>
   <aside>
-    <div class="panel">
+    <div class="panel small">
       <h3>Today's planned lines</h3>
       <ul class="feed plan" id="planned"></ul>
     </div>
-    <div class="panel" id="spreadPanel">
+    <div class="panel small" id="spreadPanel">
       <h3>Model spread</h3>
       <div class="feed" id="spreadRows"></div>
     </div>
@@ -193,7 +262,7 @@ const POLL_MS = 2000;
 const $ = id => document.getElementById(id);
 const cards = new Map();      // name -> { root, fields, prev }
 const changedAt = new Map();  // name -> Date.now() of the last change
-let lastSeq = -1, lastCallSeq = -1, lastEventSeq = -1, lastOk = 0, snapshot = null;
+let lastSeq = -1, lastCallSeq = -1, lastEventSeq = -1, lastOk = 0, snapshot = null, stateFilter = null;
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -204,76 +273,142 @@ function el(tag, cls, text) {
 function flash(e) { e.classList.remove("flash"); void e.offsetWidth; e.classList.add("flash"); }
 function pct(v) { return isFinite(v) ? Math.round(v * 100) + "%" : "n/a"; }
 function fmt(v, d = 2) { return isFinite(v) ? Number(v).toFixed(d) : "n/a"; }
-function hearts(n) { return n > 0 ? "♥ " + n : ""; }
-
-// The motives act rule (docs/spec/motives.md, "The act rule", D24): an NPC can afford an act when
-// boldness + familiarity + 0.5 x feeling reaches its cost. When the snapshot carries the motives
-// runner's numbers (npc.motives) the card shows those; this table and daring() are the preview
-// for a mod build without the runner. Nothing here feeds a decision.
-const ACTS = [["Emote", 0.20], ["Letter", 0.25], ["Queued line", 0.30], ["Bubble", 0.35],
-              ["Farm visit", 0.45], ["Walk up", 0.50], ["Visit", 0.70], ["Interrupt", 0.80]];
-const DARE_MAX = 1.2, FAMILIARITY_PER_HEART = 0.03, STRONG_FEELING = 0.25; // 0.5 x intensity 0.5
-function traitOf(npc, name) {
-  const t = npc.temperament && npc.temperament.traits.find(x => x.name === name);
-  return t ? t.value : NaN;
-}
-function daring(npc) {
-  const b = traitOf(npc, "boldness");
-  if (!isFinite(b)) return null;
-  const base = b + FAMILIARITY_PER_HEART * Math.max(0, Math.min(10, npc.hearts));
-  return { boldness: b, base, reach: base + STRONG_FEELING };
-}
-function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function signed(v) { return isFinite(v) ? (v >= 0 ? "+" : "") + Number(v).toFixed(2) : "n/a"; }
+function sign(v) { return !isFinite(v) || Math.abs(v) < 0.005 ? "zero" : v > 0 ? "pos" : "neg"; }
+function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 function loadPref(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
 function savePref(k, v) { try { localStorage.setItem(k, v); } catch {} }
+function setText(e, text, first) { if (e.textContent === text) return false; e.textContent = text; if (!first) flash(e); return !first; }
 
-// Ticks on the daring bar at each act's cost; rebuilt only when the costs change.
-function setCosts(f, acts) {
-  const key = JSON.stringify(acts);
-  if (f.costKey === key) return;
-  f.costKey = key;
-  for (const c of f.dbar.querySelectorAll(".cost")) c.remove();
-  for (const [label, cost] of acts) {
-    const c = el("div", "cost"); c.style.left = Math.min(100, cost / DARE_MAX * 100) + "%"; c.title = label + " costs " + fmt(cost); f.dbar.append(c);
-  }
+// ---- the act ladder ------------------------------------------------------------------------
+// Every act the motives runner knows (MotiveText.ActName), cheapest first, with its cost
+// (MotiveOptions.ActCost) and the words a card uses for it, friendly and hostile.
+const ACTS = [
+  ["emote", 0.20, "wave", "glare"], ["letter", 0.25, "letter", "cold letter"], ["queued line", 0.30, "save a line", "save a telling-off"],
+  ["request", 0.30, "ask for help", "ask for help"], ["bubble", 0.35, "call out", "sharp word"], ["farm visit", 0.45, "visit farm", "visit farm"],
+  ["walk-up", 0.50, "walk over", "confront"], ["visit", 0.70, "come find you", "come find you"], ["interrupt", 0.80, "interrupt", "interrupt"],
+];
+const VERB = {
+  emote: ["wave", "glare"], letter: ["write a letter", "write a cold letter"], "queued line": ["save something to say", "save a telling-off"],
+  request: ["ask for help", "ask for help"], bubble: ["call out", "say something sharp"], "farm visit": ["visit the farm", "visit the farm"],
+  "walk-up": ["walk over", "confront you"], visit: ["come find you", "come find you"], interrupt: ["interrupt you", "interrupt you"],
+};
+const verb = (act, hostile) => (VERB[act] || [act, act])[hostile ? 1 : 0];
+const DONE = {
+  emote: ["waved", "glared"], letter: ["sent a letter", "sent a cold letter"], "queued line": ["saved a line", "saved a telling-off"],
+  request: ["asked for help", "asked for help"], bubble: ["called out", "said something sharp"], "farm visit": ["visited the farm", "visited the farm"],
+  "walk-up": ["walked over", "confronted you"], visit: ["came to find you", "came to find you"], interrupt: ["interrupted you", "interrupted you"],
+};
+const done = (act, hostile) => (DONE[act] || [act, act])[hostile ? 1 : 0];
+const DARE_FAMILIARITY_PER_HEART = 0.03, DARE_STRONG_FEELING = 0.25; // the preview for a mod build without the runner
+
+// The runner's reason for passing, in a few plain words (MotivesEngine's reasons).
+function plainReason(r) {
+  if (!r) return "holding back";
+  let m;
+  if ((m = /capped or already waiting: (.+)$/.exec(r))) return "can't: today's " + m[1] + " used up";
+  if (/no allowed act is possible/.test(r)) return "you're not around";
+  if ((m = /too weak for (.+?) \(needs/.exec(r))) return "feeling too weak for a " + m[1];
+  if (/too weak/.test(r)) return "feeling too weak to act";
+  if (/kept for strong motives/.test(r)) return "saving today's last tries";
+  if (/only a wave is left/.test(r)) return "out of tries today";
+  if (/waved enough/.test(r)) return "waved enough today";
+  if (/out of reach/.test(r)) return "too shy to act";
+  return r;
 }
 
+// What the card says first: one status, in words and a color.
+function statusOf(npc) {
+  const m = npc.motives;
+  if (!m) return npc.openStep ? { k: "open", text: npc.openStep + " out, waiting on you" } : { k: "calm", text: "no motives yet (old ladder)" };
+  const hostile = m.net < 0 && !!m.chosen;
+  if (m.openAct) return { k: hostile ? "hostile" : "open", text: done(m.openAct, hostile) + " · waiting on you" };
+  if (!m.chosen) return { k: "calm", text: "calm" };
+  if (m.best && m.call === "clear") return { k: hostile ? "hostile" : "act", text: "would " + verb(m.best, hostile) };
+  if (m.best && m.call === "close") return { k: "close", text: "close call: " + verb(m.best, hostile) + "?" };
+  if (m.waitingAct) return { k: "hold", text: m.waitingAct + " already out" };
+  return { k: "hold", text: plainReason(m.reason) };
+}
+const STATE_RANK = { hostile: 0, act: 1, close: 2, open: 3, hold: 4, calm: 5 };
+const STATE_NAME = { hostile: "hostile", act: "acting", close: "close call", open: "waiting on you", hold: "holding back", calm: "calm" };
+
+// "Saw you" in a word or two: right now, how long ago, or heard from someone; the tile's
+// tooltip keeps the whole sentence.
+function shortSeen(npc) {
+  const v = npc.lastSeen;
+  if (!v) return "never";
+  if (v.hops === 0 && v.ageTicks === 0) return "now";
+  const s = v.summary || "";
+  if (/hasn.t seen you today/.test(s)) return "not today";
+  const ago = /(\d+\s+\w+\s+ago|yesterday|earlier today)/.exec(s);
+  return (v.hops > 0 ? "heard " : "") + (ago ? ago[1] : "earlier");
+}
+
+// ---- cards ---------------------------------------------------------------------------------
 function makeCard(npc, s) {
   const root = el("article", "card");
-  const h = el("h2");
-  const name = el("span", "", npc.name);
-  const heartsEl = el("span", "hearts");
-  const lineBadge = el("span", "badge line", "has a line today");
-  const openBadge = el("span", "badge open");
-  h.append(name, heartsEl, lineBadge, openBadge);
-  const tline = el("div", "tline", npc.temperament ? npc.temperament.summary : "");
+  const face = el("img", "face");
   // The portrait comes from the player's own game, served by the mod from memory
   // (/portrait/<Name>.png); without one, the card shows the villager's initials.
-  const face = el("img", "face");
   face.alt = ""; face.loading = "lazy"; face.src = "portrait/" + encodeURIComponent(npc.name) + ".png";
   face.addEventListener("error", () => face.replaceWith(el("div", "face initials", npc.name.slice(0, 2))));
-  const who = el("div", "who"), whoText = el("div");
-  whoText.append(h);
-  if (npc.temperament) whoText.append(tline);
+  const h = el("h2");
+  const heartsEl = el("span", "hearts");
+  h.append(el("span", "", npc.name), heartsEl);
+  const tline = el("div", "tline", npc.temperament ? npc.temperament.summary : "");
+  const status = el("div", "status");
+  const pill = el("span", "pill");
+  const why = el("span", "why");
+  status.append(pill, why);
+  const whoText = el("div");
+  whoText.append(h, tline, status);
+  const who = el("div", "who");
   who.append(face, whoText);
 
-  const dare = el("div", "dare");
-  const dbar = el("div", "darebar");
-  const dbase = el("div", "base"), dreach = el("div", "reach");
-  dbar.append(dbase, dreach);
-  dbar.title = "Daring (motives.md, D24): boldness + familiarity, striped to + the feeling's intensity. Ticks are act costs. Display only.";
-  const dline = el("div", "dareline");
-  // Motives (step 14): what the runner last weighed for this NPC; hidden until the mod sends it.
-  const mind = el("div", "mind");
-  const mmood = el("div", "mline"), mlist = el("ul", "mlist"), mstate = el("div", "mline"), mlast = el("div", "mline last");
-  mind.append(mmood, mlist, mstate, mlast);
-  mind.hidden = true;
-  dare.append(dbar, dline, mind);
+  // The feeling it would act on.
+  const feel = el("div", "feel");
+  const fname = el("div", "name"), fnum = el("div", "num"), meter = el("div", "meter"), mfill = el("i"), fother = el("div", "other");
+  meter.append(mfill);
+  feel.append(fname, fnum, meter, fother);
 
-  const legacy = el("div", "legacy");
-  legacy.append(el("span", "tag", "Current ladder (urge, until motives replace it)"));
-  const urge = el("div", "urge");
+  // The act ladder.
+  const ladderLbl = el("div", "ladderlbl", "What it would dare");
+  const acts = el("div", "acts");
+  const actEls = new Map();
+  for (const [key] of ACTS) { const a = el("span"); actEls.set(key, a); acts.append(a); }
+
+  // The four tiles.
+  const tiles = el("div", "tiles");
+  const tile = (k, title) => { const t = el("div", "tile"); t.title = title; const v = el("div", "v"); t.append(el("div", "k", k), v); tiles.append(t); return v; };
+  const tRegard = tile("Regard", "Its lasting feeling toward you, -1 to +1. At -0.75 it holds a grudge.");
+  const tMood = tile("Mood", "Today's outlook: earned from the last days, plus the day's roll.");
+  const tTries = tile("Tries", "Attempts to get your attention today (a wave doesn't count toward the town's cap).");
+  const tSeen = tile("Saw you", "When it last saw you, itself or through someone else.");
+
+  const quote = el("div", "quote");
+  const quoteText = el("span");
+  quote.append(el("span", "k", "Will say when you talk"), quoteText);
+
+  // The details, as panes behind one row of tabs.
+  const pane = () => { const d = el("div", "cpane"); d.hidden = true; return d; };
+  // Why: the motives and their sources, the mood, the daring sum, the newest log line.
+  const whyDet = pane();
+  const mlist = el("ul", "mlist"), mmood = el("div"), mdare = el("div"), mlast = el("div", "last");
+  whyDet.append(mlist, mmood, mdare, mlast);
+
+  // What it knows about you.
+  const knowDet = pane();
+  const dl = el("dl");
+  const row = label => { const dt = el("dt", "", label), dd = el("dd"); dl.append(dt, dd); return dd; };
+  const lastSeen = row("Last saw you");
+  const lead = row("Would look");
+  const news = row("Tonight's news");
+  knowDet.append(dl);
+
+  // The old urge ladder, still running beside the motives.
+  const legacy = pane();
+  const legacySum = el("div", "urgeline");
+  legacy.append(legacySum);
   const bar = el("div", "urgebar");
   const fill = el("div", "urgefill");
   bar.append(fill);
@@ -281,37 +416,28 @@ function makeCard(npc, s) {
     const tk = el("div", "tick"); tk.style.left = (t * 100) + "%"; tk.title = s.stepNames[i] + " at " + t; bar.append(tk); return tk;
   });
   const urgeLine = el("div", "urgeline");
-  const urgeText = el("span"); const rungText = el("span");
+  const urgeText = el("span"), rungText = el("span");
   urgeLine.append(urgeText, rungText);
-  urge.append(bar, urgeLine);
-  legacy.append(urge);
-
-  const dl = el("dl");
-  const row = label => { const dt = el("dt", "", label), dd = el("dd"); dl.append(dt, dd); return dd; };
-  const lastSeen = row("Last saw you");
-  const lead = row("Would look");
-  const planned = row("Today's line");
-  const news = row("Tonight");
+  legacy.append(bar, urgeLine);
 
   // Temperament: fixed per character, so it is drawn once (docs/spec/temperament.md).
-  const temper = el("details");
+  const temper = pane();
   if (npc.temperament) {
     const t = npc.temperament;
-    temper.append(el("summary", "", "Temperament: " + t.summary));
     const grid = el("div", "temper");
     const col = (title, values) => {
       const c = el("div");
       c.append(el("h4", "", title));
       for (const v of values) {
-        const row = el("div", "trait");
-        const bar = el("span", "dbar");
-        const fill = el("i", v.value >= 0.5 ? "hi" : "lo");
+        const r = el("div", "trait");
+        const b = el("span", "dbar");
+        const f = el("i", v.value >= 0.5 ? "hi" : "lo");
         const lo = Math.min(v.value, 0.5), hi = Math.max(v.value, 0.5);
-        fill.style.left = lo * 100 + "%"; fill.style.width = (hi - lo) * 100 + "%";
-        bar.append(fill);
-        row.title = v.name + " " + fmt(v.value) + " (0.5 is the town's typical villager)";
-        row.append(el("span", "n", v.name), bar, el("span", "v", fmt(v.value)));
-        c.append(row);
+        f.style.left = lo * 100 + "%"; f.style.width = (hi - lo) * 100 + "%";
+        b.append(f);
+        r.title = v.name + " " + fmt(v.value) + " (0.5 is the town's typical villager)";
+        r.append(el("span", "n", v.name), b, el("span", "v", fmt(v.value)));
+        c.append(r);
       }
       return c;
     };
@@ -320,104 +446,128 @@ function makeCard(npc, s) {
     temper.append(grid);
   }
 
-  const det = el("details");
-  const sum = el("summary");
+  const det = pane();
+  const sum = el("div", "urgeline");
   const diary = el("ul", "diary");
   det.append(sum, diary);
 
-  root.append(who, dare, dl, legacy);
-  if (npc.temperament) root.append(temper);
-  root.append(det);
-  return { root, fields: { heartsEl, lineBadge, openBadge, fill, ticks, urgeText, rungText, lastSeen, lead, planned, news, sum, diary,
-                           dare, dbar, dbase, dreach, dline, mind, mmood, mlist, mstate, mlast, costKey: null }, prev: null };
+  const ctabs = el("div", "ctabs");
+  const panes = [["Why", whyDet], ["About you", knowDet], ["Old ladder", legacy]];
+  if (npc.temperament) panes.push(["Temperament", temper]);
+  panes.push(["Diary", det]);
+  const buttons = panes.map(([label, d]) => {
+    const b = el("button", "", label);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      const open = d.hidden;
+      for (const [, x] of panes) x.hidden = true;
+      for (const y of buttons) y.classList.remove("on");
+      d.hidden = !open;
+      b.classList.toggle("on", open);
+    });
+    ctabs.append(b);
+    return b;
+  });
+  const whyBtn = buttons[0];
+  root.append(who, feel, ladderLbl, acts, tiles, quote, ctabs, ...panes.map(([, d]) => d));
+  return { root, fields: { heartsEl, pill, why, feel, fname, fnum, mfill, fother, ladderLbl, acts, actEls, tRegard, tMood, tTries, tSeen,
+                           quote, quoteText, whyBtn, mlist, mmood, mdare, mlast, lastSeen, lead, news,
+                           legacySum, fill, ticks, urgeText, rungText, sum, diary }, prev: null };
+}
+
+function traitOf(npc, name) {
+  const t = npc.temperament && npc.temperament.traits.find(x => x.name === name);
+  return t ? t.value : NaN;
 }
 
 function updateCard(c, npc, first) {
-  const f = c.fields, p = c.prev;
+  const f = c.fields, p = c.prev, m = npc.motives;
   let changed = false;
-  f.heartsEl.textContent = hearts(npc.hearts);
-  f.lineBadge.hidden = !npc.intentToday;
-  f.openBadge.hidden = !npc.openStep;
-  f.openBadge.textContent = npc.openStep ? npc.openStep + " open " + (npc.openForTicks * 10) + " min" : "";
+  f.heartsEl.textContent = npc.hearts > 0 ? "♥ " + npc.hearts : "";
 
-  const d = daring(npc), m = npc.motives;
-  f.dare.hidden = !d && !m;
-  const w = v => Math.max(0, Math.min(1, v / DARE_MAX)) * 100;
-  if (m) {
-    // The runner's real numbers: boldness + familiarity, striped to + intensity; ticks at the costs it weighed.
-    const base = m.boldness + m.familiarity, reach = base + m.intensity;
-    f.dbase.style.width = w(base) + "%";
-    f.dreach.style.left = w(base) + "%";
-    f.dreach.style.width = Math.max(0, w(reach) - w(base)) + "%";
-    setCosts(f, m.acts.length ? m.acts.map(a => [(a.hostile ? "hostile " : "") + a.act, a.cost]) : ACTS);
-    let text;
-    if (!m.chosen) text = "no motive, no act · boldness <b>" + fmt(m.boldness) + "</b>";
-    else {
-      const best = m.acts.find(a => a.act === m.best);
-      const verdict = !m.best ? esc(m.reason)
-        : "would <b class=\"" + (best && best.hostile ? "hostile" : "") + "\">" + (best && best.hostile ? "hostile " : "") + esc(m.best) + "</b> "
-          + (m.call === "close" ? "<span class=\"close\">close call</span>" : "<span class=\"clear\">clear yes</span>")
-          + (best ? " (" + fmt(best.cost + best.margin) + " vs " + fmt(best.cost) + ")" : "");
-      text = "<b class=\"" + (m.net < 0 ? "hostile" : "") + "\">" + esc(m.chosen) + " " + fmt(m.chosenStrength) + "</b> toward you · " + verdict;
+  // Status first: the pill, and the card's left edge in the same color.
+  const st = statusOf(npc);
+  npc._state = st.k;
+  c.root.className = "card st-" + st.k + (st.k === "calm" ? " calm" : "") + (c.root.classList.contains("recent") ? " recent" : "");
+  f.pill.className = "pill " + st.k;
+  changed = setText(f.pill, st.text, first) || changed;
+  const notes = [];
+  if (m && m.waitingAct && st.k !== "hold") notes.push(m.waitingAct + " out");
+  if (m && m.ignoredToday) notes.push(m.ignoredToday + " ignored today" + (m.frustration ? " (" + (m.frustration > 0 ? "pushing harder" : "backing off") + ")" : ""));
+  f.why.textContent = notes.join(" · ");
+
+  // The feeling.
+  const hostile = !!(m && m.chosen && m.net < 0);
+  f.feel.hidden = !(m && m.chosen);
+  if (m && m.chosen) {
+    f.feel.classList.toggle("hostile", hostile);
+    f.fname.innerHTML = esc(m.chosen) + ' <span class="to">toward you</span>';
+    changed = setText(f.fnum, fmt(m.chosenStrength), first) || changed;
+    f.mfill.style.width = Math.max(0, Math.min(1, m.chosenStrength)) * 100 + "%";
+    const others = m.motives.filter(x => x.motive !== m.chosen).slice(0, 3).map(x => x.motive + " " + fmt(x.strength));
+    f.fother.textContent = others.length ? "also: " + others.join(" · ") : "";
+    f.fother.hidden = !others.length;
+  }
+
+  // The act ladder: the runner's checks when it sent them, else the preview from boldness and hearts.
+  const calm = st.k === "calm";
+  f.ladderLbl.hidden = f.acts.hidden = calm;
+  if (!calm) {
+    const checks = new Map((m ? m.acts : []).map(a => [a.act, a]));
+    let base = NaN, reach = NaN;
+    if (!m) { const b = traitOf(npc, "boldness"); base = b + DARE_FAMILIARITY_PER_HEART * Math.max(0, Math.min(10, npc.hearts)); reach = base + DARE_STRONG_FEELING; }
+    const hostileActs = m ? m.acts.some(a => a.hostile) || hostile : false;
+    for (const [key, cost, friendly, hostileWord] of ACTS) {
+      const e = f.actEls.get(key), a = checks.get(key);
+      let cls, title;
+      if (a) {
+        cls = a.call === "yes" ? "yes" : a.call === "close" ? "close" : "no";
+        title = verb(key, a.hostile) + ": daring " + fmt(a.cost + a.margin) + " vs cost " + fmt(a.cost) + (a.call === "close" ? " (close call: the model decides)" : "");
+      } else if (m) {
+        cls = "off"; title = verb(key, hostileActs) + ": not possible now, or the feeling is too weak for it";
+      } else {
+        cls = base >= cost ? "yes" : reach >= cost ? "close" : "no";
+        title = "preview: daring " + fmt(base) + " vs cost " + fmt(cost);
+      }
+      if (a && a.hostile) cls += " hostile";
+      if (m && m.best === key) cls += " pick";
+      e.className = cls;
+      e.textContent = hostileActs ? hostileWord : friendly;
+      e.title = title;
     }
-    if (f.dline.innerHTML !== text) { if (!first) { flash(f.dline); changed = true; } f.dline.innerHTML = text; }
-    f.mind.hidden = false;
-    f.mmood.innerHTML = "outlook <b>" + signed(m.outlook) + "</b> (earned " + signed(m.earned) + ", roll " + signed(m.roll) + ")"
-      + (m.tailDay ? " · an off day" : "") + " · net " + signed(m.net) + " · regard " + signed(m.regard)
-      + (m.regard <= -0.75 ? " <span class=\"hostile\">grudge</span>" : "");
+  }
+
+  // Tiles.
+  const regard = m ? m.regard : NaN;
+  f.tRegard.className = "v " + sign(regard);
+  changed = setText(f.tRegard, m ? signed(regard) + (regard <= -0.75 ? " grudge" : "") : "–", first) || changed;
+  f.tMood.className = "v " + sign(m ? m.outlook : NaN);
+  f.tMood.textContent = m ? signed(m.outlook) + (m.tailDay ? " off day" : "") : "–";
+  changed = setText(f.tTries, String(m ? m.attemptsToday : npc.attemptsToday || 0), first) || changed;
+  changed = setText(f.tSeen, shortSeen(npc), first) || changed;
+  f.tSeen.parentElement.title = npc.lastSeen ? npc.lastSeen.summary : "never seen or heard of you";
+
+  f.quote.hidden = !npc.plannedLine;
+  changed = setText(f.quoteText, npc.plannedLine ? "“" + npc.plannedLine + "”" : "", first) || changed;
+
+  // Why.
+  f.whyBtn.hidden = !m;
+  if (m) {
     const listKey = JSON.stringify(m.motives);
     if (!p || !p.motives || listKey !== JSON.stringify(p.motives.motives)) {
       f.mlist.replaceChildren();
+      if (!m.motives.length) f.mlist.append(el("li", "empty", "no motives"));
       for (const x of m.motives) { const li = el("li"); li.append(el("span", "score", fmt(x.strength)), el("span", "", x.motive + " · " + x.source)); f.mlist.append(li); }
     }
-    const state = [m.attemptsToday + " tried today"];
-    if (m.ignoredToday) state.push(m.ignoredToday + " ignored");
-    if (m.frustration) state.push("frustration " + signed(m.frustration));
-    if (m.openAct) state.push(m.openAct + " open");
-    if (m.waitingAct) state.push(m.waitingAct + " waiting");
-    f.mstate.textContent = state.join(" · ");
+    f.mmood.textContent = "Mood " + signed(m.outlook) + " = earned " + signed(m.earned) + " + roll " + signed(m.roll) + (m.tailDay ? " (an off day)" : "") + " · net feeling " + signed(m.net);
+    f.mdare.textContent = "Daring " + fmt(m.boldness + m.familiarity + m.intensity) + " = boldness " + fmt(m.boldness) + " + familiarity " + fmt(m.familiarity) + " + feeling " + fmt(m.intensity);
     f.mlast.textContent = m.lastLine || "";
     f.mlast.hidden = !m.lastLine;
-  } else if (d) {
-    f.mind.hidden = true;
-    f.dbase.style.width = w(d.base) + "%";
-    f.dreach.style.left = w(d.base) + "%";
-    f.dreach.style.width = (w(d.reach) - w(d.base)) + "%";
-    setCosts(f, ACTS);
-    const top = v => { const ok = ACTS.filter(a => a[1] <= v); return ok.length ? ok[ok.length - 1][0] : null; };
-    const now = top(d.base), strong = top(d.reach);
-    const text = "dares <b>" + fmt(d.base) + "</b> (boldness " + fmt(d.boldness) + " + hearts " + fmt(d.base - d.boldness) + ")"
-      + " · reaches <b>" + (now || "nothing yet") + "</b>"
-      + (strong && strong !== now ? " · strongly felt: <b>" + strong + "</b>" : "");
-    if (f.dline.innerHTML !== text) { if (!first && p && p.hearts !== npc.hearts) { flash(f.dline); changed = true; } f.dline.innerHTML = text; }
   }
 
-  const u = Math.max(0, Math.min(1, npc.urge));
-  f.fill.style.width = u * 100 + "%";
-  // The gradient spans the whole bar, so the fill ends in the color of its level: blue low, amber mid, red high.
-  f.fill.style.backgroundSize = (u > 0 ? 100 / u : 100) + "% 100%";
-  f.ticks.forEach((t, i) => t.classList.toggle("next", i === npc.rung));
-  let delta = "";
-  if (p && Math.abs(npc.urge - p.urge) >= 0.005) {
-    const d = npc.urge - p.urge;
-    delta = ` <span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : ""}${d.toFixed(2)}</span>`;
-    changed = true;
-  }
-  f.urgeText.innerHTML = "urge <b>" + fmt(npc.urge) + "</b>" + delta;
-  const rung = "rung " + npc.rung + " " + npc.rungName + (npc.nextThreshold != null ? " at " + fmt(npc.nextThreshold) : "") +
-               (npc.attemptsToday ? " · " + npc.attemptsToday + " tried today" : "");
-  if (p && (p.rung !== npc.rung || p.attemptsToday !== npc.attemptsToday || p.openStep !== npc.openStep)) { flash(f.rungText); changed = true; }
-  f.rungText.textContent = rung;
-
-  const fields = [
-    [f.lastSeen, npc.lastSeen ? npc.lastSeen.summary : "never seen or heard of you"],
-    [f.lead, npc.lead ? npc.lead.summary : "no lead"],
-    [f.planned, npc.plannedLine ? "“" + npc.plannedLine + "”" : "none"],
-  ];
-  for (const [e, text] of fields) {
-    if (e.textContent !== text) { if (!first) { flash(e); changed = true; } e.textContent = text; }
-  }
-
+  // What it knows about you.
+  changed = setText(f.lastSeen, npc.lastSeen ? npc.lastSeen.summary : "never seen or heard of you", first) || changed;
+  changed = setText(f.lead, npc.lead ? npc.lead.summary : "no idea where you are", first) || changed;
   const newsKey = JSON.stringify(npc.newsTonight);
   if (!p || newsKey !== JSON.stringify(p.newsTonight)) {
     f.news.replaceChildren();
@@ -430,9 +580,25 @@ function updateCard(c, npc, first) {
     if (!first) { flash(f.news); changed = true; }
   }
 
+  // The old ladder.
+  const u = Math.max(0, Math.min(1, npc.urge));
+  f.fill.style.width = u * 100 + "%";
+  // The gradient spans the whole bar, so the fill ends in the color of its level: blue low, amber mid, red high.
+  f.fill.style.backgroundSize = (u > 0 ? 100 / u : 100) + "% 100%";
+  f.ticks.forEach((t, i) => t.classList.toggle("next", i === npc.rung));
+  let delta = "";
+  if (p && Math.abs(npc.urge - p.urge) >= 0.005) {
+    const d = npc.urge - p.urge;
+    delta = ` <span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : ""}${d.toFixed(2)}</span>`;
+  }
+  f.legacySum.textContent = "Still runs beside the motives, in shadow; it is being retired." + (npc.openStep ? " " + npc.openStep + " open." : "");
+  f.urgeText.innerHTML = "urge <b>" + fmt(npc.urge) + "</b>" + delta;
+  f.rungText.textContent = "rung " + npc.rung + " " + npc.rungName + (npc.nextThreshold != null ? " at " + fmt(npc.nextThreshold) : "") +
+    (npc.attemptsToday ? " · " + npc.attemptsToday + " tried today" : "");
+
   const diaryKey = npc.diary.length ? npc.diary[0].absoluteTick + npc.diary[0].text : "";
   const prevKey = p && p.diary.length ? p.diary[0].absoluteTick + p.diary[0].text : "";
-  f.sum.textContent = "Diary (" + npc.diaryCount + ")" + (npc.diary.length ? ": " + npc.diary[0].text : "");
+  f.sum.textContent = npc.diaryCount + " entries, newest first";
   if (first || diaryKey !== prevKey || npc.diaryCount !== p.diaryCount) {
     f.diary.replaceChildren();
     for (const d of npc.diary) { const li = el("li"); li.append(el("span", "when", d.when), el("span", "", d.text)); f.diary.append(li); }
@@ -443,19 +609,24 @@ function updateCard(c, npc, first) {
   if (changed) changedAt.set(npc.name, Date.now());
 }
 
+// ---- the page ------------------------------------------------------------------------------
 function render(s) {
   snapshot = s;
   $("waiting").hidden = s.npcs.length > 0;
   $("clock").textContent = s.date ? s.date + " · " + s.time : "no save loaded";
   const st = s.stats;
-  let model = `<span class="dot ${s.modelUp ? "ok" : "bad"}"></span>${s.backend}`;
-  if (st.calls >= 0) model += ` · <b>${st.calls}</b> calls · <b>${st.fallbacks}</b> fallbacks · median <b>${Math.round(st.medianMs)}</b> ms · p95 <b>${Math.round(st.p95Ms)}</b> ms`;
+  // A server can pass its health check while every question fails (playtest 2026-10-02):
+  // the mod then sends the newest failure, and the dot goes red with the reason.
+  const failing = st.modelError || (st.calls > 0 && st.fallbacks === st.calls);
+  let model = `<span class="dot ${s.modelUp && !failing ? "ok" : "bad"}"></span><b>${esc(s.backend)}</b>`;
+  if (st.modelError) model += ` · <span class="failing" title="${esc(st.modelError)}">questions failing: ${esc(st.modelError.slice(0, 60))}</span>`;
+  else if (st.calls >= 0) model += ` · ${st.fallbacks ? `<span class="failing">${st.fallbacks} fallbacks</span>` : "no fallbacks"} · <b>${Math.round(st.medianMs)}</b> ms`;
   $("model").innerHTML = model;
-  $("ladder").innerHTML = `ladder backlog <b>${st.backlog}</b> · dropped <b>${st.dropped}</b>`;
-  $("plan").innerHTML = `overnight plan <b>${s.planState}</b>`;
-  $("motivesStat").innerHTML = s.npcs.some(n => n.motives)
-    ? "motives: <b>shadow</b> · the urge ladder still runs beside it"
-    : "motives: not running yet · attempts use the urge ladder";
+  $("model").title = st.calls >= 0 ? `${st.calls} calls, ${st.fallbacks} fallbacks, median ${Math.round(st.medianMs)} ms, p95 ${Math.round(st.p95Ms)} ms` : "";
+  const motives = s.npcs.some(n => n.motives);
+  $("minor").textContent = (motives ? "motives in shadow, the urge ladder beside them" : "motives not running yet: the urge ladder decides")
+    + ` · overnight plan ${s.planState} · ladder backlog ${st.backlog}, dropped ${st.dropped}`
+    + (st.calls >= 0 ? ` · ${st.calls} model calls, p95 ${Math.round(st.p95Ms)} ms` : "");
 
   const seen = new Set();
   for (const npc of s.npcs) {
@@ -466,6 +637,7 @@ function render(s) {
     updateCard(c, npc, first);
   }
   for (const [name, c] of cards) if (!seen.has(name)) { c.root.remove(); cards.delete(name); }
+  renderTown(s);
   layout();
 
   const planned = $("planned");
@@ -473,9 +645,8 @@ function render(s) {
   if (!s.planToday.length) planned.append(el("li", "empty", "No lines planned for today."));
   for (const l of s.planToday) {
     const li = el("li");
-    li.append(el("b", "", l.npc + ": "), document.createTextNode("\u201c" + l.line + "\u201d"));
-    const meta = el("div", "meta", "news " + fmt(l.news, 1) + " \u00b7 " + l.reason);
-    li.append(meta);
+    li.append(el("b", "", l.npc + ": "), document.createTextNode("“" + l.line + "”"));
+    li.append(el("div", "meta", "news " + fmt(l.news, 1) + " · " + l.reason));
     planned.append(li);
   }
 
@@ -498,6 +669,23 @@ function render(s) {
   }
 }
 
+// The town at a glance: how many villagers are in each state; a click shows only those.
+function renderTown(s) {
+  const counts = {};
+  for (const n of s.npcs) if (n._state && n._state !== "calm" && n._state !== "hold") counts[n._state] = (counts[n._state] || 0) + 1;
+  const holding = s.npcs.filter(n => n._state === "hold").length;
+  if (holding) counts.hold = holding;
+  const town = $("town");
+  town.replaceChildren();
+  for (const k of ["hostile", "act", "close", "open", "hold"]) {
+    if (!counts[k]) continue;
+    const b = el("button", "pill " + k + (stateFilter === k ? " on" : ""), counts[k] + " " + STATE_NAME[k]);
+    b.addEventListener("click", () => { stateFilter = stateFilter === k ? null : k; renderTown(snapshot); layout(); });
+    town.append(b);
+  }
+  if (!town.children.length && s.npcs.length) town.append(el("span", "stat", "everyone is calm"));
+}
+
 function renderSpread(s) {
   const box = $("spreadRows");
   box.replaceChildren();
@@ -512,10 +700,10 @@ function renderSpread(s) {
     if (r.follows === false) head.append(el("span", "mark nofollow", "NO-FOLLOW"));
     if (r.flat === null) head.append(el("span", "mark few", "few NPCs"));
     const stats = el("div", "meta",
-      "spread " + fmt(r.spread) + " \u00b7 median " + fmt(r.median)
-      + (r.correlation === null ? "" : " \u00b7 corr " + fmt(r.correlation))
+      "spread " + fmt(r.spread) + " · median " + fmt(r.median)
+      + (r.correlation === null ? "" : " · corr " + fmt(r.correlation))
       + (r.calibrationMedian === null ? "" :
-          " \u00b7 calibrated " + fmt(r.calibrationMedian) + " / " + fmt(r.calibrationSpread)));
+          " · calibrated " + fmt(r.calibrationMedian) + " / " + fmt(r.calibrationSpread)));
     const dots = el("div", "dots");
     for (const n of r.npcs) {
       const d = el("span", "sdot");
@@ -527,8 +715,7 @@ function renderSpread(s) {
     list.hidden = true;
     for (const n of r.npcs) {
       const line = el("div", "npc");
-      line.append(el("b", "", n.name + " " + fmt(n.mean, 3)),
-        el("span", "", temperamentOf.get(n.name) || ""));
+      line.append(el("b", "", n.name + " " + fmt(n.mean, 3)), el("span", "", temperamentOf.get(n.name) || ""));
       list.append(line);
     }
     row.addEventListener("click", () => { list.hidden = !list.hidden; });
@@ -549,8 +736,13 @@ function renderCalls(calls) {
     const meta = el("div", "meta");
     const age = el("span", "age"); age.dataset.at = c.atUtc;
     meta.append(age, el("span", "kind", c.caller), el("span", "", c.type), el("span", "", Math.round(c.ms) + " ms"));
-    if (c.fellBack) meta.append(el("span", "fb", "fallback"));
+    if (c.fellBack) {
+      const fb = el("span", "fb", "fallback");
+      if (c.error) fb.title = c.error;
+      meta.append(fb);
+    }
     li.append(meta, el("div", "", (c.npc ? c.npc + ": " : "") + c.question));
+    if (c.fellBack && c.error) li.append(el("div", "fb-why", "why: " + c.error));
     const probs = el("div", "probs");
     for (const a of c.answers) {
       const row = el("div", "prob");
@@ -584,15 +776,17 @@ function layout() {
   const onlyKnown = $("onlyKnown").checked;
   const sort = $("sort").value;
   const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q))
+    && (!stateFilter || n._state === stateFilter)
     && (!onlyKnown || n.lastSeen || n.hearts > 0 || n.urge > 0 || (n.motives && n.motives.chosen)));
   const num = v => (isFinite(v) ? v : -1);
-  const feel = n => (n.motives && n.motives.chosen ? n.motives.chosenStrength : -1); // the motive it would act on
+  const strength = n => (n.motives && n.motives.chosen ? n.motives.chosenStrength : -1);
   const by = {
     name: (a, b) => a.name.localeCompare(b.name),
     changed: (a, b) => (changedAt.get(b.name) || 0) - (changedAt.get(a.name) || 0),
     boldness: (a, b) => num(traitOf(b, "boldness")) - num(traitOf(a, "boldness")),
     hearts: (a, b) => b.hearts - a.hearts,
-    feeling: (a, b) => feel(b) - feel(a),
+    // Most active first: acting and hostile, then close calls, waiting, holding back, calm; the strongest feeling first within each.
+    feeling: (a, b) => (STATE_RANK[a._state] ?? 9) - (STATE_RANK[b._state] ?? 9) || strength(b) - strength(a),
     urge: (a, b) => b.urge - a.urge,
   }[sort] || ((a, b) => 0);
   list.sort((a, b) => by(a, b) || a.name.localeCompare(b.name));
@@ -621,10 +815,13 @@ async function poll() {
 }
 
 $("filter").addEventListener("input", layout);
-$("sort").value = loadPref("mindsSort", "changed");
-if (!$("sort").value) $("sort").value = "changed";
+// "feeling" is now "Most active first"; an old saved choice that no longer exists falls back to it.
+$("sort").value = loadPref("mindsSort", "feeling");
+if (!$("sort").value) $("sort").value = "feeling";
 $("sort").addEventListener("change", () => { savePref("mindsSort", $("sort").value); layout(); });
 $("onlyKnown").addEventListener("change", layout);
+$("help").open = loadPref("mindsHelp", "open") === "open";
+$("help").addEventListener("toggle", () => savePref("mindsHelp", $("help").open ? "open" : "closed"));
 for (const [btn, show, hide, other] of [["tabEvents", "events", "calls", "tabCalls"], ["tabCalls", "calls", "events", "tabEvents"]]) {
   $(btn).addEventListener("click", () => { $(show).hidden = false; $(hide).hidden = true; $(btn).classList.add("on"); $(other).classList.remove("on"); });
 }

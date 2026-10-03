@@ -32,6 +32,7 @@ remote host (the save lives on the host's computer).
 | `trades` | today's trade offers and which were taken ([trades.md](trades.md)) | planned |
 | `stats` | 28 days of daily counters for the playtest digest ([debug-tools.md](debug-tools.md)) | planned |
 | `regard` | signed regard per (observer, subject), sparse, the player included: the plastic part of feelings, the grudge, and NPC-to-NPC bonds ([motives.md](motives.md), [town-life.md](town-life.md)); replaces the planned `bonds` key. `RegardBook.ToJson`: `{"observer\|subject": value}`, rounded to 4 places; a missing, damaged or malformed value loads empty | built and saved (wired, step 14 part 3) |
+| `historySeeded` | `"1"` once the history at install has been seeded into `regard` (D29, [vanilla-sources.md](vanilla-sources.md)); missing means not yet | planned (the reader is local work) |
 | `motives` | the motives runner's pacing state: per NPC the day's attempts, frustration, open and waiting attempts, motives used up, recent vents, the last grudge question and penalty day; the town's daily and weekly counters (`MotivesRunner.ToJson`; damaged loads fresh) | built and saved (wired, step 14 part 3) |
 
 **Additive keys need no version bump.** The loader already reads keys it finds and ignores the rest.

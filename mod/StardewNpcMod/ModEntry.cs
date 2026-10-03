@@ -232,7 +232,8 @@ public class ModEntry : Mod
         if (note.Before != note.After)
         {
             _playtest?.Append(MotiveRecords.Regard(note, entry.AbsoluteTick));
-            Monitor.Log($"[shadow] {npc}: regard for {note.Subject} {note.Before:+0.00;-0.00} -> {note.After:+0.00;-0.00} ({note.Cause})", LogLevel.Trace);
+            if (MotiveText.RegardLine(note) is { } line) // a change too small to show isn't logged
+                Monitor.Log("[shadow] " + line, LogLevel.Trace);
         }
     }
 
