@@ -224,6 +224,47 @@ public sealed class MemoryStore
     }
 
     /// <summary>
+    /// Meetings between ticks (live test 2026-10-03: the player ran past villagers between two
+    /// ten-minute ticks and nobody noticed). Called about once a second with the presences in the
+    /// player's location only: every villager there within <see cref="CoLocationRadius"/> tiles of
+    /// the player that has no first-hand sighting of the player at this tick yet records one now,
+    /// as <see cref="Observe"/> would (a ledger sighting, and a <c>Saw</c> diary entry that starts
+    /// the pair's span, so the next tick's Observe continues it instead of writing a second one).
+    /// Nothing else moves: no routine learning, no NPC pairs. Returns the villagers who just met the
+    /// player, in name order; the mod lets only those decide at once (memory only, rule 2: the
+    /// caller reads positions here exactly as CollectPresences does).
+    /// </summary>
+    public IReadOnlyList<string> NoteMeetings(int absoluteTick, IReadOnlyList<Presence> presences, RegionMap regions)
+    {
+        Presence? player = presences.FirstOrDefault(p => p.IsPlayer);
+        if (player is null || string.IsNullOrEmpty(player.Location) || _prevTick != absoluteTick)
+            return Array.Empty<string>(); // before this tick's Observe: it will see everyone anyway
+        string region = regions.RegionFor(player.Location) ?? RegionMap.OtherRegion;
+        var met = new List<string>();
+        foreach (Presence npc in presences
+                     .Where(p => !p.IsPlayer && !string.IsNullOrEmpty(p.Name)
+                                 && string.Equals(p.Location, player.Location, StringComparison.OrdinalIgnoreCase))
+                     .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!Proximity.WithinRadius(npc.X, npc.Y, player.X, player.Y, CoLocationRadius))
+                continue;
+            if (Ledger.View(npc.Name, PlayerName, absoluteTick) is { HopCount: 0, AgeTicks: 0, Detail: LedgerDetail.NamedSpot })
+                continue; // already saw the player this tick (Observe, or an earlier meeting)
+            Ledger.Record(npc.Name, PlayerName, player.Location, region, absoluteTick, $"{player.X},{player.Y}");
+            string key = Key(npc.Name, PlayerName);
+            if (!_prevCoLocated.Contains(key))
+            {
+                Note(npc.Name, new DiaryEntry(absoluteTick, PlayerName, "Saw", player.Location));
+                _spanStart[key] = absoluteTick;
+                _spanTicks[key] = 1;
+                _prevCoLocated.Add(key); // the next tick's Observe continues this span
+            }
+            met.Add(npc.Name);
+        }
+        return met;
+    }
+
+    /// <summary>
     /// The seeker asks the NPCs it can see right now (its own first-hand view of them is this very
     /// tick) whether they know where <paramref name="subject"/> is. Each answer goes through
     /// <see cref="Ledger.Gossip"/>, so it is capped at the teller's detail, limited to two hops, and

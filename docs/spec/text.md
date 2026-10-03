@@ -143,6 +143,16 @@ Channel maximums above; `RecentLinesKept` 20 lives in intents.
 
 ## Status
 
+**Bubble voices: built** (2026-10-03, `src/NpcLive/BubbleVoices.cs`). Every one of the 34 vanilla
+villagers has its own short speech-bubble lines for a greeting, missing the player, news, thanks
+and worry, and hostile lines for hurt and jealousy: two or three each (one or two for worry), at
+most 40 characters with the farmer's name, written in the character's manner and not copied from
+the game's dialogue. A feeling with no voiced set (curiosity, trades, requests) uses the plain lines
+in `LivePlanner`. Picked with FNV-1a (npc, motive, tick), the name filled in or dropped cleanly, the
+line sanitized. It is a C# table for now, Sid's to edit; it moves to `i18n/default.json` with the
+other lines.
+
+
 Done: `src/NpcIntents/LineRenderer.cs` (3 templates), `LineSanitizer.cs` (dialogue set only),
 `PlaceNames.cs`, `VoiceSheets.cs` (used only in model context). Not started: `i18n/default.json`,
 `ILineBank`, tone buckets, channels, value sanitizing, lengths.

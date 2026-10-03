@@ -12,9 +12,9 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcMemory/` | NPC memory layer: `Diary` (event log), `Ledger` (last-seen + same-day decay, gone at the next 6:00, two-hop gossip that never overwrites fresher knowledge), `RoutineBelief` (co-presence routine learning, best guess per hour), `Proximity` (tile-radius co-location), `MemoryStore` (per-tick observation from the NPC side, asking around and looking for someone, save format and migration), `GameClock` (year-aware ticks). References NpcSchedules. |
 | `src/NpcDecision/` | Typed decision client: `IDecisionClient` (choice / score / yes-no), a deterministic fake, a timeout-and-budget fallback wrapper, and `LayaDecisionClient` for a local `laya-serve`. |
 | `src/NpcIntents/` | Overnight-intent layer: `IntentPlanner` (who speaks + about what via the decision client), `IntentPlanJob` (runs planning off the game thread with a budget), `Newsworthiness` (news scoring), `LineRenderer` (templated first-person lines), `PlaceNames`, `LineSanitizer`, `VoiceSheets`. References NpcMemory + NpcDecision. |
-| `src/NpcInitiation/` | Initiation ladder (shadow mode): per-NPC urge, mildest fitting step, caps, ignored attempts, going to look for the player; `BackgroundLadder` runs it off the game thread; `PlayerSearch` decides who asks around. |
+| `src/NpcInitiation/` | `InitiationInput` (each tick's views and leads), `PlayerSearch` (who asks around) and `Heartbeat`. The urge ladder (`InitiationLadder`, `BackgroundLadder`) is retired (D31): the mod no longer runs it; the motives decide every attempt. |
 | `src/NpcMotives/` | Motives (step 14, shadow): a character acts only with a motive and enough boldness for the act. `MotivesEngine` (motives, netting, the act rule, close calls), `Stresses` and `StressorTable` (the fading part of feelings), `RegardBook` and `RegardKeeper` (the lasting part, saved per pair), `MoodRoll`, and `MotivesRunner`/`BackgroundMotives` (pacing, the model's questions and the grudge, on a worker). Built and tested; not wired into the mod yet. |
-| `src/NpcLive/` | The first live acts (D30): emotes and speech bubbles from the motives runner, each behind its own switch (off by default). `LivePlanner` picks the emote or the templated line, `LiveGate` holds an act back at a bad moment, `LiveBreaker` turns a switch off after an error, `LiveLedger` writes an ignored live act to the diary. Built and tested; not wired into the mod yet. |
+| `src/NpcLive/` | The first live acts (D30): emotes and speech bubbles from the motives runner, each behind its own switch (off by default). `LivePlanner` picks the emote or the templated line (each villager's own voice, `BubbleVoices`), `LiveGate` holds an act back at a bad moment, `LiveBreaker` turns a switch off after an error, `LiveLedger` writes an ignored live act to the diary. Built and tested; not wired into the mod yet. |
 | `src/NpcBoard/` | The notice-board experiment (roadmap step 21): `NoteReactions` asks how each villager would react to a note in the player's words (a typed choice over six reactions; the note is quoted data, cleaned and capped at about two sentences) and maps the reaction to a confirmed emote and a templated line. `sidecar/eval/run_notes.py` runs the same question against a local Laya. Not in the mod yet. |
 | `src/NpcMinds/` | The NPC Minds viewer (read-only): `MindsSnapshotBuilder` (what each NPC knows and wants, from memory and the ladder's last state), `RecordingDecisionClient` (copies every model call to a log, answers unchanged), `MindsServer` (a loopback page and `state.json` at `http://127.0.0.1:8765/`). The page is `viewer/index.html`, embedded in the DLL. Each card also shows the NPC's seed temperament (`temperament.json`, shipped in the mod folder) and, once the motives runner is wired, its motives and the act rule's parts. `Playtest/` is the playtest log (one JSON-lines file per save and day; `tools/playtest_summary.py` reads it). |
 | `src/NpcDiaryEvents/` | Pure diary producers: `GiftNotes`, `SawGiftNotes`, `QuestNotes`, `FestivalNotes` turn plain event records into `DiaryEntry` values (no game types). The mod's read-only Harmony postfixes in `mod/StardewNpcMod/Patches/` capture the events. |
@@ -26,16 +26,16 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). The mod loads the table for the viewer; the motives engine reads it. |
 | `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (71). |
-| `tests/NpcMemory.Tests/` | xUnit tests (170). |
+| `tests/NpcMemory.Tests/` | xUnit tests (172). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (125). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (184). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (71). |
 | `tests/NpcMinds.Tests/` | xUnit tests (71). |
-| `tests/NpcMotives.Tests/` | xUnit tests (64). |
+| `tests/NpcMotives.Tests/` | xUnit tests (69). |
 | `tests/NpcBoard.Tests/` | xUnit tests (7). |
-| `tests/NpcLive.Tests/` | xUnit tests (7). |
+| `tests/NpcLive.Tests/` | xUnit tests (10). |
 | `tests/NpcTemperament.Tests/` | xUnit tests (23). |
 | `data/regions.json` | Location-to-region map, block size, rain weights, home overrides. Editable without rebuilding. |
 | `fixtures/game/*.json` | **Real 1.6 schedule data**, unpacked from this machine's copy of the game with xnbcli (see notes). 32 NPCs. |
