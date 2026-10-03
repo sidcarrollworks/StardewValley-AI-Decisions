@@ -341,6 +341,9 @@ When several motives (feelings toward different subjects, tasks) can act, the ex
 (2) or fewer of the day's attempts remain, only motives with intensity >= `StrongIntensity` (0.5)
 may use them, so cheap reasons can't crowd out a character with a real one.
 
+**Light acts are never ignored** (Sid, 2026-10-03): they wait for no answer, so walking past a
+wave costs nothing; only walk-ups, interrupts and bubbles with a real reason wait for the player.
+
 **Light acts count toward none of these** (Sid, 2026-10-02): an emote (a wave or a glare), or a
 bubble whose motive is only a greeting (`MotiveOptions.IsLight`). They don't ask for the player's
 time, so they use none of the day's attempts and the reserve doesn't hold them back; once an NPC's

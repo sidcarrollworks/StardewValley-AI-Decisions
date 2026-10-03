@@ -428,6 +428,9 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **Waves and greeting bubbles are never ignored** (Sid, 2026-10-03): "They happen often and it
+  would just make the game unfun to have to react to every single one." Light acts open no
+  attempt, so they can't be ignored and don't frustrate.
 - **Nothing in person while the player is busy** (Sid's live test, 2026-10-03): acts decided during
   a warp's fade or a conversation were held back by the live gate after the runner had counted them,
   and two later read as ignored; the runner now doesn't decide them until the player is free.

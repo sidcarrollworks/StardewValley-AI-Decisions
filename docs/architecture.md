@@ -551,6 +551,11 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   next tick. In the first live test three villagers acted the moment the player walked into the
   Saloon, the gate held all three back, and the runner had already counted them (two later read as
   ignored). This is game state, not a position (AGENTS.md rule 2 is about positions).
+- Light acts (a wave, a glare, a greeting bubble) wait for no answer at all, so they are never
+  ignored: no open attempt, no `Ignored`, no frustration, no `IgnoredBy` in live (Sid, 2026-10-03:
+  "They happen often and it would just make the game unfun to have to react to every single one").
+  The `Act` line says "a wave needs no answer". Walk-ups, interrupts and bubbles with a real reason
+  still wait.
 - After the player's talk with an NPC that day, its in-person acts wait for no answer: the game
   opens no second conversation that day, so the player couldn't answer, and the act would always
   end up ignored (Sid's live test, 2026-10-03). No open attempt, no `Ignored`, no frustration; the

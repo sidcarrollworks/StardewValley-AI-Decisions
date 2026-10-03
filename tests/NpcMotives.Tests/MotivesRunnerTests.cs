@@ -120,6 +120,24 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void WavesAndGreetingBubblesAreNeverIgnored()
+    {
+        // Sid, 2026-10-03: "Let's not count waves or greeting bubbles as ignored. They happen often
+        // and it would just make the game unfun to have to react to every single one."
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs gus = Inputs("Gus", Robin, hearts: 6, near: true); // only greets
+        List<MotiveEvent> events = Run(runner, gus, Now, Now + 30);
+
+        List<MotiveEvent> acts = events.Where(e => e.Kind == "Act").ToList();
+        Assert.NotEmpty(acts);
+        Assert.All(acts, a => Assert.True(MotiveOptions.IsLight(a.Act!.Value, a.Motive!.Value)));
+        Assert.All(acts, a => Assert.Contains("a wave needs no answer", a.Reason));
+        Assert.DoesNotContain(events, e => e.Kind == "Ignored");
+        Assert.Equal(0, runner.States().Single().IgnoredToday);
+        Assert.Null(runner.States().Single().OpenAct);
+    }
+
+    [Fact]
     public void AfterTodaysTalkAnActWaitsForNoAnswer()
     {
         // Sid's live test (2026-10-03): after the day's talk the game opens no second conversation,

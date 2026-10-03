@@ -192,9 +192,11 @@ public sealed class MotivesRunner
             // (9) The attempt.
             bool hostile = d.Checks.FirstOrDefault(c => c.Act == taken)?.Hostile ?? false;
             bool waitsForAnswer = Open(s, taken, d.Chosen.Motive, hostile, absoluteTick, day);
+            string noAnswer = waitsForAnswer || Waits(taken) ? ""
+                : MotiveOptions.IsLight(taken, d.Chosen.Motive) ? "; a wave needs no answer"
+                : "; no answer expected: the player already talked to them today";
             events.Add(new MotiveEvent(absoluteTick, i.Npc, "Act", taken, d.Chosen.Motive, hostile,
-                (d.Pending is not null && d.Pending.Act == taken ? "close call" : "clear yes")
-                + (waitsForAnswer ? "" : "; no answer expected: the player already talked to them today"),
+                (d.Pending is not null && d.Pending.Act == taken ? "close call" : "clear yes") + noAnswer,
                 d, modelP, tilted, choice));
         }
         return events;
@@ -294,17 +296,18 @@ public sealed class MotivesRunner
 
     private static bool Waits(Act act) => act is Act.Letter or Act.QueuedLine or Act.AskForHelp;
 
-    /// <summary>Records an attempt; true when it waits for the player's answer. An in-person act
-    /// after the player already talked to this NPC today waits for nothing: the game opens no
-    /// second conversation that day, so the player couldn't answer it, and it would always end
-    /// up "ignored" (Sid's live test, 2026-10-03).</summary>
+    /// <summary>Records an attempt; true when it waits for the player's answer. Two kinds wait for
+    /// nothing, so they can never be ignored: a light act (a wave, a glare, a greeting bubble),
+    /// since they happen often and the player shouldn't have to answer each one (Sid,
+    /// 2026-10-03); and an in-person act after the player already talked to this NPC today, since
+    /// the game opens no second conversation that day (Sid's live test, 2026-10-03).</summary>
     private bool Open(NpcState s, Act act, Motive motive, bool hostile, int tick, int day)
     {
         var attempt = new Attempt { Act = act, Tick = tick, Motive = motive, Hostile = hostile };
         bool waitsForAnswer = true;
         if (Waits(act))
             s.Waiting = attempt;
-        else if (s.TalkedDay == day)
+        else if (MotiveOptions.IsLight(act, motive) || s.TalkedDay == day)
             waitsForAnswer = false;
         else
             s.Open = attempt;
