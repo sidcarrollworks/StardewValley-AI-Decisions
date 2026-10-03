@@ -624,7 +624,9 @@ has its own switch in `config.json`, off by default.
   happy 32 for a greeting, heart 20 for gratitude, exclamation 16 for missing the player, news or
   worry, question 8 for curiosity; a hostile one is angry 12 from the bold (boldness 0.5+) and sad
   28 from the shy. A bubble's line is a template per motive, friendly or hostile, picked with
-  `Fnv1a(npc, motive, tick)`, with the farmer's name filled in and the whole line passed through
+  `Fnv1a(npc, motive, tick)`, from the villager's own voice (`BubbleVoices`: 34 villagers, a
+greeting, missing you, news, thanks, worry, hurt, jealous) or the plain lines when it has none for
+the feeling, with the farmer's name filled in and the whole line passed through
   `LineSanitizer` (the model writes nothing).
 - **The last check.** `LiveGate.WhyNot(act, facts, now)` is the one place outside `CollectPresences`
   and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in

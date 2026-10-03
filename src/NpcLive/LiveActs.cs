@@ -92,8 +92,8 @@ public static class LivePlanner
         };
     }
 
-    /// <summary>Short lines per motive, friendly and hostile. Plain for now; per-villager voices
-    /// come with the other lines (docs/spec/text.md). "{player}" is the farmer's name.</summary>
+    /// <summary>The plain lines per motive, friendly and hostile: the fallback when a villager has
+    /// no voice for the feeling in <see cref="BubbleVoices"/>. "{player}" is the farmer's name.</summary>
     private static readonly IReadOnlyDictionary<Motive, string[]> Friendly = new Dictionary<Motive, string[]>
     {
         [Motive.Greeting] = new[] { "Hi there!", "Oh, hello!", "Hey, {player}!", "Hello!" },
@@ -119,14 +119,20 @@ public static class LivePlanner
     /// same villager, motive and tick.</summary>
     public static string LineFor(string npc, Motive motive, bool hostile, int tick, string playerName = "")
     {
-        string[] lines = hostile
-            ? Hostile.TryGetValue(motive, out string[]? h) ? h : HostileDefault
-            : Friendly.TryGetValue(motive, out string[]? f) ? f : FriendlyDefault;
+        // The villager's own voice first (BubbleVoices); the plain lines when it has none for this.
+        string[] lines = BubbleVoices.For(npc, motive, hostile);
+        if (lines.Length == 0)
+            lines = hostile
+                ? Hostile.TryGetValue(motive, out string[]? h) ? h : HostileDefault
+                : Friendly.TryGetValue(motive, out string[]? f) ? f : FriendlyDefault;
         int pick = (int)((uint)Fnv1a.Seed("bubble", npc, motive.ToString(), tick.ToString(CultureInfo.InvariantCulture)) % (uint)lines.Length);
         string line = lines[pick];
         string name = LineSanitizer.Sanitize(playerName ?? "").Trim();
+        // Without a name, drop it with the comma or space before it ("Hey, {player}!" -> "Hey!",
+        // "Oh, hello {player}." -> "Oh, hello."), and any punctuation it leaves at the start.
         line = name.Length == 0
-            ? line.Replace(", {player}", "").Replace("{player}! ", "").Replace("{player}", "")
+            ? System.Text.RegularExpressions.Regex.Replace(
+                System.Text.RegularExpressions.Regex.Replace(line, @",?\s*\{player\}", ""), @"^[!.,?]\s*", "")
             : line.Replace("{player}", name);
         return LineSanitizer.Sanitize(line).Trim();
     }

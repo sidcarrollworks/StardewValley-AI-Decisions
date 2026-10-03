@@ -55,9 +55,9 @@ public sealed class LiveTests
     [Fact]
     public void BubbleLinesAreTemplated_Sanitized_AndDeterministic()
     {
-        LiveAct hi = LivePlanner.From(Act("Penny", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!;
+        LiveAct hi = LivePlanner.From(Act("Gunther", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!;
         Assert.Equal(-1, hi.EmoteId);
-        Assert.Equal(hi.Text, LivePlanner.From(Act("Penny", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!.Text);
+        Assert.Equal(hi.Text, LivePlanner.From(Act("Gunther", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!.Text);
         Assert.Contains(hi.Text, new[] { "Hi there!", "Oh, hello!", "Hey, Sid!", "Hello!" });
 
         // Over many ticks every line comes up, none carries a dialogue command, and a name the
@@ -67,7 +67,7 @@ public sealed class LiveTests
             foreach (bool hostile in new[] { false, true })
                 for (int t = 0; t < 200; t++)
                 {
-                    string line = LivePlanner.LineFor("Penny", m, hostile, t, "S#i$d");
+                    string line = LivePlanner.LineFor("Gunther", m, hostile, t, "S#i$d");
                     Assert.False(string.IsNullOrWhiteSpace(line));
                     Assert.DoesNotContain(line, c => "#$%{[".Contains(c));
                     Assert.True(line.Length <= 45, line);
@@ -80,10 +80,10 @@ public sealed class LiveTests
     [Fact]
     public void WithoutAPlayerNameTheLineStillReads()
     {
-        var lines = Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Penny", Motive.Greeting, false, t)).ToHashSet();
+        var lines = Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Gunther", Motive.Greeting, false, t)).ToHashSet();
         Assert.Contains("Hey!", lines);
         Assert.DoesNotContain(lines, l => l.Contains("{player}") || l.Contains(", !") || l.StartsWith("!"));
-        Assert.Contains("Everything okay?", Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Pam", Motive.Worried, false, t)));
+        Assert.Contains("Everything okay?", Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Gunther", Motive.Worried, false, t)));
     }
 
     // ---- the gate --------------------------------------------------------------------------------
