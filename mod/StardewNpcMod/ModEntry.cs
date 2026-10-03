@@ -56,6 +56,7 @@ public class ModEntry : Mod
     private readonly LiveLedger _liveLedger = new();
     private readonly LiveOptions _liveOptions = new();
     private bool _layaWarned; // the viewer's "questions failing" Warn fires once per failure streak
+    private bool _historySeeded; // set once the save's regard was seeded from the game's history
     private PlayerSearch _search = new();
     private IntentPlanJob? _planJob;
 
@@ -622,6 +623,7 @@ public class ModEntry : Mod
         _intentsToday.Clear();
         _talkedToday.Clear();
         _lastMotiveLines.Clear();
+        _historySeeded = false;
         _events.Clear();
         _seenSpecialOrders.Clear();
         _festivalAttended = false;
@@ -817,7 +819,8 @@ public class ModEntry : Mod
     private void HistoryAtInstall()
     {
         Dictionary<string, string>? model = Helper.Data.ReadSaveData<Dictionary<string, string>>(SaveKey);
-        if (model is not null && model.ContainsKey("historySeeded"))
+        _historySeeded = model is not null && model.ContainsKey("historySeeded");
+        if (_historySeeded)
             return;
 
         var histories = new List<NpcHistory>();
@@ -890,9 +893,9 @@ public class ModEntry : Mod
             _playtest.Append(MotiveRecords.History(seed, tick));
         }
 
-        model ??= new Dictionary<string, string>();
-        model["historySeeded"] = "1";
-        Helper.Data.WriteSaveData(SaveKey, model);
+        // Remembered here and written by SaveMemory with the rest of the data (writing now would
+        // be lost anyway: the next save rebuilds the data dict from scratch).
+        _historySeeded = true;
     }
 
     /// <summary>Feeds this tick's ladder views and leads (memory only, never live positions) to
@@ -1638,6 +1641,8 @@ public class ModEntry : Mod
             ["regard"] = _regard.Book.ToJson(),
             ["motives"] = _motives.LatestJson,
         };
+        if (_historySeeded)
+            data["historySeeded"] = "1"; // or the next load would seed the history a second time
 
         // The plan survives save-and-quit (persistence.md keys; additive, no version bump).
         if (_planToday.Count > 0)
