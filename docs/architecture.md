@@ -654,8 +654,9 @@ has its own switch in `config.json`, off by default.
    at Trace. A breaker error logs once at Error.
 5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
    `_memory.Note(npc, entry)`.
-6. In `RunMotives`, set each input's `PlayerBusy = !Context.IsPlayerFree` (one line, `with`), so
-   nothing in person is decided while the player is talking, in a menu or a scene.
+6. In `RunMotives`, each input's `PlayerBusy` is `!Context.IsPlayerFree` (done 2026-10-03; not yet
+   built against the game), so nothing in person is decided while the player is talking, in a menu
+   or a scene.
 7. The shadow line for the act stays as it is, so a day with the switches off and one with them on
    give the same `[shadow]` lines apart from the added `[live]` ones.
 

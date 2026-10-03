@@ -906,6 +906,9 @@ public class ModEntry : Mod
         var watch = Stopwatch.StartNew();
         int seed = MotivesSeed();
         var inputs = new List<MotiveInputs>();
+        // A talk, a menu, a scene or a warp's fade: nothing in person is decided now; the NPC tries
+        // again next tick (live test 2026-10-03). Game state, not a position (AGENTS.md rule 2).
+        bool busy = !Context.IsPlayerFree;
         foreach (InitiationInput ladder in _lastLadderInputs) // this tick's views and leads, built by RunLadder
         {
             string npc = ladder.Npc;
@@ -915,7 +918,7 @@ public class ModEntry : Mod
             bool met = Game1.player.friendshipData.ContainsKey(npc); // VERIFY: the game adds the entry at the first meeting
             inputs.Add(MotiveInputBuilder.Build(npc, now, _temperaments?.Of(npc) ?? Temperament.Neutral, ladder.Hearts,
                 _memory.DiaryOf(npc).Entries, _regard.Book.Of(npc, MemoryStore.PlayerName), ladder.PlayerView, ladder.Lead,
-                news, seed, met, card));
+                news, seed, met, card) with { PlayerBusy = busy });
         }
         if (inputs.Count > 0 && !_motives.EnqueueTick(now, inputs))
             Monitor.Log($"[shadow] motives are behind the model; skipped a tick ({_motives.Dropped} so far).", LogLevel.Trace);
