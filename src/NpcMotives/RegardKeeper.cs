@@ -73,7 +73,8 @@ public sealed class RegardKeeper
         if (p is null)
             return null;
         string teller = d.TryGetValue("from", out string? from) ? from : "someone";
-        bool confirmed = FromSource(original, teller, heard.Subject);
+        string owner = Gossip.OwnerOf(heard, teller);
+        bool confirmed = FromSource(original, teller, heard.Subject, owner);
         double magnitude = p.Magnitude * _o.HearsayFactor * Stresses.SensitivityFactor(t);
         bool severe = magnitude >= _o.SevereMagnitude;
         double retention = severe ? 1.0 : 0.5 + _o.RetentionOf(npc);
@@ -88,14 +89,16 @@ public sealed class RegardKeeper
     /// <summary>
     /// The teller was in the event (ledger-gossip.md): the subject told it, or the teller's own
     /// entry was something done to them (a gift they got, a quest the player did for them). A
-    /// <c>Saw...</c> entry is a witness's, and a <c>Heard</c> is already second-hand. Today's
-    /// gossip passes on only the teller's own entries, one hop, so every Heard <c>GiftReceived</c>
-    /// or <c>QuestHelped</c> comes from the source.
+    /// <c>Saw...</c> entry is a witness's, and a <c>Heard</c> is already second-hand. A retold
+    /// story (D25) comes from the source only when its teller is the person it started with
+    /// (<paramref name="owner"/>); null means the teller (a Heard from before juiciness).
     /// </summary>
-    public static bool FromSource(string originalKind, string teller, string subject)
+    public static bool FromSource(string originalKind, string teller, string subject, string? owner = null)
     {
         if (string.Equals(teller, subject, StringComparison.OrdinalIgnoreCase))
             return true;
+        if (owner is not null && !string.Equals(teller, owner, StringComparison.OrdinalIgnoreCase))
+            return false; // second-hand or further: hearsay until confirmed
         return !originalKind.StartsWith("Saw", StringComparison.Ordinal) && originalKind != "Heard";
     }
 

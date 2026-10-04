@@ -490,7 +490,10 @@ public class ModEntry : Mod
             foreach (PresenceRecord delta in PlaytestRecords.PresenceDeltas(presences, _lastPresencePositions, now))
                 _playtest.Append(delta);
             AskAround(now);
-            foreach ((string listener, DiaryEntry heard) in _memory.ChatHeard(now, NewsScore, _chatOptions))
+            // Gossip by juiciness (D25): base values from the stressor table; a listener "knows"
+            // someone in the story through regard or a ledger entry.
+            foreach ((string listener, DiaryEntry heard) in _memory.ChatHeard(now, NewsScore, _chatOptions,
+                         StressorTable.JuicinessOf, KnowsPerson))
             {
                 Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
                 _playtest.Append(HeardRecord(listener, heard));
@@ -1003,6 +1006,12 @@ public class ModEntry : Mod
         Monitor.Log("[live] " + LivePlanner.ShownLine(act), LogLevel.Info);
         _liveLedger.Shown(act, now);
     }
+
+    /// <summary>Whether a listener knows a person, for gossip's knows-someone bonus: any regard
+    /// for them, or a ledger entry about them. Reads memory only.</summary>
+    private bool KnowsPerson(string listener, string person)
+        => _regard.Book.Of(listener, person) != 0
+           || _memory.Ledger.SubjectsOf(listener).Contains(person, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Like TomorrowLine, but for today at the current time: "spring 12 (Friday), sunny,
     /// 4:20 PM" — the card's day line while the motives worker weighs acts.</summary>

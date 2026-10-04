@@ -49,7 +49,7 @@ public sealed class LiveTests
         LiveAct glare = LivePlanner.From(Act("Emily", NpcMotives.Act.Emote, Motive.Hurt, hostile: true), Both)!;
         Assert.Equal(12, glare.EmoteId); // no decision attached: boldness 0.5, the bold side
         Assert.Null(glare.Text);
-        Assert.Equal("Emily glared at you (emote 12, Hurt; decided at tick 100)", LivePlanner.ShownLine(glare));
+        Assert.Equal("Emily glared at you (emote 12, Hurt; decided at tick 1000)", LivePlanner.ShownLine(glare));
     }
 
     [Fact]

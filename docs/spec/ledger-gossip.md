@@ -1,6 +1,6 @@
 # 4. Last-seen ledger and gossip
 
-**Status: partial.** The ledger, decay and on-demand gossip (when an NPC asks around) are done,
+**Status: partial; juiciness built (D33).** The ledger, decay and on-demand gossip (when an NPC asks around) are done,
 and step 7 (PR #16) added ambient gossip (`MemoryStore.Chat`, once per span with a deterministic
 FNV-1a draw, both sides pass their view of the player) and the `Heard` diary kind (original kind's
 news weight minus 1, one hop, at most once per listener). The juiciness design below (D25,
@@ -158,8 +158,13 @@ puts the original's stress at `HearsayFactor` on the listener (elastic); told by
 happened to, it is confirmed at once and leaves half the original's lasting mark in regard
 (`RegardKeeper`); told by a witness, it stays elastic. Today's gossip passes on only the teller's
 own entries, one hop, so a `Heard` `GiftReceived` or `QuestHelped` always comes from the source.
-Not started: juiciness (above), relevance, first-hand confirmation and the two-routes half (they
-matter once retelling goes past one hop).
+Built (2026-10-04, D33, `src/NpcMemory/Gossip.cs`, `MemoryStore.ChatHeard` with a juiciness
+function; the mod passes `StressorTable.JuicinessOf`): juiciness, volunteering, the knows-someone
+bonus, retelling at 0.7, fading, the three-a-day cap and dedupe by event. Differences from the text
+above (D33): fading counts whole days, the teller never counts for the bonus, and kinds without a
+feeling have a gossip value only (a gift seen, town news, a festival). A retold story stays
+elastic; only its owner confirms it. Not started: relevance (the jealous listener), first-hand
+confirmation and the two-routes half; and the 7-day shadow-harness spreading test.
 
 ## Open questions
 

@@ -91,7 +91,9 @@ public static class NewsPhrasing
             string teller = detail.TryGetValue("from", out string? from) ? from : "someone";
             if (detail.TryGetValue("kind", out string? original) && !original.Equals("Heard", StringComparison.OrdinalIgnoreCase))
             {
-                string told = Sentence(teller, entry with { Kind = original }, daysAgo);
+                // Phrased as the entry of the person it started with ("of", D25), else the teller's.
+                string owner = detail.TryGetValue("of", out string? of) ? of : teller;
+                string told = Sentence(owner, entry with { Kind = original }, daysAgo);
                 if (!told.StartsWith(original, StringComparison.OrdinalIgnoreCase)) // a phrased kind, not the fallback
                     return $"{npc} heard from {teller} that {told}";
             }

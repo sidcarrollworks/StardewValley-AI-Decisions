@@ -69,6 +69,37 @@ public sealed class RegardKeeperAndInputsTests
 
         Assert.True(RegardKeeper.FromSource("SawGift", "Sam", "Sam")); // the subject told it themselves
         Assert.False(RegardKeeper.FromSource("SawGift", "Sam", "Penny"));
+        // Retold (D25): only the person it started with is the source.
+        Assert.True(RegardKeeper.FromSource("GiftReceived", "Haley", "Player", owner: "Haley"));
+        Assert.False(RegardKeeper.FromSource("GiftReceived", "Sam", "Player", owner: "Haley"));
+    }
+
+    [Fact]
+    public void ARetoldStoryStaysHearsay_TheSameStoryFromItsOwnerSticks()
+    {
+        var retold = new DiaryEntry(Now, "Player", "Heard", "from=Sam;kind=GiftReceived;subject=Player;of=Emily;b=3;j=2.1;at=0;hops=2;taste=Hate");
+        RegardNote elastic = Keeper().OnNoted("Haley", retold, Array.Empty<DiaryEntry>())!;
+        Assert.Equal(elastic.Before, elastic.After);
+        Assert.Contains("heard from Sam; not confirmed", elastic.Cause);
+
+        var fromOwner = retold with { Detail = "from=Emily;kind=GiftReceived;subject=Player;of=Emily;b=3;j=2.1;at=0;hops=1;taste=Hate" };
+        Assert.True(Keeper().OnNoted("Haley", fromOwner, Array.Empty<DiaryEntry>())!.After < 0);
+    }
+
+    [Fact]
+    public void JuicinessFollowsTheStressorTable_WithGossipOnlyValuesForKindsWithoutAFeeling()
+    {
+        double? j(string kind, string? detail = null) => StressorTable.JuicinessOf(new DiaryEntry(Now, "Player", kind, detail));
+        Assert.Equal(4, j("SawRummaging"));
+        Assert.Equal(3, j("GiftReceived", "taste=Hate"));
+        Assert.Equal(2, j("QuestHelped"));
+        Assert.Equal(1.5, j("SawGift", "giver=Player;taste=Like"));
+        Assert.Equal(2, j("SawGift", "giver=Player;taste=Love"));
+        Assert.Equal(3, j("SawGift", "giver=Player;taste=Hate"));
+        Assert.Equal(2, j("TownNews"));
+        Assert.Equal(1, j("Festival"));
+        Assert.Null(j("Saw", "Town"));           // a plain sighting is never gossip on its own
+        Assert.Null(j("GiftReceived", "taste=Neutral"));
     }
 
     [Fact]

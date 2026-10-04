@@ -39,6 +39,14 @@ public class NewsPhrasingTests
     }
 
     [Fact]
+    public void Heard_Retold_PhrasesItAsTheOwnersEntry()
+    {
+        var heard = new DiaryEntry(100, "Player", "Heard", "from=Sam;kind=GiftReceived;subject=Player;of=Pam;b=3;j=2.1;at=100;hops=2;name=Slime;taste=Hate");
+        Assert.Equal("Emily heard from Sam that yesterday the player gave Pam a Slime (a hated gift)",
+            NewsPhrasing.Sentence("Emily", heard, 1));
+    }
+
+    [Fact]
     public void SawGift_SaysWhoGaveItAndHowItWentDown()
     {
         var saw = new DiaryEntry(100, "Jodi", "SawGift", "giver=Player;name=Daffodil;taste=Hate");

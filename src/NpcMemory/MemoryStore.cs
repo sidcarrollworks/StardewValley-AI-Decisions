@@ -504,12 +504,19 @@ public sealed class MemoryStore
     /// <param name="newsScore">Ranks a teller's shareable entries (highest wins); null picks the
     /// newest instead. The mod passes Newsworthiness.Score with a per-teller context.</param>
     /// <returns>The `Heard` entries written (for logging).</returns>
-    public IReadOnlyList<DiaryEntry> Chat(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null)
-        => ChatHeard(nowTick, newsScore, options).Select(pair => pair.Entry).ToList();
+    /// <param name="juiciness">Base juiciness per diary entry (the stressor table), or null for
+    /// the old one-hop rule (today's shareable kinds, teller's own entries). With it, stories are
+    /// told by juiciness and retold hop by hop (<see cref="Gossip"/>, D25).</param>
+    /// <param name="knows">Whether a listener knows a person (regard or a ledger entry), for
+    /// <see cref="ChatOptions.KnowsSomeoneBonus"/>; null checks the ledger only.</param>
+    public IReadOnlyList<DiaryEntry> Chat(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null,
+        Func<DiaryEntry, double?>? juiciness = null, Func<string, string, bool>? knows = null)
+        => ChatHeard(nowTick, newsScore, options, juiciness, knows).Select(pair => pair.Entry).ToList();
 
     /// <summary>Same as <see cref="Chat"/>, but each `Heard` line is paired with the listener
     /// whose diary it was written to (the playtest log records both sides of a share).</summary>
-    public IReadOnlyList<(string Listener, DiaryEntry Entry)> ChatHeard(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null)
+    public IReadOnlyList<(string Listener, DiaryEntry Entry)> ChatHeard(int nowTick, Func<string, DiaryEntry, double>? newsScore = null, ChatOptions? options = null,
+        Func<DiaryEntry, double?>? juiciness = null, Func<string, string, bool>? knows = null)
     {
         options ??= new ChatOptions();
         int today = GameClock.DayIndex(nowTick);
@@ -540,7 +547,10 @@ public sealed class MemoryStore
 
             foreach ((string teller, string listener) in new[] { (a, b), (b, a) })
             {
-                if (TryShareEvent(teller, listener, today, newsScore) is { } heard)
+                DiaryEntry? heard = juiciness is null
+                    ? TryShareEvent(teller, listener, today, newsScore)
+                    : TryTellStory(teller, listener, nowTick, juiciness, knows, options);
+                if (heard is not null)
                     written.Add((listener, heard));
             }
         }
@@ -587,6 +597,91 @@ public sealed class MemoryStore
             DiaryDetail.Format(pairs.ToArray()));
         Note(listener, heard); // through the one writer, so the Noting hook sees hearsay too
         return heard;
+    }
+
+    /// <summary>
+    /// Gossip by juiciness (docs/spec/ledger-gossip.md, D25): the teller volunteers the story,
+    /// first-hand or heard, that is juiciest for this listener, at or above
+    /// <see cref="ChatOptions.VolunteerLevel"/>, that the listener isn't in and hasn't heard by any
+    /// route, and that the teller hasn't already told <see cref="ChatOptions.RetellsPerDay"/>
+    /// listeners today. The listener gets it at <see cref="ChatOptions.RetellFactor"/> of the
+    /// teller's juiciness. Never touches the position ledger (D9).
+    /// </summary>
+    private DiaryEntry? TryTellStory(string teller, string listener, int nowTick,
+        Func<DiaryEntry, double?> baseOf, Func<string, string, bool>? knows, ChatOptions o)
+    {
+        if (!_diaries.TryGetValue(teller, out Diary? diary) || diary is null)
+            return null;
+
+        knows ??= (who, person) => Ledger.SubjectsOf(who).Contains(person, StringComparer.OrdinalIgnoreCase);
+        var heardKeys = HeardKeys(listener);
+        var candidates = new List<(DiaryEntry Story, double Juice, double ForListener, double Base, string Key)>();
+        foreach (DiaryEntry story in diary.Entries)
+        {
+            if (Gossip.Current(story, nowTick, baseOf, o) is not { } juice || juice <= 0)
+                continue;
+            IReadOnlyList<string> people = Gossip.PeopleIn(story, teller);
+            if (people.Contains(listener, StringComparer.OrdinalIgnoreCase))
+                continue; // they were in it
+            string key = Gossip.EventKey(story, teller);
+            if (heardKeys.Contains(key))
+                continue; // the same event reaches a listener once, whatever the route
+            // A teller tells people who would care: someone in the story the listener knows
+            // (never the teller themself, whom every chat partner has just seen).
+            bool caresAbout = people.Any(p => !p.Equals(teller, StringComparison.OrdinalIgnoreCase) && knows(listener, p));
+            double forListener = juice + (caresAbout ? o.KnowsSomeoneBonus : 0);
+            if (forListener < o.VolunteerLevel)
+                continue;
+            candidates.Add((story, juice, forListener, Gossip.BaseOf(story, baseOf) ?? juice, key));
+        }
+
+        int today = GameClock.DayIndex(nowTick);
+        foreach (var c in candidates
+                     .OrderByDescending(c => c.ForListener)
+                     .ThenByDescending(c => c.Story.AbsoluteTick)
+                     .ThenBy(c => c.Key, StringComparer.Ordinal))
+        {
+            if (TellsToday(teller, c.Key, today) >= o.RetellsPerDay)
+                continue;
+            DiaryEntry heard = Gossip.Retold(c.Story, teller, c.Juice, c.Base, nowTick, o);
+            Note(listener, heard); // through the one writer, so the Noting hook sees hearsay too
+            return heard;
+        }
+        return null;
+    }
+
+    /// <summary>The events a listener has already heard, by <see cref="Gossip.EventKey"/>.</summary>
+    private HashSet<string> HeardKeys(string listener)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        if (_diaries.TryGetValue(listener, out Diary? diary))
+            foreach (DiaryEntry e in diary.Entries)
+                if (Gossip.IsHeard(e))
+                    keys.Add(Gossip.EventKey(e, listener));
+        return keys;
+    }
+
+    /// <summary>How many listeners the teller told this event today (read from their diaries, so
+    /// the cap survives a reload).</summary>
+    private int TellsToday(string teller, string eventKey, int today)
+    {
+        int count = 0;
+        foreach ((string owner, Diary diary) in _diaries)
+        {
+            foreach (DiaryEntry e in diary.Entries)
+            {
+                if (!Gossip.IsHeard(e))
+                    continue;
+                IReadOnlyDictionary<string, string> d = DiaryDetail.Parse(e.Detail);
+                if (!d.TryGetValue("from", out string? from) || !from.Equals(teller, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (!d.TryGetValue("at", out string? at) || !int.TryParse(at, out int atTick) || GameClock.DayIndex(atTick) != today)
+                    continue;
+                if (Gossip.EventKey(e, owner) == eventKey)
+                    count++;
+            }
+        }
+        return count;
     }
 
     private bool AlreadyHeard(string listener, DiaryEntry original)
