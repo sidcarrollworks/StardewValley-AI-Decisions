@@ -639,8 +639,10 @@ the feeling, with the farmer's name filled in and the whole line passed through
   and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in
   multiplayer, not more than `MaxDelayTicks` (1) after the decision, not during an event or a
   festival, not while the player is busy, only in the player's location within `EmoteMaxTiles` (10)
-  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking.
-  An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
+  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking,
+  and not within `MinTicksBetweenActs` (3) of the last act that villager showed (`LiveLedger.LastShownTick`;
+  a safety net under the runner's cooldown, after Leah waved twice 8 seconds apart in a live test).
+  The `[live]` line for an act shown names the tick it was decided in. An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
   (it decided on the worker and doesn't know).
 - **The breaker.** `LiveBreaker.Run(act, show)` turns one switch off for the session if showing
   throws, and reports the error once; `TripAll` is the console command `npcmod_live off`.

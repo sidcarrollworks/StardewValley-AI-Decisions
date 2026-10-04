@@ -980,7 +980,7 @@ public class ModEntry : Mod
             NpcVisible: !npc.IsInvisible);
 
         int now = Now(TimeUtils.TickIndex(Game1.timeOfDay));
-        if (LiveGate.WhyNot(act, facts, now, _liveOptions) is { } why)
+        if (LiveGate.WhyNot(act, facts, now, _liveOptions, _liveLedger.LastShownTick(act.Npc)) is { } why)
         {
             Monitor.Log("[live] " + LivePlanner.SkippedLine(act, why), LogLevel.Trace);
             return;
@@ -1001,7 +1001,7 @@ public class ModEntry : Mod
             return;
         }
         Monitor.Log("[live] " + LivePlanner.ShownLine(act), LogLevel.Info);
-        _liveLedger.Shown(act);
+        _liveLedger.Shown(act, now);
     }
 
     /// <summary>Like TomorrowLine, but for today at the current time: "spring 12 (Friday), sunny,

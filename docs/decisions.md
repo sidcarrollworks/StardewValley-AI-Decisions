@@ -482,7 +482,8 @@ went first.
   retired; its attempts never show.
 - **A last check with live facts** (`LiveGate`): the one exception to AGENTS.md rule 2. It never
   chooses an act, only holds one back (an event, a menu, the player gone or too far, the villager
-  busy or hidden, multiplayer, or more than a tick late).
+  busy or hidden, multiplayer, or more than a tick late). Added after a live test (2026-10-03):
+  nor within 3 ticks of the last act the same villager showed, whatever the cause.
 - **The lines are templates**, not the model's text, and the emote follows the motive; the hostile
   emote is angry from the bold and sad from the shy. First guesses for Sid to tune.
 - **Being ignored becomes real:** a shown act the player ignores is written as `IgnoredBy`, which

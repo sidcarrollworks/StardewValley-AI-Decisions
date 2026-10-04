@@ -28,11 +28,16 @@ public sealed record LiveFacts(
 public static class LiveGate
 {
     /// <summary>Null when the act can be shown now, else why not.</summary>
-    public static string? WhyNot(LiveAct act, LiveFacts f, int nowTick, LiveOptions? options = null)
+    /// <param name="lastShownTick">When this villager last showed a live act
+    /// (<see cref="LiveLedger.LastShownTick"/>), or null.</param>
+    public static string? WhyNot(LiveAct act, LiveFacts f, int nowTick, LiveOptions? options = null, int? lastShownTick = null)
     {
         LiveOptions o = options ?? new LiveOptions();
         if (!f.SinglePlayer)
             return "live acts are single-player only";
+        // A tick from the future (another save loaded in the same session) holds nothing back.
+        if (lastShownTick is { } shown && nowTick - shown is >= 0 and var gap && gap < o.MinTicksBetweenActs)
+            return $"already showed an act {nowTick - shown} tick(s) ago";
         if (nowTick - act.DecidedTick > o.MaxDelayTicks)
             return $"decided {nowTick - act.DecidedTick} ticks ago; the moment has passed";
         if (f.EventUp)
@@ -101,8 +106,16 @@ public sealed class LiveBreaker
 public sealed class LiveLedger
 {
     private readonly Dictionary<string, (Act Act, int Tick)> _shown = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> _lastShown = new(StringComparer.OrdinalIgnoreCase);
 
-    public void Shown(LiveAct a) => _shown[a.Npc] = (a.Act, a.DecidedTick);
+    public void Shown(LiveAct a, int nowTick)
+    {
+        _shown[a.Npc] = (a.Act, a.DecidedTick);
+        _lastShown[a.Npc] = nowTick;
+    }
+
+    /// <summary>When the villager last showed a live act, or null (the gate's spacing check).</summary>
+    public int? LastShownTick(string npc) => _lastShown.TryGetValue(npc, out int t) ? t : null;
 
     public int Count => _shown.Count;
 

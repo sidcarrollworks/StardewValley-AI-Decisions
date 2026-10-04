@@ -36,6 +36,10 @@ public sealed class LiveOptions
 
     /// <summary>How long a bubble stays up (<c>NPC.showTextAboveHead</c>'s duration, ms).</summary>
     public int BubbleMs { get; set; } = 3000;
+
+    /// <summary>A villager shows at most one live act in this many ticks: a safety net under the
+    /// runner's own cooldown (live test 2026-10-03: Leah waved twice 8 seconds apart).</summary>
+    public int MinTicksBetweenActs { get; set; } = 3;
 }
 
 /// <summary>
@@ -139,8 +143,8 @@ public static class LivePlanner
 
     /// <summary>The <c>[live]</c> log line for an act shown.</summary>
     public static string ShownLine(LiveAct a) => a.Act == Act.Emote
-        ? $"{a.Npc} {(a.Hostile ? "glared at" : "waved at")} you (emote {a.EmoteId}, {a.Motive})"
-        : $"{a.Npc} said \"{a.Text}\" ({a.Motive}{(a.Hostile ? ", hostile" : "")})";
+        ? $"{a.Npc} {(a.Hostile ? "glared at" : "waved at")} you (emote {a.EmoteId}, {a.Motive}; decided at tick {a.DecidedTick})"
+        : $"{a.Npc} said \"{a.Text}\" ({a.Motive}{(a.Hostile ? ", hostile" : "")}; decided at tick {a.DecidedTick})";
 
     /// <summary>The <c>[live]</c> log line for an act the gate held back.</summary>
     public static string SkippedLine(LiveAct a, string reason)
