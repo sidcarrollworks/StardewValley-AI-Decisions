@@ -38,7 +38,7 @@ public sealed class LiveOptions
     public int BubbleMs { get; set; } = 3000;
 
     /// <summary>A villager shows at most one live act in this many ticks: a safety net under the
-    /// runner's own cooldown (live test 2026-10-03: Leah waved twice 8 seconds apart).</summary>
+    /// runner's own cooldown (6 ticks), in case anything ever shows one villager's acts back to back.</summary>
     public int MinTicksBetweenActs { get; set; } = 3;
 }
 
