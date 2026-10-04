@@ -49,15 +49,15 @@ public sealed class LiveTests
         LiveAct glare = LivePlanner.From(Act("Emily", NpcMotives.Act.Emote, Motive.Hurt, hostile: true), Both)!;
         Assert.Equal(12, glare.EmoteId); // no decision attached: boldness 0.5, the bold side
         Assert.Null(glare.Text);
-        Assert.Equal("Emily glared at you (emote 12, Hurt)", LivePlanner.ShownLine(glare));
+        Assert.Equal("Emily glared at you (emote 12, Hurt; decided at tick 100)", LivePlanner.ShownLine(glare));
     }
 
     [Fact]
     public void BubbleLinesAreTemplated_Sanitized_AndDeterministic()
     {
-        LiveAct hi = LivePlanner.From(Act("Penny", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!;
+        LiveAct hi = LivePlanner.From(Act("Gunther", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!;
         Assert.Equal(-1, hi.EmoteId);
-        Assert.Equal(hi.Text, LivePlanner.From(Act("Penny", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!.Text);
+        Assert.Equal(hi.Text, LivePlanner.From(Act("Gunther", NpcMotives.Act.Bubble, Motive.Greeting), Both, "Sid")!.Text);
         Assert.Contains(hi.Text, new[] { "Hi there!", "Oh, hello!", "Hey, Sid!", "Hello!" });
 
         // Over many ticks every line comes up, none carries a dialogue command, and a name the
@@ -67,7 +67,7 @@ public sealed class LiveTests
             foreach (bool hostile in new[] { false, true })
                 for (int t = 0; t < 200; t++)
                 {
-                    string line = LivePlanner.LineFor("Penny", m, hostile, t, "S#i$d");
+                    string line = LivePlanner.LineFor("Gunther", m, hostile, t, "S#i$d");
                     Assert.False(string.IsNullOrWhiteSpace(line));
                     Assert.DoesNotContain(line, c => "#$%{[".Contains(c));
                     Assert.True(line.Length <= 45, line);
@@ -80,10 +80,10 @@ public sealed class LiveTests
     [Fact]
     public void WithoutAPlayerNameTheLineStillReads()
     {
-        var lines = Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Penny", Motive.Greeting, false, t)).ToHashSet();
+        var lines = Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Gunther", Motive.Greeting, false, t)).ToHashSet();
         Assert.Contains("Hey!", lines);
         Assert.DoesNotContain(lines, l => l.Contains("{player}") || l.Contains(", !") || l.StartsWith("!"));
-        Assert.Contains("Everything okay?", Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Pam", Motive.Worried, false, t)));
+        Assert.Contains("Everything okay?", Enumerable.Range(0, 300).Select(t => LivePlanner.LineFor("Gunther", Motive.Worried, false, t)));
     }
 
     // ---- the gate --------------------------------------------------------------------------------
@@ -108,6 +108,30 @@ public sealed class LiveTests
         // A wave carries further than words.
         Assert.Null(LiveGate.WhyNot(wave, Clear(distance: 10), Tick));
         Assert.Equal("too far (9 tiles, at most 8)", LiveGate.WhyNot(bubble, Clear(distance: 9), Tick));
+    }
+
+    [Fact]
+    public void AVillagerShowsAtMostOneActInThreeTicks()
+    {
+        LiveAct wave = LivePlanner.From(Act("Leah", NpcMotives.Act.Emote, Motive.Greeting), Both)!;
+        var ledger = new LiveLedger();
+        Assert.Null(ledger.LastShownTick("Leah"));
+        ledger.Shown(wave, Tick);
+        Assert.Equal(Tick, ledger.LastShownTick("Leah"));
+
+        // A second act from her soon after is held back, however it came about.
+        LiveAct again = wave with { DecidedTick = Tick + 2 };
+        Assert.Equal("already showed an act 0 tick(s) ago",
+            LiveGate.WhyNot(wave, Clear(), Tick, lastShownTick: ledger.LastShownTick("Leah")));
+        Assert.Equal("already showed an act 2 tick(s) ago",
+            LiveGate.WhyNot(again, Clear(), Tick + 2, lastShownTick: ledger.LastShownTick("Leah")));
+        Assert.Null(LiveGate.WhyNot(wave with { DecidedTick = Tick + 3 }, Clear(), Tick + 3, lastShownTick: ledger.LastShownTick("Leah")));
+
+        // Someone else is not held back by her wave; a tick from another save holds nothing back.
+        Assert.Null(ledger.LastShownTick("Gus"));
+        Assert.Null(LiveGate.WhyNot(wave with { DecidedTick = 5 }, Clear(), 5, lastShownTick: Tick));
+        // The spacing is tunable.
+        Assert.Null(LiveGate.WhyNot(again, Clear(), Tick + 2, new LiveOptions { MinTicksBetweenActs = 2 }, Tick));
     }
 
     // ---- the breaker -----------------------------------------------------------------------------
@@ -137,7 +161,7 @@ public sealed class LiveTests
     {
         var ledger = new LiveLedger();
         LiveAct wave = LivePlanner.From(Act("Gus", NpcMotives.Act.Emote, Motive.Greeting), Both)!;
-        ledger.Shown(wave);
+        ledger.Shown(wave, Tick);
 
         // Another villager's ignored act was never shown: nothing to write.
         Assert.Null(ledger.OnResolved(Act("Pam", NpcMotives.Act.Emote, Motive.Greeting, tick: Tick + 6, kind: "Ignored")));
@@ -147,7 +171,7 @@ public sealed class LiveTests
         Assert.Equal(0, ledger.Count);
 
         // Answered: cleared, nothing written.
-        ledger.Shown(wave with { DecidedTick = Tick + 10 });
+        ledger.Shown(wave with { DecidedTick = Tick + 10 }, Tick + 10);
         Assert.Null(ledger.OnResolved(Act("Gus", NpcMotives.Act.Emote, Motive.Greeting, tick: Tick + 12, kind: "Responded")));
         Assert.Equal(0, ledger.Count);
     }

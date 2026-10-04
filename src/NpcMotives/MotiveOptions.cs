@@ -72,6 +72,11 @@ public sealed class MotiveOptions
     /// isn't held back by the strong reserve (Sid, 2026-10-02).</summary>
     public static bool IsLight(Act act, Motive motive) => act == Act.Emote || (act == Act.Bubble && motive == Motive.Greeting);
 
+    /// <summary>A villager who misses the player, worries or has news asks the people around it
+    /// where the player is at this strength and above (<see cref="MotiveDrive.Seeking"/>; the
+    /// urge ladder used urge 0.45 before it was retired, D31).</summary>
+    public double AskAroundStrength { get; set; } = 0.2;
+
     // ---- history at install (docs/spec/vanilla-sources.md; RegardHistory) --------------------
     /// <summary>Gifts and heart events from before the mod count half: their age is unknown, and
     /// live regard would have faded since.</summary>

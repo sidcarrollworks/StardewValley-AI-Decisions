@@ -440,6 +440,14 @@ delivered in-game, and the plan is not saved.
 
 ## Initiation ladder (`src/NpcInitiation`)
 
+**Retired (2026-10-03, D31).** The mod no longer runs the ladder: the motives decide every attempt
+and the live acts come only from them. What stays in use from this project: `InitiationInput` (each
+tick's views and leads, built by `ModEntry.BuildViews` and read by `RunMotives` and the viewer),
+`PlayerSearch` (asking around, now triggered by `MotiveDrive.Seeking`) and `Heartbeat` (now
+"strongest motive" and the motives worker's backlog). `InitiationLadder` and `BackgroundLadder` stay
+as a tested library until they are deleted; an old save's `ladder` value is left unread and no longer
+written. The rest of this section describes the ladder as it was.
+
 Each NPC carries an **urge** (0..1) to get the player's attention. When it is high enough the ladder
 picks the mildest step that fits and records what it **would** do; it never touches the game. Its
 knowledge of the player comes only from memory: the NPC's own `LedgerView` of "Player", plus a Find
@@ -513,8 +521,8 @@ question boxes and letters have no speaker. Verify in-game, including whether ev
 
 Roadmap step 14 (D24, `docs/spec/motives.md`): a character acts only when it has a **motive** with a
 subject and its **effective boldness** (boldness + familiarity + intensity) reaches the act's
-**cost**. Built and tested as a library (no game types); the mod does not run it yet (see "Wiring it
-into the mod" below). It never reads a live position, never changes the game, and is deterministic:
+**cost**. Built and tested as a library (no game types); the mod runs it every tick, and since the
+urge ladder was retired (D31) it alone decides attempts. It never reads a live position, never changes the game, and is deterministic:
 NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge draw.
 
 | Piece | What it does |
@@ -546,6 +554,27 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
   attempts and the reserve doesn't hold them back; each NPC has 2 a day of its own. Once its or the
   town's attempts are used up, an NPC may still wave (`MotiveInputs.AttentionCapped`); it is
   `Blocked` only when its light acts are used up too.
+- **Meetings between ticks** (D32): about once a second the mod checks the player's location
+  (`ModEntry.MeetPlayer`). A villager there within the co-location radius that hasn't seen the player
+  this tick records the sighting at once (`MemoryStore.NoteMeetings`: a ledger sighting and the
+  `Saw` diary entry, marked so the next tick's `Observe` continues the span instead of writing a
+  second one), and the motives decide again for those villagers alone (`RunMotives(now, only)`). A
+  player running past no longer slips between two ten-minute ticks. Pacing holds: the cooldown
+  stops a second act in the same tick. Skipped while the player is busy.
+- While the player is busy (a talk, a menu, a scene or a warp's fade: `MotiveInputs.PlayerBusy`,
+  set by the mod from `!Context.IsPlayerFree`), no in-person act is decided; the NPC tries again the
+  next tick. In the first live test three villagers acted the moment the player walked into the
+  Saloon, the gate held all three back, and the runner had already counted them (two later read as
+  ignored). This is game state, not a position (AGENTS.md rule 2 is about positions).
+- Light acts (a wave, a glare, a greeting bubble) wait for no answer at all, so they are never
+  ignored: no open attempt, no `Ignored`, no frustration, no `IgnoredBy` in live (Sid, 2026-10-03:
+  "They happen often and it would just make the game unfun to have to react to every single one").
+  The `Act` line says "a wave needs no answer". Walk-ups, interrupts and bubbles with a real reason
+  still wait.
+- After the player's talk with an NPC that day, its in-person acts wait for no answer: the game
+  opens no second conversation that day, so the player couldn't answer, and the act would always
+  end up ignored (Sid's live test, 2026-10-03). No open attempt, no `Ignored`, no frustration; the
+  `Act` line says "no answer expected". Letters and queued lines wait as before.
 - An ignored attempt frustrates for the rest of the day: +0.1 intensity per ignore for the bold
   (boldness 0.5+), -0.1 for the shy. A talk with the player answers open attempts and clears it.
 - Used up: any face-to-face act is the day's greeting; news and thanks are delivered by an in-person
@@ -579,7 +608,7 @@ the worker only as the copied `RegardForPlayer`.
    `MotiveText.Line` in the SMAPI log (Info for Act, Grudge and Responded; Trace for the rest) and a
    `MotiveRecords.Decision` record; Act and Grudge also go to the viewer's feed; a Grudge calls
    `RegardKeeper.Relieve` and logs the `regard` record.
-4. `OnMenuChanged`: `EnqueueTalked` beside the ladder's `EnqueueResponse`.
+4. `OnMenuChanged`: `EnqueueTalked` (the ladder's `EnqueueResponse` went with the ladder, D31).
 5. The 6:00 tick: `RegardKeeper.Drift()`, then the `regard` snapshot (`MotiveRecords.Snapshot`).
 6. Save `regard` (`RegardBook.ToJson`) and `motives` (`BackgroundMotives.LatestJson`); load them
    with `RegardBook.FromJson` and `MotivesRunner.FromJson` (missing or damaged values load empty).
@@ -602,14 +631,19 @@ has its own switch in `config.json`, off by default.
   happy 32 for a greeting, heart 20 for gratitude, exclamation 16 for missing the player, news or
   worry, question 8 for curiosity; a hostile one is angry 12 from the bold (boldness 0.5+) and sad
   28 from the shy. A bubble's line is a template per motive, friendly or hostile, picked with
-  `Fnv1a(npc, motive, tick)`, with the farmer's name filled in and the whole line passed through
+  `Fnv1a(npc, motive, tick)`, from the villager's own voice (`BubbleVoices`: 34 villagers, a
+greeting, missing you, news, thanks, worry, hurt, jealous) or the plain lines when it has none for
+the feeling, with the farmer's name filled in and the whole line passed through
   `LineSanitizer` (the model writes nothing).
 - **The last check.** `LiveGate.WhyNot(act, facts, now)` is the one place outside `CollectPresences`
   and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in
   multiplayer, not more than `MaxDelayTicks` (1) after the decision, not during an event or a
   festival, not while the player is busy, only in the player's location within `EmoteMaxTiles` (10)
-  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking.
-  An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
+  or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking,
+  and not within `MinTicksBetweenActs` (3) of the last act that villager showed (`LiveLedger.LastShownTick`;
+  a safety net under the runner's 6-tick cooldown, in case anything ever shows one villager's acts
+  back to back).
+  The `[live]` line for an act shown names the tick it was decided in. An act held back is logged as `[live] ... not shown (reason)`; the runner still counts it as made
   (it decided on the worker and doesn't know).
 - **The breaker.** `LiveBreaker.Run(act, show)` turns one switch off for the session if showing
   throws, and reports the error once; `TripAll` is the console command `npcmod_live off`.
@@ -640,7 +674,10 @@ has its own switch in `config.json`, off by default.
    at Trace. A breaker error logs once at Error.
 5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
    `_memory.Note(npc, entry)`.
-6. The shadow line for the act stays as it is, so a day with the switches off and one with them on
+6. In `RunMotives`, each input's `PlayerBusy` is `!Context.IsPlayerFree` (done 2026-10-03; not yet
+   built against the game), so nothing in person is decided while the player is talking, in a menu
+   or a scene.
+7. The shadow line for the act stays as it is, so a day with the switches off and one with them on
    give the same `[shadow]` lines apart from the added `[live]` ones.
 
 ## Notice-board experiment (`src/NpcBoard`)

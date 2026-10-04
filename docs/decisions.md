@@ -428,6 +428,15 @@ runner and reading its log.
   memory read as "999 days without news" for every villager at 4+ hearts.
 - **Hearsay from the person it happened to is confirmed at once**, at half the original's lasting
   mark (`HearsayFactor`); from a witness it stays elastic.
+- **Waves and greeting bubbles are never ignored** (Sid, 2026-10-03): "They happen often and it
+  would just make the game unfun to have to react to every single one." Light acts open no
+  attempt, so they can't be ignored and don't frustrate.
+- **Nothing in person while the player is busy** (Sid's live test, 2026-10-03): acts decided during
+  a warp's fade or a conversation were held back by the live gate after the runner had counted them,
+  and two later read as ignored; the runner now doesn't decide them until the player is free.
+- **After today's talk, acts wait for no answer** (Sid's live test, 2026-10-03): the game opens no
+  second conversation with a villager that day, so a wave after the talk could never be answered and
+  always counted as ignored, which in live also writes `IgnoredBy`.
 - **Light acts are paced apart** (Sid, 2026-10-02, after the long playtest showed 3 to 5 acts a
   day, the reserve the top reason for a pass): an emote, or a bubble that only greets, uses none of
   the day's attempts and has its own cap of 2 per NPC; the town cap went from 6 to 12, to come
@@ -473,7 +482,8 @@ went first.
   retired; its attempts never show.
 - **A last check with live facts** (`LiveGate`): the one exception to AGENTS.md rule 2. It never
   chooses an act, only holds one back (an event, a menu, the player gone or too far, the villager
-  busy or hidden, multiplayer, or more than a tick late).
+  busy or hidden, multiplayer, or more than a tick late). Added 2026-10-04 as a safety net:
+  nor within 3 ticks of the last act the same villager showed, whatever the cause.
 - **The lines are templates**, not the model's text, and the emote follows the motive; the hostile
   emote is angry from the bold and sad from the shy. First guesses for Sid to tune.
 - **Being ignored becomes real:** a shown act the player ignores is written as `IgnoredBy`, which
@@ -481,6 +491,31 @@ went first.
 
 **Why.** Emotes and bubbles are the least invasive acts (gone in seconds, nothing to undo), and
 they are what makes the town feel alive.
+
+### D31. The urge ladder is retired; the motives decide every attempt
+**Decision (Sid, 2026-10-03: "Let's retire the old urge ladder").** The mod stops running
+`BackgroundLadder`. It had kept running beside the motives in shadow and made its own model calls
+(Jodi was asked "Approach now?" every tick on the farm), while the live acts already came only from
+the motives.
+- **Kept:** each tick's views and leads (`InitiationInput`, built by `BuildViews`); asking around,
+  now triggered when a villager misses the player, worries or has news at
+  `MotiveOptions.AskAroundStrength` (0.2; the ladder used urge 0.45); the heartbeat, now
+  "strongest motive" and the motives worker's backlog (`MotiveDrive`).
+- **Gone from the mod:** the ladder's model calls, its `[shadow]` lines and `ladder` playtest records,
+  `TriedToReach` diary entries, the viewer's urge (the "Old ladder" tab and the urge sort), and the
+  saved `ladder` value (an old one is left unread). `LadderMaxBacklog` keeps its name in
+  `config.json` and now bounds the motives worker.
+- **Not yet:** deleting `InitiationLadder`/`BackgroundLadder` and their tests.
+
+### D32. Villagers notice the player between ticks
+**Decision (Sid, 2026-10-03: "That sounds like a good fix to me").** Sightings and decisions ran
+only at the ten-minute tick (about 7 real seconds), so a player running past a villager between two
+ticks was never seen, and an act decided at the tick was often held back because the player had
+already left. About once a second the mod now checks the player's location only; a villager who
+just came within 8 tiles records the sighting (`MemoryStore.NoteMeetings`) and decides at once,
+alone. Positions are read only to record the sighting, as `CollectPresences` does (AGENTS.md rule 2
+now names both); the decision reads memory. Nothing else changes per second: no routine learning, no
+NPC-to-NPC sightings, no second `Saw` line.
 
 ## Open work and known issues
 

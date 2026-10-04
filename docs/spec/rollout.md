@@ -90,8 +90,9 @@ None of its own.
 
 Built (2026-10-02, `src/NpcLive`, not wired yet): `LiveSwitches` (`Emote`, `Bubble`), `LiveGate`,
 `LiveBreaker` (the circuit breaker, and `TripAll` for `npcmod_live off`), `LivePlanner` (emote ids
-and bubble lines) and `LiveLedger` (an ignored live act writes `IgnoredBy`). Not started: the other
-switches.
+and bubble lines) and `LiveLedger` (an ignored live act writes `IgnoredBy`). Wired into the mod by
+PR #30. Since 2026-10-04 the gate also holds back a second act from the same villager within 3 ticks
+(`LiveOptions.MinTicksBetweenActs`). Not started: the other switches.
 
 ## Decided
 

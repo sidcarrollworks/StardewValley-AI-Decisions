@@ -136,13 +136,7 @@
   .last { font-style: italic; color: var(--muted); margin-top: 4px; }
   .news { margin: 0; padding: 0; list-style: none; }
   .news li { display: flex; gap: 6px; }
-  .urgebar { position: relative; height: 6px; background: var(--bar); border-radius: 5px; margin-top: 4px; }
-  .urgefill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, var(--blue9), var(--amber9) 55%, var(--tomato9)); background-repeat: no-repeat; transition: width .8s ease; }
-  .tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--tick); }
-  .tick.next { background: var(--ink); width: 2px; }
   .urgeline { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .delta { font-weight: 600; }
-  .delta.up { color: var(--warm); } .delta.down { color: var(--cool); }
   .temper { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; margin-top: 4px; }
   .temper h4 { margin: 2px 0; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
   .trait { display: grid; grid-template-columns: 74px minmax(0, 1fr) 28px; gap: 6px; align-items: center; font-size: 12px; }
@@ -215,7 +209,6 @@
       <option value="changed">Recently changed</option>
       <option value="boldness">Boldness</option>
       <option value="hearts">Hearts</option>
-      <option value="urge">Urge (old ladder)</option>
       <option value="name">Name</option>
     </select>
     <label class="check"><input type="checkbox" id="onlyKnown" checked> knows you</label>
@@ -227,11 +220,11 @@
     <details class="help" id="help">
       <summary>How to read a card</summary>
       <dl>
-        <dt>Status pill</dt><dd>What the villager is doing now, in words. <span class="pill act">would wave</span> it acts; <span class="pill hostile">would glare</span> it acts on a hurt; <span class="pill close">close call</span> the model decides; <span class="pill open">waved · waiting on you</span> it tried to get your attention and waits for you to answer (talk to it); <span class="pill">holding back</span> it has a reason but can't act, and says why; <span class="pill">calm</span> nothing on its mind.</dd>
+        <dt>Status pill</dt><dd>What the villager is doing now, in words. <span class="pill act">would wave</span> it acts; <span class="pill hostile">would glare</span> it acts on a hurt; <span class="pill close">close call</span> the model decides; <span class="pill open">walked over · waiting on you</span> it tried to get your attention and waits for you to answer (talk to it; waves and greeting bubbles never wait); <span class="pill">holding back</span> it has a reason but can't act, and says why; <span class="pill">calm</span> nothing on its mind.</dd>
         <dt>Feeling</dt><dd>The motive it would act on and how strong it is, 0 to 1. Green is friendly, red hostile. Below it, the other feelings it has.</dd>
         <dt>What it would dare</dt><dd>Every act, cheapest first. <b>✓</b> it would do it; <b>?</b> a close call for the model; struck through: too shy for it; faded: not possible now (you're away, a letter is already out, or the feeling is too weak for it). The outlined one is its pick.</dd>
         <dt>Tiles</dt><dd><b>Regard</b> is its lasting feeling toward you (-1 to +1; -0.75 is a grudge). <b>Mood</b> is today's outlook. <b>Tries</b> counts today's attempts. <b>Saw you</b> is when it last saw you.</dd>
-        <dt>Tabs</dt><dd><b>Why</b>: its feelings and where they come from, its mood and its daring sum. <b>About you</b>: where it saw you, where it would look, tonight's news. Then the old urge ladder, its temperament and its diary.</dd>
+        <dt>Tabs</dt><dd><b>Why</b>: its feelings and where they come from, its mood and its daring sum. <b>About you</b>: where it saw you, where it would look, tonight's news. Then its temperament and its diary.</dd>
       </dl>
     </details>
     <div class="grid" id="grid"></div>
@@ -307,6 +300,7 @@ function plainReason(r) {
   if (!r) return "holding back";
   let m;
   if ((m = /capped or already waiting: (.+)$/.exec(r))) return "can't: today's " + m[1] + " used up";
+  if (/player is busy/.test(r)) return "waiting until you're free";
   if (/no allowed act is possible/.test(r)) return "you're not around";
   if ((m = /too weak for (.+?) \(needs/.exec(r))) return "feeling too weak for a " + m[1];
   if (/too weak/.test(r)) return "feeling too weak to act";
@@ -320,7 +314,7 @@ function plainReason(r) {
 // What the card says first: one status, in words and a color.
 function statusOf(npc) {
   const m = npc.motives;
-  if (!m) return npc.openStep ? { k: "open", text: npc.openStep + " out, waiting on you" } : { k: "calm", text: "no motives yet (old ladder)" };
+  if (!m) return { k: "calm", text: "no motives yet" };
   const hostile = m.net < 0 && !!m.chosen;
   if (m.openAct) return { k: hostile ? "hostile" : "open", text: done(m.openAct, hostile) + " · waiting on you" };
   if (!m.chosen) return { k: "calm", text: "calm" };
@@ -405,21 +399,6 @@ function makeCard(npc, s) {
   const news = row("Tonight's news");
   knowDet.append(dl);
 
-  // The old urge ladder, still running beside the motives.
-  const legacy = pane();
-  const legacySum = el("div", "urgeline");
-  legacy.append(legacySum);
-  const bar = el("div", "urgebar");
-  const fill = el("div", "urgefill");
-  bar.append(fill);
-  const ticks = (s.stepThresholds || []).map((t, i) => {
-    const tk = el("div", "tick"); tk.style.left = (t * 100) + "%"; tk.title = s.stepNames[i] + " at " + t; bar.append(tk); return tk;
-  });
-  const urgeLine = el("div", "urgeline");
-  const urgeText = el("span"), rungText = el("span");
-  urgeLine.append(urgeText, rungText);
-  legacy.append(bar, urgeLine);
-
   // Temperament: fixed per character, so it is drawn once (docs/spec/temperament.md).
   const temper = pane();
   if (npc.temperament) {
@@ -452,7 +431,7 @@ function makeCard(npc, s) {
   det.append(sum, diary);
 
   const ctabs = el("div", "ctabs");
-  const panes = [["Why", whyDet], ["About you", knowDet], ["Old ladder", legacy]];
+  const panes = [["Why", whyDet], ["About you", knowDet]];
   if (npc.temperament) panes.push(["Temperament", temper]);
   panes.push(["Diary", det]);
   const buttons = panes.map(([label, d]) => {
@@ -472,7 +451,7 @@ function makeCard(npc, s) {
   root.append(who, feel, ladderLbl, acts, tiles, quote, ctabs, ...panes.map(([, d]) => d));
   return { root, fields: { heartsEl, pill, why, feel, fname, fnum, mfill, fother, ladderLbl, acts, actEls, tRegard, tMood, tTries, tSeen,
                            quote, quoteText, whyBtn, mlist, mmood, mdare, mlast, lastSeen, lead, news,
-                           legacySum, fill, ticks, urgeText, rungText, sum, diary }, prev: null };
+                           sum, diary }, prev: null };
 }
 
 function traitOf(npc, name) {
@@ -580,22 +559,6 @@ function updateCard(c, npc, first) {
     if (!first) { flash(f.news); changed = true; }
   }
 
-  // The old ladder.
-  const u = Math.max(0, Math.min(1, npc.urge));
-  f.fill.style.width = u * 100 + "%";
-  // The gradient spans the whole bar, so the fill ends in the color of its level: blue low, amber mid, red high.
-  f.fill.style.backgroundSize = (u > 0 ? 100 / u : 100) + "% 100%";
-  f.ticks.forEach((t, i) => t.classList.toggle("next", i === npc.rung));
-  let delta = "";
-  if (p && Math.abs(npc.urge - p.urge) >= 0.005) {
-    const d = npc.urge - p.urge;
-    delta = ` <span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : ""}${d.toFixed(2)}</span>`;
-  }
-  f.legacySum.textContent = "Still runs beside the motives, in shadow; it is being retired." + (npc.openStep ? " " + npc.openStep + " open." : "");
-  f.urgeText.innerHTML = "urge <b>" + fmt(npc.urge) + "</b>" + delta;
-  f.rungText.textContent = "rung " + npc.rung + " " + npc.rungName + (npc.nextThreshold != null ? " at " + fmt(npc.nextThreshold) : "") +
-    (npc.attemptsToday ? " · " + npc.attemptsToday + " tried today" : "");
-
   const diaryKey = npc.diary.length ? npc.diary[0].absoluteTick + npc.diary[0].text : "";
   const prevKey = p && p.diary.length ? p.diary[0].absoluteTick + p.diary[0].text : "";
   f.sum.textContent = npc.diaryCount + " entries, newest first";
@@ -624,8 +587,8 @@ function render(s) {
   $("model").innerHTML = model;
   $("model").title = st.calls >= 0 ? `${st.calls} calls, ${st.fallbacks} fallbacks, median ${Math.round(st.medianMs)} ms, p95 ${Math.round(st.p95Ms)} ms` : "";
   const motives = s.npcs.some(n => n.motives);
-  $("minor").textContent = (motives ? "motives in shadow, the urge ladder beside them" : "motives not running yet: the urge ladder decides")
-    + ` · overnight plan ${s.planState} · ladder backlog ${st.backlog}, dropped ${st.dropped}`
+  $("minor").textContent = (motives ? "motives running" : "motives not running yet")
+    + ` · overnight plan ${s.planState} · motives backlog ${st.backlog}, dropped ${st.dropped}`
     + (st.calls >= 0 ? ` · ${st.calls} model calls, p95 ${Math.round(st.p95Ms)} ms` : "");
 
   const seen = new Set();
@@ -787,7 +750,6 @@ function layout() {
     hearts: (a, b) => b.hearts - a.hearts,
     // Most active first: acting and hostile, then close calls, waiting, holding back, calm; the strongest feeling first within each.
     feeling: (a, b) => (STATE_RANK[a._state] ?? 9) - (STATE_RANK[b._state] ?? 9) || strength(b) - strength(a),
-    urge: (a, b) => b.urge - a.urge,
   }[sort] || ((a, b) => 0);
   list.sort((a, b) => by(a, b) || a.name.localeCompare(b.name));
   const now = Date.now();

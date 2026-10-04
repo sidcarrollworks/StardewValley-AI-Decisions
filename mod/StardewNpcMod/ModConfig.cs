@@ -24,7 +24,8 @@ public sealed class ModConfig
     /// <summary>Total time overnight planning may spend on model calls before the rest fall back.</summary>
     public int PlanningBudgetMs { get; set; } = 20_000;
 
-    /// <summary>Ticks the ladder worker may fall behind before new ticks are dropped.</summary>
+    /// <summary>Ticks the motives worker may fall behind before new ticks are dropped. Keeps the old
+    /// urge ladder's name (retired, D31) so existing config.json files still apply.</summary>
     public int LadderMaxBacklog { get; set; } = 6;
 
     /// <summary>How long the "valley is waking up" morning wait may hold the day while overnight

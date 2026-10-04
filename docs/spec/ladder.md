@@ -1,6 +1,7 @@
 # 3. Initiation ladder
 
-**Status: done (shadow).** Urge, rungs, caps, response windows, escalation after being ignored,
+**Status: retired (2026-10-03, D31).** The motives ([motives.md](motives.md)) decide every attempt
+now; the mod no longer runs the ladder. Kept for reference below. Before that: **done (shadow).** Urge, rungs, caps, response windows, escalation after being ignored,
 conversations as responses, and Approach from a distance (Find) are built and logged. No rung does
 anything in the game yet. Brief goal 3 and design decision 3; D16, D17; architecture, "Initiation
 ladder".

@@ -120,6 +120,63 @@ public sealed class MotivesRunnerTests
     }
 
     [Fact]
+    public void AMeetingBetweenTicksDecidesAgainWithinTheSameTick()
+    {
+        // Live test 2026-10-03: the player ran past villagers between two ticks. The mod now notes
+        // the meeting and runs the motives again for that villager alone, at the same tick.
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs gus = Inputs("Gus", Robin, hearts: 6, near: false);
+        Assert.DoesNotContain(runner.Tick(Now, new[] { gus }), e => e.Kind == "Act"); // the tick: far away
+        MotiveEvent wave = Assert.Single(runner.Tick(Now, new[] { gus with { PlayerNear = true, SeenPlayerToday = true } }), e => e.Kind == "Act");
+        Assert.True(MotiveOptions.IsLight(wave.Act!.Value, wave.Motive!.Value));
+        // The same tick again: the cooldown holds, no second wave.
+        Assert.DoesNotContain(runner.Tick(Now, new[] { gus with { PlayerNear = true, SeenPlayerToday = true } }), e => e.Kind == "Act");
+    }
+
+    [Fact]
+    public void WavesAndGreetingBubblesAreNeverIgnored()
+    {
+        // Sid, 2026-10-03: "Let's not count waves or greeting bubbles as ignored. They happen often
+        // and it would just make the game unfun to have to react to every single one."
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs gus = Inputs("Gus", Robin, hearts: 6, near: true); // only greets
+        List<MotiveEvent> events = Run(runner, gus, Now, Now + 30);
+
+        List<MotiveEvent> acts = events.Where(e => e.Kind == "Act").ToList();
+        Assert.NotEmpty(acts);
+        Assert.All(acts, a => Assert.True(MotiveOptions.IsLight(a.Act!.Value, a.Motive!.Value)));
+        Assert.All(acts, a => Assert.Contains("a wave needs no answer", a.Reason));
+        Assert.DoesNotContain(events, e => e.Kind == "Ignored");
+        Assert.Equal(0, runner.States().Single().IgnoredToday);
+        Assert.Null(runner.States().Single().OpenAct);
+    }
+
+    [Fact]
+    public void AfterTodaysTalkAnActWaitsForNoAnswer()
+    {
+        // Sid's live test (2026-10-03): after the day's talk the game opens no second conversation,
+        // so a wave then could never be answered and always ended up ignored. Now it waits for
+        // nothing: no open attempt, no Ignored, no frustration.
+        var runner = new MotivesRunner(new Scripted());
+        MotiveInputs emily = Inputs("Emily", Robin with { Boldness = 0.74 }, hearts: 2, near: true,
+            diary: new[] { E(Day / 4, "GiftReceived", "taste=Hate;item=(O)92;name=Sap") });
+        runner.NoteTalked("Emily", Now - 1);
+        List<MotiveEvent> events = Run(runner, emily, Now + 5, Now + 30);
+
+        MotiveEvent act = events.First(e => e.Kind == "Act");
+        Assert.Contains("no answer expected", act.Reason);
+        Assert.DoesNotContain(events, e => e.Kind == "Ignored");
+        Assert.Null(runner.States().Single().OpenAct);
+        Assert.Equal(0, runner.States().Single().IgnoredToday);
+
+        // The next day the talk is forgotten: an act waits for an answer again.
+        var tomorrow = new MotivesRunner(new Scripted());
+        tomorrow.NoteTalked("Emily", Now - Day);
+        MotiveEvent fresh = Run(tomorrow, emily, Now + 5, Now + 30).First(e => e.Kind == "Act");
+        Assert.DoesNotContain("no answer expected", fresh.Reason);
+    }
+
+    [Fact]
     public void TalkingAnswersAnOpenAttempt()
     {
         var runner = new MotivesRunner(new Scripted());

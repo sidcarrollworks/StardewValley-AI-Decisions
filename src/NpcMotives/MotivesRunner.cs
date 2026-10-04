@@ -191,9 +191,12 @@ public sealed class MotivesRunner
 
             // (9) The attempt.
             bool hostile = d.Checks.FirstOrDefault(c => c.Act == taken)?.Hostile ?? false;
-            Open(s, taken, d.Chosen.Motive, hostile, absoluteTick, day);
+            bool waitsForAnswer = Open(s, taken, d.Chosen.Motive, hostile, absoluteTick, day);
+            string noAnswer = waitsForAnswer || Waits(taken) ? ""
+                : MotiveOptions.IsLight(taken, d.Chosen.Motive) ? "; a wave needs no answer"
+                : "; no answer expected: the player already talked to them today";
             events.Add(new MotiveEvent(absoluteTick, i.Npc, "Act", taken, d.Chosen.Motive, hostile,
-                d.Pending is not null && d.Pending.Act == taken ? "close call" : "clear yes",
+                (d.Pending is not null && d.Pending.Act == taken ? "close call" : "clear yes") + noAnswer,
                 d, modelP, tilted, choice));
         }
         return events;
@@ -212,6 +215,7 @@ public sealed class MotivesRunner
         RollNpc(s, day);
         s.LastContactTick = absoluteTick;
         s.GreetedDay = day;
+        s.TalkedDay = day;
 
         var answered = new List<MotiveEvent>();
         foreach (Attempt a in new[] { s.Open, s.Waiting }.OfType<Attempt>())
@@ -292,11 +296,19 @@ public sealed class MotivesRunner
 
     private static bool Waits(Act act) => act is Act.Letter or Act.QueuedLine or Act.AskForHelp;
 
-    private void Open(NpcState s, Act act, Motive motive, bool hostile, int tick, int day)
+    /// <summary>Records an attempt; true when it waits for the player's answer. Two kinds wait for
+    /// nothing, so they can never be ignored: a light act (a wave, a glare, a greeting bubble),
+    /// since they happen often and the player shouldn't have to answer each one (Sid,
+    /// 2026-10-03); and an in-person act after the player already talked to this NPC today, since
+    /// the game opens no second conversation that day (Sid's live test, 2026-10-03).</summary>
+    private bool Open(NpcState s, Act act, Motive motive, bool hostile, int tick, int day)
     {
         var attempt = new Attempt { Act = act, Tick = tick, Motive = motive, Hostile = hostile };
+        bool waitsForAnswer = true;
         if (Waits(act))
             s.Waiting = attempt;
+        else if (MotiveOptions.IsLight(act, motive) || s.TalkedDay == day)
+            waitsForAnswer = false;
         else
             s.Open = attempt;
         s.LastAttemptTick = tick;
@@ -324,6 +336,7 @@ public sealed class MotivesRunner
             s.VentTicks.Add(tick); // acting on hurt vents it; regard is unchanged
         else if (act is not (Act.QueuedLine or Act.Emote))
             Deliver(s, motive, tick, day);
+        return waitsForAnswer;
     }
 
     private static void Deliver(NpcState s, Motive motive, int tick, int day)
@@ -518,6 +531,7 @@ public sealed class MotivesRunner
         public Attempt? Open;            // in person: blocks new attempts until settled
         public Attempt? Waiting;         // a letter, queued line or request: blocks only its own sort
         public int? GreetedDay;
+        public int? TalkedDay;           // the player talked to them (no second conversation that day)
         public int? NewsSharedDay;
         public int? ThankedTick;
         public List<int> VentTicks = new();
@@ -551,6 +565,7 @@ public sealed class MotivesRunner
         public Attempt? Open { get; set; }
         public Attempt? Waiting { get; set; }
         public int? GreetedDay { get; set; }
+        public int? TalkedDay { get; set; }
         public int? NewsSharedDay { get; set; }
         public int? ThankedTick { get; set; }
         public List<int>? VentTicks { get; set; }
@@ -571,6 +586,7 @@ public sealed class MotivesRunner
             Open = s.Open,
             Waiting = s.Waiting,
             GreetedDay = s.GreetedDay,
+            TalkedDay = s.TalkedDay,
             NewsSharedDay = s.NewsSharedDay,
             ThankedTick = s.ThankedTick,
             VentTicks = s.VentTicks.ToList(),
@@ -591,6 +607,7 @@ public sealed class MotivesRunner
             Open = Open,
             Waiting = Waiting,
             GreetedDay = GreetedDay,
+            TalkedDay = TalkedDay,
             NewsSharedDay = NewsSharedDay,
             ThankedTick = ThankedTick,
             VentTicks = VentTicks?.ToList() ?? new List<int>(),

@@ -38,7 +38,7 @@ public class HeartbeatTests
     public void Format_NoUrges_ShowsNone()
     {
         string line = Heartbeat.Format(12, 29, Empty(), 1, 0, Heartbeat.PlanState.None);
-        Assert.Contains("max urge 0.00 (none)", line);
+        Assert.Contains("strongest motive 0.00 (none)", line);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class HeartbeatTests
         // Insertion order puts Shane first, but Willy's urge is higher and must win.
         var urges = new Dictionary<string, double> { ["Shane"] = 0.2, ["Willy"] = 0.5, ["Alex"] = 0.3 };
         string line = Heartbeat.Format(12, 1, urges, 0, 0, Heartbeat.PlanState.None);
-        Assert.Contains("max urge 0.50 (Willy)", line);
+        Assert.Contains("strongest motive 0.50 (Willy)", line);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class HeartbeatTests
         // Same urge: the alphabetically first name wins, not the dictionary's insertion order.
         var urges = new Dictionary<string, double> { ["Shane"] = 0.5, ["Abigail"] = 0.5 };
         string line = Heartbeat.Format(12, 1, urges, 0, 0, Heartbeat.PlanState.None);
-        Assert.Contains("max urge 0.50 (Abigail)", line);
+        Assert.Contains("strongest motive 0.50 (Abigail)", line);
     }
 
     [Fact]

@@ -160,6 +160,8 @@ public sealed class MotivesEngine
         if (i.Unavailable?.Contains(act) == true)
             return false; // a daily or weekly cap has ruled it out
         bool inPerson = act is Act.Emote or Act.Bubble or Act.WalkUp or Act.Visit or Act.Interrupt;
+        if (inPerson && i.PlayerBusy)
+            return false; // the player is talking, in a menu or a scene: try again next tick
         if (inPerson && friendlyInPerson && net <= -_o.AvoidLevel)
             return false; // avoiding the player: no friendly face-to-face
         return act switch
@@ -296,6 +298,9 @@ public sealed class MotivesEngine
                     string.Join(", ", tooWeak.Select(a => string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0} (needs {1:0.00})", MotiveText.ActName(a), _o.MinStrengthFor(a))))),
                 familiarity, intensityTerm, checks);
+        if (checks.Count == 0 && i.PlayerBusy
+            && AllowedActs(chosen.Motive, feeling, i.BestNewsScore).Any(a => Available(a, i with { PlayerBusy = false }, friendlyInPerson: !hostile, c.Net)))
+            return Nothing("the player is busy (a talk, a menu or a scene); it waits", familiarity, intensityTerm, checks);
         if (checks.Count == 0)
         {
             // Say when a cap, not the situation, ruled the acts out.

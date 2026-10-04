@@ -56,7 +56,7 @@ public static class Heartbeat
         }
 
         string line = $"[shadow] {TimeUtils.TimeOfDay(tickOfDay):0000}: {diaryCount} NPC diaries, " +
-                      $"max urge {maxUrge:0.00} ({top}), ladder backlog {backlog}/dropped {dropped}, " +
+                      $"strongest motive {maxUrge:0.00} ({top}), motives backlog {backlog}/dropped {dropped}, " +
                       $"overnight plan {plan}";
 
         // Model counters ride at the end when the caller supplies them (docs/spec/laya.md,
