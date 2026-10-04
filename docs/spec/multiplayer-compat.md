@@ -1,6 +1,6 @@
 # 14. Multiplayer and compatibility
 
-**Status: not started.** The mod assumes one player (`Game1.player`) and vanilla NPCs, and has not
+**Status: single-player guard built (2026-10-04); multiplayer itself not started.** The mod assumes one player (`Game1.player`) and vanilla NPCs, and has not
 been tested with other mods.
 
 ## Multiplayer
@@ -86,7 +86,20 @@ subjects in shadow; L for live delivery to farmhands.
 
 ## Status
 
-Not started. Today a farmhand would run a full independent copy.
+Built (2026-10-04, Sid: "Please add the guard"): `HostOnly` (`src/NpcMemory/HostOnly.cs`) names
+the role from SMAPI's `Context` flags.
+- **Farmhand on a remote host:** `OnSaveLoaded` logs the farmhand line once and returns before
+  `LoadMemory`. Every other handler returns early, because `Context.IsMainPlayer` is false. Nothing
+  is recorded, saved or shown. The gift and quest postfixes return early too.
+- **Split-screen guest:** that screen's handlers return early. `ReturnedToTitle` on a guest's
+  screen (`ScreenId != 0`) doesn't clear the host's memory.
+- **Host in multiplayer:** the mod keeps running for the host's farmer. It logs one warning at load,
+  or when the first farmer connects (`PeerConnected`), that other farmers are ignored. Live acts are
+  already off in multiplayer (`LiveGate`).
+- **VERIFY in game:** that `Context.IsMultiplayer` is already true at `SaveLoaded` for a hosted co-op
+  save, and that a farmhand joins a host without the mod and sees the one log line and no errors.
+
+Multiplayer itself (the list above) is not started.
 
 ## Later: pairing with another mod for content
 

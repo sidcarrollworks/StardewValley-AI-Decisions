@@ -87,6 +87,12 @@ lines, the ladder's daily caps and response windows.
 
 ## The per-tick flow in the mod
 
+**Single-player guard** (`HostOnly`, docs/spec/multiplayer-compat.md): only the host's main
+screen runs the mod. A farmhand on a remote host logs one line at load and stays off, before
+`LoadMemory`, since it can't read or write save data. Every handler and both Harmony postfixes
+return early when `Context.IsMainPlayer` is false. A host in multiplayer gets one warning that
+other farmers are ignored.
+
 Every game hook is in `mod/StardewNpcMod/ModEntry.cs`. Each handler catches and logs its own
 exceptions. In `OnTimeChanged`, steps 1-3 and steps 4-5 are separate try blocks, so a memory failure
 does not stop the ladder.
