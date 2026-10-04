@@ -145,6 +145,11 @@ public static class Gossip
         return new DiaryEntry(original.AbsoluteTick, original.Subject, HeardKind, DiaryDetail.Format(pairs.ToArray()));
     }
 
+    /// <summary>When the listener got the story: a Heard's <c>at</c>, else the entry's own tick
+    /// (a Heard from before juiciness was told the day it happened).</summary>
+    public static int HeardAt(DiaryEntry e)
+        => IsHeard(e) && Int(DiaryDetail.Parse(e.Detail), "at") is { } at ? at : e.AbsoluteTick;
+
     public static bool IsHeard(DiaryEntry e) => string.Equals(e.Kind, HeardKind, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>The Heard keys that are bookkeeping, not part of the original event.</summary>

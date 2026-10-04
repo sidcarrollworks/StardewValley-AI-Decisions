@@ -24,24 +24,16 @@ public static class Stresses
         double sens = SensitivityFactor(t);
         foreach (DiaryEntry e in diary)
         {
+            if (e.Kind == "Heard")
+            {
+                if (Hearsay(e, now, windowStart, sens, heartsWithPlayer, o) is { } hearsay)
+                    result.Add(hearsay);
+                continue;
+            }
+
             if (e.AbsoluteTick < windowStart || e.AbsoluteTick > now)
                 continue;
             double days = (now - e.AbsoluteTick) / (double)GameClock.TicksPerDay;
-
-            if (e.Kind == "Heard")
-            {
-                // Hearsay moves only the elastic part, at HearsayFactor of the original
-                // (ledger-gossip.md, "How the listener takes it").
-                IReadOnlyDictionary<string, string> d = DiaryDetail.Parse(e.Detail);
-                if (!d.TryGetValue("kind", out string? original))
-                    continue;
-                StressorProfile? p0 = StressorTable.Of(new DiaryEntry(e.AbsoluteTick, e.Subject, original, e.Detail));
-                if (p0 is null)
-                    continue;
-                double heard = p0.Magnitude * o.HearsayFactor * sens * Math.Pow(p0.ElasticDecay, days);
-                result.Add(new Stress(e.Subject, p0.Motive, "Heard:" + original, p0.Valence, heard, e.AbsoluteTick));
-                continue;
-            }
 
             if (e.Kind == "SawGift")
             {
@@ -64,6 +56,33 @@ public static class Stresses
                 p.Magnitude * sens * Math.Pow(p.ElasticDecay, days), e.AbsoluteTick));
         }
         return result;
+    }
+
+    /// <summary>
+    /// What a <c>Heard</c> does to the listener (ledger-gossip.md, "How the listener takes it"):
+    /// only the elastic part, at <see cref="MotiveOptions.HearsayFactor"/> of the original, decayed
+    /// from when it was heard (D33). Relevance: a listener drawn to the player (8+ hearts) takes a
+    /// story about the player <see cref="MotiveOptions.MaxRelevance"/> times as hard, and a gift
+    /// the player gave someone else that pleased them stirs jealousy instead of thanks (romance.md).
+    /// </summary>
+    public static Stress? Hearsay(DiaryEntry e, int now, int windowStart, double sens, int heartsWithPlayer, MotiveOptions o)
+    {
+        int at = Gossip.HeardAt(e);
+        if (at < windowStart || at > now)
+            return null;
+        if (Gossip.Original(e) is not { } original || Gossip.IsHeard(original))
+            return null;
+        StressorProfile? p0 = StressorTable.Of(original);
+        if (p0 is null)
+            return null;
+        double days = (now - at) / (double)GameClock.TicksPerDay;
+        bool aboutPlayer = string.Equals(e.Subject, MemoryStore.PlayerName, StringComparison.OrdinalIgnoreCase);
+        bool drawn = aboutPlayer && heartsWithPlayer >= o.DrawnHearts;
+        double relevance = drawn ? o.MaxRelevance : 1;
+        double strength = p0.Magnitude * o.HearsayFactor * relevance * sens * Math.Pow(p0.ElasticDecay, days);
+        if (drawn && original.Kind == "GiftReceived" && p0.Valence > 0)
+            return new Stress(e.Subject, Motive.Jealous, "Heard:" + original.Kind, -1, strength, at);
+        return new Stress(e.Subject, p0.Motive, "Heard:" + original.Kind, p0.Valence, strength, at);
     }
 
     /// <summary>

@@ -103,6 +103,80 @@ public sealed class RegardKeeperAndInputsTests
     }
 
     [Fact]
+    public void AStoryAboutThePlayerWeighsDoubleOnSomeoneDrawnToThem_AndAPleasingGiftStirsJealousy()
+    {
+        var o = new MotiveOptions();
+        var quest = new DiaryEntry(Now, "Player", "Heard", $"from=Sam;kind=QuestHelped;subject=Player;of=Robin;b=2;j=1.4;at={Now};hops=2");
+        double plain = Stresses.Elastic(new[] { quest }, Now, Temperament.Neutral, 4, o).Single().Strength;
+        Stress drawn = Stresses.Elastic(new[] { quest }, Now, Temperament.Neutral, 8, o).Single();
+        Assert.Equal(2 * plain, drawn.Strength, 6);
+        Assert.Equal(Motive.Grateful, drawn.Motive); // helping someone else is still good news
+
+        var gift = new DiaryEntry(Now, "Player", "Heard", $"from=Haley;kind=GiftReceived;subject=Player;of=Haley;taste=Love;at={Now}");
+        Assert.Equal(Motive.Grateful, Stresses.Elastic(new[] { gift }, Now, Temperament.Neutral, 4, o).Single().Motive);
+        Stress jealous = Stresses.Elastic(new[] { gift }, Now, Temperament.Neutral, 8, o).Single();
+        Assert.Equal(Motive.Jealous, jealous.Motive);
+        Assert.Equal(-1, jealous.Valence);
+
+        var hated = gift with { Detail = $"from=Haley;kind=GiftReceived;subject=Player;of=Haley;taste=Hate;at={Now}" };
+        Assert.Equal(Motive.Hurt, Stresses.Elastic(new[] { hated }, Now, Temperament.Neutral, 8, o).Single().Motive);
+    }
+
+    [Fact]
+    public void HearsayFadesFromWhenItWasHeard_NotFromTheEvent()
+    {
+        var o = new MotiveOptions();
+        // The scandal happened 5 days ago (outside the 3-day window); it was heard today.
+        var late = new DiaryEntry(Now - 5 * Day, "Player", "Heard", $"from=Gus;kind=SawRummaging;subject=Player;of=Lewis;b=4;j=2.8;at={Now};hops=2");
+        Stress s = Stresses.Elastic(new[] { late }, Now, Temperament.Neutral, 0, o).Single();
+        Assert.Equal(Now, s.Tick);
+        Assert.Equal(0.3 * o.HearsayFactor, s.Strength, 6); // no decay yet
+    }
+
+    [Fact]
+    public void SeeingItFirstHandConfirmsHearsay_OnceAndWithinAWeek()
+    {
+        var heard = new DiaryEntry(Now, "Player", "Heard", $"from=Lewis;kind=SawRummaging;subject=Player;of=Lewis;b=4;j=2.8;at={Now};hops=1");
+        var diary = new List<DiaryEntry> { heard };
+        var seen = new DiaryEntry(Now + 2 * Day, "Player", "SawRummaging", "place=Saloon");
+
+        Assert.Single(RegardKeeper.ConfirmedBy(seen, diary, new MotiveOptions()));
+        var keeper = Keeper();
+        RegardNote note = keeper.OnNoted("Haley", seen, diary)!;
+        var alone = Keeper();
+        RegardNote unheard = alone.OnNoted("Haley", seen, new List<DiaryEntry>())!;
+        Assert.True(note.After < unheard.After); // the confirmed story adds its own lasting mark
+        Assert.Contains("saw for themselves what Lewis told them", note.Cause);
+
+        // A second sighting confirms nothing more.
+        diary.Add(seen);
+        Assert.Empty(RegardKeeper.ConfirmedBy(seen with { AbsoluteTick = Now + 3 * Day }, diary, new MotiveOptions()));
+
+        // Too late: more than 7 days after hearing it.
+        Assert.Empty(RegardKeeper.ConfirmedBy(seen with { AbsoluteTick = Now + 8 * Day }, new[] { heard }, new MotiveOptions()));
+        // A different act, or about someone else, confirms nothing.
+        Assert.Empty(RegardKeeper.ConfirmedBy(new DiaryEntry(Now + Day, "Player", "Argued", null), new[] { heard }, new MotiveOptions()));
+        Assert.Empty(RegardKeeper.ConfirmedBy(new DiaryEntry(Now + Day, "Sam", "SawRummaging", null), new[] { heard }, new MotiveOptions()));
+    }
+
+    [Fact]
+    public void HearsayFromTheSourceIsNotConfirmedTwice_AndAGiftSeenConfirmsAGiftHeard()
+    {
+        var fromOwner = new DiaryEntry(Now, "Player", "Heard", $"from=Haley;kind=GiftReceived;subject=Player;of=Haley;taste=Love;at={Now}");
+        var gotOne = new DiaryEntry(Now + Day, "Player", "GiftReceived", "taste=Like");
+        Assert.Empty(RegardKeeper.ConfirmedBy(gotOne, new[] { fromOwner }, new MotiveOptions()));
+
+        var retold = fromOwner with { Detail = $"from=Sam;kind=GiftReceived;subject=Player;of=Haley;b=2;j=1.4;at={Now};hops=2;taste=Love" };
+        var sawOne = new DiaryEntry(Now + Day, "Penny", "SawGift", "giver=Player;taste=Like");
+        Assert.Single(RegardKeeper.ConfirmedBy(sawOne, new[] { retold }, new MotiveOptions()));
+        RegardNote note = Keeper().OnNoted("Emily", sawOne, new[] { retold })!;
+        Assert.True(note.After > note.Before); // a seen gift stirs nothing itself, but confirms
+        Assert.Contains("Sam", note.Cause);
+        // A displeasing gift seen is a different act.
+        Assert.Empty(RegardKeeper.ConfirmedBy(sawOne with { Detail = "giver=Player;taste=Hate" }, new[] { retold }, new MotiveOptions()));
+    }
+
+    [Fact]
     public void AGrudgeEasesAfterItsPenalty()
     {
         var book = new RegardBook();

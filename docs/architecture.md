@@ -213,8 +213,14 @@ entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind
   `of` (whose diary it started in), `b` (base), `j` (juiciness when told), `at` (tick told) and
   `hops` to the original's keys; its tick stays the event's. A `Heard` without them (before D33)
   reads as one hop from its teller.
-- A story never touches the position ledger. Hearsay is confirmed (lasting regard) only when its
-  teller is the person it started with (`RegardKeeper.FromSource`); a retold one stays elastic.
+- A story never touches the position ledger. Hearsay is confirmed (lasting regard) when its
+  teller is the person it started with (`RegardKeeper.FromSource`), or when the listener sees the
+  same act by the same person within `ConfirmWindowDays` (7) of hearing it
+  (`RegardKeeper.ConfirmedBy`, once per story); otherwise it stays elastic.
+- How hard it lands (`Stresses.Hearsay`): the original's magnitude x `HearsayFactor` (0.5),
+  decayed from when it was heard; x `MaxRelevance` (2) for a listener at `DrawnHearts` (8) or more
+  with the player when the story is about the player, and a pleasing gift the player gave someone
+  else turns into `Jealous`.
 Without a juiciness function, `Chat` keeps the old rule (today's `GiftReceived`, `SawGift`,
 `QuestHelped`, `Festival`, teller's own entries, one hop), which only tests use.
 `SubjectsOf(observer)` lists an observer's subjects; `RemapTicks` exists for save migration. The JSON
