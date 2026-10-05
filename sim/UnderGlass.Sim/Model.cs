@@ -1,5 +1,27 @@
 namespace UnderGlass.Sim;
 
+/// <summary>
+/// The clock (design rule 1, decided 2026-10-05): 24 hours, the date changes at midnight, and
+/// there is no end of the day. Time is counted in game minutes from midnight of day 0. Routines
+/// and chats run on <see cref="TickMinutes"/>-minute ticks; acts and perception run every minute.
+/// </summary>
+public static class Clock
+{
+    public const int MinutesPerDay = 1440;
+    public const int TickMinutes = 5;
+    public const int DaysPerWeek = 7;
+    public const int DaysPerSeason = 28;
+    /// <summary>About 20 real minutes per game day (Sid, 2026-10-05); a parameter for later.</summary>
+    public const double RealSecondsPerGameMinute = 20.0 * 60 / MinutesPerDay;
+
+    public static int Day(int minute) => minute / MinutesPerDay;
+    public static int OfDay(int minute) => minute % MinutesPerDay;
+    /// <summary>0 is the first day of the week.</summary>
+    public static int Weekday(int minute) => Day(minute) % DaysPerWeek;
+    public static int At(int hour, int min = 0) => hour * 60 + min;
+    public static string Format(int minute) => $"d{Day(minute)} {OfDay(minute) / 60:00}:{OfDay(minute) % 60:00}";
+}
+
 /// <summary>A tile position inside a location.</summary>
 public readonly record struct Tile(int X, int Y)
 {
@@ -8,7 +30,7 @@ public readonly record struct Tile(int X, int Y)
 
 /// <summary>
 /// A place. Rows are strings: '.' open, '#' blocks sight (wall), '+' halves sight (fence, bush,
-/// shelf). Outdoor places are darker at night.
+/// shelf). Only '.' can be walked on. Outdoor places are darker at night.
 /// </summary>
 public sealed record Location(string Name, bool Outdoor, IReadOnlyList<string> Rows)
 {
@@ -18,6 +40,10 @@ public sealed record Location(string Name, bool Outdoor, IReadOnlyList<string> R
     public bool Walkable(Tile t) => At(t) == '.';
 }
 
+/// <summary>A door between two places: stepping onto <paramref name="DoorA"/> in A puts you on
+/// <paramref name="DoorB"/> in B, and back. Roads are places too, so walkers are seen on them.</summary>
+public sealed record Link(string A, Tile DoorA, string B, Tile DoorB);
+
 /// <summary>
 /// The traits that set how strongly each law acts on a person (design 3a, law 12). All 0..1.
 /// SelfRegard is Spinoza's self-esteem: low self-regard with high boldness gives confident
@@ -25,49 +51,84 @@ public sealed record Location(string Name, bool Outdoor, IReadOnlyList<string> R
 /// </summary>
 public sealed record Temperament(double Chattiness, double Boldness, double Understanding, double SelfRegard);
 
-/// <summary>One block of a day: from this tick, be at this spot.</summary>
-public sealed record RoutineStep(int FromTick, string Location, Tile Spot);
+/// <summary>
+/// A body (design rule 1): the energy bar's size (stamina for hard work), and how empty it gets
+/// before this person feels like going to bed at a neutral hour of the body clock (10:00 or 22:00),
+/// as a share of the bar; night owls are lower. A negative BedAt never feels tired, which only
+/// tests use.
+/// </summary>
+public sealed record Body(double MaxEnergy, double BedAt);
+
+/// <summary>A job: where, the hours (minutes of the day, End at most 1440), the weekdays off, and
+/// how tiring it is (1 is an ordinary waking hour's drain at work).</summary>
+public sealed record Job(string Place, Tile Spot, int Start, int End, IReadOnlyList<int> DaysOff, double Effort)
+{
+    public bool WorksOn(int weekday) => !DaysOff.Contains(weekday);
+}
+
+/// <summary>A free-time haunt: a spot this person likes between From and To (minutes of the day;
+/// To below From runs past midnight), with a weight against their other haunts.</summary>
+public sealed record Haunt(string Place, Tile Spot, int From, int To, double Weight)
+{
+    public bool Open(int minuteOfDay) => From <= To
+        ? minuteOfDay >= From && minuteOfDay < To
+        : minuteOfDay >= From || minuteOfDay < To;
+}
 
 /// <summary>
-/// A villager. Household and friends seed familiarity. Vices are act kinds the villager may
-/// commit, with a weight (design rule 15).
+/// A villager. Household names the home (<c>Home:&lt;household&gt;</c>) and seeds familiarity.
+/// The day comes from the job, the haunts and the body (design rule 1). Acts are the act kinds the
+/// villager may commit, with a weight (design rule 15).
 /// </summary>
 public sealed record Villager(
     string Name,
     string Household,
     string Kind,
     Temperament Temperament,
-    IReadOnlyList<RoutineStep> Routine,
+    Body Body,
+    Job? Job,
+    IReadOnlyList<Haunt> Haunts,
     IReadOnlyDictionary<string, double> Acts,
-    IReadOnlyList<string> Friends);
+    IReadOnlyList<string> Friends)
+{
+    public string Home => "Home:" + Household;
+}
+
+/// <summary>The four tiers of a story (design rule 9, decided 2026-10-05).</summary>
+public enum Tier { Trivia, News, Scandal, Upheaval }
 
 /// <summary>
 /// A kind of act and how it is perceived (design rule 4 row, reduced for phase 0a).
-/// ReadTicks: how long it takes to understand what is happening (a glance is 1).
+/// ReadMinutes: how long it takes to understand what is happening (a glance is 1).
+/// DurationMinutes: how long it lasts. PerDay: town-wide rate when someone is able to.
 /// Allowed: the locations it can happen in (empty: anywhere).
 /// </summary>
 public sealed record ActKind(
     string Name,
     double Juiciness,
     int Valence,
-    int ReadTicks,
-    int Duration,
+    int ReadMinutes,
+    int DurationMinutes,
     double PerDay,
-    IReadOnlyList<string> Allowed)
+    IReadOnlyList<string> Allowed,
+    bool Upheaval = false)
 {
     /// <summary>A bad act at base juiciness 4 or more (D34; design rule 9).</summary>
-    public bool IsScandal => Valence < 0 && Juiciness >= 4;
+    public bool IsScandal => !Upheaval && Valence < 0 && Juiciness >= 4;
+
+    public Tier Tier => Upheaval ? Tier.Upheaval : IsScandal ? Tier.Scandal : Juiciness >= 2 ? Tier.News : Tier.Trivia;
 }
 
-/// <summary>Something that happened.</summary>
-public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At);
+/// <summary>Something that happened, at a game minute. Injected acts were placed by the harness to
+/// measure spread.</summary>
+public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false);
 
 /// <summary>Where a belief came from.</summary>
 public enum Source { Witnessed, Told }
 
 /// <summary>
 /// What one villager believes about one act. Actor is who they think did it, or null for
-/// "someone". Juiciness is the value when they got it; it fades from the act's tick.
+/// "someone". Juiciness is the value when they got it; it fades from GotTick (a game minute).
 /// Chain lists the tellers, nearest first, empty for a witness.
 /// </summary>
 public sealed record Belief(
@@ -83,3 +144,7 @@ public sealed record Belief(
 
 /// <summary>A villager confronted someone over a scandal (design rule 9).</summary>
 public sealed record Confrontation(int ActId, int Tick, string By, string Target, bool Correct);
+
+/// <summary>One night's sleep (or nap): when it began and ended, and whether an alarm was slept
+/// through. WokeAt is null if the run ended first.</summary>
+public sealed record Sleep(string Name, int SleptAt, int? WokeAt, double EnergyAtSleep, bool MissedAlarm, bool Collapsed);

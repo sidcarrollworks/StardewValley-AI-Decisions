@@ -14,33 +14,54 @@ public sealed record GroupStats(
     double ActorWrong,
     double ActorUnknown);
 
-/// <summary>Across many runs: how far stories go, who gets blamed, and how often a scandal ends in a confrontation.</summary>
-public sealed record RunStats(int Runs, IReadOnlyList<GroupStats> Groups, double ConfrontationsPerSeason, double ConfrontationsRight, double ScandalsConfronted);
+/// <summary>How the town sleeps and works (design rule 1), across many runs.</summary>
+public sealed record BodyStats(
+    double MeanBedtime,
+    double BedtimeSpread,
+    double MeanWake,
+    double MeanSleepHours,
+    double MissedAlarmShare,
+    double CollapsesPerSeason,
+    double LatePerSeason);
+
+/// <summary>Across many runs: how far stories go, who gets blamed, how often a scandal ends in a
+/// confrontation, how often each tier happens, and how the town sleeps.</summary>
+public sealed record RunStats(
+    int Runs,
+    IReadOnlyList<GroupStats> Groups,
+    double ConfrontationsPerSeason,
+    double ConfrontationsRight,
+    double ScandalsConfronted,
+    IReadOnlyDictionary<Tier, double> PerYear,
+    BodyStats Body);
 
 public static class Metrics
 {
-    /// <summary>Which group an act kind belongs to.</summary>
-    public static string GroupOf(ActKind k) => k.IsScandal ? "scandal" : k.Valence < 0 ? "bad" : k.Valence > 0 ? "good" : "neutral";
+    /// <summary>Which group an act kind belongs to: its tier (design rule 9).</summary>
+    public static string GroupOf(ActKind k) => k.Tier.ToString().ToLowerInvariant();
 
     /// <summary>Reach band for a scandal that spreads well without saturating (design section 10).</summary>
     public const double BandLow = 0.4, BandHigh = 0.7;
 
-    public static RunStats Summarise(IReadOnlyList<SimResult> runs, IReadOnlyList<ActKind> kinds)
+    /// <param name="injectedOnly">Count only acts the harness placed, to measure spread on a known
+    /// number of scandals.</param>
+    public static RunStats Summarise(IReadOnlyList<SimResult> runs, IReadOnlyList<ActKind> kinds, bool injectedOnly = false)
     {
         var groups = new List<GroupStats>();
-        foreach (string group in new[] { "scandal", "bad", "good", "neutral" })
+        foreach (Tier tier in Enum.GetValues<Tier>())
         {
+            string group = tier.ToString().ToLowerInvariant();
             var rows = new List<(int Witnesses, double Reach, int Days, int Right, int Wrong, int Unknown, int Holders)>();
             foreach (SimResult r in runs)
             {
                 foreach (Act act in r.Acts)
                 {
                     ActKind kind = kinds.First(k => k.Name == act.Kind);
-                    if (GroupOf(kind) != group || !r.HoldersByDay.TryGetValue(act.Id, out int[]? byDay))
+                    if (kind.Tier != tier || injectedOnly && !act.Injected || !r.HoldersByDay.TryGetValue(act.Id, out int[]? byDay))
                         continue;
                     int others = r.CastSize - 1;
                     int final = byDay[^1];
-                    int firstDay = act.Tick / Simulation.TicksPerDay;
+                    int firstDay = Clock.Day(act.Tick);
                     int lastGrowth = firstDay;
                     for (int d = firstDay + 1; d < byDay.Length; d++)
                         if (byDay[d] > byDay[d - 1])
@@ -71,12 +92,42 @@ public static class Metrics
                 rows.Sum(x => x.Wrong) / (double)holders,
                 rows.Sum(x => x.Unknown) / (double)holders));
         }
+
+        double seasons = runs.Sum(r => r.Days) / (double)Clock.DaysPerSeason;
+        double years = seasons / 4;
+        var perYear = Enum.GetValues<Tier>().ToDictionary(t => t,
+            t => runs.Sum(r => r.Acts.Count(a => !a.Injected && kinds.First(k => k.Name == a.Kind).Tier == t)) / Math.Max(1e-9, years));
+
         int confrontations = runs.Sum(r => r.Confrontations.Count);
         int scandals = runs.Sum(r => r.Acts.Count(a => kinds.First(k => k.Name == a.Kind).IsScandal));
         return new RunStats(runs.Count, groups,
-            confrontations / (double)Math.Max(1, runs.Count),
+            confrontations / Math.Max(1e-9, seasons),
             runs.Sum(r => r.Confrontations.Count(c => c.Correct)) / (double)Math.Max(1, confrontations),
-            confrontations / (double)Math.Max(1, scandals));
+            confrontations / (double)Math.Max(1, scandals),
+            perYear,
+            Bodies(runs, seasons));
+    }
+
+    /// <summary>Bedtimes are hours after the morning they follow (so 1:00 reads as 25); the
+    /// starting night is left out.</summary>
+    private static BodyStats Bodies(IReadOnlyList<SimResult> runs, double seasons)
+    {
+        var nights = runs.SelectMany(r => r.Sleeps).Where(s => s.SleptAt > 0 && !s.Collapsed).ToList();
+        var woke = runs.SelectMany(r => r.Sleeps).Where(s => s.WokeAt is not null).ToList();
+        static double Hour(int m) => Clock.OfDay(m) / 60.0;
+        static double Bed(int m) => Hour(m) < 12 ? Hour(m) + 24 : Hour(m);
+        var beds = nights.Select(s => Bed(s.SleptAt)).ToList();
+        double mean = beds.Count > 0 ? beds.Average() : 0;
+        double spread = beds.Count > 1 ? Math.Sqrt(beds.Average(b => (b - mean) * (b - mean))) : 0;
+        var full = nights.Where(s => s.WokeAt is not null).ToList();
+        return new BodyStats(
+            mean,
+            spread,
+            woke.Count > 0 ? woke.Average(s => Hour(s.WokeAt!.Value)) : 0,
+            full.Count > 0 ? full.Average(s => (s.WokeAt!.Value - s.SleptAt) / 60.0) : 0,
+            woke.Count > 0 ? woke.Count(s => s.MissedAlarm) / (double)woke.Count : 0,
+            runs.Sum(r => r.Sleeps.Count(s => s.Collapsed)) / Math.Max(1e-9, seasons),
+            runs.Sum(r => r.Late.Count) / Math.Max(1e-9, seasons));
     }
 
     /// <summary>A stable hash of a run's log, for the determinism check (E0).</summary>

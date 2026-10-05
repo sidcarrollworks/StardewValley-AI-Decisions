@@ -6,10 +6,15 @@ namespace UnderGlass.Sim.Tests;
 /// <summary>Gossip, scandal and the run-level checks (design rules 8 and 9; experiment E0).</summary>
 public class GossipTests
 {
+    /// <summary>Someone who spends the whole day at one spot in the room (there are no homes, so
+    /// they sleep there too) and never tires.</summary>
     private static Villager V(string name, string household, int x, int y, double bold = 0.5, double chatty = 1.0, double self = 0.6)
-        => new(name, household, "villager", new Temperament(chatty, bold, 0.5, self),
-            new[] { new RoutineStep(0, "Room", new Tile(x, y)) },
+        => new(name, household, "villager", new Temperament(chatty, bold, 0.5, self), new Body(100, -1), null,
+            new[] { new Haunt("Room", new Tile(x, y), 0, Clock.MinutesPerDay, 1) },
             new Dictionary<string, double>(), Array.Empty<string>());
+
+    /// <summary>10:00 on day 0, when everyone is up.</summary>
+    private const int Ten = 10 * 60;
 
     /// <summary>A long open room; only scheduled acts happen (every rate is 0).</summary>
     private static Location Hall() => new("Room", false, Enumerable.Repeat(new string('.', 40), 6).ToList());
@@ -29,7 +34,7 @@ public class GossipTests
         // Ann sees Bob rummage close up; Cal and Dee stand near Ann but out of sight of the bin.
         var cast = new[] { V("Ann", "A", 5, 2), V("Bob", "B", 3, 2), V("Cal", "C", 12, 2), V("Dee", "D", 19, 2) };
         SimResult r = new Simulation(1, cast, new[] { Hall() }, Kinds(), gossip: Chatty(),
-            scheduled: new[] { (10, "Bob", "RummagedInBin") }, wander: 0).Run(1);
+            scheduled: new[] { (Ten, "Bob", "RummagedInBin") }, wander: 0).Run(1);
 
         Belief ann = r.Beliefs["Ann"][0];
         Assert.Equal(Source.Witnessed, ann.Source);
@@ -46,7 +51,7 @@ public class GossipTests
     {
         var cast = new[] { V("Ann", "A", 5, 2), V("Bob", "B", 3, 2), V("Cal", "C", 9, 2), V("Dee", "D", 9, 4) };
         SimResult r = new Simulation(2, cast, new[] { Hall() }, Kinds(), gossip: Chatty(),
-            scheduled: new[] { (10, "Bob", "RummagedInBin") }, wander: 0).Run(1);
+            scheduled: new[] { (Ten, "Bob", "RummagedInBin") }, wander: 0).Run(1);
         int byAnn = r.Log.Count(l => l.Contains(" told Ann ") && l.EndsWith(" 0"));
         Assert.True(byAnn <= 1);
     }
@@ -76,7 +81,7 @@ public class GossipTests
         var cast = new[] { V("Ann", "H", 3, 2), V("Bob", "B", 5, 2), V("Cal", "H", 7, 2), V("Dee", "H", 5, 4), V("Eve", "H", 4, 4) };
         // Everyone knows Bob a little (familiarity 0.25 from the seed), so 3 holders are needed.
         SimResult r = new Simulation(3, cast, new[] { Hall() }, Kinds(),
-            scheduled: new[] { (10, "Bob", "RummagedInBin") }, wander: 0).Run(2);
+            scheduled: new[] { (Ten, "Bob", "RummagedInBin") }, wander: 0).Run(2);
         Confrontation c = Assert.Single(r.Confrontations);
         Assert.Equal("Bob", c.Target);
         Assert.True(c.Correct);
@@ -89,7 +94,7 @@ public class GossipTests
         // The newcomer is a stranger to everyone (familiarity 0).
         var cast = new[] { V("Ann", "A", 3, 2), V(DefaultTown.Newcomer, "Farm", 5, 2), V("Far", "F", 12, 2) };
         SimResult r = new Simulation(4, cast, new[] { Hall() }, Kinds(),
-            scheduled: new[] { (10, DefaultTown.Newcomer, "RummagedInBin") }, wander: 0).Run(1);
+            scheduled: new[] { (Ten, DefaultTown.Newcomer, "RummagedInBin") }, wander: 0).Run(1);
         Assert.Equal(DefaultTown.Newcomer, r.Beliefs["Ann"][0].Actor);
         Belief far = r.Beliefs["Far"][0];         // 7 tiles away: saw it, couldn't tell who
         Assert.Equal(Source.Witnessed, far.Source);
@@ -97,12 +102,31 @@ public class GossipTests
     }
 
     [Fact]
-    public void ASeasonRunsAndReportsMetrics()
+    public void AWeekRunsAndReportsMetrics()
     {
         var runs = Enumerable.Range(1, 5).Select(s => new Simulation(s).Run(7)).ToList();
         RunStats stats = Metrics.Summarise(runs, DefaultTown.Acts());
         Assert.Equal(5, stats.Runs);
         Assert.NotEmpty(stats.Groups);
         Assert.All(stats.Groups, g => Assert.InRange(g.MeanReach, 0, 1));
+        Assert.InRange(stats.Body.MeanSleepHours, 4, 10);
+    }
+
+    [Fact]
+    public void APlacedScandalWaitsUntilSomeoneCanCommitIt()
+    {
+        var kinds = new[] { new ActKind("Stole", 4.5, -1, 1, 1, 0, new[] { "Store" }) };
+        (int at, string actor, string kind) = Harness.ScandalFor(9, kinds);
+        Assert.Equal(("Stole", Harness.Anyone), (kind, actor));
+        SimResult r = new Simulation(9, kinds: kinds, scheduled: new[] { (at, actor, kind) }).Run(3);
+        Act act = Assert.Single(r.Acts);
+        Assert.True(act.Injected);
+        Assert.Equal("Store", act.Location);
+        Assert.True(act.Tick >= at);
+
+        // A named actor who never goes there in time is dropped, with a log line.
+        SimResult never = new Simulation(9, kinds: kinds, scheduled: new[] { (at, "Gus", kind) }).Run(5);
+        Assert.Empty(never.Acts);
+        Assert.Contains(never.Log, l => l.Contains("dropped Stole by Gus"));
     }
 }

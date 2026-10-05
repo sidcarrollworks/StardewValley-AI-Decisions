@@ -120,7 +120,23 @@ What this gives the design: rules 4 to 10 below are these laws with numbers atta
 
 Every constant here is a first guess, to be tested in phase 0.
 
-1. **Time and space.** A day is 120 ten-minute ticks (6:00-2:00) and a season is 28 days; both are parameters. Locations have named spots with tile coordinates (counter, bar stool, bench, field row), and a travel-time table gives ticks between spots. Social acts carry game-minute timestamps.
+1. **Time, space and bodies** (decided 2026-10-05; see 11b).
+   - **The clock runs all 24 hours.** The date changes at midnight. There is no end of the day: nobody is sent home at 2:00, and nothing resets at 6:00. A week is 7 days, a season 28, a year 4 seasons. All of these are parameters.
+   - **Pace.** A game day takes about 20 real minutes, so a game minute is 0.83 real seconds. We set it from play later, once there are mechanics to judge it by.
+   - **Two time steps.**
+     - Routines, movement decisions and chats run on 5-minute ticks.
+     - Acts and perception run minute by minute: an act lasts minutes, and a witness must be looking during those minutes.
+     - Every act and diary entry carries its game minute.
+   - **Places.** Locations have named spots with tile coordinates (counter, bar stool, bench, field row). Roads join them. People walk about 2 tiles a game minute, so they are on the roads between places, where they see and are seen.
+   - **Energy and sleep.** Everyone, the player included, has an energy bar. Each person's maximum is different.
+     - Being awake uses energy; work uses more, depending on the job.
+     - Anyone can go to sleep whenever they like. Villagers go to bed when they feel tired enough, not at a set hour. Feeling tired is the share of the bar used plus a body clock (sleepy in the small hours, alert in the afternoon), against each person's own threshold (night owls stay up later). The body clock keeps everyone's day near 24 hours.
+     - Rest drains a share of each person's own bar; work and walking cost a fixed amount on top, so a bigger bar takes hard work in its stride.
+     - Sleep refills energy and stops when the bar is full: nobody can sleep longer than that.
+     - Anyone can set an alarm. An alarm may not wake a sleeper: the chance of waking rises with how full the bar already is. A villager who sleeps through it is late for work, and people notice.
+     - At zero energy a person collapses where they stand. The collapse is an act that others can see, and the person is taken home.
+   - **Jobs make the routines.** A villager's day comes from their job (place, hours, days off, how tiring it is), their haunts for free time (place, hours, weight), and their energy. The player's day comes from the same parts, chosen by the player.
+   - **Acting normal.** Because bedtimes and routines come from each person, the town has a sense of what is usual for whom. Being up at odd hours, or somewhere unusual, is something a villager can notice and talk about. For the alien, keeping human hours is part of fitting in (11a).
 2. **Perception, in layers.** Every act is an event {eventId, time, actor, kind, target, place, duration, causeIds}. Nobody learns anything except by witnessing it, being told it or reading the board. Decision code sees memory only.
    - **Clarity.** Each observer gets a clarity for each event from 0 to 1. Clarity builds with time watched and depends on:
      - *distance:* close (0-2 tiles) 1.0, near (3-5) 0.6, far (6-8) 0.3, nothing beyond 8;
@@ -137,7 +153,7 @@ Every constant here is a first guess, to be tested in phase 0.
    - The player perceives through the same rule, which is why the player sometimes sees only "someone".
 3. **Forgetting.** A diary over 300 entries drops its lowest-weight tenth.
    - Weight = base (sighting 0.1, act 1, secret 2) x 0.5^(days/21) x (0.5 + |regard for the subject|).
-   - Sightings coarsen from spot to location to region to "earlier today", and are gone at 6:00.
+   - Sightings coarsen from spot to location to region to "earlier today", and are gone after the owner's next sleep.
    - Routine trades go to a purchase ledger. Only changes from routine (a new seller, a price change over 10%, a refusal) enter the diary.
 4. **Regard.** Each act kind has a row: valence, magnitude, fade, plastic share, base juiciness, importance.
    - The target feels magnitude x (0.5 + sensitivity). The elastic feeling sums the last 3 days of entries.
@@ -147,17 +163,17 @@ Every constant here is a first guess, to be tested in phase 0.
    - A repeated good act counts x 0.5^(repeats in 7 days).
 5. **Healing and familiarity.** Regard drifts 0.005 a day toward a baseline set on the villager's card. It heals faster on contact: a day spent together with no new slight, an accepted apology, or a good act. Betrayed keeps regard at -0.2 or below. Familiarity is kept separate from liking. It rises by 0.02 x (1 - familiarity) per exchange (chat, trade, reaction) and falls 1% a day.
 6. **Bystanders** (laws 5 and 6). A witness who loves the target shares its feeling and moves its regard for the actor by 0.5 x the target's change x its regard for the target, times clarity. One who hates the target feels the opposite, at most 0.3 of that amount. One with no strong regard feels a fraction by likeness (imitation, about 0.2 x likeness), toward the target only. Changes made by this rule never trigger it again.
-7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within 6 ticks, with one of 8 emotions.
+7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within an hour, with one of 8 emotions.
    - The reaction is an act linked to the eventId. Its magnitude = the emotion's row x the event's importance.
    - Witnesses read it against their own view of the event. Siding with the actor of a harm slights the victim; siding with the victim slights the actor.
    - Villagers pick an emotion from their own feeling about the event (laws 5 to 7) and their temperament; the player uses the wheel.
    - Witnessed reactions feed each villager's estimate of how the town regards that kind of act (law 7), which is how norms form.
    - Nobody reacts to a reaction.
-8. **Gossip.** Villagers co-located for 3 or more ticks chat with a seeded chance of 0.3 x (0.5 + chattiness) per tick.
+8. **Gossip.** Awake villagers co-located for 15 minutes or more chat with a seeded chance of 0.3 x (0.5 + chattiness) per 10 minutes.
    - The teller offers its juiciest story at 2 or more that, by its own record, it has not told this listener and did not hear from them.
    - Add 0.5 if the listener has a close tie to someone in the story (regard 0.4 or more, or the same household).
    - The listener stores the story at 0.7 x the teller's juiciness, with the chain of tellers.
-   - Juiciness fades 0.5 a day (0.8 at base 4 or more), counted from when each person got the story (as in the mod, D33).
+   - Juiciness fades 0.5 a day (0.8 at base 4 or more), counted in whole 24-hour periods from when each person got the story (as in the mod, D33).
    - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
    - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
    - Retelling never adds detail.
@@ -166,6 +182,16 @@ Every constant here is a first guess, to be tested in phase 0.
    - Hearsay becomes regard at 0.5 strength when confirmed first-hand, and at 0.25 when two independent tellers agree.
    - When the people holding a scandal reach a quarter of those who know the actor (minimum 3), one of them confronts the actor. A seeded draw weighted by intensity x boldness picks who, preferring the person harmed.
    - Each scandal gets one confrontation, and a confrontation has base juiciness 3.
+   - **Tiers** (decided 2026-10-05). Every act kind belongs to one tier. The tier decides what the story can do, and each tier has a target for how often it happens in a town of 12:
+
+     | Tier | Juiciness | Examples | Retold | Effect on listeners | How often, town-wide |
+     |---|---|---|---|---|---|
+     | Trivia | under 2 | a gift, a stumble | only to someone who knows a person in it | mood | many a day |
+     | News | 2 to under 4 | an argument, a drunk night, a favour, a collapse | yes | mood only, unless it touches them personally | a few a week |
+     | Scandal | 4 and up, bad | theft, the bin | yes, and fades slowly | a motive; a confrontation once enough people know | 1-2 a year from villagers in a settled town; more under strain or from the player |
+     | Upheaval | set per kind | a shop closes, someone moves out, a couple splits | to everyone, and posted on the board | a motive for everyone it touches; can become a town-meeting item | once a year or less |
+
+   - **Scandals and upheavals come from pressure, not dice.** A villager commits a scandal only when a vice is triggered (rule 15): a low purse, a run of bad days. An upheaval comes only from long pressure: weeks of losses, a feud, a failed courtship. A settled town is quiet; a strained one is not. How often they happen is a result we check against the table, not a rate we set.
 10. **Motives and acts.** A villager acts toward a subject, villager or player, only on a motive about that subject.
     - It acts when boldness + 0.5 x familiarity + 0.5 x intensity reaches the act's cost (wave 0.2, note 0.25, chat 0.3, gift 0.4, walk up 0.5, visit 0.7, confront 0.8; hostile acts +0.3), and intensity reaches the act's minimum.
     - Code decides when the margin is more than 0.15 from the cost. Inside that band, a seeded draw with P = logistic(8 x margin), tilted by mood, decides.
@@ -199,7 +225,7 @@ The player is one more agent under these rules and has no meters of their own.
 - **Mind (derived from memory, never saved):** elastic feelings, mood (earned mood plus the seeded MoodRoll), and motives, each with a subject and a source entry. The mod's Motive values carry over, with Owed, Owes, Courting, Confront and Avoid appended.
 
 **How a villager decides.**
-- Overnight it plans tomorrow from its routine and its strongest motives.
+- While it sleeps, it plans its next waking day from its job, its haunts and its strongest motives.
 - Each tick, perception writes diary entries. Motives are recomputed only if the diary changed, and each motive goes through rule 10.
 - Villagers find each other by asking around and by habit.
 
@@ -476,9 +502,24 @@ E5 is Sid's blind read of 10 season journals.
 
 **Power** (to discuss; see the proposal in section 6a). Sid: "regard plays a part in influence, changes the rules of the town, convince people of things easier. Regard plays a part in power. Power is the ability to direct 'consciousness' (in our case villagers) against its own inertia. Power is plastic and elastic."
 
+## 11b. Decisions of 2026-10-05 (third round): time, sleep and tiers
+
+**No fixed day.** Sid: "I don't like the Stardew Valley 6am - 2am rule. All characters should go to bed when they feel like it. This would play into the acting normal part of the game." The clock runs 24 hours; the date changes at midnight (rule 1).
+
+**Sleep and energy, the same for everyone.** Sid: "You should be able to sleep whenever and you should be able to set an alarm for yourself. You might not always wake up to your alarm. There is a max sleeping time though, you can only sleep until your energy bar is filled. Characters have different max energies and have different jobs which change the routines."
+
+**Pace.** About 20 real minutes per game day to start with. It is hard to set the real length of a day before the mechanics exist, so this is a parameter to revisit. Routines and chats run on 5-minute ticks, acts minute by minute.
+
+**Scandals are rare.** Three scandals a season, as in the first 0a runs, is too many for 12 people. Scandals and the new upheaval tier come from pressure, with the targets in rule 9. Sid liked the upheaval tier.
+
+**Consequences for the harness (0a, second pass):**
+- How a scandal spreads is measured on scandals injected at a seeded time and place, because natural ones are too rare to measure in a season.
+- How often scandals happen is measured separately, over years, once vices and money exist (0b).
+- Until then, villagers' scandal rates are set low (about 1.5 a year town-wide) as a placeholder.
+
 ## 12. Questions for Sid
 
-Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, and Spinoza as the basis.
+Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
 
 Still open:
 1. Power (section 6a): does the proposal match what you mean, and should the season town meeting be the main stake?
