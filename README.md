@@ -2,6 +2,8 @@
 
 SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `stardew-npc-project-brief.md` for the design and `stardew-source-notes.md` for the verified game internals. Progress so far: extractor (step 1), NPC memory layer (step 2), shadow-mode harness (step 3), live SMAPI scaffold with persistence + decision client (step 4), overnight intents in shadow mode (step 5), audit fixes (step 6), a real Laya client (step 7), the initiation ladder in shadow mode (step 8), and finding the player (step 9). On the roadmap (`docs/spec/roadmap.md`), the motives engine of step 14 is built as a library and waits to be wired into the mod.
 
+**Under Glass.** This repo also holds the start of Sid's own game, designed in [`docs/under-glass/design.md`](docs/under-glass/design.md). Its headless simulator is in [`sim/`](sim/README.md), with its own solution on .NET 8, separate from the mod.
+
 **Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why). The full spec and roadmap are in [`docs/spec/`](docs/spec/README.md).
 
 ## Layout

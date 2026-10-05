@@ -68,6 +68,9 @@ run locally. A deterministic fake is the default.
   ```
   All tests must pass and the mod must build (it compiles against the installed game). Warning
   CS8032 about SMAPI analyzers is expected on the installed SDK 6.0.300.
+- **Under Glass** (`sim/`, design in `docs/under-glass/design.md`) is Sid's own game, built from what the mod
+  taught us. It has its own solution on .NET 8 and must never reference the game or SMAPI. Test it with
+  `dotnet test sim/UnderGlass.sln`. The mod's rules on shadow mode and live state don't apply there; determinism does.
 - **Docs.** When behaviour changes, update `docs/architecture.md`, `docs/decisions.md`, the test
   counts in `README.md`, the status in the brief, and the feature's **Status** section in
   `docs/spec/`, in the same PR. If you build something differently from the spec, change the spec
