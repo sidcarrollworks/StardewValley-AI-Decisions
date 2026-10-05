@@ -21,6 +21,8 @@ public static class GiftPatch
     {
         try
         {
+            if (!Context.IsMainPlayer)
+                return; // host's main screen only (HostOnly): no queue to drain elsewhere
             if (__instance is null || o is null || giver is null || !giver.IsLocalPlayer || !__instance.CanReceiveGifts())
                 return;
             // Stardrop Tea also passes updateGiftLimitInfo: false (1.6.15, NPC.cs:2403); only the

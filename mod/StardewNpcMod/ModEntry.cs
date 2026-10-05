@@ -122,6 +122,7 @@ public class ModEntry : Mod
     private IReadOnlyList<IntentCandidate> _planToday = Array.Empty<IntentCandidate>();
     private TemperamentTable? _temperaments; // the seed table; only the viewer reads it so far
     private readonly Dictionary<string, TemperamentView> _temperamentViews = new(StringComparer.OrdinalIgnoreCase);
+    private bool _warnedMultiplayer; // the host's "other farmers are ignored" line, once per session
 
     public override void Entry(IModHelper helper)
     {
@@ -145,6 +146,7 @@ public class ModEntry : Mod
             Monitor.Log("[live] all live acts turned off for this session.", LogLevel.Info);
         });
         helper.Events.Display.MenuChanged += OnMenuChanged;
+        helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
         ApplyPatches();
         _temperaments = LoadTemperaments();
@@ -329,6 +331,20 @@ public class ModEntry : Mod
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
+        // Single-player for now (docs/spec/multiplayer-compat.md): only the host's main screen runs
+        // the mod. A farmhand on a remote host can't read or write the save's mod data, so it stays
+        // off before LoadMemory; a split-screen guest's screen is ignored.
+        // VERIFY in game: Context.IsMultiplayer is already true at SaveLoaded when a co-op save is
+        // hosted (multiplayerMode is set before load); OnPeerConnected covers it if not.
+        PlayerRole role = HostOnly.RoleOf(Context.IsMultiplayer, Context.IsMainPlayer, Context.IsOnHostComputer);
+        if (HostOnly.Notice(role) is { } notice)
+        {
+            Monitor.Log(notice, role == PlayerRole.Host ? LogLevel.Warn : LogLevel.Info);
+            _warnedMultiplayer |= role == PlayerRole.Host;
+        }
+        if (!HostOnly.Runs(role))
+            return;
+
         try
         {
             // The playtest log is per save (the folder is the save's), built here before any tick
@@ -407,6 +423,8 @@ public class ModEntry : Mod
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
+        if (!Context.IsMainPlayer)
+            return; // host's main screen only (HostOnly)
         // Don't clear _intentsToday here: the 6:00 TimeChanged fires during the new-day transition,
         // before the save and before DayStarted (seen in the SMAPI log), and usually collects the plan.
         try
@@ -443,6 +461,8 @@ public class ModEntry : Mod
 
     private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
     {
+        if (!Context.IsMainPlayer)
+            return; // host's main screen only (HostOnly)
         // TimeChanged is SMAPI's watcher on Game1.timeOfDay: one event per value change, however
         // big the jump; it does not fire on the tick a save loads or while saving (verified).
         int tick = TimeUtils.TickIndex(e.NewTime);
@@ -490,7 +510,10 @@ public class ModEntry : Mod
             foreach (PresenceRecord delta in PlaytestRecords.PresenceDeltas(presences, _lastPresencePositions, now))
                 _playtest.Append(delta);
             AskAround(now);
-            foreach ((string listener, DiaryEntry heard) in _memory.ChatHeard(now, NewsScore, _chatOptions))
+            // Gossip by juiciness (D25): base values from the stressor table; a listener "knows"
+            // someone in the story through regard or a ledger entry.
+            foreach ((string listener, DiaryEntry heard) in _memory.ChatHeard(now, NewsScore, _chatOptions,
+                         StressorTable.JuicinessOf, KnowsPerson))
             {
                 Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
                 _playtest.Append(HeardRecord(listener, heard));
@@ -546,7 +569,7 @@ public class ModEntry : Mod
     /// clears isFestival before the one 22:00 TimeChanged fires (docs/spec/diary.md).</summary>
     private void OnOneSecondUpdateTicked(object? sender, OneSecondUpdateTickedEventArgs e)
     {
-        if (!Context.IsWorldReady)
+        if (!Context.IsWorldReady || !Context.IsMainPlayer)
             return;
         try
         {
@@ -578,6 +601,8 @@ public class ModEntry : Mod
 
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
     {
+        if (!Context.IsMainPlayer)
+            return; // host's main screen only (HostOnly)
         try
         {
             _spread.Reset(); // first, unconditionally: the spread panel's day starts here and the
@@ -599,6 +624,8 @@ public class ModEntry : Mod
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
+        if (!Context.IsMainPlayer)
+            return; // a farmhand on a remote host can't write save data (HostOnly)
         // Only fast local serialization here; planning is already running in the background.
         try
         {
@@ -611,8 +638,21 @@ public class ModEntry : Mod
         }
     }
 
+    /// <summary>A farmer joined the host's game: say once that the mod watches the host only
+    /// (docs/spec/multiplayer-compat.md). Live acts are already off in multiplayer (LiveGate).</summary>
+    private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
+    {
+        if (!Context.IsMainPlayer || _warnedMultiplayer)
+            return;
+        _warnedMultiplayer = true;
+        Monitor.Log(HostOnly.Notice(PlayerRole.Host)!, LogLevel.Warn);
+    }
+
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
+        if (Context.ScreenId != 0)
+            return; // a split-screen guest leaving must not clear the host's memory
+        _warnedMultiplayer = false;
         // Fresh memory per save; a different save must start clean.
         _planJob?.Dispose();
         _planJob = null;
@@ -699,7 +739,7 @@ public class ModEntry : Mod
     /// </summary>
     private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
     {
-        if (!Context.IsWorldReady || e.NewMenu is not DialogueBox { characterDialogue.speaker: { } speaker })
+        if (!Context.IsWorldReady || !Context.IsMainPlayer || e.NewMenu is not DialogueBox { characterDialogue.speaker: { } speaker })
             return;
         int tick = TimeUtils.TickIndex(Game1.timeOfDay);
         if (tick < 0)
@@ -1003,6 +1043,12 @@ public class ModEntry : Mod
         Monitor.Log("[live] " + LivePlanner.ShownLine(act), LogLevel.Info);
         _liveLedger.Shown(act, now);
     }
+
+    /// <summary>Whether a listener knows a person, for gossip's knows-someone bonus: any regard
+    /// for them, or a ledger entry about them. Reads memory only.</summary>
+    private bool KnowsPerson(string listener, string person)
+        => _regard.Book.Of(listener, person) != 0
+           || _memory.Ledger.SubjectsOf(listener).Contains(person, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Like TomorrowLine, but for today at the current time: "spring 12 (Friday), sunny,
     /// 4:20 PM" — the card's day line while the motives worker weighs acts.</summary>

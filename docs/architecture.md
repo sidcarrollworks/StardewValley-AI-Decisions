@@ -87,6 +87,12 @@ lines, the ladder's daily caps and response windows.
 
 ## The per-tick flow in the mod
 
+**Single-player guard** (`HostOnly`, docs/spec/multiplayer-compat.md): only the host's main
+screen runs the mod. A farmhand on a remote host logs one line at load and stays off, before
+`LoadMemory`, since it can't read or write save data. Every handler and both Harmony postfixes
+return early when `Context.IsMainPlayer` is false. A host in multiplayer gets one warning that
+other farmers are ignored.
+
 Every game hook is in `mod/StardewNpcMod/ModEntry.cs`. Each handler catches and logs its own
 exceptions. In `OnTimeChanged`, steps 1-3 and steps 4-5 are separate try blocks, so a memory failure
 does not stop the ladder.
@@ -193,7 +199,36 @@ thresholds are public properties and are **not** saved, so retuning them applies
   be recalled more finely; the spot passes only at `NamedSpot`; age still counts from the original
   sighting; `ToldBy` records the speaker.
 
-In the mod, gossip happens only when an NPC asks around (`MemoryStore.AskAround`; Find).
+Position gossip happens when an NPC asks around (`MemoryStore.AskAround`; Find) and in ambient
+chats (below), where each side passes its view of the player.
+
+**Ambient chats and juiciness** (`MemoryStore.Chat`/`ChatHeard`, `Gossip`; D25, D33). Each tick,
+right after `Observe`, NPC pairs co-located for `ChatMinTicks` (3) may chat once per span (an FNV-1a
+draw under `ChatChance`, 0.3). In a chat each side may volunteer one story to the other as a `Heard`
+entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind) and `KnowsPerson`
+(regard or a ledger entry):
+- a story is any diary entry with a base juiciness: the teller's own, or a `Heard` they can retell;
+- its current juiciness fades by whole days since the teller got it: `FadePerDay` (0.5), or
+  `ScandalFadePerDay` (0.8) from `ScandalBase` (4); a plain `Saw` has none and is never volunteered;
+- it is told when that, plus `KnowsSomeoneBonus` (0.5) if the listener knows someone in the story
+  other than the teller, reaches `VolunteerLevel` (2); the juiciest such story wins;
+- never to someone in the story (its subject, the person it started with, a giver), never twice to
+  the same listener by any route (`Gossip.EventKey`), and to at most `RetellsPerDay` (3) listeners a
+  day per teller and story (counted from the diaries, so a reload keeps it);
+- the listener gets it at `RetellFactor` (0.7) of the teller's juiciness. The `Heard` detail adds
+  `of` (whose diary it started in), `b` (base), `j` (juiciness when told), `at` (tick told) and
+  `hops` to the original's keys; its tick stays the event's. A `Heard` without them (before D33)
+  reads as one hop from its teller.
+- A story never touches the position ledger. Hearsay is confirmed (lasting regard) when its
+  teller is the person it started with (`RegardKeeper.FromSource`), or when the listener sees the
+  same act by the same person within `ConfirmWindowDays` (7) of hearing it
+  (`RegardKeeper.ConfirmedBy`, once per story); otherwise it stays elastic.
+- How hard it lands (`Stresses.Hearsay`): the original's magnitude x `HearsayFactor` (0.5),
+  decayed from when it was heard; x `MaxRelevance` (2) for a listener at `DrawnHearts` (8) or more
+  with the player when the story is about the player, and a pleasing gift the player gave someone
+  else turns into `Jealous`.
+Without a juiciness function, `Chat` keeps the old rule (today's `GiftReceived`, `SawGift`,
+`QuestHelped`, `Festival`, teller's own entries, one hop), which only tests use.
 `SubjectsOf(observer)` lists an observer's subjects; `RemapTicks` exists for save migration. The JSON
 is an `entries` array of objects with observer, subject, location, region, spot, absoluteTick,
 hopCount, toldBy and detailCap, sorted by observer then subject.
@@ -371,7 +406,7 @@ narrow yes/no band no longer decides the speakers (week review, finding 4;
 | `BirthdayForgotten`, subject Player | `My birthday was {when}, you know.` |
 | `GiftReceived`, subject Player | by taste: Love or Like `Thanks again for the {name} {when}.`; Neutral `Thanks for the {name} {when}.`; Dislike `I'm not sure what to do with the {name} you gave me {when}.`; Hate `About the {name} you gave me {when}. Please don't do that again.` (`the gift` without a `name`) |
 | `SawGift` | `I saw {who} get a {name} from {giver} {when}, and {reaction}.`: the witness saw the reaction too ("they hated it", "it made their day"; none for a neutral gift) |
-| `Heard`, subject Player | a gift: `{from} told me you gave them a {name} {when}.` (`... They weren't happy.` for a disliked or hated one); a quest: `{from} told me you helped them out {when}.`; else `I heard about {who} from {from} {when}.` |
+| `Heard`, subject Player | a gift: `{from} told me you gave them a {name} {when}.` (`... They weren't happy.` for a disliked or hated one); a quest: `{from} told me you helped them out {when}.`; a retold story names the person it started with instead of "them" (`Sam told me you gave Haley a Sunflower yesterday.`); else `I heard about {who} from {from} {when}.` |
 | `QuestHelped`, subject Player | `Thanks for helping me out {when}.` |
 | `Festival`, subject Player | `It was nice catching up with you at the festival {when}.` with `with=1`, else `I saw you at the festival {when}.` |
 | `MissedFestival`, subject Player | `You missed the festival {when}.` |

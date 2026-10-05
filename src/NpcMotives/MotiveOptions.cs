@@ -9,6 +9,12 @@ public sealed class MotiveOptions
 {
     // ---- stresses ------------------------------------------------------------------------------
     public double HearsayFactor { get; set; } = 0.5;
+    /// <summary>A story weighs up to this much more on a listener drawn to someone in it
+    /// (ledger-gossip.md, "Relevance"): the player at <see cref="DrawnHearts"/> or more.</summary>
+    public double MaxRelevance { get; set; } = 2;
+    public int DrawnHearts { get; set; } = 8;
+    /// <summary>Hearsay seen first-hand within this many days of hearing it becomes lasting.</summary>
+    public int ConfirmWindowDays { get; set; } = 7;
     public int ElasticWindowDays { get; set; } = 3;
     public int YieldCount { get; set; } = 3;
     public int YieldWindowDays { get; set; } = 5;

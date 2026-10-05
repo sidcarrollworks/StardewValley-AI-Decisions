@@ -24,6 +24,8 @@ public static class QuestPatch
     {
         try
         {
+            if (!Context.IsMainPlayer)
+                return; // host's main screen only (HostOnly): no queue to drain elsewhere
             if (__instance is null || !Recorded.Add(__instance))
                 return;
 

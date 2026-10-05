@@ -283,6 +283,21 @@ public class LineRendererTests
     }
 
     [Fact]
+    public void Heard_Retold_NamesWhoItHappenedTo()
+    {
+        // D25: a story passed on by someone who wasn't in it names the person it started with.
+        Assert.Equal("Sam told me you gave Haley a Sunflower yesterday.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Sam;kind=GiftReceived;subject=Player;of=Haley;b=2;j=1.4;at=5;hops=2;name=Sunflower;taste=Love")));
+        Assert.Equal("Sam told me about a Slime you gave Pam yesterday. Pam wasn't happy.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Sam;kind=GiftReceived;subject=Player;of=Pam;name=Slime;taste=Hate")));
+        Assert.Equal("Sam told me you helped Robin out yesterday.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Sam;kind=QuestHelped;subject=Player;of=Robin")));
+        // From the source ("of" is the teller): unchanged.
+        Assert.Equal("Robin told me you helped them out yesterday.",
+            _renderer.Render("Emily", "warm", E("Player", "Heard", "from=Robin;kind=QuestHelped;subject=Player;of=Robin")));
+    }
+
+    [Fact]
     public void SawGift_NamesTheRecipientAndTheItem()
     {
         Assert.Equal("I saw Pierre get a Sunflower from you yesterday, and it made their day.",

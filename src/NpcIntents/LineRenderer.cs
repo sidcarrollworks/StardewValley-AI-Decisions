@@ -128,17 +128,20 @@ public sealed class LineRenderer : ILineRenderer
         string? from = d.TryGetValue("from", out string? f) ? f : null;
         string kind = d.TryGetValue("kind", out string? k) ? k : "";
         string teller = from ?? "someone";
+        // Retold (D25): the story started with someone other than the teller ("of").
+        string them = d.TryGetValue("of", out string? of) && !of.Equals(teller, StringComparison.OrdinalIgnoreCase) ? of : "them";
         if (IsPlayer(entry.Subject) && kind.Equals(GiftReceivedKind, StringComparison.OrdinalIgnoreCase))
         {
             string gift = d.TryGetValue("name", out string? name) ? $"a {name}" : "a gift";
             return (d.TryGetValue("taste", out string? taste) ? taste.ToLowerInvariant() : "") switch
             {
-                "hate" or "dislike" => $"{teller} told me about {gift} you gave them {when}. They weren't happy.",
-                _ => $"{teller} told me you gave them {gift} {when}.",
+                "hate" or "dislike" => $"{teller} told me about {gift} you gave {them} {when}. "
+                                       + (them == "them" ? "They weren't happy." : $"{them} wasn't happy."),
+                _ => $"{teller} told me you gave {them} {gift} {when}.",
             };
         }
         if (IsPlayer(entry.Subject) && kind.Equals(QuestHelpedKind, StringComparison.OrdinalIgnoreCase))
-            return $"{teller} told me you helped them out {when}.";
+            return $"{teller} told me you helped {them} out {when}.";
         return from is null
             ? $"I heard about {Who(entry.Subject)} {when}."
             : $"I heard about {Who(entry.Subject)} from {from} {when}.";

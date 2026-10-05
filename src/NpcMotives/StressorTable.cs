@@ -91,6 +91,33 @@ public static class StressorTable
         }
     }
 
+    /// <summary>
+    /// How gossip-worthy an entry is (docs/spec/ledger-gossip.md, "Juiciness"; D25): the profile's
+    /// juiciness, or for kinds that stir no feeling of their own, their gossip value alone (a gift
+    /// seen by taste, town news, a festival). Null: not gossip at all (a plain <c>Saw</c>). The
+    /// mod passes this to <c>MemoryStore.Chat</c>.
+    /// </summary>
+    public static double? JuicinessOf(DiaryEntry entry)
+    {
+        if (Of(entry) is { } p)
+            return p.Juiciness;
+        IReadOnlyDictionary<string, string> d = DiaryDetail.Parse(entry.Detail);
+        return entry.Kind switch
+        {
+            "SawGift" => (d.TryGetValue("taste", out string? taste) ? taste : null) switch
+            {
+                "Love" => 2,
+                "Like" => 1.5,
+                "Dislike" => 2,
+                "Hate" => 3,
+                _ => 1,
+            },
+            "TownNews" => 2,
+            "Festival" => 1,
+            _ => null,
+        };
+    }
+
     /// <summary>Kinds that lift the mood and leave warmth in regard but are no reason to act on
     /// their own: a plain chat is not something to thank anyone for (playtest 2026-10-02: Haley
     /// wrote "thank you" letters after ordinary talks).</summary>

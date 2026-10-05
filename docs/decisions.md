@@ -517,6 +517,26 @@ alone. Positions are read only to record the sighting, as `CollectPresences` doe
 now names both); the decision reads memory. Nothing else changes per second: no routine learning, no
 NPC-to-NPC sightings, no second `Saw` line.
 
+### D33. Gossip juiciness as built
+**Decision (2026-10-04, building D25).** Stories spread by juiciness, hop by hop, as D25 says.
+Three choices D25 left open, made here:
+- **Fading counts whole days** since the teller got the story, not fractions. A story keeps its
+  juiciness through the day it happened, so news at the volunteer level (a loved gift, a quest, at
+  2) is told that day and fades from the next. Counted in fractions, it would be under 2 within
+  minutes and spread only with the knows-someone bonus.
+- **The teller never counts** as someone the listener knows: every chat partner has just seen the
+  teller, so the bonus would apply to almost every story.
+- **Kinds without a feeling** get a gossip value only: a gift seen by taste (liked 1.5, loved or
+  disliked 2, hated 3), town news 2, a festival 1. A liked gift and a festival no longer spread on
+  their own, as D25 intends ("I saw this person here" is a 1).
+A retold story is confirmed by the person it started with (`of`), or first-hand: the listener
+sees the same act by the same person within 7 days. A gift seen counts for a gift heard when both
+pleased, or both didn't. Relevance applies to the player only for now (8+ hearts doubles a story
+about the player, and a pleasing gift to someone else stirs jealousy), since the elastic stresses
+don't see regard for NPCs. Two independent tellers are not built: dedupe keeps the second telling
+out of the diary.
+**Why.** Sid asked to continue in the cloud (2026-10-04); this is the next roadmap item (step 14).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
