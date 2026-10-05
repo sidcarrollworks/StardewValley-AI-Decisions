@@ -15,6 +15,11 @@ public sealed class MotiveOptions
     public int DrawnHearts { get; set; } = 8;
     /// <summary>Hearsay seen first-hand within this many days of hearing it becomes lasting.</summary>
     public int ConfirmWindowDays { get; set; } = 7;
+    /// <summary>Hearsay about something the player did to someone else gives a listener a reason
+    /// to act toward the player only when it is this juicy or more (a scandal: rummaging in the
+    /// trash is 4) and bad. Below it, it moves the listener's mood and regard only. Sid, 2026-10-05:
+    /// "unless I actually did something really bad, the rest of the town shouldn't tell me off".</summary>
+    public double HearsayActsFromJuiciness { get; set; } = 4;
     public int ElasticWindowDays { get; set; } = 3;
     public int YieldCount { get; set; } = 3;
     public int YieldWindowDays { get; set; } = 5;

@@ -47,7 +47,10 @@ public enum CallKind
 /// <summary>A stress one diary entry puts on a character, in the elastic part (it fades).
 /// <see cref="Tick"/> is the source entry's tick: venting and a delivered thanks act on the
 /// stresses from entries at or before the act.</summary>
-public sealed record Stress(string Subject, Motive Motive, string Kind, int Valence, double Strength, int Tick = 0);
+/// <param name="MoodOnly">Moves the mood but gives no reason to act toward the subject: hearsay
+/// about what the player did to someone else, unless it is a scandal (Sid, 2026-10-05).</param>
+public sealed record Stress(string Subject, Motive Motive, string Kind, int Valence, double Strength, int Tick = 0,
+    bool MoodOnly = false);
 
 /// <summary>Today's mood: what recent events earned, the deterministic daily roll, whether today
 /// is a rare out-of-character day, and the outlook they add up to (all -1..1).</summary>

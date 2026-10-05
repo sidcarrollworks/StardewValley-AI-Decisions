@@ -168,7 +168,9 @@ at 8+ hearts takes a story about the player twice as hard, and a pleasing gift t
 someone else stirs `Jealous`; `Stresses.Hearsay`), hearsay decaying from when it was heard (`at`),
 and first-hand confirmation (`RegardKeeper.ConfirmedBy`: the same act by the same person within
 7 days, a gift seen counting for a gift heard by whether it pleased; once per story, read from the
-diary). Not started: relevance for NPCs the listener is drawn to (regard 0.6+; the elastic
+diary). Since D34 (2026-10-05) hearsay about what the player did to someone else moves the
+listener's mood only, unless it is a scandal (bad, base juiciness 4+); only then, or for jealousy,
+is it a reason to act toward the player. Not started: relevance for NPCs the listener is drawn to (regard 0.6+; the elastic
 stresses don't see regard today), the two-routes half (dedupe keeps a second telling out of the
 diary, so it needs somewhere to record it), and the 7-day shadow-harness spreading test.
 

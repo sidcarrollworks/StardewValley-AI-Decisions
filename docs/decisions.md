@@ -537,6 +537,22 @@ don't see regard for NPCs. Two independent tellers are not built: dedupe keeps t
 out of the diary.
 **Why.** Sid asked to continue in the cloud (2026-10-04); this is the next roadmap item (step 14).
 
+### D34. Only a scandal heard secondhand is a reason to act
+**Decision (Sid, 2026-10-05).** "Unless I actually did something really bad, the rest of the town
+shouldn't tell me off. Say I dig around in the trash can and that spreads around town, I think that
+warrants multiple people telling me to stop. But a bad gift isn't at that same level." In the
+day-10 playtest Gus queued a telling-off because Shane told him about a fish Shane disliked.
+- A story about what the player did to someone else moves the listener's mood, and its lasting
+  mark in regard stays as D33 says, but it gives no `Hurt` or `Grateful` motive toward the player
+  (`Stress.MoodOnly`).
+- The exception is a scandal: a bad act at base juiciness 4 or more
+  (`MotiveOptions.HearsayActsFromJuiciness`). Rummaging in the trash spreads, and everyone who
+  hears it may tell the player to stop.
+- Jealousy (a villager at 8+ hearts hearing of a pleasing gift to someone else) still acts: it is
+  about the listener.
+**Why.** Feeling hurt is about something done to you. A grudge built from many small stories still
+counts, through regard, as before.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

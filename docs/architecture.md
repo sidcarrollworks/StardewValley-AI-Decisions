@@ -229,6 +229,10 @@ entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind
   decayed from when it was heard; x `MaxRelevance` (2) for a listener at `DrawnHearts` (8) or more
   with the player when the story is about the player, and a pleasing gift the player gave someone
   else turns into `Jealous`.
+- What it can make the listener do (D34): a story about what the player did to someone else is
+  `Stress.MoodOnly` (it moves the mood, not the `Grateful` or `Hurt` motive), unless it is a
+  scandal: bad, and at `HearsayActsFromJuiciness` (4) or more, like rummaging in the trash.
+  Jealousy still acts.
 Without a juiciness function, `Chat` keeps the old rule (today's `GiftReceived`, `SawGift`,
 `QuestHelped`, `Festival`, teller's own entries, one hop), which only tests use.
 `SubjectsOf(observer)` lists an observer's subjects; `RemapTicks` exists for save migration. The JSON

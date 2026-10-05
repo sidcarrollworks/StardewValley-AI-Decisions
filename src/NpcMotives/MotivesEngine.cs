@@ -80,11 +80,11 @@ public sealed class MotivesEngine
         // up the gratitude for everything before it; the warm part stays in regard.
         int thanked = i.ThankedTick ?? int.MinValue;
         double grateful = stresses.Where(s => s.Motive == Motive.Grateful && Is(s.Subject, Player) && s.Tick > thanked
-                                              && !StressorTable.IsMoodOnly(s.Kind))
+                                              && !StressorTable.IsMoodOnly(s.Kind) && !s.MoodOnly)
             .Sum(s => s.Strength);
         add(Motive.Grateful, grateful, "recent kindness");
         double grudge = Math.Max(0, -i.RegardForPlayer);
-        double hurt = stresses.Where(s => s.Motive == Motive.Hurt && Is(s.Subject, Player)).Sum(s => s.Strength) + grudge;
+        double hurt = stresses.Where(s => s.Motive == Motive.Hurt && Is(s.Subject, Player) && !s.MoodOnly).Sum(s => s.Strength) + grudge;
         add(Motive.Hurt, hurt, grudge > 0 ? $"recent hurt; grudge {grudge:0.00}" : "recent hurt");
         double jealous = stresses.Where(s => s.Motive == Motive.Jealous && Is(s.Subject, Player)).Sum(s => s.Strength);
         add(Motive.Jealous, jealous, "saw or heard of a gift to someone else");
