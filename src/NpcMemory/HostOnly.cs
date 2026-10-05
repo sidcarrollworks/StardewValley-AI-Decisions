@@ -32,6 +32,17 @@ public static class HostOnly
     /// <summary>Whether the mod's game-event handlers run for this role.</summary>
     public static bool Runs(PlayerRole role) => role is PlayerRole.Solo or PlayerRole.Host;
 
+    /// <summary>
+    /// Whether returning to the title screen resets the mod's memory: only for screen 0, the
+    /// host's (or a farmhand's own) main screen. A split-screen guest leaving must not clear the
+    /// host's memory. Takes <c>Context.ScreenId</c>, not the role: at the title every screen 0
+    /// reads as the main player again. Verified in the 1.6.15 and SMAPI 4.5.2 decompile:
+    /// <c>Context.ScreenId</c> is <c>Game1.game1.instanceId</c>, the first game instance takes 0
+    /// and each split-screen guest a new, higher id (SMAPI Context.cs:122; Game1.cs:2343,
+    /// GameRunner.cs:130-133).
+    /// </summary>
+    public static bool ResetsAtTitle(int screenId) => screenId == 0;
+
     /// <summary>The one log line for a role that isn't plain single-player, or null.</summary>
     public static string? Notice(PlayerRole role) => role switch
     {

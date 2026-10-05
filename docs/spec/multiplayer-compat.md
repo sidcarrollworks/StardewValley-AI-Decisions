@@ -53,8 +53,9 @@ What has to change (each a design question to answer before building):
    the mod copy on that farmhand's machine, told by a host message. That is workable: it makes
    delivery naturally per farmer.
 5. **Mail is per farmer** (`mailForTomorrow`, `mailbox` and `mailReceived` are fields on each `Farmer`), which fits invitations.
-6. **Save data:** `helper.Data.WriteSaveData` throws on a farmhand connected to a remote host
-   (split-screen players on the host's PC are allowed). Memory only needs to live on the host anyway.
+6. **Save data:** `helper.Data.ReadSaveData` and `WriteSaveData` both throw on a farmhand connected
+   to a remote host (split-screen players on the host's PC are allowed; verified, SMAPI 4.5.2
+   `DataHelper.cs:181-226`). Memory only needs to live on the host anyway.
 7. **NPC movement** (visits, newcomer week) is host-side: path controllers only advance on the host,
    and `warpCharacter` on a farmhand only sends a request. How smoothly farmhands see a scripted
    walk is an in-game check.
@@ -79,8 +80,10 @@ subjects in shadow; L for live delivery to farmhands.
 
 ## Acceptance tests
 
-- Unit: a pure `MultiplayerMode.For(isMultiplayer, isOnHostComputer, isMainPlayer)` returns Off / HostOnly / Single,
-  and the mod's hook-up follows it.
+- Unit: a pure `HostOnly.RoleOf(isMultiplayer, isMainPlayer, isOnHostComputer)` returns Solo,
+  Host, SplitScreenGuest or Farmhand, and the mod's hook-up follows it (built as `HostOnly`;
+  `tests/NpcMemory.Tests/HostOnlyTests.cs`, which also covers a split-screen guest leaving for the
+  title).
 - In-game: a split-screen co-op session on one PC (local multiplayer; `Context.IsSplitScreen`):
   the host's log shows the warning, and nothing runs twice for the second screen.
 
@@ -92,12 +95,20 @@ the role from SMAPI's `Context` flags.
   `LoadMemory`. Every other handler returns early, because `Context.IsMainPlayer` is false. Nothing
   is recorded, saved or shown. The gift and quest postfixes return early too.
 - **Split-screen guest:** that screen's handlers return early. `ReturnedToTitle` on a guest's
-  screen (`ScreenId != 0`) doesn't clear the host's memory.
+  screen (`ScreenId != 0`, `HostOnly.ResetsAtTitle`) doesn't clear the host's memory.
 - **Host in multiplayer:** the mod keeps running for the host's farmer. It logs one warning at load,
   or when the first farmer connects (`PeerConnected`), that other farmers are ignored. Live acts are
   already off in multiplayer (`LiveGate`).
-- **VERIFY in game:** that `Context.IsMultiplayer` is already true at `SaveLoaded` for a hosted co-op
-  save, and that a farmhand joins a host without the mod and sees the one log line and no errors.
+- **Settled in the decompile (2026-10-05, `stardew-source-notes.md`, "Audit pass"):**
+  `Context.IsMultiplayer` is already true at `SaveLoaded` for a hosted co-op save;
+  `Context.IsMainPlayer` is false for split-screen guests and remote farmhands; the host's screen is
+  `ScreenId` 0 and guests get new ids from 1.
+- **Fixed in the audit:** a farmhand's own screen is screen 0, so `ReturnedToTitle` runs its reset
+  there too. It threw a `NullReferenceException` on the playtest log when no save had been loaded
+  earlier in that launch (`OnSaveLoaded` stops before creating it for a farmhand). It is null-safe
+  now.
+- **Still to check in game:** that a farmhand joining a host without the mod sees the one log line
+  and no errors, and a split-screen session (the host's warning; nothing runs twice).
 
 Multiplayer itself (the list above) is not started.
 

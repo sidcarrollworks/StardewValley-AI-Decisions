@@ -2,10 +2,10 @@
 
 **Status: partial; juiciness built (D33).** The ledger, decay and on-demand gossip (when an NPC asks around) are done,
 and step 7 (PR #16) added ambient gossip (`MemoryStore.Chat`, once per span with a deterministic
-FNV-1a draw, both sides pass their view of the player) and the `Heard` diary kind (original kind's
-news weight minus 1, one hop, at most once per listener). The juiciness design below (D25,
-2026-10-01) is planned and replaces that fixed one-hop rule. Brief goal 4 and design decision 4;
-D7, D8, D9, D18, D25; architecture, "Ledger".
+FNV-1a draw, both sides pass their view of the player) and the `Heard` diary kind. The juiciness
+design below (D25, 2026-10-01) is built (D33, PR #32) and replaced step 7's fixed one-hop rule in
+the mod; see Status for what differs and what is left. Brief goal 4 and design decision 4; D7, D8,
+D9, D18, D25, D33, D34; architecture, "Ledger".
 
 ## Player-visible behavior
 
@@ -27,9 +27,11 @@ about, `Detail` = `from=<teller>;kind=<original kind>;subject=<original subject>
 original's keys copied). Only kinds marked shareable pass on: `GiftReceived`, `SawGift`,
 `QuestHelped`, `Festival`.
 
-Planned:
-- With juiciness (below), any kind whose juiciness can reach `VolunteerLevel` is shareable. The `Detail` gains `j=<juiciness when told>;hops=<n>`, so how juicy it still is
-  can be computed, never stored and changed.
+Built with juiciness (D33):
+- Any kind with a base juiciness is shareable. The `Detail` gains `of=<whose diary it started
+  in>;b=<base>;j=<juiciness when told>;at=<tick told>;hops=<n>`, so how juicy it still is can be
+  computed, never stored and changed. A `Heard` without them (before D33) reads as one hop from its
+  teller.
 - No ledger format change (positions keep their D9 rules, below).
 
 ## Triggers and game hooks
@@ -43,9 +45,10 @@ Done (step 7): **ambient gossip**, `MemoryStore.Chat(now)`, called each tick rig
 - Whether a pair chats: FNV-1a uniform of (seed, a, b, span start tick) below `ChatChance` (0.3). No
   model call: this runs every tick for many pairs and must stay cheap and on the game thread.
 - In a chat, each side passes the other its view of the **player** through `Ledger.Gossip` (all D9
-  rules hold), and at most one shareable event from today as a `Heard` entry, the highest news
-  score the listener does not already have. **Planned:** the juiciest one for that listener, at or
-  above `VolunteerLevel`, that the listener does not already have (below).
+  rules hold), and at most one story as a `Heard` entry: since D33, the juiciest one for that
+  listener, at or above `VolunteerLevel`, that the listener does not already have (below). (Step 7's
+  rule, the highest news score among today's shareable events, is kept only for callers that pass
+  no juiciness function: tests.)
 - NPC-about-NPC positions are not gossiped ambiently (the ledger would churn with little use); only
   `AskAround` does that, when someone is being looked for.
 
@@ -106,9 +109,11 @@ entry offered by the planner).
 Done (D9): gossip refuses self and Gone views, caps detail at the teller's, allows two hops, never
 overwrites fresher knowledge, records `ToldBy`.
 
-Planned:
+Built (D33):
 - Juiciness as above: telling, retelling, fading and confirmation are pure functions of the
   diary; the chat draw uses the same FNV-1a seed family, so the same save replays the same spread.
+  (As built, the store loaded from save data uses the default seed, not the save's: audit
+  2026-10-05, in Status.)
 - The player's own presence doesn't matter: NPCs chat whether or not the player is near. It is
   simulated silently off-screen, as the brief asks, and costs only memory work.
 
@@ -156,14 +161,14 @@ Done: `src/NpcMemory/Ledger.cs`, `MemoryStore.AskAround`, `MemoryStore.Chat` and
 Built with motives (2026-10-02, `src/NpcMotives`): how the listener takes it, in part. A `Heard`
 puts the original's stress at `HearsayFactor` on the listener (elastic); told by the person it
 happened to, it is confirmed at once and leaves half the original's lasting mark in regard
-(`RegardKeeper`); told by a witness, it stays elastic. Today's gossip passes on only the teller's
-own entries, one hop, so a `Heard` `GiftReceived` or `QuestHelped` always comes from the source.
+(`RegardKeeper`); told by a witness, it stays elastic. (Until D33, gossip passed on only the
+teller's own entries, one hop.)
 Built (2026-10-04, D33, `src/NpcMemory/Gossip.cs`, `MemoryStore.ChatHeard` with a juiciness
 function; the mod passes `StressorTable.JuicinessOf`): juiciness, volunteering, the knows-someone
 bonus, retelling at 0.7, fading, the three-a-day cap and dedupe by event. Differences from the text
 above (D33): fading counts whole days, the teller never counts for the bonus, and kinds without a
 feeling have a gossip value only (a gift seen, town news, a festival). A retold story stays
-elastic; only its owner confirms it. Also built (2026-10-04): relevance for the player (a listener
+elastic until confirmed: told by its owner, or seen first-hand (below). Also built (2026-10-04): relevance for the player (a listener
 at 8+ hearts takes a story about the player twice as hard, and a pleasing gift the player gave
 someone else stirs `Jealous`; `Stresses.Hearsay`), hearsay decaying from when it was heard (`at`),
 and first-hand confirmation (`RegardKeeper.ConfirmedBy`: the same act by the same person within
@@ -173,6 +178,27 @@ listener's mood only, unless it is a scandal (bad, base juiciness 4+); only then
 is it a reason to act toward the player. Not started: relevance for NPCs the listener is drawn to (regard 0.6+; the elastic
 stresses don't see regard today), the two-routes half (dedupe keeps a second telling out of the
 diary, so it needs somewhere to record it), and the 7-day shadow-harness spreading test.
+
+Found in the audit (2026-10-05), not fixed yet (Sid's call):
+- **One gift seen by several villagers is several stories.** `Gossip.EventKey` includes the diary a
+  story started in, which tells apart two villagers' own entries from the same tick (two quests
+  done between two ticks), but makes each witness's `SawGift` of one gift its own event. One
+  listener can then hear the same gift from each witness, against "Dedupe" above, and each copy is
+  confirmed separately.
+- **Two chat draws per pair and span.** The draw is made per direction (`A>B` and `B>A`), so about
+  51% of spans have a chat instead of 30%, and some have two.
+- **The seed.** `MemoryStore.FromJson` keeps the default seed (12345), so a save's chats differ
+  between its first session and every later one, and all loaded saves draw alike.
+- A listener who witnessed the event can still be told it (`HeardKeys` reads only `Heard`
+  entries); a `Heard` of a `SawGift` stirs nothing, not even jealousy, while a `Heard` of the
+  recipient's `GiftReceived` can.
+
+The day-10 playtest's double hearing (Emily, Haley's Sunflower, records at ticks 4339 and 4443)
+was a reload, not a code path: the summer-10 log runs 4440 to 4442, then starts again at 4441 with
+every villager's presence (the first tick after a load). The first hearing happened in the first
+session, around tick 4442, and was logged by the build before PR #33, which stamped hearsay records
+with the event's tick (4339) and hops 0; that session ended without a save, so the reloaded morning
+didn't have it.
 
 ## Open questions
 

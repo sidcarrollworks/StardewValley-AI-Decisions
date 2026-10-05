@@ -438,8 +438,75 @@ names that live only in Data/mail; (5, optional) dump `Data/Events` keys to conf
 `f <Npc> <points>` heart-event precondition; (6) grep `Characters/schedules/*` for Farm/FarmHouse
 entries; (7) Linus's garbage special-case chat.
 
+### Audit pass (2026-10-05)
+
+The `VERIFY` items left by PRs #29 to #34, settled in the same decompile (game 1.6.15.24356, SMAPI
+4.5.2). Data values come from the installed `Content/Data/*.xnb`, read through the game's own
+content loader (see Tools).
+
+- **`NPC.CanSocialize`** exists in 1.6: a `virtual bool` property (NPC.cs:749) that is false when
+  `IsVillager` is false and otherwise evaluates `Data/Characters` `CanSocialize`, a game state query,
+  with the NPC's current location (`CanSocializePerData`, NPC.cs:4873); no entry in the data means
+  false, a missing query means true (CharacterData.cs:73-75). In the 1.6.15 data it is `FALSE` for the
+  Bouncer, Mister Qi, Gunther, Marlon, Gil, Birdie, the Henchman, Morris, the Old Mariner, the Bear,
+  the Governor, Grandpa and Welwick. **Sandy's is `PLAYER_HAS_SEEN_EVENT Any 67`**, the Oasis
+  introduction ("A... customer?", `Data/Events/SandyHouse`), so she can't socialize until the player
+  has met her there. Krobus, the Dwarf and the Wizard have none (true). `IsVillager` is true for every
+  `NPC` and false for `Child`, `Horse`, `Junimo`, `JunimoHarvester`, `Pet`, `TrashBear` and every
+  `Monster` (Character.cs:486, NPC.cs:529).
+- **When `Farmer.friendshipData` gets an entry:** the first time the player interacts with a
+  villager who can receive gifts (`NPC.checkAction`, NPC.cs:2512-2514), or meets them in an event
+  (Event.cs:189-191). Villagers whose `SocialTab` is `AlwaysShown` (Lewis, Robin, Kent, Leo in the
+  1.6.15 data) get one whenever `Game1.AddCharacterIfNecessary` runs for them (Game1.cs:7313/7349)
+  and when the social page opens (SocialPage.cs:245), so for them an entry doesn't mean a meeting.
+  `Farmer.hasPlayerTalkedToNPC` (Farmer.cs:4163) also adds one for a socializable name, but its
+  callers only pass names already in the dictionary.
+- **A spouse's schedule:** `NPC.TryLoadSchedule()` (NPC.cs:5755-5905) for a married NPC tries only
+  `marriage_<season>_<day>`, then `marriageJob` (Penny Tue/Wed/Fri, Maru and Harvey Tue/Thu), then
+  `marriage_<Mon..Sun>` when it isn't raining, else no schedule. The unmarried key order never runs,
+  so routine priors from it would be wrong for the spouse (the mod skips the spouse).
+- **`Context.IsMultiplayer` at `SaveLoaded`:** `IsMultiplayer` is `IsSplitScreen ||
+  (IsWorldReady && Game1.multiplayerMode != 0)` (Context.cs:125-140). Hosting from the co-op menu sets
+  `Game1.multiplayerMode = 2` before the load (`CoopMenu.HostFileSlot.Activate`, CoopMenu.cs:129),
+  and SMAPI raises `SaveLoaded` only once `IsWorldReady` is true (SCore.cs:900-915), so it is true at
+  `SaveLoaded` for a hosted co-op save. Split-screen started mid-session turns it on later
+  (`Game1.StartLocalMultiplayerIfNecessary`, Game1.cs:3459). At the title,
+  `Game1.ResetGameStateOnTitleScreen` sets `multiplayerMode = 0` (Game1.cs:16368).
+- **`Context.IsMainPlayer`** is `Game1.IsMasterGame && ScreenId == 0`, and not while the title
+  screen shows the farmhand menu (Context.cs:171-181). `IsMasterGame` is `multiplayerMode` 0 or 2
+  (Game1.cs:1808); every network client, a split-screen guest included, sets it to 1 when it
+  connects (Network/Client.cs:205). So it is false for remote farmhands and split-screen guests.
+  `IsOnHostComputer` is `IsMainPlayer || IsSplitScreen` (Context.cs:142-152).
+- **`Context.ScreenId`** is `Game1.game1.instanceId` (Context.cs:122). Each `Game1` takes
+  `GameRunner.GetNewInstanceID()` in its constructor (Game1.cs:2343, GameRunner.cs:130-133), a
+  counter from 0, so the host's screen is 0 and split-screen guests get 1, 2... (never reused).
+- **`Constants.SaveFolderName`** is computed on each read from `Game1.GetSaveGameName()` and
+  `Game1.uniqueIDForThisGame` whenever the load stage isn't `None` (Constants.cs:262-305). SMAPI sets
+  the stage to `Ready` just before raising `SaveLoaded` (SCore.cs:914-915), so it is set there.
+- **Save data on a farmhand:** both `Helper.Data.ReadSaveData` and `WriteSaveData` throw
+  `InvalidOperationException` when `!Context.IsOnHostComputer`, and when no save is loaded
+  (DataHelper.cs:181-226). Split-screen guests are on the host computer, so they may read and write.
+- **`OneSecondUpdateTicked`** is raised from SMAPI's per-screen update (`SCore.OnPlayerInstanceUpdating`,
+  SCore.cs:757 and 1155), on the game thread, once per screen in split-screen.
+- **Emotes:** `Character` constants (Character.cs:29-53): empty can 4, question 8, angry 12,
+  exclamation 16, heart 20, sleep 24, sad 28, happy 32, x 36, pause 40, video game 52, music note
+  56, blush 60. `isEmoting` is a public field on `Character` (Character.cs:145).
+- **`doEmote`** (Character.cs:1066-1088): `doEmote(int whichEmote, bool playSound, bool
+  nextEventCommand = true)` (virtual), `doEmote(int whichEmote, bool nextEventCommand = true)` and
+  `doEmote(int whichEmote, int emoteYOffset)`. It does nothing while the character is already
+  emoting, or during an event unless the character is one of its actors. `npc.doEmote(id)` binds to
+  the second.
+- **`NPC.showTextAboveHead(string text, Color? spriteTextColor = null, int style = 2, int duration =
+  3000, int preTimer = 0)`** (NPC.cs:1373): does nothing while the NPC is invisible, applies
+  gender-switch blocks to the text, and sets the protected `textAboveHeadTimer` (NPC.cs:160).
+
 ## Tools
 
+- **Reading structured game data** (`Data/Characters` and the like) without unpacking: a throwaway
+  net6.0 console project that references `MonoGame.Framework.dll` and `StardewValley.GameData.dll`
+  from the game folder can call `new ContentManager(new GameServiceContainer(), "<game>/Content")
+  .Load<Dictionary<string, CharacterData>>("Data/Characters")`; no graphics device is needed for data
+  assets (used for the audit pass above, 2026-10-05). Build it outside the repo.
 - **SMAPI:** `GameLoop.Saving`, `DayStarted`, `DayEnding`, `helper.Data.WriteSaveData` (verified in-game, SMAPI 4.5.2 / 1.6.15). Night order seen in the SMAPI log: `DayEnding` -> the "NewDay" task -> `TimeChanged` with NewTime 600 (the date is already the new day) -> `Saving` -> `DayStarted`. So the 6:00 tick runs before the save and before `DayStarted`. The day-end notes run at `DayEnding`, which SMAPI raises before the game's `newDayAfterFade` (`SCore.cs:1357`); `Friendship.GiftsToday` is reset later, in `Farmer.updateFriendshipGifts` (`Farmer.cs:4150`), so reading it at `DayEnding` sees the day that just ended.
 - **Laya checkpoints:** `laya` (English, 512 ctx), `laya-multilingual` (1,024), `laya-typed-decisions` (1,024).
 - **xnbcli** (LeonBlade/xnbcli, Node): unpacks plain-XNA-type XNB files directly (dictionary data works, e.g. `Characters/schedules/*.xnb`). The native `lz4` module needs a stub (`const LZ4 = null`) when no C++ toolchain is present; LZX files (all schedule files) don't need it. Structured 1.6 data (Data/Locations etc.) uses game-specific type readers xnbcli can't resolve — StardewXnbHack handles those but runs through a real game instance (needs to run from the game folder, briefly opens a game window, writes `Content (unpacked)`).

@@ -1,9 +1,10 @@
 # How it works
 
 A map of this repo for whoever maintains it next, human or model. It was checked against the code
-at commit `c97a829` (step 9, Find included) on branch `claude/audit-fixes-initiation`. When the code
-and this file disagree, the code wins: fix this file in the same PR. `git log c97a829..` shows what
-changed since.
+at commit `c97a829` (step 9, Find included) on branch `claude/audit-fixes-initiation`; the per-tick
+flow, the hooks, Memory, Motives, Live, Finding the player, Persistence and the config were checked
+again at `da8eb8e` (audit, 2026-10-05). When the code and this file disagree, the code wins: fix
+this file in the same PR. `git log da8eb8e..` shows what changed since.
 
 - Paths are relative to the repo root. **verify** marks anything not confirmed in code or in-game.
 - Rules and workflow: `AGENTS.md`. Why things are this way: `docs/decisions.md`. Game internals:
@@ -12,18 +13,21 @@ changed since.
 ## What the mod does today
 
 `mod/StardewNpcMod` is a SMAPI mod for Stardew Valley 1.6 (the owner runs SMAPI 4.5.2 on game
-1.6.15). It runs entirely in **shadow mode**: it records memory and writes `[shadow]` lines to the
-SMAPI log saying what NPCs would do, and it changes no game state. No dialogue is added, no NPC
-moves, no letter is sent. Every ten-minute tick, each villager NPC records the player and the other
-NPCs it can "see" (same location, within 8 tiles) in its own memory: a last-seen ledger, a diary and
-routine counts. At day end the mod plans on a background task which NPCs would say something
-tomorrow, and logs those lines. Through the day the initiation ladder decides whether each NPC would
-try to get the player's attention (emote, bubble, approach, queued line, letter, forced dialogue) and
-logs the attempts and how they ended. NPCs that miss the player also ask the NPCs around them and may
-go looking (see Finding the player). Decisions are typed numbers from a local Laya server or a
-deterministic fake; the model never writes text. Memory and ladder state are saved per save file.
-The motives engine that will replace the ladder's urge (roadmap step 14, D24) is built and tested
-in `src/NpcMotives` but not yet wired into the mod (see Motives).
+1.6.15). It runs in **shadow mode**: it records memory and writes `[shadow]` lines to the SMAPI log
+saying what NPCs would do, and it changes no game state. No dialogue is added, no NPC moves, no
+letter is sent. The one exception (Sid, 2026-10-02, D30): the motives runner's emotes and speech
+bubbles can be shown in the game, friendly and hostile, each behind its own switch in
+`config.json`, both off by default (`[live]` lines; see Live emotes and bubbles). Every ten-minute
+tick, each villager NPC records the player and the other NPCs it can "see" (same location, within 8
+tiles) in its own memory: a last-seen ledger, a diary and routine counts; about once a second it
+also notices the player arriving between ticks (D32). Villagers chat and pass on juicy stories
+(D33). At day end the mod plans on a background task which NPCs would say something tomorrow, and
+logs those lines. Through the day the motives runner (roadmap step 14, D24) decides whether each
+NPC would act toward the player (wave, bubble, walk over, queued line, letter...) and logs the
+attempts and how they ended; the urge ladder it replaced is retired (D31). NPCs that miss the
+player also ask the NPCs around them and may go looking (see Finding the player). Decisions are
+typed numbers from a local Laya server or a deterministic fake; the model never writes text.
+Memory, regard and the runner's pacing are saved per save file.
 
 ## Projects and dependencies
 
@@ -38,14 +42,14 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
 | `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
-| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText` | NpcMemory, NpcDecision, NpcTemperament | built, through NpcMinds; not run yet |
+| `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText`, `MotiveDrive` | NpcMemory, NpcDecision, NpcTemperament | yes: decides every attempt (D31) |
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
-| `src/NpcLive` | the first live acts (D30): `LiveSwitches`, `LiveOptions`, `LivePlanner` (a runner `Act` event to an emote id or a templated bubble line), `LiveGate` (the last "not now" check), `LiveBreaker` (circuit breaker per switch), `LiveLedger` (shown acts, so an ignored one is written as `IgnoredBy`) | NpcMotives, NpcIntents | not wired yet |
+| `src/NpcLive` | the first live acts (D30): `LiveSwitches`, `LiveOptions`, `LivePlanner` (a runner `Act` event to an emote id or a templated bubble line), `BubbleVoices` (each villager's bubble lines), `LiveGate` (the last "not now" check), `LiveBreaker` (circuit breaker per switch), `LiveLedger` (shown acts, so an ignored one is written as `IgnoredBy`) | NpcMotives, NpcIntents | yes, behind the `Live` switches |
 | `src/NpcShadow` | `DayPlanner`, `ShadowSimulator`, `ShadowLog` | NpcSchedules, NpcMemory | no (tests only) |
 | `tools/ScheduleExtractor` | command line: schedule JSON in, region x block counts out | NpcSchedules | no |
 | `src/NpcTemperament` | `DialogueText`, `DialogueFeatures`, `TemperamentScorer`, `Temperament`, `TemperamentTable` (seed personality values) | nothing | yes: the viewer's temperament line; the motives engine reads it |
 | `tools/TemperamentExtractor` | command line: unpacked dialogue + game traits in, seed table out | NpcTemperament | no |
-| `mod/StardewNpcMod` | `ModEntry` (every game hook), `ModConfig`, `manifest.json` | the five "yes" projects; game + SMAPI via `Pathoschild.Stardew.ModBuildConfig` 4.3.1 | - |
+| `mod/StardewNpcMod` | `ModEntry` (every game hook), `ModConfig`, `manifest.json` | every "yes" project above plus `NpcDiaryEvents` (ten in all); game + SMAPI via `Pathoschild.Stardew.ModBuildConfig` 4.3.1 | - |
 | `tests/<Name>.Tests` | xUnit tests for `src/<Name>` | that project only | no |
 
 ```
@@ -83,50 +87,65 @@ in year 2.
 ticks. A calendar day here is the game day, 6:00 to 2:00, and everything before the next 6:00 belongs
 to it (a 1:30 AM sighting is still "today"; at 6:00 it is Gone). Anything that must not cross the
 night compares `DayIndex`, never tick distance: ledger decay, diary spans, "yesterday" in overnight
-lines, the ladder's daily caps and response windows.
+lines, the motives runner's daily caps and response windows (and the retired ladder's).
 
 ## The per-tick flow in the mod
 
 **Single-player guard** (`HostOnly`, docs/spec/multiplayer-compat.md): only the host's main
 screen runs the mod. A farmhand on a remote host logs one line at load and stays off, before
-`LoadMemory`, since it can't read or write save data. Every handler and both Harmony postfixes
-return early when `Context.IsMainPlayer` is false. A host in multiplayer gets one warning that
-other farmers are ignored.
+`LoadMemory`, since it can't read or write save data (both `ReadSaveData` and `WriteSaveData`
+throw there; verified). Every handler and both Harmony postfixes return early when
+`Context.IsMainPlayer` is false; `ReturnedToTitle` resets memory only for screen 0
+(`HostOnly.ResetsAtTitle`), so a split-screen guest leaving keeps the host's. A host in
+multiplayer gets one warning that other farmers are ignored.
 
 Every game hook is in `mod/StardewNpcMod/ModEntry.cs`. Each handler catches and logs its own
-exceptions. In `OnTimeChanged`, steps 1-3 and steps 4-5 are separate try blocks, so a memory failure
-does not stop the ladder.
+exceptions. In `OnTimeChanged`, the diary events (1-2), the observation (3-6), the views and plan
+(7-8) and the motives (9) are separate try blocks, so a memory failure does not stop the motives.
 
 ```
 TimeChanged(e.NewTime)                                     game thread
  |  tick = TimeUtils.TickIndex(e.NewTime); stop if -1;  now = Now(tick)
+ |  at 6:00 (tick 0): clear _talkedToday, open the playtest day file, RegardKeeper.Drift(),
+ |                    the regard snapshot records
  |
  |- 1. NoteSpecialOrders(now)      diff team.completedSpecialOrders -> QuestHelped (Special)
  |- 2. _events.Drain(...)          queued GiftReceived / SawGift / QuestHelped into memory
  |                                 (SawGift witnesses: the span tracker's last Observe)
- |- 3. CollectPresences()          the only live-position read: every villager in
- |                                 Game1.locations, plus the player's own location
+ |- 3. CollectPresences()          live positions, read only to record them: every villager
+ |                                 that can socialize in Game1.locations, plus the player's
+ |                                 own location
  |- 4. _memory.Observe(now, ...)   Ledger.Record, RoutineBelief.Observe, diary "Saw"
  |- 5. AskAround(now)              Find: NPCs that miss the player ask around
- |- 6. RunLadder(now)
- |      inputs, one per NPC that has a diary, in name order:
- |        (npc, Ledger.View(npc, "Player", now), npc in _intentsToday, hearts, Find lead)
- |      _ladder.EnqueueTick(now, inputs) -------> worker: InitiationLadder.Tick
- |                                                (YesNo via ResilientDecisionClient)
- |      _ladder.Drain() <------------------------ finished results; never blocks
- |        append TriedToReach / IgnoredBy lines to the diaries (IgnoredBy only once the rung is
-|        live — `RecordIgnoredBy`); log [shadow] events
- |- 7. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
- |                                 fill _intentsToday
- |- 8. RunMotives(now)
- |      inputs from RunLadder's _lastLadderInputs (the same views, leads and hearts),
- |      the plan's best news score per NPC, and the NPC card with a "today" line
+ |                                 (MotiveDrive.Seeking from the runner's last weighing)
+ |- 6. _memory.ChatHeard(...)      ambient chats: positions of the player, and stories by
+ |                                 juiciness as Heard entries (D33)
+ |- 7. BuildViews(now)             one InitiationInput per NPC that has a diary, in name
+ |                                 order: (npc, Ledger.View(npc, "Player", now), npc in
+ |                                 _intentsToday, hearts, Find lead), kept in _lastLadderInputs
+ |    LogHeartbeat(tick)           every 2 game hours
+ |- 8. CollectPlan(morning: false) if the overnight plan is ready: log its lines,
+ |                                 fill _planToday and _intentsToday
+ |- 9. RunMotives(now)
+ |      inputs from _lastLadderInputs (the views, leads and hearts), the plan's best news
+ |      score per NPC, the copied diary and regard, the NPC card with a "today" line, and
+ |      PlayerBusy = !Context.IsPlayerFree
  |      _motives.EnqueueTick(now, inputs) ------> worker: MotivesRunner.Tick
- |                                                 (YesNo via ResilientDecisionClient)
- |      _motives.Drain() <--------------------- finished decisions; never blocks
+ |                                                 (Choose / YesNo via ResilientDecisionClient)
+ |      DrainMotives() <----------------------- finished decisions; never blocks
  |        log [shadow] motives lines (Act/Grudge/Responded at Info, the rest at Trace);
- |        Grudge relief -> RegardKeeper.Relieve; decision/regard playtest records
- |- 9. PublishMinds()              the viewer's snapshot (read-only; see NPC Minds viewer)
+ |        Grudge relief -> RegardKeeper.Relieve; decision/regard playtest records;
+ |        ShowLive (an Emote or Bubble act whose switch is on, through LiveGate);
+ |        LiveLedger.OnResolved -> an IgnoredBy diary entry for a shown act that was ignored
+ |- 10. at 6:00: PlaytestMorning(now) (weather, the memory census, yesterday's game events)
+ |- 11. PublishMinds()             the viewer's snapshot (read-only; see NPC Minds viewer)
+
+OneSecondUpdateTicked (about once a second, game thread)
+ |- CaptureFestival()              while a festival runs
+ |- MeetPlayer()                   villagers in the player's location within 8 tiles that
+ |                                 haven't seen the player this tick: NoteMeetings, then
+ |                                 RunMotives(now, only those); skipped while the player is busy
+ |- DrainMotives()                 so a live act shows while the player is still there
 ```
 
 Festival capture is NOT in the tick: the clock is stopped for the whole festival
@@ -147,10 +166,11 @@ while saving (verified).
 | Other hook | What the mod does |
 |---|---|
 | `Entry` | reads `config.json`; loads `regions.json` from the mod folder (a missing or invalid file throws before any event is hooked, so the mod does nothing); loads `temperament.json` plus `temperament-overrides.json` (missing or invalid: a warning, and only the viewer loses temperaments); builds the decision backend; `ApplyPatches()` (the read-only Harmony postfixes, one list); logs `Shadow mode ready: ...` |
-| `SaveLoaded` | `LoadMemory()`: fresh memory and ladder, then the save's data (see Persistence); seeds the special-order diff set |
-| `MenuChanged` | response detection for the ladder (see the ladder section); first daily conversation -> `Talked`; conversations during a festival feed the Festival `with` key |
-| `OneSecondUpdateTicked` | `CaptureFestival()` while `Game1.isFestival()` (attended + actor names); gated on `Context.IsWorldReady` |
-| `ReturnedToTitle` | disposes the plan job; fresh memory, ladder, `PlayerSearch`, `_intentsToday`; clears the event queue, festival capture and special-order set |
+| `SaveLoaded` | `HostOnly` first (a farmhand or split-screen guest logs one line and stops); the playtest log for this save; `LoadMemory()`: fresh memory, regard and motives runner, then the save's data (see Persistence); seeds the special-order diff set; `SeedPriors()` (family routine priors, once per save); `HistoryAtInstall()` (D29, once per save); the viewer's portraits |
+| `MenuChanged` | a dialogue box with a speaker: `EnqueueTalked` for the motives runner (answers its open attempts); first daily conversation -> `Talked`; conversations during a festival feed the Festival `with` key |
+| `OneSecondUpdateTicked` | `CaptureFestival()` while `Game1.isFestival()` (attended + actor names), `MeetPlayer()` and `DrainMotives()` (see above); gated on `Context.IsWorldReady` |
+| `PeerConnected` | the host's one "other farmers are ignored" warning, if load didn't already give it |
+| `ReturnedToTitle` | screen 0 only (`HostOnly.ResetsAtTitle`): disposes the plan job; fresh memory, regard, motives runner, `PlayerSearch`, `_intentsToday`; clears the event queue, festival capture and special-order set; flushes and closes the playtest log |
 
 ### The night, in the order it really happens
 
@@ -161,13 +181,14 @@ Seen in the SMAPI log (`stardew-source-notes.md`, "Tools"): `DayEnding` -> the g
 |---|---|---|
 | 1 | `DayEnding` | `NoteDayEnd()` writes the day's `Talked`/`PassedBy`/`BirthdayForgotten` notes and the `Festival`/`MissedFestival` notes into the diaries (Trace `[shadow] diary ...`), then `StartPlanning()`: disposes any old plan job, clears `_intentsToday`, snapshots every non-empty diary with a per-NPC `NewsContext` (homes, snapshot beliefs, hearts), starts an `IntentPlanJob` (seed and `sourceDay` = DayIndex of the day just ended) |
 | 2 | "NewDay" task | nothing |
-| 3 | `TimeChanged` 600 | an ordinary tick 0 of the new day: the ladder's first tick settles attempts left open overnight on their own day, then halves urge and resets rungs; `CollectPlan` usually collects the plan here |
+| 3 | `TimeChanged` 600 | an ordinary tick 0 of the new day, plus regard drift and the regard snapshot: the motives runner's first tick settles attempts left open overnight on their own day, then resets the daily counts; `CollectPlan` usually collects the plan here |
 | 4 | `Saving` | `SaveMemory()`: serialization only, never waits on the model |
 | 5 | `DayStarted` | `CollectPlan(morning: true)`: if the plan is still running, logs that its lines will come later |
 
-Two consequences. The ladder runs before `CollectPlan` in the 6:00 handler, so the intent boost
-reaches the ladder from 6:10. And `_intentsToday` is cleared when planning starts, not at
-`DayStarted`, or the 6:00 collection would be wiped (commit `694fa38`).
+Two consequences. `CollectPlan` runs before `RunMotives` in the 6:00 handler, so the plan's news
+scores reach the motives from the 6:00 tick when the plan is ready by then. And `_intentsToday`
+is cleared when planning starts, not at `DayStarted`, or the 6:00 collection would be wiped
+(commit `694fa38`).
 
 ## Memory (`src/NpcMemory`)
 
@@ -206,7 +227,12 @@ chats (below), where each side passes its view of the player.
 
 **Ambient chats and juiciness** (`MemoryStore.Chat`/`ChatHeard`, `Gossip`; D25, D33). Each tick,
 right after `Observe`, NPC pairs co-located for `ChatMinTicks` (3) may chat once per span (an FNV-1a
-draw under `ChatChance`, 0.3). In a chat each side may volunteer one story to the other as a `Heard`
+draw under `ChatChance`, 0.3, over the per-save seed). As built, the draw is made once per
+*direction* (`A>B` and `B>A` are separate span keys), so a pair gets two draws a span: about 51%
+of spans have a chat, and some have two (audit 2026-10-05, not fixed yet). And
+`MemoryStore.FromJson` builds its store with the default seed (12345), so every save loaded from
+data draws the same chats; only a save's first session uses `MemorySeed()` (same audit, not fixed
+yet). In a chat each side may volunteer one story to the other as a `Heard`
 entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind) and `KnowsPerson`
 (regard or a ledger entry):
 - a story is any diary entry with a base juiciness: the teller's own, or a `Heard` they can retell;
@@ -215,12 +241,16 @@ entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind
 - it is told when that, plus `KnowsSomeoneBonus` (0.5) if the listener knows someone in the story
   other than the teller, reaches `VolunteerLevel` (2); the juiciest such story wins;
 - never to someone in the story (its subject, the person it started with, a giver), never twice to
-  the same listener by any route (`Gossip.EventKey`), and to at most `RetellsPerDay` (3) listeners a
+  the same listener by any route (`Gossip.EventKey`: the event's tick, kind, subject and the diary
+  it started in), and to at most `RetellsPerDay` (3) listeners a
   day per teller and story (counted from the diaries, so a reload keeps it);
 - the listener gets it at `RetellFactor` (0.7) of the teller's juiciness. The `Heard` detail adds
   `of` (whose diary it started in), `b` (base), `j` (juiciness when told), `at` (tick told) and
   `hops` to the original's keys; its tick stays the event's. A `Heard` without them (before D33)
   reads as one hop from its teller.
+- As built, a gift seen by several villagers is several stories: each witness's `SawGift` carries
+  its own diary in the key, so one listener can hear the same gift from each witness, and each
+  copy is confirmed separately (audit 2026-10-05, not fixed yet).
 - A story never touches the position ledger. Hearsay is confirmed (lasting regard) when its
   teller is the person it started with (`RegardKeeper.FromSource`), or when the listener sees the
   same act by the same person within `ConfirmWindowDays` (7) of hearing it
@@ -248,8 +278,11 @@ drops the oldest. JSON is a flat array of entries. `Kind` is a free-form string.
 | Kind | Written by | Subject | Detail |
 |---|---|---|---|
 | `Saw` | `MemoryStore.Observe`, at the start of each co-located span | `"Player"` or an NPC | internal location name, e.g. `SeedShop` |
-| `TriedToReach` | the ladder, when it makes an attempt | `"Player"` | step name, e.g. `Emote` |
-| `IgnoredBy` | the ladder, when an attempt goes unanswered (once the rung is live; not while shadow) | `"Player"` | step name |
+| `TriedToReach` | the retired ladder, when it made an attempt; no longer written (D31), old saves keep theirs | `"Player"` | step name, e.g. `Emote` |
+| `IgnoredBy` | `LiveLedger.OnResolved`, when a live act that was really shown goes unanswered (never in shadow) | `"Player"` | act name, e.g. `Bubble` |
+
+The other kinds (`Talked`, `PassedBy`, `BirthdayForgotten`, `GiftReceived`, `SawGift`,
+`QuestHelped`, `Festival`, `MissedFestival`, `Heard`) are in `docs/spec/diary.md` and below.
 
 A **span** is a run of ticks in which the same observer and subject stay co-located. It continues
 only from the immediately previous tick of the same calendar day, so a gap or the night starts a new
@@ -324,7 +357,8 @@ running.
 | `Score(context, min, max)` | a value in [min, max] | midpoint | `score`: five levels "very low".."very high"; the expected level (0..4) maps linearly onto [min, max] |
 | `YesNo(context, proposition)` | P(true) in [0, 1] | 0.5 | `noul` with the proposition as instructions; reads `noul` |
 
-Callers: the overnight planner (`YesNo`, `Choose`) and the ladder (`YesNo`). Nothing calls `Score`.
+Callers: the overnight planner (`YesNo`, `Choose`) and the motives runner (`Choose` among motives,
+`YesNo` on close calls and the grudge). The retired ladder asked `YesNo`. Nothing calls `Score`.
 
 **`ResilientDecisionClient`** returns the fallback above when a call is slow or fails. With a
 timeout, the call runs on a thread-pool task and the caller waits at most that long, so it blocks the
@@ -335,8 +369,8 @@ also falls back; `Fallbacks` counts them, and `LastFallbackReason` says why the 
 characters, or a question a batch left out). `RecordingDecisionClient` copies the reason into the
 viewer's call log (`DecisionCall.Error`) and the playtest `model` record (`error`).
 
-**`LayaDecisionClient`** speaks the `laya-serve` v0.3.22 protocol (verified from the Laya repo; not
-yet run against a live server):
+**`LayaDecisionClient`** speaks the `laya-serve` v0.3.22 protocol (verified from the Laya repo, and
+run against a local server in every playtest since 2026-10-02):
 
 - `POST {BaseUrl}/v1/systemone` with `{"state": context, "model": ..., "questions": {"q": {...}}}`,
   answer under `answers.q`. `IsHealthy()` is `GET {BaseUrl}/health` returning `"status": "ok"`.
@@ -358,8 +392,8 @@ into `LayaDecisionClient`, so when the planning budget runs out an in-flight HTT
 rather than cancelled; it still ends at its own timeout.
 
 **Threading rule:** model calls never run on the game thread. They happen only in the `IntentPlanJob`
-task, the `BackgroundLadder` worker and the start-up health check. The game thread only enqueues,
-drains, polls and serializes.
+task, the `BackgroundMotives` worker, and the health checks (at start-up and every 6 ticks, each on
+its own task). The game thread only enqueues, drains, polls and serializes.
 
 ## Overnight intents (`src/NpcIntents`)
 
@@ -481,9 +515,12 @@ finished, so a plan collected late is not reported as cut short. `Dispose()` can
 
 In the mod, planning starts at `DayEnding` with budget `PlanningBudgetMs` (20 s), seed = DayIndex of
 the day just ended, and snapshots of every non-empty diary (all entries, no `RecentLines`).
-`CollectPlan` runs on every tick and at `DayStarted`. When the plan is ready it logs each line, adds
-each speaker to `_intentsToday` (the ladder's `HasPendingIntent`) and disposes the job. Nothing is
-delivered in-game, and the plan is not saved.
+`CollectPlan` runs on every tick and at `DayStarted`. When the plan is ready it logs each line, keeps
+the candidates in `_planToday` (the motives read each NPC's best news score from it), adds each
+speaker to `_intentsToday` and disposes the job. Nothing is delivered in-game. The plan is saved as
+`intents` and `LoadMemory` restores it, but `OnSaveLoaded` then sets `_planToday` back to empty
+(found in the 2026-10-05 audit, not fixed yet): after a reload only `_intentsToday` survives, the
+motives see no news, and the next save writes no `intents`.
 
 ## Initiation ladder (`src/NpcInitiation`)
 
@@ -646,12 +683,14 @@ the worker only as the copied `RegardForPlayer`.
    `_memory.Noting` to a handler that calls `RegardKeeper.OnNoted` and appends
    `MotiveRecords.Stress` (and `MotiveRecords.Regard` when regard moved) to the playtest log. The
    hook is not saved: set it again wherever `_memory` is replaced (load, migration, title screen).
-2. `RunLadder` writes its diary lines with `_memory.Note` instead of `DiaryOf(npc).Append`, so they
-   pass the hook.
-3. Each tick, after `RunLadder`: build one `MotiveInputs` per NPC with `MotiveInputBuilder.Build`
-   (the same ledger view and lead the ladder got; the plan's best news score for that NPC today; the
-   NPC card with a "today" line; `friendshipData.ContainsKey(npc)` as "met", **verify** that the
-   game adds the entry at the first meeting), `EnqueueTick`, then drain: every event gets
+2. Every diary writer in the mod goes through `_memory.Note`, so each entry passes the hook (the
+   retired ladder's lines did too).
+3. Each tick, after `BuildViews`: build one `MotiveInputs` per NPC with `MotiveInputBuilder.Build`
+   (its ledger view and lead from `BuildViews`; the plan's best news score for that NPC today; the
+   NPC card with a "today" line; `friendshipData.ContainsKey(npc)` as "met": verified, the game
+   adds the entry the first time the player talks to the villager, except for the `AlwaysShown`
+   villagers Lewis, Robin, Kent and Leo, who get it on spawn; `stardew-source-notes.md`, "Audit
+   pass"), `EnqueueTick`, then drain: every event gets
    `MotiveText.Line` in the SMAPI log (Info for Act, Grudge and Responded; Trace for the rest) and a
    `MotiveRecords.Decision` record; Act and Grudge also go to the viewer's feed; a Grudge calls
    `RegardKeeper.Relieve` and logs the `regard` record.
@@ -682,8 +721,10 @@ has its own switch in `config.json`, off by default.
 greeting, missing you, news, thanks, worry, hurt, jealous) or the plain lines when it has none for
 the feeling, with the farmer's name filled in and the whole line passed through
   `LineSanitizer` (the model writes nothing).
-- **The last check.** `LiveGate.WhyNot(act, facts, now)` is the one place outside `CollectPresences`
-  and `Observe` that may read live state (AGENTS.md rule 2, D30), and only to say "not now": not in
+- **The last check.** `LiveGate.WhyNot(act, facts, now)` is AGENTS.md rule 2's one exception (D30):
+  live facts read just before an act is shown, only to say "not now". (Positions are otherwise read
+  only to record sightings, in `CollectPresences` and `MeetPlayer`; `PlayerBusy` is game state, not a
+  position.) It holds an act back: not in
   multiplayer, not more than `MaxDelayTicks` (1) after the decision, not during an event or a
   festival, not while the player is busy, only in the player's location within `EmoteMaxTiles` (10)
   or `BubbleMaxTiles` (8), only when the villager is visible and isn't already emoting or speaking,
@@ -704,28 +745,34 @@ the feeling, with the farmer's name filled in and the whole line passed through
    `Entry`; keep a `LiveBreaker` and a `LiveLedger`; register `npcmod_live off` with
    `helper.ConsoleCommands.Add` to call `TripAll`.
 2. Drain the motives events more often than once per ten-minute tick, so the act shows while the
-   player is still there: `BackgroundMotives.Drain()` from `UpdateTicked` (game thread), about once
-   a second. VERIFY that it is safe to drain outside `TimeChanged` (it is a queue; the shadow lines and
-   records stay the same).
+   player is still there: `DrainMotives()` from `OneSecondUpdateTicked`. Safe: the drain is a
+   `ConcurrentQueue`, and SMAPI raises `OneSecondUpdateTicked` from the game's update loop on the
+   game thread (verified, SCore.cs:1155), so the diary writes and records it makes stay on the game
+   thread; the shadow lines and records are the same.
 3. For each drained event, `LivePlanner.From(ev, _config.Live, Game1.player.Name)`. If not null,
    gather `LiveFacts` on the game thread: `!Context.IsMultiplayer`, `Context.IsPlayerFree`,
    `Game1.eventUp`, `Game1.isFestival()`, the NPC's `currentLocation == Game1.player.currentLocation`,
    the Chebyshev distance of `npc.TilePoint` and `Game1.player.TilePoint` (`Character.Tile` is a
-   float `Vector2`; the tile is the int `TilePoint`), busy = `npc.isEmoting` (public, NPC.cs:145;
+   float `Vector2`; the tile is the int `TilePoint`), busy = `npc.isEmoting` (public, Character.cs:145;
    `textAboveHeadTimer` is protected int, NPC.cs:160, so an already-showing bubble cannot be read),
    visible = `!npc.IsInvisible`. All verified in the 1.6.15 decompile.
 4. `LiveGate.WhyNot(...)`: null means show it, through `_live.Run(act.Act, ...)`:
    `npc.doEmote(act.EmoteId)` or `npc.showTextAboveHead(act.Text, duration: options.BubbleMs)`
-   (both confirmed in the decompile, NPC.cs:1373). Log `[live] ` + `LivePlanner.ShownLine(act)` at
+   (both confirmed in the decompile: `doEmote(int, bool nextEventCommand = true)`,
+   Character.cs:1079, does nothing while already emoting; `showTextAboveHead`, NPC.cs:1373, does
+   nothing while invisible). Log `[live] ` + `LivePlanner.ShownLine(act)` at
    Info and `_ledger.Shown(act)`. A reason means log `[live] ` + `LivePlanner.SkippedLine(act, reason)`
    at Trace. A breaker error logs once at Error.
 5. Every drained event also goes to `_ledger.OnResolved(ev)`; an entry returned is written with
    `_memory.Note(npc, entry)`.
-6. In `RunMotives`, each input's `PlayerBusy` is `!Context.IsPlayerFree` (done 2026-10-03; not yet
-   built against the game), so nothing in person is decided while the player is talking, in a menu
-   or a scene.
+6. In `RunMotives`, each input's `PlayerBusy` is `!Context.IsPlayerFree` (done 2026-10-03), so
+   nothing in person is decided while the player is talking, in a menu or a scene.
 7. The shadow line for the act stays as it is, so a day with the switches off and one with them on
    give the same `[shadow]` lines apart from the added `[live]` ones.
+8. `LiveLedger`, `LiveBreaker` and `LiveOptions` are fields made once in `Entry`. The breaker is
+   meant to last the session; the ledger is not reset at `ReturnedToTitle` either (found in the
+   2026-10-05 audit, not fixed yet), so after a reload a shown act from the earlier session can
+   still turn the runner's `Ignored` into an `IgnoredBy` entry.
 
 ## Notice-board experiment (`src/NpcBoard`)
 
@@ -749,8 +796,9 @@ spread across villagers. It calls the model, so it runs off the game thread. Not
   `WhereaboutsOptions`.
 - `src/NpcMemory/RoutineBelief.cs`: `BestGuessAt`.
 - `src/NpcInitiation/PlayerSearch.cs`: who asks, and when.
-- `src/NpcInitiation/InitiationLadder.cs`: `Available` and `HasLead`.
-- The mod: `ModEntry.AskAround` and `ModEntry.RunLadder`.
+- `src/NpcMotives/MotiveDrive.cs`: `Seeking`, how much each villager wants to find the player.
+- `src/NpcMotives/MotivesEngine.cs`: `Available` (a `Visit` needs a lead with a place).
+- The mod: `ModEntry.AskAround`, `ModEntry.ViewOf` and `ModEntry.BuildViews`.
 
 **Tests.** `tests/NpcMemory.Tests/WhereaboutsTests.cs` and `tests/NpcInitiation.Tests/FindTests.cs`.
 **Why.** See decisions.md D18.
@@ -759,8 +807,11 @@ Everything here runs on the game thread each tick, after `MemoryStore.Observe`, 
 only (no live positions, no model calls):
 
 1. **Who asks** (`PlayerSearch.Tick`). An NPC asks around when two things are true:
-   - its urge from the ladder is at least `AskUrge` (0.45). This comes from
-     `BackgroundLadder.LatestUrges`, so it is at most one tick stale;
+   - its strongest motive that sends it looking (`MissingYou`, `Worried` or `News` about the
+     player; `MotiveDrive.Seeking`) is at least `MotiveOptions.AskAroundStrength` (0.2, passed as
+     `SearchOptions.AskUrge`; the retired ladder used urge 0.45). It comes from
+     `BackgroundMotives.LatestDecisions`, the worker's last finished weighing, so it is at most one
+     tick stale;
    - its own view of the player is not a first-hand sighting younger than `FreshTicks` (6 ticks,
      one hour).
 
@@ -792,17 +843,18 @@ only (no live positions, no model calls):
    A sighting that has faded to "earlier today" (no place) falls back to the habit. The region
    `Other` is never treated as a place. Habits come from time spent together, weighted by hearts
    for the player, so a habit is "where I usually see you at this hour".
-4. **Going to look** (the ladder). `InitiationInput.Lead` carries the `Whereabouts`. `Approach` is
-   available when the NPC is near the player, or when it has a lead with a place (`SeenToday`,
-   `Told` or `Habit`). Approach needs urge 0.60 and a letter needs 0.80, so a keen NPC goes looking
-   before it writes. An Attempt made from a distance carries its lead (`InitiationEvent.Lead`).
+4. **Going to look** (the motives). `InitiationInput.Lead` carries the `Whereabouts`;
+   `MotiveInputBuilder` turns a lead with a place (`SeenToday`, `Told` or `Habit`) into
+   `MotiveInputs.HasLead` and `LeadPlace`. A `Visit` is available when the NPC is not near the
+   player, has such a lead and 2+ hearts; in shadow it is logged as "would go looking at <place>".
+   (The retired ladder's `Approach` used the lead the same way.)
 
 **What it looks like in the SMAPI log:**
 ```
 [shadow] Abigail asked Sam about you: Sam saw you at Pelican Town 40 minutes ago.
-[shadow] Abigail would go looking for you at Pelican Town (Sam saw you there 40 minutes ago; urge 0.62)
-[shadow] Willy would go looking for you at the beach (you're usually there at this hour, 80% of the time; urge 0.64)
 ```
+The "would go looking" lines with an urge came from the retired ladder; the motives runner's
+`Visit` lines are written by `MotiveText.Line`.
 
 ## NPC Minds viewer (`src/NpcMinds`)
 
@@ -839,7 +891,7 @@ Make it easier to know where to look"). Top to bottom, the most important first:
 4. **Four tiles:** regard, mood, tries today, saw you.
 5. **Today's planned line**, if it has one.
 6. **A row of tabs** for the rest: Why (the motives and sources, the mood sum, the daring sum, the
-   newest shadow line), About you, Old ladder, Temperament, Diary.
+   newest shadow line), About you, Temperament, Diary. (The "Old ladder" tab went with the ladder, D31.)
 
 The header gives the clock, the model's health (red when questions fail), and clickable counts of
 villagers per state ("3 waiting on you", "1 hostile") that filter the grid; the rest of the stats
@@ -850,8 +902,8 @@ whether it was closed.
 |---|---|
 | portrait (top left of the card) | the villager's neutral portrait (frame 0 of `NPC.Portrait`, 64x64; **verify** the frame layout and that `Portrait` is the current appearance's sheet), cut from the player's own installed game content at `SaveLoaded` on the game thread (`ModEntry.PublishPortraits`), encoded as PNG in memory and handed to the server, which serves `/portrait/<Name>.png` (names are letters, digits and `_` only). Never written to disk or the repo: the art is the game's. A villager without one shows its initials |
 | temperament line, status pill, feeling and the act ladder (top of the card) | the seed temperament's summary, and the motives act rule ([motives.md](spec/motives.md), D24). When the snapshot carries the motives runner's latest weighing (`NpcMind.Motives`, from `BackgroundMotives.LatestDecisions` and `LatestStates`), the bar is the runner's boldness + familiarity, striped out to + intensity, with ticks at the costs it weighed (hostile ones include the surcharge), and the card lists the motive it would act on, the act and whether it is a clear yes or a close call, every motive with its source, today's outlook (earned and roll, and an off day), the net feeling, regard, attempts today, what is open or waiting, and its newest `[shadow]` line. Without the runner (a mod build before the wiring), the page falls back to a preview: boldness + 0.03 per heart, striped out to + 0.25 for a strong feeling, against the spec's first-guess act costs. Nothing reads either back |
-| urge, rung and its threshold, attempts today, open attempt and how long it has waited (under "Current ladder", below the card's facts) | `InitiationLadder.ReadStates(BackgroundLadder.LatestJson)`, the worker's last finished state. Still what drives attempts until motives replace it |
-| hearts, "last saw you", "would look" | the inputs `RunLadder` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
+| (removed, D31) | the urge, rung and threshold row and the "Current ladder" facts came from `BackgroundLadder.LatestJson`; they went with the ladder |
+| hearts, "last saw you", "would look" | the inputs `BuildViews` built this tick (`InitiationInput`: the NPC's own `LedgerView` and `Whereabouts`), so the page shows exactly what the ladder saw |
 | today's line, "has a line today" | the collected plan (`_planToday`, `_intentsToday`) |
 | "tonight" | today's diary entries scored by `Newsworthiness` the way the planner scores them (skip kinds out, one per summary, `MinNews`), top 3; a preview only, the real plan also asks the model and samples |
 | diary | the newest 8 entries, in plain words, with the game time |
@@ -864,7 +916,7 @@ whether it was closed.
 game thread (end of each TimeChanged, SaveLoaded, DayStarted)
   PublishMinds() -> MindsSnapshotBuilder.Build(_memory, inputs) -> immutable MindsSnapshot
                  -> MindsServer.Publish(snapshot)              one reference swap
-ladder worker / plan job
+motives worker / plan job
   RecordingDecisionClient -> RingLog<DecisionCall>             every question and answer
 viewer thread (MindsServer, TcpListener on 127.0.0.1)
   GET /           the embedded page
@@ -880,7 +932,7 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
 - **Threads.** The snapshot is built on the game thread (it reads memory), is immutable, and is
   handed over by one volatile reference. Serialization, sockets and the call log never touch
   `Game1`. The feed (`RingLog<FeedItem>`) is filled on the game thread where the `[shadow]`
-  lines are logged: ladder events, "asked around" and planned lines.
+  lines are logged: motives acts and grudges, "asked around" and planned lines.
 - **Cost on the game thread.** One pass over the diaries (newest 8 each, today's entries for the
   news preview), the ladder JSON parsed once, the beliefs grouped by observer once. No model
   calls, no I/O.
@@ -892,10 +944,10 @@ viewer thread (MindsServer, TcpListener on 127.0.0.1)
 - **The page** is plain HTML, CSS and JavaScript with no external loads, in
   `src/NpcMinds/viewer/index.html`, embedded in `NpcMinds.dll` (logical name
   `NpcMinds.viewer.html`), so the usual `*.dll` deploy copy carries it. Always dark (Sid's choice),
-  on the neutral Radix Colors sand scale, with color only on status marks (urge bars blue to amber to red, status dots on badges, deltas, answer bars, feed kinds, and the motives line: hostile, close call, clear yes), never on borders or behind text. Cards sort by most recently changed (the default), feeling (the strength of the motive each would act on), boldness, hearts, urge or name; the choice is
+  on the neutral Radix Colors sand scale, with color only on status marks (status dots on badges, deltas, answer bars, feed kinds, and the motives line: hostile, close call, clear yes), never on borders or behind text. Cards sort by "Most active first" (the default: state, then the strongest feeling), most recently changed, boldness, hearts or name; the choice is
   remembered in the browser. A filter box and a "knows you" toggle hide NPCs with no view of the
-  player, no hearts, no urge and no motive. The header says whether the motives runner is running
-  (in shadow, beside the urge ladder) or not yet.
+  player, no hearts and no motive. The header says whether the motives runner is running
+  or not yet.
 - **Not saved, reset** on load and at the title screen: the feed (300 items) and the call log (200).
 
 ## Playtest log (`src/NpcMinds/Playtest`)
@@ -904,7 +956,7 @@ Every number in the tuning tables is a first guess, so the mod records each deci
 while Sid plays (`docs/spec/debug-tools.md`, "Playtest log"). One JSON-lines file per save and
 in-game day under `Mods/StardewNpcMod/playtest/<save>/<year>-<season>-<day>.jsonl`, one object
 per line with `tick`, `type` and fields. The game thread appends to an in-memory buffer that
-flushes at the 6:00 tick and on Saving; model-call records arrive from the ladder worker through
+flushes at the 6:00 tick and on Saving; model-call records arrive from the model workers through
 a thread-safe queue drained on the game thread (nothing touches a file off the game thread). A
 failed write is logged once at Warn and disables the log — it never throws into the game loop.
 The setting is `PlaytestLog` (`ModConfig`, default true in development). Reads only: records
@@ -972,33 +1024,36 @@ One SMAPI save-data entry per save, key `squid.StardewNpcMod.memory`, a `Diction
 ```
 "version": "2"                          MemoryStore.CurrentVersion
 "memory":  MemoryStore.ToJson()         ledger, diaries, beliefs (see Memory)
-"ladder":  BackgroundLadder.LatestJson  InitiationLadder.ToJson()
 "intents", "recentLines"                today's plan and the lines said (step 5)
 "regard":  RegardBook.ToJson()          {"observer|subject": value} (wired, step 14 part 3)
 "motives": BackgroundMotives.LatestJson the runner's pacing state (wired, step 14 part 3)
+"historySeeded": "1"                    history at install already ran (D29)
 ```
 
-It is written at `Saving` (`SaveMemory`) and read at `SaveLoaded` (`LoadMemory`). Saving never waits
-on the model: the ladder part is the last finished state.
+The retired ladder's `"ladder"` value (D31) is no longer written; an old save's is left unread and
+dropped at the next save. It is written at `Saving` (`SaveMemory`) and read at `SaveLoaded`
+(`LoadMemory`). Saving never waits on the model: the `motives` part is the worker's last finished
+state.
 
 | Saved | Not saved |
 |---|---|
-| Ledger entries, with hop count, `toldBy` and detail cap | the overnight plan and `_intentsToday` (after a reload, no NPC gets that day's intent boost) |
-| Diaries (at most 500 entries each) | span tracking: the first tick after a load starts new spans and new `Saw` lines |
-| Routine beliefs, including `UnlockThreshold` | tuning: ledger thresholds, `InitiationOptions`, `IntentPlannerOptions`, radius, diary cap |
-| Ladder: per-NPC state and global counters | Find's ask cooldowns |
-| | ladder work still queued at save time, and diary lines from ladder results not yet drained (both reach the next save unless the game closes first) |
+| Ledger entries, with hop count, `toldBy` and detail cap | span tracking: the first tick after a load starts new spans and new `Saw` lines; chat-once-per-span marks |
+| Diaries (at most 500 entries each) | tuning: ledger thresholds, `MotiveOptions`, `ChatOptions`, `DiaryKeepOptions`, `LiveOptions`, `IntentPlannerOptions`, radius, diary cap |
+| Routine beliefs, including `UnlockThreshold` | Find's ask cooldowns |
+| Today's plan (`intents`; but see Overnight intents: `OnSaveLoaded` clears it after loading) | the live ledger (shown acts) and the breaker |
+| Regard per (observer, subject) | motives work still queued at save time, and events not yet drained (both reach the next save unless the game closes first) |
+| The motives runner's pacing state | |
 
 **Loading and migration** (`ModEntry.LoadMemory`):
 
-- No save data: fresh memory and ladder.
+- No save data: fresh memory, regard and motives runner.
 - A `"version"` key: read as the current format. The number is **not** checked, so an incompatible
   future format needs its own branch there (and a `CurrentVersion` bump and a migration test).
 - No `"version"` key: a version-1 save from steps 4-5. `MemoryStore.FromVersion1(model, now)` reads
   `ledger` (then the player's, so its observer is "Player"), `npcDiaries`, and `beliefs` (the
   player's, re-keyed `"Player>npc"`), and drops `diary` (the player's own). Old ticks had no year:
   each goes in the current year if it is not later than now, else the previous year
-  (`MigrateYearlessTick`). The ladder starts fresh. The migrated player-side entries are kept but
+  (`MigrateYearlessTick`). Regard and the motives runner start fresh. The migrated player-side entries are kept but
   nothing reads them now that memory is NPC-side.
 
 ## Build, test, run
@@ -1007,14 +1062,9 @@ on the model: the ladder part is the last finished state.
 `%USERPROFILE%\stardewvalley.targets`, on the owner's PC
 `D:\SteamLibrary\steamapps\common\Stardew Valley`; the mod compiles against the game and SMAPI there.
 
-**Test:** `dotnet test NpcSchedules.sln` runs eight xUnit projects (731 tests after the viewer's temperament section; the table below is from `c97a829`). It does **not** build the mod: no
-test project references it. At `c97a829` all 386 pass:
-
-| Project | Tests | | Project | Tests |
-|---|---|---|---|---|
-| `tests/NpcSchedules.Tests` | 68 | | `tests/NpcDecision.Tests` | 50 |
-| `tests/NpcMemory.Tests` | 129 | | `tests/NpcIntents.Tests` | 60 |
-| `tests/NpcShadow.Tests` | 31 | | `tests/NpcInitiation.Tests` | 48 |
+**Test:** `dotnet test NpcSchedules.sln` runs twelve xUnit projects, 945 tests (2026-10-05); the
+count per project is in `README.md`. It does **not** build the mod: no test project references it.
+On the installed SDK 6.0.300 it may need `DOTNET_ROLL_FORWARD=Major`.
 
 **Build the mod:** `dotnet build mod/StardewNpcMod`. Two `CS8032` warnings are expected: SMAPI's
 analyzers (`NetFieldAnalyzer`, `ObsoleteFieldAnalyzer`) need Microsoft.CodeAnalysis 4.9, newer than
@@ -1044,16 +1094,17 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | Key | Default | Meaning |
 |---|---|---|
 | `DecisionBackend` | `"Fake"` | `"Laya"` (any case) uses the Laya server; anything else, the fake |
-| `Live` | `{ "Emote": false, "Bubble": false }` | the live switches (D30, "Live emotes and bubbles"): `true` shows that act in the game, friendly and hostile; planned, read once at `Entry` (not wired yet) |
+| `Live` | `{ "Emote": false, "Bubble": false }` | the live switches (D30, "Live emotes and bubbles"): `true` shows that act in the game, friendly and hostile; read once at `Entry` |
 | `LayaUrl` | `"http://127.0.0.1:8000"` | Laya base URL; keep it on loopback |
 | `LayaModel` | `"typed-decisions"` | checkpoint: `typed-decisions`, `english` or `multilingual` |
 | `LayaApiKey` | null | only if the server was started with `LAYA_API_KEY` |
 | `DecisionTimeoutMs` | 1500 | per-call timeout; slower answers fall back |
 | `PlanningBudgetMs` | 20000 | total time overnight planning may spend on the model |
-| `LadderMaxBacklog` | 6 | ladder operations that may wait before new ticks are dropped |
+| `LadderMaxBacklog` | 6 | motives-worker operations that may wait before new ticks are dropped (the name is from the retired ladder, D31) |
 | `MorningWaitMs` | 10000 | how long the morning wait may hold the day for the overnight plan; 0 disables |
 | `MindsViewer` | `true` | serve the NPC Minds viewer on loopback (read-only) |
 | `MindsViewerPort` | `8765` | its port; not 8000, which Laya uses |
+| `PlaytestLog` | `true` | write the playtest log (`Mods/StardewNpcMod/playtest/<save>/`) |
 
 **Logs:** `%APPDATA%\StardewValley\ErrorLogs\SMAPI-latest.txt`; the mod's lines are tagged
 `Stardew NPC Mod`. `[shadow]` lines say what would have happened:
@@ -1070,16 +1121,18 @@ build; the mod writes no files of its own. Launch through SMAPI (`<GamePath>\Sta
 | `[shadow] planning hit its time budget; some decisions used the fallback.` | Info | the budget fired before the plan finished |
 | `[shadow] collected overnight plan: 3 line(s) for today.` | Info | the plan was collected; each line is logged after it |
 | `[shadow] collected overnight plan: no lines (no candidates: nothing newsworthy to cite, or the model answered below the speak threshold for everyone).` | Info | the plan was collected empty; the wording varies with the cause (`the plan failed; see the error above` when it threw) |
-| `[shadow] Abigail would try Emote (urge 0.31; urge 0.31 >= 0.30 at rung 0; p=0.50)` | Info | a ladder attempt: urge, the step's threshold, the rung, the model's `p` |
-| `[shadow] Abigail: Emote ignored (urge 0.35 -> 0.15)` | Info | an attempt's outcome, `ignored`, `responded` or `expired`, with urge before and after |
-| `[shadow] <npc> would go looking for you at <place> (...)` | Info | an Approach from a distance (Find) |
+| `[shadow] Leah: motive Grateful 0.64 toward you (recent kindness; net +0.64); queued line: boldness 0.55 + familiarity 0.26 + intensity 0.32 = 1.13 vs cost 0.30, clear yes: would save some` | Info | a motives act (`MotiveText.Line`); grudges and answered attempts are Info too, passes and blocks Trace |
+| `[live] Jas waved at you (emote 32, Greeting; decided at tick 4463)` | Info | a live act shown (`LivePlanner.ShownLine`); a bubble reads `[live] Vincent said "Hey hey!" (Greeting; decided at tick 4460)` |
+| `[live] Willy: bubble not shown (the player is busy)` | Trace | a live act the gate held back |
 | `[shadow] <npc> asked <npcs> about you: ...` | Info | an NPC asked around and learned something (Find) |
-| `[shadow] ladder is behind the model; skipped a tick (3 so far).` | Trace | the backlog was full, so a tick was dropped |
-| `[shadow] 1600: 29 NPC diaries, max urge 0.31 (Abigail), ladder backlog 1/dropped 0, overnight plan running` | Info | heartbeat every 2 game hours: memory size, the ladder's best urge (and who), its backlog and drop count, and the plan job's state (`none` / `running` / `ready`) |
+| `[shadow] met you between ticks: Haley, Leah` | Trace | `MeetPlayer` recorded a sighting between ticks (D32) |
+| `[shadow] motives are behind the model; skipped a tick (3 so far).` | Trace | the backlog was full, so a tick was dropped |
+| `[shadow] 0800: 39 NPC diaries, strongest motive 0.60 (Haley), motives backlog 0/dropped 0, overnight plan 3 lines, model calls 0/fallback 0, median 0 ms, p95 0 ms` | Info | heartbeat every 2 game hours: memory size, the strongest motive (and who), the motives worker's backlog and drop count, the plan job's state, and with Laya its calls, fallbacks and latency |
 
-The first five lines are copied from a real log (an earlier build, same formats); the rest follow the
-format strings in `ModEntry` (numbers illustrative). Failures are logged at Error level and name the
-stage: `Observation failed`, `Shadow ladder failed`, `Overnight planning failed`, `Failed to save memory`.
+The first five lines, the motives, live and heartbeat lines are copied from real logs; the rest follow
+the format strings in `ModEntry` (numbers illustrative). Failures are logged at Error level and name the
+stage: `Observation failed`, `Shadow views or plan failed`, `Shadow motives failed`, `Live motives drain failed`,
+`Overnight planning failed`, `Failed to save memory`. The ladder's lines went with it (D31).
 
 ## Extension points
 
@@ -1153,5 +1206,13 @@ for those can go in the next code PR.
 | A conversation (and a gift reaction) opens a `DialogueBox` with that speaker; event dialogue may also count | `ModEntry.OnMenuChanged` | **settled** for talking and gifts: the gift reaction is `Game1.DrawDialogue(GetGiftReaction(...))`, a `Dialogue` whose speaker is the NPC. Event dialogue: still to check in-game |
 | The 8-tile radius is a placeholder to tune | `MemoryStore.CoLocationRadius` | open (tuning) |
 | `PlaceNames` wording matches the game | `src/NpcIntents/PlaceNames.cs` | open |
-| `LayaDecisionClient` has not run against a live server | brief, step 7 | open |
+| `LayaDecisionClient` has not run against a live server | brief, step 7 | **settled:** it has run in every playtest since 2026-10-02 (Laya on the GPU, about 35 ms a question) |
+| `NPC.CanSocialize` exists and is false for the casino's and the guild's characters | `ModEntry.Tracked` | **settled** (2026-10-05): a property evaluating `Data/Characters` `CanSocialize`; false for the Bouncer, Mister Qi, Gunther, Marlon, Gil, Birdie, the Henchman and others; Sandy only after her Oasis introduction (event 67); Krobus, the Dwarf, the Wizard always |
+| `Context.IsMultiplayer` at `SaveLoaded` for a hosted co-op save; `IsMainPlayer` and `ScreenId` in split-screen | `ModEntry.OnSaveLoaded`, `HostOnly` | **settled** (2026-10-05): true at `SaveLoaded`; `IsMainPlayer` is false for split-screen guests and remote farmhands; the host's screen is 0. In-game: a farmhand joining a host and a split-screen session are still untested |
+| `Constants.SaveFolderName` is set at `SaveLoaded` | `ModEntry.OnSaveLoaded` | **settled** (2026-10-05) |
+| `friendshipData` gets an entry at the first meeting | `ModEntry.RunMotives` ("met") | **settled** (2026-10-05): yes, except Lewis, Robin, Kent and Leo (`SocialTab: AlwaysShown`), who get one on spawn |
+| A spouse runs the marriage schedule | `ModEntry.SeedPriors` | **settled** (2026-10-05): only `marriage_*` keys |
+| Emote ids, `doEmote` and `showTextAboveHead` | `src/NpcLive` | **settled** (2026-10-05) |
+
+The facts and their file and line are in `stardew-source-notes.md`, "Audit pass (2026-10-05)".
 | Rain weights and the extractor's other recalls | `README.md`, "Remaining recalls to verify" | open (`Data/Locations` is data, not code) |

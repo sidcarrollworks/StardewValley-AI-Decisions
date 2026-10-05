@@ -161,6 +161,50 @@ public class GossipTests
     }
 
     [Fact]
+    public void TwoOwnersWithTheSameTickKindAndSubjectAreTwoStories()
+    {
+        // The diary-event drain stamps every queued entry with one tick, so two villagers the
+        // player helped between two ticks hold entries that differ only in whose diary they're in.
+        var store = new MemoryStore(7);
+        store.Note("Robin", new DiaryEntry(0, Player, "QuestHelped", null));
+        store.Note("Lewis", new DiaryEntry(0, Player, "QuestHelped", null));
+        Assert.NotEqual(Gossip.EventKey(store.DiaryOf("Robin").Entries[0], "Robin"),
+            Gossip.EventKey(store.DiaryOf("Lewis").Entries[0], "Lewis"));
+
+        Meet(store, 1, "Robin", "Emily", "Town");
+        Meet(store, 4, "Lewis", "Emily", "Beach");
+
+        Assert.Equal(new[] { "Robin", "Lewis" },
+            store.DiaryOf("Emily").Entries.Where(e => e.Kind == "Heard").Select(e => D(e)["of"]));
+    }
+
+    [Fact]
+    public void AHeardFromBeforeJuicinessStillCountsAsHeard_AndIsRetoldAsTheSecondHop()
+    {
+        // Written by the one-hop rule before D33: no of, b, j, at or hops.
+        var store = new MemoryStore(7);
+        store.Note("Lewis", new DiaryEntry(0, Player, "SawRummaging", null));
+        store.Note("Emily", new DiaryEntry(0, Player, "Heard", "from=Lewis;kind=SawRummaging;subject=Player"));
+        Assert.Equal(Gossip.EventKey(store.DiaryOf("Lewis").Entries[0], "Lewis"),
+            Gossip.EventKey(store.DiaryOf("Emily").Entries[0], "Emily"));
+
+        Assert.Empty(Meet(store, 1, "Lewis", "Emily", "Town")); // she has it already
+
+        // Emily holds it as one retelling from Lewis (4 x 0.7 = 2.8, still juicy) and passes it
+        // on as the second hop, with Lewis as the person it started with.
+        Assert.Single(Meet(store, 4, "Emily", "Gus", "Beach"));
+        DiaryEntry gus = HeardBy(store, "Gus")!;
+        Assert.Equal("Lewis", D(gus)["of"]);
+        Assert.Equal("2", D(gus)["hops"]);
+        Assert.Equal("1.96", D(gus)["j"]);
+        Assert.Equal("4", D(gus)["b"]);
+        Assert.Equal(0, gus.AbsoluteTick); // still the event's tick
+
+        // Lewis never tells Gus his own story now: one event, whatever the route.
+        Assert.Empty(Meet(store, 7, "Lewis", "Gus", "Mountain"));
+    }
+
+    [Fact]
     public void SomeoneInTheStoryIsNeverTold()
     {
         var store = new MemoryStore(7);
