@@ -210,6 +210,18 @@ public sealed class PlaytestLogTests
     }
 
     [Fact]
+    public void AHeardRecordCarriesItsHopsAndWhenItWasTold()
+    {
+        var retold = new DiaryEntry(4239, "Leah", "Heard", "from=Caroline;kind=SawGift;subject=Leah;of=Marnie;b=2;j=1.4;at=4359;hops=2;giver=Player");
+        GossipRecord r = PlaytestRecords.Heard("Emily", retold);
+        Assert.Equal(("Caroline", "Emily", "SawGift", "Leah", 2), (r.Teller, r.Listener, r.OriginalKind, r.Subject, r.Hops));
+        Assert.Equal(4359, r.Tick);
+
+        var old = new DiaryEntry(100, "Player", "Heard", "from=Pam;kind=QuestHelped;subject=Player");
+        Assert.Equal((1, 100), (PlaytestRecords.Heard("Emily", old).Hops, PlaytestRecords.Heard("Emily", old).Tick));
+    }
+
+    [Fact]
     public void PresenceDeltasLogMovesAndAlwaysThePlayer()
     {
         var previous = new Dictionary<string, (string Location, int X, int Y)>();

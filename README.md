@@ -26,13 +26,13 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `src/NpcTemperament/` | Seed temperaments: splits dialogue into pages, counts mood and word signals, and scores six behaviour traits and six Ekman emotion biases per character with the game's `Data/Characters` traits (`docs/spec/temperament.md`). The mod loads the table for the viewer; the motives engine reads it. |
 | `tools/TemperamentExtractor/` | Command-line wrapper: unpacked dialogue + game traits in, `temperament.json` / `temperament.md` out; `character_traits.py` decodes `Data/Characters.xnb`. |
 | `tests/NpcSchedules.Tests/` | xUnit tests (71). |
-| `tests/NpcMemory.Tests/` | xUnit tests (189). |
+| `tests/NpcMemory.Tests/` | xUnit tests (194). |
 | `tests/NpcShadow.Tests/` | xUnit tests (31). |
 | `tests/NpcDecision.Tests/` | xUnit tests (125). |
 | `tests/NpcDiaryEvents.Tests/` | xUnit tests (65). |
 | `tests/NpcIntents.Tests/` | xUnit tests (186). |
 | `tests/NpcInitiation.Tests/` | xUnit tests (71). |
-| `tests/NpcMinds.Tests/` | xUnit tests (71). |
+| `tests/NpcMinds.Tests/` | xUnit tests (72). |
 | `tests/NpcMotives.Tests/` | xUnit tests (75). |
 | `tests/NpcBoard.Tests/` | xUnit tests (7). |
 | `tests/NpcLive.Tests/` | xUnit tests (11). |

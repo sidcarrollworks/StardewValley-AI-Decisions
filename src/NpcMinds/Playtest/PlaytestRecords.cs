@@ -155,6 +155,25 @@ public static class PlaytestRecords
     /// a CollectPresences-shaped list and a per-name previous-position map, and mutates nothing
     /// but the map's contents for the next tick.
     /// </summary>
+    /// <summary>The gossip record for one Heard line written by <c>MemoryStore.Chat</c>: its
+    /// hops from the person it started with, stamped when it was told (a Heard keeps the event's
+    /// tick; playtest 2026-10-05: records showed hops 0 and a day-old tick).</summary>
+    public static GossipRecord Heard(string listener, DiaryEntry heard)
+    {
+        IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(heard.Detail);
+        return new GossipRecord(
+            Teller: detail.TryGetValue("from", out string? from) ? from : "",
+            Listener: listener,
+            OriginalKind: detail.TryGetValue("kind", out string? kind) ? kind : "",
+            Subject: heard.Subject,
+            Hops: Gossip.HopsOf(heard),
+            Kind: "heard",
+            Answered: null)
+        {
+            Tick = Gossip.HeardAt(heard),
+        };
+    }
+
     public static List<PresenceRecord> PresenceDeltas(
         IReadOnlyList<Presence> current,
         Dictionary<string, (string Location, int X, int Y)> previous,

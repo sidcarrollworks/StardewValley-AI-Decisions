@@ -145,7 +145,7 @@ public sealed class MotivesRunnerTests
         List<MotiveEvent> acts = events.Where(e => e.Kind == "Act").ToList();
         Assert.NotEmpty(acts);
         Assert.All(acts, a => Assert.True(MotiveOptions.IsLight(a.Act!.Value, a.Motive!.Value)));
-        Assert.All(acts, a => Assert.Contains("a wave needs no answer", a.Reason));
+        Assert.All(acts, a => Assert.Contains(a.Act == Act.Emote ? "a wave needs no answer" : "a greeting needs no answer", a.Reason));
         Assert.DoesNotContain(events, e => e.Kind == "Ignored");
         Assert.Equal(0, runner.States().Single().IgnoredToday);
         Assert.Null(runner.States().Single().OpenAct);
