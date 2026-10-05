@@ -1,0 +1,488 @@
+# Under Glass
+
+*Design draft 2, 2026-10-05. Draft 1 was the brainstorm; this version folds in Sid's notes: layers of visibility, a world that goes on without the player, the name, Spinoza as the basis for how people act, and the engine choice.*
+
+## 1. The recommendation in brief
+
+Make a farming game in a small town that runs on about fifteen simulation rules instead of a script. Villagers see what happens around them, more clearly the closer they are and the longer they watch, and remember it. They retell the juicy parts, hold a feeling toward every other person and act on motives. There is no hearts meter, no gift cap and no heart event. The player farms and trades as in Stardew. They answer the town with the emotion wheel, the notice board, the promises they keep or break, and where they choose to be.
+
+The first thing to build is a headless town simulator: 12 villagers, 5 locations, one season, player bots and metrics over 1000 seeds. It starts as a gossip-only harness. A text REPL comes next so Sid can play before any art exists.
+
+## 1a. Principles
+
+1. **The world goes on without you.** No rule checks where the player is, except perception: what the player sees and who sees the player. Every villager runs at full detail all day, every day, whether or not the player is nearby. Nothing waits for the player to arrive.
+   - Things that happen leave traces the player can find later: a note on the board, changed shop hours, a broken fence, two people who now walk together, a story going around, a cold greeting.
+   - The player learns about the world the way villagers do: by seeing it, being told, or reading the board.
+2. **Knowledge has layers.** Seeing something from 2 tiles away for a while is not the same as glimpsing it at 8 tiles through a fence. What a villager saw decides what it knows, how sure it is, and how strongly it feels (rule 2).
+3. **People act from their nature, not from a script.** The rules for how a person is moved and what they want come from Spinoza's account of the affects (section 3a).
+4. **The player is one more person.** The same rules apply to the player as to any villager. The player has no meters of their own.
+5. **Every consequence can cite its cause.** If the game shows that something changed, it can point to the event, and to who saw or told it.
+
+## 2. What we learned from the mod
+
+- **No motive, no act.** The urge clock put Linus at the top of the table without him seeing the player. Acts gated by a motive and a boldness cost fixed it (D24).
+- **Feelings need two parts.** The elastic part comes from 3 days of diary and fades. The plastic part, regard, is saved per pair and scaled by retention. Pam forgets and Robin keeps.
+- **Gossip by juiciness works at 34 villagers.** Haley's sunflower story reached Alex, and Marnie hit the 3-listener cap. At 10 villagers the same settings saturate: in a Monte Carlo test, scandals reached everyone in 76% of seeds.
+- **Only scandals heard secondhand lead to action** (D34, Gus and Shane's fish). **Diaries forget the least important entries first** (D35, Emily's diary).
+- **A deterministic score decides, and the model only steers close calls.** Laya's yes/no answers bunched between 0.47 and 0.60, so "I saw you" beat a birthday gift (D21).
+- **Pacing rules that worked:** two attempt slots, asking again only when the situation changes instead of a cooldown, waves never counted as ignored, and a minimum motive strength for letters (D28).
+- **Stardew's engine blocked emergence. The core ideas held up.** These all go away in our own engine:
+  - fixed schedules;
+  - one conversation per villager per day;
+  - a dialogue stack that wipes our lines;
+  - a clock that stops during events;
+  - a farm that NPCs cannot walk onto.
+- **Every tuning fix came from the viewer and the JSONL log,** so both exist from day one.
+
+## 3. Assets and IP
+
+Decided (Sid, 2026-10-05): prototypes may use Stardew's town, cast and art privately, or as a mod that needs the base game. If Under Glass becomes its own game, every asset is redone: an original town, an original cast built from archetypes, and new art, music and writing. That includes the data this repo decoded from the game (`fixtures/game/*`, the temperament seeds computed from Stardew dialogue).
+
+Two items remain before any sale: a LICENSE for the public repo, and a lawyer's read of Warner Bros' Nemesis patent (the research says it runs to 2036; it covers NPC relationships that change with the player's actions).
+
+## 3a. The Spinozan core: how a person is moved, and what they want
+
+Spinoza's *Ethics* (Part III, "On the Origin and Nature of the Affects", and Part IV) treats people as natural things moved by causes, the way physics treats bodies. That suits a simulation: it gives a small set of laws from which every feeling and want is derived, with no authored story. Below, each law is stated, then what it becomes in the game. The proposition numbers are from memory and should be checked against a translation (Curley's is the standard English one).
+
+**1. Conatus: each person strives to keep and increase their power of acting (III P6-P7).**
+Each villager has a power of acting, `P` from 0 to 1. Health, money, home, work, rest, company and recent events raise or lower it. Everything a villager wants comes from this one striving. There is no separate list of needs for social life.
+
+**2. Three primary affects: joy, sadness and desire (III P11).**
+- *Joy* is a rise in `P`, and *sadness* a fall.
+- *Desire* is the striving itself, aimed at something.
+
+Every event a villager perceives produces joy or sadness of some amount. Mood is the recent trend of `P`.
+
+**3. Love and hate are joy and sadness with the idea of a cause (III P13, scholium).**
+Regard toward someone is the running sum of the joy and sadness a villager attributes to them. The key word is *attributes*: the feeling attaches to whoever the villager *thinks* caused it. If the villager couldn't tell who did it (rule 2), the feeling attaches to "someone", to a place, or to a kind of person (law 9).
+
+**4. Desire follows: keep what brings joy, remove what brings sadness (III P12-P13, P28).**
+Motives are desires about a cause. Toward someone they love, a villager wants to be near, help, give, and keep them well. Toward someone they hate, they want distance, or to see them diminished.
+
+Harm is held back by fear of greater harm (III P39). So hostile acts need more than hatred: they also need a low expected cost. This is the boldness cost from the mod, now with a reason behind it.
+
+**5. Feelings follow the people we love and hate (III P19-P24).**
+When a villager sees or hears that someone was affected:
+
+| Villager's regard for the person affected | That person's joy | That person's sadness |
+|---|---|---|
+| love (above +0.2) | the villager feels joy, and loves the cause | the villager feels sadness, and hates the cause |
+| hate (below -0.2) | the villager feels sadness, and comes to hate the cause (envy) | the villager feels joy (they are glad of it) |
+| neither | law 6 applies | law 6 applies |
+
+This replaces the bystander rule of draft 1. It produces friend-of-friend warmth, taking sides, envy and spite from one table.
+
+**6. Imitation of the affects: we feel what we imagine someone like us feels, even without prior feeling for them (III P27).**
+A villager with no strong regard for the person affected still feels a fraction of that person's joy or sadness: pity, or shared gladness. The fraction is scaled by how alike they are (household, age, work, kind of person) and by the observer's temperament (law 12). This is what makes a crowd react to a fall or a fight.
+
+**7. Ambition and conformity: we strive to do what we imagine others regard with joy (III P29, P31).**
+- Each villager keeps an estimate of how the town feels about each kind of act. The estimate is learned from the reactions it has witnessed.
+- Each villager leans toward acts it expects to be welcomed, and away from acts it expects to be frowned on.
+- It also wants others to love what it loves, so it praises the people and shops it likes when it talks.
+
+Norms are not written anywhere. They come from what people have seen others react to. In a town that laughs at rudeness, rudeness spreads.
+
+**8. Reciprocity (III P33, P40-P41, P43-P44).**
+- Who imagines themselves loved, loves back. Who imagines themselves hated, hates back. Hate returned increases.
+- Hate answered with love can be overcome. When it is, it turns into a love greater than if there had been no hate.
+
+This gives feuds that escalate, and reconciliations that are stronger than plain friendship, both from the same rule.
+
+**9. Feelings spread to a kind of person (III P46).**
+If a villager is affected by someone it knows only as a kind of person, it loves or hates the kind:
+- "the new farmer";
+- "a Joja worker";
+- "someone from out of town".
+
+This is prejudice. It fades as individual knowledge replaces the category. It ties to perception: a far witness who couldn't tell who rummaged in the bin holds it against "a farmer", or "someone".
+
+**10. Blame depends on freedom (III P49; V P3, P6).**
+Love and hate are stronger toward someone believed to have acted freely than toward someone believed to have been compelled.
+- An accident, a known hardship ("he was broke that week") or a cause from outside reduces blame.
+- Understanding why something happened weakens a passive feeling about it.
+
+The player's apology, correction and explanation verbs work this way. They do not erase what happened; they supply a cause. Occurrences from the occasion catalog (weather, breakages) produce less blame than chosen acts.
+
+**11. Presence and time (IV P9-P13), and contrary feeling (IV P7).**
+- A feeling about something present, or seen first-hand, is stronger than one about something remembered or heard. Near things move more than distant ones. This is the basis of hearsay weighing less than witnessing, and close witnesses feeling more than far ones.
+- A feeling can only be overcome by a stronger contrary feeling. A grudge does not dissolve on a timer; it fades slowly, and it yields to new joy from the same person.
+
+**12. Each person is moved in their own way (III P51), and some act more from understanding (Part IV, the free person).**
+- The temperament traits from the mod (warmth, sensitivity, boldness, forgiveness, chattiness) set how strongly each law acts on a given villager.
+- Add one trait, *understanding*: how much a villager acts from adequate ideas rather than passions. A villager high in understanding imitates feelings less, generalises less to kinds of people, blames less when a cause is known, and forgives more.
+
+**13. Wonder at what is new (III P52).**
+Something unusual holds attention and is retold more: a newcomer, a strange act, an unexpected visitor. Novelty adds to juiciness and fades as it becomes familiar.
+
+What this gives the design: rules 4 to 10 below are these laws with numbers attached. Each constant is a first guess for the simulator to test.
+
+## 4. The fundamental rules
+
+Every constant here is a first guess, to be tested in phase 0.
+
+1. **Time and space.** A day is 120 ten-minute ticks (6:00-2:00) and a season is 28 days; both are parameters. Locations have named spots with tile coordinates (counter, bar stool, bench, field row), and a travel-time table gives ticks between spots. Social acts carry game-minute timestamps.
+2. **Perception, in layers.** Every act is an event {eventId, time, actor, kind, target, place, duration, causeIds}. Nobody learns anything except by witnessing it, being told it or reading the board. Decision code sees memory only.
+   - **Clarity.** Each observer gets a clarity for each event from 0 to 1. Clarity builds with time watched and depends on:
+     - *distance:* close (0-2 tiles) 1.0, near (3-5) 0.6, far (6-8) 0.3, nothing beyond 8;
+     - *line of sight:* a tile raycast from observer to actor; walls block, fences and bushes halve, darkness at night halves again;
+     - *duration:* clarity is the sum over the ticks or seconds the observer had sight, against the act's "read time" (a glance at a wave is enough; a theft needs a few seconds to understand);
+     - *loud acts* (a shout, a crash, a fight) are also heard through walls and up to 12 tiles, at low clarity and without identity.
+   - **What the observer knows, by clarity:**
+     - *what happened* at clarity 0.3 or more (an act's read time sets this);
+     - *who did it* when clarity reaches 0.9 - 0.7 x familiarity with the actor (as built in 0a). A stranger needs a close look; a friend can tell at about 4 tiles; family who know them well can tell at 8;
+     - otherwise the entry records "someone", with what was visible: a kind of person ("a farmer", "a child"), clothing colour, the direction they went.
+   - **How strongly they feel it:** the affect is multiplied by clarity (law 11). The close witness to the bin rummaging knows who it was and is disgusted; the far one saw someone do it and is mildly put off.
+   - **Unidentified acts can be solved later.** A story about "someone" can be joined with another witness's account, a clothing detail, or the player's known whereabouts. Two partial witnesses can add up to an identification, which gives mysteries without authoring.
+   - **Misidentification** (a confident wrong guess) is an option for a later experiment, off by default: it makes drama, but it can feel unfair.
+   - The player perceives through the same rule, which is why the player sometimes sees only "someone".
+3. **Forgetting.** A diary over 300 entries drops its lowest-weight tenth.
+   - Weight = base (sighting 0.1, act 1, secret 2) x 0.5^(days/21) x (0.5 + |regard for the subject|).
+   - Sightings coarsen from spot to location to region to "earlier today", and are gone at 6:00.
+   - Routine trades go to a purchase ledger. Only changes from routine (a new seller, a price change over 10%, a refusal) enter the diary.
+4. **Regard.** Each act kind has a row: valence, magnitude, fade, plastic share, base juiciness, importance.
+   - The target feels magnitude x (0.5 + sensitivity). The elastic feeling sums the last 3 days of entries.
+   - Regard(A→B) is in -1..1 and saved per ordered pair. It moves by valence x felt x plastic share x (0.5 + retention) x (1 - |regard| in that direction).
+   - A felt value of 0.7 or more ignores retention.
+   - A third slight of the same kind from one actor within 5 days adds a 0.3 mark.
+   - A repeated good act counts x 0.5^(repeats in 7 days).
+5. **Healing and familiarity.** Regard drifts 0.005 a day toward a baseline set on the villager's card. It heals faster on contact: a day spent together with no new slight, an accepted apology, or a good act. Betrayed keeps regard at -0.2 or below. Familiarity is kept separate from liking. It rises by 0.02 x (1 - familiarity) per exchange (chat, trade, reaction) and falls 1% a day.
+6. **Bystanders** (laws 5 and 6). A witness who loves the target shares its feeling and moves its regard for the actor by 0.5 x the target's change x its regard for the target, times clarity. One who hates the target feels the opposite, at most 0.3 of that amount. One with no strong regard feels a fraction by likeness (imitation, about 0.2 x likeness), toward the target only. Changes made by this rule never trigger it again.
+7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within 6 ticks, with one of 8 emotions.
+   - The reaction is an act linked to the eventId. Its magnitude = the emotion's row x the event's importance.
+   - Witnesses read it against their own view of the event. Siding with the actor of a harm slights the victim; siding with the victim slights the actor.
+   - Villagers pick an emotion from their own feeling about the event (laws 5 to 7) and their temperament; the player uses the wheel.
+   - Witnessed reactions feed each villager's estimate of how the town regards that kind of act (law 7), which is how norms form.
+   - Nobody reacts to a reaction.
+8. **Gossip.** Villagers co-located for 3 or more ticks chat with a seeded chance of 0.3 x (0.5 + chattiness) per tick.
+   - The teller offers its juiciest story at 2 or more that, by its own record, it has not told this listener and did not hear from them.
+   - Add 0.5 if the listener has a close tie to someone in the story (regard 0.4 or more, or the same household).
+   - The listener stores the story at 0.7 x the teller's juiciness, with the chain of tellers.
+   - Juiciness fades 0.5 a day (0.8 at base 4 or more), counted from when each person got the story (as in the mod, D33).
+   - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
+   - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
+   - Retelling never adds detail.
+9. **Hearsay and scandal.** Hearsay moves only mood, by 0.5 x magnitude x confidence. Confidence = 0.5 + 0.5 x regard for the teller, multiplied down the chain.
+   - Two kinds of hearsay give a motive: a scandal (a bad act at base 4 or more), and news that touches the listener personally (household, partner, employer, its own trade).
+   - Hearsay becomes regard at 0.5 strength when confirmed first-hand, and at 0.25 when two independent tellers agree.
+   - When the people holding a scandal reach a quarter of those who know the actor (minimum 3), one of them confronts the actor. A seeded draw weighted by intensity x boldness picks who, preferring the person harmed.
+   - Each scandal gets one confrontation, and a confrontation has base juiciness 3.
+10. **Motives and acts.** A villager acts toward a subject, villager or player, only on a motive about that subject.
+    - It acts when boldness + 0.5 x familiarity + 0.5 x intensity reaches the act's cost (wave 0.2, note 0.25, chat 0.3, gift 0.4, walk up 0.5, visit 0.7, confront 0.8; hostile acts +0.3), and intensity reaches the act's minimum.
+    - Code decides when the margin is more than 0.15 from the cost. Inside that band, a seeded draw with P = logistic(8 x margin), tilted by mood, decides.
+    - Each subject gets two attempt slots per day. A question is asked again only when the motive moves by 0.1.
+    - Light acts are capped at 2 a day and never counted as ignored. Hostile acts have a 3-day cooldown per pair.
+    - Life choices (courting, splitting up, shop hours, hiring) use the same gate. They hold for a minimum time and need a 0.3 margin to reverse.
+11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
+12. **Market and money.** Every sale has a named buyer with cash and weekly demand.
+    - Town cash changes only through named outside accounts: the trader, outside wages, a county stipend.
+    - A shop buys at 0.6 of its shelf price or less. Shelf price x (1 - 0.1 x regard for the customer); buy price x (1 + 0.1 x regard).
+    - Each night the price moves by 0.2 x (unmet - max(0, stock - target)) / (target + sold + 1), with a ±3% dead band and a cap of 5% per night.
+    - A shop trades only while its keeper is at the counter.
+    - Monopolies charge up to 25% extra and never refuse service.
+    - Buying from a rival in front of the keeper is BoughtFromRival, a small slight.
+13. **Promises.** Any deal with a future part (an order, tab, loan, hire or invitation) is a Promise with a due time.
+    - Keeping it writes Kept.
+    - A missed debt or order writes BrokePromise (base 4). A missed invitation writes StoodUp (base 3). The creditor tells at least one person.
+    - Repaid and Forgave scale with the amount divided by the debtor's weekly costs. Forgave counts only on an overdue debt.
+14. **Secrets and trust.** Villagers start with 1-3 authored secrets (base 3-5) and gain new ones from private acts. Each secret has a trust tier: 0.3, 0.5 or 0.7.
+    - Trust starts at the seed regard (0.2 for the newcomer). It rises 0.05 per help, kept appointment or repaid loan, and 0.1 per confidence kept for 7 days. It drops to 0 on a betrayal.
+    - Retelling a secret is an act at base 4, and the secret carries its full chain of tellers.
+    - An owner who hears its secret from someone it did not tell writes Betrayed (0.8, severe), split among everyone it told. It moves the whole entry onto one of them when evidence of that person's retelling arrives.
+15. **Fuel.** Each villager has 1-2 vices with seeded triggers: a low purse leads to rummaging or theft, three low-mood days to drinking alone, and overload to a missed delivery. An occasion catalog (weather, prices, visitors, lost items, breakages, illness, mishaps by job) fires at base rates with cooldowns. Occasions create only world facts. A type-level test proves an occasion cannot write to any villager's mind.
+
+The player is one more agent under these rules and has no meters of their own.
+
+## 5. The villager model
+
+- **Identity (authored):** household, job, hours, wage, home, gift tastes, routine template, temperament (six traits, six emotion biases, retention), vices, secrets, seed regard (household 0.6, friends 0.4, tensions -0.3), voice sheet.
+- **State (saved, versioned):** diary, ledgers, heard stories with their chains, regard, familiarity and trust per pair, promises, cash and stock, statuses, today's plan, two attempt slots.
+- **Mind (derived from memory, never saved):** elastic feelings, mood (earned mood plus the seeded MoodRoll), and motives, each with a subject and a source entry. The mod's Motive values carry over, with Owed, Owes, Courting, Confront and Avoid appended.
+
+**How a villager decides.**
+- Overnight it plans tomorrow from its routine and its strongest motives.
+- Each tick, perception writes diary entries. Motives are recomputed only if the diary changed, and each motive goes through rule 10.
+- Villagers find each other by asking around and by habit.
+
+**The model.** It is optional. It answers three typed questions:
+- a close call (yes/no);
+- which of the top motives goes first (a choice of up to 5);
+- how a reader reacts to a board note or a stolen journal page (a 6-way choice).
+
+It never writes text. Headless runs use a Fake client calibrated to Laya's measured yes-rates. Answers are recorded and arrive at a fixed delay (asked at tick t, used at t+1), so machine speed never changes the story. The game is complete with the model off.
+
+## 5a. Laya: meaning in, meaning out
+
+Decided (Sid, 2026-10-05): the player writes free text, villagers can misread the player, and the readings test uses Stardew's cast. Sid: "The generated text is mostly candy. The core of the interactions is the emotion behind what's being said, not really the content."
+
+**The message is the feeling, not the words.** Every social act carries a typed payload: {emotion, intensity, target, purpose, cause eventId}. That payload is what the simulation reads. Words are only a rendering of it.
+
+**Rules decide; Laya interprets.** The simulation never asks Laya what to do. It asks what something means to a particular person. Laya answers typed questions (choice, score, yes/no) and never writes text.
+
+**Laya's roles, in order of value:**
+1. **Reading what the player writes** (board notes, letters, the journal, and later talking). Laya turns the player's words into the typed payload: purpose (request, offer, thanks, apology, accusation...), who it's about, and the emotion behind it. Villagers react to the payload. With Laya off, the player builds notes from parts as before.
+2. **How each villager reads a moment.** Given the villager's card and what it actually perceived (limited by clarity), Laya picks a reading: your Amused face at Ivo's spill read as laughing with him or at him; a gift read as kindness or as a bribe. The reading sets the feeling's sign and how much blame there is (law 10).
+   - **Misreading is a feature** (Sid, 2026-10-05). It comes from three places: low clarity (a far glimpse), the villager's temperament and current feeling toward you (someone who already dislikes you reads you worse, law 5), and the *understanding* trait (a high-understanding villager reads close to the rule-based truth; a low one follows its imagination).
+   - Misreadings are visible and repairable: lines can say how a villager took something ("Hana thought you were laughing at Ivo"), and the player can correct it, which supplies a cause (law 10).
+3. **Close calls:** a seeded draw breaks ties near an act's threshold, and Laya may tilt it. It is the weakest use (the mod's yes/no answers bunched between 0.47 and 0.60) and stays only if a test shows it matters.
+
+**Where Laya never goes:** perception and clarity, who knows what, money, the conatus arithmetic, the gossip rules, and the headless 1000-seed sweeps. Those stay deterministic, fast and tested.
+
+**Determinism.** Every Laya answer is written to the event log as an event; replays read the log instead of calling the model. Answers asked at tick *t* are used at *t+1*, so machine speed never changes the story. Headless sweeps use a fake client calibrated to Laya's measured answers; smaller runs use the real model. The game is complete with Laya off.
+
+**Running it inside the game** (checked at github.com/NandhaKishorM/laya, v0.3.28, 2026-10-05; Hugging Face was not reachable from the cloud session):
+- Licence: Apache 2.0 (the repo). The weights' licence on the model card still needs a look.
+- `laya-dotnet`: a C# port of the inference path on ONNX Runtime, with no Python at runtime, answers checked against golden outputs from the Python code. It supports choice, score and yes/no, batched in one forward pass. It targets .NET 10 and uses `Microsoft.ML.OnnxRuntime` 1.30 (CUDA and DirectML builds exist for the GPU). Checkpoints are exported with the repo's ONNX script; quantized models are not supported in the .NET port's v1.
+- So Under Glass can call Laya in-process from C#, with no sidecar. The simulator and the Godot project should target .NET 10 to match (VERIFY that Godot's .NET build accepts a net10.0 project).
+- Fine-tuning: `laya-train --data file.csv --out ./ft` trains on a plain CSV, discovering the labels. That means Laya can be trained on our own question types (how a villager reads a moment, what a note means) from labels Sid writes.
+
+**Later: villagers' own words (candy).** If a local LLM becomes cheap enough, it can write a villager's line *from* the typed payload: "Haley, annoyed, about the egg you gave her, low intensity". The text is decoration. It never feeds back into the simulation, it passes the line sanitizer, it can be turned off, and templated lines (the voice sheets) remain the default. The emotion carries the interaction either way.
+
+**Experiments that decide each role:**
+- **E4a, notes:** Sid writes 50 notes the way a player would and labels purpose, subject and emotion. Laya passes at about 80% on purpose and subject. Then try a fine-tune on half and test on the other half.
+- **E4b, readings:** 30 ambiguous scenes from Stardew's cast (for example Shane seeing you laugh when Pam trips; Haley getting an egg in front of Emily). Sid says how 3-4 villagers should read each one. Compare Laya, the rules alone and a coin flip, before and after a fine-tune on Sid's labels.
+- **E4c, the blind read:** Sid reads season journals made with Laya and with the calibrated fake, without knowing which is which.
+
+## 6. The player
+
+**Verbs:**
+- React on the emotion wheel.
+- Talk with no daily cap. Ask where someone is or what they have heard, tell a story and join its chain of tellers, keep or break a confidence.
+- Give a gift. The people who see it decide what it means. Diminishing returns on repeats replace the gift cap.
+- Apologise for a specific event, or correct a misreading by pointing at the real cause.
+- Post on the board from parts: a purpose (request, offer, thanks, apology, or an accusation that cites an event), a subject, and a tone picked on the wheel. The player's own text is shown as flavour, so tone still works with the model off.
+- Fill requests, fund town projects, choose buyers and shops, lend money, forgive debts, hire a farm hand, invite people and keep appointments.
+- Be somewhere. Where the player is decides what they see and who sees them.
+- Write the bedtime journal. A page can be stolen when the player passes out, and it gets pinned on the board.
+
+**The wheel.**
+- Holding a key opens 8 wedges: Grateful, Pleased, Amused, Sympathetic, Surprised, Disappointed, Angry, Disgusted.
+- The centre names the event the reaction attaches to ("Ivo spilled the soup"). The player can cycle among the last 4 events.
+- Portraits show everyone within 8 tiles; anyone who missed the event is greyed out.
+- Witnesses within 3 tiles show how they read the reaction on the same frame.
+- A test merges any two wedges whose outcomes differ by less than 0.1.
+
+**Reading the town.** There is no hearts bar and there are no numbers. The player reads the town through:
+- villagers' visible reactions, on the same frame as the act;
+- lines that name the cause and the source ("Kit says you went through the doctor's bin"). No consequence is shown unless it can cite an eventId;
+- overheard chats that quote the story and its teller;
+- the board, with a weekly "talk of the town" sheet;
+- the bedtime journal's "Today you noticed": up to 3 chains of events picked by a story sifter, each with cause and source, next to the player's own two sentences;
+- a "Who's who" page built only from what the player knows;
+- an account book;
+- each villager's first greeting of the day, which is warm, neutral, curt or turned away.
+
+## 6a. Power: a proposal (for discussion)
+
+Spinoza separates *potentia*, a person's own power of acting, from power over others. In the *Political Treatise*, one person is under another's power when that person holds them by fear, or by hope of a benefit, or because they have bound themselves by love. That matches Sid's definition: power is the ability to move a villager against their own inertia.
+
+**Influence of A over B** (per pair, from 0 to 1) is built from B's affects toward A:
+- **Love and the wish to please** (laws 7 and 8): B's regard for A.
+- **Hope:** what B expects to gain from A (A's help, trade, credit, a kept promise).
+- **Fear:** what B expects to lose (a debt B owes A, a secret A holds, A's ability to turn the town against B). Fear works, but it adds to hate every time it is used.
+- **Standing:** how many people B respects regard A well (B leans toward what others love, law 7).
+- **Familiarity:** a stranger moves no one.
+
+**Inertia of B** against a request: the strength of B's own desire for the alternative, plus habit (the routine), plus temperament (bold and low-understanding villagers resist more; agreeable ones less).
+
+**An influence attempt** (ask a favour, persuade, propose, canvass) succeeds when influence reaches inertia. It is a close call near the line, decided like rule 10.
+
+**Elastic and plastic, as Sid put it:**
+- *Elastic power* is the current balance of goodwill: favours owed, recent help, the glow after a public success. Spending it to move someone uses it up for a while, and it recovers.
+- *Plastic power* is lasting standing: reputation, roles (shopkeeper, mayor), debts, held secrets, kept promises. It grows slowly and is hard to lose, except through a scandal.
+
+**What power buys:**
+- **Convincing:** changing someone's belief (they accept your account of an event, a correction takes), their plan (they come to the festival, sell you hay, hire you), or their feeling toward a third person (reconciling two villagers).
+- **Changing the rules of the town:** at the season town meeting, anyone can propose a rule (shop hours, a fence round the bins, a ban on the chain store, a curfew). Each villager votes from their own desire plus the influence of the proposer and anyone who canvassed them.
+- **Prices, credit and help** (rule 12), and **information:** people tell secrets to those they trust.
+
+**Villagers hold power too.** Lewis, Pierre, the chain store's manager and the saloon keeper all build and spend it. Town politics comes out of the same rules, with or without the player. The alien's situation makes power double-edged: standing protects you from suspicion, but it also draws attention.
+
+This is a first sketch. The constants and the meeting rules are for us to work out together.
+
+## 7. Farming and the economy
+
+**What stays:** seasons, crops, watering, rain, tools, animals, machines, fishing, foraging, and later the mine. Version 1 is small: plots, 4 crops, chickens and one machine.
+
+**What becomes systemic:**
+- **No shipping bin.** Goods go to named buyers: the general store, the chain store, the saloon kitchen, the carpenter, and a trader who visits twice a week. The trader pays the floor price from an outside account and has a weekly cap.
+- **Villagers produce too.** They sell eggs, fish and vegetables, so the player supplies some neighbours and competes with others.
+- **Shops run on real revenue.** Two weeks below costs leads to cut hours, a sale note or a request for help. The general store against the chain store comes out of the rules.
+- **The board replaces help-wanted and special orders.** Requests come from real shortages, and villagers fill them too.
+- **Town projects replace bundles.** Villagers propose them. At the end of each season, proposals with 3 or more backers go to a public vote, decided by each villager's interest and regard.
+- **The farm is open to villagers,** and festivals have real attendance.
+
+**How it feeds the social sim.**
+- Every trade is witnessed.
+- Regard sets prices, credit and hiring.
+- Promises tie the two layers together.
+- Year-1 output is sized to 30-60% of town demand.
+- Regard pays in credit, first pick from the trader, hires accepted, help after a storm, secrets and votes. The target is 15-25% of the player's income.
+
+## 8. Example stories
+
+Each story becomes a golden scenario test before its rules are coded.
+
+1. **Who saw the bin** (rules 2, 8, 9). The player rummages in the doctor's bin at 21:00, an act at base juiciness 4.
+   - Layers: Tess, 2 tiles away for several seconds, knows it was the player and is disgusted at full strength. Hal, 7 tiles away behind the fence at dusk, saw *someone* rummaging, in a straw hat, and is mildly put off; his feeling attaches to "someone" and, a little, to "the farmer" as a kind of person. When Hal and Tess compare stories in the saloon, Hal's "someone in a straw hat" becomes the player, and his feeling moves onto the player.
+   - On seed A, Tess the saloon keeper sees it. She tells one listener a day. Her first listener still holds the story at 2.0 the next day and passes it on.
+   - By the next evening four villagers hold it. That passes the threshold of 3, a quarter of the 12 who know the player. The draw picks Bram, one of the four, to confront the player in the square.
+   - On seed B, only Joel, a solitary fisher, sees it. His copy falls 4.0, 3.2, 2.4, 1.6. If he chats with nobody for three days, the story dies with him.
+2. **The egg glut** (rules 12, 9, 10). The player sells 40 eggs a week to Dov's store.
+   - His stock sits far above target, so his price drops 5% a night, about 30% in a week.
+   - Dov tells Lou the rancher why his eggs fetch less. The news touches Lou's own trade, so it gives him a Hurt motive.
+   - Walking up to the player is a close call, and the draw declines it, so Lou pins a note: "Ranchers need fair egg prices."
+   - The player can sell to the saloon instead, cut back, or buy Lou's hay. Each choice happens in public.
+3. **The wrong friend blamed** (rules 14, 2, 8). Rue owes the chain store 400g, a secret at trust tier 0.5.
+   - She tells Tess. She tells the player after six filled requests and kept appointments.
+   - The player retells it to Mina in the saloon while Pia sits 5 tiles away.
+   - Rue hears it from Hal and splits Betrayed between Tess and the player.
+   - If Pia's story reaches Rue within three days, all the blame moves to the player. Two seeds end differently. A confession moves the blame to the player at once.
+4. **A tab at the saloon, with no player** (rules 13, 9, 6, 5).
+   - Joel's winter catch falls and his tab with Tess goes unpaid.
+   - Tess raises it at the bar in front of four villagers, and Joel starts avoiding the saloon.
+   - Mina, who likes Joel, cools toward Tess and pins "Buying fish, 40g each." Joel fills the request and pays the tab, and Tess writes Repaid.
+   - Joel's Avoid motive expires after 7 days.
+   - The player sees all this only on the board or by being in the saloon.
+5. **The laugh at the festival** (rules 15, 7, 6, 8).
+   - Ivo spills the soup in front of ten people. The player picks Amused, which the witnesses read as siding against Ivo.
+   - Hana, who likes Ivo, frowns and cools toward the player. Gil, who dislikes Ivo, warms slightly.
+   - Enid retells the story for two days.
+   - Hana passes over the player's turnip request, and Gil fills it. The journal links both to the laugh.
+
+## 9. Ideas grafted, and ideas dropped
+
+The spine is the minimal-lab concept (Under Glass). From it we keep:
+- witnessing as the only way to learn anything;
+- the act table as the only social content;
+- kill criteria, bots and the REPL.
+
+It was the only concept built around "set up rules and run a simulation". The grafts fill its gaps: nothing fuels the town, good news travels less far than bad news, and the economy is thin.
+
+**Grafted:**
+- *Rules-first:* secrets with blame that moves, obligations, BoughtFromRival, the drama-density metric, regard that pays, life choices held as commitments.
+- *Living-economy:* conserved money with outside accounts, the Promise record, repricing on deviation from target stock, the purchase ledger, one purse per household, monopolies that charge extra instead of refusing.
+- *Player-voice:* the wheel showing its event and its witnesses, reactions shown on the same frame, lines that quote the event, a meaning row per wedge, the Corrected act.
+- *Storyteller:* the occasion catalog, and the test that occasions cannot write to a villager's mind.
+- *Social-physics:* the season town meeting, and its Monte Carlo finding, which is why the gossip harness comes first.
+
+**Dropped:**
+- A standalone game on Stardew's assets: it cannot ship.
+- Laya on any critical path: its measured yes/no answers were flat.
+- A director that forecasts by simulating ahead: one sample per candidate is mostly noise.
+- Misreads caused by same-tick timing: they feel like bad luck.
+- A shared hunger clock: everyone eats at once, and shops close at random.
+- Random tiles each tick: tuning done on them will not carry over to a rendered town.
+- A full Stardew farm in version 1: it would take the time the social layer needs.
+- Telling "the story the listener lacks": the teller would have to read another villager's mind.
+- Weekly averaging of norms, and groups built from connected components: the norms freeze and the groups merge into one.
+- Blight on the player's farm: it reads as punishment.
+
+## 10. Risks and early experiments
+
+| Risk | Test | Pass |
+|---|---|---|
+| The town is dead or at war | E1: no player, 1000 seeds, plus a parameter sweep | A feud and a friendship in 60%+ of seeds; dead and war towns each under 5%; a lively town in 15%+ of parameter space |
+| Gossip saturates the town | Gossip-only harness | A scandal reaches 40-70% of the town over 3 or more days |
+| Money leaks, or the farm swamps the town | Stock-and-flow model, 4 seasons per bot | Town cash drops less than 30% a season; the player holds under 5x town cash after season 1 |
+| Regard can be pumped | MaxRegard, Sneak, Iago, CrashThenRescue and GiftSpam bots | None beats the Saint bot by more than 20% |
+| The town only mirrors the player | E3, player policies | 40%+ of stories have no player in their cause chain |
+| The player cannot follow it | Drama-density metric; the REPL | 3 or more acts seen a day; Sid wants a second text season |
+| The stories contradict the numbers | Golden scenarios | All pass, or the rule changes |
+| A rule adds nothing | E2, ablations | A rule stays only if removing it moves a story metric by 20% or more |
+| Logs differ between machines | Windows and Linux CI | Same hash; values stored as fixed-point numbers |
+| The model does not earn its place | E4, blind read against the calibrated Fake client | Sid prefers Laya's seasons |
+
+E0 runs first and checks four things:
+- the same seed gives the same log;
+- regard stays in range;
+- the caps hold;
+- every heard story traces back to a witness.
+
+E5 is Sid's blind read of 10 season journals.
+
+## 11. The plan
+
+**Phase 0: headless (about 2-3 months with agents).** It starts in this repo (`sim/UnderGlass.Sim`, `sim/UnderGlass.Run`), next to the libraries it reuses, and moves to its own repository once the rules hold.
+- **0a.** A gossip-only harness: rules 2, 8 and 9 on 12 villagers.
+- **0b.** A stock-and-flow money model, about 200 lines.
+- **0c.** Port the core (3-4 weeks):
+  - retarget to net8;
+  - make GameClock's constants parameters;
+  - rewrite MotiveInputs, MotivesEngine and MotivesRunner so the subject can be anyone;
+  - move StressorTable into `acts.json`.
+
+  Memory, gossip, RegardBook, the decision clients and NpcMinds carry over. The run loop starts from ShadowSimulator.
+- **0d.** The simulator itself (`UnderGlass.Sim`):
+  - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON;
+  - the bots;
+  - the event log, snapshots, metrics and the story sifter;
+  - the viewer replays runs.
+- **Exit:** E0-E3 and the golden scenarios pass.
+
+**Phase 1: text REPL (about 2 weeks).** Sid plays a season through commands and sees only what the player perceives. If it is not worth playing in text, art will not fix it.
+
+**Phase 2: the first visual build.** A Godot 4 C# project over `UnderGlass.Sim`, with Stardew's art privately as placeholders, or simple shapes. Separately, Stardew stays useful as a test bed for single ideas:
+- First, a wheel spike in the current mod. It sits behind a switch that is off by default and logs each villager's reading as a `[shadow]` line. Villagers' visible reactions go live only with Sid's go-ahead (AGENTS.md rule 1).
+- Then an overhaul mod: named buyers, the board, heart events off, and next-day schedules built from the overnight plan (D26).
+- Verify the mod policy first.
+
+**Engine (decided 2026-10-05).**
+- **Experiments: plain C# on .NET 8** (as built, 2026-10-05: the simulator core, `sim/UnderGlass.Sim`, is .NET 8, which the cloud agents have and Godot 4 C# reads; the Laya adapter will be a separate .NET 10 project referencing it, since the Laya C# port targets .NET 10). The simulator is a class library (`UnderGlass.Sim`) with a console runner, the text REPL and xUnit tests.
+  - It is the best documented and fastest option for the experiments.
+  - The cloud agents can build, test and run it with no game or editor installed.
+  - It reuses this repo's libraries directly, and it is deterministic and easy to run 1000 seeds of.
+- **Visual prototype and final game: Godot 4 with C#.**
+  - The renderer is a Godot project that references the same `UnderGlass.Sim` library and only reads its snapshots and events.
+  - Sid can open the scenes, place art, paint maps and change the UI himself.
+  - We skip MonoGame: using Godot from the first visual build means no engine change later.
+- **What it needs:**
+  - the .NET 8 SDK (and the .NET 10 SDK once the Laya adapter exists) beside the current 6.0 SDK on Sid's PC;
+  - Godot's .NET build.
+  - C# Godot projects don't export to the web yet, which doesn't matter for a desktop game.
+- **The simulation never depends on Godot.** It runs headless in tests and in the cloud, and Godot is only a view of it.
+
+**Phase 3: the original game.** Start it only after the visual prototype shows the loop is fun: original town, cast, art, music and writing, in the same Godot project.
+
+**Meanwhile, in the mod:**
+- keep playtesting on BUNKO_450391925;
+- build the 7-day spreading test from ledger-gossip.md;
+- log per-pair co-location rates in the real town to calibrate UnderGlass.Sim's spots;
+- fix the architecture.md table that still lists NpcMotives and NpcLive as not wired.
+
+## 11a. Decisions of 2026-10-05 (second round)
+
+**Tone and limits.** The town can get fairly dark: debt, addiction, theft, shops closing, people moving out. Murder and sexual violence or abuse are out of scope. Keep in mind it is a pixel-art game: hard things are shown plainly and briefly, never dwelt on.
+
+**Romance is the same mechanics for everyone, from the start.** Villagers court each other, and the player courts villagers, under the same rules. Courting is love plus a wish to be loved back in particular (III P33), with jealousy when the beloved favours someone else (III P35). Couples form, split and re-form without a script. Life choices hold for a minimum time and need a margin to reverse (rule 10).
+
+**Misidentification depends on the person.** Each identification has a confidence, from clarity and familiarity. Temperament decides what a villager does with a low confidence:
+- A cautious or secure villager says "someone".
+- A bold villager with low self-regard names a guess as fact: *confidently wrong*.
+- This needs one more trait, *self-regard* (Spinoza's self-esteem and humility, III P30 and the definitions of the affects).
+
+**Under Glass is about an alien living secretly among the villagers.** The player crash-landed and has to fit in. This idea comes from the final game, and it shapes the design now:
+- **The screen shows what the character perceives.** Rendering follows the clarity rule:
+  - at 8 tiles, two figures talking;
+  - at 4, their emote bubbles (they're arguing);
+  - at 2, their speech bubbles (what they're saying).
+  
+  Behind walls, the player sees nothing. The player and the character always know the same things.
+- **Enhanced senses are the progression.** The alien's senses can grow:
+  - wider clarity bands;
+  - hearing through walls;
+  - reading the emotion of someone you can't hear;
+  - telling who it is at distance.
+- **Fitting in is the game's social core.** The alien has to learn the town's norms by watching reactions, the same way villagers do (law 7). Odd behaviour draws wonder (III P52) and talk about "the newcomer" as a kind of person (law 9). Suspicion is a real pressure that comes out of the ordinary rules.
+
+**Power** (to discuss; see the proposal in section 6a). Sid: "regard plays a part in influence, changes the rules of the town, convince people of things easier. Regard plays a part in power. Power is the ability to direct 'consciousness' (in our case villagers) against its own inertia. Power is plastic and elastic."
+
+## 12. Questions for Sid
+
+Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, and Spinoza as the basis.
+
+Still open:
+1. Power (section 6a): does the proposal match what you mean, and should the season town meeting be the main stake?
+2. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
+   - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
+   - each next step only once the previous gate passes;
+   - a review at 8 weeks either way.

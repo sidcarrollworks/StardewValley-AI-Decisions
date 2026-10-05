@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Sim", "UnderGlass.Sim\UnderGlass.Sim.csproj", "{133129DB-5540-4025-B74C-39233437C4EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Run", "UnderGlass.Run\UnderGlass.Run.csproj", "{357F42DF-8F53-484A-AC83-407AE87CFE37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Sim.Tests", "UnderGlass.Sim.Tests\UnderGlass.Sim.Tests.csproj", "{5C088E2F-9DA7-4D7A-B8BD-BAD850311A59}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{133129DB-5540-4025-B74C-39233437C4EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{133129DB-5540-4025-B74C-39233437C4EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{133129DB-5540-4025-B74C-39233437C4EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{133129DB-5540-4025-B74C-39233437C4EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{357F42DF-8F53-484A-AC83-407AE87CFE37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357F42DF-8F53-484A-AC83-407AE87CFE37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{357F42DF-8F53-484A-AC83-407AE87CFE37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357F42DF-8F53-484A-AC83-407AE87CFE37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C088E2F-9DA7-4D7A-B8BD-BAD850311A59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C088E2F-9DA7-4D7A-B8BD-BAD850311A59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C088E2F-9DA7-4D7A-B8BD-BAD850311A59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C088E2F-9DA7-4D7A-B8BD-BAD850311A59}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
