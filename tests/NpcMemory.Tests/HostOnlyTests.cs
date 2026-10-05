@@ -17,6 +17,22 @@ public class HostOnlyTests
     }
 
     [Fact]
+    public void ASplitScreenGuestIsIgnored_AndLeavingForTheTitleKeepsTheHostsMemory()
+    {
+        // The host's screen loads first (screen 0), then a guest joins on screen 1: the guest's
+        // handlers do nothing, and the guest leaving for the title resets nothing.
+        PlayerRole host = HostOnly.RoleOf(isMultiplayer: true, isMainPlayer: true, isOnHostComputer: true);
+        PlayerRole guest = HostOnly.RoleOf(isMultiplayer: true, isMainPlayer: false, isOnHostComputer: true);
+        Assert.True(HostOnly.Runs(host));
+        Assert.False(HostOnly.Runs(guest));
+        Assert.False(HostOnly.ResetsAtTitle(screenId: 1));
+        Assert.False(HostOnly.ResetsAtTitle(screenId: 2)); // a guest who left and rejoined gets a new id
+
+        // The host returning to the title resets, as does a farmhand's own screen (always 0).
+        Assert.True(HostOnly.ResetsAtTitle(screenId: 0));
+    }
+
+    [Fact]
     public void EveryRoleButSoloSaysWhatItDoes()
     {
         Assert.Null(HostOnly.Notice(PlayerRole.Solo));

@@ -160,6 +160,38 @@ public sealed class RegardKeeperAndInputsTests
     }
 
     [Fact]
+    public void AStoryIsConfirmedOnce_HoweverOftenItIsSeenAfterwards()
+    {
+        // Through the one diary writer, as in the mod: Haley hears from Gus (a retelling, so it
+        // stays hearsay), then sees the player rummage three times in the week after.
+        var keeper = Keeper();
+        var store = new MemoryStore(7);
+        var notes = new List<RegardNote>();
+        store.Noting = (npc, entry, before) =>
+        {
+            if (keeper.OnNoted(npc, entry, before) is { } note)
+                notes.Add(note);
+        };
+        store.Note("Haley", new DiaryEntry(Now, "Player", "Heard",
+            $"from=Gus;kind=SawRummaging;subject=Player;of=Lewis;b=4;j=2.8;at={Now};hops=2"));
+        for (int d = 1; d <= 3; d++)
+            store.Note("Haley", new DiaryEntry(Now + d * Day, "Player", "SawRummaging", "place=Saloon"));
+
+        Assert.Equal(new[] { true, false, false }, notes.Skip(1)
+            .Select(n => n.Cause.Contains("saw for themselves", StringComparison.Ordinal)));
+
+        // A second story of the same act, heard after the first sighting, is its own story: the
+        // next sighting confirms it, once, and leaves the first alone.
+        store.Note("Haley", new DiaryEntry(Now + 4 * Day, "Player", "Heard",
+            $"from=Pam;kind=SawRummaging;subject=Player;of=Shane;b=4;j=2.8;at={Now + 4 * Day};hops=2"));
+        store.Note("Haley", new DiaryEntry(Now + 5 * Day, "Player", "SawRummaging", "place=Beach"));
+        IReadOnlyList<DiaryEntry> diary = store.DiaryOf("Haley").Entries;
+        Assert.Contains("what Pam told them", notes.Last().Cause);
+        Assert.DoesNotContain("Gus", notes.Last().Cause);
+        Assert.Empty(RegardKeeper.ConfirmedBy(new DiaryEntry(Now + 6 * Day, "Player", "SawRummaging", null), diary, new MotiveOptions()));
+    }
+
+    [Fact]
     public void HearsayFromTheSourceIsNotConfirmedTwice_AndAGiftSeenConfirmsAGiftHeard()
     {
         var fromOwner = new DiaryEntry(Now, "Player", "Heard", $"from=Haley;kind=GiftReceived;subject=Player;of=Haley;taste=Love;at={Now}");

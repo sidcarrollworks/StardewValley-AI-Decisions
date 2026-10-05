@@ -81,6 +81,54 @@ public class DiaryKeepTests
     }
 
     [Fact]
+    public void ADiaryAtTheCapKeepsEverything_TheNextEntryTrimsABatch()
+    {
+        var store = new MemoryStore { MaxDiaryEntries = 20 };
+        for (int d = 0; d < 20; d++)
+            store.Note("Haley", new DiaryEntry(d * Day, "Player", "Talked", null));
+        Assert.Equal(20, store.DiaryOf("Haley").Entries.Count);
+        Assert.Equal(0, store.DiaryOf("Haley").TrimmedToday);
+
+        store.Note("Haley", new DiaryEntry(20 * Day, "Player", "Talked", null));
+        Assert.Equal(18, store.DiaryOf("Haley").Entries.Count);
+        Assert.Equal(3, store.DiaryOf("Haley").TrimmedToday);
+    }
+
+    [Fact]
+    public void WhenEveryEntryIsProtectedTheOldestGo_WhateverTheirKindOrRegard()
+    {
+        // 21 entries from the last two days: nothing older to forget, so the batch is the oldest,
+        // events and strong feelings included.
+        var store = new MemoryStore { MaxDiaryEntries = 20, RegardOf = (_, who) => who == "Shane" ? -0.9 : 0 };
+        for (int i = 0; i < 21; i++)
+            store.Note("Haley", new DiaryEntry(10 * Day + i, i % 3 == 0 ? "Shane" : "Sam", i % 2 == 0 ? "GiftReceived" : "Saw", null));
+
+        IReadOnlyList<DiaryEntry> left = store.DiaryOf("Haley").Entries;
+        Assert.Equal(Enumerable.Range(3, 18).Select(i => 10 * Day + i), left.Select(e => e.AbsoluteTick));
+    }
+
+    [Fact]
+    public void ASaveLoadedOverTheCapLosesNothingUntilTheNextEntry_ThenTheLeastWorthKeepingGo()
+    {
+        // A diary written under a larger cap (or before there was one) loads whole.
+        var old = new MemoryStore { MaxDiaryEntries = 100 };
+        for (int i = 0; i < 30; i++)
+            old.Note("Emily", new DiaryEntry(i * 10, i % 5 == 0 ? "Player" : "Haley", i % 5 == 0 ? "Talked" : "Saw", "Town"));
+        MemoryStore loaded = MemoryStore.FromJson(old.ToJson());
+        loaded.MaxDiaryEntries = 20;
+        Assert.Equal(30, loaded.DiaryOf("Emily").Entries.Count);
+
+        // One more entry, days later: down to 18 at once, every talk kept, the oldest sightings gone.
+        loaded.Note("Emily", new DiaryEntry(10 * Day, "Player", "Saw", "Farm"));
+        IReadOnlyList<DiaryEntry> left = loaded.DiaryOf("Emily").Entries;
+        Assert.Equal(18, left.Count);
+        Assert.Equal(13, loaded.DiaryOf("Emily").TrimmedToday);
+        Assert.Equal(6, left.Count(e => e.Kind == "Talked"));
+        Assert.Equal(11, left.Count(e => e.Subject == "Haley"));
+        Assert.DoesNotContain(left, e => e.Subject == "Haley" && e.AbsoluteTick <= 160);
+    }
+
+    [Fact]
     public void WeightHalvesOverTheHalfLife()
     {
         var e = new DiaryEntry(0, "Player", "Talked", null);

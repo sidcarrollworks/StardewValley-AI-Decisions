@@ -305,7 +305,10 @@ public class ModEntry : Mod
             var extractor = new RoutineExtractor(_regions);
             var missing = new List<string>();
             Dictionary<string, NpcRoutine> routines = extractor.ExtractAll(
-                // VERIFY: a spouse's schedule is the marriage one; priors about it are wrong.
+                // A spouse's schedule is the marriage one, so priors about it would be wrong.
+                // Verified (1.6.15, NPC.TryLoadSchedule, NPC.cs:5801-5905): a married NPC loads
+                // only marriage_* keys (and marriageJob for Penny, Maru and Harvey on work days),
+                // else no schedule; the extractor simulates the unmarried key order.
                 Game1.characterData.Keys
                     .Where(npc => !string.Equals(npc, spouse, StringComparison.OrdinalIgnoreCase))
                     .ToList(),
@@ -337,9 +340,11 @@ public class ModEntry : Mod
     {
         // Single-player for now (docs/spec/multiplayer-compat.md): only the host's main screen runs
         // the mod. A farmhand on a remote host can't read or write the save's mod data, so it stays
-        // off before LoadMemory; a split-screen guest's screen is ignored.
-        // VERIFY in game: Context.IsMultiplayer is already true at SaveLoaded when a co-op save is
-        // hosted (multiplayerMode is set before load); OnPeerConnected covers it if not.
+        // off before LoadMemory; a split-screen guest's screen is ignored. Verified (1.6.15, SMAPI
+        // 4.5.2): Context.IsMultiplayer is already true here for a hosted co-op save, since the
+        // co-op menu sets Game1.multiplayerMode = 2 before loading (CoopMenu.cs:129) and SMAPI
+        // raises SaveLoaded only once the world is ready (SCore.cs:900-915). A split-screen
+        // player joining later turns it on mid-session; OnPeerConnected and LiveGate cover that.
         PlayerRole role = HostOnly.RoleOf(Context.IsMultiplayer, Context.IsMainPlayer, Context.IsOnHostComputer);
         if (HostOnly.Notice(role) is { } notice)
         {
@@ -355,8 +360,10 @@ public class ModEntry : Mod
             // can append (docs/spec/debug-tools.md, "Playtest log").
             _playtest?.Dispose();
             _playtest = new PlaytestLog(
-                // VERIFY: SaveFolderName is set before SaveLoaded fires (SMAPI sets CurrentSavePath
-                // while loading a save; it is null only at the title screen).
+                // SaveFolderName is computed on each read from the save name and
+                // Game1.uniqueIDForThisGame whenever the load stage isn't None, and SMAPI sets the
+                // stage to Ready just before SaveLoaded (verified, SMAPI 4.5.2 Constants.cs:262-305,
+                // SCore.cs:914-915), so it is set here; it is null only at the title screen.
                 Path.Combine(Helper.DirectoryPath, "playtest", Constants.SaveFolderName!),
                 _config.PlaytestLog,
                 message => Monitor.Log(message, LogLevel.Warn));
@@ -654,7 +661,7 @@ public class ModEntry : Mod
 
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
-        if (Context.ScreenId != 0)
+        if (!HostOnly.ResetsAtTitle(Context.ScreenId))
             return; // a split-screen guest leaving must not clear the host's memory
         _warnedMultiplayer = false;
         // Fresh memory per save; a different save must start clean.
@@ -683,8 +690,10 @@ public class ModEntry : Mod
         _calls.Clear();
         _lastLadderInputs = Array.Empty<InitiationInput>();
         _planToday = Array.Empty<IntentCandidate>();
-        _playtest.Flush(); // keep this session's buffered records before the writer closes
-        _playtest.Dispose();
+        // Null for a farmhand: OnSaveLoaded stops before creating the log, but a farmhand's own
+        // screen is screen 0, so it still comes through here.
+        _playtest?.Flush(); // keep this session's buffered records before the writer closes
+        _playtest?.Dispose();
         _lastPresencePositions.Clear(); // per save state, like everything else here
         _minds?.Publish(MindsSnapshot.Idle(++_mindsSeq, BackendName()));
         Monitor.Log("Memory reset for the title screen.", LogLevel.Info);
@@ -732,9 +741,12 @@ public class ModEntry : Mod
 
     /// <summary>Whether the mod watches this character (Presences.Tracks): a villager
     /// (IsVillager is a property, confirmed; it drops monsters and animals) who can socialize.
-    /// VERIFY in the decompile: NPC.CanSocialize is a 1.6 property that evaluates
-    /// Data/Characters CanSocialize, false for the Bouncer, Henchman, Gunther, Marlon, Mister Qi and
-    /// Birdie (playtest 2026-10-05: they were tracked though the player can't reach them).</summary>
+    /// Verified (1.6.15): NPC.CanSocialize (NPC.cs:749) is false for non-villagers and otherwise
+    /// evaluates the Data/Characters CanSocialize game state query in the NPC's location
+    /// (NPC.cs:4873); a missing query means true. The game's data sets it FALSE for the Bouncer,
+    /// Mister Qi, Gunther, Marlon, Gil, Birdie, the Henchman, Morris and the Old Mariner; Sandy's
+    /// is "PLAYER_HAS_SEEN_EVENT Any 67" (her introduction at the Oasis), so she is watched only
+    /// from then on; Krobus, the Dwarf and the Wizard have none.</summary>
     private static bool Tracked(NPC npc) => Presences.Tracks(npc.IsVillager, npc.CanSocialize);
 
     private static int HeartsFor(string npc)
@@ -969,7 +981,12 @@ public class ModEntry : Mod
             double news = _planToday.Where(c => string.Equals(c.Npc, npc, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.News).DefaultIfEmpty(0).Max();
             string card = NpcCard.Render(npc, TemperamentOf(npc), VoiceSheets.Voice(npc), ladder.Hearts, NowLine());
-            bool met = Game1.player.friendshipData.ContainsKey(npc); // VERIFY: the game adds the entry at the first meeting
+            // The game adds the entry the first time the player talks to the villager
+            // (NPC.checkAction, NPC.cs:2514) or meets them in an event (Event.cs:191). Exception,
+            // verified in 1.6.15: villagers whose SocialTab is AlwaysShown (Lewis, Robin, Kent,
+            // Leo) get it when they're added to the world (Game1.cs:7351) and when the social page
+            // opens (SocialPage.cs:245), so for them "met" can be true before a meeting.
+            bool met = Game1.player.friendshipData.ContainsKey(npc);
             inputs.Add(MotiveInputBuilder.Build(npc, now, _temperaments?.Of(npc) ?? Temperament.Neutral, ladder.Hearts,
                 _memory.DiaryOf(npc).Entries, _regard.Book.Of(npc, MemoryStore.PlayerName), ladder.PlayerView, ladder.Lead,
                 news, seed, met, card) with { PlayerBusy = busy });
@@ -1007,8 +1024,9 @@ public class ModEntry : Mod
 
     /// <summary>The first behavior to leave shadow (docs/spec/rollout.md, D30): the motives
     /// runner's Emote and Bubble acts, each behind its own switch, both off by default. LiveFacts
-    /// is the one place besides CollectPresences/Observe that reads live state (AGENTS.md rule 2),
-    /// and only to say "not now".</summary>
+    /// is AGENTS.md rule 2's one exception: live facts read just before showing, only to say
+    /// "not now" (D30). Positions are otherwise read only to record sightings (CollectPresences,
+    /// MeetPlayer).</summary>
     private void ShowLive(MotiveEvent ev)
     {
         LiveAct? act = LivePlanner.From(ev, _config.Live, Game1.player.Name);
@@ -1024,7 +1042,7 @@ public class ModEntry : Mod
             Festival: Game1.isFestival(),
             SameLocation: npc.currentLocation == Game1.player.currentLocation,
             DistanceTiles: Math.Max(Math.Abs(npc.TilePoint.X - Game1.player.TilePoint.X), Math.Abs(npc.TilePoint.Y - Game1.player.TilePoint.Y)),
-            // isEmoting is public (NPC.cs:145); textAboveHeadTimer is protected int (NPC.cs:160),
+            // isEmoting is public (Character.cs:145); textAboveHeadTimer is protected int (NPC.cs:160),
             // so an already-showing bubble cannot be read — our own isEmoting flag is the busy
             // signal the gate gets.
             NpcBusy: npc.isEmoting,
