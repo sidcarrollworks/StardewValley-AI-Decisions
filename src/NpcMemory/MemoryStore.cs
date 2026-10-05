@@ -79,13 +79,27 @@ public sealed class MemoryStore
     /// </summary>
     public Action<string, DiaryEntry, IReadOnlyList<DiaryEntry>>? Noting { get; set; }
 
-    /// <summary>The one diary writer: append and trim to <see cref="MaxDiaryEntries"/>.</summary>
+    /// <summary>How the owner of a diary feels about a person (the mod passes regard), for
+    /// <see cref="DiaryKeep"/>: entries about someone they care little about go sooner. Not saved;
+    /// null treats everyone alike. Game thread; it must not write to this store.</summary>
+    public Func<string, string, double>? RegardOf { get; set; }
+
+    /// <summary>Which entries a full diary forgets first.</summary>
+    public DiaryKeepOptions Keeping { get; } = new();
+
+    /// <summary>The one diary writer: append, and over <see cref="MaxDiaryEntries"/> forget the
+    /// entries least worth keeping (<see cref="DiaryKeep"/>), a batch at a time.</summary>
     public void Note(string npc, DiaryEntry entry)
     {
         Diary diary = DiaryOf(npc);
         Noting?.Invoke(npc, entry, diary.Entries);
         diary.Append(entry);
-        diary.TrimTo(MaxDiaryEntries);
+        if (diary.Entries.Count > MaxDiaryEntries)
+        {
+            int keep = MaxDiaryEntries - (int)(MaxDiaryEntries * Keeping.BatchShare);
+            Func<string, string, double>? regardOf = RegardOf;
+            diary.TrimKeeping(keep, subject => regardOf?.Invoke(npc, subject) ?? 0, Keeping);
+        }
     }
 
     /// <summary>Drops an NPC's whole diary (load-time cleanup of junk data, e.g. a "null" quest

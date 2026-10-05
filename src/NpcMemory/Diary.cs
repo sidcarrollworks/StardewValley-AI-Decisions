@@ -56,7 +56,20 @@ public sealed class Diary
         }
     }
 
-    /// <summary>Entries dropped by <see cref="TrimTo"/> today (the playtest log reads it once a
+    /// <summary>Keep only <paramref name="keep"/> entries, chosen by <see cref="DiaryKeep"/>: the
+    /// least worth remembering go first.</summary>
+    public void TrimKeeping(int keep, Func<string, double> regardFor, DiaryKeepOptions options)
+    {
+        int before = _entries.Count;
+        if (before <= Math.Max(0, keep))
+            return;
+        List<DiaryEntry> kept = DiaryKeep.Keep(_entries, keep, regardFor, options);
+        _entries.Clear();
+        _entries.AddRange(kept);
+        TrimmedToday += before - kept.Count;
+    }
+
+    /// <summary>Entries dropped by <see cref="TrimTo"/> or <see cref="TrimKeeping"/> today (the playtest log reads it once a
     /// day at 6:00).</summary>
     public int TrimmedToday { get; private set; }
 

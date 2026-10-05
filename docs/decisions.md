@@ -553,6 +553,20 @@ day-10 playtest Gus queued a telling-off because Shane told him about a fish Sha
 **Why.** Feeling hurt is about something done to you. A grudge built from many small stories still
 counts, through regard, as before.
 
+### D35. A full diary forgets what matters least first
+**Decision (Sid, 2026-10-05).** "Non important information should leave first. 'I saw x here'
+isn't worth holding onto unless they witness something happen. Entries that are about a person a
+character has little regard for get thrown out sooner than others." Diaries were trimmed oldest
+first, and Emily's filled with sightings of Haley.
+- Over the 500 cap a diary forgets a tenth at once, lowest weight first (`DiaryKeep`).
+- Weight: the kind (a plain `Saw` 0.1, an event 1; a `Saw` within 6 ticks of an event about the
+  same person counts as a witnessing, 1), halved every 21 days, times `0.5 + |regard|` (at most
+  1.5). Strong feelings either way are remembered.
+- The last two days are never dropped while older entries remain: the motives, gossip and lines
+  read them.
+**Why.** Regard is applied when an entry is written, so forgetting an entry never changes a
+feeling. What's lost is what a villager could still bring up.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

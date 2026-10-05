@@ -74,7 +74,7 @@ lines), then lower `MaxDiaryEntries`.
 
 ## Tuning constants
 
-`MaxDiaryEntries` 500 (not saved). Planned `DiaryKeepDays` 28 for NPC `Saw` entries.
+`MaxDiaryEntries` 500 (not saved). Over the cap, the entries least worth keeping go first (`DiaryKeep`, D35): plain sightings and entries about people the NPC cares little about, the oldest first. This replaces the planned `DiaryKeepDays`.
 
 ## Acceptance tests
 
