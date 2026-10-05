@@ -193,7 +193,7 @@ public sealed class MotivesRunner
             bool hostile = d.Checks.FirstOrDefault(c => c.Act == taken)?.Hostile ?? false;
             bool waitsForAnswer = Open(s, taken, d.Chosen.Motive, hostile, absoluteTick, day);
             string noAnswer = waitsForAnswer || Waits(taken) ? ""
-                : MotiveOptions.IsLight(taken, d.Chosen.Motive) ? "; a wave needs no answer"
+                : MotiveOptions.IsLight(taken, d.Chosen.Motive) ? "; " + LightWords(taken, hostile) + " needs no answer"
                 : "; no answer expected: the player already talked to them today";
             events.Add(new MotiveEvent(absoluteTick, i.Npc, "Act", taken, d.Chosen.Motive, hostile,
                 (d.Pending is not null && d.Pending.Act == taken ? "close call" : "clear yes") + noAnswer,
@@ -293,6 +293,11 @@ public sealed class MotivesRunner
             capped.Add(Act.Visit);
         return capped;
     }
+
+    /// <summary>A light act in words, for the decision line: an emote is a wave (a look when
+    /// hostile), a bubble a greeting (playtest 2026-10-05: bubbles read "a wave").</summary>
+    private static string LightWords(Act act, bool hostile)
+        => act == Act.Emote ? (hostile ? "a look" : "a wave") : "a greeting";
 
     private static bool Waits(Act act) => act is Act.Letter or Act.QueuedLine or Act.AskForHelp;
 

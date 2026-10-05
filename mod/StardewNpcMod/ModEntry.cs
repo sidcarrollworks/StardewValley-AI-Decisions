@@ -240,10 +240,13 @@ public class ModEntry : Mod
     {
         if (_regard.OnNoted(npc, entry, before) is not { } note)
             return;
-        _playtest?.Append(MotiveRecords.Stress(note, entry.AbsoluteTick));
+        // Stamped when it was noted: a Heard keeps the event's tick, so use when it was heard
+        // (playtest 2026-10-05: hearsay records appeared 30 ticks back in the log).
+        int at = Gossip.HeardAt(entry);
+        _playtest?.Append(MotiveRecords.Stress(note, at));
         if (note.Before != note.After)
         {
-            _playtest?.Append(MotiveRecords.Regard(note, entry.AbsoluteTick));
+            _playtest?.Append(MotiveRecords.Regard(note, at));
             if (MotiveText.RegardLine(note) is { } line) // a change too small to show isn't logged
                 Monitor.Log("[shadow] " + line, LogLevel.Trace);
         }
@@ -516,7 +519,7 @@ public class ModEntry : Mod
                          StressorTable.JuicinessOf, KnowsPerson))
             {
                 Monitor.Log($"[shadow] diary {heard}: {heard.Kind} {heard.Subject} ({heard.Detail})", LogLevel.Trace);
-                _playtest.Append(HeardRecord(listener, heard));
+                _playtest.Append(PlaytestRecords.Heard(listener, heard));
             }
         }
         catch (Exception ex)
@@ -723,7 +726,7 @@ public class ModEntry : Mod
         Farmer player = Game1.player;
         if (player.currentLocation is { } here)
             presences.Add(new Presence(MemoryStore.PlayerName, here.Name, player.TilePoint.X, player.TilePoint.Y, IsPlayer: true));
-        return presences;
+        return Presences.OnePerName(presences); // two "Mister Qi" in the game (playtest 2026-10-05)
     }
 
     private static int HeartsFor(string npc)
@@ -1665,22 +1668,6 @@ public class ModEntry : Mod
     /// <summary>A playtest gossip record for one Heard diary line: the line's detail carries who
     /// told it and the original kind (MemoryStore.TryShareEvent writes "from" and "kind"). A Heard
     /// line carries no hop count of its own (that lives in the ledger), so Hops is 0.</summary>
-    private static GossipRecord HeardRecord(string listener, DiaryEntry heard)
-    {
-        IReadOnlyDictionary<string, string> detail = DiaryDetail.Parse(heard.Detail);
-        return new GossipRecord(
-            Teller: detail.TryGetValue("from", out string? from) ? from : "",
-            Listener: listener,
-            OriginalKind: detail.TryGetValue("kind", out string? kind) ? kind : "",
-            Subject: heard.Subject,
-            Hops: 0,
-            Kind: "heard",
-            Answered: null)
-        {
-            Tick = heard.AbsoluteTick,
-        };
-    }
-
     // ---- persistence ----------------------------------------------------------------------------
 
     private void SaveMemory()

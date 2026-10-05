@@ -137,7 +137,8 @@ Festival capture is NOT in the tick: the clock is stopped for the whole festival
 `CollectPresences` builds a `Presence(name, location, tileX, tileY, isPlayer)` for every NPC with
 `IsVillager`, from `Game1.locations` plus `Game1.player.currentLocation` (building interiors are
 not in `Game1.locations` — verified; the player's own location is appended so their occupants are
-seen too). Hearts come from `Game1.player.getFriendshipHeartLevelForNPC` (verified, Farmer.cs:2785).
+seen too). Each name appears once, the first seen winning (`Presences.OnePerName`): the game has two
+characters named "Mister Qi". Hearts come from `Game1.player.getFriendshipHeartLevelForNPC` (verified, Farmer.cs:2785).
 The mod assumes `TimeChanged` fires once per clock change; it is SMAPI's watcher on
 `Game1.timeOfDay` — one event per value change, however big the jump, not fired on save-load or
 while saving (verified).
