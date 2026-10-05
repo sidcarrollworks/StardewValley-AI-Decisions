@@ -143,6 +143,33 @@ public sealed class MotivesEngineTests
     }
 
     [Fact]
+    public void HearsayOfABadGiftMovesTheMoodButIsNoReasonToTellThePlayerOff_AScandalIs()
+    {
+        // Sid, 2026-10-05: Gus queued a telling-off because Shane told him about a fish Shane
+        // disliked. "Unless I actually did something really bad, the rest of the town shouldn't
+        // tell me off... digging in the trash... warrants multiple people telling me to stop."
+        var engine = new MotivesEngine();
+        DiaryEntry fish = new(Now - 2, "Player", "Heard",
+            $"from=Shane;kind=GiftReceived;subject=Player;of=Shane;b=2;j=1.4;at={Now - 2};hops=1;taste=Hate");
+        MotiveInputs gus = Inputs("Gus", Robin, hearts: 2, near: true, diary: new[] { fish });
+        Assert.All(Stresses.Elastic(gus.Diary, Now, Robin, 2, new MotiveOptions()), s => Assert.True(s.MoodOnly));
+        Assert.DoesNotContain(engine.MotivesOf(gus, Stresses.Elastic(gus.Diary, Now, Robin, 2, new MotiveOptions())),
+            m => m.Motive == Motive.Hurt && m.Strength > 0);
+
+        DiaryEntry trash = fish with { Detail = $"from=Lewis;kind=SawRummaging;subject=Player;of=Lewis;b=4;j=2.8;at={Now - 2};hops=1" };
+        MotiveInputs heard = gus with { Diary = new[] { trash } };
+        IReadOnlyList<Stress> scandal = Stresses.Elastic(heard.Diary, Now, Robin, 2, new MotiveOptions());
+        Assert.False(Assert.Single(scandal).MoodOnly);
+        Assert.Contains(engine.MotivesOf(heard, scandal), m => m.Motive == Motive.Hurt && m.Strength > 0);
+
+        // A kindness to someone else is nice to hear, but no reason to come and thank the player.
+        DiaryEntry quest = fish with { Detail = $"from=Robin;kind=QuestHelped;subject=Player;of=Robin;at={Now - 2}" };
+        IReadOnlyList<Stress> kind = Stresses.Elastic(new[] { quest }, Now, Robin, 2, new MotiveOptions());
+        Assert.True(Assert.Single(kind).MoodOnly);
+        Assert.DoesNotContain(engine.MotivesOf(gus with { Diary = new[] { quest } }, kind), m => m.Motive == Motive.Grateful && m.Strength > 0);
+    }
+
+    [Fact]
     public void Caps_TheLastAttemptsAreKeptForStrongMotives()
     {
         // A weak motive may only use a light act near the end of the day: a wave asks nothing of

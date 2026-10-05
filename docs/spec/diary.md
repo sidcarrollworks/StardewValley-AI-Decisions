@@ -168,6 +168,7 @@ built on the game thread into the snapshot, so the planner stays game-independen
 | `PassedByMinTicks` | 6 | `DiaryOptions` | no |
 | hearts floors (PassedBy 2, MissedFestival 4, BirthdayForgotten 3) | as listed | `DiaryOptions` | no |
 | `MaxDiaryEntries` | 500 | `MemoryStore` | no |
+| which entries go first (`SawWeight` 0.1, `WitnessTicks` 6, `HalfLifeDays` 21, `ProtectDays` 2, `BatchShare` 0.1; D35) | as listed | `DiaryKeepOptions` | no |
 
 ## Acceptance tests
 

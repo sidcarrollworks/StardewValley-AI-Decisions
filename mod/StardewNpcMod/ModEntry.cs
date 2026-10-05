@@ -232,6 +232,7 @@ public class ModEntry : Mod
         _regard = new RegardKeeper(RegardBook.FromJson(json),
             npc => _temperaments?.Of(npc) ?? Temperament.Neutral, _motiveOptions);
         _memory.Noting = OnNoting;
+        _memory.RegardOf = (npc, subject) => _regard.Book.Of(npc, subject); // a full diary forgets the indifferent first
     }
 
     /// <summary>Runs inside MemoryStore.Note: append the stress/regard playtest records and log a

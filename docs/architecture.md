@@ -229,6 +229,10 @@ entry. The mod passes `StressorTable.JuicinessOf` (base juiciness per diary kind
   decayed from when it was heard; x `MaxRelevance` (2) for a listener at `DrawnHearts` (8) or more
   with the player when the story is about the player, and a pleasing gift the player gave someone
   else turns into `Jealous`.
+- What it can make the listener do (D34): a story about what the player did to someone else is
+  `Stress.MoodOnly` (it moves the mood, not the `Grateful` or `Hurt` motive), unless it is a
+  scandal: bad, and at `HearsayActsFromJuiciness` (4) or more, like rummaging in the trash.
+  Jealousy still acts.
 Without a juiciness function, `Chat` keeps the old rule (today's `GiftReceived`, `SawGift`,
 `QuestHelped`, `Festival`, teller's own entries, one hop), which only tests use.
 `SubjectsOf(observer)` lists an observer's subjects; `RemapTicks` exists for save migration. The JSON
@@ -249,8 +253,14 @@ drops the oldest. JSON is a flat array of entries. `Kind` is a free-form string.
 
 A **span** is a run of ticks in which the same observer and subject stay co-located. It continues
 only from the immediately previous tick of the same calendar day, so a gap or the night starts a new
-span and a new `Saw` line. Diaries keep the newest `MemoryStore.MaxDiaryEntries` (500); the trim runs
-only when `Observe` appends a `Saw` line. The player has no diary: the player is never an observer.
+span and a new `Saw` line. A diary holds at most `MemoryStore.MaxDiaryEntries` (500). Over the cap,
+`Note` forgets a tenth of it at once, the entries least worth keeping first (`DiaryKeep`, D35):
+- the last two days (`ProtectDays`) are kept;
+- older entries are weighed by kind (a plain `Saw` is 0.1, any event 1; a `Saw` within 6 ticks of
+  an event about the same person was a witnessing and weighs 1), halved every 21 days, times
+  `0.5 + |regard|` (at most 1.5) for the person it's about (the mod passes regard through
+  `MemoryStore.RegardOf`);
+- the lowest go first, the oldest first among equals. The player has no diary: the player is never an observer.
 
 ### RoutineBelief (`RoutineBelief.cs`)
 

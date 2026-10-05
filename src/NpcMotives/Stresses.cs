@@ -59,7 +59,9 @@ public static class Stresses
     }
 
     /// <summary>
-    /// What a <c>Heard</c> does to the listener (ledger-gossip.md, "How the listener takes it"):
+    /// What a <c>Heard</c> does to the listener (ledger-gossip.md, "How the listener takes it").
+    /// It is <see cref="Stress.MoodOnly"/> unless it is a scandal
+    /// (<see cref="MotiveOptions.HearsayActsFromJuiciness"/>) or stirs jealousy:
     /// only the elastic part, at <see cref="MotiveOptions.HearsayFactor"/> of the original, decayed
     /// from when it was heard (D33). Relevance: a listener drawn to the player (8+ hearts) takes a
     /// story about the player <see cref="MotiveOptions.MaxRelevance"/> times as hard, and a gift
@@ -82,7 +84,10 @@ public static class Stresses
         double strength = p0.Magnitude * o.HearsayFactor * relevance * sens * Math.Pow(p0.ElasticDecay, days);
         if (drawn && original.Kind == "GiftReceived" && p0.Valence > 0)
             return new Stress(e.Subject, Motive.Jealous, "Heard:" + original.Kind, -1, strength, at);
-        return new Stress(e.Subject, p0.Motive, "Heard:" + original.Kind, p0.Valence, strength, at);
+        // Only a scandal (bad, and juicy enough) is a reason to act toward the player; any other
+        // story about what they did to someone else is casual news that colours the mood.
+        bool scandal = p0.Valence < 0 && (Gossip.BaseOf(e, StressorTable.JuicinessOf) ?? 0) >= o.HearsayActsFromJuiciness;
+        return new Stress(e.Subject, p0.Motive, "Heard:" + original.Kind, p0.Valence, strength, at, MoodOnly: !scandal);
     }
 
     /// <summary>

@@ -121,6 +121,8 @@ First-guess defaults (tune from playtest logs):
 | `ChattedWith` (mood only, as `Talked`) | happiness | + | 0.05 | 0.5 | 0.02 | 0 |
 | `Heard` | the original's | the original's | original x `HearsayFactor` 0.5 | 0.6 | 0 until confirmed | the original's, faded |
 
+A `Heard` about what the player did to someone else moves the mood only, no motive to act, unless it is a scandal: bad, at base juiciness 4 or more (D34).
+
 Sensitivity scales every magnitude: `magnitude x (0.5 + sensitivity)`, so a typical villager
 (0.5) feels the table value, Leo (0.79) about 1.3 times it, Robin (0.26) about three quarters.
 

@@ -537,6 +537,36 @@ don't see regard for NPCs. Two independent tellers are not built: dedupe keeps t
 out of the diary.
 **Why.** Sid asked to continue in the cloud (2026-10-04); this is the next roadmap item (step 14).
 
+### D34. Only a scandal heard secondhand is a reason to act
+**Decision (Sid, 2026-10-05).** "Unless I actually did something really bad, the rest of the town
+shouldn't tell me off. Say I dig around in the trash can and that spreads around town, I think that
+warrants multiple people telling me to stop. But a bad gift isn't at that same level." In the
+day-10 playtest Gus queued a telling-off because Shane told him about a fish Shane disliked.
+- A story about what the player did to someone else moves the listener's mood, and its lasting
+  mark in regard stays as D33 says, but it gives no `Hurt` or `Grateful` motive toward the player
+  (`Stress.MoodOnly`).
+- The exception is a scandal: a bad act at base juiciness 4 or more
+  (`MotiveOptions.HearsayActsFromJuiciness`). Rummaging in the trash spreads, and everyone who
+  hears it may tell the player to stop.
+- Jealousy (a villager at 8+ hearts hearing of a pleasing gift to someone else) still acts: it is
+  about the listener.
+**Why.** Feeling hurt is about something done to you. A grudge built from many small stories still
+counts, through regard, as before.
+
+### D35. A full diary forgets what matters least first
+**Decision (Sid, 2026-10-05).** "Non important information should leave first. 'I saw x here'
+isn't worth holding onto unless they witness something happen. Entries that are about a person a
+character has little regard for get thrown out sooner than others." Diaries were trimmed oldest
+first, and Emily's filled with sightings of Haley.
+- Over the 500 cap a diary forgets a tenth at once, lowest weight first (`DiaryKeep`).
+- Weight: the kind (a plain `Saw` 0.1, an event 1; a `Saw` within 6 ticks of an event about the
+  same person counts as a witnessing, 1), halved every 21 days, times `0.5 + |regard|` (at most
+  1.5). Strong feelings either way are remembered.
+- The last two days are never dropped while older entries remain: the motives, gossip and lines
+  read them.
+**Why.** Regard is applied when an entry is written, so forgetting an entry never changes a
+feeling. What's lost is what a villager could still bring up.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
