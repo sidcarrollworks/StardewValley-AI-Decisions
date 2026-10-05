@@ -1,7 +1,7 @@
 # 16. Motives: why a character acts, and whether it dares
 
-**Status: built in shadow as a library (`src/NpcMotives`, 2026-10-02), not yet wired into the mod**
-(see Status). Redesigned twice with Sid on 2026-10-01; the second pass retires
+**Status: built and running in the mod (`src/NpcMotives`); it decides every attempt since the urge
+ladder was retired (D31), with emotes and bubbles live behind their switches (D30)** (see Status). Redesigned twice with Sid on 2026-10-01; the second pass retires
 the urge number as the thing that decides. Today a character has one number, the ladder's urge
 ([ladder.md](ladder.md)), which grows on a clock and fires a rung when it crosses a threshold. The
 spring 16-18 playtest showed what that costs: by evening a dozen villagers want the player for no
@@ -528,11 +528,14 @@ draft table, past the first threshold, which recreated the clock. Depends on dia
   `Guarded("motives")`; `EnqueueTalked` on dialogue; regard drift and the snapshot at 6:00;
   `regard` and `motives` saved and loaded; the viewer shows the runner's real decisions and
   regard. Then a playtest week with the runner beside the ladder, tuning from the log.
+- **Hearsay (2026-10-04/05, D33, D34): built.** Relevance for the player (x2 at 8+ hearts, and a
+  pleasing gift to someone else stirs `Jealous`), first-hand confirmation (`RegardKeeper.ConfirmedBy`,
+  once per story within 7 days), and hearsay about what the player did to someone else as mood only
+  (`Stress.MoodOnly`) unless it is a scandal.
 - **Not built:** weather and season effects (`WeatherFacts`), the near-miss source of
   `MissingYou`, `WantsToTrade` and `NeedsHelp` (no sources yet), NPC subjects ([town-life.md](town-life.md)),
-  hearsay's relevance (x2 when drawn to someone in the story) and first-hand confirmation (they
-  matter once retelling goes past one hop, [ledger-gossip.md](ledger-gossip.md)), and the
-  friendship penalty's live switch.
+  hearsay's relevance for NPCs the listener is drawn to (the elastic stresses don't see regard for
+  NPCs), and the friendship penalty's live switch.
 - **Retiring the urge ladder: done** (2026-10-03, D31). The motives decide every attempt; asking
   around and the heartbeat read them through `MotiveDrive`.
 

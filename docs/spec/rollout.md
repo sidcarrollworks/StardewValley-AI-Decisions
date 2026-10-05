@@ -1,8 +1,8 @@
 # 11. Shadow-to-live rollout
 
-**Status: first switches built (2026-10-02, D30).** `Emote` and `Bubble`, with the gate, the
-circuit breaker and the `[live]` lines, are built and tested in `src/NpcLive`; wiring them into the
-mod is local work. Everything else is shadow (D1, `AGENTS.md` rule 1). This file says how a
+**Status: first switches live (2026-10-02, D30).** `Emote` and `Bubble`, with the gate, the
+circuit breaker and the `[live]` lines, are built and tested in `src/NpcLive` and wired into the mod
+(PR #30). Everything else is shadow (D1, `AGENTS.md` rule 1). This file says how a
 behavior goes from a `[shadow]` line to something that happens in the game, and in which order.
 
 ## Player-visible behavior
@@ -88,11 +88,16 @@ None of its own.
 
 ## Status
 
-Built (2026-10-02, `src/NpcLive`, not wired yet): `LiveSwitches` (`Emote`, `Bubble`), `LiveGate`,
+Built (2026-10-02, `src/NpcLive`): `LiveSwitches` (`Emote`, `Bubble`), `LiveGate`,
 `LiveBreaker` (the circuit breaker, and `TripAll` for `npcmod_live off`), `LivePlanner` (emote ids
 and bubble lines) and `LiveLedger` (an ignored live act writes `IgnoredBy`). Wired into the mod by
-PR #30. Since 2026-10-04 the gate also holds back a second act from the same villager within 3 ticks
-(`LiveOptions.MinTicksBetweenActs`). Not started: the other switches.
+PR #30. Bubbles speak in each villager's voice (`BubbleVoices`, PR #31). Since 2026-10-04 the gate
+also holds back a second act from the same villager within 3 ticks
+(`LiveOptions.MinTicksBetweenActs`). The emote ids and the `doEmote` and `showTextAboveHead`
+signatures are confirmed in the 1.6.15 decompile (`stardew-source-notes.md`, "Audit pass").
+Not started: the other switches. Found in the audit (2026-10-05), not fixed yet: the live ledger
+is not reset at the title screen, so a shown act from before a reload can still be written as
+`IgnoredBy`.
 
 ## Decided
 

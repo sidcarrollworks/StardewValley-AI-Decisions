@@ -596,7 +596,19 @@ feeling. What's lost is what a villager could still bring up.
 - **SDK.** The installed .NET SDK 6.0.300 is too old for SMAPI's analyzers, so warning CS8032 is
   expected and the NetField checks are off. Installing a newer SDK while still targeting net6.0
   turns them back on.
-- **Verify in-game.** Items still marked `VERIFY` in the code:
-  - whether off-screen NPC positions update in real time;
-  - `Game1.locations` coverage of building interiors;
-  - that `DialogueBox.characterDialogue.speaker` is the NPC for gift reactions.
+- **Verify in-game.** No `VERIFY` comments are left in the code (the last were settled in the
+  decompile on 2026-10-05; `stardew-source-notes.md`, "Audit pass"). Two recalls are still marked
+  "verify" in comments: the `PlaceNames` wording, and how `ModEntry.ResolveHomes` treats a `Home`
+  entry's `Condition`. Still to see in the game: event dialogue as a `Talked`, a farmhand joining a
+  host, and a split-screen session.
+- **Found in the audit (2026-10-05), waiting on Sid** (details in the spec Status sections and the
+  audit PR):
+  - the saved plan is restored at load and then cleared again (`OnSaveLoaded`), so the motives lose
+    the day's news after a reload (persistence.md);
+  - one gift seen by several villagers is several stories to a listener (`Gossip.EventKey`), and
+    each copy is confirmed separately (ledger-gossip.md);
+  - chats are drawn once per direction, about 51% of spans instead of 30% (ledger-gossip.md);
+  - a store loaded from save data has the default chat seed, not the save's (ledger-gossip.md);
+  - the live ledger is not reset at the title screen (rollout.md);
+  - history at install creates an empty diary for every character in `Data/Characters`, the ones
+    who can't socialize included; they then get a motives weighing every tick and a viewer card.

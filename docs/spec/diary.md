@@ -196,13 +196,18 @@ In-game (test save `BUNKO_450391925`):
 
 ## Status
 
-- Done: `src/NpcMemory/Diary.cs`, `MemoryStore.Observe` (`Saw`), `InitiationLadder` (`TriedToReach`,
-  `IgnoredBy`); `DiaryDetail` (Parse/Format), `MemoryStore.Note`, the day-end notes (`Talked`,
+- Done: `src/NpcMemory/Diary.cs`, `MemoryStore.Observe` (`Saw`), `IgnoredBy` from a live act
+  that was shown and ignored (`LiveLedger`, D30; `TriedToReach` went with the ladder, D31);
+  `DiaryDetail` (Parse/Format), `MemoryStore.Note`, the day-end notes (`Talked`,
   `PassedBy`, `BirthdayForgotten` via `MemoryStore.DayEndNotes`); `Newsworthiness` and the planner's
   news filter and ranking (PR #5); the Harmony kinds `GiftReceived`, `SawGift`, `QuestHelped`,
   `Festival` and `MissedFestival` via read-only postfixes plus `src/NpcDiaryEvents` producers and
-  `LineRenderer` templates (PR #6); tests in `tests/NpcMemory.Tests` (153), `tests/NpcIntents.Tests`
-  (138) and `tests/NpcDiaryEvents.Tests`.
+  `LineRenderer` templates (PR #6); `Heard` by juiciness (D33, [ledger-gossip.md](ledger-gossip.md));
+  a full diary forgets the entries least worth keeping first (`DiaryKeep`, D35: a tenth of the cap
+  at once, plain sightings and entries about people the villager cares little about first, the last
+  two days kept; not yet run in game: the day-10 and day-11 censuses still show the old one-at-a-time
+  trim); tests in `tests/NpcMemory.Tests`, `tests/NpcIntents.Tests` and
+  `tests/NpcDiaryEvents.Tests` (counts in `README.md`).
 - Not started: the recent-citations wiring (`RecentCitations` is always empty until intents step
   5); the polling fallbacks if a patched method disappears after a game update; the
   visit/letter/romance/town-life kinds (their features do not exist yet).

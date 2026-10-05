@@ -1,9 +1,9 @@
 # 12. Save data and persistence
 
-**Status: partial.** Version 2 saves memory and the ladder; version-1 saves migrate. The overnight
-plan and recent lines are saved (`intents`, `recentLines` — step 5); newcomer state and several
-small pieces are not saved. D19; architecture,
-"Persistence".
+**Status: partial.** Version 2 saves memory, regard and the motives runner's pacing; version-1
+saves migrate. The overnight plan and recent lines are saved (`intents`, `recentLines` — step 5);
+newcomer state and several small pieces are not saved. The retired ladder (D31) is no longer saved.
+D19; architecture, "Persistence".
 
 ## Player-visible behavior
 
@@ -16,14 +16,15 @@ their planned days.
 One SMAPI save-data entry, key `squid.StardewNpcMod.memory`, a `Dictionary<string, string>`
 (`Helper.Data.WriteSaveData`). SMAPI 4.5.2 serializes it to JSON inside the save file itself, in the
 game's `CustomData` under the key `smapi/mod-data/squid.stardewnpcmod/squid.stardewnpcmod.memory`
-(lower-cased), so its size adds directly to the save file. It throws on a farmhand connected to a
-remote host (the save lives on the host's computer).
+(lower-cased), so its size adds directly to the save file. Both `ReadSaveData` and `WriteSaveData`
+throw on a farmhand connected to a remote host, since the save lives on the host's computer
+(verified, SMAPI 4.5.2 `DataHelper.cs:181-226`); split-screen guests may use them.
 
 | Key | Content | Status |
 |---|---|---|
 | `version` | `MemoryStore.CurrentVersion` | done (2) |
 | `memory` | ledger, diaries, beliefs (`MemoryStore.ToJson`) | done |
-| `ladder` | per-NPC ladder state, global counters | done |
+| `ladder` | per-NPC ladder state, global counters | retired (D31): no longer written; an old save's is left unread and dropped at the next save |
 | `intents` | today's `PlannedLine`s, with their day and delivered flag ([intents.md](intents.md)) | done (step 5) |
 | `recentLines` | per NPC, last 20 delivered lines with day and cited (kind, subject) | done (step 5; empty until step 6 delivers) |
 | `newcomer` | `NewcomerPlan` ([newcomer-week.md](newcomer-week.md)) | planned |
@@ -47,8 +48,9 @@ Changes to existing values that need no bump:
 
 ## Triggers and game hooks
 
-Done: `Saving` writes (never waits on the model; the ladder part is its last finished snapshot);
-`SaveLoaded` reads; `ReturnedToTitle` resets everything.
+Done: `Saving` writes (never waits on the model; the `motives` part is the worker's last finished
+snapshot); `SaveLoaded` reads; `ReturnedToTitle` resets everything except the live ledger (audit
+2026-10-05, below).
 
 Planned: the new keys are written in the same `SaveMemory` call and read in `LoadMemory`. A
 `PlannedLine` whose day is not today is discarded on load.
@@ -87,9 +89,18 @@ lines), then lower `MaxDiaryEntries`.
 
 ## Status
 
-Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`,
-`InitiationLadder.ToJson`/`FromJson`. The `regard` and `motives` values are built, tested and
-written (wired with the motives runner, step 14 part 3). Not started: the
+Done: `ModEntry.SaveMemory`/`LoadMemory`, `MemoryStore.ToJson`/`FromJson`/`FromVersion1`. The
+`regard`, `motives` and `historySeeded` values are built, tested and written (wired with the
+motives runner, step 14 part 3, and D29). A diary over the cap is trimmed at its next entry, the
+least worth keeping first (`DiaryKeep`, D35); a save loaded with more is kept whole until then.
+
+Found in the audit (2026-10-05), not fixed yet (Sid's call):
+- `OnSaveLoaded` sets `_planToday` back to empty right after `LoadMemory` restored it from
+  `intents` (the clear predates step 5's plan persistence). After a reload the motives see no news
+  from the plan, the viewer shows no planned line, and the next save writes no `intents`.
+  `_intentsToday` does survive.
+- `MemoryStore.FromJson` builds the store with the default chat seed, not the save's.
+- `LiveLedger` (shown acts awaiting an answer) is not reset at the title screen. Not started: the
 other planned keys, size logging, pruning. Visit counters and each NPC's last friendship-penalty
 day are in the `motives` value; the grudge is the negative part of `regard` ([motives.md](motives.md)).
 
