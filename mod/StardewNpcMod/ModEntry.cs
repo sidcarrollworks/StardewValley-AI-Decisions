@@ -717,7 +717,7 @@ public class ModEntry : Mod
                 continue;
             foreach (NPC npc in location.characters)
             {
-                if (!npc.IsVillager) // confirmed: property, not method; drops monsters/animals
+                if (!Tracked(npc)) // villagers who can socialize (Presences.Tracks)
                     continue;
                 presences.Add(new Presence(npc.Name, location.Name, npc.TilePoint.X, npc.TilePoint.Y));
             }
@@ -728,6 +728,13 @@ public class ModEntry : Mod
             presences.Add(new Presence(MemoryStore.PlayerName, here.Name, player.TilePoint.X, player.TilePoint.Y, IsPlayer: true));
         return Presences.OnePerName(presences); // two "Mister Qi" in the game (playtest 2026-10-05)
     }
+
+    /// <summary>Whether the mod watches this character (Presences.Tracks): a villager
+    /// (IsVillager is a property, confirmed; it drops monsters and animals) who can socialize.
+    /// VERIFY in the decompile: NPC.CanSocialize is a 1.6 property that evaluates
+    /// Data/Characters CanSocialize, false for the Bouncer, Henchman, Gunther, Marlon, Mister Qi and
+    /// Birdie (playtest 2026-10-05: they were tracked though the player can't reach them).</summary>
+    private static bool Tracked(NPC npc) => Presences.Tracks(npc.IsVillager, npc.CanSocialize);
 
     private static int HeartsFor(string npc)
         => Game1.player.getFriendshipHeartLevelForNPC(npc); // Farmer.cs:2785 (1.6 name, verified)
@@ -817,7 +824,7 @@ public class ModEntry : Mod
         var presences = new List<Presence>();
         foreach (NPC npc in here.characters)
         {
-            if (npc.IsVillager)
+            if (Tracked(npc))
                 presences.Add(new Presence(npc.Name, here.Name, npc.TilePoint.X, npc.TilePoint.Y));
         }
         presences.Add(new Presence(MemoryStore.PlayerName, here.Name, Game1.player.TilePoint.X, Game1.player.TilePoint.Y, IsPlayer: true));
@@ -1276,7 +1283,7 @@ public class ModEntry : Mod
             if (location is null)
                 continue;
             foreach (NPC npc in location.characters)
-                if (npc.IsVillager)
+                if (Tracked(npc))
                     names.Add(npc.Name);
         }
         return names;

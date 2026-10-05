@@ -4,6 +4,14 @@ namespace NpcMemory.Tests;
 
 public class PresencesTests
 {
+    [Theory]
+    [InlineData(true, true, true)]    // Haley, Sandy, Krobus
+    [InlineData(true, false, false)]  // the Bouncer, Mister Qi, Gunther
+    [InlineData(false, true, false)]  // not a villager (a monster, an animal)
+    [InlineData(false, false, false)]
+    public void OnlyVillagersWhoCanSocializeAreWatched(bool villager, bool social, bool tracked)
+        => Assert.Equal(tracked, Presences.Tracks(villager, social));
+
     [Fact]
     public void TwoCharactersWithOneNameCountOnce_TheFirstWins()
     {
