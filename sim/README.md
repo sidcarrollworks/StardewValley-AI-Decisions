@@ -8,7 +8,12 @@ dotnet run -c Release --project sim/UnderGlass.Run -- --seeds 200 --days 28     
 dotnet run -c Release --project sim/UnderGlass.Run -- --seeds 400 --days 14 --inject   # one placed scandal per run
 dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                            # one seed's event log
 # --chat, --retell, --fade and --every override the gossip knobs, for sweeps
+# feelings (0c): --feel off|observe|on, --off <law> (repeatable), --plastic <x>, --target-base <x>,
+# --fo <Name>=<value> for any FeelingOptions knob, --affect <Kind>=<joy>[,<plastic>] for a feeling row;
+# --log also prints the strongest sentiments with their causes, ties and shop switches
 ```
+
+Every run formats its log in the invariant culture, so a seed hashes the same on every machine (before 0c, juiciness printed as "1,5" under a German culture).
 
 Needs the .NET 8 SDK. It installs beside the 6.0 SDK the mod uses.
 
@@ -145,10 +150,78 @@ A year of the town (100 seeds x 112 days, 2026-10-06):
 | the culprit among anyone's suspects | 9% (thieves wait until nobody is watching) |
 | fines | all part-paid so far (the fined are mostly Pam, in debt), each followed by service |
 
+## Phase 0c: feelings (built)
+
+Spinoza's laws (design section 3a) on top of 0a and 0b. The spec's rules are F1-F18 (feeling) and S1-S10 (steering); the code is `Feelings.cs` (options and the pure rules) and `Simulation.Feelings.cs`.
+
+What's modelled:
+- **Regard** for every other person, -1 to 1 (love and hate, law 3), seeded from households (0.6) and friends (0.4), and healing toward that seed: 0.005 a day, faster on a day together with no new slight. **Regard for kinds of people** (law 9): prejudice, which weighs on someone as far as they are a stranger. **Mood**, the last three days of joy and sadness, which with need, an unmet want and being held gives each person's **power of acting**.
+- **Every belief is felt.** Each act kind has a feeling row: who is pleased or hurt, how much, the share that becomes regard for its cause, how freely the cause is believed to act, and at whom it is aimed. The feeling is read from the holder's belief, never the truth, and goes to whoever they believe caused it. A witness who saw only "someone, a young man" holds it against young men; when they later hear the name, the feeling moves onto that person exactly.
+- **The laws as factors:** feeling with those we love or hate (law 5) and with those like us (law 6, by household, life stage, kind and workplace); blame by freedom and known hardship (law 10: officials doing their job are blamed less, and housemates know when the purse was short); presence (law 11: seen close counts most; hearsay moves mood only, until a second independent teller agrees or a public consequence confirms it); temperament (law 12: sensitivity and retention); love after conquered hate (law 8, III P44).
+- **What is done to someone:** being warned, taken in, questioned, set to service or rowed with at home is felt, and blamed on the official less by those who know they gave cause. An innocent who is named resents whoever named them; the guilty feel shame instead. Kin feel shame for each new person who knows, more when it is public, and a scandal costs the culprit's kin some standing.
+- **Sentiments** (Sims 4): Grateful, Hurt, Approving, Indignant, Pleased, Envious, Wary, Wronged, Ashamed and Reconciled, each with the act that caused it, fading over about a season. No rule reads them; the log cites them ("why Abi Stole Kim Hurt since d0 act 0").
+- **Steering:** whom gifts, help and arguments are aimed at (someone free and in reach, by regard; the other party takes part), who acts (the glad give and help more, the sad drink more), the gossip close tie, the mayor's trust and sway, who reports, whom a witness suspects or guesses, who confronts (nobody confronts someone they love), a grudge against a keeper as a motive to steal, and where each household buys its groceries.
+- **Switches.** `FeelingOptions.Off` reproduces the runs from before 0c byte for byte (two pinned hashes). `FeelingOptions.Observe` feels everything and changes no act or belief (checked over 10 seeds x 14 days). Worlds built by tests feel nothing unless they ask; the town steers at `PlasticScale` 2.
+
+The phase gate (2026-10-06; 400 seeds x 14 days with a placed scandal, and 200 seeds x 112 days):
+
+| | Check | Result | |
+|---|---|---|---|
+| 1 | witnessed placed scandals in the 40-70% band (by sight and gossip) | 60% in the band, 22% over 70% (needs 52% or more, 28% or less) | passes |
+| 1b | the authority | decided right 99%, reported 88% | passes |
+| 2 | money | 0.000 g unexplained; 2.6 tempted scandals a year, none from grievance | passes |
+| 3 | E0 | the pinned hashes hold with feelings off; observing changes nothing | passes |
+| 4 | E1: a new feud and a new friendship between households | 0% of seed-years (needs 60%); no war towns, no dead towns | **fails** |
+| 5 | regard at season ends | mean change +0.007 to +0.019; moved 0.1 or more 3.3% after one season, then 5.5-7.9% (band 5-25%); below -0.2: 0.0% (band 1-5%) | **partly** |
+| 6 | tests | all pass | passes |
+| 7 | Sid's read of 10 seeds (`--log`) | | open |
+
+A year of the town, with feelings steering (200 seeds x 112 days):
+- **The power of acting:** mean 0.56 (spread 0.05). Lowest: Penny 0.44 and Pam 0.45, whose trailer runs short.
+- **Sentiments a season:** Grateful 63, Approving 18, Indignant 18, Hurt 12, Wronged 2, Wary 1.4, Ashamed 0.7.
+- **Toward a scandal's culprit, each holder's net change:** saw it -0.055; saw or found it and heard the name -0.011; told twice by independent tellers -0.009; confirmed by a public consequence -0.032. Hearsay alone moves mood, not regard.
+- **Being named:** 12% of the innocents someone named end at -0.1 or below toward a namer; someone confronted wrongly drops 0.22 toward their confronter. Kin feel 0.5 steps of shame per scandal.
+- **Whom acts are aimed at:** 64% of gifts and help go to someone the giver loves (0.4 or more); 55% of arguments are inside a household. News 95 and trivia 478 a year (trivia was 524: a gift now needs someone in reach).
+- **Groceries:** 0.17 households a year switch shops; on average 3.0 households shop at the chain at the start and 3.2 at the end.
+- **Run time:** 200 seed-years took 6.5 minutes on 4 cores.
+
+How we got there:
+1. **Observing first.** With feelings only watching, every 0a and 0b number was the same as before.
+2. **Company.** Company joy at 0.02 a chat lifted everyone's power of acting to about 0.68, with a spread of 0.05, so the day's events hardly told. At 0.005 they do, and Penny and Pam come out lowest.
+3. **Steering with regard frozen** (`--plastic 0`) kept the band: 59%, with 22% over 70%. The reach rule cut trivia by a tenth.
+4. **A dead town.** At the spec's first guesses, only 2.8% of pairs moved 0.1 or more in a year and every seed was a dead town. A sweep of 50 seed-years each:
+
+   | Setting | moved 0.1+ | below -0.2 | friendships a year | feuds a year | reconciliations a year |
+   |---|---|---|---|---|---|
+   | plastic 1 (200 seed-years) | 2.8% | 0.0% | 0 | 0 | 0 |
+   | plastic 1, target base 0.05 | 2.6% | 0.0% | 0 | 0 | 0 |
+   | plastic 2 | 7.9% | 0.0% | 0 | 0 | 0.08 |
+   | plastic 2, target base 0.05 | 7.4% | 0.0% | 0 | 0 | 0.04 |
+   | plastic 2, drift 0.002 a day | 9.8% | 0.0% | 0.02 | 0 | 0.14 |
+   | plastic 3, target base 0.05 | 12.1% | 0.2% | 0.28 | 0.08 | 0.58 |
+   | plastic 2, target base 0.05, joy of arguments, gifts and help doubled | 15.5% | 0.2% | 1.2 | 0.04 | 0.88 |
+
+   The town runs at plastic 2, the lowest setting inside the band for pairs moved.
+5. **Why no feuds.** Acts aimed at someone still come at town-wide rates and land on whoever is in reach, which is mostly family at home: in one seed, Evelyn gave George 52 gifts in a year and George argued with Evelyn 8 times. Only about a dozen arguments a year fall between households, spread over many pairs, and the drift heals each in about a month. Nobody hurt can answer back, and kindness to someone outside the family is rarely returned. That is rule 10's desire gate, which comes next.
+6. **Review.** Five reviewers, each finding checked by a skeptic. 16 of 18 findings were confirmed and fixed:
+   - eight in the code: an actor at zero weight still acting; kin asked only for an alibi feeling named; a fine paid in full not felt; the presence ablation missing one route; and metric and runner fixes;
+   - eight in the tests, where a check could not fail.
+
+   The first test pass also found one real bug: a "someone" turned into a name of the same kind kept the prejudice.
+
+**Each law off** (E2, 50 seed-years each). A law stays if removing it moves a story metric by 20% or more. In a town without feuds or friendships, the story metrics can't move. What does move:
+- reconcile off: no reconciliations;
+- presence off: three times as many, and more pairs move;
+- shame off: no shame steps;
+- imitation off: the drop toward a culprit triples, because bystanders' small changes no longer dilute it.
+
+E2 is to be rerun once the desire gate makes the town lively.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
-3. **0c:** feelings. These are Spinoza's laws (design 3a): power of acting, joy and sadness, love and hate toward the cause, imitation, and reciprocity, built on regard and familiarity.
+3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
+4. **0d, starting with rule 10's desire gate** (Sid, 2026-10-06): acts toward a person come from a motive about that person, so the hurt can answer back and kindness is returned. Then the town and acts as JSON, the bots, the story sifter and the replay viewer.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.
