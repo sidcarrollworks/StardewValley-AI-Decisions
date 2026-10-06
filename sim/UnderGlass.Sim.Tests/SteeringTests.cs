@@ -102,6 +102,117 @@ public class SteeringTests
             Changes(apart, "Bob", "Ann").Where(f => f.Route == "Direct").Select(f => Math.Round(f.Raw, 12)));
     }
 
+    /// <summary>S1 (law 4): an act is aimed only at someone within reach, 5 tiles. Ann loves Dee
+    /// and Cal, but Dee stands 6 tiles off and Cal 10, so every gift goes to Bob beside her; with
+    /// only those two in the room she gives nothing at all. Feelings that only watch don't hold her
+    /// back, and her gifts then go to nobody in particular.</summary>
+    [Fact]
+    public void AnActIsAimedOnlyAtSomeoneInReach()
+    {
+        var outOfReach = new[] { V("Ann", "A", 3, 2, acts: Does("GaveGift")), V("Dee", "D", 9, 2), V("Cal", "C", 13, 2) };
+        SimResult Run(IEnumerable<Villager> cast, FeelingOptions feelings)
+            => new Simulation(1, cast.ToList(), new[] { Room() }, new[] { Gift(perDay: 20) }, feelings: feelings, wander: 0).Run(1);
+        FeelingOptions Loving()
+        {
+            FeelingOptions f = Steer(("Ann", "Cal", 1.0), ("Ann", "Dee", 1.0));
+            f.TargetBase = 0.001; // were Cal or Dee in reach, nearly every gift would go to them
+            return f;
+        }
+
+        var gifts = Run(outOfReach.Append(V("Bob", "B", 5, 2)), Loving()).Acts.Where(a => a.Kind == "GaveGift").ToList();
+        Assert.True(gifts.Count >= 3);
+        Assert.All(gifts, g => Assert.Equal("Bob", g.Target));
+
+        Assert.DoesNotContain(Run(outOfReach, Loving()).Acts, a => a.Kind == "GaveGift");
+        var watched = Run(outOfReach, FeelingOptions.Observe).Acts.Where(a => a.Kind == "GaveGift").ToList();
+        Assert.True(watched.Count >= 3);
+        Assert.All(watched, g => Assert.Null(g.Target));
+    }
+
+    /// <summary>S1: someone busy is not chosen. Ann loves Bob and gives to him whenever she can;
+    /// Cal stands by her, neutral. Her gifts are placed for 10:30 and 12:30. While Bob mends a fence
+    /// from 10:00 to noon, her first gift goes to Cal, and her second, once he is free, to him. The
+    /// same when he is busy as the one an argument is aimed at: whoever an act is aimed at is busy
+    /// with it for as long as it lasts.</summary>
+    [Fact]
+    public void SomeoneBusyIsNotChosen()
+    {
+        var mending = new ActKind("MendedFence", 0.5, 0, 1, 120, 0, Array.Empty<string>());
+        ActKind longArgument = Argued() with { DurationMinutes = 120 };
+        var cast = new List<Villager> { V("Ann", "A", 3, 2), V("Bob", "B", 5, 2), V("Cal", "C", 3, 4) };
+        SimResult Run(IReadOnlyList<Villager> who, ActKind busy, string busyActor)
+        {
+            FeelingOptions feelings = Steer(("Ann", "Bob", 1.0));
+            feelings.TargetBase = 0.001; // Bob, when he is free, gets nearly every gift
+            var scheduled = new[] { (Ten, busyActor, busy.Name), (Clock.At(10, 30), "Ann", "GaveGift"), (Clock.At(12, 30), "Ann", "GaveGift") };
+            return new Simulation(1, who, new[] { Room() }, new[] { busy, Gift() }, feelings: feelings, scheduled: scheduled, wander: 0).Run(1);
+        }
+        string?[] Gifts(SimResult r) => r.Acts.Where(a => a.Kind == "GaveGift").Select(a => a.Target).ToArray();
+
+        Assert.Equal(new[] { "Cal", "Bob" }, Gifts(Run(cast, mending, "Bob")));
+
+        // Dee stands 5 tiles from Bob, out of reach of Ann and Cal, so she can only argue with him.
+        cast.Add(V("Dee", "D", 10, 2));
+        SimResult argued = Run(cast, longArgument, "Dee");
+        Assert.Equal(("Dee", "Bob"), (argued.Acts[0].Actor, argued.Acts[0].Target));
+        Assert.Equal(new[] { "Cal", "Bob" }, Gifts(argued));
+    }
+
+    /// <summary>S1: whoever an act is aimed at takes part in it, so they see it whole and know who
+    /// did it. Bob stands 5 tiles from Ann, still in reach: as an onlooker he would see her gift
+    /// at 0.6, too little to tell a stranger (0.725). As its recipient he sees it at 1, names her,
+    /// and feels all of it: joy 0.2, and regard 0.2 x 0.3 = 0.06. Watched without steering, he is
+    /// only an onlooker.</summary>
+    [Fact]
+    public void WhoeverAnActIsAimedAtTakesPartInIt()
+    {
+        var cast = new[] { V("Ann", "A", 3, 2), V("Bob", "B", 8, 2) };
+        SimResult Run(FeelingOptions feelings) => new Simulation(1, cast, new[] { Room() }, new[] { Gift() }, feelings: feelings,
+            scheduled: new[] { (Ten, "Ann", "GaveGift") }, wander: 0).Run(1);
+
+        SimResult r = Run(Steer());
+        Assert.Equal("Bob", Assert.Single(r.Acts).Target);
+        Belief bob = r.Beliefs["Bob"][0];
+        Assert.Equal((1.0, "Ann", 1.0), (bob.Clarity, bob.Actor, bob.Confidence));
+        Felt direct = Assert.Single(Changes(r, "Bob", "Ann"));
+        Assert.Equal("Direct", direct.Route);
+        Assert.Equal(0.06, direct.Raw, 12);
+        Assert.Equal(0.2, Assert.Single(r.Feelings, f => f.Holder == "Bob" && f.Toward is null).Mood, 12);
+
+        SimResult watched = Run(FeelingOptions.Observe);
+        Assert.Equal("Bob", Assert.Single(watched.Acts).Target);
+        Assert.Equal(0.6, watched.Beliefs["Bob"][0].Clarity, 12);
+        Assert.Null(watched.Beliefs["Bob"][0].Actor);
+        Assert.Empty(Changes(watched, "Bob", "Ann"));
+    }
+
+    /// <summary>S1: an act placed for someone chosen waits until someone is in reach. Ann's gift is
+    /// placed for 10:00, but nobody is in the room until Bob comes in at noon; she gives it the
+    /// minute he does.</summary>
+    [Fact]
+    public void AnActAimedAtSomeoneWaitsUntilSomeoneIsInReach()
+    {
+        Villager bob = V("Bob", "B", 5, 2) with
+        {
+            Haunts = new[]
+            {
+                new Haunt("Away", new Tile(2, 2), 0, Clock.At(12), 1),
+                new Haunt("Room", new Tile(5, 2), Clock.At(12), Clock.MinutesPerDay, 1),
+            },
+        };
+        int arrived = -1;
+        SimResult r = new Simulation(1, new[] { V("Ann", "A", 3, 2), bob }, new[] { Room(), Room("Away") }, new[] { Gift() },
+            feelings: Steer(), scheduled: new[] { (Ten, "Ann", "GaveGift") }, wander: 0).Run(1, (m, sim) =>
+        {
+            if (arrived < 0 && sim.Where("Bob").Place == "Room")
+                arrived = m;
+        });
+
+        Act gift = Assert.Single(r.Acts);
+        Assert.True(arrived >= Clock.At(12));
+        Assert.Equal((arrived, "Bob"), (gift.Tick, gift.Target));
+    }
+
     /// <summary>T33 (law 4; III P25, VERIFY): Ann argues and gives often, with four people in
     /// reach. She dislikes Bob and loves Cal: hate argues, love gives, and people argue least with
     /// those they love. Counted over ten seeds of two days, about 300 of each act, because one
@@ -195,7 +306,11 @@ public class SteeringTests
     /// <summary>T36 (law 1; rule 15): Pam's household is short, so her power of acting is 0.35;
     /// Gil's is comfortable, at 0.5. Both drink and give with the same weight, each beside a
     /// housemate and out of the other's sight, and nobody chats, so nothing else moves their mood.
-    /// The sad drink more; the glad give more.</summary>
+    /// The sad drink more; the glad give more. The same seeds with the tilt off are the control:
+    /// the tilt weighs Pam's drinks at 1.15 and her gifts at 0.85 against Gil's 1, so it should
+    /// lift each ratio by 0.15 to 0.18 over the control's, and must lift it by at least 0.1
+    /// (measured: Pam drinks 1.14 times as often as Gil against 1.02, Gil gives 1.12 times as
+    /// often as Pam against 0.95).</summary>
     [Fact]
     public void TheSadDrinkMore_TheGladGiveMore()
     {
@@ -209,24 +324,38 @@ public class SteeringTests
         var eco = new Economy(new Dictionary<string, double> { ["P"] = -200, ["G"] = 1000 }, Array.Empty<(string, double, string?)>(),
             new Dictionary<string, double>(), new Dictionary<string, string>(), new Dictionary<string, (double, double)>(),
             TownStipend: 0, TownStart: 0);
-        int pamDrinks = 0, gilDrinks = 0, pamGifts = 0, gilGifts = 0;
-        for (long seed = 1; seed <= 50; seed++)
+        (int PamDrinks, int GilDrinks, int PamGifts, int GilGifts) Count(double tiltScale)
         {
-            SimResult r = new Simulation(seed, cast, new[] { Room() }, new[] { drunk, Gift(perDay: 20) }, feelings: Steer(),
-                economy: eco, money: new MoneyOptions { WantChancePerDay = 0, SpendShare = 0 },
-                gossip: new GossipOptions { ChatChance = 0 }, body: Awake(), wander: 0).Run(2);
-            if (seed == 1)
+            int pamDrinks = 0, gilDrinks = 0, pamGifts = 0, gilGifts = 0;
+            for (long seed = 1; seed <= 50; seed++)
             {
-                Assert.Equal(0.35, r.PowerByDay["Pam"][0], 9);
-                Assert.Equal(0.5, r.PowerByDay["Gil"][0], 9);
+                FeelingOptions feelings = Steer();
+                feelings.TiltScale = tiltScale;
+                SimResult r = new Simulation(seed, cast, new[] { Room() }, new[] { drunk, Gift(perDay: 20) }, feelings: feelings,
+                    economy: eco, money: new MoneyOptions { WantChancePerDay = 0, SpendShare = 0 },
+                    gossip: new GossipOptions { ChatChance = 0 }, body: Awake(), wander: 0).Run(2);
+                if (seed == 1)
+                {
+                    Assert.Equal(0.35, r.PowerByDay["Pam"][0], 9);
+                    Assert.Equal(0.5, r.PowerByDay["Gil"][0], 9);
+                }
+                pamDrinks += r.Acts.Count(a => a.Kind == "DrunkScene" && a.Actor == "Pam");
+                gilDrinks += r.Acts.Count(a => a.Kind == "DrunkScene" && a.Actor == "Gil");
+                pamGifts += r.Acts.Count(a => a.Kind == "GaveGift" && a.Actor == "Pam");
+                gilGifts += r.Acts.Count(a => a.Kind == "GaveGift" && a.Actor == "Gil");
             }
-            pamDrinks += r.Acts.Count(a => a.Kind == "DrunkScene" && a.Actor == "Pam");
-            gilDrinks += r.Acts.Count(a => a.Kind == "DrunkScene" && a.Actor == "Gil");
-            pamGifts += r.Acts.Count(a => a.Kind == "GaveGift" && a.Actor == "Pam");
-            gilGifts += r.Acts.Count(a => a.Kind == "GaveGift" && a.Actor == "Gil");
+            return (pamDrinks, gilDrinks, pamGifts, gilGifts);
         }
-        Assert.True(pamDrinks > gilDrinks, $"Pam drank {pamDrinks} times, Gil {gilDrinks}");
-        Assert.True(gilGifts > pamGifts, $"Gil gave {gilGifts} times, Pam {pamGifts}");
+
+        var tilted = Count(1);
+        Assert.True(tilted.PamDrinks > tilted.GilDrinks, $"Pam drank {tilted.PamDrinks} times, Gil {tilted.GilDrinks}");
+        Assert.True(tilted.GilGifts > tilted.PamGifts, $"Gil gave {tilted.GilGifts} times, Pam {tilted.PamGifts}");
+
+        var flat = Count(0);
+        double drinks = tilted.PamDrinks / (double)tilted.GilDrinks, flatDrinks = flat.PamDrinks / (double)flat.GilDrinks;
+        double gifts = tilted.GilGifts / (double)tilted.PamGifts, flatGifts = flat.GilGifts / (double)flat.PamGifts;
+        Assert.True(drinks >= flatDrinks + 0.1, $"Pam drank {drinks:0.000} times as often as Gil, {flatDrinks:0.000} untilted");
+        Assert.True(gifts >= flatGifts + 0.1, $"Gil gave {gifts:0.000} times as often as Pam, {flatGifts:0.000} untilted");
     }
 
     /// <summary>GossipTests' confrontation scene: Bob rummages in Kim's bin, and five people, all

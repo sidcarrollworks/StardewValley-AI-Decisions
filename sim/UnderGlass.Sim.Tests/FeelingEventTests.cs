@@ -4,10 +4,11 @@ using Xunit;
 namespace UnderGlass.Sim.Tests;
 
 /// <summary>
-/// Feelings at work in small scenes (phase 0c, T23-T31): being named, confronted and shamed, the
-/// standing a culprit's family loses, grudges and friendships over the nights, the power of
-/// acting, and the run-level checks on the default town. Exact values are read from the feeling
-/// events (Raw as asked, Change as applied), since the night moves regard at the end.
+/// Feelings at work in small scenes (phase 0c, T23-T31): being named, confronted and shamed (or
+/// only asked for an alibi, or fined), the standing a culprit's family loses, grudges and
+/// friendships over the nights, the power of acting, and the run-level checks on the default
+/// town. Exact values are read from the feeling events (Raw as asked, Change as applied), since
+/// the night moves regard at the end.
 /// </summary>
 public class FeelingEventTests
 {
@@ -16,9 +17,9 @@ public class FeelingEventTests
 
     /// <summary>Sensitivity and retention 0.5 (felt in full, kept in full below 0.7); never tires.</summary>
     private static Villager V(string name, string household, IReadOnlyList<Haunt> haunts, int age = 30,
-        double understanding = 0.5, Dictionary<string, Kin>? family = null)
+        double understanding = 0.5, Dictionary<string, Kin>? family = null, string[]? friends = null)
         => new(name, household, "villager", new Temperament(1.0, 0.5, understanding, 0.6), new Body(100, -1), null, haunts,
-            new Dictionary<string, double>(), Array.Empty<string>(), age, family);
+            new Dictionary<string, double>(), friends ?? Array.Empty<string>(), age, family);
 
     private static Location Room(string name = "Room", int w = 40, int h = 6)
         => new(name, false, Enumerable.Repeat(new string('.', w), h).ToList());
@@ -42,41 +43,58 @@ public class FeelingEventTests
     private static readonly ActKind GaveGift = new("GaveGift", 1.5, 1, 1, 1, 0, Array.Empty<string>(),
         Affect: new Affect(Patient.Target, 0.2, 0.3, 1, TargetIs.Chosen, Tilt: 1));
 
-    /// <summary>SuspicionTests' questioning with feeling rows: Tom steals; Wes and May (the mayor)
-    /// see "someone" from 7 and 8 tiles and suspect him; May questions Tom, who never confesses
-    /// and says he saw Wes, so Wes is questioned too.</summary>
-    private static SimResult Questioning()
+    /// <summary>SuspicionTests' questioning with feeling rows: Tom (understanding 0.8) steals; Wes
+    /// and May (the mayor) see "someone" from 7 and 8 tiles and suspect him; May questions Tom, who
+    /// never confesses and says he saw Wes, so Wes is questioned too. With <paramref name="mother"/>,
+    /// Tia, Tom's mother and housemate, is at home until 11:00 and then sits by May: as kin of the
+    /// most-suspected she is asked where she was, though nobody named her.</summary>
+    private static SimResult Questioning(bool mother = false)
     {
-        var cast = new[]
+        var cast = new List<Villager>
         {
-            V("Tom", "T", new[] { At("Room", 3, 2) }), V("Wes", "W", new[] { At("Room", 10, 2) }),
-            V("May", "M", new[] { At("Room", 11, 2) }),
+            V("Tom", "T", new[] { At("Room", 3, 2) }, understanding: 0.8, family: mother ? new() { ["Tia"] = Kin.Parent } : null),
+            V("Wes", "W", new[] { At("Room", 10, 2) }), V("May", "M", new[] { At("Room", 11, 2) }),
         };
+        if (mother)
+            cast.Add(V("Tia", "T", new[] { At("Home", 2, 2, 0, Clock.At(11)), At("Room", 12, 3, Clock.At(11)) }, age: 50,
+                family: new() { ["Tom"] = Kin.Child }));
         var authority = new AuthorityOptions { Mayor = "May", ElectConstable = false, ConfessBase = 0, ConfessPerTimidity = 0 };
-        return new Simulation(3, cast, new[] { Room() }, new[] { Stole, Warned, Questioned }, authority: authority,
+        var places = mother ? new[] { Room(), Room("Home", 6, 6) } : new[] { Room() };
+        return new Simulation(3, cast, places, new[] { Stole, Warned, Questioned }, authority: authority,
             scheduled: new[] { (Ten, "Tom", "Stole") }, wander: 0, feelings: new FeelingOptions()).Run(1);
     }
 
     /// <summary>
-    /// Kid (15) steals at Kim's shop at 10:00. Three neighbours, Ned, Nia and Wil, step in beside
-    /// him from 9:55 to 10:05 (too short to chat with each other) and see it close up. The first
-    /// <paramref name="visitors"/> of them then call on Pat, his mother, one an hour from 11:00 in
-    /// "Away", where May the mayor sits within sight of Pat but too far from the callers to meet them.
+    /// Kid (15) steals at Kim's shop at 10:00. Three neighbours, Ned, Nia and Wil (the most
+    /// understanding, 0.8), step in beside him from 9:55 to 10:05 (too short to chat with each
+    /// other) and see it close up. The first <paramref name="visitors"/> of them then call on Pat,
+    /// his mother, one an hour from 11:00 in "Away", where May the mayor sits within sight of Pat
+    /// but too far from the callers to meet them. May counts Kid a friend, so even a story about
+    /// him heard second-hand is worth telling her. Liz, his sister, is at school all day.
+    /// Without <paramref name="kin"/>, Pat is a lodger in the same house and no family of theirs
+    /// (the control). With <paramref name="sees"/>, she steps in beside him too, with no warmth
+    /// for him to hold her back (her regard starts at 0), and is back by May from 10:05.
     /// </summary>
-    private static (Simulation Sim, SimResult R) Theft(int visitors)
+    private static (Simulation Sim, SimResult R) Theft(int visitors, bool kin = true, bool sees = false)
     {
+        var pat = sees
+            ? new[] { At("Away", 20, 10, 0, Clock.At(9, 55)), At("Room", 10, 0, Clock.At(9, 55), Clock.At(10, 5)), At("Away", 20, 10, Clock.At(10, 5)) }
+            : new[] { At("Away", 20, 10) };
         var cast = new List<Villager>
         {
-            V("Kid", "P", new[] { At("Room", 10, 2) }, age: 15, family: new() { ["Pat"] = Kin.Parent }),
-            V("Pat", "P", new[] { At("Away", 20, 10) }, age: 45, family: new() { ["Kid"] = Kin.Child }),
+            V("Kid", "P", new[] { At("Room", 10, 2) }, age: 15,
+                family: kin ? new() { ["Pat"] = Kin.Parent, ["Liz"] = Kin.Sibling } : new() { ["Liz"] = Kin.Sibling }),
+            V("Liz", "P", new[] { At("School", 2, 2) }, age: 12,
+                family: kin ? new() { ["Pat"] = Kin.Parent, ["Kid"] = Kin.Sibling } : new() { ["Kid"] = Kin.Sibling }),
+            V("Pat", "P", pat, age: 45, family: kin ? new() { ["Kid"] = Kin.Child, ["Liz"] = Kin.Child } : null),
             V("Kim", "K", new[] { At("Room", 38, 5) }),
-            V("May", "M", new[] { At("Away", 20, 18) }),
+            V("May", "M", new[] { At("Away", 20, 18) }, friends: new[] { "Kid" }),
         };
-        var neighbours = new[] { ("Ned", 8, 2), ("Nia", 12, 2), ("Wil", 10, 4) };
-        var places = new List<Location> { Room(), Room("Away", 40, 20) };
+        var neighbours = new[] { ("Ned", 8, 2, 0.5), ("Nia", 12, 2, 0.5), ("Wil", 10, 4, 0.8) };
+        var places = new List<Location> { Room(), Room("Away", 40, 20), Room("School", 6, 6) };
         for (int i = 0; i < neighbours.Length; i++)
         {
-            var (name, x, y) = neighbours[i];
+            var (name, x, y, understanding) = neighbours[i];
             string yard = "Yard" + name;
             places.Add(Room(yard, 6, 6));
             var haunts = new List<Haunt> { At(yard, 2, 2, 0, Clock.At(9, 55)), At("Room", x, y, Clock.At(9, 55), Clock.At(10, 5)) };
@@ -88,17 +106,46 @@ public class FeelingEventTests
                 });
             else
                 haunts.Add(At(yard, 2, 2, Clock.At(10, 5)));
-            cast.Add(V(name, name, haunts));
+            cast.Add(V(name, name, haunts, understanding: understanding));
         }
         var authority = new AuthorityOptions
         {
             Mayor = "May", ElectConstable = false, ReportBase = 1,
             Keepers = new Dictionary<string, string> { ["Room"] = "Kim" },
         };
+        var start = sees ? new Dictionary<(string, string), double> { [("Pat", "Kid")] = 0 } : new Dictionary<(string, string), double>();
         var sim = new Simulation(5, cast, places, new[] { Stole }, authority: authority,
             gossip: new GossipOptions { ChatChance = 10 }, scheduled: new[] { (Ten, "Kid", "Stole") }, wander: 0,
-            feelings: new FeelingOptions());
+            feelings: new FeelingOptions { Start = start });
         return (sim, sim.Run(1));
+    }
+
+    /// <summary>
+    /// MoneyTests' fine with feeling rows: Tom, with one verdict on record and a full purse, steals
+    /// goods worth <paramref name="worth"/> at 10:00 beside Wit in <paramref name="place"/>, which
+    /// Kim keeps. Kim comes in at 10:30 and hears it from Wit; May the mayor comes in at 12:00,
+    /// takes their reports and fines him, his second verdict.
+    /// </summary>
+    private static SimResult Fined(string place, double worth)
+    {
+        var cast = new[]
+        {
+            V("Tom", "T", new[] { At(place, 3, 2) }), V("Wit", "W", new[] { At(place, 5, 2) }),
+            V("Kim", "K", new[] { At("Home", 2, 2, 0, Clock.At(10, 30)), At(place, 7, 2, Clock.At(10, 30)) }),
+            V("May", "M", new[] { At("Home", 4, 2, 0, Clock.At(12)), At(place, 11, 2, Clock.At(12)) }),
+        };
+        var authority = new AuthorityOptions
+        {
+            Mayor = "May", ElectConstable = false, ReportBase = 1, Record = new Dictionary<string, int> { ["Tom"] = 1 },
+            Keepers = new Dictionary<string, string> { [place] = "Kim" },
+        };
+        var eco = new Economy(new Dictionary<string, double> { ["T"] = 1000, ["W"] = 1000, ["K"] = 1000, ["M"] = 1000 },
+            Array.Empty<(string, double, string?)>(), new Dictionary<string, double>(), new Dictionary<string, string>(),
+            new Dictionary<string, (double, double)>(), TownStipend: 0, TownStart: 0);
+        return new Simulation(4, cast, new[] { Room(place), Room("Home", 6, 6) }, new[] { Stole }, authority: authority,
+            gossip: new GossipOptions { ChatChance = 10 }, economy: eco,
+            money: new MoneyOptions { WantChancePerDay = 0, SpendShare = 0, TheftValue = (worth, worth) },
+            scheduled: new[] { (Ten, "Tom", Simulation.Stole) }, wander: 0, feelings: new FeelingOptions()).Run(1);
     }
 
     /// <summary>
@@ -133,7 +180,8 @@ public class FeelingEventTests
 
     /// <summary>T23. Wes did nothing, yet May and Tom both named him as nearby: he resents them,
     /// split between the two. Tom, who did it, is ashamed instead and resents nobody, and blames
-    /// the questioner less than an innocent does, since he knows why (law 10).</summary>
+    /// the questioner less than an innocent does, since he knows why (law 10): by 1 - 0.8, his
+    /// understanding, of what Wes does.</summary>
     [Fact]
     public void AnInnocentSuspectResentsWhoeverNamedThem_TheCulpritIsAshamed()
     {
@@ -157,8 +205,24 @@ public class FeelingEventTests
         Felt tomByMay = Toward(r, "Tom", "May", "Undergone");
         Felt wesByMay = Toward(r, "Wes", "May", "Undergone");
         Assert.Equal(-0.15 * 0.3 * 0.4, wesByMay.Raw, 12);
-        Assert.Equal(wesByMay.Raw * (1 - 0.5), tomByMay.Raw, 12);
+        Assert.Equal(0.2 * wesByMay.Raw, tomByMay.Raw, 12);      // 1 - 0.8
         Assert.Equal(tomByMay.Raw, tomByMay.Change, 12);        // Tom held nothing against May before
+    }
+
+    /// <summary>Tia, Tom's mother, is questioned only to say where she was, since she lives with
+    /// the most-suspected; nobody named her. She feels the questioning as an act done to her and
+    /// is not accused: no shame, no resentment of a namer. Wes, named by May and Tom, is.</summary>
+    [Fact]
+    public void AHousemateAskedOnlyForAnAlibiIsNotAccused()
+    {
+        SimResult r = Questioning(mother: true);
+        Assert.Contains(r.Interviews, i => i.ActId == 0 && i.Who == "Tia");
+        Assert.DoesNotContain(r.Accounts, a => a.Actor == "Tia" || a.Nearby?.Contains("Tia") == true);
+
+        Assert.DoesNotContain(r.Feelings, f => f.Holder == "Tia" && f.Route == "Accused");
+        Assert.Equal(-0.15 * 0.3 * 0.4, Toward(r, "Tia", "May", "Undergone").Raw, 12);  // blamed in full, as she is innocent
+        Assert.Equal(-0.3 / 2 * 0.5, Toward(r, "Wes", "Tom", "Accused").Raw, 12);
+        Assert.Contains(r.Feelings, f => f is { Holder: "Tom", Route: "Accused", Toward: null });
     }
 
     /// <summary>T24. Bob is confronted over his own act: shame, and no grudge against whoever
@@ -187,7 +251,8 @@ public class FeelingEventTests
 
     /// <summary>T25. Each person Pat learns knows of her son's theft is a step of shame and of
     /// sadness at him (rule 17). Three callers shame her three times as much as one, no more.
-    /// She still covers for him: she never tells the mayor beside her, nor anyone else.</summary>
+    /// She still covers for him: she never tells the mayor beside her, who would want to hear it,
+    /// nor anyone else, and never reports what she saw herself. A lodger in her place does both.</summary>
     [Fact]
     public void ShameFallsOnTheCulpritsKin_MoreWhenItIsPublic()
     {
@@ -209,13 +274,30 @@ public class FeelingEventTests
         {
             Assert.Equal("Kid", r.Beliefs["Pat"][0].Actor);
             Assert.Contains(r.Sentiments, s => s is { Holder: "Pat", Toward: "Kid", Name: "Ashamed" });
-            Assert.DoesNotContain(r.Accounts, a => a.From == "Pat");     // May sat beside her all day
-            Assert.DoesNotContain(r.Log, l => l.Contains(" told Pat ") && l.EndsWith(" 0"));
+            Assert.DoesNotContain(r.Log, l => l.Contains(" told Pat "));  // May sat beside her all day
         }
+        // The lodger, told the same, passes it on: second-hand it is worth 0.35 x 4.5 = 1.575, and
+        // 2.075 to May, who knows Kid well, over the level of 2 for volunteering a story.
+        var (_, lodger) = Theft(visitors: 1, kin: false);
+        Assert.Equal((Source.Told, "Kid"), (lodger.Beliefs["Pat"][0].Source, lodger.Beliefs["Pat"][0].Actor));
+        Assert.Contains(lodger.Log, l => l.EndsWith(" told Pat May 0"));
+
+        // Seen with her own eyes, at ReportBase 1 and with no love for him to hold her back, she
+        // still neither reports it nor tells it; the lodger does both.
+        var (_, saw) = Theft(visitors: 0, sees: true);
+        var (_, lodgerSaw) = Theft(visitors: 0, kin: false, sees: true);
+        foreach (SimResult r in new[] { saw, lodgerSaw })
+            Assert.Equal((Source.Witnessed, "Kid"), (r.Beliefs["Pat"][0].Source, r.Beliefs["Pat"][0].Actor));
+        Assert.DoesNotContain(saw.Accounts, a => a.From == "Pat");
+        Assert.DoesNotContain(saw.Log, l => l.Contains(" told Pat "));
+        Assert.Contains(lodgerSaw.Accounts, a => a is { From: "Pat", Actor: "Kid", FirstHand: true });
+        Assert.Contains(lodgerSaw.Log, l => l.EndsWith(" told Pat May 0"));
     }
 
     /// <summary>T26. Wil, no kin of Kid's, sees the theft: a little of what he feels against Kid
-    /// falls on Kid's mother, as far as Wil doesn't know her (rule 17, shame by association).</summary>
+    /// falls on Kid's mother and sister, as far as Wil doesn't know them and less as he is
+    /// understanding (rule 17, shame by association). Never from kin: once a second caller agrees
+    /// and Pat blames her son, none of it falls on her daughter, nor on herself.</summary>
     [Fact]
     public void AScandalCostsTheCulpritsFamilySomeStanding()
     {
@@ -226,9 +308,45 @@ public class FeelingEventTests
         Assert.Equal(0.25, fam, 12);
         Assert.True(atKid.Raw < 0);
         Assert.Equal(0, atPat.ActId);
-        Assert.Equal(0.2 * (1 - fam) * (1 - 0.5 * 0.5) * atKid.Raw, atPat.Raw, 12);
+        Assert.Equal(0.2 * (1 - fam) * 0.6 * atKid.Raw, atPat.Raw, 12);   // 1 - 0.5 x 0.8
         Assert.True(atPat.Change < 0);
-        Assert.DoesNotContain(r.Feelings, f => f.Holder == "Pat" && f.Route == "Association"); // never from kin
+        Assert.Equal(0.25, sim.Familiarity("Wil", "Liz"), 12);
+        Assert.Equal(atPat.Raw, Toward(r, "Wil", "Liz", "Association").Raw, 12);
+
+        // Corroborated (F15), Pat's blame of Kid moves her regard, so F10 runs for her too.
+        var (_, three) = Theft(visitors: 3);
+        Assert.Contains(three.Feelings, f => f is { Holder: "Pat", Toward: "Kid", Basis: "Corroborated" } && f.Raw < 0);
+        Assert.DoesNotContain(three.Feelings, f => f.Holder == "Pat" && f.Route == "Association" && f.Toward is "Liz" or "Kid");
+        Assert.DoesNotContain(three.Feelings, f => f.Route == "Association" && f.Toward == f.Holder);
+        Assert.Contains(three.Feelings, f => f is { Holder: "Ned", Toward: "Liz", Route: "Association" });
+    }
+
+    /// <summary>A second verdict, the fine paid in full at once: Tom is found guilty and fined, an
+    /// event he feels (shame, as the guilty do). The goods paid back confirm it to Kim, who had only
+    /// heard it (F15), but only when goods came back to her: not at the chain's Mart, whose head
+    /// office is repaid, nor when the goods were worth nothing.</summary>
+    [Fact]
+    public void AFinePaidInFullShamesTheThief_AndTheGoodsBackConfirmItToTheKeeper()
+    {
+        SimResult store = Fined("Store", worth: 50), mart = Fined("Mart", worth: 50), nothing = Fined("Store", worth: 0);
+        foreach (SimResult r in new[] { store, mart, nothing })
+        {
+            Verdict v = Assert.Single(r.Verdicts);
+            Assert.Equal(("Tom", Consequence.RestitutionAndFine), (v.Accused, v.Step));
+            Assert.Equal(100, r.Purses[Simulation.Town], 6);     // the fine paid in full: nothing to serve
+            Assert.Equal(Source.Told, r.Beliefs["Kim"][0].Source);
+            Felt fined = Assert.Single(r.Feelings, f => f.Holder == "Tom" && f.Route == "Accused");
+            Assert.Equal((v.Tick, "Event", (string?)null), (fined.Tick, fined.Basis, fined.Toward));
+            Assert.Equal(-0.3 * (1.5 - 0.6), fined.Mood, 12);
+        }
+
+        // Kim's hearsay moved no regard until the goods came back; then it weighs HeardNameWeight x confidence.
+        Verdict sv = store.Verdicts[0];
+        Felt confirmed = Assert.Single(store.Feelings, f => f.Holder == "Kim" && f.Toward == "Tom");
+        Assert.Equal(("Direct", "Confirmed", sv.Tick), (confirmed.Route, confirmed.Basis, confirmed.Tick));
+        Assert.Equal(-0.5 * 0.5 * store.Beliefs["Kim"][0].Confidence * 0.5, confirmed.Raw, 12);
+        Assert.DoesNotContain(mart.Feelings, f => f.Holder == "Kim" && f.Basis == "Confirmed");
+        Assert.DoesNotContain(nothing.Feelings, f => f.Holder == "Kim" && f.Basis == "Confirmed");
     }
 
     // ---- the nights (F17) ------------------------------------------------------------------

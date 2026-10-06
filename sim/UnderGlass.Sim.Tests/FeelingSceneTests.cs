@@ -10,7 +10,8 @@ namespace UnderGlass.Sim.Tests;
 /// the long hall with wandering off, so distances are exact; sensitivity and retention are 0.5,
 /// so sens is 1 and keep is 1 for mild feelings. Exact values are read from the feeling events,
 /// since the night's drift moves the values at the end. None of these acts is aimed at someone
-/// chosen and the regard steering reads is neutral where it matters, so steering is left on.
+/// chosen and the regard steering reads is neutral where it matters (a grudge only makes a guess
+/// likelier, and the guess scene checks its seed), so steering is left on.
 /// </summary>
 public class FeelingSceneTests
 {
@@ -19,13 +20,13 @@ public class FeelingSceneTests
 
     /// <summary>Someone who stands at one spot in the room all day and never tires.</summary>
     private static Villager V(string name, string household, int x, int y, double bold = 0.5, double self = 0.6,
-        string kind = "villager", int age = 30, params string[] friends)
-        => Moving(name, household, new[] { At(x, y) }, bold, self, kind, age, friends);
+        string kind = "villager", int age = 30, double understanding = 0.5, params string[] friends)
+        => Moving(name, household, new[] { At(x, y) }, bold, self, kind, age, understanding, friends);
 
     /// <summary>Someone whose day moves between spots, or rooms, at set hours.</summary>
     private static Villager Moving(string name, string household, Haunt[] haunts, double bold = 0.5, double self = 0.6,
-        string kind = "villager", int age = 30, params string[] friends)
-        => new(name, household, kind, new Temperament(1.0, bold, 0.5, self), new Body(100, -1), null, haunts,
+        string kind = "villager", int age = 30, double understanding = 0.5, params string[] friends)
+        => new(name, household, kind, new Temperament(1.0, bold, understanding, self), new Body(100, -1), null, haunts,
             new Dictionary<string, double>(), friends, age);
 
     private static Location Hall(string name = "Room") => new(name, false, Enumerable.Repeat(new string('.', 40), 6).ToList());
@@ -145,6 +146,32 @@ public class FeelingSceneTests
         Assert.True(sim.Regard("Far", "Tom") < 0);
     }
 
+    /// <summary>The same theft with presence switched off: Far, who saw it from 7 tiles (clarity
+    /// 0.3), feels it and blames the kind as if he had seen it close up. Then with presence on and
+    /// Far understanding (0.8): he blames the kind less, by 1 - 0.8/2 = 0.6, against 0.75 at 0.5.</summary>
+    [Fact]
+    public void AFarStrangerBlamesTheKindInFullWithoutPresence_AndLessTheMoreHeUnderstands()
+    {
+        var cast = new[] { V("Tom", "T", 3, 2), V("Kim", "K", 5, 2), V("Far", "F", 10, 2) };
+        var (_, r) = Scene(1, cast, new[] { Stole }, "Tom", Simulation.Stole, new FeelingOptions { Presence = false }, Quiet());
+
+        Belief seen = r.Beliefs["Far"][0];
+        Assert.Equal(((string?)null, 0.3), (seen.Actor, Math.Round(seen.Clarity, 12)));
+        Assert.Equal(Bystander, Assert.Single(Moods(r, "Far")).Mood, 12);    // s is 1, not the clarity
+        Felt far = Assert.Single(Toward(r, "Far", "kind:villager"));
+        Assert.Equal("Kind", far.Route);
+        Assert.Equal(Bystander * 1 * 0.5 * 1 * 1 * 0.75, far.Raw, 12);     // f0 x 1 x plastic x freedom x keep x (1 - U/2)
+        Assert.Equal(-0.25, Assert.Single(Toward(r, "Kim", "Tom")).Change, 12); // a clear view is weighed as before
+
+        var wise = new[] { V("Tom", "T", 3, 2), V("Kim", "K", 5, 2), V("Far", "F", 10, 2, understanding: 0.8) };
+        var (_, w) = Scene(1, wise, new[] { Stole }, "Tom", Simulation.Stole, gossip: Quiet());
+        const double f0 = 0.2 * 0.75 * -0.5 * (1 - 0.5 * 0.8);            // he imitates less, too
+        Felt mood = Assert.Single(Moods(w, "Far"));
+        Assert.Equal(f0 * 0.3, mood.Mood, 12);
+        Felt kind = Assert.Single(Toward(w, "Far", "kind:villager"));
+        Assert.Equal(0.6, kind.Raw / (mood.Mood * 0.5), 12);                // raw / (f0 x clarity x plastic)
+    }
+
     [Fact]
     public void CloserWitnessesFeelMore()
     {
@@ -208,9 +235,11 @@ public class FeelingSceneTests
     }
 
     /// <summary>Tom steals from Kim. Gus, bold and low in self-regard, sees it from 7 tiles and
-    /// names a guess: Nat, at the far end of the room (seed 6). Ann, his housemate, saw it close
-    /// up and tells him it was Tom (0.9 beats his 0.8). Gus loves Kim (1.0), so his indignation
-    /// at Nat is strong enough to leave a sentiment.</summary>
+    /// names a guess: Nat, at the far end of the room, whom he already dislikes (-0.5, his
+    /// baseline too, so the night leaves it be; with feelings steering, the dislike makes Nat the
+    /// likelier guess, and seed 6 still gives him). Ann, his housemate, saw it close up and tells
+    /// him it was Tom (0.9 beats his 0.8). Gus loves Kim (1.0); his indignation at Nat counts half
+    /// on a regard already at -0.5, so sentiments are kept from 0.01 here.</summary>
     [Fact]
     public void AFeelingFollowsTheBelievedCause_WhenAGuessIsCorrected()
     {
@@ -219,10 +248,8 @@ public class FeelingSceneTests
             V("Tom", "T", 3, 2), V("Ann", "G", 5, 2), V("Gus", "G", 10, 2, bold: 0.8, self: 0.3),
             V("Nat", "N", 30, 2, kind: "old man", age: 70), V("Kim", "K", 38, 2),
         };
-        var feelings = new FeelingOptions { Start = Start((("Gus", "Kim"), 1.0)) };
-        double before = double.NaN;
-        var (sim, r) = Scene(6, cast, new[] { Stole }, "Tom", Simulation.Stole, feelings, Chatty(),
-            each: (m, s) => { if (m == Ten - 1) before = s.PersonalRegard("Gus", "Nat"); });
+        var feelings = new FeelingOptions { Start = Start((("Gus", "Kim"), 1.0), (("Gus", "Nat"), -0.5)), SentimentMin = 0.01 };
+        var (sim, r) = Scene(6, cast, new[] { Stole }, "Tom", Simulation.Stole, feelings, Chatty());
 
         Assert.Contains(r.Log, l => l.EndsWith(" belief Gus 0 Nat Witnessed 4.5"));          // his guess
         Assert.Contains(r.Log, l => l.Contains(" sentiment Gus Nat Indignant ") && l.EndsWith(" act 0"));
@@ -230,7 +257,16 @@ public class FeelingSceneTests
         Assert.Equal("Tom", gus.Actor);
         Assert.True(gus.Confidence > 0.8);
 
-        Assert.Equal(before, sim.PersonalRegard("Gus", "Nat"), 9);
+        // At -0.5 a further drop counts half, so what was applied is not what was asked for; the
+        // correction takes back what was applied, and its row still says what was asked for.
+        Felt guess = Assert.Single(Toward(r, "Gus", "Nat"), f => f.Route != "Reattributed");
+        Felt back = Assert.Single(Toward(r, "Gus", "Nat"), f => f.Route == "Reattributed");
+        Assert.True(guess.Tick < back.Tick);
+        Assert.NotEqual(guess.Raw, guess.Change, 6);
+        Assert.Equal(guess.Raw * 0.5, guess.Change, 12);
+        Assert.Equal(-guess.Change, back.Change, 12);
+        Assert.Equal(-guess.Raw, back.Raw, 12);
+        Assert.Equal(-0.5, sim.PersonalRegard("Gus", "Nat"), 9);
         Assert.Equal(0, Toward(r, "Gus", "Nat").Sum(f => f.Change), 12);
         Assert.Equal(0, Toward(r, "Gus", "kind:old man").Sum(f => f.Change), 12);           // Nat's kind is let off too
         Assert.True(sim.PersonalRegard("Gus", "Tom") < 0);
@@ -317,22 +353,43 @@ public class FeelingSceneTests
         Assert.DoesNotContain(r.Feelings, f => f.Change != 0);
     }
 
-    /// <summary>Bob makes a drunk scene that only Wit sees. Wit tells Lis, who loves him, and Str,
-    /// an old man with nothing in common with him; both stand out of sight of the scene.</summary>
+    /// <summary>Bob makes a drunk scene that only Wit sees. Wit tells Mid, who saw nothing, and Mid
+    /// tells Lis and Str, out of Wit's reach and out of sight of the scene. Lis loves Wit and
+    /// dislikes Mid; Str, an old man with nothing in common with Wit, shares Mid's home. Told
+    /// twice over, the scene is still felt through Wit, the witness at the end of the chain: with
+    /// Mid as the patient, Lis would be glad (antipathy) and Str would feel with a housemate.
+    /// Mid's story is worth 1.05 to him (0.35 x 3), so here stories are passed on from 1, to two
+    /// listeners a day.</summary>
     [Fact]
     public void ADrunkSceneTold_IsFeltThroughTheWitnessWhoSawIt()
     {
-        var cast = new[] { V("Bob", "B", 3, 2), V("Wit", "W", 8, 2), V("Lis", "L", 12, 2), V("Str", "S", 12, 4, kind: "old man", age: 70) };
-        Assert.Equal(0, Feelings.Likeness(cast[3], cast[1]));
-        var feelings = new FeelingOptions { Start = Start((("Lis", "Wit"), 0.6)) };
-        var (_, r) = Scene(1, cast, new[] { DrunkScene }, "Bob", "DrunkScene", feelings, Chatty(), days: 2);
+        var cast = new[]
+        {
+            V("Bob", "B", 3, 2), V("Wit", "W", 8, 2), V("Mid", "M", 14, 2), V("Lis", "L", 20, 2),
+            V("Str", "M", 20, 4, kind: "old man", age: 70),
+        };
+        Assert.Equal(0, Feelings.Likeness(cast[4], cast[1]));
+        Assert.Equal(0.25, Feelings.Likeness(cast[4], cast[2]));
+        var feelings = new FeelingOptions { Start = Start((("Lis", "Wit"), 0.6), (("Lis", "Mid"), -0.6)) };
+        var gossip = new GossipOptions { ChatChance = 10, VolunteerLevel = 1, TellsPerDay = 2 };
+        var famLis = new double[2 * Clock.MinutesPerDay];
+        var famStr = new double[2 * Clock.MinutesPerDay];
+        var (_, r) = Scene(1, cast, new[] { DrunkScene }, "Bob", "DrunkScene", feelings, gossip, days: 2,
+            each: (m, s) => (famLis[m], famStr[m]) = (s.Familiarity("Lis", "Mid"), s.Familiarity("Str", "Mid")));
 
-        Assert.Equal(new[] { "Wit" }, r.Beliefs["Lis"][0].Chain);
-        Assert.Equal(new[] { "Wit" }, r.Beliefs["Str"][0].Chain);
+        Assert.Equal(new[] { "Mid", "Wit" }, r.Beliefs["Lis"][0].Chain);
+        Assert.Equal(new[] { "Mid", "Wit" }, r.Beliefs["Str"][0].Chain);
         Felt lis = Assert.Single(Moods(r, "Lis")), str = Assert.Single(Moods(r, "Str"));
         Assert.Equal(("Sympathy", "Imitation"), (lis.Route, str.Route));
         Assert.True(lis.Mood < 0 && str.Mood < 0);
         Assert.True(Math.Abs(lis.Mood) > Math.Abs(str.Mood));
+
+        // f0 from Wit, x hearsay 0.5 x credence in Mid, the teller who told them (F5).
+        var o = new FeelingOptions();
+        Assert.Equal(lis.Tick, Told(r, "Mid", "Lis"));
+        Assert.Equal(str.Tick, Told(r, "Mid", "Str"));
+        Assert.Equal(0.5 * 0.6 * -0.15 * 0.5 * Feelings.Credence(famLis[lis.Tick], -0.6, 0.5, o), lis.Mood, 12);        // loves Wit
+        Assert.Equal(0.2 * 0.5 * -0.15 * 0.75 * 0.5 * Feelings.Credence(famStr[str.Tick], 0.6, 0.5, o), str.Mood, 12); // like Wit in nothing
         Assert.DoesNotContain(r.Feelings, f => f.Holder is "Lis" or "Str" && f.Toward is not null);
     }
 }
