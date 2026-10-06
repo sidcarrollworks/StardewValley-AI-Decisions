@@ -205,7 +205,7 @@ How we got there:
 5. **Why no feuds.** Acts aimed at someone still come at town-wide rates and land on whoever is in reach, which is mostly family at home: in one seed, Evelyn gave George 52 gifts in a year and George argued with Evelyn 8 times. Only about a dozen arguments a year fall between households, spread over many pairs, and the drift heals each in about a month. Nobody hurt can answer back, and kindness to someone outside the family is rarely returned. That is rule 10's desire gate, which comes next.
 6. **Review.** Five reviewers, each finding checked by a skeptic. 16 of 18 findings were confirmed and fixed:
    - eight in the code: an actor at zero weight still acting; kin asked only for an alibi feeling named; a fine paid in full not felt; the presence ablation missing one route; and metric and runner fixes;
-   - eight in the tests, where a check could not fail.
+   - eight in the tests, where a check could not fail; those tests now fail when the rule they guard is broken (113 tests).
 
    The first test pass also found one real bug: a "someone" turned into a name of the same kind kept the prejudice.
 
