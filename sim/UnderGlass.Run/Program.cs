@@ -6,7 +6,8 @@ using UnderGlass.Sim;
 //   dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                 (one seed's event log)
 // Feelings (phase 0c): --feel off|observe|on (default: the town's own setting), --off <law>
 // (sympathy, imitation, reconcile, kinds, freedom, presence, association, shame; repeatable),
-// --plastic <x>, --target-base <x>, and --fo <Name>=<value> for any other FeelingOptions knob.
+// --plastic <x>, --target-base <x>, --fo <Name>=<value> for any other FeelingOptions knob, and
+// --affect <Kind>=<joy>[,<plastic>] to change an act kind's feeling row (sweeps).
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -62,11 +63,21 @@ static FeelingOptions Set(FeelingOptions o, string name, string value)
 }
 
 IReadOnlyList<ActKind> kinds = DefaultTown.Acts();
+for (int i = 0; i < args.Length - 1; i++)
+{
+    if (args[i] != "--affect")
+        continue;
+    string name = args[i + 1][..args[i + 1].IndexOf('=')];
+    double[] v = args[i + 1][(args[i + 1].IndexOf('=') + 1)..].Split(',').Select(x => double.Parse(x, inv)).ToArray();
+    kinds = kinds.Select(k => k.Name == name && k.Affect is { } a
+        ? k with { Affect = a with { Joy = v[0], Plastic = v.Length > 1 ? v[1] : a.Plastic } }
+        : k).ToList();
+}
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
 
 if (logSeed is { } one)
 {
-    SimResult r = new Simulation(one, gossip: gossip, scheduled: Injected(one), feelings: feelings).Run(days);
+    SimResult r = new Simulation(one, kinds: kinds, gossip: gossip, scheduled: Injected(one), feelings: feelings).Run(days);
     foreach (string line in r.Log)
         Console.WriteLine($"{Clock.Format(int.Parse(line[..line.IndexOf(' ')]))} {line[(line.IndexOf(' ') + 1)..]}");
     if (feelings.Enabled)
@@ -91,7 +102,7 @@ if (logSeed is { } one)
 
 var clock = System.Diagnostics.Stopwatch.StartNew();
 var runs = Enumerable.Range(from, seeds).AsParallel().AsOrdered()
-    .Select(s => new Simulation(s, gossip: gossip, scheduled: Injected(s), feelings: Copy(feelings)).Run(days)).ToList();
+    .Select(s => new Simulation(s, kinds: kinds, gossip: gossip, scheduled: Injected(s), feelings: Copy(feelings)).Run(days)).ToList();
 double runSeconds = clock.Elapsed.TotalSeconds;
 
 // Each run gets its own options object: they are mutable, and runs go in parallel.
