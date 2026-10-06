@@ -98,6 +98,16 @@ public sealed class SimResult
     public required IReadOnlyList<Election> Elections { get; init; }
     /// <summary>Everyone questioned about a case, and whether they confessed.</summary>
     public required IReadOnlyList<(int ActId, string Who, bool Confessed)> Interviews { get; init; }
+    /// <summary>The town's cash at the start and at the end of each day (phase 0b); empty without money.</summary>
+    public required IReadOnlyList<double> TownCash { get; init; }
+    /// <summary>Money that came into town from outside, and went out, over the run.</summary>
+    public required double OutsideIn { get; init; }
+    public required double OutsideOut { get; init; }
+    /// <summary>Each household's purse and each person's pocket at the end.</summary>
+    public required IReadOnlyDictionary<string, double> Purses { get; init; }
+    public required IReadOnlyDictionary<string, double> Pockets { get; init; }
+    /// <summary>Why each tempted scandal happened: "want 640g", "need" or "thrill".</summary>
+    public required IReadOnlyList<(int ActId, string Who, string Motive)> Motives { get; init; }
     public required string? Constable { get; init; }
 }
 
@@ -137,6 +147,8 @@ public sealed partial class Simulation
         public Haunt? Haunt;
         public Tile Target;
         public int DetainedUntil = -1;
+        public string HoldPlace = "";
+        public Tile HoldSpot;
     }
 
     private readonly long _seed;
@@ -185,8 +197,10 @@ public sealed partial class Simulation
         IReadOnlyList<ActKind>? kinds = null, PerceptionOptions? perception = null, GossipOptions? gossip = null,
         IReadOnlyList<(int Tick, string Actor, string Kind)>? scheduled = null, int wander = 2,
         IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null,
-        AuthorityOptions? authority = null, HabitOptions? habits = null)
+        AuthorityOptions? authority = null, HabitOptions? habits = null, Economy? economy = null, MoneyOptions? money = null)
     {
+        _economy = economy ?? (places is null ? DefaultTown.TownEconomy() : null);
+        _mo = money ?? new MoneyOptions();
         _ho = habits ?? new HabitOptions();
         _ao = authority ?? (places is null ? DefaultTown.TownAuthority() : new AuthorityOptions());
         _constable = _ao.Constable;
@@ -263,8 +277,15 @@ public sealed partial class Simulation
             p.Energy = p.V.Body.MaxEnergy * Rng.Range(_seed, 30, 50, "rested", p.V.Name) / 100.0;
             StartSleep(p, 0, collapsed: false, log: false);
         }
+        StartMoney();
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
+            if (HasMoney && Clock.OfDay(m) == 0)
+            {
+                if (Clock.Weekday(m) == 0)
+                    Payday(m);
+                Wants(m);
+            }
             Step(m);
             if (Clock.OfDay(m) == Clock.MinutesPerDay - 1)
                 CloseDay(Clock.Day(m), days);
@@ -288,6 +309,12 @@ public sealed partial class Simulation
             Verdicts = _verdicts,
             Elections = _elections,
             Interviews = _interviews,
+            TownCash = _townCash,
+            OutsideIn = _outsideIn,
+            OutsideOut = _outsideOut,
+            Purses = _purse,
+            Pockets = _pocket,
+            Motives = _motives,
             Constable = _constable,
         };
     }
@@ -302,7 +329,14 @@ public sealed partial class Simulation
         foreach (Person p in _people)
             Live(p, m, tick);
         if (tick)
+        {
             StartActs(m);
+            if (HasMoney)
+            {
+                Temptation(m);
+                Drinks(m);
+            }
+        }
         StartScheduled(m);
         Watch(m, t);
         FinishActs(m);
@@ -444,7 +478,7 @@ public sealed partial class Simulation
         {
             // Held until the time is up: they sleep there too (design rule 16).
             var (lockup, spot) = Lockup(p);
-            Goal(p, lockup, spot, p.DetainedUntil, tired ? "bed" : "detained", null);
+            Goal(p, lockup, spot, p.DetainedUntil, tired ? "bed" : "held", null);
             return;
         }
         if (tired)
@@ -704,6 +738,7 @@ public sealed partial class Simulation
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected);
         _acts.Add(act);
         _scenes[act.Id] = SceneOf(act, actor);
+        Gains(act, actor);
         actor.BusyUntil = m + kind.DurationMinutes - 1;
         _watching[act.Id] = new Dictionary<string, List<double>>();
         _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}");
@@ -937,6 +972,7 @@ public sealed partial class Simulation
     private void CloseDay(int day, int days)
     {
         ForgetSightings((day + 1) * Clock.MinutesPerDay);
+        CloseMoneyDay();
         foreach (Act act in _acts)
         {
             if (!_holdersByDay.TryGetValue(act.Id, out int[]? counts))

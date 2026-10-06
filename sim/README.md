@@ -65,6 +65,12 @@ What's modelled:
   - A keeper who learns their own kin took from them doesn't report it: a family row (`FamilyRow`, a news act others can see) instead.
   - Only adults stand for constable; everyone 16 and over votes.
 - **Acting normal** (design rules 1 and 17; `Simulation.Habits.cs`): everyone learns the hours each person keeps out of doors, from what they see. Someone seen out at night (22:00-6:00) at an hour the observer has never seen them out, nor the hour either side, once the observer has seen them out for 6 hours or more, becomes a news story about them (`OutLate`). Anyone living with a parent or guardian has a curfew (children 20:00, teens 22:00, grown children 1:00); a parent who learns their child was out past it has a family row with them.
+- **Money** (phase 0b; `Economy`, `MoneyOptions`, `Simulation.Money.cs`):
+  - A purse per household, a pocket per person, and the town's own purse. Money crosses the town's edge only through outside accounts, and the town's cash changes by exactly that (a test checks it to the gram).
+  - Weekly paydays: wages, pensions and outside sales; earners keep 15%; allowances for Abigail, Alex, Haley, Vincent and Jas; groceries at Pierre's (restocked at 60%) or the chain (10% cheaper; its takings leave town). Drinks at the saloon in the evening. Everyday spending of what a purse holds beyond four weeks of costs, and a pocket beyond 300g.
+  - Wants, priced by person, bought when the pocket covers them.
+  - **Temptation** replaces the fixed rates for theft and rummaging: motive (an unmet want, a household short of a week's groceries, a dare for the bold) against believed risk (people in sight x the next ladder step x (1.2 - boldness)). Each tempted scandal records why (`SimResult.Motives`).
+  - **The ladder pays:** restitution and a 100g fine on the second verdict, from pocket then purse; what can't be paid is three hours of service in the square (`Service`, seen).
 - **Placed scandals** (`Harness`): natural scandals are rare, so `--inject` places one per run from day 1 at a seeded time. From then on, each minute that someone is awake, free and somewhere it can happen, there is a 1 in 120 chance it happens, by one of them chosen by a seeded draw. Nobody robs their own place of work. Spread metrics then count only the placed act.
 - **Who was around** (`Scene`): for every act, how many people were awake within 8 tiles, in the same place but farther, elsewhere, or asleep.
 - **Metrics** (`Metrics`), per tier:
@@ -79,6 +85,7 @@ What's modelled:
   - suspicion (anyone suspected, the culprit among the suspects) and interviews (how many, how many innocent, confessions, wrong verdicts);
   - family rows, alibis and sibling squabbles;
   - odd-hour sightings a season, of whom, at what hours;
+  - money: the town's cash by season, what crossed its edge, purses at the end, households in debt; tempted scandals by motive and by whom; fines paid and service served;
   - who was voted constable across runs.
 - **Determinism:** every draw comes from a named SplitMix64 stream (`Rng`), and a run's log hashes the same on every machine.
 
@@ -124,10 +131,24 @@ What these say:
 - Family rows are rare: they need a keeper to learn that their own kin took from them.
 - Detention needs four verdicts against one person, so it has not happened in these runs.
 
+## Phase 0b: money (built)
+
+A year of the town (100 seeds x 112 days, 2026-10-06):
+
+| | |
+|---|---|
+| town cash at each season's end | 9,300 -> 18,950 -> 20,290 -> 20,100 -> 19,770 g |
+| in from outside / out, a week | 7,254 / 6,600 g |
+| unexplained change in town cash | 0.000 g |
+| households in debt at the end | 1 (Pam and Penny's trailer) |
+| tempted scandals a year | 2.8: need 1.9 (Pam rummaging), want 0.8 (Abigail stealing), thrill 0.1 |
+| the culprit among anyone's suspects | 9% (thieves wait until nobody is watching) |
+| fines | all part-paid so far (the fined are mostly Pam, in debt), each followed by service |
+
 ## Next
 
-1. **0a is done** with odd hours (2026-10-06). One piece is left for later: **partial accounts** (clothing, direction) that narrow "someone" further.
-2. **0b:** a stock-and-flow money model, with fines and restitution, and deterrence for vices (design rule 16).
+1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
+2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
 3. **0c:** feelings. These are Spinoza's laws (design 3a): power of acting, joy and sadness, love and hate toward the cause, imitation, and reciprocity, built on regard and familiarity.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.
