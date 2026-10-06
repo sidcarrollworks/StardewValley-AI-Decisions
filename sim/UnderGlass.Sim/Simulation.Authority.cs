@@ -12,13 +12,15 @@ public sealed partial class Simulation
     private bool _voted;
     private readonly SortedDictionary<int, Dictionary<string, Account>> _cases = new();
     private readonly HashSet<int> _decided = new();
-    private readonly HashSet<(string, string, int)> _reported = new();
+    private readonly HashSet<(string, string, int, string)> _reported = new();
     private readonly List<Account> _carried = new();
     private readonly List<Account> _filed = new();
     private readonly Dictionary<string, int> _record = new();
     private readonly List<(int ActId, string Accused, Consequence Step)> _toDeliver = new();
     private readonly List<Verdict> _verdicts = new();
     private readonly List<Election> _elections = new();
+    private readonly HashSet<(int, string)> _interviewed = new();
+    private readonly List<(int ActId, string Who, bool Confessed)> _interviews = new();
 
     /// <summary>The constable now: fixed in the options, or elected at the opening meeting.</summary>
     public string? Constable => _constable;
@@ -45,6 +47,7 @@ public sealed partial class Simulation
                 Report(p, auth, m);
             }
         }
+        Interviews(m);
         Review(m);
         Deliver(m);
     }
@@ -59,14 +62,15 @@ public sealed partial class Simulation
     {
         _voted = true;
         var candidates = _cast
-            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && v.Temperament.Boldness >= _ao.StandAt)
+            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && v.Temperament.Boldness >= _ao.StandAt
+                        && v.Stage is Stage.Adult or Stage.Elder)
             .Select(v => v.Name).ToList();
         if (candidates.Count == 0)
             return;
         var votes = candidates.ToDictionary(c => c, _ => 0);
         foreach (Villager voter in _cast)
         {
-            if (voter.Name == DefaultTown.Newcomer)
+            if (voter.Name == DefaultTown.Newcomer || voter.Age < VotingAge)
                 continue;
             string choice = candidates.Contains(voter.Name)
                 ? voter.Name
@@ -78,6 +82,9 @@ public sealed partial class Simulation
         _elections.Add(new Election("Constable", m, winner, votes));
         _log.Add($"{m} elected constable {winner} {votes[winner]} of {votes.Values.Sum()}");
     }
+
+    /// <summary>Who votes at the town meeting.</summary>
+    public const int VotingAge = 16;
 
     private double Appeal(string voter, string candidate)
     {
@@ -123,15 +130,24 @@ public sealed partial class Simulation
         foreach (Belief b in _beliefs[who].Values.OrderBy(b => b.ActId))
         {
             Act act = _acts[b.ActId];
-            if (!KindOf(act).IsScandal || _decided.Contains(act.Id) || b.Actor == who || _reported.Contains((who, to, act.Id)))
+            // Once per authority for each thing they know: again when "someone" becomes suspects or a name.
+            string what = b.Actor ?? string.Join(",", b.Suspects ?? Array.Empty<string>());
+            if (!KindOf(act).IsScandal || _decided.Contains(act.Id) || b.Actor == who || _reported.Contains((who, to, act.Id, what)))
                 continue;
             bool victim = _ao.Keepers.TryGetValue(act.Location, out string? keeper) && keeper == who;
+            if (b.Actor is { } culprit && AreKin(who, culprit))
+            {
+                // Families cover (rule 17): never reported; a keeper has it out at home instead.
+                if (victim)
+                    KeepItInTheFamily(act.Id, who, culprit, m);
+                continue;
+            }
             bool firstHand = b.Source != Source.Told;
             if (!victim && !(firstHand && (who == _constable || Willing(p.V, act.Id))))
                 continue;
-            _reported.Add((who, to, act.Id));
-            var account = new Account(act.Id, who, b.Actor, b.Confidence, firstHand, m);
-            _log.Add($"{m} report {who} {to} {act.Id} {b.Actor ?? "someone"}");
+            _reported.Add((who, to, act.Id, what));
+            var account = AccountOf(who, b, m);
+            _log.Add($"{m} report {who} {to} {act.Id} {b.Actor ?? "someone"}{(b.Actor is null && b.Suspects is { Count: > 0 } ? " nearby " + string.Join(",", b.Suspects) : "")}");
             if (to == _ao.Mayor)
                 File(account, m);
             else
@@ -156,7 +172,92 @@ public sealed partial class Simulation
     {
         if (who != _ao.Mayor || _decided.Contains(b.ActId) || !KindOf(_acts[b.ActId]).IsScandal)
             return;
-        File(new Account(b.ActId, who, b.Actor, b.Confidence, b.Source != Source.Told, m), m);
+        File(AccountOf(who, b, m), m);
+    }
+
+    /// <summary>An account from a belief: the name if there is one, else who was seen nearby, and
+    /// when the teller places it if they saw or found it themselves.</summary>
+    private Account AccountOf(string who, Belief b, int m)
+    {
+        var window = Window(b);
+        return new Account(b.ActId, who, b.Actor, b.Confidence, b.Source != Source.Told, m,
+            b.Actor is null ? WithoutKin(who, b.Suspects) : null, window?.Since ?? -1, window?.Until ?? -1);
+    }
+
+    /// <summary>
+    /// The constable questions the people named as nearby in an open case (Sid, 2026-10-06: "the
+    /// constable could interview the character and see if any more info comes up"); the mayor does
+    /// it if there is no constable. They share what is known of the case. Each person once per
+    /// case, when the two are together, the most-named first. Being questioned is an act others
+    /// can see. The culprit may confess (more likely if timid); anyone questioned says who they
+    /// saw around the place at the time, which can name the culprit or point elsewhere.
+    /// </summary>
+    private void Interviews(int m)
+    {
+        foreach (var (actId, accounts) in _cases)
+        {
+            if (_decided.Contains(actId))
+                continue;
+            var known = accounts.Values.Concat(_carried.Where(c => c.ActId == actId)).ToList();
+            var suspects = known.SelectMany(a => a.Actor is null ? a.Nearby ?? Array.Empty<string>() : Array.Empty<string>())
+                .Where(n => n != _ao.Mayor && _index.ContainsKey(n))
+                .GroupBy(n => n).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal)
+                .Select(g => g.Key).ToList();
+            // Then the kin who live with the most-suspected: they can say where they were.
+            var families = suspects.Take(1).SelectMany(n => (_cast[_index[n]].Family?.Keys ?? Enumerable.Empty<string>())
+                    .Where(k => _index.ContainsKey(k) && _cast[_index[k]].Household == _cast[_index[n]].Household))
+                .Where(n => n != _ao.Mayor).Distinct().OrderBy(n => n, StringComparer.Ordinal);
+            var named = suspects.Concat(families).Distinct().Where(n => !_interviewed.Contains((actId, n)));
+            foreach (string suspect in named)
+            {
+                Person s = _people[_index[suspect]];
+                Person? by = new[] { _constable, _ao.Mayor }.OfType<string>().Distinct()
+                    .Where(n => n != suspect)
+                    .Select(n => _people[_index[n]])
+                    .FirstOrDefault(a => Free(a, m) && Free(s, m) && a.Place == s.Place && a.At.Chebyshev(s.At) <= _po.FarTiles);
+                if (by is null)
+                    continue;
+                Interview(actId, s, by, known, m);
+                break; // one interview per case per tick
+            }
+        }
+    }
+
+    private void Interview(int actId, Person s, Person by, IReadOnlyList<Account> known, int m)
+    {
+        string suspect = s.V.Name;
+        Act act = _acts[actId];
+        _interviewed.Add((actId, suspect));
+        if (_kinds.FirstOrDefault(k => k.Name == Authority.Questioned) is { } kind)
+        {
+            Begin(m, kind, s, injected: false);
+            by.BusyUntil = Math.Max(by.BusyUntil, s.BusyUntil);
+        }
+        Account account;
+        bool confessed = suspect == act.Actor
+            && Rng.Unit(_seed, "confess", actId.ToString(), suspect) < _ao.ConfessBase + _ao.ConfessPerTimidity * (1 - s.V.Temperament.Boldness);
+        if (confessed)
+            account = new Account(actId, suspect, suspect, 1, true, m);
+        else
+        {
+            // When the case is placed: the narrowest window anyone gave; else the day before.
+            var windows = known.Where(a => a.Since >= 0).Select(a => (a.Since, a.Until)).OrderBy(w => w.Until - w.Since).ToList();
+            var (since, until) = windows.Count > 0 ? windows[0] : (m - Clock.MinutesPerDay, m);
+            _ao.Keepers.TryGetValue(act.Location, out string? keeper);
+            // Families cover (rule 17): kin are left out of who they saw, and vouched for if suspected.
+            var seen = SeenAt(suspect, act.Location, since, until)
+                .Where(n => n != keeper && n != by.V.Name && !AreKin(suspect, n)).Take(_go.MaxSuspects).ToList();
+            var alibi = known.SelectMany(a => a.Nearby ?? Array.Empty<string>()).Where(n => AreKin(suspect, n)).Distinct().ToList();
+            account = new Account(actId, suspect, null, 0, true, m, seen, since, until, alibi.Count > 0 ? alibi : null);
+        }
+        _interviews.Add((actId, suspect, confessed));
+        _log.Add($"{m} questioned {suspect} by {by.V.Name} for {actId}: {(confessed ? "confessed" : "saw " + string.Join(",", account.Nearby ?? Array.Empty<string>()))}{(account.Alibi is { } vouched ? "; vouched for " + string.Join(",", vouched) : "")}");
+        if (!confessed && known.Any(a => a.From == suspect && a.Actor is not null))
+            return; // they already named someone; that account stands
+        if (by.V.Name == _ao.Mayor)
+            File(account, m);
+        else
+            _carried.Add(account);
     }
 
     private double Trust(string from) => from == _ao.Mayor ? 1 : 0.5 + 0.5 * Familiarity(_ao.Mayor!, from);

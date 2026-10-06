@@ -172,8 +172,8 @@ Every constant here is a first guess, to be tested in phase 0.
 8. **Gossip.** Awake villagers co-located for 15 minutes or more chat with a seeded chance of 0.3 x (0.5 + chattiness) per 10 minutes.
    - The teller offers its juiciest story at 2 or more that, by its own record, it has not told this listener and did not hear from them.
    - Add 0.5 if the listener has a close tie to someone in the story (regard 0.4 or more, or the same household).
-   - The listener stores the story at 0.4 x the teller's juiciness, with the chain of tellers (tuned in 0a, 2026-10-06; the mod uses 0.7). A scandal heard second-hand is then passed on only to people who know the culprit well, and news heard second-hand goes no further.
-   - Juiciness fades 0.5 a day (0.65 at base 4 or more, so a witness keeps telling a scandal for about four days), counted in whole 24-hour periods from when each person got the story (as in the mod, D33, which uses 0.8 for scandals).
+   - The listener stores the story at 0.35 x the teller's juiciness, with the chain of tellers (tuned in 0a, 2026-10-06, for 26 villagers; 0.4 for 13; the mod uses 0.7). A scandal heard second-hand is then passed on only to people who know the culprit well, and news heard second-hand goes no further.
+   - Juiciness fades 0.5 a day (0.8 at base 4 or more, as in the mod, D33, so a witness keeps telling a scandal for about three days), counted in whole 24-hour periods from when each person got the story.
    - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
    - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
    - Retelling never adds detail.
@@ -241,6 +241,27 @@ Every constant here is a first guess, to be tested in phase 0.
       - Lewis lets off someone close (familiarity 0.5 or more, or his household) with a 2% chance.
       - The ladder runs warning, restitution and fine, service, then detention from the fourth verdict (24 hours at the manor). Warnings and detentions are delivered in person and can be seen; fines and service wait for money (0b).
       - The opening vote: the bold stand, everyone but the newcomer votes. Across 400 runs, eight different villagers were voted in; Pierre most often (37%).
+    - **Piecing together "someone" and interviews** (Sid, 2026-10-06: "they should be able to piece together from people around. Then the constable could interview the character and see if any more info comes up."):
+      - Everyone remembers who they saw, where and when (same place, within 8 tiles, in line of sight; kept 3 days).
+      - Someone who saw or found a scandal without seeing who did it suspects who was around the place at the time: 30 minutes either side for a witness, the 8 hours before for a finder. Strangers are suspected before friends (law 9); the keeper of the place is not suspected. Up to 3 names.
+      - Suspicion travels with the story, and reaches the mayor as "nearby" names. Nearby counts for 0.25, split over the names, and never decides a case alone: a verdict needs someone who saw it, hearsay of a sighting, or a confession.
+      - The constable (or the mayor, if there is none) questions the people named, most-named first, once each per case, when they meet. Being questioned is seen. The culprit may confess (0.25 + 0.5 x timidity); anyone questioned says who they saw around the place at the time, which can name the culprit or point at someone else.
+      - Most people questioned are innocent (61% on placed scandals). Being suspected and questioned should cost the suspect's regard for whoever named them once feelings exist (0c).
+
+17. **Families and age** (decided 2026-10-06; see 11d).
+    - **Kin.** Villagers have family ties with roles: parent, child, spouse, sibling, grandparent, grandchild, guardian, stepparent. Parents set rules (allowance, chores, curfew) and children can break them. A household is who lives together; kin is who is family (Shane rents at the ranch and is not Marnie's kin).
+    - **Age decides what someone would do.** Life stages: child (under 13), teen (13-19), adult (20-64), elder (65+). Each act kind has an age range. A child doesn't know how to steal from a till, but squabbles with a sibling (Sid: "Vincent probably wouldn't even know how to steal from the till but he would fight with his brother"). Aging is real time (11c).
+    - **Every scandal has a motive, recorded with it.** A scandal happens only when a motive outweighs the believed risk (rule 16):
+      - *want:* something they want and can't afford (wants and fears, 11c);
+      - *grievance:* low regard for the victim after a slight (a fight with a parent, a rival shop);
+      - *thrill:* temperament (bold, restless, bored);
+      - *imitation:* friends who do it and seem to get away with it (law 7);
+      - *need:* a low purse or debt (rule 15, 0b).
+      The log can always answer "why would she": "Abigail took 50g from the till the day after Pierre refused her allowance." Until regard (0c) and money (0b) exist, the simulator keeps fixed rates, now limited by age.
+    - **Trouble inside the family stays inside.** A keeper who learns that their own kin took from them doesn't report it; it becomes a family row, which others can overhear and gossip about. A family matter becomes a town matter only through someone outside.
+    - **Families cover for each other** (Sid, 2026-10-06). Family members never report kin, don't spread stories that hurt kin, don't suspect kin, and leave kin out when questioned. Asked about a suspect in their family, they give an alibi ("she was with me"). The constable knows families cover, so a family alibi counts for less, and it never outweighs a sighting.
+    - **Shame by association** (laws 5 and 6, from 0c): a scandal costs the culprit's kin some standing too, so a parent is angrier at a public scandal than a private one.
+    - **As built in 0a** (2026-10-06): every Stardew family is in the simulator (26 villagers with the newcomer), with ages (guesses where Stardew gives none) and kin. Stealing and rummaging need age 13, drunk scenes 18, arguments 13; a child squabbles with a sibling who is there instead. Kin never report, retell, suspect or confront each other, leave each other out when questioned, and vouch for each other. A family alibi takes back half of one "nearby" (0.125) and never offsets a sighting or a confession. The constable questions the most-suspected person's housemates for alibis. A keeper who learns their own kin took from them has a family row (a news act others can see) instead of reporting. Only adults stand for constable; everyone 16 and over votes.
 
 The player is one more agent under these rules and has no meters of their own.
 
@@ -571,6 +592,10 @@ Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your ow
 
 **How a run ends** (the player's death, or losing) is saved for later.
 
+## 11d. Decisions of 2026-10-06: families and age
+
+Sid: "We also need to include the family dynamics, Abigail is the daughter of Pierre and Caroline. She could thief but why would she." And: "Age also plays into what a character would do." Agreed: scandals need motives (rule 17), age limits what anyone would do, trouble inside a family stays inside, families cover for each other (including alibis), and shame spreads to kin. All of Stardew's families come into the simulator now: "it should make for much more interesting stories." More family dynamics may follow.
+
 ## 12. Questions for Sid
 
 Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
@@ -585,4 +610,4 @@ Still open:
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
 
-   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace.
+   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace. With suspicion and interviews, 71% and 64%. With every family in (26 villagers, two listeners a teller a day), after retuning to fade 0.8 and retell 0.35: 57% and 51%. The limit is the number of witnesses: a scandal seen by one person who keeps to themselves stays small, and one seen by a crowd at a hub travels far.

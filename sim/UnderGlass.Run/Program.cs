@@ -20,6 +20,7 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--retell": gossip.RetellFactor = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--every": gossip.ChatEveryMinutes = int.Parse(args[i + 1]); break;
         case "--fade": gossip.ScandalFadePerDay = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
+        case "--tells": gossip.TellsPerDay = int.Parse(args[i + 1]); break;
     }
 }
 
@@ -91,4 +92,20 @@ if (scandalActs.Count > 0)
     double n = scandalActs.Count;
     Console.WriteLine($"{(inject ? "placed" : "natural")} scandals: known to anyone {scandalActs.Count(Known) / n:P0} (found from a trace only {scandalActs.Count(FoundOnly) / n:P0}); reported to the mayor {scandalActs.Count(Reported) / n:P0}; decided {verdicts.Count / n:P0}, of which right {verdicts.Count(x => x.v.Correct) / (double)Math.Max(1, verdicts.Count):P0}, let off {verdicts.Count(x => x.v.LetOff)}; warnings given {runs.Sum(r => r.Acts.Count(a => a.Kind == Authority.Warned))}, taken in {runs.Sum(r => r.Acts.Count(a => a.Kind == Authority.TakenIn))}");
 }
+if (scandalActs.Count > 0)
+{
+    // Piecing together "someone", and the constable's interviews.
+    bool Suspected((SimResult r, Act a) x) => x.r.Beliefs.Values.Any(h => h.TryGetValue(x.a.Id, out var b) && b.Suspects is { Count: > 0 });
+    bool CulpritSuspected((SimResult r, Act a) x) => x.r.Beliefs.Values.Any(h => h.TryGetValue(x.a.Id, out var b) && b.Suspects?.Contains(x.a.Actor) == true);
+    var nameless = scandalActs.Where(x => !x.r.Beliefs.Values.Any(h => h.TryGetValue(x.a.Id, out var b) && b.Actor is not null && b.Source != Source.Told)).ToList();
+    var asked = scandalActs.SelectMany(x => x.r.Interviews.Where(i => i.ActId == x.a.Id).Select(i => (x.a, i))).ToList();
+    var solvedByInterview = verdicts.Count(x => x.r.Interviews.Any(i => i.ActId == x.v.ActId && i.Confessed));
+    double n2 = scandalActs.Count;
+    Console.WriteLine($"suspicion: someone suspected in {scandalActs.Count(Suspected) / n2:P0} of scandals, the culprit among the suspects in {scandalActs.Count(CulpritSuspected) / n2:P0}; nobody named the culprit first-hand in {nameless.Count / n2:P0}");
+    Console.WriteLine($"interviews: {asked.Count / n2:0.0} a scandal, {asked.Count(q => q.i.Who != q.a.Actor) / (double)Math.Max(1, asked.Count):P0} of them innocent people; confessions {asked.Count(q => q.i.Confessed)}; verdicts after a confession {solvedByInterview}; wrong verdicts {verdicts.Count(x => !x.v.Correct)}");
+}
+// Families (design rule 17).
+int Count(string kind) => runs.Sum(r => r.Acts.Count(a => a.Kind == kind));
+int Logged(string word) => runs.Sum(r => r.Log.Count(l => l.Contains(word)));
+Console.WriteLine($"families: rows {Count(Simulation.FamilyRow)}, kept in the family {Logged(" kept-in-family ")}, family alibis {Logged("; vouched for ")}; sibling squabbles {Count("Squabbled")}");
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

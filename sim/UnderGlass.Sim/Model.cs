@@ -89,9 +89,38 @@ public sealed record Villager(
     Job? Job,
     IReadOnlyList<Haunt> Haunts,
     IReadOnlyDictionary<string, double> Acts,
-    IReadOnlyList<string> Friends)
+    IReadOnlyList<string> Friends,
+    int Age = 30,
+    IReadOnlyDictionary<string, Kin>? Family = null)
 {
     public string Home => "Home:" + Household;
+
+    public Stage Stage => Ages.StageOf(Age);
+
+    /// <summary>What <paramref name="other"/> is to this villager, if family.</summary>
+    public Kin? KinOf(string other) => Family is not null && Family.TryGetValue(other, out Kin k) ? k : null;
+}
+
+/// <summary>What someone is to you (design rule 17): your parent, your child, and so on. Guardian
+/// is a parent in all but name (Marnie for Jas); stepparent likewise (Demetrius for Sebastian).</summary>
+public enum Kin { Parent, Child, Spouse, Sibling, Grandparent, Grandchild, Guardian, Ward, Stepparent, Stepchild }
+
+/// <summary>Life stages (design rule 17).</summary>
+public enum Stage { Child, Teen, Adult, Elder }
+
+public static class Ages
+{
+    public static Stage StageOf(int age) => age < 13 ? Stage.Child : age < 20 ? Stage.Teen : age < 65 ? Stage.Adult : Stage.Elder;
+
+    /// <summary>The other side of a tie: a parent's child, a sibling's sibling.</summary>
+    public static Kin Reverse(Kin k) => k switch
+    {
+        Kin.Parent => Kin.Child, Kin.Child => Kin.Parent,
+        Kin.Grandparent => Kin.Grandchild, Kin.Grandchild => Kin.Grandparent,
+        Kin.Guardian => Kin.Ward, Kin.Ward => Kin.Guardian,
+        Kin.Stepparent => Kin.Stepchild, Kin.Stepchild => Kin.Stepparent,
+        _ => k,
+    };
 }
 
 /// <summary>
@@ -124,6 +153,8 @@ public sealed record TraceKind(string Name, bool KeeperOnly, int LastsMinutes, d
 /// ReadMinutes: how long it takes to understand what is happening (a glance is 1).
 /// DurationMinutes: how long it lasts. PerDay: town-wide rate when someone is able to.
 /// Allowed: the locations it can happen in (empty: anywhere). Trace: what it leaves behind.
+/// MinAge and MaxAge: who would do it (design rule 17). WithKin: it needs kin of that kind
+/// within sight (a squabble needs a sibling).
 /// </summary>
 public sealed record ActKind(
     string Name,
@@ -134,8 +165,13 @@ public sealed record ActKind(
     double PerDay,
     IReadOnlyList<string> Allowed,
     bool Upheaval = false,
-    TraceKind? Trace = null)
+    TraceKind? Trace = null,
+    int MinAge = 0,
+    int MaxAge = 200,
+    Kin? WithKin = null)
 {
+    public bool FitsAge(int age) => age >= MinAge && age <= MaxAge;
+
     /// <summary>A bad act at base juiciness 4 or more (D34; design rule 9).</summary>
     public bool IsScandal => !Upheaval && Valence < 0 && Juiciness >= 4;
 
@@ -152,7 +188,9 @@ public enum Source { Witnessed, Told, Found }
 /// <summary>
 /// What one villager believes about one act. Actor is who they think did it, or null for
 /// "someone". Juiciness is the value when they got it; it fades from GotTick (a game minute).
-/// Chain lists the tellers, nearest first, empty for a witness.
+/// Chain lists the tellers, nearest first, empty for a witness. Suspects: for a "someone" story,
+/// who was seen around the place at the time (pieced together from sightings, or heard with the
+/// story), most suspected first; null until pieced together.
 /// </summary>
 public sealed record Belief(
     int ActId,
@@ -163,7 +201,8 @@ public sealed record Belief(
     Source Source,
     double Juiciness,
     int GotTick,
-    IReadOnlyList<string> Chain);
+    IReadOnlyList<string> Chain,
+    IReadOnlyList<string>? Suspects = null);
 
 /// <summary>A villager confronted someone over a scandal (design rule 9).</summary>
 public sealed record Confrontation(int ActId, int Tick, string By, string Target, bool Correct);
@@ -183,8 +222,11 @@ public enum Consequence { Warning, RestitutionAndFine, Ban, Service, Watched, De
 
 /// <summary>What someone told the authority about a scandal (design rule 16): who they say did it
 /// (null: "someone"), how sure they are, whether they saw it or found the trace themselves, and
-/// when it reached the mayor (later than it was told, if the constable carried it).</summary>
-public sealed record Account(int ActId, string From, string? Actor, double Confidence, bool FirstHand, int Tick);
+/// when it reached the mayor (later than it was told, if the constable carried it). Nearby: who
+/// they saw around the place at the time, when they can't name the culprit. Since and Until: when
+/// they place it (-1: unknown). Alibi: kin they vouch for (families cover, rule 17).</summary>
+public sealed record Account(int ActId, string From, string? Actor, double Confidence, bool FirstHand, int Tick,
+    IReadOnlyList<string>? Nearby = null, int Since = -1, int Until = -1, IReadOnlyList<string>? Alibi = null);
 
 /// <summary>The mayor's decision on a scandal. LetOff: the mayor knew and went easy on someone
 /// close (rare for Lewis); no consequence follows.</summary>

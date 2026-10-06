@@ -190,6 +190,7 @@ public class AuthorityTests
     public void EachRunOpensWithAVoteForConstable_NotAlwaysTheSameOne()
     {
         var bold = DefaultTown.Cast().ToDictionary(v => v.Name, v => v.Temperament.Boldness);
+        int voters = DefaultTown.Cast().Count(v => v.Name != DefaultTown.Newcomer && v.Age >= Simulation.VotingAge);
         var winners = new List<string>();
         foreach (long seed in Enumerable.Range(1, 40))
         {
@@ -200,7 +201,8 @@ public class AuthorityTests
             Assert.NotEqual(DefaultTown.Mayor, e.Winner);
             Assert.NotEqual(DefaultTown.Newcomer, e.Winner);
             Assert.True(bold[e.Winner] >= 0.5);
-            Assert.Equal(12, e.Votes.Values.Sum());    // everyone but the newcomer
+            Assert.Equal(voters, e.Votes.Values.Sum()); // everyone 16 or over but the newcomer
+            Assert.True(DefaultTown.Cast().First(v => v.Name == e.Winner).Age >= 20);
             winners.Add(e.Winner);
         }
         Assert.True(winners.Distinct().Count() >= 3);
