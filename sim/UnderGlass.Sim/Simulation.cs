@@ -268,6 +268,22 @@ public sealed partial class Simulation
     /// and wakes some time before 8:00. <paramref name="each"/> is called after every minute.</summary>
     public SimResult Run(int days, Action<int, Simulation>? each = null)
     {
+        // The log is formatted in the invariant culture, so a run hashes the same on every machine
+        // (juiciness 1.5 would print as "1,5" under de-DE).
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        try
+        {
+            return RunDays(days, each);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    private SimResult RunDays(int days, Action<int, Simulation>? each)
+    {
         foreach (Person p in _people)
         {
             bool home = _places.ContainsKey(p.V.Home);
