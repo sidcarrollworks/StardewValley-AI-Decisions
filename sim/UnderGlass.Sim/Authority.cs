@@ -33,6 +33,10 @@ public sealed class AuthorityOptions
     /// case but never decides one alone: a verdict needs a direct account (a sighting, hearsay of
     /// one, or a confession) naming the accused.</summary>
     public double NearbyWeight { get; set; } = 0.25;
+    /// <summary>A family alibi takes back this share of <see cref="NearbyWeight"/> for the kin it
+    /// vouches for: the constable knows families cover (rule 17), so it counts for half, and it
+    /// only offsets being seen nearby, never a sighting or a confession.</summary>
+    public double AlibiWeight { get; set; } = 0.5;
     /// <summary>Questioned, the culprit confesses with this chance plus per-timidity x (1 -
     /// boldness), once per interview.</summary>
     public double ConfessBase { get; set; } = 0.25;
@@ -83,6 +87,7 @@ public static class Authority
         Func<string, double> trust, AuthorityOptions o)
     {
         var totals = new SortedDictionary<string, double>(StringComparer.Ordinal);
+        var near = new Dictionary<string, double>(StringComparer.Ordinal);
         var direct = new HashSet<string>(StringComparer.Ordinal);
         foreach (Account a in accounts)
         {
@@ -91,13 +96,17 @@ public static class Authority
                 direct.Add(who);
                 double w = who == a.From ? a.Confidence : a.Confidence * (a.FirstHand ? 1 : o.HearsayWeight) * trust(a.From);
                 totals[who] = totals.GetValueOrDefault(who) + w;
+                continue;
             }
-            else if (a.Nearby is { Count: > 0 } nearby)
-            {
+            if (a.Nearby is { Count: > 0 } nearby)
                 foreach (string n in nearby)
-                    totals[n] = totals.GetValueOrDefault(n) + o.NearbyWeight / nearby.Count * trust(a.From);
-            }
+                    near[n] = near.GetValueOrDefault(n) + o.NearbyWeight / nearby.Count * trust(a.From);
+            foreach (string n in a.Alibi ?? Array.Empty<string>())
+                near[n] = near.GetValueOrDefault(n) - o.NearbyWeight * o.AlibiWeight * trust(a.From);
         }
+        foreach (var (n, w) in near)
+            if (w > 0)
+                totals[n] = totals.GetValueOrDefault(n) + w;
         if (totals.Count == 0)
             return (null, 0, 0);
         var ranked = totals.OrderByDescending(p => p.Value).ThenBy(p => p.Key, StringComparer.Ordinal).ToList();

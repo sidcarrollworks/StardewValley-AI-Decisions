@@ -14,12 +14,14 @@ public sealed class GossipOptions
     public double KnowsBonus { get; set; } = 0.5;      // the listener knows the believed actor well
     public double KnowsAt { get; set; } = 0.4;         // familiarity that counts as knowing well
     /// <summary>A listener gets the story at this share of the teller's juiciness. Tuned on placed
-    /// scandals (2026-10-06): at 0.4 a scandal heard second-hand is passed on only to people who
-    /// know the culprit well, and news heard second-hand goes no further.</summary>
-    public double RetellFactor { get; set; } = 0.4;
+    /// scandals (2026-10-06): 0.4 for 13 villagers, 0.35 for the 26 with every family. A scandal
+    /// heard second-hand is then passed on only to people who know the culprit well, and news
+    /// heard second-hand goes no further.</summary>
+    public double RetellFactor { get; set; } = 0.35;
     public double FadePerDay { get; set; } = 0.5;
-    /// <summary>A witness keeps a scandal worth telling for about four days (4, 3.35, 2.7, 2.05).</summary>
-    public double ScandalFadePerDay { get; set; } = 0.65;
+    /// <summary>A witness keeps a scandal worth telling for about three days (4, 3.2, 2.4), as in the
+    /// mod (D33). It was 0.65 for 13 villagers; with 26, tellers have two listeners a day.</summary>
+    public double ScandalFadePerDay { get; set; } = 0.8;
     /// <summary>A teller tells one story to at most this many listeners a day; 0 sizes it by the
     /// town (1 under 20 villagers, 2 under 30, else 3).</summary>
     public int TellsPerDay { get; set; }
@@ -310,6 +312,7 @@ public sealed partial class Simulation
             See(m);
             PieceTogether(m);
             Authorities(m);
+            Rows(m);
         }
         CheckLate(m, t);
     }
@@ -645,8 +648,10 @@ public sealed partial class Simulation
             if (kind.PerDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= kind.PerDay / ticksPerDay)
                 continue;
             var candidates = _people
-                .Where(p => Free(p, m) && p.V.Acts.TryGetValue(kind.Name, out double w) && w > 0)
+                .Where(p => Free(p, m) && p.V.Acts.TryGetValue(kind.Name, out double w) && w > 0 && kind.FitsAge(p.V.Age))
                 .Where(p => kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place))
+                .Where(p => kind.WithKin is not { } role || _people.Any(o => o != p && !o.Asleep && p.V.KinOf(o.V.Name) == role
+                                                                             && o.Place == p.Place && o.At.Chebyshev(p.At) <= _po.FarTiles))
                 .ToList();
             if (candidates.Count == 0)
                 continue;
@@ -669,7 +674,7 @@ public sealed partial class Simulation
             if (at > m)
                 continue;
             ActKind kind = _kinds.First(k => k.Name == kindName);
-            bool Able(Person p) => Free(p, m) && (kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place));
+            bool Able(Person p) => Free(p, m) && kind.FitsAge(p.V.Age) && (kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place));
             Person? actor = null;
             if (who == Harness.Anyone)
             {
@@ -847,6 +852,8 @@ public sealed partial class Simulation
         {
             if (b.Actor == listener || b.Suspects?.Contains(listener) == true || b.Chain.Count > 0 && b.Chain[0] == listener)
                 continue; // never tell people about themselves (or that they're suspected), or back to who told you
+            if (b.Actor is { } culprit && AreKin(teller, culprit))
+                continue; // families cover: no stories that hurt kin (rule 17)
             if (_told.Contains((teller, listener, b.ActId)))
                 continue;
             if (_tellsToday.TryGetValue((teller, b.ActId, day), out int n) && n >= TellsPerDay)
@@ -870,7 +877,7 @@ public sealed partial class Simulation
         double confidence = best.Confidence * (0.5 + 0.5 * Familiarity(listener, teller));
         var told = new Belief(best.ActId, best.Kind, best.Actor, confidence, best.Clarity, Source.Told,
             _go.RetellFactor * Current(best, m), m, new[] { teller }.Concat(best.Chain).ToList(),
-            best.Actor is null ? best.Suspects : null);
+            best.Actor is null ? WithoutKin(teller, best.Suspects) : null);
         _log.Add($"{m} told {teller} {listener} {best.ActId}");
         if (_acts[best.ActId].Actor == listener)
             return; // the culprit hears about their own act: they learn nothing they didn't know
@@ -904,7 +911,7 @@ public sealed partial class Simulation
                 string target = group.Key;
                 int knowers = _names.Count(n => n != target && Familiarity(n, target) >= _go.KnowsActorAt);
                 int needed = Math.Max(_go.ConfrontMin, (int)Math.Ceiling(_go.ConfrontShare * knowers));
-                var members = group.Where(n => n != target).ToList();
+                var members = group.Where(n => n != target && !AreKin(n, target)).ToList(); // nobody confronts their own kin
                 if (members.Count < needed)
                     continue;
                 string by = members

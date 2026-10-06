@@ -78,7 +78,7 @@ public sealed partial class Simulation
                 Act act = _acts[b.ActId];
                 _ao.Keepers.TryGetValue(act.Location, out string? keeper);
                 var suspects = SeenAt(who, act.Location, since, until)
-                    .Where(n => n != keeper)
+                    .Where(n => n != keeper && !AreKin(who, n)) // nobody suspects their own kin
                     .OrderByDescending(n => 1.2 - Familiarity(who, n))
                     .ThenBy(n => n, StringComparer.Ordinal)
                     .Take(_go.MaxSuspects)

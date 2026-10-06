@@ -1,8 +1,9 @@
 namespace UnderGlass.Sim;
 
 /// <summary>
-/// The phase-0a town: six public places, four roads, a farm, one home per household, 12 of
-/// Stardew's villagers (private prototype only, design section 3) and the newcomer. Jobs, haunts,
+/// The phase-0a town: six public places, five roads, a farm, one home per household, Stardew's
+/// families and the villagers who live alone (25, private prototype only, design section 3) and
+/// the newcomer. Jobs, haunts,
 /// bodies, traits and vices are first guesses, coded here for speed; they move to JSON once the
 /// rules hold. Times are minutes of the day (design rule 1).
 /// </summary>
@@ -49,6 +50,7 @@ public static class DefaultTown
             Road("BeachPath", 16),
             Road("ForestPath", 32),
             Road("FarmRoad", 20),
+            Road("MountainPath", 24),
         };
         foreach (string home in Cast().Select(v => v.Home).Distinct().OrderBy(h => h, StringComparer.Ordinal))
             places.Add(Room(home, 10, 8, false));
@@ -78,6 +80,9 @@ public static class DefaultTown
             H("TownLane", 25, 1, "Trailer"),
             H("ForestPath", 16, 0, "Ranch"),
             H("ForestPath", 31, 1, "Cottage"),
+            H("TownLane", 21, 0, "SamHouse"),
+            L("Square", 8, 0, "MountainPath", 0, 1),
+            H("MountainPath", 23, 1, "ScienceHouse"),
             H("Saloon", 18, 10, "Saloon"),
             H("Store", 15, 0, "SeedShop"),
             H("ClinicYard", 13, 0, "Clinic"),
@@ -101,13 +106,16 @@ public static class DefaultTown
         // until vices and money make them come from pressure (0b).
         // Each leaves a trace (design principle 1): a scattered bin anyone can see for half a day;
         // missing stock only the keeper notices, by counting, for three days.
+        // Age decides who would (design rule 17): no child steals from a till or rummages a bin.
         new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0.025, new[] { "ClinicYard", "Square" },
-            Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6)),
+            Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6), MinAge: 13),
         new ActKind("Stole", 4.5, -1, 1, 1, 0.02, new[] { "Store", "Mart" },
-            Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15)),
-        new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }),
-        new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>()),
-        new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>()),
+            Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15), MinAge: 13),
+        new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }, MinAge: 18),
+        new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>(), MinAge: 13),
+        new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>(), MinAge: 10),
+        // A child squabbles with a sibling instead (Sid: Vincent "would fight with his brother").
+        new ActKind("Squabbled", 1.5, -1, 1, 5, 2.0, Array.Empty<string>(), MaxAge: 12, WithKin: Kin.Sibling),
         new ActKind("GaveGift", 1.5, 1, 1, 1, 3.0, Array.Empty<string>()),
         new ActKind("Stumbled", 1.0, 0, 1, 1, 1.5, Array.Empty<string>()),
         // Never drawn: the mayor's warning, being taken in, and being questioned by the constable
@@ -115,6 +123,9 @@ public static class DefaultTown
         new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>()),
         new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>()),
         new ActKind(Authority.Questioned, 2.5, -1, 1, 10, 0, Array.Empty<string>()),
+        // Never drawn: a keeper who learns their own kin took from them has it out at home
+        // instead of reporting it (design rule 17). The actor is the one who took.
+        new ActKind(Simulation.FamilyRow, 3.0, -1, 2, 15, 0, Array.Empty<string>()),
         // Never drawn: it happens when someone's energy runs out (design rule 1).
         new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>()),
     };
@@ -148,57 +159,140 @@ public static class DefaultTown
     private static Dictionary<string, double> A(params (string Kind, double W)[] acts)
         => acts.ToDictionary(a => a.Kind, a => a.W);
 
-    // Weekdays: 0 Mon, 1 Tue, 2 Wed, 3 Thu, 4 Fri, 5 Sat, 6 Sun.
+    /// <summary>
+    /// Family ties (design rule 17): "who is what of whom". Each tie is kept both ways, so
+    /// ("Pierre", Parent, "Abigail") makes Pierre Abigail's parent and Abigail Pierre's child.
+    /// Shane rents at the ranch and is not Marnie's kin.
+    /// </summary>
+    public static IReadOnlyList<(string Who, Kin Is, string Of)> Ties() => new[]
+    {
+        ("Pierre", Kin.Spouse, "Caroline"), ("Pierre", Kin.Parent, "Abigail"), ("Caroline", Kin.Parent, "Abigail"),
+        ("George", Kin.Spouse, "Evelyn"), ("George", Kin.Grandparent, "Alex"), ("Evelyn", Kin.Grandparent, "Alex"),
+        ("Haley", Kin.Sibling, "Emily"),
+        ("Pam", Kin.Parent, "Penny"),
+        ("Jodi", Kin.Spouse, "Kent"), ("Jodi", Kin.Parent, "Sam"), ("Jodi", Kin.Parent, "Vincent"),
+        ("Kent", Kin.Parent, "Sam"), ("Kent", Kin.Parent, "Vincent"), ("Sam", Kin.Sibling, "Vincent"),
+        ("Marnie", Kin.Guardian, "Jas"),
+        ("Robin", Kin.Spouse, "Demetrius"), ("Robin", Kin.Parent, "Sebastian"), ("Robin", Kin.Parent, "Maru"),
+        ("Demetrius", Kin.Parent, "Maru"), ("Demetrius", Kin.Stepparent, "Sebastian"), ("Maru", Kin.Sibling, "Sebastian"),
+    };
+
+    private static IReadOnlyDictionary<string, Kin> FamilyOf(string name)
+    {
+        var family = new Dictionary<string, Kin>();
+        foreach (var (who, kin, of) in Ties())
+        {
+            if (of == name) family[who] = kin;               // who is my kin
+            if (who == name) family[of] = Ages.Reverse(kin); // I am their kin, so they are the reverse to me
+        }
+        return family;
+    }
+
+    // Weekdays: 0 Mon, 1 Tue, 2 Wed, 3 Thu, 4 Fri, 5 Sat, 6 Sun. Ages are guesses: Stardew gives
+    // few. Children have lessons with Penny on weekdays.
     public static IReadOnlyList<Villager> Cast()
     {
         var everyday = ("GaveGift", 0.5);
         var trip = ("Stumbled", 0.3);
-        return new List<Villager>
+        var lessons = Works("Square", 0, 0, 10, 14, 0.8, 5, 6);
+        var list = new List<Villager>
         {
+            // The Mullners: George and Evelyn raise their grandson Alex.
             new("Alex", "JoshHouse", "young man", new(0.6, 0.8, 0.3, 0.3), new(120, 0.15), null,
                 new[] { At("Beach", 5, 6, 8, 13, 3), At("Square", 20, 12, 12, 19, 2), At("Saloon", 6, 4, 19, 24, 2) },
-                A(everyday, trip, ("Argued", 0.5), ("Stole", 0.15)), new[] { "Haley" }),
+                A(everyday, trip, ("Argued", 0.5), ("Stole", 0.15)), new[] { "Haley", "Sam" }, 21),
+            new("George", "JoshHouse", "old man", new(0.4, 0.6, 0.3, 0.5), new(80, 0.3), null,
+                new[] { At("Square", 18, 16, 10, 12, 0.5) },
+                A(trip, ("Argued", 0.6)), Array.Empty<string>(), 76),
+            new("Evelyn", "JoshHouse", "old woman", new(0.7, 0.3, 0.8, 0.6), new(85, 0.3),
+                Works("Square", 5, 15, 9, 12, 0.9, 6),
+                new[] { At("Store", 9, 2, 13, 16, 1), At("Square", 6, 16, 13, 17, 1) },
+                A(everyday, trip, ("HelpedSomeone", 0.6)), new[] { "Caroline", "Marnie" }, 74),
+            // Haley and Emily, sisters.
             new("Emily", "HaleyHouse", "young woman", new(0.7, 0.5, 0.7, 0.7), new(100, 0.08),
                 Works("Saloon", 12, 3, 16, 24, 1.1, 1),
                 new[] { At("Store", 8, 5, 9, 13, 2), At("Beach", 10, 8, 9, 15, 1), At("Square", 8, 14, 10, 16, 1) },
-                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Gus", "Shane" }),
+                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Gus", "Shane" }, 25),
+            new("Haley", "HaleyHouse", "young woman", new(0.7, 0.7, 0.2, 0.3), new(95, 0.25), null,
+                new[] { At("Square", 8, 5, 10, 16, 2), At("Beach", 10, 5, 13, 19, 2), At("Store", 6, 8, 10, 17, 1) },
+                A(everyday, trip, ("Argued", 0.5)), new[] { "Alex" }, 21),
+            // Those who live alone.
             new("Gus", "Saloon", "older man", new(0.8, 0.5, 0.6, 0.6), new(125, 0.1),
                 Works("Saloon", 10, 2, 11, 24, 1.0),
                 new[] { At("Square", 14, 6, 8, 11, 1) },
-                A(everyday, trip, ("HelpedSomeone", 0.3)), new[] { "Emily", "Pam" }),
-            new("Haley", "HaleyHouse", "young woman", new(0.7, 0.7, 0.2, 0.3), new(95, 0.25), null,
-                new[] { At("Square", 8, 5, 10, 16, 2), At("Beach", 10, 5, 13, 19, 2), At("Store", 6, 8, 10, 17, 1) },
-                A(everyday, trip, ("Argued", 0.5)), new[] { "Alex" }),
-            new("Harvey", "Clinic", "older man", new(0.4, 0.3, 0.8, 0.4), new(90, 0.25),
+                A(everyday, trip, ("HelpedSomeone", 0.3)), new[] { "Emily", "Pam" }, 50),
+            new("Harvey", "Clinic", "man", new(0.4, 0.3, 0.8, 0.4), new(90, 0.25),
                 Works("Home:Clinic", 4, 4, 9, 15, 1.0, 5, 6),
                 new[] { At("ClinicYard", 3, 3, 15, 19, 2), At("Square", 14, 14, 16, 20, 1), At("Saloon", 3, 3, 19, 23, 1) },
-                A(everyday, trip, ("HelpedSomeone", 0.6)), new[] { "Pierre" }),
+                A(everyday, trip, ("HelpedSomeone", 0.6)), new[] { "Pierre", "Maru" }, 34),
             new("Leah", "Cottage", "young woman", new(0.5, 0.5, 0.7, 0.5), new(100, 0.2), null,
                 new[] { At("Beach", 20, 4, 10, 16, 2), At("Square", 5, 15, 13, 17, 1), At("Saloon", 14, 5, 18, 23, 2) },
-                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Penny" }),
+                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Penny" }, 27),
             new("Lewis", "Manor", "older man", new(0.6, 0.6, 0.6, 0.6), new(105, 0.2),
                 Works("Square", 15, 10, 9, 17, 0.9, 5, 6),
                 new[] { At("Saloon", 8, 3, 18, 22, 2), At("Store", 4, 2, 9, 17, 1) },
-                A(everyday, trip, ("Argued", 0.3)), new[] { "Marnie", "Pierre" }),
+                A(everyday, trip, ("Argued", 0.3)), new[] { "Marnie", "Pierre", "Robin" }, 60),
+            // The ranch: Marnie, her niece Jas (in her care), and Shane, who rents a room.
             new("Marnie", "Ranch", "older woman", new(0.7, 0.4, 0.6, 0.5), new(110, 0.2),
                 Works("Home:Ranch", 4, 4, 9, 16, 1.2, 0, 1),
                 new[] { At("Store", 10, 2, 9, 17, 1), At("Square", 10, 15, 12, 18, 2), At("Saloon", 11, 4, 18, 22, 1) },
-                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Lewis" }),
-            new("Pam", "Trailer", "older woman", new(0.8, 0.7, 0.3, 0.3), new(85, 0.1), null,
-                new[] { At("Square", 22, 15, 11, 17, 2), At("Saloon", 5, 6, 15, 24, 4), At("Mart", 5, 2, 10, 16, 1) },
-                A(everyday, trip, ("DrunkScene", 1.0), ("RummagedInBin", 0.2)), new[] { "Gus" }),
-            new("Penny", "Trailer", "young woman", new(0.4, 0.2, 0.7, 0.3), new(90, 0.25),
-                Works("Square", 12, 6, 10, 14, 0.9, 5, 6),
-                new[] { At("Store", 5, 8, 14, 18, 1), At("Beach", 8, 3, 14, 18, 1), At("ClinicYard", 10, 3, 14, 18, 1) },
-                A(everyday, trip, ("HelpedSomeone", 0.5)), new[] { "Leah" }),
-            new("Pierre", "SeedShop", "older man", new(0.6, 0.6, 0.4, 0.5), new(105, 0.2),
-                Works("Store", 3, 2, 9, 17, 1.1, 2),
-                new[] { At("Square", 6, 4, 17, 20, 1), At("Saloon", 9, 4, 19, 22, 1) },
-                A(everyday, trip, ("Argued", 0.5)), new[] { "Lewis", "Harvey" }),
+                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Lewis", "Evelyn" }, 47),
+            new("Jas", "Ranch", "girl", new(0.5, 0.3, 0.6, 0.5), new(90, 0.35), lessons with { Spot = new Tile(11, 7) },
+                new[] { At("Square", 22, 16, 14, 18, 2), At("Beach", 6, 8, 14, 18, 1) },
+                A(trip, ("GaveGift", 0.3)), new[] { "Vincent" }, 7),
             new("Shane", "Ranch", "young man", new(0.3, 0.6, 0.4, 0.2), new(95, 0.1),
                 Works("Mart", 8, 5, 9, 17, 1.2, 5, 6),
                 new[] { At("Saloon", 16, 9, 17, 24, 4), At("Beach", 25, 10, 17, 23, 1) },
-                A(trip, ("DrunkScene", 1.0), ("Argued", 0.4), ("Stole", 0.3), ("RummagedInBin", 0.3)), new[] { "Emily" }),
+                A(trip, ("DrunkScene", 1.0), ("Argued", 0.4), ("Stole", 0.3), ("RummagedInBin", 0.3)), new[] { "Emily" }, 30),
+            // The trailer: Pam and her daughter Penny, who teaches the children.
+            new("Pam", "Trailer", "older woman", new(0.8, 0.7, 0.3, 0.3), new(85, 0.1), null,
+                new[] { At("Square", 22, 15, 11, 17, 2), At("Saloon", 5, 6, 15, 24, 4), At("Mart", 5, 2, 10, 16, 1) },
+                A(everyday, trip, ("DrunkScene", 1.0), ("RummagedInBin", 0.2)), new[] { "Gus" }, 50),
+            new("Penny", "Trailer", "young woman", new(0.4, 0.2, 0.7, 0.3), new(90, 0.25),
+                Works("Square", 12, 6, 10, 14, 0.9, 5, 6),
+                new[] { At("Store", 5, 8, 14, 18, 1), At("Beach", 8, 3, 14, 18, 1), At("ClinicYard", 10, 3, 14, 18, 1) },
+                A(everyday, trip, ("HelpedSomeone", 0.5)), new[] { "Leah", "Maru" }, 22),
+            // The seed shop: Pierre, Caroline and their daughter Abigail.
+            new("Pierre", "SeedShop", "older man", new(0.6, 0.6, 0.4, 0.5), new(105, 0.2),
+                Works("Store", 3, 2, 9, 17, 1.1, 2),
+                new[] { At("Square", 6, 4, 17, 20, 1), At("Saloon", 9, 4, 19, 22, 1) },
+                A(everyday, trip, ("Argued", 0.5)), new[] { "Lewis", "Harvey" }, 45),
+            new("Caroline", "SeedShop", "older woman", new(0.7, 0.4, 0.6, 0.5), new(100, 0.2), null,
+                new[] { At("Square", 7, 15, 9, 12, 2), At("Store", 12, 2, 12, 17, 2) },
+                A(everyday, trip, ("Argued", 0.3)), new[] { "Jodi", "Evelyn" }, 43),
+            new("Abigail", "SeedShop", "young woman", new(0.6, 0.8, 0.4, 0.4), new(100, 0.05), null,
+                new[] { At("Store", 13, 8, 12, 17, 1), At("Square", 24, 4, 14, 18, 1), At("Saloon", 15, 3, 19, 24, 3), At("Beach", 26, 3, 20, 24, 1) },
+                A(everyday, trip, ("Argued", 0.5), ("Stole", 0.1)), new[] { "Sam", "Sebastian" }, 20),
+            // 1 Willow Lane: Jodi, Kent and their sons Sam and Vincent.
+            new("Jodi", "SamHouse", "woman", new(0.6, 0.4, 0.6, 0.4), new(95, 0.2), null,
+                new[] { At("Store", 11, 5, 9, 12, 2), At("Square", 9, 16, 11, 14, 1) },
+                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Caroline" }, 40),
+            new("Kent", "SamHouse", "man", new(0.3, 0.5, 0.5, 0.4), new(110, 0.25), null,
+                new[] { At("Square", 26, 12, 10, 13, 1), At("Saloon", 7, 5, 19, 22, 1) },
+                A(trip, ("Argued", 0.3)), Array.Empty<string>(), 42),
+            new("Sam", "SamHouse", "young man", new(0.8, 0.7, 0.5, 0.6), new(110, 0.1),
+                Works("Mart", 11, 5, 9, 14, 1.1, 5, 6),
+                new[] { At("Beach", 18, 9, 15, 19, 1), At("Square", 23, 13, 14, 18, 1), At("Saloon", 14, 2, 19, 24, 3) },
+                A(everyday, trip, ("Argued", 0.3)), new[] { "Abigail", "Sebastian", "Alex" }, 21),
+            new("Vincent", "SamHouse", "boy", new(0.9, 0.6, 0.3, 0.6), new(90, 0.35), lessons with { Spot = new Tile(13, 7) },
+                new[] { At("Square", 21, 15, 14, 18, 2), At("Beach", 7, 9, 14, 18, 1) },
+                A(trip, ("Squabbled", 1.0), ("GaveGift", 0.3)), new[] { "Jas" }, 7),
+            // The carpenter's house on the mountain: Robin, Demetrius, Maru, and Sebastian (Robin's son).
+            new("Robin", "ScienceHouse", "woman", new(0.8, 0.6, 0.6, 0.6), new(115, 0.2),
+                Works("Home:ScienceHouse", 4, 4, 9, 17, 1.2, 1),
+                new[] { At("Saloon", 12, 5, 19, 22, 1), At("Square", 13, 16, 17, 19, 1) },
+                A(everyday, trip, ("HelpedSomeone", 0.5)), new[] { "Lewis" }, 45),
+            new("Demetrius", "ScienceHouse", "man", new(0.5, 0.5, 0.8, 0.7), new(105, 0.2),
+                Works("Home:ScienceHouse", 7, 2, 9, 17, 1.0, 5, 6),
+                new[] { At("Beach", 22, 7, 17, 19, 1), At("Square", 17, 13, 17, 19, 1) },
+                A(everyday, trip, ("Argued", 0.3)), new[] { "Harvey" }, 46),
+            new("Maru", "ScienceHouse", "young woman", new(0.6, 0.5, 0.8, 0.6), new(100, 0.15),
+                Works("Home:Clinic", 6, 4, 9, 16, 1.0, 0, 2, 4, 5, 6),
+                new[] { At("Square", 19, 14, 17, 19, 1), At("Saloon", 13, 4, 19, 22, 1) },
+                A(everyday, trip, ("HelpedSomeone", 0.4)), new[] { "Penny", "Harvey" }, 21),
+            new("Sebastian", "ScienceHouse", "young man", new(0.3, 0.5, 0.6, 0.3), new(100, 0.07), null,
+                new[] { At("Saloon", 16, 4, 19, 24, 3), At("Beach", 27, 9, 20, 24, 1) },
+                A(trip, ("Argued", 0.3), ("Stole", 0.05)), new[] { "Sam", "Abigail" }, 22),
             new(Newcomer, "Farm", "newcomer", new(0.3, 0.4, 0.5, 0.5), new(110, 0.2),
                 Works("Farm", 10, 7, 6, 12, 1.3),
                 new[]
@@ -206,7 +300,8 @@ public static class DefaultTown
                     At("ClinicYard", 10, 6, 12, 20, 1), At("Square", 25, 5, 12, 20, 2), At("Store", 7, 2, 12, 17, 1),
                     At("Beach", 14, 8, 14, 20, 1), At("Saloon", 17, 4, 18, 24, 1), At("Mart", 12, 8, 12, 18, 1),
                 },
-                A(everyday, trip, ("RummagedInBin", 1.0), ("Stole", 0.5)), Array.Empty<string>()),
+                A(everyday, trip, ("RummagedInBin", 1.0), ("Stole", 0.5)), Array.Empty<string>(), 25),
         };
+        return list.Select(v => v with { Family = FamilyOf(v.Name) }).ToList();
     }
 }

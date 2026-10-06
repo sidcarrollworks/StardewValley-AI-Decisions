@@ -14,7 +14,7 @@ Needs the .NET 8 SDK. It installs beside the 6.0 SDK the mod uses.
 
 ## Phase 0a: the gossip harness (built)
 
-The cast is 12 of Stardew's villagers, used privately until the game has its own (design, section 3), plus the newcomer. They live in six public places (the square, the saloon, Pierre's store, the chain store, the beach, the clinic yard), a farm and their homes, joined by four roads.
+The cast is Stardew's families and the villagers who live alone, 25 in all, used privately until the game has its own (design, section 3), plus the newcomer. They live in six public places (the square, the saloon, Pierre's store, the chain store, the beach, the clinic yard), a farm and their homes, joined by five roads. The families: Pierre, Caroline and Abigail; George, Evelyn and their grandson Alex; Haley and Emily; Pam and Penny; Jodi, Kent, Sam and Vincent; Marnie and her niece Jas (with Shane renting a room); Robin, Demetrius, Maru and Sebastian. Gus, Harvey, Leah and Lewis live alone.
 
 What's modelled:
 - **The clock** (design rule 1, decided 2026-10-05; `Clock`): 24 hours, the date changes at midnight, and there is no end of the day. A game day is about 20 real minutes. Routines and chats run on 5-minute ticks; acts and perception run minute by minute.
@@ -39,8 +39,9 @@ What's modelled:
 - **Gossip** (rule 8):
   - Awake pairs together for 15 minutes may chat. The chance is 0.3 x (0.5 + chattiness) per 10 minutes, once per span and again every 2 hours.
   - A teller volunteers its juiciest story at 2 or more, plus 0.5 if the listener knows the believed actor well. It never tells a story back to whoever told it, never tells someone about themselves, and tells one story to at most one listener a day in a town under 20.
-  - The listener gets the story at 0.4 of the teller's juiciness, with the chain of tellers. A name can fill in a listener's "someone". At 0.4, a scandal heard second-hand is passed on only to people who know the culprit well, and news heard second-hand goes no further.
-  - Juiciness fades 0.5 a day, or 0.65 for scandals, per whole 24 hours since each person got the story. A witness keeps telling a scandal for about four days.
+  - The listener gets the story at 0.35 of the teller's juiciness, with the chain of tellers. A name can fill in a listener's "someone". A scandal heard second-hand is passed on only to people who know the culprit well, and news heard second-hand goes no further.
+  - Juiciness fades 0.5 a day, or 0.8 for scandals, per whole 24 hours since each person got the story. A witness keeps telling a scandal for about three days.
+  - With 26 villagers, a teller tells a story to up to two listeners a day.
 - **Tiers** (rule 9, `Tier`): trivia (under 2), news (2 to under 4), scandal (a bad act at 4 or more) and upheaval (set per kind; none exist yet).
 - **Scandal** (rule 9): when the people who blame the same person reach a quarter of those who know that person (at least 3), the boldest of them confronts that person, once per scandal. The target can be the wrong person.
 - **Traces** (design principle 1; `TraceKind`, `Simulation.Traces.cs`): a theft leaves missing stock that only the keeper notices, by counting (0.15 an hour, for three days); a bin rummage leaves a scattered bin that anyone who can see the spot notices (0.6 an hour x clarity, for 12 hours). A finder learns that it happened, not who did it ("someone"), at half the act's juiciness, so a story with no name is told only the day it is found.
@@ -57,6 +58,12 @@ What's modelled:
   - Suspicion travels with the story (`Belief.Suspects`) and reaches the mayor as "nearby" names (`Account.Nearby`). Nearby counts 0.25, split over the names, and never decides a case alone.
   - **Interviews:** the constable (or the mayor) questions the people named, most-named first, once each per case, when they meet. Being questioned (`Questioned`) is seen. The culprit may confess (0.25 + 0.5 x (1 - boldness)); a confession decides the case. Anyone else says who they saw there, which can name the culprit or point elsewhere.
   - The culprit keeps no belief about their own act: told about it, they learn nothing new.
+- **Families and age** (design rule 17; `Kin`, `Stage`, `Simulation.Family.cs`):
+  - Each villager has an age (guesses where Stardew gives none) and kin with roles: parent, child, spouse, sibling, grandparent, guardian, stepparent. Household and kin differ: Shane rents at the ranch.
+  - Acts have an age range. Stealing and rummaging need 13, drunk scenes 18, arguments 13. A child squabbles with a sibling who is there (`Squabbled`). Children have lessons with Penny on weekdays.
+  - Families cover: kin never report, retell, suspect or confront each other, and leave each other out when questioned. Questioned, they vouch for kin who are suspected (`Account.Alibi`). An alibi takes back half of one "nearby" and never offsets a sighting or a confession. The constable questions the most-suspected person's housemates.
+  - A keeper who learns their own kin took from them doesn't report it: a family row (`FamilyRow`, a news act others can see) instead.
+  - Only adults stand for constable; everyone 16 and over votes.
 - **Placed scandals** (`Harness`): natural scandals are rare, so `--inject` places one per run from day 1 at a seeded time. From then on, each minute that someone is awake, free and somewhere it can happen, there is a 1 in 120 chance it happens, by one of them chosen by a seeded draw. Nobody robs their own place of work. Spread metrics then count only the placed act.
 - **Who was around** (`Scene`): for every act, how many people were awake within 8 tiles, in the same place but farther, elsewhere, or asleep.
 - **Metrics** (`Metrics`), per tier:
@@ -69,45 +76,49 @@ What's modelled:
   - bedtimes, wake times, hours slept, alarms slept through, late arrivals and collapses.
   - for scandals: known to anyone, known only from a trace, reported to the mayor, decided, decided right, let off, warnings and detentions;
   - suspicion (anyone suspected, the culprit among the suspects) and interviews (how many, how many innocent, confessions, wrong verdicts);
+  - family rows, alibis and sibling squabbles;
   - who was voted constable across runs.
 - **Determinism:** every draw comes from a named SplitMix64 stream (`Rng`), and a run's log hashes the same on every machine.
 
-Numbers with traces, the authority, suspicion and interviews (2026-10-06):
+Numbers with every family (26 villagers), 2026-10-06:
 
 | | natural acts, 200 seeds x 28 days | one placed scandal, 400 seeds x 14 days |
 |---|---|---|
-| scandals a year, town-wide | 1.3 (target 1-2) | |
-| news a year | 81 (about 1.6 a week; target a few a week) | |
-| trivia a year | 420 (about 1.2 a day) | |
-| news reach | 28% | |
-| scandal witnesses | 0.8 | 0.8 |
-| scandals nobody saw | | 51% |
-| scandals known to anyone (seen, told or found) | 52% | 87% |
-| known only from a trace | 7% | 38% |
-| **witnessed** scandals in the 40-70% band over 3+ days, by sight and gossip | | **71%** (the 0a gate) |
-| the same, counting people who only found a trace | | 64% |
-| witnessed scandals over 70% / under 40% | | 30% / 2% |
-| reported to the mayor | 52% | 85% |
-| someone suspected / the culprit among the suspects | 37% / 28% | 64% / 48% |
-| questioned a scandal / of them innocent | 0.7 / 72% | 1.0 / 61% |
-| confessions | 5 in 200 seasons | 72 in 400 runs |
-| decided by the mayor / decided right | 34% / 100% | 42% / 99% |
-| blamed right / wrong / "someone" | 69% / 0% / 31% | 44% / 1% / 55% |
+| scandals a year, town-wide | 1.4 (target 1-2) | |
+| news a year | 95 (about 1.8 a week) | |
+| trivia a year | 524 (about 1.4 a day) | |
+| news reach | 29% | |
+| scandal witnesses | 1.8 | 1.4 |
+| scandals nobody saw | | 45% |
+| scandals known to anyone (seen, told or found) | 81% | 90% |
+| known only from a trace | 12% | 34% |
+| **witnessed** scandals in the 40-70% band over 3+ days, by sight and gossip | | **57%** (the 0a gate) |
+| the same, counting people who only found a trace | | 51% |
+| witnessed scandals over 70% / below the band (sight and gossip) | | 23% / 20% |
+| reported to the mayor | 75% | 87% |
+| someone suspected / the culprit among the suspects | 54% / 28% | 78% / 41% |
+| questioned a scandal / of them innocent | 1.4 / 87% | 2.6 / 86% |
+| confessions | 6 in 200 seasons | 73 in 400 runs |
+| decided by the mayor / decided right | 43% / 97% | 47% / 99% |
+| family rows / family alibis | 0 / 51 | 4 / 585 |
+| sibling squabbles | about 0.2 a day | |
 
-Constable voted in (placed runs): Pierre 37%, Pam 17%, Shane 16%, Leah 12%, Emily 7%, Gus 6%, Alex 3%, Haley 1%.
+Constable voted in (placed runs): Pierre 21%, Maru 19%, Demetrius 11%, Abigail 7%, Shane 7%, Robin 6%, Alex 6%, Pam 6%, Sam 5%, Kent 4%, George 3%, Leah 3%, Gus 1%, Emily 1%.
 
-Sleep: bed at 22:40 on average (spread 1.5 hours, from about 19:00 to 1:00 by person), up at 7:10, 8.5 hours a night. About 1% of alarms are slept through, someone is late for work about once a season, and nobody collapses.
+Sleep: bed at 22:20 on average (spread 2.1 hours by person), up at 6:45, 8.4 hours a night. About 1% of alarms are slept through, someone is late for work about twice a season, and nobody collapses.
 
 How we got there (2026-10-06):
 1. **Who was around.** 57% of placed scandals began with nobody within 8 tiles; the other 12 people were spread over 10 places. Part of that was the harness: "the first moment anyone is able" was often a shopkeeper alone in their own shop at opening time. Placed scandals now happen at a seeded moment while someone is able, never by the keeper in their own shop.
 2. **Hubs** (rule 11) brought people together: nobody within 8 tiles fell to 40%.
 3. **What witnessed scandals did.** Once someone saw a scandal, gossip carried it too far and too fast: 48% reached more than 70% of the town, and spreading stopped after 2.4 days. How often people chat barely mattered (people at hubs spend hours together). The retell factor and the scandal fade did: a sweep of fade 0.3-0.8 against retell 0.4-0.7 put fade 0.65 and retell 0.4 best, with 72% in the band.
 4. **Traces.** Switching pieces off one at a time showed traces alone pushed witnessed scandals over the band (to 37% over 70%), because people who only saw the scattered bin counted as knowing. Finders now get half the juiciness, and the gate is also measured by sight and gossip only (73% in the band).
+5. **Every family** (26 villagers) gives tellers two listeners a day. Witnessed scandals overshot (41% over 70%); a sweep put the scandal fade back to 0.8 (the mod's value) and the retell factor at 0.35. 57% land in the band; the rest depend on how many saw it.
 
 What these say:
-- A witnessed scandal travels through about half the town over three or four days.
-- Traces bring most unseen scandals to light: 87% of placed scandals are known to someone, against 49% seen.
-- The mayor hears of 85% of placed scandals. With suspicion and interviews he decides 42% of them (25% without), almost always rightly; most of the gain is confessions. The cost is that most people questioned are innocent.
+- A witnessed scandal travels through about half the town over three days. In the bigger town the spread depends more on how many saw it: crowds at the hubs carry it far, one solitary witness doesn't.
+- Traces bring most unseen scandals to light: 90% of placed scandals are known to someone, against 55% seen.
+- The mayor hears of 87% of placed scandals and decides 47%, almost always rightly; most of the gain over traces alone is confessions. Most people questioned are innocent, more so now that suspects' families are questioned for alibis.
+- Family rows are rare: they need a keeper to learn that their own kin took from them.
 - Detention needs four verdicts against one person, so it has not happened in these runs.
 
 ## Next
