@@ -51,6 +51,12 @@ What's modelled:
   - **Verdicts.** The mayor weighs each account naming someone: confidence x (1 first-hand, 0.5 hearsay) x his trust in the teller (0.5 + 0.5 x familiarity; 1 for his own). He decides when a name reaches 0.6 and leads the next by 2 to 1. "Someone" counts for nobody, so a case can stay open. He can be wrong when the accounts are, and never accuses himself.
   - **Fairness.** If the accused is close to him (familiarity 0.5 or more, or his household), there is a 2% chance he lets them off.
   - **The ladder.** First verdict: a warning, given in person (`WarnedByMayor`, a news act others can see). Second: restitution and a fine. Third: service. From the fourth: detention, held at the manor for 24 hours (`TakenIn`, also seen). Fines and service are logged until money exists (0b).
+- **Piecing together "someone"** (design rule 16; `Simulation.Suspicion.cs`):
+  - Everyone remembers who they saw, where and when: same place, within 8 tiles, in line of sight, kept for three days.
+  - A witness who saw "someone", or a finder, recalls who was around the place at the time (30 minutes either side for a witness, the 8 hours before for a finder) and suspects up to 3 of them, strangers first. The keeper of the place is not suspected.
+  - Suspicion travels with the story (`Belief.Suspects`) and reaches the mayor as "nearby" names (`Account.Nearby`). Nearby counts 0.25, split over the names, and never decides a case alone.
+  - **Interviews:** the constable (or the mayor) questions the people named, most-named first, once each per case, when they meet. Being questioned (`Questioned`) is seen. The culprit may confess (0.25 + 0.5 x (1 - boldness)); a confession decides the case. Anyone else says who they saw there, which can name the culprit or point elsewhere.
+  - The culprit keeps no belief about their own act: told about it, they learn nothing new.
 - **Placed scandals** (`Harness`): natural scandals are rare, so `--inject` places one per run from day 1 at a seeded time. From then on, each minute that someone is awake, free and somewhere it can happen, there is a 1 in 120 chance it happens, by one of them chosen by a seeded draw. Nobody robs their own place of work. Spread metrics then count only the placed act.
 - **Who was around** (`Scene`): for every act, how many people were awake within 8 tiles, in the same place but farther, elsewhere, or asleep.
 - **Metrics** (`Metrics`), per tier:
@@ -62,10 +68,11 @@ What's modelled:
   - how often each tier happens a year;
   - bedtimes, wake times, hours slept, alarms slept through, late arrivals and collapses.
   - for scandals: known to anyone, known only from a trace, reported to the mayor, decided, decided right, let off, warnings and detentions;
+  - suspicion (anyone suspected, the culprit among the suspects) and interviews (how many, how many innocent, confessions, wrong verdicts);
   - who was voted constable across runs.
 - **Determinism:** every draw comes from a named SplitMix64 stream (`Rng`), and a run's log hashes the same on every machine.
 
-Numbers with traces and the authority (2026-10-06):
+Numbers with traces, the authority, suspicion and interviews (2026-10-06):
 
 | | natural acts, 200 seeds x 28 days | one placed scandal, 400 seeds x 14 days |
 |---|---|---|
@@ -77,12 +84,15 @@ Numbers with traces and the authority (2026-10-06):
 | scandals nobody saw | | 51% |
 | scandals known to anyone (seen, told or found) | 52% | 87% |
 | known only from a trace | 7% | 38% |
-| **witnessed** scandals in the 40-70% band over 3+ days, by sight and gossip | | **73%** (the 0a gate) |
-| the same, counting people who only found a trace | | 66% |
+| **witnessed** scandals in the 40-70% band over 3+ days, by sight and gossip | | **71%** (the 0a gate) |
+| the same, counting people who only found a trace | | 64% |
 | witnessed scandals over 70% / under 40% | | 30% / 2% |
-| reported to the mayor | 51% | 85% |
-| decided by the mayor / decided right | 28% / 100% | 25% / 99% |
-| blamed right / wrong / "someone" | 68% / 0% / 32% | 44% / 1% / 54% |
+| reported to the mayor | 52% | 85% |
+| someone suspected / the culprit among the suspects | 37% / 28% | 64% / 48% |
+| questioned a scandal / of them innocent | 0.7 / 72% | 1.0 / 61% |
+| confessions | 5 in 200 seasons | 72 in 400 runs |
+| decided by the mayor / decided right | 34% / 100% | 42% / 99% |
+| blamed right / wrong / "someone" | 69% / 0% / 31% | 44% / 1% / 55% |
 
 Constable voted in (placed runs): Pierre 37%, Pam 17%, Shane 16%, Leah 12%, Emily 7%, Gus 6%, Alex 3%, Haley 1%.
 
@@ -97,13 +107,13 @@ How we got there (2026-10-06):
 What these say:
 - A witnessed scandal travels through about half the town over three or four days.
 - Traces bring most unseen scandals to light: 87% of placed scandals are known to someone, against 49% seen.
-- The mayor hears of 85% of placed scandals and decides a quarter of them, almost always rightly; the rest stay open because nobody named anyone. That is the opening for piecing together "someone".
+- The mayor hears of 85% of placed scandals. With suspicion and interviews he decides 42% of them (25% without), almost always rightly; most of the gain is confessions. The cost is that most people questioned are innocent.
 - Detention needs four verdicts against one person, so it has not happened in these runs.
 
 ## Next
 
 1. **0a, the rest:**
-   - **Piecing together "someone"** from two partial accounts (clothing, direction) or from who was known to be nearby. The mayor's open cases are where it pays off.
+   - **Partial accounts** (clothing, direction) that narrow "someone" further.
    - **Noticing someone out at an odd hour** (acting normal, design rule 1).
 2. **0b:** a stock-and-flow money model, with fines and restitution, and deterrence for vices (design rule 16).
 3. **0c:** feelings. These are Spinoza's laws (design 3a): power of acting, joy and sadness, love and hate toward the cause, imitation, and reciprocity, built on regard and familiarity.

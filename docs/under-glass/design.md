@@ -241,6 +241,12 @@ Every constant here is a first guess, to be tested in phase 0.
       - Lewis lets off someone close (familiarity 0.5 or more, or his household) with a 2% chance.
       - The ladder runs warning, restitution and fine, service, then detention from the fourth verdict (24 hours at the manor). Warnings and detentions are delivered in person and can be seen; fines and service wait for money (0b).
       - The opening vote: the bold stand, everyone but the newcomer votes. Across 400 runs, eight different villagers were voted in; Pierre most often (37%).
+    - **Piecing together "someone" and interviews** (Sid, 2026-10-06: "they should be able to piece together from people around. Then the constable could interview the character and see if any more info comes up."):
+      - Everyone remembers who they saw, where and when (same place, within 8 tiles, in line of sight; kept 3 days).
+      - Someone who saw or found a scandal without seeing who did it suspects who was around the place at the time: 30 minutes either side for a witness, the 8 hours before for a finder. Strangers are suspected before friends (law 9); the keeper of the place is not suspected. Up to 3 names.
+      - Suspicion travels with the story, and reaches the mayor as "nearby" names. Nearby counts for 0.25, split over the names, and never decides a case alone: a verdict needs someone who saw it, hearsay of a sighting, or a confession.
+      - The constable (or the mayor, if there is none) questions the people named, most-named first, once each per case, when they meet. Being questioned is seen. The culprit may confess (0.25 + 0.5 x timidity); anyone questioned says who they saw around the place at the time, which can name the culprit or point at someone else.
+      - Most people questioned are innocent (61% on placed scandals). Being suspected and questioned should cost the suspect's regard for whoever named them once feelings exist (0c).
 
 The player is one more agent under these rules and has no meters of their own.
 
@@ -585,4 +591,4 @@ Still open:
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
 
-   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace.
+   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace. With suspicion and interviews, 71% and 64%.

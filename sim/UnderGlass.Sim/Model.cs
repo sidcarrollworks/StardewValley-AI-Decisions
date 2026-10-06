@@ -152,7 +152,9 @@ public enum Source { Witnessed, Told, Found }
 /// <summary>
 /// What one villager believes about one act. Actor is who they think did it, or null for
 /// "someone". Juiciness is the value when they got it; it fades from GotTick (a game minute).
-/// Chain lists the tellers, nearest first, empty for a witness.
+/// Chain lists the tellers, nearest first, empty for a witness. Suspects: for a "someone" story,
+/// who was seen around the place at the time (pieced together from sightings, or heard with the
+/// story), most suspected first; null until pieced together.
 /// </summary>
 public sealed record Belief(
     int ActId,
@@ -163,7 +165,8 @@ public sealed record Belief(
     Source Source,
     double Juiciness,
     int GotTick,
-    IReadOnlyList<string> Chain);
+    IReadOnlyList<string> Chain,
+    IReadOnlyList<string>? Suspects = null);
 
 /// <summary>A villager confronted someone over a scandal (design rule 9).</summary>
 public sealed record Confrontation(int ActId, int Tick, string By, string Target, bool Correct);
@@ -183,8 +186,11 @@ public enum Consequence { Warning, RestitutionAndFine, Ban, Service, Watched, De
 
 /// <summary>What someone told the authority about a scandal (design rule 16): who they say did it
 /// (null: "someone"), how sure they are, whether they saw it or found the trace themselves, and
-/// when it reached the mayor (later than it was told, if the constable carried it).</summary>
-public sealed record Account(int ActId, string From, string? Actor, double Confidence, bool FirstHand, int Tick);
+/// when it reached the mayor (later than it was told, if the constable carried it). Nearby: who
+/// they saw around the place at the time, when they can't name the culprit. Since and Until: when
+/// they place it (-1: unknown).</summary>
+public sealed record Account(int ActId, string From, string? Actor, double Confidence, bool FirstHand, int Tick,
+    IReadOnlyList<string>? Nearby = null, int Since = -1, int Until = -1);
 
 /// <summary>The mayor's decision on a scandal. LetOff: the mayor knew and went easy on someone
 /// close (rare for Lewis); no consequence follows.</summary>

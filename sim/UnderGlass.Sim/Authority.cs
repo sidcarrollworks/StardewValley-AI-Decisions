@@ -29,6 +29,14 @@ public sealed class AuthorityOptions
     public double VerdictLead { get; set; } = 2;
     /// <summary>Hearsay counts for this share of a first-hand account.</summary>
     public double HearsayWeight { get; set; } = 0.5;
+    /// <summary>Being seen nearby counts for this share, split over the names given. It adds to a
+    /// case but never decides one alone: a verdict needs a direct account (a sighting, hearsay of
+    /// one, or a confession) naming the accused.</summary>
+    public double NearbyWeight { get; set; } = 0.25;
+    /// <summary>Questioned, the culprit confesses with this chance plus per-timidity x (1 -
+    /// boldness), once per interview.</summary>
+    public double ConfessBase { get; set; } = 0.25;
+    public double ConfessPerTimidity { get; set; } = 0.5;
     /// <summary>The chance the mayor goes easy on someone close (familiarity at least SwayCloseAt,
     /// or the same household). Lewis is just and fair, so it is very small (Sid, 2026-10-06).</summary>
     public double SwayChance { get; set; } = 0.02;
@@ -48,6 +56,8 @@ public static class Authority
     public const string Warned = "WarnedByMayor";
     /// <summary>The act kind for being taken in to be detained; its actor is the person taken.</summary>
     public const string TakenIn = "TakenIn";
+    /// <summary>The act kind for being questioned by the constable; its actor is the person questioned.</summary>
+    public const string Questioned = "Questioned";
 
     /// <summary>The ladder: a first verdict is a warning, a second restitution and a fine, a third
     /// service, and from the fourth, detention.</summary>
@@ -62,22 +72,37 @@ public static class Authority
     /// <summary>
     /// How the mayor weighs what he has been told. Each account that names someone counts its
     /// confidence, times 1 if first-hand or <see cref="AuthorityOptions.HearsayWeight"/> if heard,
-    /// times the mayor's trust in the teller. The leading name is the accused only if it reaches
-    /// <see cref="AuthorityOptions.VerdictWeight"/> and leads the next name by
-    /// <see cref="AuthorityOptions.VerdictLead"/>; "someone" counts for nobody.
+    /// times the mayor's trust in the teller; a confession counts in full, whoever makes it. Names
+    /// seen nearby add <see cref="AuthorityOptions.NearbyWeight"/>, split over the names in that
+    /// account, times trust. The leading name is the accused only if it reaches
+    /// <see cref="AuthorityOptions.VerdictWeight"/>, leads the next by
+    /// <see cref="AuthorityOptions.VerdictLead"/>, and has at least one direct account: being
+    /// nearby never decides a case alone. "Someone" counts for nobody.
     /// </summary>
     public static (string? Accused, double Weight, double Next) Weigh(IEnumerable<Account> accounts,
         Func<string, double> trust, AuthorityOptions o)
     {
         var totals = new SortedDictionary<string, double>(StringComparer.Ordinal);
+        var direct = new HashSet<string>(StringComparer.Ordinal);
         foreach (Account a in accounts)
+        {
             if (a.Actor is { } who)
-                totals[who] = totals.GetValueOrDefault(who) + a.Confidence * (a.FirstHand ? 1 : o.HearsayWeight) * trust(a.From);
+            {
+                direct.Add(who);
+                double w = who == a.From ? a.Confidence : a.Confidence * (a.FirstHand ? 1 : o.HearsayWeight) * trust(a.From);
+                totals[who] = totals.GetValueOrDefault(who) + w;
+            }
+            else if (a.Nearby is { Count: > 0 } nearby)
+            {
+                foreach (string n in nearby)
+                    totals[n] = totals.GetValueOrDefault(n) + o.NearbyWeight / nearby.Count * trust(a.From);
+            }
+        }
         if (totals.Count == 0)
             return (null, 0, 0);
         var ranked = totals.OrderByDescending(p => p.Value).ThenBy(p => p.Key, StringComparer.Ordinal).ToList();
         double best = ranked[0].Value, next = ranked.Count > 1 ? ranked[1].Value : 0;
-        bool decided = best >= o.VerdictWeight && best >= o.VerdictLead * next;
+        bool decided = best >= o.VerdictWeight && best >= o.VerdictLead * next && direct.Contains(ranked[0].Key);
         return (decided ? ranked[0].Key : null, best, next);
     }
 

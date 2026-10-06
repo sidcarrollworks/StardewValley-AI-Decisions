@@ -110,10 +110,11 @@ public static class DefaultTown
         new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>()),
         new ActKind("GaveGift", 1.5, 1, 1, 1, 3.0, Array.Empty<string>()),
         new ActKind("Stumbled", 1.0, 0, 1, 1, 1.5, Array.Empty<string>()),
-        // Never drawn: the mayor's warning and being taken in (design rule 16). The actor is the
-        // person warned or taken.
+        // Never drawn: the mayor's warning, being taken in, and being questioned by the constable
+        // (design rule 16). The actor is the person warned, taken or questioned.
         new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>()),
         new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>()),
+        new ActKind(Authority.Questioned, 2.5, -1, 1, 10, 0, Array.Empty<string>()),
         // Never drawn: it happens when someone's energy runs out (design rule 1).
         new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>()),
     };

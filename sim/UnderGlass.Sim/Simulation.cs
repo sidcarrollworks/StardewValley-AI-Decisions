@@ -27,6 +27,11 @@ public sealed class GossipOptions
     public double ConfrontShare { get; set; } = 0.25;
     public int ConfrontMin { get; set; } = 3;
     public double KnowsActorAt { get; set; } = 0.2;     // familiarity that counts as knowing someone at all
+    /// <summary>A witness who saw "someone" suspects whoever they saw around the place this many
+    /// minutes either side of it; a finder, anyone seen there in the hours before the find.</summary>
+    public int SuspectSeenMinutes { get; set; } = 30;
+    public int SuspectFoundHours { get; set; } = 8;
+    public int MaxSuspects { get; set; } = 3;
 }
 
 /// <summary>Knobs for bodies, sleep and getting about (design rule 1). First guesses.</summary>
@@ -89,6 +94,8 @@ public sealed class SimResult
     public required IReadOnlyList<Account> Accounts { get; init; }
     public required IReadOnlyList<Verdict> Verdicts { get; init; }
     public required IReadOnlyList<Election> Elections { get; init; }
+    /// <summary>Everyone questioned about a case, and whether they confessed.</summary>
+    public required IReadOnlyList<(int ActId, string Who, bool Confessed)> Interviews { get; init; }
     public required string? Constable { get; init; }
 }
 
@@ -276,6 +283,7 @@ public sealed partial class Simulation
             Accounts = _filed,
             Verdicts = _verdicts,
             Elections = _elections,
+            Interviews = _interviews,
             Constable = _constable,
         };
     }
@@ -299,6 +307,8 @@ public sealed partial class Simulation
             Socialise(m);
             CheckScandals(m);
             CheckTraces(m);
+            See(m);
+            PieceTogether(m);
             Authorities(m);
         }
         CheckLate(m, t);
@@ -835,14 +845,15 @@ public sealed partial class Simulation
         double bestScore = 0;
         foreach (Belief b in _beliefs[teller].Values.OrderBy(b => b.ActId))
         {
-            if (b.Actor == listener || b.Chain.Count > 0 && b.Chain[0] == listener)
-                continue; // never tell people about themselves, or back to who told you
+            if (b.Actor == listener || b.Suspects?.Contains(listener) == true || b.Chain.Count > 0 && b.Chain[0] == listener)
+                continue; // never tell people about themselves (or that they're suspected), or back to who told you
             if (_told.Contains((teller, listener, b.ActId)))
                 continue;
             if (_tellsToday.TryGetValue((teller, b.ActId, day), out int n) && n >= TellsPerDay)
                 continue;
+            string? named = b.Actor ?? b.Suspects?.FirstOrDefault();
             double score = Current(b, m)
-                + (b.Actor is { } who && Familiarity(listener, who) >= _go.KnowsAt ? _go.KnowsBonus : 0);
+                + (named is { } who && Familiarity(listener, who) >= _go.KnowsAt ? _go.KnowsBonus : 0);
             if (score < _go.VolunteerLevel)
                 continue;
             if (best is null || score > bestScore || score == bestScore && b.ActId > best.ActId)
@@ -858,14 +869,19 @@ public sealed partial class Simulation
         _tellsToday[(teller, best.ActId, day)] = _tellsToday.GetValueOrDefault((teller, best.ActId, day)) + 1;
         double confidence = best.Confidence * (0.5 + 0.5 * Familiarity(listener, teller));
         var told = new Belief(best.ActId, best.Kind, best.Actor, confidence, best.Clarity, Source.Told,
-            _go.RetellFactor * Current(best, m), m, new[] { teller }.Concat(best.Chain).ToList());
+            _go.RetellFactor * Current(best, m), m, new[] { teller }.Concat(best.Chain).ToList(),
+            best.Actor is null ? best.Suspects : null);
         _log.Add($"{m} told {teller} {listener} {best.ActId}");
+        if (_acts[best.ActId].Actor == listener)
+            return; // the culprit hears about their own act: they learn nothing they didn't know
 
         if (_beliefs[listener].TryGetValue(best.ActId, out Belief? held))
         {
             // Already known: a name can fill in "someone", or replace a weaker name. Never more juice.
             if (told.Actor is not null && (held.Actor is null || told.Confidence > held.Confidence))
                 Add(listener, held with { Actor = told.Actor, Confidence = told.Confidence }, m);
+            else if (told.Actor is null && held.Actor is null && held.Suspects is not { Count: > 0 } && told.Suspects is { Count: > 0 })
+                Add(listener, held with { Suspects = told.Suspects }, m); // someone's suspicion fills in their "someone"
             return;
         }
         Add(listener, told, m);
@@ -905,6 +921,7 @@ public sealed partial class Simulation
 
     private void CloseDay(int day, int days)
     {
+        ForgetSightings((day + 1) * Clock.MinutesPerDay);
         foreach (Act act in _acts)
         {
             if (!_holdersByDay.TryGetValue(act.Id, out int[]? counts))
