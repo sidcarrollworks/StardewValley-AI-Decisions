@@ -94,6 +94,18 @@ public sealed record Villager(
     public string Home => "Home:" + Household;
 }
 
+/// <summary>
+/// A hub (design rule 11): a time when the town gathers at one place, such as noon in the square,
+/// evenings at the saloon or market day. While it is on, anyone free may pick it like a haunt,
+/// with this weight, and stands somewhere within Radius tiles of Center. Weekdays empty: every day.
+/// </summary>
+public sealed record Gathering(string Name, string Place, Tile Center, int Radius, int From, int To,
+    IReadOnlyList<int> Weekdays, double Weight)
+{
+    public bool On(int minute) => (Weekdays.Count == 0 || Weekdays.Contains(Clock.Weekday(minute)))
+        && Clock.OfDay(minute) >= From && Clock.OfDay(minute) < To;
+}
+
 /// <summary>The four tiers of a story (design rule 9, decided 2026-10-05).</summary>
 public enum Tier { Trivia, News, Scandal, Upheaval }
 
@@ -148,3 +160,8 @@ public sealed record Confrontation(int ActId, int Tick, string By, string Target
 /// <summary>One night's sleep (or nap): when it began and ended, and whether an alarm was slept
 /// through. WokeAt is null if the run ended first.</summary>
 public sealed record Sleep(string Name, int SleptAt, int? WokeAt, double EnergyAtSleep, bool MissedAlarm, bool Collapsed);
+
+/// <summary>Who was around when an act began (a diagnostic for spread): awake within sight range
+/// in the same place, awake in the same place but farther, awake elsewhere, and asleep. The actor
+/// is not counted.</summary>
+public sealed record Scene(int InRange, int SamePlace, int Elsewhere, int Asleep);

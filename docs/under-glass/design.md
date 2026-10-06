@@ -172,8 +172,8 @@ Every constant here is a first guess, to be tested in phase 0.
 8. **Gossip.** Awake villagers co-located for 15 minutes or more chat with a seeded chance of 0.3 x (0.5 + chattiness) per 10 minutes.
    - The teller offers its juiciest story at 2 or more that, by its own record, it has not told this listener and did not hear from them.
    - Add 0.5 if the listener has a close tie to someone in the story (regard 0.4 or more, or the same household).
-   - The listener stores the story at 0.7 x the teller's juiciness, with the chain of tellers.
-   - Juiciness fades 0.5 a day (0.8 at base 4 or more), counted in whole 24-hour periods from when each person got the story (as in the mod, D33).
+   - The listener stores the story at 0.4 x the teller's juiciness, with the chain of tellers (tuned in 0a, 2026-10-06; the mod uses 0.7). A scandal heard second-hand is then passed on only to people who know the culprit well, and news heard second-hand goes no further.
+   - Juiciness fades 0.5 a day (0.65 at base 4 or more, so a witness keeps telling a scandal for about four days), counted in whole 24-hour periods from when each person got the story (as in the mod, D33, which uses 0.8 for scandals).
    - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
    - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
    - Retelling never adds detail.
@@ -198,7 +198,7 @@ Every constant here is a first guess, to be tested in phase 0.
     - Each subject gets two attempt slots per day. A question is asked again only when the motive moves by 0.1.
     - Light acts are capped at 2 a day and never counted as ignored. Hostile acts have a 3-day cooldown per pair.
     - Life choices (courting, splitting up, shop hours, hiring) use the same gate. They hold for a minimum time and need a 0.3 margin to reverse.
-11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
+11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. As built in 0a, a hub is a gathering that anyone free can pick like a haunt, with a weight: noon in the square (3), evenings at the saloon (2), Saturday market in the square (12). Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
 12. **Market and money.** Every sale has a named buyer with cash and weekly demand.
     - Town cash changes only through named outside accounts: the trader, outside wages, a county stipend.
     - A shop buys at 0.6 of its shelf price or less. Shelf price x (1 - 0.1 x regard for the customer); buy price x (1 + 0.1 x regard).
@@ -324,6 +324,11 @@ Spinoza separates *potentia*, a person's own power of acting, from power over ot
 **Villagers hold power too.** Lewis, Pierre, the chain store's manager and the saloon keeper all build and spend it. Town politics comes out of the same rules, with or without the player. The alien's situation makes power double-edged: standing protects you from suspicion, but it also draws attention.
 
 This is a first sketch. The constants and the meeting rules are for us to work out together.
+
+**Sid's view (2026-10-06).** Changing the rules of the town is a big part of the game, but the meeting is not settled as *the* main stake. What counts:
+- What is put to a vote has to be worth the effort of winning it: a change the player and the villagers feel in their days, not a token.
+- Not every player will enjoy politics. The meeting must be one way to play, never a chore every player has to do.
+- Its best quality is that it can change where a run goes: the same town can end up in different places.
 
 ## 7. Farming and the economy
 
@@ -522,8 +527,11 @@ E5 is Sid's blind read of 10 season journals.
 Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
 
 Still open:
-1. Power (section 6a): does the proposal match what you mean, and should the season town meeting be the main stake?
-2. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
+1. **The player's main goal, and the alien premise** (11a). Sid isn't sold on either yet (2026-10-06). The simulation doesn't depend on them, so phase 0 goes ahead; both are for later.
+2. **Power** (section 6a): rule changes matter, the meeting is not settled as the main stake, and votes must be worth the effort and optional for players who don't enjoy politics (Sid, 2026-10-06). Still to settle: what kinds of rule are worth voting on.
+3. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
    - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
+
+   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band.

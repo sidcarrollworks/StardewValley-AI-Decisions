@@ -13,9 +13,13 @@ public sealed class GossipOptions
     public double VolunteerLevel { get; set; } = 2;
     public double KnowsBonus { get; set; } = 0.5;      // the listener knows the believed actor well
     public double KnowsAt { get; set; } = 0.4;         // familiarity that counts as knowing well
-    public double RetellFactor { get; set; } = 0.7;
+    /// <summary>A listener gets the story at this share of the teller's juiciness. Tuned on placed
+    /// scandals (2026-10-06): at 0.4 a scandal heard second-hand is passed on only to people who
+    /// know the culprit well, and news heard second-hand goes no further.</summary>
+    public double RetellFactor { get; set; } = 0.4;
     public double FadePerDay { get; set; } = 0.5;
-    public double ScandalFadePerDay { get; set; } = 0.8;
+    /// <summary>A witness keeps a scandal worth telling for about four days (4, 3.35, 2.7, 2.05).</summary>
+    public double ScandalFadePerDay { get; set; } = 0.65;
     /// <summary>A teller tells one story to at most this many listeners a day; 0 sizes it by the
     /// town (1 under 20 villagers, 2 under 30, else 3).</summary>
     public int TellsPerDay { get; set; }
@@ -76,6 +80,8 @@ public sealed class SimResult
     public required IReadOnlyList<Sleep> Sleeps { get; init; }
     /// <summary>Workers not at work <see cref="BodyOptions.LateAfterMinutes"/> after it started.</summary>
     public required IReadOnlyList<(string Name, int Day)> Late { get; init; }
+    /// <summary>Who was around when each act began.</summary>
+    public required IReadOnlyDictionary<int, Scene> Scenes { get; init; }
 }
 
 /// <summary>
@@ -88,6 +94,10 @@ public sealed class SimResult
 public sealed class Simulation
 {
     public const string Collapsed = "Collapsed";
+
+    /// <summary>For an act placed with <see cref="Harness.Anyone"/>: the mean number of minutes
+    /// with someone able before it happens.</summary>
+    public const int PlacedMeanWait = 120;
 
     private sealed class Person
     {
@@ -134,6 +144,8 @@ public sealed class Simulation
     private readonly Dictionary<int, int[]> _holdersByDay = new();
     private readonly List<Sleep> _sleeps = new();
     private readonly List<(string, int)> _late = new();
+    private readonly Dictionary<int, Scene> _scenes = new();
+    private readonly IReadOnlyList<Gathering> _gatherings;
     private readonly List<string> _log = new();
     private readonly List<(int Tick, string Actor, string Kind)> _pending;
     private readonly int _wander;
@@ -145,11 +157,13 @@ public sealed class Simulation
     /// awake, free and somewhere the act is allowed (within 3 days, else dropped). The actor
     /// <see cref="Harness.Anyone"/> means whoever is first able. Marked injected.</param>
     /// <param name="links">Doors between places; defaults to the town's when the places are the town's.</param>
+    /// <param name="gatherings">Hubs; default to the town's when the places are the town's.</param>
     public Simulation(long seed, IReadOnlyList<Villager>? cast = null, IReadOnlyList<Location>? places = null,
         IReadOnlyList<ActKind>? kinds = null, PerceptionOptions? perception = null, GossipOptions? gossip = null,
         IReadOnlyList<(int Tick, string Actor, string Kind)>? scheduled = null, int wander = 2,
-        IReadOnlyList<Link>? links = null, BodyOptions? body = null)
+        IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null)
     {
+        _gatherings = gatherings ?? (places is null ? DefaultTown.Gatherings() : Array.Empty<Gathering>());
         _wander = wander;
         _pending = (scheduled ?? Array.Empty<(int, string, string)>()).ToList();
         _seed = seed;
@@ -239,6 +253,7 @@ public sealed class Simulation
             Days = days,
             Sleeps = _sleeps,
             Late = _late,
+            Scenes = _scenes,
         };
     }
 
@@ -401,6 +416,17 @@ public sealed class Simulation
             return;
 
         var options = p.V.Haunts.Where(h => h.Open(t)).Select(h => (Haunt: (Haunt?)h, h.Weight)).ToList();
+        foreach (Gathering g in _gatherings.Where(g => g.On(m)))
+        {
+            // A spot in the crowd, the same for this person all through the gathering.
+            int day = Clock.Day(m);
+            var spot = new Tile(g.Center.X + Rng.Range(_seed, -g.Radius, g.Radius, "crowd-x", g.Name, p.V.Name, day.ToString()),
+                                g.Center.Y + Rng.Range(_seed, -g.Radius, g.Radius, "crowd-y", g.Name, p.V.Name, day.ToString()));
+            if (!_places[g.Place].Walkable(spot))
+                spot = g.Center;
+            int to = g.To;
+            options.Add((new Haunt(g.Place, spot, g.From, to, g.Weight), g.Weight));
+        }
         if (hasHome)
             options.Add((null, 1.0));
         if (options.Count == 0)
@@ -602,8 +628,11 @@ public sealed class Simulation
             Person? actor = null;
             if (who == Harness.Anyone)
             {
-                var able = _people.Where(Able).ToList();
-                if (able.Count > 0)
+                // Not the keeper in their own place of work: nobody robs their own shop.
+                var able = _people.Where(p => Able(p) && p.V.Job?.Place != p.Place).ToList();
+                // A seeded chance each minute someone is able, so the moment is spread over the
+                // times people are there instead of always the first (often an empty shop at dawn).
+                if (able.Count > 0 && Rng.Unit(_seed, "placed-when", i.ToString(), m.ToString()) < 1.0 / PlacedMeanWait)
                     actor = able[Rng.Range(_seed, 0, able.Count - 1, "placed", i.ToString(), m.ToString())];
             }
             else if (Able(_people[_index[who]]))
@@ -622,6 +651,16 @@ public sealed class Simulation
     {
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected);
         _acts.Add(act);
+        int inRange = 0, samePlace = 0, elsewhere = 0, asleep = 0;
+        foreach (Person o in _people)
+        {
+            if (o == actor) continue;
+            if (o.Asleep) asleep++;
+            else if (o.Place != act.Location) elsewhere++;
+            else if (o.At.Chebyshev(act.At) <= _po.FarTiles) inRange++;
+            else samePlace++;
+        }
+        _scenes[act.Id] = new Scene(inRange, samePlace, elsewhere, asleep);
         actor.BusyUntil = m + kind.DurationMinutes - 1;
         _watching[act.Id] = new Dictionary<string, List<double>>();
         _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}");

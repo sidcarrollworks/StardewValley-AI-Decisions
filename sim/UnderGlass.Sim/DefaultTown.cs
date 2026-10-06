@@ -82,6 +82,15 @@ public static class DefaultTown
         };
     }
 
+    /// <summary>The town's hubs (design rule 11): noon in the square, evenings at the saloon, and
+    /// market day on Saturday.</summary>
+    public static IReadOnlyList<Gathering> Gatherings() => new[]
+    {
+        new Gathering("Noon", "Square", new Tile(15, 14), 4, H(11, 30), H(13, 30), Array.Empty<int>(), 3),
+        new Gathering("Evening", "Saloon", new Tile(10, 4), 4, H(18), H(23), Array.Empty<int>(), 2),
+        new Gathering("Market", "Square", new Tile(15, 5), 5, H(9), H(14), new[] { 5 }, 12),
+    };
+
     public static IReadOnlyList<ActKind> Acts() => new[]
     {
         // Scandals are rare (design rule 9 tiers): about 1-2 a year town-wide, a placeholder

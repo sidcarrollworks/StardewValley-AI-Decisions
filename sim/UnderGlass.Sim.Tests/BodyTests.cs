@@ -136,4 +136,40 @@ public class BodyTests
         Assert.Equal(2, Clock.Weekday(9 * Clock.MinutesPerDay + 1));
         Assert.Equal(20 * 60, Clock.MinutesPerDay * Clock.RealSecondsPerGameMinute, 6);
     }
+
+    [Fact]
+    public void MarketDayGathersTheTownInTheSquare()
+    {
+        // Over five seeds, people in the square at 11:00 on Saturday against Friday.
+        int friday = 0, saturday = 0;
+        foreach (long seed in Enumerable.Range(1, 5))
+            new Simulation(seed).Run(6, (m, sim) =>
+            {
+                if (m != 4 * Clock.MinutesPerDay + Clock.At(11) && m != 5 * Clock.MinutesPerDay + Clock.At(11))
+                    return;
+                int n = DefaultTown.Cast().Count(v => sim.Where(v.Name).Place == "Square");
+                if (Clock.Weekday(m) == 5) saturday += n; else friday += n;
+            });
+        Assert.True(saturday >= 5 * 4, $"saturday {saturday}");
+        Assert.True(saturday > friday, $"saturday {saturday}, friday {friday}");
+    }
+
+    [Fact]
+    public void EveryActRecordsWhoWasAround_AndNobodyRobsTheirOwnShop()
+    {
+        var kinds = DefaultTown.Acts();
+        foreach (long seed in Enumerable.Range(1, 30))
+        {
+            var placed = (1500, Harness.Anyone, "Stole");
+            SimResult r = new Simulation(seed, kinds: kinds, scheduled: new[] { placed }).Run(4);
+            Assert.Equal(r.Acts.Count, r.Scenes.Count);
+            foreach (Act a in r.Acts)
+            {
+                Scene sc = r.Scenes[a.Id];
+                Assert.Equal(r.CastSize - 1, sc.InRange + sc.SamePlace + sc.Elsewhere + sc.Asleep);
+            }
+            if (r.Acts.FirstOrDefault(a => a.Injected) is { } stole)
+                Assert.NotEqual(stole.Location, DefaultTown.Cast().First(v => v.Name == stole.Actor).Job?.Place);
+        }
+    }
 }
