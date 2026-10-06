@@ -344,9 +344,10 @@ public sealed partial class Simulation
     }
 
     /// <summary>The second step of the ladder: pay back the goods and a fine to the town. Whatever
-    /// can't be paid becomes community service.</summary>
-    private bool PayUp(int actId, string accused, int m)
+    /// can't be paid becomes community service. Back: what was paid back to the keeper.</summary>
+    private bool PayUp(int actId, string accused, int m, out double back)
     {
+        back = 0;
         if (!HasMoney)
             return false;
         double owed = _theftValue.GetValueOrDefault(actId) + _mo.Fine;
@@ -356,13 +357,16 @@ public sealed partial class Simulation
         double fromPurse = Math.Min(owed - fromPocket, Math.Max(0, _purse[home]));
         _purse[home] -= fromPurse;
         double paid = fromPocket + fromPurse;
-        double back = Math.Min(paid, _theftValue.GetValueOrDefault(actId));
+        back = Math.Min(paid, _theftValue.GetValueOrDefault(actId));
         Act act = _acts[actId];
         if (back > 0 && _ao.Keepers.TryGetValue(act.Location, out string? keeper) && _index.ContainsKey(keeper) && act.Location != "Mart")
             _purse[HouseholdOf(keeper)] += back;
         else
+        {
             _outsideOut += back; // the chain's head office is repaid
-        _purse[Town] += paid - back;
+            back = 0;            // nothing came back to a keeper in town
+        }
+        _purse[Town] += paid - Math.Min(paid, _theftValue.GetValueOrDefault(actId));
         _log.Add($"{m} paid {accused} {paid:0} of {owed:0} for {actId}");
         return paid >= owed;
     }

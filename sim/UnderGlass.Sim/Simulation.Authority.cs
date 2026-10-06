@@ -303,10 +303,11 @@ public sealed partial class Simulation
             if (step == Consequence.RestitutionAndFine)
             {
                 // Paid at once from pocket and purse; whatever can't be paid is served instead.
-                bool paid = PayUp(actId, accused, m);
+                bool paid = PayUp(actId, accused, m, out double back);
                 Act scandal = _acts[actId];
-                if (scandal.Location != "Mart" && _ao.Keepers.TryGetValue(scandal.Location, out string? keeper) && _index.ContainsKey(keeper))
+                if (back > 0 && scandal.Location != "Mart" && _ao.Keepers.TryGetValue(scandal.Location, out string? keeper) && _index.ContainsKey(keeper))
                     Confirm(keeper, actId, accused, m); // F15: the goods paid back confirm it to the keeper
+                Accused(accused, actId, Namers(Known(actId), accused), _fo.AccusedJoy, "verdict", m); // F13: found guilty and fined
                 if (!paid)
                     _toDeliver.Add((actId, accused, Consequence.Service));
                 continue;

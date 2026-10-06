@@ -274,7 +274,8 @@ public sealed partial class Simulation
         {
             // F9a: "someone, a young man": the feeling goes to the kind of person seen (law 9).
             double freedom = _fo.Freedom ? row.Freedom : 1;
-            Want(-(k + 1), rec.F0 * b.Clarity * row.Plastic * _fo.PlasticScale * freedom * keep * (1 - 0.5 * U(h)), "Kind");
+            double seenWeight = _fo.Presence ? b.Clarity : 1;
+            Want(-(k + 1), rec.F0 * seenWeight * row.Plastic * _fo.PlasticScale * freedom * keep * (1 - 0.5 * U(h)), "Kind");
         }
         Reconcile(h, rec, desired, act.Id, basis, m);
     }
@@ -502,6 +503,8 @@ public sealed partial class Simulation
         int s = _index[subject];
         bool guilty = Did(subject, actId);
         var list = namers.Where(n => n != subject && _index.ContainsKey(n)).Distinct().OrderBy(n => n, StringComparer.Ordinal).ToList();
+        if (!guilty && list.Count == 0 && eventName == "interview")
+            return; // asked only for an alibi: nobody named them, and being questioned is felt as an act (F12)
         var (f, per) = Feelings.AccusedSplit(joy, Sens(s), SR(s), guilty, list.Count, Ret(s), _fo);
         per *= _fo.PlasticScale;
         string route = eventName == "confronted" ? "Confronted" : "Accused";

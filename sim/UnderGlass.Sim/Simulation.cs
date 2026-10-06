@@ -760,18 +760,19 @@ public sealed partial class Simulation
                 .Where(p => kind.WithKin is not { } role || _people.Any(o => o != p && !o.Asleep && p.V.KinOf(o.V.Name) == role
                                                                              && o.Place == p.Place && o.At.Chebyshev(p.At) <= _po.FarTiles))
                 .Where(p => HasTarget(kind, p, m)) // S1: an act aimed at someone needs someone in reach
+                // S2 (law 1): the joyful give and help more, the sad drink more.
+                .Select(p => (P: p, W: Steering && kind.Affect is { Tilt: not 0 } a
+                    ? p.V.Acts[kind.Name] * Feelings.PowerFactor(a.Tilt, PowerOf(_index[p.V.Name]), _fo)
+                    : p.V.Acts[kind.Name]))
+                .Where(x => x.W > 0)
                 .ToList();
             if (candidates.Count == 0)
                 continue;
-            // S2 (law 1): the joyful give and help more, the sad drink more.
-            double Weight(Person p) => Steering && kind.Affect is { Tilt: not 0 } a
-                ? p.V.Acts[kind.Name] * Feelings.PowerFactor(a.Tilt, PowerOf(_index[p.V.Name]), _fo)
-                : p.V.Acts[kind.Name];
-            double r = Rng.Unit(_seed, "actor", kind.Name, m.ToString()) * candidates.Sum(Weight);
-            Person actor = candidates[^1];
-            foreach (Person p in candidates)
+            double r = Rng.Unit(_seed, "actor", kind.Name, m.ToString()) * candidates.Sum(x => x.W);
+            Person actor = candidates[^1].P;
+            foreach (var (p, w) in candidates)
             {
-                r -= Weight(p);
+                r -= w;
                 if (r < 0) { actor = p; break; }
             }
             Begin(m, kind, actor, injected: false);

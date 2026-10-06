@@ -140,7 +140,9 @@ public static class Metrics
 public sealed record RegardSpread(int Day, double MeanChange, double P5, double P50, double P95,
     double UnderMinus02, double AtLeast04, double Moved01, double KinMean, double NonKinMean);
 
-/// <summary>Feelings across many runs (phase 0c; design section 3a). Per year means per 112 days.</summary>
+/// <summary>Feelings across many runs (phase 0c; design section 3a). Per year means per 112 days.
+/// A mean over nothing (no such holders, no such events) is NaN, not 0; so are war and dead towns
+/// for runs shorter than a season and a year.</summary>
 public sealed record FeelingStats(int Runs,
     double MeanPower, double PowerSpread, double LowPowerShare, double HighPowerShare,
     IReadOnlyList<(string Name, double Power)> LowestPower,
@@ -174,7 +176,7 @@ public static class FeelingMetrics
         bool Household(string a, string b) => byName[a].Household == byName[b].Household;
         double years = runs.Sum(r => r.Days) / (Clock.DaysPerSeason * 4.0);
         double seasons = years * 4;
-        static double Mean(IEnumerable<double> xs) { double s = 0; int n = 0; foreach (double x in xs) { s += x; n++; } return n == 0 ? 0 : s / n; }
+        static double Mean(IEnumerable<double> xs) { double s = 0; int n = 0; foreach (double x in xs) { s += x; n++; } return n == 0 ? double.NaN : s / n; }
         static double Pct(List<double> sorted, double p) => sorted.Count == 0 ? 0 : sorted[Math.Min(sorted.Count - 1, (int)(p * sorted.Count))];
 
         // The power of acting, read at day ends.
@@ -189,6 +191,7 @@ public static class FeelingMetrics
         var bySnapshot = new List<RegardSpread>();
         int snapshots = runs.Count == 0 ? 0 : runs.Min(r => r.RegardSnapshots.Count);
         var war = new bool[runs.Count];
+        bool seasonEnd = false;
         for (int s = 0; s < snapshots; s++)
         {
             var all = new List<double>();
@@ -211,24 +214,31 @@ public static class FeelingMetrics
                         if (Math.Abs(d) >= 0.1) moved++;
                         if (Kin(r.Names[i], r.Names[j])) { kinSum += v; kinN++; } else { nonKinSum += v; nonKinN++; }
                     }
-                if (runUnder > WarShare * n * (n - 1))
-                    war[ri] = true;
+                // A war town is judged at season ends only (spec section 10).
+                if (r.RegardSnapshots[s].Day % Clock.DaysPerSeason == Clock.DaysPerSeason - 1)
+                {
+                    seasonEnd = true;
+                    if (runUnder > WarShare * n * (n - 1))
+                        war[ri] = true;
+                }
             }
             all.Sort();
             bySnapshot.Add(new RegardSpread(runs[0].RegardSnapshots[s].Day, change / Math.Max(1, all.Count), Pct(all, 0.05), Pct(all, 0.5), Pct(all, 0.95),
                 under / (double)Math.Max(1, all.Count), high / (double)Math.Max(1, all.Count), moved / (double)Math.Max(1, all.Count),
                 kinSum / Math.Max(1, kinN), nonKinSum / Math.Max(1, nonKinN)));
         }
-        double dead = runs.Count(r =>
+        // A dead town is judged at the end of the first year.
+        int yearEnd = 4 * Clock.DaysPerSeason - 1;
+        var yearRuns = runs.Where(r => r.RegardSnapshots.Any(x => x.Day == yearEnd)).ToList();
+        double dead = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r =>
         {
-            if (r.RegardSnapshots.Count == 0) return false;
-            double[] flat = r.RegardSnapshots[^1].Regard;
+            double[] flat = r.RegardSnapshots.First(x => x.Day == yearEnd).Regard;
             int n = r.Names.Count, moved = 0;
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < n; j++)
                     if (i != j && Math.Abs(flat[i * n + j] - r.Baseline[(r.Names[i], r.Names[j])]) >= 0.1) moved++;
             return moved < DeadShare * n * (n - 1);
-        }) / (double)Math.Max(1, runs.Count);
+        }) / (double)yearRuns.Count;
 
         // Ties.
         var ties = runs.SelectMany((r, ri) => r.Ties.Select(t => (Run: ri, t.A, t.B, t.What))).ToList();
@@ -247,17 +257,27 @@ public static class FeelingMetrics
         double named = changes.Where(f => Math.Abs(f.Change) >= o.SentimentMin && Feelings.SentimentName(f.Route, f.Change) is not null)
             .Sum(f => Math.Abs(f.Change));
 
-        // How far the town turns on a culprit, by how it knows.
-        IEnumerable<Felt> TowardCulprit(SimResult r) => r.Feelings.Where(f => f.Toward is not null && f.ActId < r.Acts.Count
-            && kinds.First(k => k.Name == r.Acts[f.ActId].Kind).IsScandal && f.Toward == r.Acts[f.ActId].Actor && f.Change != 0
-            && f.Route != "Shame" && f.Route != "Reattributed");
-        var culprit = runs.SelectMany(TowardCulprit).ToList();
-        double Drop(string basis) => Mean(culprit.Where(f => f.Basis == basis).Select(f => f.Change));
+        // How far the town turns on a culprit, by how it knows: each holder's net change toward the
+        // culprit over the act (a feeling that grew writes a row per top-up; a reattribution takes
+        // its row back), classed by the strongest basis it reached.
+        string[] strength = { "Witnessed", "HeardName", "Corroborated", "Confirmed" };
+        var culprit = runs.SelectMany((r, ri) => r.Feelings
+                .Where(f => f.Toward is not null && f.ActId < r.Acts.Count && f.Toward == r.Acts[f.ActId].Actor && f.Change != 0
+                            && f.Route != "Shame" && f.Route != "Accused" && f.Route != "Confronted"
+                            && kinds.First(k => k.Name == r.Acts[f.ActId].Kind).IsScandal)
+                .GroupBy(f => (Run: ri, f.Holder, f.ActId)))
+            .Select(g => (Change: g.Sum(f => f.Change),
+                          Basis: g.Where(f => f.Route != "Reattributed").Select(f => Array.IndexOf(strength, f.Basis)).DefaultIfEmpty(-1).Max()))
+            .ToList();
+        double Drop(string basis) => Mean(culprit.Where(x => x.Basis == Array.IndexOf(strength, basis)).Select(x => x.Change));
         int scandals = runs.Sum(r => r.Acts.Count(a => kinds.First(k => k.Name == a.Kind).IsScandal));
         var shame = runs.SelectMany(r => r.Feelings.Where(f => f.Route == "Shame")).ToList();
 
         // Being named.
-        var innocents = runs.SelectMany(r => r.Interviews.Where(i => i.Who != r.Acts[i.ActId].Actor).Select(i => (r, i))).ToList();
+        // Innocents questioned who were named by someone (kin asked only for an alibi were not).
+        var innocents = runs.SelectMany(r => r.Interviews.Where(i => i.Who != r.Acts[i.ActId].Actor
+                && r.Feelings.Any(f => f.Holder == i.Who && f.ActId == i.ActId && f.Route == "Accused" && f.Toward is not null))
+            .Select(i => (r, i))).ToList();
         double resenting = innocents.Count(x => x.r.Feelings.Any(f => f.Holder == x.i.Who && f.ActId == x.i.ActId && f.Route == "Accused"
                                                                     && f.Toward is { } namer && x.r.Regard.GetValueOrDefault((x.i.Who, namer)) <= -0.1))
                            / (double)Math.Max(1, innocents.Count);
@@ -293,14 +313,14 @@ public static class FeelingMetrics
             meanPower, spread, powers.Count(p => p < 0.3) / (double)Math.Max(1, powers.Count), powers.Count(p => p > 0.7) / (double)Math.Max(1, powers.Count),
             lowest, bySnapshot,
             PerYear("feud"), PerYear("kin-feud"), PerYear("friendship"), PerYear("reconciled"),
-            Top("feud"), Top("friendship"), both, war.Count(w => w) / (double)Math.Max(1, runs.Count), dead,
-            perSeason, total > 0 ? named / total : 0,
+            Top("feud"), Top("friendship"), both, seasonEnd ? war.Count(w => w) / (double)Math.Max(1, runs.Count) : double.NaN, dead,
+            perSeason, total > 0 ? named / total : double.NaN,
             Drop("Witnessed"), Drop("HeardName"), Drop("Corroborated"), Drop("Confirmed"),
             shame.Count(f => f.Toward is null) / (double)Math.Max(1, scandals), shame.Where(f => f.Toward is not null).Sum(f => f.Change) / Math.Max(1, scandals),
-            resenting, wrongConfront, constable,
-            kind.Count(x => x.r.AimedAt[x.a.Id] >= 0.4) / (double)Math.Max(1, kind.Count),
-            argued.Count(x => x.r.AimedAt[x.a.Id] < 0) / (double)Math.Max(1, argued.Count),
-            argued.Count(x => Household(x.a.Actor, x.a.Target!)) / (double)Math.Max(1, argued.Count),
+            innocents.Count > 0 ? resenting : double.NaN, wrongConfront, constable,
+            kind.Count > 0 ? kind.Count(x => x.r.AimedAt[x.a.Id] >= 0.4) / (double)kind.Count : double.NaN,
+            argued.Count > 0 ? argued.Count(x => x.r.AimedAt[x.a.Id] < 0) / (double)argued.Count : double.NaN,
+            argued.Count > 0 ? argued.Count(x => Household(x.a.Actor, x.a.Target!)) / (double)argued.Count : double.NaN,
             natural(Tier.News), natural(Tier.Trivia),
             runs.Sum(r => r.Motives.Count(x => x.Motive == "grievance")) / Math.Max(1e-9, years),
             runs.Sum(r => r.ShopSwitches.Count) / Math.Max(1e-9, years), atChain,
