@@ -492,13 +492,7 @@ E5 is Sid's blind read of 10 season journals.
 **Phase 0: headless (about 2-3 months with agents).** It starts in this repo (`sim/UnderGlass.Sim`, `sim/UnderGlass.Run`), next to the libraries it reuses, and moves to its own repository once the rules hold.
 - **0a.** A gossip-only harness: rules 2, 8 and 9 on 12 villagers.
 - **0b.** A stock-and-flow money model, about 200 lines. Built 2026-10-06, with wants, needs, temptation and the ladder's fines.
-- **0c.** Port the core (3-4 weeks):
-  - retarget to net8;
-  - make GameClock's constants parameters;
-  - rewrite MotiveInputs, MotivesEngine and MotivesRunner so the subject can be anyone;
-  - move StressorTable into `acts.json`.
-
-  Memory, gossip, RegardBook, the decision clients and NpcMinds carry over. The run loop starts from ShadowSimulator.
+- **0c.** Feelings: the Spinozan laws of section 3a on regard, mood and the believed cause. (The first plan was to port the mod's core here. The simulator was instead built natively in 0a and 0b, so 0c builds feelings on it directly; the mod's lessons, such as D33-D35, carry over as rules, not code.)
 - **0d.** The simulator itself (`UnderGlass.Sim`):
   - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON;
   - the bots;
