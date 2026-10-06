@@ -47,9 +47,11 @@ public sealed record Link(string A, Tile DoorA, string B, Tile DoorB);
 /// <summary>
 /// The traits that set how strongly each law acts on a person (design 3a, law 12). All 0..1.
 /// SelfRegard is Spinoza's self-esteem: low self-regard with high boldness gives confident
-/// wrong guesses (design 11a).
+/// wrong guesses (design 11a). Sensitivity scales how much joy and sadness are felt (phase 0c);
+/// Retention how long a mild feeling is kept (design rule 4: Pam lets go, Robin keeps).
 /// </summary>
-public sealed record Temperament(double Chattiness, double Boldness, double Understanding, double SelfRegard);
+public sealed record Temperament(double Chattiness, double Boldness, double Understanding, double SelfRegard,
+    double Sensitivity = 0.5, double Retention = 0.5);
 
 /// <summary>
 /// A body (design rule 1): the energy bar's size (stamina for hard work), and how empty it gets
@@ -137,6 +139,25 @@ public sealed record Gathering(string Name, string Place, Tile Center, int Radiu
         && Clock.OfDay(minute) >= From && Clock.OfDay(minute) < To;
 }
 
+/// <summary>Who is joyed or saddened by an act, and so who its cause is (law 3; phase 0c).
+/// Target: the act's Target, caused by the actor. Actor: the actor, caused by the act's Target
+/// (none: nobody, an accident). Onlookers: each witness, caused by the actor.</summary>
+public enum Patient { Target, Actor, Onlookers }
+
+/// <summary>How an act's Target is set when it begins: the keeper of the place, someone chosen
+/// within reach, the nearest kin of the act's kin role, or given by the caller (the questioner,
+/// the mayor, the parent).</summary>
+public enum TargetIs { None, Keeper, Chosen, Kin, Given }
+
+/// <summary>
+/// An act kind's feeling row (phase 0c). Joy: what the patient feels, -1..1 (+ joy, - sadness),
+/// separate from Valence, which still decides tiers. Plastic: the share of a feeling that becomes
+/// regard for its cause, 0..1. Freedom: how freely its cause is believed to act, 0..1 (law 10).
+/// Tilt: +1 an active act the joyful do more, -1 a passive vice the sad do more, 0 neither (law 1).
+/// </summary>
+public sealed record Affect(Patient Patient, double Joy, double Plastic, double Freedom = 1,
+    TargetIs Target = TargetIs.None, int Tilt = 0);
+
 /// <summary>The four tiers of a story (design rule 9, decided 2026-10-05).</summary>
 public enum Tier { Trivia, News, Scandal, Upheaval }
 
@@ -154,7 +175,7 @@ public sealed record TraceKind(string Name, bool KeeperOnly, int LastsMinutes, d
 /// DurationMinutes: how long it lasts. PerDay: town-wide rate when someone is able to.
 /// Allowed: the locations it can happen in (empty: anywhere). Trace: what it leaves behind.
 /// MinAge and MaxAge: who would do it (design rule 17). WithKin: it needs kin of that kind
-/// within sight (a squabble needs a sibling).
+/// within sight (a squabble needs a sibling). Affect: how it is felt (phase 0c); null: not at all.
 /// </summary>
 public sealed record ActKind(
     string Name,
@@ -168,7 +189,8 @@ public sealed record ActKind(
     TraceKind? Trace = null,
     int MinAge = 0,
     int MaxAge = 200,
-    Kin? WithKin = null)
+    Kin? WithKin = null,
+    Affect? Affect = null)
 {
     public bool FitsAge(int age) => age >= MinAge && age <= MaxAge;
 
@@ -179,8 +201,11 @@ public sealed record ActKind(
 }
 
 /// <summary>Something that happened, at a game minute. Injected acts were placed by the harness to
-/// measure spread.</summary>
-public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false);
+/// measure spread. Target: the other party (the keeper robbed, the person given a gift, the
+/// sibling, the official), set only while feelings are on. About: the act a consequence answers
+/// (a warning's scandal; design rule 2's causes), public because the official says what it is for.</summary>
+public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false,
+    string? Target = null, int About = -1);
 
 /// <summary>Where a belief came from. Found: from a trace, after the fact (never with a name).</summary>
 public enum Source { Witnessed, Told, Found }
@@ -190,7 +215,9 @@ public enum Source { Witnessed, Told, Found }
 /// "someone". Juiciness is the value when they got it; it fades from GotTick (a game minute).
 /// Chain lists the tellers, nearest first, empty for a witness. Suspects: for a "someone" story,
 /// who was seen around the place at the time (pieced together from sightings, or heard with the
-/// story), most suspected first; null until pieced together.
+/// story), most suspected first; null until pieced together. Target: the act's target as this
+/// holder knows it. SeenKind: the kind of person a witness saw but could not name ("someone, a
+/// young man"). Both are copied in gossip and set only while feelings are on.
 /// </summary>
 public sealed record Belief(
     int ActId,
@@ -202,7 +229,9 @@ public sealed record Belief(
     double Juiciness,
     int GotTick,
     IReadOnlyList<string> Chain,
-    IReadOnlyList<string>? Suspects = null);
+    IReadOnlyList<string>? Suspects = null,
+    string? Target = null,
+    string? SeenKind = null);
 
 /// <summary>A villager confronted someone over a scandal (design rule 9).</summary>
 public sealed record Confrontation(int ActId, int Tick, string By, string Target, bool Correct);
@@ -234,3 +263,16 @@ public sealed record Verdict(int ActId, int Tick, string By, string Accused, boo
 
 /// <summary>A town vote for an office, such as the constable at the opening meeting.</summary>
 public sealed record Election(string Office, int Tick, string Winner, IReadOnlyDictionary<string, int> Votes);
+
+/// <summary>A named lasting feeling with its cause (Sims 4 sentiments; design principle 5): who
+/// holds it, toward whom (a villager, or "kind:&lt;Kind&gt;"), the act it cites, its strength 0..1,
+/// since when, and how many times it was renewed. No rule reads it; regard decides.</summary>
+public sealed record Sentiment(string Holder, string Toward, string Name, int ActId, double Strength, int Since, int Count = 1);
+
+/// <summary>One feeling event (phase 0c): what moved whose mood or regard, by which route
+/// (Direct, Onlooker, Sympathy, Antipathy, Imitation, Kind, Spill, Association, Undergone,
+/// Accused, Confronted, Shame, Reconciled, Reattributed), on what basis (Witnessed, Found, Told,
+/// HeardName, Corroborated, Confirmed, Event), and which act it cites. Raw is the regard change
+/// asked for; Change what was applied after saturation and the cap.</summary>
+public sealed record Felt(int Tick, string Holder, int ActId, string Route, string Basis, double Mood,
+    string? Toward, double Raw, double Change);

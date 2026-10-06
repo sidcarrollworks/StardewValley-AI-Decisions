@@ -79,6 +79,8 @@ public sealed partial class Simulation
     private readonly HashSet<(string, int)> _drank = new();
     private double _outsideIn, _outsideOut;
     private readonly List<double> _townCash = new();
+    /// <summary>Where each household buys its groceries now, and since when (S9).</summary>
+    private readonly Dictionary<string, (string Shop, int Since)> _shopOf = new();
 
     private bool HasMoney => _economy is not null;
 
@@ -87,7 +89,10 @@ public sealed partial class Simulation
         if (_economy is not { } e)
             return;
         foreach (string h in _cast.Select(v => v.Household).Distinct())
+        {
             _purse[h] = e.StartPurse.GetValueOrDefault(h);
+            _shopOf[h] = (e.GroceriesAt.GetValueOrDefault(h, "Store"), 0);
+        }
         _purse[Town] = e.TownStart;
         foreach (string n in _names)
             _pocket[n] = 0;
@@ -107,14 +112,19 @@ public sealed partial class Simulation
     private double WeekCost(string household)
     {
         int people = _cast.Count(v => v.Household == household);
-        double price = _economy!.GroceriesAt.GetValueOrDefault(household, "Store") == "Mart" ? 1 - _mo.MartDiscount : 1;
+        double price = ShopOf(household) == "Mart" ? 1 - _mo.MartDiscount : 1;
         return people * _mo.GroceriesPerPerson * price;
     }
+
+    private string ShopOf(string household)
+        => _shopOf.TryGetValue(household, out var s) ? s.Shop : _economy!.GroceriesAt.GetValueOrDefault(household, "Store");
 
     /// <summary>Monday 00:00: wages and pensions, allowances, groceries and restocking.</summary>
     private void Payday(int m)
     {
         Economy e = _economy!;
+        if (Steering)
+            ShopChoice(m);
         FromOutside(Town, e.TownStipend);
         foreach (var (who, perWeek, from) in e.Incomes.OrderBy(i => i.Who, StringComparer.Ordinal))
         {
@@ -139,7 +149,7 @@ public sealed partial class Simulation
         foreach (string h in _cast.Select(v => v.Household).Distinct().OrderBy(h => h, StringComparer.Ordinal))
         {
             double cost = WeekCost(h);
-            string shop = e.GroceriesAt.GetValueOrDefault(h, "Store");
+            string shop = ShopOf(h);
             string? keeper = shop == "Store" ? _ao.Keepers.GetValueOrDefault("Store") : null;
             if (keeper is not null && HouseholdOf(keeper) == h)
                 ToOutside(h, cost * _mo.StoreRestock);     // the shop's own family eats at cost
@@ -283,15 +293,23 @@ public sealed partial class Simulation
                 double want = kindName == Stole ? _mo.WantWeight * WantPressure(v.Name, m) : 0;
                 double need = _mo.NeedWeight * NeedPressure(v.Name);
                 double thrill = _mo.ThrillWeight * v.Temperament.Boldness;
-                double motive = want + need + thrill;
+                // S8 (rule 17): a grudge against the keeper is a motive too. Kin are not exempt.
+                string? keeper = _ao.Keepers.GetValueOrDefault(p.Place);
+                double grievance = Steering && keeper is not null && keeper != v.Name && _index.ContainsKey(keeper)
+                    ? _fo.GrievanceWeight * Math.Max(0, -St(v.Name, keeper) - _fo.GrievanceAt)
+                    : 0;
+                double motive = want + need + thrill + grievance;
                 int inSight = _people.Count(o => o != p && !o.Asleep && o.Place == p.Place && o.At.Chebyshev(p.At) <= _po.FarTiles
                                                  && Perception.LineOfSight(_places[p.Place], p.At, o.At, _po) > 0);
                 double severity = 1 + (int)Authority.StepFor(_record.GetValueOrDefault(v.Name));
                 double risk = (inSight + 0.5) * severity * (1.2 - v.Temperament.Boldness) * _mo.RiskScale;
                 if (motive <= risk || Rng.Unit(_seed, "tempt", kindName, v.Name, m.ToString()) >= _mo.StealBase * (motive - risk))
                     continue;
-                string why = want >= need && want >= thrill ? $"want {_want[v.Name].Price:0}g" : need >= thrill ? "need" : "thrill";
+                string why = grievance > want && grievance > need && grievance > thrill ? "grievance"
+                    : want >= need && want >= thrill ? $"want {_want[v.Name].Price:0}g" : need >= thrill ? "need" : "thrill";
                 Begin(m, kind, p, injected: false);
+                if (why == "grievance")
+                    Why(m, v.Name, kindName, keeper!);
                 _motives.Add((_acts[^1].Id, v.Name, why));
                 _log.Add($"{m} motive {v.Name} {kindName} {why} (motive {motive:0.00}, risk {risk:0.00}, {inSight} in sight)");
                 break;

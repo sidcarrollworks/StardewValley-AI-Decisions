@@ -100,6 +100,11 @@ public static class DefaultTown
         new Gathering("Market", "Square", new Tile(15, 5), 5, H(9), H(14), new[] { 5 }, 12),
     };
 
+    // Feeling rows (phase 0c): who is pleased or hurt, how much, how much of it becomes regard
+    // for its cause, how freely the cause is believed to act, at whom it is aimed, and whether the
+    // joyful (+1) or the sad (-1) do it more. First guesses; see docs/under-glass/design.md 3a.
+    private static readonly Affect AtKeeper = new(Patient.Target, -0.5, 0.5, 1, TargetIs.Keeper);
+
     public static IReadOnlyList<ActKind> Acts() => new[]
     {
         // Scandals are rare (design rule 9 tiers): about 1-2 a year town-wide, a placeholder
@@ -110,30 +115,79 @@ public static class DefaultTown
         // Never drawn at a rate (phase 0b): they come from temptation, a motive against the
         // believed risk, for villagers with the vice (Simulation.Temptation).
         new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0, new[] { "ClinicYard", "Square" },
-            Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6), MinAge: 13),
+            Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6), MinAge: 13,
+            Affect: AtKeeper with { Joy = -0.3 }),
         new ActKind("Stole", 4.5, -1, 1, 1, 0, new[] { "Store", "Mart" },
-            Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15), MinAge: 13),
-        new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }, MinAge: 18),
-        new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>(), MinAge: 13),
-        new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>(), MinAge: 10),
+            Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15), MinAge: 13,
+            Affect: AtKeeper),
+        new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }, MinAge: 18,
+            Affect: new Affect(Patient.Onlookers, -0.15, 0.3, 0.6, Tilt: -1)),
+        new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>(), MinAge: 13,
+            Affect: new Affect(Patient.Target, -0.3, 0.3, 1, TargetIs.Chosen)),
+        new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>(), MinAge: 10,
+            Affect: new Affect(Patient.Target, 0.3, 0.3, 1, TargetIs.Chosen, Tilt: 1)),
         // A child squabbles with a sibling instead (Sid: Vincent "would fight with his brother").
-        new ActKind("Squabbled", 1.5, -1, 1, 5, 2.0, Array.Empty<string>(), MaxAge: 12, WithKin: Kin.Sibling),
-        new ActKind("GaveGift", 1.5, 1, 1, 1, 3.0, Array.Empty<string>()),
-        new ActKind("Stumbled", 1.0, 0, 1, 1, 1.5, Array.Empty<string>()),
+        // It barely dents how siblings feel about each other.
+        new ActKind("Squabbled", 1.5, -1, 1, 5, 2.0, Array.Empty<string>(), MaxAge: 12, WithKin: Kin.Sibling,
+            Affect: new Affect(Patient.Target, -0.15, 0.05, 0.5, TargetIs.Kin)),
+        new ActKind("GaveGift", 1.5, 1, 1, 1, 3.0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, 0.2, 0.3, 1, TargetIs.Chosen, Tilt: 1)),
+        // An accident: it saddens friends and blames nobody.
+        new ActKind("Stumbled", 1.0, 0, 1, 1, 1.5, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.1, 0, 0)),
         // Never drawn: the mayor's warning, being taken in, and being questioned by the constable
-        // (design rule 16). The actor is the person warned, taken or questioned.
-        new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>()),
-        new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>()),
-        new ActKind(Authority.Questioned, 2.5, -1, 1, 10, 0, Array.Empty<string>()),
-        new ActKind(Simulation.Service, 3.0, -1, 2, 30, 0, Array.Empty<string>()),
+        // (design rule 16). The actor is the person warned, taken or questioned; the target the
+        // official, who is believed to act less freely (doing their job).
+        new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.3, 0.4, 0.4, TargetIs.Given)),
+        new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.6, 0.4, 0.4, TargetIs.Given)),
+        new ActKind(Authority.Questioned, 2.5, -1, 1, 10, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.15, 0.3, 0.4, TargetIs.Given)),
+        new ActKind(Simulation.Service, 3.0, -1, 2, 30, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.4, 0.4, 0.4, TargetIs.Given)),
         // Never drawn: a keeper who learns their own kin took from them has it out at home
         // instead of reporting it (design rule 17). The actor is the one who took.
-        new ActKind(Simulation.FamilyRow, 3.0, -1, 2, 15, 0, Array.Empty<string>()),
+        new ActKind(Simulation.FamilyRow, 3.0, -1, 2, 15, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.3, 0.3, 1, TargetIs.Given)),
         // Never drawn: seen out at an hour you never keep, when the town is quiet (acting normal,
         // design rule 1). Not bad in itself, but worth talking about. The actor is the one seen.
         new ActKind(Simulation.OutLate, 2.0, 0, 1, 1, 0, Array.Empty<string>()),
         // Never drawn: it happens when someone's energy runs out (design rule 1).
-        new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>()),
+        new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.3, 0, 0)),
+    };
+
+    /// <summary>The town's feelings (phase 0c): seeded from households and friends, with the
+    /// starting tensions.</summary>
+    public static FeelingOptions Feelings() => new() { Start = Tensions(), Steer = false };
+
+    /// <summary>
+    /// Regard that starts away from the seed, (from, to). Empty until Sid picks the town's tensions
+    /// (0c question 1). Candidates: Pierre and Shane both ways (the chain store), Sebastian toward
+    /// Demetrius, Abigail toward Pierre.
+    /// </summary>
+    public static IReadOnlyDictionary<(string From, string To), double> Tensions() => new Dictionary<(string, string), double>();
+
+    /// <summary>
+    /// How strongly each villager feels joy and sadness (phase 0c; law 12), from the temperaments
+    /// the mod derived from Stardew's dialogue (fixtures/game/temperament/temperament.json). A
+    /// private prototype's values, to be replaced with the original cast (design section 3).
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, double> Sensitivity = new Dictionary<string, double>
+    {
+        ["Abigail"] = 0.38, ["Alex"] = 0.41, ["Caroline"] = 0.36, ["Demetrius"] = 0.50, ["Emily"] = 0.37,
+        ["Evelyn"] = 0.30, ["George"] = 0.54, ["Gus"] = 0.35, ["Haley"] = 0.37, ["Harvey"] = 0.50,
+        ["Jas"] = 0.55, ["Jodi"] = 0.51, ["Kent"] = 0.54, ["Leah"] = 0.33, ["Lewis"] = 0.30,
+        ["Marnie"] = 0.37, ["Maru"] = 0.42, ["Pam"] = 0.56, ["Penny"] = 0.67, ["Pierre"] = 0.36,
+        ["Robin"] = 0.26, ["Sam"] = 0.40, ["Sebastian"] = 0.64, ["Shane"] = 0.74, ["Vincent"] = 0.43,
+    };
+
+    /// <summary>How long a mild feeling is kept (design rule 4: "Pam lets go, Robin keeps"). Pam's
+    /// is the mod's value (src/NpcMotives/MotiveOptions.cs); Robin's is a guess (VERIFY with Sid).</summary>
+    private static readonly IReadOnlyDictionary<string, double> Retention = new Dictionary<string, double>
+    {
+        ["Pam"] = 0.2, ["Robin"] = 0.8,
     };
 
     /// <summary>
@@ -344,6 +398,14 @@ public static class DefaultTown
                 },
                 A(everyday, trip, ("RummagedInBin", 1.0), ("Stole", 0.5)), Array.Empty<string>(), 25),
         };
-        return list.Select(v => v with { Family = FamilyOf(v.Name) }).ToList();
+        return list.Select(v => v with
+        {
+            Family = FamilyOf(v.Name),
+            Temperament = v.Temperament with
+            {
+                Sensitivity = Sensitivity.GetValueOrDefault(v.Name, 0.5),
+                Retention = Retention.GetValueOrDefault(v.Name, 0.5),
+            },
+        }).ToList();
     }
 }
