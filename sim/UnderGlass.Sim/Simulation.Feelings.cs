@@ -54,6 +54,7 @@ public sealed partial class Simulation
     private sealed class Entry
     {
         public int Subject;
+        public string Route = "";
         public double Raw, Applied, Capped;
     }
 
@@ -332,7 +333,10 @@ public sealed partial class Simulation
     {
         foreach (Entry e in rec.Entries.ToList())
         {
-            if (desired.TryGetValue(e.Subject, out var d) && Math.Sign(d.Raw) == Math.Sign(e.Raw))
+            // A kind blamed for "someone" (route Kind) and the spill from a named person onto their
+            // kind (route Spill) are different feelings: one never carries over into the other.
+            if (desired.TryGetValue(e.Subject, out var d) && Math.Sign(d.Raw) == Math.Sign(e.Raw)
+                && (e.Subject >= 0 || d.Route == e.Route))
                 continue;
             Revert(h, e, actId, basis, m);
             rec.Entries.Remove(e);
@@ -343,7 +347,7 @@ public sealed partial class Simulation
             if (e is null)
             {
                 var (applied, capped) = Move(h, subject, raw, actId, route, basis, subject == rec.Cause, m);
-                rec.Entries.Add(new Entry { Subject = subject, Raw = raw, Applied = applied, Capped = capped });
+                rec.Entries.Add(new Entry { Subject = subject, Route = route, Raw = raw, Applied = applied, Capped = capped });
             }
             else if (Math.Abs(raw) > Math.Abs(e.Raw))
             {
