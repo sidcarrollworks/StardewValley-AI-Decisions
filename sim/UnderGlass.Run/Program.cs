@@ -111,4 +111,27 @@ Console.WriteLine($"families: rows {Count(Simulation.FamilyRow)}, kept in the fa
 var late = runs.SelectMany(r => r.Acts.Where(a => a.Kind == Simulation.OutLate)).ToList();
 double seasonsRun = runs.Sum(r => r.Days) / (double)Clock.DaysPerSeason;
 Console.WriteLine($"acting normal: seen out at an odd hour {late.Count / seasonsRun:0.0} times a season; most often " + string.Join(", ", late.GroupBy(a => a.Actor).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Take(5).Select(g => $"{g.Key} {g.Count() / seasonsRun:0.0}")) + "; at hours " + string.Join(",", late.GroupBy(a => Clock.OfDay(a.Tick) / 60).OrderByDescending(g => g.Count()).Take(4).Select(g => $"{g.Key}:00")));
+// Money (phase 0b).
+if (runs[0].TownCash.Count > 0)
+{
+    double leak = runs.Max(r => Math.Abs(r.TownCash[^1] - r.TownCash[0] - (r.OutsideIn - r.OutsideOut)));
+    Console.WriteLine($"money: town cash {runs.Average(r => r.TownCash[0]):0} -> {runs.Average(r => r.TownCash[^1]):0} g on average; in from outside {runs.Average(r => r.OutsideIn) / (days / 7.0):0} g a week, out {runs.Average(r => r.OutsideOut) / (days / 7.0):0}; largest unexplained change {leak:0.000} g");
+    Console.WriteLine("  town cash by season end: " + string.Join(" -> ", Enumerable.Range(0, days / Clock.DaysPerSeason + 1)
+        .Select(q => Math.Min(q * Clock.DaysPerSeason, runs[0].TownCash.Count - 1)).Select(i => $"{runs.Average(r => r.TownCash[i]):0}")));
+    var households = runs[0].Purses.Keys.OrderBy(k => k, StringComparer.Ordinal);
+    Console.WriteLine("  purses at the end: " + string.Join(", ", households.Select(h => $"{h} {runs.Average(r => r.Purses[h]):0}")));
+    Console.WriteLine($"  households in debt at the end: {runs.Average(r => r.Purses.Count(p => p.Key != Simulation.Town && p.Value < 0)):0.0} a run");
+    var motives = runs.SelectMany(r => r.Motives.Select(x => (r, x))).ToList();
+    double years = runs.Sum(r => r.Days) / (Clock.DaysPerSeason * 4.0);
+    Console.WriteLine($"tempted scandals: {motives.Count / years:0.0} a year; by motive " + string.Join(", ", motives.GroupBy(x => x.x.Motive.Split(' ')[0]).OrderByDescending(g => g.Count()).Select(g => $"{g.Key} {g.Count() / years:0.0}"))
+        + "; by who " + string.Join(", ", motives.GroupBy(x => x.x.Who).OrderByDescending(g => g.Count()).Take(6).Select(g => $"{g.Key} {g.Count() / years:0.0}"))
+        + "; kinds " + string.Join(", ", motives.GroupBy(x => x.r.Acts[x.x.ActId].Kind).Select(g => $"{g.Key} {g.Count() / years:0.0}")));
+    Console.WriteLine($"ladder paid: fines paid in full {runs.Sum(r => r.Log.Count(l => l.Contains(" paid ") && PaidInFull(l)))}, part {runs.Sum(r => r.Log.Count(l => l.Contains(" paid ") && !PaidInFull(l)))}; service {runs.Sum(r => r.Acts.Count(a => a.Kind == Simulation.Service))}");
+}
+static bool PaidInFull(string l)
+{
+    var parts = l.Split(' ');
+    int i = Array.IndexOf(parts, "paid");
+    return i >= 0 && parts.Length > i + 4 && parts[i + 2] == parts[i + 4];
+}
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

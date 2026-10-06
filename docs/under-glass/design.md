@@ -216,6 +216,12 @@ Every constant here is a first guess, to be tested in phase 0.
     - Retelling a secret is an act at base 4, and the secret carries its full chain of tellers.
     - An owner who hears its secret from someone it did not tell writes Betrayed (0.8, severe), split among everyone it told. It moves the whole entry onto one of them when evidence of that person's retelling arrives.
 15. **Fuel.** Each villager has 1-2 vices with seeded triggers: a low purse leads to rummaging or theft, three low-mood days to drinking alone, and overload to a missed delivery. An occasion catalog (weather, prices, visitors, lost items, breakages, illness, mishaps by job) fires at base rates with cooldowns. Occasions create only world facts. A type-level test proves an occasion cannot write to any villager's mind.
+    - **As built in 0b** (2026-10-06; `sim/README.md`): money and temptation.
+      - Each household has a purse and each person a pocket. Money enters and leaves only through outside accounts (pensions, wages from away, sales out of town, the county's stipend, the chain store's head office, wholesalers), and a test holds the town's cash to exactly what crosses its edge.
+      - Paydays are weekly: wages and pensions, 15% kept by the earner, allowances for those who live with family, groceries at Pierre's (who restocks at 60%) or the chain (10% cheaper, its takings leave town). Adults at the saloon in the evening buy a drink. Each week a household spends half of what it holds beyond four weeks of costs, half at Pierre's and half out of town; pockets the same beyond 300g, keeping the price of an open want.
+      - Wants come at random (one every two weeks or so), priced by person: Abigail 300-900g, a child 20-80g. A want is bought when the pocket covers it.
+      - Thefts and rummaging no longer have rates. A villager with the vice, free and somewhere it can happen, weighs a motive (an unmet want, growing over two weeks; the household short of a week's groceries; a dare, for the bold) against the risk they believe they run: people in sight now x the next step on the ladder for them x (1.2 - boldness). The excess gives the chance. Nobody robs the shop they work in. Every tempted scandal records its motive.
+      - In a year: about 2.8 tempted scandals, 1.9 from Pam (her trailer runs short: no income, drinks most evenings) rummaging bins out of need and 0.8 from Abigail stealing for a want. The town's cash rises while purses fill their buffers, then holds near 20,000g (about 1.5% down a season).
 
 16. **Authority and consequences** (decided 2026-10-06; see 11c). Social pressure is not the only cost of a crime.
     - **The mayor is the town's authority.** Lewis is mayor at the start of every run. Victims and witnesses report to him. He looks into it using only what people tell him and what he has seen himself (rule 2), then decides. So he can be lied to, and he can blame the wrong person when the accounts point that way.
@@ -234,7 +240,8 @@ Every constant here is a first guess, to be tested in phase 0.
       | Detained | a pattern | held for a set time; they miss work and are seen being taken in |
 
       Durations and amounts are set after testing. Detention replaces "asked to leave" (Sid, 2026-10-06).
-    - **Deterrence.** Before acting on a vice, a villager weighs need (an empty purse, a run of bad days) against the risk *they believe* they run: how busy the place usually is (from memory, never the true count) x how bad the consequence would be x how much they fear it. Bold or desperate people still steal; careful ones wait for a quiet moment, which is why traces matter (an unseen theft found later by missing stock).
+    - **Deterrence.** Before acting on a vice, a villager weighs need (an empty purse, a run of bad days) against the risk *they believe* they run: how busy the place usually is (from memory, never the true count) x how bad the consequence would be x how much they fear it. Bold or desperate people still steal; careful ones wait for a quiet moment, which is why traces matter (an unseen theft found later by missing stock). As built in 0b, the risk counts the people in sight at that moment; because thieves wait until nobody is watching, the culprit is among anyone's suspects in only 9% of natural scandals.
+    - **Restitution, fines and service** (as built in 0b): the second verdict pays back the goods' worth to the keeper and a 100g fine to the town, from pocket then purse; whatever can't be paid becomes three hours of community service in the square, in public view.
     - **The player is under the same ladder.**
     - **As built in 0a** (2026-10-06; `sim/README.md`):
       - Reports happen when the reporter and the mayor or constable are together. Victims always report, even hearsay; the constable always reports; other witnesses and finders with a chance of 0.2 + 0.6 x boldness.
@@ -484,7 +491,7 @@ E5 is Sid's blind read of 10 season journals.
 
 **Phase 0: headless (about 2-3 months with agents).** It starts in this repo (`sim/UnderGlass.Sim`, `sim/UnderGlass.Run`), next to the libraries it reuses, and moves to its own repository once the rules hold.
 - **0a.** A gossip-only harness: rules 2, 8 and 9 on 12 villagers.
-- **0b.** A stock-and-flow money model, about 200 lines.
+- **0b.** A stock-and-flow money model, about 200 lines. Built 2026-10-06, with wants, needs, temptation and the ladder's fines.
 - **0c.** Port the core (3-4 weeks):
   - retarget to net8;
   - make GameClock's constants parameters;

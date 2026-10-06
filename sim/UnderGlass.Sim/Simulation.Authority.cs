@@ -286,10 +286,14 @@ public sealed partial class Simulation
             if (letOff)
                 continue;
             _record[accused] = _record.GetValueOrDefault(accused) + 1;
-            if (step is Consequence.Warning or Consequence.Detained)
-                _toDeliver.Add((actId, accused, step));
-            else
-                _log.Add($"{m} pending {accused} {step}"); // fines and service need money (0b)
+            if (step == Consequence.RestitutionAndFine)
+            {
+                // Paid at once from pocket and purse; whatever can't be paid is served instead.
+                if (!PayUp(actId, accused, m))
+                    _toDeliver.Add((actId, accused, Consequence.Service));
+                continue;
+            }
+            _toDeliver.Add((actId, accused, step));
         }
     }
 
@@ -301,29 +305,32 @@ public sealed partial class Simulation
         {
             var (actId, accused, step) = _toDeliver[i];
             Person p = _people[_index[accused]];
-            Person? by = new[] { _ao.Mayor, step == Consequence.Detained ? _constable : null }
+            Person? by = new[] { _ao.Mayor, step != Consequence.Warning ? _constable : null }
                 .OfType<string>()
                 .Select(n => _people[_index[n]])
                 .FirstOrDefault(a => a != p && Free(a, m) && Free(p, m) && a.Place == p.Place && a.At.Chebyshev(p.At) <= _po.FarTiles);
             if (by is null)
                 continue;
-            string kindName = step == Consequence.Detained ? Authority.TakenIn : Authority.Warned;
+            string kindName = step switch { Consequence.Detained => Authority.TakenIn, Consequence.Service => Service, _ => Authority.Warned };
             if (_kinds.FirstOrDefault(k => k.Name == kindName) is { } kind)
             {
                 Begin(m, kind, p, injected: false);
                 by.BusyUntil = Math.Max(by.BusyUntil, p.BusyUntil);
             }
-            if (step == Consequence.Detained)
+            if (step is Consequence.Detained or Consequence.Service)
             {
-                p.DetainedUntil = m + _ao.DetainMinutes;
+                bool detained = step == Consequence.Detained;
+                p.DetainedUntil = m + (detained ? _ao.DetainMinutes : _mo.ServiceMinutes);
+                (p.HoldPlace, p.HoldSpot) = detained ? (_ao.LockupPlace, _ao.LockupSpot) : (_ao.ServicePlace, _ao.ServiceSpot);
                 p.Why = "";
             }
-            _log.Add($"{m} {(step == Consequence.Detained ? "taken-in" : "warned")} {accused} by {by.V.Name} for {actId}");
+            _log.Add($"{m} {step switch { Consequence.Detained => "taken-in", Consequence.Service => "service", _ => "warned" }} {accused} by {by.V.Name} for {actId}");
             _toDeliver.RemoveAt(i--);
         }
     }
 
-    /// <summary>Where a detained person is held, or where they stand if this world has no lockup.</summary>
+    /// <summary>Where someone detained or doing service is held, or where they stand if this world
+    /// has no such place.</summary>
     private (string Place, Tile Spot) Lockup(Person p)
-        => _places.ContainsKey(_ao.LockupPlace) ? (_ao.LockupPlace, _ao.LockupSpot) : (p.Place, p.At);
+        => _places.ContainsKey(p.HoldPlace) ? (p.HoldPlace, p.HoldSpot) : (p.Place, p.At);
 }

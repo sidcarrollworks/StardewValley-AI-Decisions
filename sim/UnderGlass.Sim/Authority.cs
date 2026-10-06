@@ -49,6 +49,9 @@ public sealed class AuthorityOptions
     public int DetainMinutes { get; set; } = 24 * 60;
     public string LockupPlace { get; set; } = "";
     public Tile LockupSpot { get; set; }
+    /// <summary>Where community service is done, in public view.</summary>
+    public string ServicePlace { get; set; } = "";
+    public Tile ServiceSpot { get; set; }
     /// <summary>Verdicts already on record at the start of the run, by person.</summary>
     public IReadOnlyDictionary<string, int> Record { get; set; } = new Dictionary<string, int>();
 }

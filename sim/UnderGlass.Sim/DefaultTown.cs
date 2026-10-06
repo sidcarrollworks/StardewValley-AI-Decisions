@@ -107,9 +107,11 @@ public static class DefaultTown
         // Each leaves a trace (design principle 1): a scattered bin anyone can see for half a day;
         // missing stock only the keeper notices, by counting, for three days.
         // Age decides who would (design rule 17): no child steals from a till or rummages a bin.
-        new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0.025, new[] { "ClinicYard", "Square" },
+        // Never drawn at a rate (phase 0b): they come from temptation, a motive against the
+        // believed risk, for villagers with the vice (Simulation.Temptation).
+        new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0, new[] { "ClinicYard", "Square" },
             Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6), MinAge: 13),
-        new ActKind("Stole", 4.5, -1, 1, 1, 0.02, new[] { "Store", "Mart" },
+        new ActKind("Stole", 4.5, -1, 1, 1, 0, new[] { "Store", "Mart" },
             Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15), MinAge: 13),
         new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }, MinAge: 18),
         new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>(), MinAge: 13),
@@ -123,6 +125,7 @@ public static class DefaultTown
         new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>()),
         new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>()),
         new ActKind(Authority.Questioned, 2.5, -1, 1, 10, 0, Array.Empty<string>()),
+        new ActKind(Simulation.Service, 3.0, -1, 2, 30, 0, Array.Empty<string>()),
         // Never drawn: a keeper who learns their own kin took from them has it out at home
         // instead of reporting it (design rule 17). The actor is the one who took.
         new ActKind(Simulation.FamilyRow, 3.0, -1, 2, 15, 0, Array.Empty<string>()),
@@ -153,7 +156,43 @@ public static class DefaultTown
         },
         LockupPlace = "Home:Manor",
         LockupSpot = new Tile(7, 2),
+        ServicePlace = "Square",
+        ServiceSpot = new Tile(12, 16),
     };
+
+    /// <summary>
+    /// The town's money (phase 0b), in g a week. Guesses scaled to Stardew's prices: groceries
+    /// 100g a person; wages from 300g (Penny's teaching) to 700g (Robin's carpentry). Outside
+    /// money: pensions (George, Kent), wages from away (the chain pays Shane and Sam), sales out
+    /// of town (Marnie's animals, Leah's art, Robin's orders, the newcomer's crops), the clinic's
+    /// fees, Demetrius's grant, Sebastian's freelance work, and the county's stipend to the town.
+    /// Pam has no income and drinks most evenings: the trailer runs short.
+    /// </summary>
+    public static Economy TownEconomy()
+    {
+        var incomes = new (string, double, string?)[]
+        {
+            ("George", 600, null), ("Emily", 350, "Saloon"), ("Harvey", 900, null), ("Maru", 300, "Clinic"),
+            ("Leah", 350, null), ("Lewis", 600, Simulation.Town), ("Penny", 300, Simulation.Town),
+            ("Marnie", 700, null), ("Shane", 600, null), ("Sam", 350, null), ("Kent", 500, null),
+            ("Robin", 700, null), ("Demetrius", 600, null), ("Sebastian", 300, null), (Newcomer, 450, null),
+        };
+        var groceries = new Dictionary<string, string>
+        {
+            ["JoshHouse"] = "Store", ["HaleyHouse"] = "Store", ["Saloon"] = "Store", ["Clinic"] = "Store", ["Cottage"] = "Store",
+            ["Manor"] = "Store", ["Ranch"] = "Store", ["ScienceHouse"] = "Store", ["SeedShop"] = "Store",
+            ["Trailer"] = "Mart", ["SamHouse"] = "Mart", ["Farm"] = "Mart",
+        };
+        var wants = Cast().Where(v => v.Name != Mayor).ToDictionary(v => v.Name, v => v.Stage == Stage.Child ? (20.0, 80.0) : (50.0, 300.0));
+        wants["Abigail"] = (300, 900); wants["Sebastian"] = (200, 800); wants["Sam"] = (200, 600); wants["Alex"] = (150, 500);
+        wants["Haley"] = (100, 400); wants[Newcomer] = (100, 400);
+        var cast = Cast();
+        var start = cast.Select(v => v.Household).Distinct()
+            .ToDictionary(h => h, h => h == "Trailer" ? 300.0 : 200.0 + 200.0 * cast.Count(v => v.Household == h));
+        return new Economy(start, incomes,
+            new Dictionary<string, double> { ["Abigail"] = 60, ["Alex"] = 50, ["Haley"] = 40, ["Vincent"] = 10, ["Jas"] = 10 },
+            groceries, wants, TownStipend: 1200, TownStart: 2000);
+    }
 
     private static int H(int hour, int min = 0) => Clock.At(hour, min);
     private static Haunt At(string place, int x, int y, int from, int to, double w) => new(place, new Tile(x, y), H(from), H(to), w);
