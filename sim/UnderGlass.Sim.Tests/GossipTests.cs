@@ -57,7 +57,7 @@ public class GossipTests
     }
 
     [Fact]
-    public void EveryHeardStoryTracesBackToAWitness_AndTheSameSeedGivesTheSameRun()
+    public void EveryHeardStoryTracesBackToAWitnessOrAFinder_AndTheSameSeedGivesTheSameRun()
     {
         SimResult a = new Simulation(42).Run(7);
         SimResult b = new Simulation(42).Run(7);
@@ -68,7 +68,7 @@ public class GossipTests
             foreach (Belief told in beliefs.Values.Where(x => x.Source == Source.Told))
             {
                 string origin = told.Chain[^1];
-                Assert.Equal(Source.Witnessed, a.Beliefs[origin][told.ActId].Source);
+                Assert.NotEqual(Source.Told, a.Beliefs[origin][told.ActId].Source); // saw it, or found its trace
                 Assert.True(told.Juiciness < DefaultTown.Acts().First(k => k.Name == told.Kind).Juiciness);
                 Assert.DoesNotContain(holder, told.Chain);
             }

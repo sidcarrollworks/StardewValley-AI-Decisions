@@ -66,7 +66,29 @@ if (inject)
     bool InBand((SimResult r, Act a) p) => Reach(p) >= Metrics.BandLow && Reach(p) <= Metrics.BandHigh && Days(p) >= 3;
     Console.WriteLine($"witnessed by someone: {seen.Count / (double)placed.Count:P0} of placed scandals; of those, reach {seen.Average(Reach):P0}, in the band {seen.Count(InBand) / (double)seen.Count:P0}, reached 90%+ {seen.Count(p => Reach(p) >= 0.9) / (double)seen.Count:P0}, never retold {seen.Count(p => p.r.HoldersByDay[p.a.Id][^1] <= p.r.Witnesses[p.a.Id]) / (double)seen.Count:P0}");
     Console.WriteLine($"  witnessed: under 40% {seen.Count(p => Reach(p) < 0.4) / (double)seen.Count:P0}; 40-70% in under 3 days {seen.Count(p => Reach(p) >= 0.4 && Reach(p) <= 0.7 && Days(p) < 3) / (double)seen.Count:P0}; in band {seen.Count(InBand) / (double)seen.Count:P0}; over 70% {seen.Count(p => Reach(p) > 0.7) / (double)seen.Count:P0}; mean days growing {seen.Average(Days):0.0}");
+    double Heard((SimResult r, Act a) p) => p.r.HeardByDay[p.a.Id][^1] / (double)(p.r.CastSize - 1);
+    int HeardDays((SimResult r, Act a) p)
+    {
+        int[] byDay = p.r.HeardByDay[p.a.Id];
+        int first = Clock.Day(p.a.Tick), last = first;
+        for (int d = first + 1; d < byDay.Length; d++) if (byDay[d] > byDay[d - 1]) last = d;
+        return last - first;
+    }
+    Console.WriteLine($"  witnessed, by sight and gossip only (not counting those who only found a trace): reach {seen.Average(Heard):P0}, in band {seen.Count(p => Heard(p) >= Metrics.BandLow && Heard(p) <= Metrics.BandHigh && HeardDays(p) >= 3) / (double)seen.Count:P0}, over 70% {seen.Count(p => Heard(p) > 0.7) / (double)seen.Count:P0}");
     foreach (var g in placed.GroupBy(p => p.a.Location).OrderBy(g => g.Key))
         Console.WriteLine($"  at {g.Key,-11} {g.Count(),4} runs, within 8 tiles {g.Average(p => p.r.Scenes[p.a.Id].InRange):0.00}, witnesses {g.Average(p => p.r.Witnesses.GetValueOrDefault(p.a.Id)):0.00}, reach {g.Average(p => p.r.HoldersByDay[p.a.Id][^1] / (double)(p.r.CastSize - 1)):P0}");
+}
+// The authority (design rule 16).
+var constables = runs.Where(r => r.Constable is not null).GroupBy(r => r.Constable!).OrderByDescending(g => g.Count()).ThenBy(g => g.Key);
+Console.WriteLine("constable voted in: " + string.Join(", ", constables.Select(g => $"{g.Key} {g.Count() / (double)runs.Count:P0}")));
+var verdicts = runs.SelectMany(r => r.Verdicts.Select(v => (r, v))).Where(x => !inject || x.r.Acts[x.v.ActId].Injected).ToList();
+var scandalActs = runs.SelectMany(r => r.Acts.Where(a => kinds.First(k => k.Name == a.Kind).IsScandal && (!inject || a.Injected)).Select(a => (r, a))).ToList();
+if (scandalActs.Count > 0)
+{
+    bool Known((SimResult r, Act a) x) => x.r.Beliefs.Values.Any(h => h.ContainsKey(x.a.Id));
+    bool FoundOnly((SimResult r, Act a) x) => x.r.Witnesses.GetValueOrDefault(x.a.Id) == 0 && x.r.Beliefs.Values.Any(h => h.TryGetValue(x.a.Id, out var b) && b.Source == Source.Found);
+    bool Reported((SimResult r, Act a) x) => x.r.Accounts.Any(c => c.ActId == x.a.Id);
+    double n = scandalActs.Count;
+    Console.WriteLine($"{(inject ? "placed" : "natural")} scandals: known to anyone {scandalActs.Count(Known) / n:P0} (found from a trace only {scandalActs.Count(FoundOnly) / n:P0}); reported to the mayor {scandalActs.Count(Reported) / n:P0}; decided {verdicts.Count / n:P0}, of which right {verdicts.Count(x => x.v.Correct) / (double)Math.Max(1, verdicts.Count):P0}, let off {verdicts.Count(x => x.v.LetOff)}; warnings given {runs.Sum(r => r.Acts.Count(a => a.Kind == Authority.Warned))}, taken in {runs.Sum(r => r.Acts.Count(a => a.Kind == Authority.TakenIn))}");
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

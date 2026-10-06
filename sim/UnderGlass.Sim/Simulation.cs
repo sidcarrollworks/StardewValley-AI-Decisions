@@ -73,6 +73,9 @@ public sealed class SimResult
     public required IReadOnlyList<Confrontation> Confrontations { get; init; }
     /// <summary>Holders of each act at the end of each day: [actId][day] = count.</summary>
     public required IReadOnlyDictionary<int, int[]> HoldersByDay { get; init; }
+    /// <summary>The same, leaving out people who only found a trace and never heard a name: the
+    /// story's spread by sight and gossip.</summary>
+    public required IReadOnlyDictionary<int, int[]> HeardByDay { get; init; }
     public required IReadOnlyDictionary<int, int> Witnesses { get; init; }
     public required IReadOnlyList<string> Log { get; init; }
     public required int CastSize { get; init; }
@@ -82,16 +85,22 @@ public sealed class SimResult
     public required IReadOnlyList<(string Name, int Day)> Late { get; init; }
     /// <summary>Who was around when each act began.</summary>
     public required IReadOnlyDictionary<int, Scene> Scenes { get; init; }
+    /// <summary>Every account the mayor received, in order (design rule 16).</summary>
+    public required IReadOnlyList<Account> Accounts { get; init; }
+    public required IReadOnlyList<Verdict> Verdicts { get; init; }
+    public required IReadOnlyList<Election> Elections { get; init; }
+    public required string? Constable { get; init; }
 }
 
 /// <summary>
 /// Phase 0a: the gossip harness (design section 11), on the 24-hour clock (rule 1). Villagers
 /// sleep and wake by their energy and alarms, go to work and to their haunts along the roads,
-/// acts happen minute by minute, witnesses perceive them in layers (rule 2), and stories spread
-/// by juiciness (rule 8) until a scandal leads to a confrontation (rule 9). Deterministic for a
-/// seed. Single-threaded.
+/// acts happen minute by minute, witnesses perceive them in layers (rule 2), traces let unseen
+/// acts be found later, and stories spread by juiciness (rule 8) until a scandal leads to a
+/// confrontation (rule 9) or a verdict from the mayor (rule 16; Simulation.Authority.cs).
+/// Deterministic for a seed. Single-threaded.
 /// </summary>
-public sealed class Simulation
+public sealed partial class Simulation
 {
     public const string Collapsed = "Collapsed";
 
@@ -118,6 +127,7 @@ public sealed class Simulation
         public string Why = "";
         public Haunt? Haunt;
         public Tile Target;
+        public int DetainedUntil = -1;
     }
 
     private readonly long _seed;
@@ -142,6 +152,7 @@ public sealed class Simulation
     private readonly HashSet<int> _confronted = new();
     private readonly List<Confrontation> _confrontations = new();
     private readonly Dictionary<int, int[]> _holdersByDay = new();
+    private readonly Dictionary<int, int[]> _heardByDay = new();
     private readonly List<Sleep> _sleeps = new();
     private readonly List<(string, int)> _late = new();
     private readonly Dictionary<int, Scene> _scenes = new();
@@ -158,11 +169,18 @@ public sealed class Simulation
     /// <see cref="Harness.Anyone"/> means whoever is first able. Marked injected.</param>
     /// <param name="links">Doors between places; defaults to the town's when the places are the town's.</param>
     /// <param name="gatherings">Hubs; default to the town's when the places are the town's.</param>
+    /// <param name="authority">The mayor, keepers, constable and ladder; default to the town's when
+    /// the places are the town's, else no authority.</param>
     public Simulation(long seed, IReadOnlyList<Villager>? cast = null, IReadOnlyList<Location>? places = null,
         IReadOnlyList<ActKind>? kinds = null, PerceptionOptions? perception = null, GossipOptions? gossip = null,
         IReadOnlyList<(int Tick, string Actor, string Kind)>? scheduled = null, int wander = 2,
-        IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null)
+        IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null,
+        AuthorityOptions? authority = null)
     {
+        _ao = authority ?? (places is null ? DefaultTown.TownAuthority() : new AuthorityOptions());
+        _constable = _ao.Constable;
+        foreach (var (name, count) in _ao.Record)
+            _record[name] = count;
         _gatherings = gatherings ?? (places is null ? DefaultTown.Gatherings() : Array.Empty<Gathering>());
         _wander = wander;
         _pending = (scheduled ?? Array.Empty<(int, string, string)>()).ToList();
@@ -247,6 +265,7 @@ public sealed class Simulation
             Beliefs = _beliefs.ToDictionary(p => p.Key, p => (IReadOnlyDictionary<int, Belief>)p.Value),
             Confrontations = _confrontations,
             HoldersByDay = _holdersByDay,
+            HeardByDay = _heardByDay,
             Witnesses = _witnesses,
             Log = _log,
             CastSize = _names.Length,
@@ -254,6 +273,10 @@ public sealed class Simulation
             Sleeps = _sleeps,
             Late = _late,
             Scenes = _scenes,
+            Accounts = _filed,
+            Verdicts = _verdicts,
+            Elections = _elections,
+            Constable = _constable,
         };
     }
 
@@ -275,6 +298,8 @@ public sealed class Simulation
         {
             Socialise(m);
             CheckScandals(m);
+            CheckTraces(m);
+            Authorities(m);
         }
         CheckLate(m, t);
     }
@@ -399,7 +424,15 @@ public sealed class Simulation
         int t = Clock.OfDay(m);
         bool hasHome = _places.ContainsKey(p.V.Home);
         Body body = p.V.Body;
-        if (p.Why == "bed" || body.BedAt >= 0 && _bo.Tiredness(p.Energy / body.MaxEnergy, t) >= 1 - body.BedAt - _bo.HeadHomeMargin)
+        bool tired = p.Why == "bed" || body.BedAt >= 0 && _bo.Tiredness(p.Energy / body.MaxEnergy, t) >= 1 - body.BedAt - _bo.HeadHomeMargin;
+        if (p.DetainedUntil > m)
+        {
+            // Held until the time is up: they sleep there too (design rule 16).
+            var (lockup, spot) = Lockup(p);
+            Goal(p, lockup, spot, p.DetainedUntil, tired ? "bed" : "detained", null);
+            return;
+        }
+        if (tired)
         {
             if (hasHome)
                 Goal(p, p.V.Home, DefaultTown.Bed, int.MaxValue, "bed", null);
@@ -412,6 +445,8 @@ public sealed class Simulation
             Goal(p, job.Place, job.Spot, m - t + job.End, "work", null);
             return;
         }
+        if (Patrol(p, m))
+            return;
         if (p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;
 
@@ -590,7 +625,7 @@ public sealed class Simulation
 
     // ---- acts and witnessing ---------------------------------------------------------------
 
-    private bool Free(Person p, int m) => !p.Asleep && !p.PendingCollapse && p.BusyUntil < m;
+    private bool Free(Person p, int m) => !p.Asleep && !p.PendingCollapse && p.BusyUntil < m && p.DetainedUntil <= m;
 
     private void StartActs(int m)
     {
@@ -720,6 +755,7 @@ public sealed class Simulation
             }
             _witnesses[act.Id] = witnesses;
             _watching.Remove(act.Id);
+            LeaveTrace(act, kind, m);
         }
     }
 
@@ -743,6 +779,7 @@ public sealed class Simulation
     {
         _beliefs[who][b.ActId] = b;
         _log.Add($"{m} belief {who} {b.ActId} {b.Actor ?? "someone"} {b.Source} {b.Juiciness:0.###}");
+        OwnAccount(who, b, m);
     }
 
     // ---- chats and gossip ------------------------------------------------------------------
@@ -873,6 +910,9 @@ public sealed class Simulation
             if (!_holdersByDay.TryGetValue(act.Id, out int[]? counts))
                 _holdersByDay[act.Id] = counts = new int[days];
             counts[day] = _names.Count(n => _beliefs[n].ContainsKey(act.Id));
+            if (!_heardByDay.TryGetValue(act.Id, out int[]? heard))
+                _heardByDay[act.Id] = heard = new int[days];
+            heard[day] = _names.Count(n => _beliefs[n].TryGetValue(act.Id, out Belief? b) && !(b.Source == Source.Found && b.Actor is null));
         }
     }
 }

@@ -9,6 +9,8 @@ namespace UnderGlass.Sim;
 public static class DefaultTown
 {
     public const string Newcomer = "Newcomer";
+    /// <summary>The mayor at the start of every run (design rule 16).</summary>
+    public const string Mayor = "Lewis";
 
     /// <summary>Where everyone sleeps and sits at home.</summary>
     public static readonly Tile Bed = new(2, 2), Sofa = new(4, 4), HomeDoor = new(5, 7);
@@ -83,9 +85,11 @@ public static class DefaultTown
     }
 
     /// <summary>The town's hubs (design rule 11): noon in the square, evenings at the saloon, and
-    /// market day on Saturday.</summary>
+    /// market day on Saturday. On the first day, the town meeting where the constable is voted in
+    /// (design rule 16).</summary>
     public static IReadOnlyList<Gathering> Gatherings() => new[]
     {
+        new Gathering("Meeting", "Square", new Tile(15, 13), 5, H(11, 30), H(12, 30), Array.Empty<int>(), 20, OnlyDay: 0),
         new Gathering("Noon", "Square", new Tile(15, 14), 4, H(11, 30), H(13, 30), Array.Empty<int>(), 3),
         new Gathering("Evening", "Saloon", new Tile(10, 4), 4, H(18), H(23), Array.Empty<int>(), 2),
         new Gathering("Market", "Square", new Tile(15, 5), 5, H(9), H(14), new[] { 5 }, 12),
@@ -95,15 +99,45 @@ public static class DefaultTown
     {
         // Scandals are rare (design rule 9 tiers): about 1-2 a year town-wide, a placeholder
         // until vices and money make them come from pressure (0b).
-        new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0.025, new[] { "ClinicYard", "Square" }),
-        new ActKind("Stole", 4.5, -1, 1, 1, 0.02, new[] { "Store", "Mart" }),
+        // Each leaves a trace (design principle 1): a scattered bin anyone can see for half a day;
+        // missing stock only the keeper notices, by counting, for three days.
+        new ActKind("RummagedInBin", 4.0, -1, 1, 3, 0.025, new[] { "ClinicYard", "Square" },
+            Trace: new TraceKind("ScatteredBin", KeeperOnly: false, LastsMinutes: 12 * 60, NoticePerHour: 0.6)),
+        new ActKind("Stole", 4.5, -1, 1, 1, 0.02, new[] { "Store", "Mart" },
+            Trace: new TraceKind("MissingStock", KeeperOnly: true, LastsMinutes: 3 * 24 * 60, NoticePerHour: 0.15)),
         new ActKind("DrunkScene", 3.0, -1, 2, 20, 0.3, new[] { "Saloon" }),
         new ActKind("Argued", 3.0, -1, 2, 10, 0.4, Array.Empty<string>()),
         new ActKind("HelpedSomeone", 2.0, 1, 2, 5, 0.4, Array.Empty<string>()),
         new ActKind("GaveGift", 1.5, 1, 1, 1, 3.0, Array.Empty<string>()),
         new ActKind("Stumbled", 1.0, 0, 1, 1, 1.5, Array.Empty<string>()),
+        // Never drawn: the mayor's warning and being taken in (design rule 16). The actor is the
+        // person warned or taken.
+        new ActKind(Authority.Warned, 3.0, -1, 1, 5, 0, Array.Empty<string>()),
+        new ActKind(Authority.TakenIn, 3.5, -1, 1, 5, 0, Array.Empty<string>()),
         // Never drawn: it happens when someone's energy runs out (design rule 1).
         new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>()),
+    };
+
+    /// <summary>
+    /// The town's authority (design rule 16): Lewis is mayor; the constable is voted in at the
+    /// opening meeting. Keepers count their stock and report as victims: Pierre his store, Shane
+    /// the chain store's floor, Harvey the clinic yard, Gus the saloon, and Lewis the square. The
+    /// constable patrols the public places; anyone detained is held at the manor.
+    /// </summary>
+    public static AuthorityOptions TownAuthority() => new()
+    {
+        Mayor = Mayor,
+        Keepers = new Dictionary<string, string>
+        {
+            ["Store"] = "Pierre", ["Mart"] = "Shane", ["ClinicYard"] = "Harvey", ["Saloon"] = "Gus", ["Square"] = Mayor,
+        },
+        Patrol = new Dictionary<string, Tile>
+        {
+            ["Square"] = new(15, 12), ["ClinicYard"] = new(10, 4), ["Store"] = new(8, 8), ["Mart"] = new(9, 8),
+            ["Beach"] = new(15, 4), ["Saloon"] = new(10, 3),
+        },
+        LockupPlace = "Home:Manor",
+        LockupSpot = new Tile(7, 2),
     };
 
     private static int H(int hour, int min = 0) => Clock.At(hour, min);

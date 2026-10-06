@@ -98,11 +98,13 @@ public sealed record Villager(
 /// A hub (design rule 11): a time when the town gathers at one place, such as noon in the square,
 /// evenings at the saloon or market day. While it is on, anyone free may pick it like a haunt,
 /// with this weight, and stands somewhere within Radius tiles of Center. Weekdays empty: every day.
+/// OnlyDay: a one-off on that day of the run (the opening town meeting).
 /// </summary>
 public sealed record Gathering(string Name, string Place, Tile Center, int Radius, int From, int To,
-    IReadOnlyList<int> Weekdays, double Weight)
+    IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null)
 {
     public bool On(int minute) => (Weekdays.Count == 0 || Weekdays.Contains(Clock.Weekday(minute)))
+        && (OnlyDay is null || Clock.Day(minute) == OnlyDay)
         && Clock.OfDay(minute) >= From && Clock.OfDay(minute) < To;
 }
 
@@ -110,10 +112,18 @@ public sealed record Gathering(string Name, string Place, Tile Center, int Radiu
 public enum Tier { Trivia, News, Scandal, Upheaval }
 
 /// <summary>
+/// What an act leaves behind for someone to find later (design principle 1): missing stock, a bin
+/// left scattered. KeeperOnly: only the keeper of the place can notice it (a stock count); else
+/// anyone who can see the spot. It lasts LastsMinutes, and each person able to notice it does so
+/// with NoticePerHour x the clarity of their view (1 for a keeper's count).
+/// </summary>
+public sealed record TraceKind(string Name, bool KeeperOnly, int LastsMinutes, double NoticePerHour);
+
+/// <summary>
 /// A kind of act and how it is perceived (design rule 4 row, reduced for phase 0a).
 /// ReadMinutes: how long it takes to understand what is happening (a glance is 1).
 /// DurationMinutes: how long it lasts. PerDay: town-wide rate when someone is able to.
-/// Allowed: the locations it can happen in (empty: anywhere).
+/// Allowed: the locations it can happen in (empty: anywhere). Trace: what it leaves behind.
 /// </summary>
 public sealed record ActKind(
     string Name,
@@ -123,7 +133,8 @@ public sealed record ActKind(
     int DurationMinutes,
     double PerDay,
     IReadOnlyList<string> Allowed,
-    bool Upheaval = false)
+    bool Upheaval = false,
+    TraceKind? Trace = null)
 {
     /// <summary>A bad act at base juiciness 4 or more (D34; design rule 9).</summary>
     public bool IsScandal => !Upheaval && Valence < 0 && Juiciness >= 4;
@@ -135,8 +146,8 @@ public sealed record ActKind(
 /// measure spread.</summary>
 public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false);
 
-/// <summary>Where a belief came from.</summary>
-public enum Source { Witnessed, Told }
+/// <summary>Where a belief came from. Found: from a trace, after the fact (never with a name).</summary>
+public enum Source { Witnessed, Told, Found }
 
 /// <summary>
 /// What one villager believes about one act. Actor is who they think did it, or null for
@@ -165,3 +176,19 @@ public sealed record Sleep(string Name, int SleptAt, int? WokeAt, double EnergyA
 /// in the same place, awake in the same place but farther, awake elsewhere, and asleep. The actor
 /// is not counted.</summary>
 public sealed record Scene(int InRange, int SamePlace, int Elsewhere, int Asleep);
+
+/// <summary>The steps of the ladder of consequences (design rule 16). Ban is the keeper's choice
+/// and Watched comes with Service; both arrive with money and shops (0b).</summary>
+public enum Consequence { Warning, RestitutionAndFine, Ban, Service, Watched, Detained }
+
+/// <summary>What someone told the authority about a scandal (design rule 16): who they say did it
+/// (null: "someone"), how sure they are, whether they saw it or found the trace themselves, and
+/// when it reached the mayor (later than it was told, if the constable carried it).</summary>
+public sealed record Account(int ActId, string From, string? Actor, double Confidence, bool FirstHand, int Tick);
+
+/// <summary>The mayor's decision on a scandal. LetOff: the mayor knew and went easy on someone
+/// close (rare for Lewis); no consequence follows.</summary>
+public sealed record Verdict(int ActId, int Tick, string By, string Accused, bool Correct, Consequence Step, bool LetOff);
+
+/// <summary>A town vote for an office, such as the constable at the opening meeting.</summary>
+public sealed record Election(string Office, int Tick, string Winner, IReadOnlyDictionary<string, int> Votes);

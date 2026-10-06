@@ -235,6 +235,12 @@ Every constant here is a first guess, to be tested in phase 0.
       Durations and amounts are set after testing. Detention replaces "asked to leave" (Sid, 2026-10-06).
     - **Deterrence.** Before acting on a vice, a villager weighs need (an empty purse, a run of bad days) against the risk *they believe* they run: how busy the place usually is (from memory, never the true count) x how bad the consequence would be x how much they fear it. Bold or desperate people still steal; careful ones wait for a quiet moment, which is why traces matter (an unseen theft found later by missing stock).
     - **The player is under the same ladder.**
+    - **As built in 0a** (2026-10-06; `sim/README.md`):
+      - Reports happen when the reporter and the mayor or constable are together. Victims always report, even hearsay; the constable always reports; other witnesses and finders with a chance of 0.2 + 0.6 x boldness.
+      - The mayor weighs accounts naming someone: confidence x (1 first-hand, 0.5 hearsay) x trust in the teller (0.5 + 0.5 x familiarity). He decides at 0.6 with a 2-to-1 lead; "someone" names nobody, so cases can stay open.
+      - Lewis lets off someone close (familiarity 0.5 or more, or his household) with a 2% chance.
+      - The ladder runs warning, restitution and fine, service, then detention from the fourth verdict (24 hours at the manor). Warnings and detentions are delivered in person and can be seen; fines and service wait for money (0b).
+      - The opening vote: the bold stand, everyone but the newcomer votes. Across 400 runs, eight different villagers were voted in; Pierre most often (37%).
 
 The player is one more agent under these rules and has no meters of their own.
 
@@ -447,7 +453,7 @@ E0 runs first and checks four things:
 - the same seed gives the same log;
 - regard stays in range;
 - the caps hold;
-- every heard story traces back to a witness.
+- every heard story traces back to a witness, or to someone who found its trace.
 
 E5 is Sid's blind read of 10 season journals.
 
@@ -542,7 +548,7 @@ E5 is Sid's blind read of 10 season journals.
 - How often scandals happen is measured separately, over years, once vices and money exist (0b).
 - Until then, villagers' scandal rates are set low (about 1.5 a year town-wide) as a placeholder.
 
-## 11c. Decisions of 2026-10-06: authority, age and Sims 4
+## 11c. Decisions of 2026-10-06: authority, age, runs and other life sims
 
 **Authority** (rule 16). Lewis is mayor and the authority at the start. Every run opens with the town voting in a constable, mostly as story and show for now, so the constable can differ from run to run; it gets more weight with a bigger town. The mayor's office comes up for election later in the game. Lewis is the example of a just and fair authority: he can be swayed, but only with a very small chance. The harshest step is detention for a set time, not being asked to leave; the details come after testing.
 
@@ -557,7 +563,13 @@ E5 is Sid's blind read of 10 season journals.
 
 Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your own character.
 
-**Length of a run.** At 20 real minutes per game day, a 4-season year is about 37 hours of play if every hour is played, or about 24 hours if sleep is skipped. Five years is about 120-190 hours. Whether and how fast people age depends on how long runs go (section 12).
+**Length of a run.** At 20 real minutes per game day, a 4-season year is about 37 hours of play if every hour is played, or about 24 hours if sleep is skipped. Five years is about 120-190 hours.
+
+**Aging is real time for now** (Sid, 2026-10-06): one game year is one year of age. Within a run, children grow and elders get older slowly; Lewis dying of old age is rare inside one run.
+
+**Runs can rejoin the same world.** Sid: "it might be interesting to rejoin the world you were just in. Maybe 5-10 years pass every run you do." A new run can start in the town the last run left, 5-10 years later. The simulation runs the skipped years headless under the same rules, so the town the player returns to (who married, who left, who is mayor, who died) comes out of what happened, not a script. Whether this happens depends on how play turns out.
+
+**How a run ends** (the player's death, or losing) is saved for later.
 
 ## 12. Questions for Sid
 
@@ -566,10 +578,11 @@ Answered on 2026-10-05: free text from the player, villagers misreading the play
 Still open:
 1. **The player's main goal, and the alien premise** (11a). Sid isn't sold on either yet (2026-10-06). The simulation doesn't depend on them, so phase 0 goes ahead; both are for later.
 2. **Power** (section 6a): rule changes matter, the meeting is not settled as the main stake, and votes must be worth the effort and optional for players who don't enjoy politics (Sid, 2026-10-06). Still to settle: what kinds of rule are worth voting on.
-3. **Life stages:** how fast people age against the calendar (11c), and what happens across many years.
-4. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
+3. **Life stages:** real-time aging for now (11c). Later: the skips between runs, and what carries over.
+4. **How a run ends:** how the player dies or loses. Saved for later.
+5. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
    - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
 
-   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band.
+   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace.
