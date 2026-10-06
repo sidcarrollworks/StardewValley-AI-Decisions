@@ -159,8 +159,11 @@ public static class DefaultTown
     };
 
     /// <summary>The town's feelings (phase 0c): seeded from households and friends, with the
-    /// starting tensions.</summary>
-    public static FeelingOptions Feelings() => new() { Start = Tensions(), Steer = false };
+    /// starting tensions, steering decisions. Every regard change counts double the rows' first
+    /// guesses (PlasticScale 2): at 1, only 2.8% of pairs moved 0.1 or more in a year and every
+    /// seed was a dead town; at 2, 7.9% moved, inside the 5-25% band (sweeps of 2026-10-06,
+    /// sim/README.md).</summary>
+    public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2 };
 
     /// <summary>
     /// Regard that starts away from the seed, (from, to). Empty until Sid picks the town's tensions
