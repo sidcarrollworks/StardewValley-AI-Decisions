@@ -4,14 +4,28 @@ using UnderGlass.Sim;
 //   dotnet run --project sim/UnderGlass.Run -- --seeds 200 --days 28            (natural acts)
 //   dotnet run --project sim/UnderGlass.Run -- --seeds 200 --days 28 --inject   (one scandal placed per run)
 //   dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                 (one seed's event log)
+// Feelings (phase 0c): --feel off|observe|on (default: the town's own setting), --off <law>
+// (sympathy, imitation, reconcile, kinds, freedom, presence, association, shame; repeatable),
+// --plastic <x>, --target-base <x>, and --fo <Name>=<value> for any other FeelingOptions knob.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
 var gossip = new GossipOptions();
+var inv = System.Globalization.CultureInfo.InvariantCulture;
+FeelingOptions feelings = DefaultTown.Feelings();
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
     {
+        case "--feel":
+            feelings = args[i + 1] switch
+            {
+                "off" => FeelingOptions.Off,
+                "observe" => Set(DefaultTown.Feelings(), "Steer", "false"),
+                "on" => Set(DefaultTown.Feelings(), "Steer", "true"),
+                _ => throw new ArgumentException("--feel off|observe|on"),
+            };
+            break;
         case "--seeds": seeds = int.Parse(args[i + 1]); break;
         case "--days": days = int.Parse(args[i + 1]); break;
         case "--from": from = int.Parse(args[i + 1]); break;
@@ -23,21 +37,71 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--tells": gossip.TellsPerDay = int.Parse(args[i + 1]); break;
     }
 }
+// Applied after --feel, whatever the order on the line.
+for (int i = 0; i < args.Length - 1; i++)
+{
+    switch (args[i])
+    {
+        case "--off": Set(feelings, char.ToUpperInvariant(args[i + 1][0]) + args[i + 1][1..], "false"); break;
+        case "--plastic": feelings.PlasticScale = double.Parse(args[i + 1], inv); break;
+        case "--target-base": feelings.TargetBase = double.Parse(args[i + 1], inv); break;
+        case "--fo": Set(feelings, args[i + 1][..args[i + 1].IndexOf('=')], args[i + 1][(args[i + 1].IndexOf('=') + 1)..]); break;
+    }
+}
+
+static FeelingOptions Set(FeelingOptions o, string name, string value)
+{
+    var prop = typeof(FeelingOptions).GetProperty(name) ?? throw new ArgumentException($"no feeling option {name}");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    object v = prop.PropertyType == typeof(bool) ? bool.Parse(value)
+        : prop.PropertyType == typeof(int) ? int.Parse(value, inv)
+        : prop.PropertyType == typeof(double) ? double.Parse(value, inv)
+        : throw new ArgumentException($"{name} can't be set from the command line");
+    prop.SetValue(o, v);
+    return o;
+}
 
 IReadOnlyList<ActKind> kinds = DefaultTown.Acts();
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
 
 if (logSeed is { } one)
 {
-    SimResult r = new Simulation(one, gossip: gossip, scheduled: Injected(one)).Run(days);
+    SimResult r = new Simulation(one, gossip: gossip, scheduled: Injected(one), feelings: feelings).Run(days);
     foreach (string line in r.Log)
         Console.WriteLine($"{Clock.Format(int.Parse(line[..line.IndexOf(' ')]))} {line[(line.IndexOf(' ') + 1)..]}");
+    if (feelings.Enabled)
+    {
+        // For reading a seed (0c gate, check 7): the strongest feelings and what caused them.
+        Console.WriteLine();
+        Console.WriteLine("strongest sentiments at the end:");
+        foreach (Sentiment s in r.Sentiments.OrderByDescending(s => s.Strength).ThenBy(s => s.Holder, StringComparer.Ordinal).Take(10))
+        {
+            Act cause = r.Acts[s.ActId];
+            Console.WriteLine($"  {s.Holder} {s.Name} toward {s.Toward} {s.Strength:0.00} (x{s.Count}), since {Clock.Format(s.Since)}: act {cause.Id} {cause.Kind} by {cause.Actor}{(cause.Target is { } t ? " to " + t : "")} at {cause.Location} {Clock.Format(cause.Tick)}");
+        }
+        Console.WriteLine("ties: " + (r.Ties.Count == 0 ? "none" : string.Join("; ", r.Ties.Select(t => $"d{t.Day} {t.What} {t.A}-{t.B}"))));
+        Console.WriteLine("shop switches: " + (r.ShopSwitches.Count == 0 ? "none" : string.Join("; ", r.ShopSwitches.Select(s => $"d{s.Day} {s.Household} {s.From}->{s.To}"))));
+        var moved = r.Regard.Select(p => (p.Key, R: p.Value, D: p.Value - r.Baseline[p.Key])).Where(x => Math.Abs(x.D) >= 0.05)
+            .OrderBy(x => x.D).ThenBy(x => x.Key.From, StringComparer.Ordinal).ThenBy(x => x.Key.To, StringComparer.Ordinal).ToList();
+        Console.WriteLine("regard moved 0.05 or more: " + (moved.Count == 0 ? "none" : string.Join(", ", moved.Select(x => $"{x.Key.From}->{x.Key.To} {x.R:0.00} ({x.D:+0.00;-0.00})"))));
+    }
     Console.WriteLine($"hash {Metrics.LogHash(r)}");
     return;
 }
 
+var clock = System.Diagnostics.Stopwatch.StartNew();
 var runs = Enumerable.Range(from, seeds).AsParallel().AsOrdered()
-    .Select(s => new Simulation(s, gossip: gossip, scheduled: Injected(s)).Run(days)).ToList();
+    .Select(s => new Simulation(s, gossip: gossip, scheduled: Injected(s), feelings: Copy(feelings)).Run(days)).ToList();
+double runSeconds = clock.Elapsed.TotalSeconds;
+
+// Each run gets its own options object: they are mutable, and runs go in parallel.
+static FeelingOptions Copy(FeelingOptions o)
+{
+    var c = new FeelingOptions();
+    foreach (var p in typeof(FeelingOptions).GetProperties().Where(p => p.CanWrite))
+        p.SetValue(c, p.GetValue(o));
+    return c;
+}
 RunStats stats = Metrics.Summarise(runs, kinds, injectedOnly: inject);
 Console.WriteLine($"Under Glass 0a: {stats.Runs} seeds x {days} days, {runs[0].CastSize} villagers{(inject ? ", one injected scandal each" : "")}");
 Console.WriteLine();
@@ -133,5 +197,22 @@ static bool PaidInFull(string l)
     var parts = l.Split(' ');
     int i = Array.IndexOf(parts, "paid");
     return i >= 0 && parts.Length > i + 4 && parts[i + 2] == parts[i + 4];
+}
+// Feelings (phase 0c).
+if (feelings.Enabled)
+{
+    FeelingStats f = FeelingMetrics.Summarise(runs, kinds, DefaultTown.Cast(), DefaultTown.TownEconomy().GroceriesAt, feelings);
+    Console.WriteLine($"feelings ({(feelings.Steer ? "steering" : "observed only")}{(feelings.PlasticScale != 1 ? $", plastic {feelings.PlasticScale}" : "")}): run time {runSeconds:0.0} s");
+    Console.WriteLine($"  power of acting: mean {f.MeanPower:0.00} (spread {f.PowerSpread:0.00}), under 0.3 {f.LowPowerShare:P0}, over 0.7 {f.HighPowerShare:P0}; lowest " + string.Join(", ", f.LowestPower.Select(x => $"{x.Name} {x.Power:0.00}")));
+    foreach (RegardSpread s in f.BySnapshot)
+        Console.WriteLine($"  regard at d{s.Day}: mean change {s.MeanChange:+0.000;-0.000}, p5 {s.P5:0.00} p50 {s.P50:0.00} p95 {s.P95:0.00}; under -0.2 {s.UnderMinus02:P1}, 0.4+ {s.AtLeast04:P1}, moved 0.1+ {s.Moved01:P1}; kin {s.KinMean:0.00}, others {s.NonKinMean:0.00}");
+    Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {f.WarTowns:P0}, dead towns {f.DeadTowns:P0}");
+    Console.WriteLine("  top feuds " + string.Join(", ", f.TopFeuds.Select(t => $"{t.A}-{t.B} {t.Seeds}")) + "; top friendships " + string.Join(", ", f.TopFriendships.Select(t => $"{t.A}-{t.B} {t.Seeds}")));
+    Console.WriteLine("  sentiments a season: " + string.Join(", ", f.SentimentsPerSeason.Select(p => $"{p.Key} {p.Value:0.#}")) + $"; share of regard change with a sentiment {f.SentimentShare:P0}");
+    Console.WriteLine($"  toward a culprit, mean change by how it was known: witnessed {f.DropWitnessed:+0.000;-0.000}, saw and heard the name {f.DropHeardName:+0.000;-0.000}, told twice {f.DropCorroborated:+0.000;-0.000}, confirmed {f.DropConfirmed:+0.000;-0.000}");
+    Console.WriteLine($"  kin shame: {f.ShameStepsPerScandal:0.0} steps a scandal, kin regard change {f.KinDropPerScandal:+0.000;-0.000} a scandal; innocents questioned who resent a namer {f.InnocentsResentingNamer:P0}; wrongly confronted {f.WrongConfrontDrop:+0.000;-0.000}; bystanders on the constable {f.BystanderRegardForConstable:+0.000;-0.000}");
+    Console.WriteLine($"  aimed acts: gifts and help to someone loved (0.4+) {f.GiftsToLoved:P0}; arguments with someone disliked {f.ArgumentsToDisliked:P0}, inside a household {f.ArgumentsInHouseholds:P0}; news {f.NewsPerYear:0} and trivia {f.TriviaPerYear:0} a year");
+    Console.WriteLine($"  grievance thefts {f.GrievancePerYear:0.00} a year; shop switches {f.ShopSwitchesPerYear:0.00} a year; households at the chain by season " + string.Join(" -> ", f.HouseholdsAtChainBySeason.Select(x => $"{x:0.0}")));
+    Console.WriteLine("  regard for kinds at the end: " + string.Join(", ", f.MeanKindRegard.Select(p => $"{p.Key} {p.Value:+0.000;-0.000}")) + $"; for the newcomer {f.RegardTowardNewcomer:+0.000;-0.000}, the newcomer's {f.RegardFromNewcomer:+0.000;-0.000}");
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

@@ -525,11 +525,12 @@ public sealed partial class Simulation
             .Concat(_carried.Where(c => c.ActId == actId));
 
     /// <summary>Kin hear the story told about their own (F14; rule 17): each new person they learn
-    /// knows it is a step of shame, and of sadness at the one who brought it on them.</summary>
-    private void KinHears(string k, int actId, IReadOnlyList<string> chain, int m)
+    /// knows it is a step of shame, and of sadness at the one who brought it on them. Only a
+    /// telling that names their kin counts.</summary>
+    private void KinHears(string k, int actId, IReadOnlyList<string> chain, string? named, int m)
     {
         if (!_fo.Enabled || !_fo.Shame || !_beliefs[k].TryGetValue(actId, out Belief? b) || b.Actor is not { } c
-            || !AreKin(k, c) || !KindOf(_acts[actId]).IsScandal)
+            || named != c || !AreKin(k, c) || !KindOf(_acts[actId]).IsScandal)
             return;
         foreach (string name in chain)
             if (name != k && name != c && !AreKin(k, name))

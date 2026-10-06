@@ -1069,11 +1069,11 @@ public sealed partial class Simulation
                 Add(listener, held with { Suspects = told.Suspects }, m, teller); // someone's suspicion fills in their "someone"
             if (agrees)
                 Corroborate(listener, best.ActId, m);
-            KinHears(listener, best.ActId, told.Chain, m);
+            KinHears(listener, best.ActId, told.Chain, told.Actor, m);
             return;
         }
         Add(listener, told, m, teller);
-        KinHears(listener, best.ActId, told.Chain, m);
+        KinHears(listener, best.ActId, told.Chain, told.Actor, m);
     }
 
     // ---- scandal ---------------------------------------------------------------------------
