@@ -64,6 +64,7 @@ What's modelled:
   - Families cover: kin never report, retell, suspect or confront each other, and leave each other out when questioned. Questioned, they vouch for kin who are suspected (`Account.Alibi`). An alibi takes back half of one "nearby" and never offsets a sighting or a confession. The constable questions the most-suspected person's housemates.
   - A keeper who learns their own kin took from them doesn't report it: a family row (`FamilyRow`, a news act others can see) instead.
   - Only adults stand for constable; everyone 16 and over votes.
+- **Acting normal** (design rules 1 and 17; `Simulation.Habits.cs`): everyone learns the hours each person keeps out of doors, from what they see. Someone seen out at night (22:00-6:00) at an hour the observer has never seen them out, nor the hour either side, once the observer has seen them out for 6 hours or more, becomes a news story about them (`OutLate`). Anyone living with a parent or guardian has a curfew (children 20:00, teens 22:00, grown children 1:00); a parent who learns their child was out past it has a family row with them.
 - **Placed scandals** (`Harness`): natural scandals are rare, so `--inject` places one per run from day 1 at a seeded time. From then on, each minute that someone is awake, free and somewhere it can happen, there is a 1 in 120 chance it happens, by one of them chosen by a seeded draw. Nobody robs their own place of work. Spread metrics then count only the placed act.
 - **Who was around** (`Scene`): for every act, how many people were awake within 8 tiles, in the same place but farther, elsewhere, or asleep.
 - **Metrics** (`Metrics`), per tier:
@@ -77,6 +78,7 @@ What's modelled:
   - for scandals: known to anyone, known only from a trace, reported to the mayor, decided, decided right, let off, warnings and detentions;
   - suspicion (anyone suspected, the culprit among the suspects) and interviews (how many, how many innocent, confessions, wrong verdicts);
   - family rows, alibis and sibling squabbles;
+  - odd-hour sightings a season, of whom, at what hours;
   - who was voted constable across runs.
 - **Determinism:** every draw comes from a named SplitMix64 stream (`Rng`), and a run's log hashes the same on every machine.
 
@@ -102,6 +104,7 @@ Numbers with every family (26 villagers), 2026-10-06:
 | decided by the mayor / decided right | 43% / 97% | 47% / 99% |
 | family rows / family alibis | 0 / 51 | 4 / 585 |
 | sibling squabbles | about 0.2 a day | |
+| seen out at an odd hour | about 1 a season (Shane, Sam, Pam, Sebastian, Abigail) | |
 
 Constable voted in (placed runs): Pierre 21%, Maru 19%, Demetrius 11%, Abigail 7%, Shane 7%, Robin 6%, Alex 6%, Pam 6%, Sam 5%, Kent 4%, George 3%, Leah 3%, Gus 1%, Emily 1%.
 
@@ -123,9 +126,7 @@ What these say:
 
 ## Next
 
-1. **0a, the rest:**
-   - **Partial accounts** (clothing, direction) that narrow "someone" further.
-   - **Noticing someone out at an odd hour** (acting normal, design rule 1).
+1. **0a is done** with odd hours (2026-10-06). One piece is left for later: **partial accounts** (clothing, direction) that narrow "someone" further.
 2. **0b:** a stock-and-flow money model, with fines and restitution, and deterrence for vices (design rule 16).
 3. **0c:** feelings. These are Spinoza's laws (design 3a): power of acting, joy and sadness, love and hate toward the cause, imitation, and reciprocity, built on regard and familiarity.
 

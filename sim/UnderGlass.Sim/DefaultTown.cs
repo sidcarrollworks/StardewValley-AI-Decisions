@@ -126,6 +126,9 @@ public static class DefaultTown
         // Never drawn: a keeper who learns their own kin took from them has it out at home
         // instead of reporting it (design rule 17). The actor is the one who took.
         new ActKind(Simulation.FamilyRow, 3.0, -1, 2, 15, 0, Array.Empty<string>()),
+        // Never drawn: seen out at an hour you never keep, when the town is quiet (acting normal,
+        // design rule 1). Not bad in itself, but worth talking about. The actor is the one seen.
+        new ActKind(Simulation.OutLate, 2.0, 0, 1, 1, 0, Array.Empty<string>()),
         // Never drawn: it happens when someone's energy runs out (design rule 1).
         new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>()),
     };

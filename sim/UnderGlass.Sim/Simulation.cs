@@ -146,6 +146,7 @@ public sealed partial class Simulation
     private readonly PerceptionOptions _po;
     private readonly GossipOptions _go;
     private readonly BodyOptions _bo;
+    private readonly HabitOptions _ho;
     private readonly string[] _names;
     private readonly Dictionary<string, int> _index;
     private readonly Person[] _people;
@@ -184,8 +185,9 @@ public sealed partial class Simulation
         IReadOnlyList<ActKind>? kinds = null, PerceptionOptions? perception = null, GossipOptions? gossip = null,
         IReadOnlyList<(int Tick, string Actor, string Kind)>? scheduled = null, int wander = 2,
         IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null,
-        AuthorityOptions? authority = null)
+        AuthorityOptions? authority = null, HabitOptions? habits = null)
     {
+        _ho = habits ?? new HabitOptions();
         _ao = authority ?? (places is null ? DefaultTown.TownAuthority() : new AuthorityOptions());
         _constable = _ao.Constable;
         foreach (var (name, count) in _ao.Record)
@@ -701,6 +703,16 @@ public sealed partial class Simulation
     {
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected);
         _acts.Add(act);
+        _scenes[act.Id] = SceneOf(act, actor);
+        actor.BusyUntil = m + kind.DurationMinutes - 1;
+        _watching[act.Id] = new Dictionary<string, List<double>>();
+        _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}");
+    }
+
+    private ActKind KindOf(Act a) => _kinds.First(k => k.Name == a.Kind);
+
+    private Scene SceneOf(Act act, Person actor)
+    {
         int inRange = 0, samePlace = 0, elsewhere = 0, asleep = 0;
         foreach (Person o in _people)
         {
@@ -710,13 +722,8 @@ public sealed partial class Simulation
             else if (o.At.Chebyshev(act.At) <= _po.FarTiles) inRange++;
             else samePlace++;
         }
-        _scenes[act.Id] = new Scene(inRange, samePlace, elsewhere, asleep);
-        actor.BusyUntil = m + kind.DurationMinutes - 1;
-        _watching[act.Id] = new Dictionary<string, List<double>>();
-        _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}");
+        return new Scene(inRange, samePlace, elsewhere, asleep);
     }
-
-    private ActKind KindOf(Act a) => _kinds.First(k => k.Name == a.Kind);
 
     private void Watch(int m, int t)
     {
@@ -795,6 +802,7 @@ public sealed partial class Simulation
         _beliefs[who][b.ActId] = b;
         _log.Add($"{m} belief {who} {b.ActId} {b.Actor ?? "someone"} {b.Source} {b.Juiciness:0.###}");
         OwnAccount(who, b, m);
+        CurfewBroken(who, b, m);
     }
 
     // ---- chats and gossip ------------------------------------------------------------------

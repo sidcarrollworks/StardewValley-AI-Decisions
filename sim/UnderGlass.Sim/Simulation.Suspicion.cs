@@ -31,6 +31,7 @@ public sealed partial class Simulation
                     spans[^1] = (o.Place, spans[^1].From, m);
                 else
                     spans.Add((o.Place, m, m));
+                Habit(o, s, m);
             }
         }
     }

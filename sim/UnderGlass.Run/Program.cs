@@ -108,4 +108,7 @@ if (scandalActs.Count > 0)
 int Count(string kind) => runs.Sum(r => r.Acts.Count(a => a.Kind == kind));
 int Logged(string word) => runs.Sum(r => r.Log.Count(l => l.Contains(word)));
 Console.WriteLine($"families: rows {Count(Simulation.FamilyRow)}, kept in the family {Logged(" kept-in-family ")}, family alibis {Logged("; vouched for ")}; sibling squabbles {Count("Squabbled")}");
+var late = runs.SelectMany(r => r.Acts.Where(a => a.Kind == Simulation.OutLate)).ToList();
+double seasonsRun = runs.Sum(r => r.Days) / (double)Clock.DaysPerSeason;
+Console.WriteLine($"acting normal: seen out at an odd hour {late.Count / seasonsRun:0.0} times a season; most often " + string.Join(", ", late.GroupBy(a => a.Actor).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Take(5).Select(g => $"{g.Key} {g.Count() / seasonsRun:0.0}")) + "; at hours " + string.Join(",", late.GroupBy(a => Clock.OfDay(a.Tick) / 60).OrderByDescending(g => g.Count()).Take(4).Select(g => $"{g.Key}:00")));
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");
