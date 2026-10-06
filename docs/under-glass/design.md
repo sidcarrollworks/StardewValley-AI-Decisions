@@ -120,7 +120,23 @@ What this gives the design: rules 4 to 10 below are these laws with numbers atta
 
 Every constant here is a first guess, to be tested in phase 0.
 
-1. **Time and space.** A day is 120 ten-minute ticks (6:00-2:00) and a season is 28 days; both are parameters. Locations have named spots with tile coordinates (counter, bar stool, bench, field row), and a travel-time table gives ticks between spots. Social acts carry game-minute timestamps.
+1. **Time, space and bodies** (decided 2026-10-05; see 11b).
+   - **The clock runs all 24 hours.** The date changes at midnight. There is no end of the day: nobody is sent home at 2:00, and nothing resets at 6:00. A week is 7 days, a season 28, a year 4 seasons. All of these are parameters.
+   - **Pace.** A game day takes about 20 real minutes, so a game minute is 0.83 real seconds. We set it from play later, once there are mechanics to judge it by.
+   - **Two time steps.**
+     - Routines, movement decisions and chats run on 5-minute ticks.
+     - Acts and perception run minute by minute: an act lasts minutes, and a witness must be looking during those minutes.
+     - Every act and diary entry carries its game minute.
+   - **Places.** Locations have named spots with tile coordinates (counter, bar stool, bench, field row). Roads join them. People walk about 2 tiles a game minute, so they are on the roads between places, where they see and are seen.
+   - **Energy and sleep.** Everyone, the player included, has an energy bar. Each person's maximum is different.
+     - Being awake uses energy; work uses more, depending on the job.
+     - Anyone can go to sleep whenever they like. Villagers go to bed when they feel tired enough, not at a set hour. Feeling tired is the share of the bar used plus a body clock (sleepy in the small hours, alert in the afternoon), against each person's own threshold (night owls stay up later). The body clock keeps everyone's day near 24 hours.
+     - Rest drains a share of each person's own bar; work and walking cost a fixed amount on top, so a bigger bar takes hard work in its stride.
+     - Sleep refills energy and stops when the bar is full: nobody can sleep longer than that.
+     - Anyone can set an alarm. An alarm may not wake a sleeper: the chance of waking rises with how full the bar already is. A villager who sleeps through it is late for work, and people notice.
+     - At zero energy a person collapses where they stand. The collapse is an act that others can see, and the person is taken home.
+   - **Jobs make the routines.** A villager's day comes from their job (place, hours, days off, how tiring it is), their haunts for free time (place, hours, weight), and their energy. The player's day comes from the same parts, chosen by the player.
+   - **Acting normal.** Because bedtimes and routines come from each person, the town has a sense of what is usual for whom. Being up at odd hours, or somewhere unusual, is something a villager can notice and talk about. For the alien, keeping human hours is part of fitting in (11a).
 2. **Perception, in layers.** Every act is an event {eventId, time, actor, kind, target, place, duration, causeIds}. Nobody learns anything except by witnessing it, being told it or reading the board. Decision code sees memory only.
    - **Clarity.** Each observer gets a clarity for each event from 0 to 1. Clarity builds with time watched and depends on:
      - *distance:* close (0-2 tiles) 1.0, near (3-5) 0.6, far (6-8) 0.3, nothing beyond 8;
@@ -137,7 +153,7 @@ Every constant here is a first guess, to be tested in phase 0.
    - The player perceives through the same rule, which is why the player sometimes sees only "someone".
 3. **Forgetting.** A diary over 300 entries drops its lowest-weight tenth.
    - Weight = base (sighting 0.1, act 1, secret 2) x 0.5^(days/21) x (0.5 + |regard for the subject|).
-   - Sightings coarsen from spot to location to region to "earlier today", and are gone at 6:00.
+   - Sightings coarsen from spot to location to region to "earlier today", and are gone after the owner's next sleep.
    - Routine trades go to a purchase ledger. Only changes from routine (a new seller, a price change over 10%, a refusal) enter the diary.
 4. **Regard.** Each act kind has a row: valence, magnitude, fade, plastic share, base juiciness, importance.
    - The target feels magnitude x (0.5 + sensitivity). The elastic feeling sums the last 3 days of entries.
@@ -147,17 +163,17 @@ Every constant here is a first guess, to be tested in phase 0.
    - A repeated good act counts x 0.5^(repeats in 7 days).
 5. **Healing and familiarity.** Regard drifts 0.005 a day toward a baseline set on the villager's card. It heals faster on contact: a day spent together with no new slight, an accepted apology, or a good act. Betrayed keeps regard at -0.2 or below. Familiarity is kept separate from liking. It rises by 0.02 x (1 - familiarity) per exchange (chat, trade, reaction) and falls 1% a day.
 6. **Bystanders** (laws 5 and 6). A witness who loves the target shares its feeling and moves its regard for the actor by 0.5 x the target's change x its regard for the target, times clarity. One who hates the target feels the opposite, at most 0.3 of that amount. One with no strong regard feels a fraction by likeness (imitation, about 0.2 x likeness), toward the target only. Changes made by this rule never trigger it again.
-7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within 6 ticks, with one of 8 emotions.
+7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within an hour, with one of 8 emotions.
    - The reaction is an act linked to the eventId. Its magnitude = the emotion's row x the event's importance.
    - Witnesses read it against their own view of the event. Siding with the actor of a harm slights the victim; siding with the victim slights the actor.
    - Villagers pick an emotion from their own feeling about the event (laws 5 to 7) and their temperament; the player uses the wheel.
    - Witnessed reactions feed each villager's estimate of how the town regards that kind of act (law 7), which is how norms form.
    - Nobody reacts to a reaction.
-8. **Gossip.** Villagers co-located for 3 or more ticks chat with a seeded chance of 0.3 x (0.5 + chattiness) per tick.
+8. **Gossip.** Awake villagers co-located for 15 minutes or more chat with a seeded chance of 0.3 x (0.5 + chattiness) per 10 minutes.
    - The teller offers its juiciest story at 2 or more that, by its own record, it has not told this listener and did not hear from them.
    - Add 0.5 if the listener has a close tie to someone in the story (regard 0.4 or more, or the same household).
-   - The listener stores the story at 0.7 x the teller's juiciness, with the chain of tellers.
-   - Juiciness fades 0.5 a day (0.8 at base 4 or more), counted from when each person got the story (as in the mod, D33).
+   - The listener stores the story at 0.4 x the teller's juiciness, with the chain of tellers (tuned in 0a, 2026-10-06; the mod uses 0.7). A scandal heard second-hand is then passed on only to people who know the culprit well, and news heard second-hand goes no further.
+   - Juiciness fades 0.5 a day (0.65 at base 4 or more, so a witness keeps telling a scandal for about four days), counted in whole 24-hour periods from when each person got the story (as in the mod, D33, which uses 0.8 for scandals).
    - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
    - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
    - Retelling never adds detail.
@@ -166,13 +182,23 @@ Every constant here is a first guess, to be tested in phase 0.
    - Hearsay becomes regard at 0.5 strength when confirmed first-hand, and at 0.25 when two independent tellers agree.
    - When the people holding a scandal reach a quarter of those who know the actor (minimum 3), one of them confronts the actor. A seeded draw weighted by intensity x boldness picks who, preferring the person harmed.
    - Each scandal gets one confrontation, and a confrontation has base juiciness 3.
+   - **Tiers** (decided 2026-10-05). Every act kind belongs to one tier. The tier decides what the story can do, and each tier has a target for how often it happens in a town of 12:
+
+     | Tier | Juiciness | Examples | Retold | Effect on listeners | How often, town-wide |
+     |---|---|---|---|---|---|
+     | Trivia | under 2 | a gift, a stumble | only to someone who knows a person in it | mood | many a day |
+     | News | 2 to under 4 | an argument, a drunk night, a favour, a collapse | yes | mood only, unless it touches them personally | a few a week |
+     | Scandal | 4 and up, bad | theft, the bin | yes, and fades slowly | a motive; a confrontation once enough people know | 1-2 a year from villagers in a settled town; more under strain or from the player |
+     | Upheaval | set per kind | a shop closes, someone moves out, a couple splits | to everyone, and posted on the board | a motive for everyone it touches; can become a town-meeting item | once a year or less |
+
+   - **Scandals and upheavals come from pressure, not dice.** A villager commits a scandal only when a vice is triggered (rule 15): a low purse, a run of bad days. An upheaval comes only from long pressure: weeks of losses, a feud, a failed courtship. A settled town is quiet; a strained one is not. How often they happen is a result we check against the table, not a rate we set.
 10. **Motives and acts.** A villager acts toward a subject, villager or player, only on a motive about that subject.
     - It acts when boldness + 0.5 x familiarity + 0.5 x intensity reaches the act's cost (wave 0.2, note 0.25, chat 0.3, gift 0.4, walk up 0.5, visit 0.7, confront 0.8; hostile acts +0.3), and intensity reaches the act's minimum.
     - Code decides when the margin is more than 0.15 from the cost. Inside that band, a seeded draw with P = logistic(8 x margin), tilted by mood, decides.
     - Each subject gets two attempt slots per day. A question is asked again only when the motive moves by 0.1.
     - Light acts are capped at 2 a day and never counted as ignored. Hostile acts have a 3-day cooldown per pair.
     - Life choices (courting, splitting up, shop hours, hiring) use the same gate. They hold for a minimum time and need a 0.3 margin to reverse.
-11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
+11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. As built in 0a, a hub is a gathering that anyone free can pick like a haunt, with a weight: noon in the square (3), evenings at the saloon (2), Saturday market in the square (12). Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
 12. **Market and money.** Every sale has a named buyer with cash and weekly demand.
     - Town cash changes only through named outside accounts: the trader, outside wages, a county stipend.
     - A shop buys at 0.6 of its shelf price or less. Shelf price x (1 - 0.1 x regard for the customer); buy price x (1 + 0.1 x regard).
@@ -190,6 +216,32 @@ Every constant here is a first guess, to be tested in phase 0.
     - An owner who hears its secret from someone it did not tell writes Betrayed (0.8, severe), split among everyone it told. It moves the whole entry onto one of them when evidence of that person's retelling arrives.
 15. **Fuel.** Each villager has 1-2 vices with seeded triggers: a low purse leads to rummaging or theft, three low-mood days to drinking alone, and overload to a missed delivery. An occasion catalog (weather, prices, visitors, lost items, breakages, illness, mishaps by job) fires at base rates with cooldowns. Occasions create only world facts. A type-level test proves an occasion cannot write to any villager's mind.
 
+16. **Authority and consequences** (decided 2026-10-06; see 11c). Social pressure is not the only cost of a crime.
+    - **The mayor is the town's authority.** Lewis is mayor at the start of every run. Victims and witnesses report to him. He looks into it using only what people tell him and what he has seen himself (rule 2), then decides. So he can be lied to, and he can blame the wrong person when the accounts point that way.
+    - **The constable.** Every run opens with the town voting a constable in, so each run can start with a different one. For now this is mostly story and show: the constable takes reports and walks the town. It matters more once the town is bigger.
+    - **Elections.** The mayor's office comes up for election later in the game. Lewis can be voted out, and he can grow old and die (11c), which opens the office.
+    - **Fairness.** Lewis is the example of a just and fair authority. Anyone in authority can be swayed (going easier on someone they love, or someone who holds power over them), but for Lewis the chance is very small. A new mayor or constable may be less fair.
+    - **The ladder of consequences:**
+
+      | Step | When | Consequence |
+      |---|---|---|
+      | Warning | first time, small value | a word from the mayor; it becomes a story |
+      | Restitution and fine | the theft is proven | return the item or pay it back, plus a fine to the town purse |
+      | Ban | the keeper's choice | barred from that shop for a while |
+      | Service | a repeat, or can't pay | unpaid work in public hours, where everyone sees it |
+      | Watched | a repeat | people pay closer attention to them (they are noticed from farther away) |
+      | Detained | a pattern | held for a set time; they miss work and are seen being taken in |
+
+      Durations and amounts are set after testing. Detention replaces "asked to leave" (Sid, 2026-10-06).
+    - **Deterrence.** Before acting on a vice, a villager weighs need (an empty purse, a run of bad days) against the risk *they believe* they run: how busy the place usually is (from memory, never the true count) x how bad the consequence would be x how much they fear it. Bold or desperate people still steal; careful ones wait for a quiet moment, which is why traces matter (an unseen theft found later by missing stock).
+    - **The player is under the same ladder.**
+    - **As built in 0a** (2026-10-06; `sim/README.md`):
+      - Reports happen when the reporter and the mayor or constable are together. Victims always report, even hearsay; the constable always reports; other witnesses and finders with a chance of 0.2 + 0.6 x boldness.
+      - The mayor weighs accounts naming someone: confidence x (1 first-hand, 0.5 hearsay) x trust in the teller (0.5 + 0.5 x familiarity). He decides at 0.6 with a 2-to-1 lead; "someone" names nobody, so cases can stay open.
+      - Lewis lets off someone close (familiarity 0.5 or more, or his household) with a 2% chance.
+      - The ladder runs warning, restitution and fine, service, then detention from the fourth verdict (24 hours at the manor). Warnings and detentions are delivered in person and can be seen; fines and service wait for money (0b).
+      - The opening vote: the bold stand, everyone but the newcomer votes. Across 400 runs, eight different villagers were voted in; Pierre most often (37%).
+
 The player is one more agent under these rules and has no meters of their own.
 
 ## 5. The villager model
@@ -199,7 +251,7 @@ The player is one more agent under these rules and has no meters of their own.
 - **Mind (derived from memory, never saved):** elastic feelings, mood (earned mood plus the seeded MoodRoll), and motives, each with a subject and a source entry. The mod's Motive values carry over, with Owed, Owes, Courting, Confront and Avoid appended.
 
 **How a villager decides.**
-- Overnight it plans tomorrow from its routine and its strongest motives.
+- While it sleeps, it plans its next waking day from its job, its haunts and its strongest motives.
 - Each tick, perception writes diary entries. Motives are recomputed only if the diary changed, and each motive goes through rule 10.
 - Villagers find each other by asking around and by habit.
 
@@ -299,6 +351,11 @@ Spinoza separates *potentia*, a person's own power of acting, from power over ot
 
 This is a first sketch. The constants and the meeting rules are for us to work out together.
 
+**Sid's view (2026-10-06).** Changing the rules of the town is a big part of the game, but the meeting is not settled as *the* main stake. What counts:
+- What is put to a vote has to be worth the effort of winning it: a change the player and the villagers feel in their days, not a token.
+- Not every player will enjoy politics. The meeting must be one way to play, never a chore every player has to do.
+- Its best quality is that it can change where a run goes: the same town can end up in different places.
+
 ## 7. Farming and the economy
 
 **What stays:** seasons, crops, watering, rain, tools, animals, machines, fishing, foraging, and later the mine. Version 1 is small: plots, 4 crops, chickens and one machine.
@@ -396,7 +453,7 @@ E0 runs first and checks four things:
 - the same seed gives the same log;
 - regard stays in range;
 - the caps hold;
-- every heard story traces back to a witness.
+- every heard story traces back to a witness, or to someone who found its trace.
 
 E5 is Sid's blind read of 10 season journals.
 
@@ -476,13 +533,56 @@ E5 is Sid's blind read of 10 season journals.
 
 **Power** (to discuss; see the proposal in section 6a). Sid: "regard plays a part in influence, changes the rules of the town, convince people of things easier. Regard plays a part in power. Power is the ability to direct 'consciousness' (in our case villagers) against its own inertia. Power is plastic and elastic."
 
+## 11b. Decisions of 2026-10-05 (third round): time, sleep and tiers
+
+**No fixed day.** Sid: "I don't like the Stardew Valley 6am - 2am rule. All characters should go to bed when they feel like it. This would play into the acting normal part of the game." The clock runs 24 hours; the date changes at midnight (rule 1).
+
+**Sleep and energy, the same for everyone.** Sid: "You should be able to sleep whenever and you should be able to set an alarm for yourself. You might not always wake up to your alarm. There is a max sleeping time though, you can only sleep until your energy bar is filled. Characters have different max energies and have different jobs which change the routines."
+
+**Pace.** About 20 real minutes per game day to start with. It is hard to set the real length of a day before the mechanics exist, so this is a parameter to revisit. Routines and chats run on 5-minute ticks, acts minute by minute.
+
+**Scandals are rare.** Three scandals a season, as in the first 0a runs, is too many for 12 people. Scandals and the new upheaval tier come from pressure, with the targets in rule 9. Sid liked the upheaval tier.
+
+**Consequences for the harness (0a, second pass):**
+- How a scandal spreads is measured on scandals injected at a seeded time and place, because natural ones are too rare to measure in a season.
+- How often scandals happen is measured separately, over years, once vices and money exist (0b).
+- Until then, villagers' scandal rates are set low (about 1.5 a year town-wide) as a placeholder.
+
+## 11c. Decisions of 2026-10-06: authority, age, runs and other life sims
+
+**Authority** (rule 16). Lewis is mayor and the authority at the start. Every run opens with the town voting in a constable, mostly as story and show for now, so the constable can differ from run to run; it gets more weight with a bigger town. The mayor's office comes up for election later in the game. Lewis is the example of a just and fair authority: he can be swayed, but only with a very small chance. The harshest step is detention for a set time, not being asked to leave; the details come after testing.
+
+**Age and death.** Villagers grow old, and an elder can die of old age (Lewis "may be voted out or get old in life and pass away"). This is within the tone limits of 11a: a natural death, shown plainly and briefly, never murder.
+
+**Sims 4 and other life sims.** Sid: "I think we should take some of the ideas from Sims 4", and draw on other life sims too. Taken (2026-10-06):
+- **Aspirations:** life goals the player picks, with milestones. A candidate answer to the main-goal question: there is no single goal, and politics is only needed by the aspirations that want it.
+- **Sentiments:** lasting named feelings toward someone, with the event that caused them, fading over time. They put a name and a cause on regard.
+- **Lifestyles:** labels earned from repeated behaviour (a night owl, a regular at the saloon). The town learns habits and talks about them, which is acting normal (rule 1).
+- **Wants and fears:** short-term wishes and worries that drive motives. Fear of being caught is the deterrence of rule 16.
+- **Clubs, or something like them:** groups with members, a meeting place and time, and shared norms. They give more reasons to meet and talk, and a group can back a proposal at the town meeting.
+
+Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your own character.
+
+**Length of a run.** At 20 real minutes per game day, a 4-season year is about 37 hours of play if every hour is played, or about 24 hours if sleep is skipped. Five years is about 120-190 hours.
+
+**Aging is real time for now** (Sid, 2026-10-06): one game year is one year of age. Within a run, children grow and elders get older slowly; Lewis dying of old age is rare inside one run.
+
+**Runs can rejoin the same world.** Sid: "it might be interesting to rejoin the world you were just in. Maybe 5-10 years pass every run you do." A new run can start in the town the last run left, 5-10 years later. The simulation runs the skipped years headless under the same rules, so the town the player returns to (who married, who left, who is mayor, who died) comes out of what happened, not a script. Whether this happens depends on how play turns out.
+
+**How a run ends** (the player's death, or losing) is saved for later.
+
 ## 12. Questions for Sid
 
-Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, and Spinoza as the basis.
+Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
 
 Still open:
-1. Power (section 6a): does the proposal match what you mean, and should the season town meeting be the main stake?
-2. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
+1. **The player's main goal, and the alien premise** (11a). Sid isn't sold on either yet (2026-10-06). The simulation doesn't depend on them, so phase 0 goes ahead; both are for later.
+2. **Power** (section 6a): rule changes matter, the meeting is not settled as the main stake, and votes must be worth the effort and optional for players who don't enjoy politics (Sid, 2026-10-06). Still to settle: what kinds of rule are worth voting on.
+3. **Life stages:** real-time aging for now (11c). Later: the skips between runs, and what carries over.
+4. **How a run ends:** how the player dies or loses. Saved for later.
+5. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
    - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
+
+   Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace.

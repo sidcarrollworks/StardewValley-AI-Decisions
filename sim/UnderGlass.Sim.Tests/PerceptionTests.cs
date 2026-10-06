@@ -15,19 +15,20 @@ public class PerceptionTests
     [InlineData(7, 0.3)]
     [InlineData(9, 0.0)]
     public void ClarityFallsWithDistanceInBands(int distance, double clarity)
-        => Assert.Equal(clarity, Perception.Instant(Open(), new Tile(1, 1), new Tile(1 + distance, 1), 10, O), 6);
+        => Assert.Equal(clarity, Perception.Instant(Open(), new Tile(1, 1), new Tile(1 + distance, 1), 600, O), 6);
 
     [Fact]
     public void WallsBlock_FencesHalve_NightHalvesOutdoorsOnly()
     {
         var walled = new Location("Saloon", false, new[] { "..#..", "....." });
-        Assert.Equal(0, Perception.Instant(walled, new Tile(0, 0), new Tile(4, 0), 10, O));
-        Assert.Equal(1.0, Perception.Instant(walled, new Tile(0, 1), new Tile(2, 1), 10, O)); // around it
+        Assert.Equal(0, Perception.Instant(walled, new Tile(0, 0), new Tile(4, 0), 600, O));
+        Assert.Equal(1.0, Perception.Instant(walled, new Tile(0, 1), new Tile(2, 1), 600, O)); // around it
 
         var fenced = new Location("Square", true, new[] { "..+.." });
-        Assert.Equal(0.6 * 0.5, Perception.Instant(fenced, new Tile(0, 0), new Tile(4, 0), 10, O), 6);
-        Assert.Equal(0.6 * 0.5 * 0.5, Perception.Instant(fenced, new Tile(0, 0), new Tile(4, 0), 90, O), 6);
-        Assert.Equal(0.6, Perception.Instant(Open(outdoor: false), new Tile(0, 0), new Tile(4, 0), 90, O), 6);
+        Assert.Equal(0.6 * 0.5, Perception.Instant(fenced, new Tile(0, 0), new Tile(4, 0), 600, O), 6);
+        Assert.Equal(0.6 * 0.5 * 0.5, Perception.Instant(fenced, new Tile(0, 0), new Tile(4, 0), 1300, O), 6);
+        Assert.Equal(0.6, Perception.Instant(Open(outdoor: false), new Tile(0, 0), new Tile(4, 0), 1300, O), 6);
+        Assert.Equal(0.6 * 0.5 * 0.5, Perception.Instant(fenced, new Tile(0, 0), new Tile(4, 0), 3 * 60, O), 6); // 3:00 is night too
     }
 
     [Fact]
@@ -35,7 +36,7 @@ public class PerceptionTests
     {
         Assert.Equal(0.3, Perception.OfAct(new[] { 0.3, 0.3 }, 2), 6);
         Assert.Equal(1.0, Perception.OfAct(new[] { 1.0, 1.0, 1.0 }, 2), 6);
-        Assert.Equal(0.5, Perception.OfAct(new[] { 1.0 }, 2), 6); // a glimpse of a two-tick act
+        Assert.Equal(0.5, Perception.OfAct(new[] { 1.0 }, 2), 6); // one minute of an act that takes two to read
     }
 
     [Theory]

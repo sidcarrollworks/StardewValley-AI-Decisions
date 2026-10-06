@@ -10,8 +10,9 @@ public sealed class PerceptionOptions
     public int NearTiles { get; set; } = 5;
     public int FarTiles { get; set; } = 8;
     public double HalfBlock { get; set; } = 0.5; // each fence, bush or shelf in the way
-    public double Night { get; set; } = 0.5;     // outdoors from NightFrom
-    public int NightFrom { get; set; } = 84;     // 20:00
+    public double Night { get; set; } = 0.5;     // outdoors from NightFrom until DayFrom
+    public int NightFrom { get; set; } = 20 * 60; // 20:00, as a minute of the day
+    public int DayFrom { get; set; } = 6 * 60;    // 6:00
     public double KnowWhat { get; set; } = 0.3;  // clarity to know what happened
     /// <summary>Clarity a stranger needs to tell who it was (a good look, close).</summary>
     public double KnowWhoStranger { get; set; } = 0.9;
@@ -21,20 +22,20 @@ public sealed class PerceptionOptions
 }
 
 /// <summary>
-/// Layered perception (design rule 2): how clearly an observer sees an actor at one tick, and
+/// Layered perception (design rule 2): how clearly an observer sees an actor in one minute, and
 /// what an observer takes away from a whole act. Pure.
 /// </summary>
 public static class Perception
 {
-    /// <summary>Clarity of one tick of sight: distance band x line of sight x darkness.</summary>
-    public static double Instant(Location place, Tile observer, Tile actor, int tickOfDay, PerceptionOptions o)
+    /// <summary>Clarity of one minute of sight: distance band x line of sight x darkness.</summary>
+    public static double Instant(Location place, Tile observer, Tile actor, int minuteOfDay, PerceptionOptions o)
     {
         int d = observer.Chebyshev(actor);
         double band = d <= o.CloseTiles ? o.Close : d <= o.NearTiles ? o.Near : d <= o.FarTiles ? o.Far : 0;
         if (band == 0)
             return 0;
         double sight = LineOfSight(place, observer, actor, o);
-        double dark = place.Outdoor && tickOfDay >= o.NightFrom ? o.Night : 1;
+        double dark = place.Outdoor && (minuteOfDay >= o.NightFrom || minuteOfDay < o.DayFrom) ? o.Night : 1;
         return band * sight * dark;
     }
 
@@ -65,9 +66,9 @@ public static class Perception
         return sight;
     }
 
-    /// <summary>Clarity of a whole act: the sum of the instants, over the act's read time, at most 1.</summary>
-    public static double OfAct(IEnumerable<double> instants, int readTicks)
-        => Math.Min(1, instants.Sum() / Math.Max(1, readTicks));
+    /// <summary>Clarity of a whole act: the sum of the minutes watched, over the act's read time, at most 1.</summary>
+    public static double OfAct(IEnumerable<double> instants, int readMinutes)
+        => Math.Min(1, instants.Sum() / Math.Max(1, readMinutes));
 
     /// <summary>The clarity needed to tell who it was: less the better the observer knows them.</summary>
     public static double NeededToIdentify(double familiarity, PerceptionOptions o)
