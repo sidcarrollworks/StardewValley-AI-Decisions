@@ -499,6 +499,7 @@ public sealed partial class Simulation
         bool guilty = Did(subject, actId);
         var list = namers.Where(n => n != subject && _index.ContainsKey(n)).Distinct().OrderBy(n => n, StringComparer.Ordinal).ToList();
         var (f, per) = Feelings.AccusedSplit(joy, Sens(s), SR(s), guilty, list.Count, Ret(s), _fo);
+        per *= _fo.PlasticScale;
         string route = eventName == "confronted" ? "Confronted" : "Accused";
         if (_eventsFelt.Add((s, actId, eventName, -1)))
         {
@@ -558,7 +559,7 @@ public sealed partial class Simulation
         AddMood(ki, f);
         _feltLog.Add(new Felt(m, k, actId, "Shame", "Event", f, null, 0, 0));
         double freedom = KindOf(_acts[actId]).Affect?.Freedom ?? 1;
-        double raw = f * _fo.EventPlastic * Feelings.Phi(freedom, Excuse(ki, ci), _fo) * Feelings.Keep(f, Ret(ki), _fo);
+        double raw = f * _fo.EventPlastic * _fo.PlasticScale * Feelings.Phi(freedom, Excuse(ki, ci), _fo) * Feelings.Keep(f, Ret(ki), _fo);
         Move(ki, ci, raw, actId, "Shame", "Event", true, m);
     }
 

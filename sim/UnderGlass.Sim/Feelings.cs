@@ -80,7 +80,10 @@ public sealed class FeelingOptions
     public double NeedPower { get; set; } = 0.15;
     public double WantPower { get; set; } = 0.05;
     public double HeldPower { get; set; } = 0.10;
-    public double CompanyJoy { get; set; } = 0.02;
+    /// <summary>The joy of one chat, x (0.5 + chattiness). It was 0.02: with 10-20 chats a day,
+    /// company alone lifted everyone's power of acting to about 0.68 and flattened its spread
+    /// (0.05), so the day's events hardly told.</summary>
+    public double CompanyJoy { get; set; } = 0.005;
 
     // Healing (rule 5).
     public double DriftPerDay { get; set; } = 0.005;

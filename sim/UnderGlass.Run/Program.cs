@@ -192,6 +192,9 @@ if (runs[0].TownCash.Count > 0)
         + "; kinds " + string.Join(", ", motives.GroupBy(x => x.r.Acts[x.x.ActId].Kind).Select(g => $"{g.Key} {g.Count() / years:0.0}")));
     Console.WriteLine($"ladder paid: fines paid in full {runs.Sum(r => r.Log.Count(l => l.Contains(" paid ") && PaidInFull(l)))}, part {runs.Sum(r => r.Log.Count(l => l.Contains(" paid ") && !PaidInFull(l)))}; service {runs.Sum(r => r.Acts.Count(a => a.Kind == Simulation.Service))}");
 }
+// A signed number to three places, with no "-0.000".
+static string Sg(double x) => (Math.Round(x, 3) + 0.0).ToString("+0.000;-0.000;0.000", System.Globalization.CultureInfo.InvariantCulture);
+
 static bool PaidInFull(string l)
 {
     var parts = l.Split(' ');
@@ -205,14 +208,14 @@ if (feelings.Enabled)
     Console.WriteLine($"feelings ({(feelings.Steer ? "steering" : "observed only")}{(feelings.PlasticScale != 1 ? $", plastic {feelings.PlasticScale}" : "")}): run time {runSeconds:0.0} s");
     Console.WriteLine($"  power of acting: mean {f.MeanPower:0.00} (spread {f.PowerSpread:0.00}), under 0.3 {f.LowPowerShare:P0}, over 0.7 {f.HighPowerShare:P0}; lowest " + string.Join(", ", f.LowestPower.Select(x => $"{x.Name} {x.Power:0.00}")));
     foreach (RegardSpread s in f.BySnapshot)
-        Console.WriteLine($"  regard at d{s.Day}: mean change {s.MeanChange:+0.000;-0.000}, p5 {s.P5:0.00} p50 {s.P50:0.00} p95 {s.P95:0.00}; under -0.2 {s.UnderMinus02:P1}, 0.4+ {s.AtLeast04:P1}, moved 0.1+ {s.Moved01:P1}; kin {s.KinMean:0.00}, others {s.NonKinMean:0.00}");
+        Console.WriteLine($"  regard at d{s.Day}: mean change {Sg(s.MeanChange)}, p5 {s.P5:0.00} p50 {s.P50:0.00} p95 {s.P95:0.00}; under -0.2 {s.UnderMinus02:P1}, 0.4+ {s.AtLeast04:P1}, moved 0.1+ {s.Moved01:P1}; kin {s.KinMean:0.00}, others {s.NonKinMean:0.00}");
     Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {f.WarTowns:P0}, dead towns {f.DeadTowns:P0}");
     Console.WriteLine("  top feuds " + string.Join(", ", f.TopFeuds.Select(t => $"{t.A}-{t.B} {t.Seeds}")) + "; top friendships " + string.Join(", ", f.TopFriendships.Select(t => $"{t.A}-{t.B} {t.Seeds}")));
     Console.WriteLine("  sentiments a season: " + string.Join(", ", f.SentimentsPerSeason.Select(p => $"{p.Key} {p.Value:0.#}")) + $"; share of regard change with a sentiment {f.SentimentShare:P0}");
-    Console.WriteLine($"  toward a culprit, mean change by how it was known: witnessed {f.DropWitnessed:+0.000;-0.000}, saw and heard the name {f.DropHeardName:+0.000;-0.000}, told twice {f.DropCorroborated:+0.000;-0.000}, confirmed {f.DropConfirmed:+0.000;-0.000}");
-    Console.WriteLine($"  kin shame: {f.ShameStepsPerScandal:0.0} steps a scandal, kin regard change {f.KinDropPerScandal:+0.000;-0.000} a scandal; innocents questioned who resent a namer {f.InnocentsResentingNamer:P0}; wrongly confronted {f.WrongConfrontDrop:+0.000;-0.000}; bystanders on the constable {f.BystanderRegardForConstable:+0.000;-0.000}");
+    Console.WriteLine($"  toward a culprit, mean change by how it was known: witnessed {Sg(f.DropWitnessed)}, saw and heard the name {Sg(f.DropHeardName)}, told twice {Sg(f.DropCorroborated)}, confirmed {Sg(f.DropConfirmed)}");
+    Console.WriteLine($"  kin shame: {f.ShameStepsPerScandal:0.0} steps a scandal, kin regard change {Sg(f.KinDropPerScandal)} a scandal; innocents questioned who resent a namer {f.InnocentsResentingNamer:P0}; wrongly confronted {Sg(f.WrongConfrontDrop)}; bystanders on the constable {Sg(f.BystanderRegardForConstable)}");
     Console.WriteLine($"  aimed acts: gifts and help to someone loved (0.4+) {f.GiftsToLoved:P0}; arguments with someone disliked {f.ArgumentsToDisliked:P0}, inside a household {f.ArgumentsInHouseholds:P0}; news {f.NewsPerYear:0} and trivia {f.TriviaPerYear:0} a year");
     Console.WriteLine($"  grievance thefts {f.GrievancePerYear:0.00} a year; shop switches {f.ShopSwitchesPerYear:0.00} a year; households at the chain by season " + string.Join(" -> ", f.HouseholdsAtChainBySeason.Select(x => $"{x:0.0}")));
-    Console.WriteLine("  regard for kinds at the end: " + string.Join(", ", f.MeanKindRegard.Select(p => $"{p.Key} {p.Value:+0.000;-0.000}")) + $"; for the newcomer {f.RegardTowardNewcomer:+0.000;-0.000}, the newcomer's {f.RegardFromNewcomer:+0.000;-0.000}");
+    Console.WriteLine("  regard for kinds at the end: " + string.Join(", ", f.MeanKindRegard.Select(p => $"{p.Key} {Sg(p.Value)}")) + $"; for the newcomer {Sg(f.RegardTowardNewcomer)}, the newcomer's {Sg(f.RegardFromNewcomer)}");
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

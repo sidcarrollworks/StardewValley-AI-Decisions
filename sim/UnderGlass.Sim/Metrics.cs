@@ -239,7 +239,7 @@ public static class FeelingMetrics
         double both = runs.Count(r => r.Ties.Any(t => t.What == "feud") && r.Ties.Any(t => t.What == "friendship")) / (double)Math.Max(1, runs.Count);
 
         // Sentiments, from the log (each one made or renewed).
-        var sentimentLines = runs.SelectMany(r => r.Log.Where(l => l.Contains(" sentiment ")).Select(l => l.Split(' ')[4])).ToList();
+        var sentimentLines = runs.SelectMany(r => r.Log.Where(l => l.Contains(" sentiment ")).Select(l => l.Split(' ')[^4])).ToList(); // "... {name} {strength} act {id}"; a kind's name has spaces
         var perSeason = sentimentLines.GroupBy(n => n).OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.Count() / Math.Max(1e-9, seasons));
         var changes = runs.SelectMany(r => r.Feelings.Where(f => f.Toward is not null && f.Change != 0 && f.Route != "Reattributed")).ToList();
