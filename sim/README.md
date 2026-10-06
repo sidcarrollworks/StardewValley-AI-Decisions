@@ -89,7 +89,8 @@ What these say:
    - **Traces.** An unseen scandal can still be found later: missing stock noticed by the shopkeeper, a bin left scattered. That gives a "someone did it" story with no witness (design principle 1).
    - **Piecing together "someone"** from two partial accounts (clothing, direction) or from who was known to be nearby.
    - **Noticing someone out at an odd hour** (acting normal, design rule 1).
-2. **0b:** a stock-and-flow money model.
+   - **Reporting to the mayor** (design rule 16): victims and witnesses report a scandal to Lewis, who decides from what he is told. The opening vote for a constable.
+2. **0b:** a stock-and-flow money model, with fines and restitution, and deterrence for vices (design rule 16).
 3. **0c:** feelings. These are Spinoza's laws (design 3a): power of acting, joy and sadness, love and hate toward the cause, imitation, and reciprocity, built on regard and familiarity.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.

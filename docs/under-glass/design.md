@@ -216,6 +216,26 @@ Every constant here is a first guess, to be tested in phase 0.
     - An owner who hears its secret from someone it did not tell writes Betrayed (0.8, severe), split among everyone it told. It moves the whole entry onto one of them when evidence of that person's retelling arrives.
 15. **Fuel.** Each villager has 1-2 vices with seeded triggers: a low purse leads to rummaging or theft, three low-mood days to drinking alone, and overload to a missed delivery. An occasion catalog (weather, prices, visitors, lost items, breakages, illness, mishaps by job) fires at base rates with cooldowns. Occasions create only world facts. A type-level test proves an occasion cannot write to any villager's mind.
 
+16. **Authority and consequences** (decided 2026-10-06; see 11c). Social pressure is not the only cost of a crime.
+    - **The mayor is the town's authority.** Lewis is mayor at the start of every run. Victims and witnesses report to him. He looks into it using only what people tell him and what he has seen himself (rule 2), then decides. So he can be lied to, and he can blame the wrong person when the accounts point that way.
+    - **The constable.** Every run opens with the town voting a constable in, so each run can start with a different one. For now this is mostly story and show: the constable takes reports and walks the town. It matters more once the town is bigger.
+    - **Elections.** The mayor's office comes up for election later in the game. Lewis can be voted out, and he can grow old and die (11c), which opens the office.
+    - **Fairness.** Lewis is the example of a just and fair authority. Anyone in authority can be swayed (going easier on someone they love, or someone who holds power over them), but for Lewis the chance is very small. A new mayor or constable may be less fair.
+    - **The ladder of consequences:**
+
+      | Step | When | Consequence |
+      |---|---|---|
+      | Warning | first time, small value | a word from the mayor; it becomes a story |
+      | Restitution and fine | the theft is proven | return the item or pay it back, plus a fine to the town purse |
+      | Ban | the keeper's choice | barred from that shop for a while |
+      | Service | a repeat, or can't pay | unpaid work in public hours, where everyone sees it |
+      | Watched | a repeat | people pay closer attention to them (they are noticed from farther away) |
+      | Detained | a pattern | held for a set time; they miss work and are seen being taken in |
+
+      Durations and amounts are set after testing. Detention replaces "asked to leave" (Sid, 2026-10-06).
+    - **Deterrence.** Before acting on a vice, a villager weighs need (an empty purse, a run of bad days) against the risk *they believe* they run: how busy the place usually is (from memory, never the true count) x how bad the consequence would be x how much they fear it. Bold or desperate people still steal; careful ones wait for a quiet moment, which is why traces matter (an unseen theft found later by missing stock).
+    - **The player is under the same ladder.**
+
 The player is one more agent under these rules and has no meters of their own.
 
 ## 5. The villager model
@@ -522,6 +542,14 @@ E5 is Sid's blind read of 10 season journals.
 - How often scandals happen is measured separately, over years, once vices and money exist (0b).
 - Until then, villagers' scandal rates are set low (about 1.5 a year town-wide) as a placeholder.
 
+## 11c. Decisions of 2026-10-06: authority, age and Sims 4
+
+**Authority** (rule 16). Lewis is mayor and the authority at the start. Every run opens with the town voting in a constable, mostly as story and show for now, so the constable can differ from run to run; it gets more weight with a bigger town. The mayor's office comes up for election later in the game. Lewis is the example of a just and fair authority: he can be swayed, but only with a very small chance. The harshest step is detention for a set time, not being asked to leave; the details come after testing.
+
+**Age and death.** Villagers grow old, and an elder can die of old age (Lewis "may be voted out or get old in life and pass away"). This is within the tone limits of 11a: a natural death, shown plainly and briefly, never murder.
+
+**Sims 4.** Sid: "I think we should take some of the ideas from Sims 4." Which ones is open (section 12).
+
 ## 12. Questions for Sid
 
 Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
@@ -529,7 +557,8 @@ Answered on 2026-10-05: free text from the player, villagers misreading the play
 Still open:
 1. **The player's main goal, and the alien premise** (11a). Sid isn't sold on either yet (2026-10-06). The simulation doesn't depend on them, so phase 0 goes ahead; both are for later.
 2. **Power** (section 6a): rule changes matter, the meeting is not settled as the main stake, and votes must be worth the effort and optional for players who don't enjoy politics (Sid, 2026-10-06). Still to settle: what kinds of rule are worth voting on.
-3. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
+3. **Which Sims 4 ideas to take** (11c).
+4. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
    - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
    - each next step only once the previous gate passes;
    - a review at 8 weeks either way.
