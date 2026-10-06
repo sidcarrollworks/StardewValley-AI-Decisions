@@ -548,7 +548,16 @@ E5 is Sid's blind read of 10 season journals.
 
 **Age and death.** Villagers grow old, and an elder can die of old age (Lewis "may be voted out or get old in life and pass away"). This is within the tone limits of 11a: a natural death, shown plainly and briefly, never murder.
 
-**Sims 4.** Sid: "I think we should take some of the ideas from Sims 4." Which ones is open (section 12).
+**Sims 4 and other life sims.** Sid: "I think we should take some of the ideas from Sims 4", and draw on other life sims too. Taken (2026-10-06):
+- **Aspirations:** life goals the player picks, with milestones. A candidate answer to the main-goal question: there is no single goal, and politics is only needed by the aspirations that want it.
+- **Sentiments:** lasting named feelings toward someone, with the event that caused them, fading over time. They put a name and a cause on regard.
+- **Lifestyles:** labels earned from repeated behaviour (a night owl, a regular at the saloon). The town learns habits and talks about them, which is acting normal (rule 1).
+- **Wants and fears:** short-term wishes and worries that drive motives. Fear of being caught is the deterrence of rule 16.
+- **Clubs, or something like them:** groups with members, a meeting place and time, and shared norms. They give more reasons to meet and talk, and a group can back a proposal at the town meeting.
+
+Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your own character.
+
+**Length of a run.** At 20 real minutes per game day, a 4-season year is about 37 hours of play if every hour is played, or about 24 hours if sleep is skipped. Five years is about 120-190 hours. Whether and how fast people age depends on how long runs go (section 12).
 
 ## 12. Questions for Sid
 
@@ -557,7 +566,7 @@ Answered on 2026-10-05: free text from the player, villagers misreading the play
 Still open:
 1. **The player's main goal, and the alien premise** (11a). Sid isn't sold on either yet (2026-10-06). The simulation doesn't depend on them, so phase 0 goes ahead; both are for later.
 2. **Power** (section 6a): rule changes matter, the meeting is not settled as the main stake, and votes must be worth the effort and optional for players who don't enjoy politics (Sid, 2026-10-06). Still to settle: what kinds of rule are worth voting on.
-3. **Which Sims 4 ideas to take** (11c).
+3. **Life stages:** how fast people age against the calendar (11c), and what happens across many years.
 4. How long to give the headless phase. Suggestion: no fixed date. Gates instead:
    - 0a, the gossip harness, about 2 weeks; it shows whether the rules make stories at all;
    - each next step only once the previous gate passes;
