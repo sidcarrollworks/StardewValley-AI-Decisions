@@ -11,6 +11,8 @@ dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                     
 # feelings (0c): --feel off|observe|on, --off <law> (repeatable), --plastic <x>, --target-base <x>,
 # --fo <Name>=<value> for any FeelingOptions knob, --affect <Kind>=<joy>[,<plastic>] for a feeling row;
 # --log also prints the strongest sentiments with their causes, ties and shop switches
+# the desire gate (0d): --desire off|observe|on, --trait <Name>=<Trait>:<value> (repeatable),
+# --tensions <depth> (0: none); a "desire" block reports the gate (DesireMetrics)
 ```
 
 Every run formats its log in the invariant culture, so a seed hashes the same on every machine (before 0c, juiciness printed as "1,5" under a German culture).
