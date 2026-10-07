@@ -238,12 +238,12 @@ The gate (2026-10-07; 400 seeds x 14 days with a placed scandal, and 200 seeds x
 |---|---|---|---|
 | 1 | witnessed placed scandals in the 40-70% band | 55% in the band, 25% over 70% | passes |
 | 1b | the authority | decided right 99%, reported 87% | passes |
-| 2 | money | 0.000 g; 2.6 tempted scandals a year, none from grievance | passes |
-| 4 | E1: a new feud and a new friendship between households | **64%** of seed-years (0c: 0%); no war towns, no dead towns | passes |
-| 5 | regard at season ends | below -0.2: 0.6% after one season, then 1.1-1.7%; mean change +0.011 to +0.025; moved 0.1+ 6.3-16% | passes from the second season |
-| 6 | tests | 160 pass | passes |
+| 2 | money | 0.000 g; 2.7 tempted scandals a year, none from grievance | passes |
+| 4 | E1: a new feud and a new friendship between households | **68%** of seed-years (0c: 0%); no war towns, no dead towns | passes |
+| 5 | regard at season ends | below -0.2: 0.6% after one season, then 1.1-1.8%; mean change +0.011 to +0.025; moved 0.1+ 6.3-16% | passes from the second season |
+| 6 | tests | 164 pass | passes |
 
-A year of the town: feuds 7.8 and friendships 1.05 a year, reconciliations 0.7; most feuded: Sam and Shane (co-workers at the chain, in 109 of 200 seeds), then Emily and Pierre; friendships most often Penny and Vincent, Jas and Penny (the teacher and her pupils). 81% of arguments are with someone disliked, 11% inside a household (0c: 1% and 55%). News 267 and trivia 858 a year (0c: 95 and 478). A seed-year takes about 17 s of one core.
+A year of the town: feuds 8.1 and friendships 1.07 a year, reconciliations 0.7; most feuded: Sam and Shane (co-workers at the chain, in 109 of 200 seeds), then Emily and Pierre; friendships most often Penny and Vincent, Jas and Penny (the teacher and her pupils). 81% of arguments are with someone disliked, 11% inside a household (0c: 1% and 55%). News 273 and trivia 861 a year (0c: 95 and 478). A seed-year takes about 17 s of one core.
 
 How we got there (50 seed-years each unless said):
 
@@ -255,6 +255,7 @@ How we got there (50 seed-years each unless said):
 | + Fond 7 days | 76% | 7.2 | 1.66 | 1307 | **+0.051** | 22.5% |
 | + Fond 10 days | 68% | 8.0 | 1.06 | 860 | +0.030 | 16.1% |
 | + Fond 10 + stance + power (shipped; 200 seed-years) | 64% | 7.8 | 1.05 | 858 | +0.025 | 16.0% |
+| the same, after the review's fixes (200 seed-years) | 68% | 8.1 | 1.07 | 861 | +0.025 | 16.1% |
 
 Two defects were found by the gate's tests and fixed: a confrontation ignored the cooldown, and turning away while withdrawing did not cite its quarrel, so the arguer escalated against the one keeping away.
 
