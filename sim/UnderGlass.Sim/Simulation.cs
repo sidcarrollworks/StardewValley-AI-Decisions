@@ -131,6 +131,10 @@ public sealed class SimResult
     public required IReadOnlyList<(int Day, string Household, string From, string To)> ShopSwitches { get; init; }
     /// <summary>For each act aimed at someone chosen: the actor's regard for them as it began.</summary>
     public required IReadOnlyDictionary<int, double> AimedAt { get; init; }
+
+    // Character (phase 0d): each person's temperament when the run began and when it ended.
+    public required IReadOnlyDictionary<string, Temperament> CharactersAtStart { get; init; }
+    public required IReadOnlyDictionary<string, Temperament> CharactersAtEnd { get; init; }
 }
 
 /// <summary>
@@ -259,6 +263,7 @@ public sealed partial class Simulation
         foreach (var list in _doors.Values)
             list.Sort((x, y) => StringComparer.Ordinal.Compare(x.Next, y.Next));
         _people = _cast.Select(v => new Person { V = v }).ToArray();
+        StartCharacter();
         StartFeelings();
     }
 
@@ -320,6 +325,7 @@ public sealed partial class Simulation
             p.Energy = p.V.Body.MaxEnergy * Rng.Range(_seed, 30, 50, "rested", p.V.Name) / 100.0;
             StartSleep(p, 0, collapsed: false, log: false);
         }
+        _charactersAtStart = Characters();
         StartMoney();
         if (_fo.Enabled)
             foreach (string n in _names)
@@ -377,6 +383,8 @@ public sealed partial class Simulation
             Ties = _ties,
             ShopSwitches = _shopSwitches,
             AimedAt = _aimedAt,
+            CharactersAtStart = _charactersAtStart,
+            CharactersAtEnd = Characters(),
         };
     }
 
@@ -909,7 +917,7 @@ public sealed partial class Simulation
                     actor = act.Actor;
                     confidence = Math.Min(1, clarity / Perception.NeededToIdentify(Familiarity(observer, act.Actor), _po));
                 }
-                else if (Perception.GuessesConfidently(o.Temperament))
+                else if (Perception.GuessesConfidently(CharacterOf(_index[observer])))
                 {
                     actor = Guess(observer, act);
                     confidence = 0.8;
@@ -995,7 +1003,7 @@ public sealed partial class Simulation
                 int window = start + (m - start) / Math.Max(1, _go.ChatEveryMinutes);
                 if (m - start < _go.ChatMinMinutes || _chatted.Contains((a, b, window)))
                     continue;
-                double chattiness = (pa.V.Temperament.Chattiness + pb.V.Temperament.Chattiness) / 2;
+                double chattiness = (CharacterOf(i).Chattiness + CharacterOf(j).Chattiness) / 2;
                 double per10 = Math.Min(1, _go.ChatChance * (0.5 + chattiness));
                 double chance = 1 - Math.Pow(1 - per10, Clock.TickMinutes / 10.0);
                 if (Rng.Unit(_seed, "chat", a, b, m.ToString()) >= chance)
@@ -1101,11 +1109,11 @@ public sealed partial class Simulation
                     // S7 (rule 9; III P25, VERIFY): nobody confronts someone they love; the harmed,
                     // who feel it most, are the likeliest to.
                     ? members.Where(n => St(n, target) < _fo.CoverAt)
-                        .OrderByDescending(n => _cast[_index[n]].Temperament.Boldness * Current(_beliefs[n][act.Id], m)
+                        .OrderByDescending(n => CharacterOf(_index[n]).Boldness * Current(_beliefs[n][act.Id], m)
                                                 * (1 + _fo.ConfrontPerHate * Math.Max(0, -St(n, target))))
                         .ThenBy(n => n, StringComparer.Ordinal).FirstOrDefault()
                     : members
-                        .OrderByDescending(n => _cast[_index[n]].Temperament.Boldness * Current(_beliefs[n][act.Id], m))
+                        .OrderByDescending(n => CharacterOf(_index[n]).Boldness * Current(_beliefs[n][act.Id], m))
                         .ThenBy(n => n, StringComparer.Ordinal).First();
                 if (by is null)
                     continue;

@@ -117,10 +117,10 @@ public sealed partial class Simulation
         return 0;
     }
 
-    private double Sens(int i) => 0.5 + _cast[i].Temperament.Sensitivity;
-    private double U(int i) => _cast[i].Temperament.Understanding;
-    private double SR(int i) => _cast[i].Temperament.SelfRegard;
-    private double Ret(int i) => _cast[i].Temperament.Retention;
+    private double Sens(int i) => 0.5 + CharacterOf(i).Sensitivity;
+    private double U(int i) => CharacterOf(i).Understanding;
+    private double SR(int i) => CharacterOf(i).SelfRegard;
+    private double Ret(int i) => CharacterOf(i).Retention;
 
     /// <summary>Effective regard: personal regard plus prejudice toward the other's kind, which
     /// weighs as far as they are a stranger (law 9).</summary>
@@ -168,8 +168,8 @@ public sealed partial class Simulation
         if (!_fo.Enabled)
             return;
         int a = _index[pa.V.Name], b = _index[pb.V.Name];
-        AddMood(a, _fo.CompanyJoy * (0.5 + pa.V.Temperament.Chattiness) * (E(a, b) > -_fo.LoveAt ? 1 : -1));
-        AddMood(b, _fo.CompanyJoy * (0.5 + pb.V.Temperament.Chattiness) * (E(b, a) > -_fo.LoveAt ? 1 : -1));
+        AddMood(a, _fo.CompanyJoy * (0.5 + CharacterOf(a).Chattiness) * (E(a, b) > -_fo.LoveAt ? 1 : -1));
+        AddMood(b, _fo.CompanyJoy * (0.5 + CharacterOf(b).Chattiness) * (E(b, a) > -_fo.LoveAt ? 1 : -1));
     }
 
     // ---- feeling a belief (F3-F11, F15) ----------------------------------------------------

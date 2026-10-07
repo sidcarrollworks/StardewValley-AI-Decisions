@@ -62,7 +62,7 @@ public sealed partial class Simulation
     {
         _voted = true;
         var candidates = _cast
-            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && v.Temperament.Boldness >= _ao.StandAt
+            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && CharacterOf(_index[v.Name]).Boldness >= _ao.StandAt
                         && v.Stage is Stage.Adult or Stage.Elder)
             .Select(v => v.Name).ToList();
         if (candidates.Count == 0)
@@ -88,7 +88,7 @@ public sealed partial class Simulation
 
     private double Appeal(string voter, string candidate)
     {
-        Temperament t = _cast[_index[candidate]].Temperament;
+        Temperament t = CharacterOf(_index[candidate]);
         return Familiarity(voter, candidate) + 0.4 * t.Understanding + 0.3 * t.Boldness
             + 0.6 * Rng.Unit(_seed, "vote", voter, candidate);
     }
@@ -160,8 +160,8 @@ public sealed partial class Simulation
     private bool Willing(Villager v, int actId, string? culprit)
     {
         double chance = Steering && culprit is not null
-            ? Feelings.ReportChance(_ao.ReportBase, _ao.ReportPerBoldness, v.Temperament.Boldness, St(v.Name, culprit), _fo)
-            : _ao.ReportBase + _ao.ReportPerBoldness * v.Temperament.Boldness;
+            ? Feelings.ReportChance(_ao.ReportBase, _ao.ReportPerBoldness, CharacterOf(_index[v.Name]).Boldness, St(v.Name, culprit), _fo)
+            : _ao.ReportBase + _ao.ReportPerBoldness * CharacterOf(_index[v.Name]).Boldness;
         return Rng.Unit(_seed, "willing", v.Name, actId.ToString()) < chance;
     }
 
@@ -242,7 +242,7 @@ public sealed partial class Simulation
         }
         Account account;
         bool confessed = suspect == act.Actor
-            && Rng.Unit(_seed, "confess", actId.ToString(), suspect) < _ao.ConfessBase + _ao.ConfessPerTimidity * (1 - s.V.Temperament.Boldness);
+            && Rng.Unit(_seed, "confess", actId.ToString(), suspect) < _ao.ConfessBase + _ao.ConfessPerTimidity * (1 - CharacterOf(_index[suspect]).Boldness);
         if (confessed)
             account = new Account(actId, suspect, suspect, 1, true, m);
         else

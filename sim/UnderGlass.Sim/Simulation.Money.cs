@@ -292,7 +292,7 @@ public sealed partial class Simulation
                     continue;
                 double want = kindName == Stole ? _mo.WantWeight * WantPressure(v.Name, m) : 0;
                 double need = _mo.NeedWeight * NeedPressure(v.Name);
-                double thrill = _mo.ThrillWeight * v.Temperament.Boldness;
+                double thrill = _mo.ThrillWeight * CharacterOf(_index[v.Name]).Boldness;
                 // S8 (rule 17): a grudge against the keeper is a motive too. Kin are not exempt.
                 string? keeper = _ao.Keepers.GetValueOrDefault(p.Place);
                 double grievance = Steering && keeper is not null && keeper != v.Name && _index.ContainsKey(keeper)
@@ -302,7 +302,7 @@ public sealed partial class Simulation
                 int inSight = _people.Count(o => o != p && !o.Asleep && o.Place == p.Place && o.At.Chebyshev(p.At) <= _po.FarTiles
                                                  && Perception.LineOfSight(_places[p.Place], p.At, o.At, _po) > 0);
                 double severity = 1 + (int)Authority.StepFor(_record.GetValueOrDefault(v.Name));
-                double risk = (inSight + 0.5) * severity * (1.2 - v.Temperament.Boldness) * _mo.RiskScale;
+                double risk = (inSight + 0.5) * severity * (1.2 - CharacterOf(_index[v.Name]).Boldness) * _mo.RiskScale;
                 if (motive <= risk || Rng.Unit(_seed, "tempt", kindName, v.Name, m.ToString()) >= _mo.StealBase * (motive - risk))
                     continue;
                 string why = grievance > want && grievance > need && grievance > thrill ? "grievance"

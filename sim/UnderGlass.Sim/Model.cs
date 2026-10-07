@@ -276,3 +276,7 @@ public sealed record Sentiment(string Holder, string Toward, string Name, int Ac
 /// asked for; Change what was applied after saturation and the cap.</summary>
 public sealed record Felt(int Tick, string Holder, int ActId, string Route, string Basis, double Mood,
     string? Toward, double Raw, double Change);
+
+/// <summary>The six temperament weights of law 12, for reading and setting one trait (phase 0d;
+/// rule 18: character changes over time).</summary>
+public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity, Retention }

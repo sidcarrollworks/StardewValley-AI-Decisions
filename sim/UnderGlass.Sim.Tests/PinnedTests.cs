@@ -64,4 +64,13 @@ public class PinnedTests
             Assert.Empty(off.Feelings);
         }
     }
+
+    /// <summary>P1: the town with feelings steering as 0c built it, before the desire gate. A
+    /// year of seed 1. Update only for a deliberate change to 0a-0c.</summary>
+    [Fact]
+    public void TheTownOf0cIsPinned()
+        => Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(new Simulation(1, feelings: Town0c()).Run(112)));
+
+    /// <summary>The town's feelings with the desire gate off: phase 0c's town.</summary>
+    internal static FeelingOptions Town0c() => DefaultTown.Feelings();
 }
