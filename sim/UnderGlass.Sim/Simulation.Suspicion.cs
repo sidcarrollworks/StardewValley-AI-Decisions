@@ -80,7 +80,8 @@ public sealed partial class Simulation
                 _ao.Keepers.TryGetValue(act.Location, out string? keeper);
                 var suspects = SeenAt(who, act.Location, since, until)
                     .Where(n => n != keeper && !AreKin(who, n)) // nobody suspects their own kin
-                    .OrderByDescending(n => 1.2 - Familiarity(who, n))
+                    // S6 (III P26, VERIFY): with feelings steering, the disliked are suspected first.
+                    .OrderByDescending(n => Steering ? 1.2 - Familiarity(who, n) - _fo.SuspectPerRegard * St(who, n) : 1.2 - Familiarity(who, n))
                     .ThenBy(n => n, StringComparer.Ordinal)
                     .Take(_go.MaxSuspects)
                     .ToList();

@@ -109,6 +109,48 @@ public sealed class SimResult
     /// <summary>Why each tempted scandal happened: "want 640g", "need" or "thrill".</summary>
     public required IReadOnlyList<(int ActId, string Who, string Motive)> Motives { get; init; }
     public required string? Constable { get; init; }
+
+    // Feelings (phase 0c); empty when feelings are off.
+    /// <summary>The cast in name order.</summary>
+    public required IReadOnlyList<string> Names { get; init; }
+    /// <summary>Personal regard at the end, for every ordered pair.</summary>
+    public required IReadOnlyDictionary<(string From, string To), double> Regard { get; init; }
+    /// <summary>Where each pair's regard started and heals back to.</summary>
+    public required IReadOnlyDictionary<(string From, string To), double> Baseline { get; init; }
+    public required IReadOnlyDictionary<(string From, string Kind), double> KindRegard { get; init; }
+    /// <summary>Personal regard at each season's end and on the last day, flat n x n in name order.</summary>
+    public required IReadOnlyList<(int Day, double[] Regard)> RegardSnapshots { get; init; }
+    /// <summary>Each person's power of acting at the end of each day.</summary>
+    public required IReadOnlyDictionary<string, double[]> PowerByDay { get; init; }
+    /// <summary>The sentiments held at the end.</summary>
+    public required IReadOnlyList<Sentiment> Sentiments { get; init; }
+    /// <summary>Every feeling event: each regard change, and each change of mood.</summary>
+    public required IReadOnlyList<Felt> Feelings { get; init; }
+    /// <summary>New feuds, feuds inside a family, friendships, and reconciliations.</summary>
+    public required IReadOnlyList<(int Day, string A, string B, string What)> Ties { get; init; }
+    public required IReadOnlyList<(int Day, string Household, string From, string To)> ShopSwitches { get; init; }
+    /// <summary>For each act aimed at someone chosen: the actor's regard for them as it began.</summary>
+    public required IReadOnlyDictionary<int, double> AimedAt { get; init; }
+
+    // Character (phase 0d): each person's temperament when the run began and when it ended.
+    public required IReadOnlyDictionary<string, Temperament> CharactersAtStart { get; init; }
+    public required IReadOnlyDictionary<string, Temperament> CharactersAtEnd { get; init; }
+
+    // The desire gate (phase 0d; rule 10); empty when it is off.
+    /// <summary>Every weighing of an act for a motive.</summary>
+    public required IReadOnlyList<Pursuit> Pursuits { get; init; }
+    public required IReadOnlyList<Stirring> Stirred { get; init; }
+    /// <summary>The acts the gate started (motives acted on, and turning away).</summary>
+    public required IReadOnlySet<int> Pursued { get; init; }
+    public required IReadOnlyList<(int Tick, string Holder, string Subject, int Source, int Until)> Avoids { get; init; }
+    public required int Withdrawals { get; init; }
+    public required int Marks { get; init; }
+    /// <summary>Each person's stance at the end of each day (-1 withdrawn, +1 combative).</summary>
+    public required IReadOnlyDictionary<string, double[]> Stances { get; init; }
+    /// <summary>Each life's events and how they turned out, for phase 0e (rule 18).</summary>
+    public required IReadOnlyList<LifeEvent> LifeEvents { get; init; }
+    /// <summary>With DesireActs off: the gate's lines, kept out of the log (and its hash).</summary>
+    public required IReadOnlyList<string> MotiveLog { get; init; }
 }
 
 /// <summary>
@@ -193,12 +235,16 @@ public sealed partial class Simulation
     /// <param name="gatherings">Hubs; default to the town's when the places are the town's.</param>
     /// <param name="authority">The mayor, keepers, constable and ladder; default to the town's when
     /// the places are the town's, else no authority.</param>
+    /// <param name="feelings">Feelings (phase 0c); default to the town's when the places are the
+    /// town's, else off, so worlds built by tests feel nothing unless they ask.</param>
     public Simulation(long seed, IReadOnlyList<Villager>? cast = null, IReadOnlyList<Location>? places = null,
         IReadOnlyList<ActKind>? kinds = null, PerceptionOptions? perception = null, GossipOptions? gossip = null,
         IReadOnlyList<(int Tick, string Actor, string Kind)>? scheduled = null, int wander = 2,
         IReadOnlyList<Link>? links = null, BodyOptions? body = null, IReadOnlyList<Gathering>? gatherings = null,
-        AuthorityOptions? authority = null, HabitOptions? habits = null, Economy? economy = null, MoneyOptions? money = null)
+        AuthorityOptions? authority = null, HabitOptions? habits = null, Economy? economy = null, MoneyOptions? money = null,
+        FeelingOptions? feelings = null)
     {
+        _fo = feelings ?? (places is null ? DefaultTown.Feelings() : FeelingOptions.Off);
         _economy = economy ?? (places is null ? DefaultTown.TownEconomy() : null);
         _mo = money ?? new MoneyOptions();
         _ho = habits ?? new HabitOptions();
@@ -233,6 +279,8 @@ public sealed partial class Simulation
         foreach (var list in _doors.Values)
             list.Sort((x, y) => StringComparer.Ordinal.Compare(x.Next, y.Next));
         _people = _cast.Select(v => new Person { V = v }).ToArray();
+        StartCharacter();
+        StartFeelings();
     }
 
     private void Door(string from, string to, Tile exit, Tile entry)
@@ -268,6 +316,22 @@ public sealed partial class Simulation
     /// and wakes some time before 8:00. <paramref name="each"/> is called after every minute.</summary>
     public SimResult Run(int days, Action<int, Simulation>? each = null)
     {
+        // The log is formatted in the invariant culture, so a run hashes the same on every machine
+        // (juiciness 1.5 would print as "1,5" under de-DE).
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        try
+        {
+            return RunDays(days, each);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    private SimResult RunDays(int days, Action<int, Simulation>? each)
+    {
         foreach (Person p in _people)
         {
             bool home = _places.ContainsKey(p.V.Home);
@@ -277,9 +341,15 @@ public sealed partial class Simulation
             p.Energy = p.V.Body.MaxEnergy * Rng.Range(_seed, 30, 50, "rested", p.V.Name) / 100.0;
             StartSleep(p, 0, collapsed: false, log: false);
         }
+        _charactersAtStart = Characters();
+        StartDesire(days);
         StartMoney();
+        if (_fo.Enabled)
+            foreach (string n in _names)
+                _powerByDay[n] = new double[days];
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
+            _now = m;
             if (HasMoney && Clock.OfDay(m) == 0)
             {
                 if (Clock.Weekday(m) == 0)
@@ -316,7 +386,42 @@ public sealed partial class Simulation
             Pockets = _pocket,
             Motives = _motives,
             Constable = _constable,
+            Names = _names,
+            Regard = _fo.Enabled ? Pairs(_regard) : new Dictionary<(string, string), double>(),
+            Baseline = _fo.Enabled ? Pairs(_baseline) : new Dictionary<(string, string), double>(),
+            KindRegard = _fo.Enabled
+                ? _names.SelectMany((n, i) => _kindNames.Select((k, j) => (Key: (n, k), V: _kind[i, j]))).ToDictionary(x => x.Key, x => x.V)
+                : new Dictionary<(string, string), double>(),
+            RegardSnapshots = _snapshots,
+            PowerByDay = _powerByDay,
+            Sentiments = _sentiments.Values.OrderBy(x => x.Holder, StringComparer.Ordinal).ThenBy(x => x.Toward, StringComparer.Ordinal)
+                .ThenBy(x => x.Name, StringComparer.Ordinal).ToList(),
+            Feelings = _feltLog,
+            Ties = _ties,
+            ShopSwitches = _shopSwitches,
+            AimedAt = _aimedAt,
+            CharactersAtStart = _charactersAtStart,
+            CharactersAtEnd = Characters(),
+            Pursuits = _pursuits,
+            Stirred = _stirred,
+            Pursued = _pursuedActs,
+            Avoids = _avoids,
+            Withdrawals = _withdrawals,
+            Marks = _marks,
+            Stances = _stances,
+            LifeEvents = LifeEvents(),
+            MotiveLog = _motiveLog,
         };
+    }
+
+    private Dictionary<(string, string), double> Pairs(double[,] values)
+    {
+        var d = new Dictionary<(string, string), double>();
+        for (int i = 0; i < _names.Length; i++)
+            for (int j = 0; j < _names.Length; j++)
+                if (i != j)
+                    d[(_names[i], _names[j])] = values[i, j];
+        return d;
     }
 
     private static (string, Tile) FirstSpot(Villager v)
@@ -336,6 +441,8 @@ public sealed partial class Simulation
                 Temptation(m);
                 Drinks(m);
             }
+            Pursue(m);   // the desire gate (rule 10)
+            Withdraw(m);
         }
         StartScheduled(m);
         Watch(m, t);
@@ -512,7 +619,7 @@ public sealed partial class Simulation
             options.Add((new Haunt(g.Place, spot, g.From, to, g.Weight), g.Weight));
         }
         if (hasHome)
-            options.Add((null, 1.0));
+            options.Add((null, HomeWeight(p, m)));
         if (options.Count == 0)
         {
             Goal(p, p.Place, p.At, m + 60, "home", null);
@@ -681,21 +788,28 @@ public sealed partial class Simulation
         double ticksPerDay = Clock.MinutesPerDay / (double)Clock.TickMinutes;
         foreach (ActKind kind in _kinds)
         {
-            if (kind.PerDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= kind.PerDay / ticksPerDay)
+            double perDay = Acting && kind.Affect is { Target: TargetIs.Chosen } && !IsLight(kind) ? kind.PerDay * _fo.AimedRateScale : kind.PerDay;
+            if (perDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= perDay / ticksPerDay)
                 continue;
             var candidates = _people
                 .Where(p => Free(p, m) && p.V.Acts.TryGetValue(kind.Name, out double w) && w > 0 && kind.FitsAge(p.V.Age))
                 .Where(p => kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place))
                 .Where(p => kind.WithKin is not { } role || _people.Any(o => o != p && !o.Asleep && p.V.KinOf(o.V.Name) == role
                                                                              && o.Place == p.Place && o.At.Chebyshev(p.At) <= _po.FarTiles))
+                .Where(p => HasTarget(kind, p, m)) // S1: an act aimed at someone needs someone in reach
+                // S2 (law 1): the joyful give and help more, the sad drink more.
+                .Select(p => (P: p, W: Steering && kind.Affect is { Tilt: not 0 } a
+                    ? p.V.Acts[kind.Name] * Feelings.PowerFactor(a.Tilt, PowerOf(_index[p.V.Name]), _fo)
+                    : p.V.Acts[kind.Name]))
+                .Where(x => x.W > 0)
                 .ToList();
             if (candidates.Count == 0)
                 continue;
-            double r = Rng.Unit(_seed, "actor", kind.Name, m.ToString()) * candidates.Sum(p => p.V.Acts[kind.Name]);
-            Person actor = candidates[^1];
-            foreach (Person p in candidates)
+            double r = Rng.Unit(_seed, "actor", kind.Name, m.ToString()) * candidates.Sum(x => x.W);
+            Person actor = candidates[^1].P;
+            foreach (var (p, w) in candidates)
             {
-                r -= p.V.Acts[kind.Name];
+                r -= w;
                 if (r < 0) { actor = p; break; }
             }
             Begin(m, kind, actor, injected: false);
@@ -710,7 +824,8 @@ public sealed partial class Simulation
             if (at > m)
                 continue;
             ActKind kind = _kinds.First(k => k.Name == kindName);
-            bool Able(Person p) => Free(p, m) && kind.FitsAge(p.V.Age) && (kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place));
+            bool Able(Person p) => Free(p, m) && kind.FitsAge(p.V.Age) && (kind.Allowed.Count == 0 || kind.Allowed.Contains(p.Place))
+                                   && HasTarget(kind, p, m);
             Person? actor = null;
             if (who == Harness.Anyone)
             {
@@ -733,15 +848,37 @@ public sealed partial class Simulation
         }
     }
 
-    private void Begin(int m, ActKind kind, Person actor, bool injected)
+    /// <param name="target">The other party, when the caller gives it (the questioner, the mayor,
+    /// the parent); else found from the act's feeling row. Only while feelings are on.</param>
+    /// <param name="about">The act a consequence answers.</param>
+    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1)
     {
-        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected);
+        if (!_fo.Enabled)
+            (target, about) = (null, -1);
+        else if (target is null && kind.Affect is { } row)
+            target = TargetFor(kind, row, actor, m);
+        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about);
         _acts.Add(act);
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);
         actor.BusyUntil = m + kind.DurationMinutes - 1;
         _watching[act.Id] = new Dictionary<string, List<double>>();
-        _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}");
+        _log.Add($"{m} act {act.Id} {act.Kind} by {act.Actor} at {act.Location}{(target is not null ? " to " + target : "")}");
+        if (!_fo.Enabled)
+            return;
+        _did.Add((actor.V.Name, act.Id));
+        BeganAct(act, kind, m);
+        if (target is null || kind.Affect is not { Target: TargetIs.Chosen or TargetIs.Kin } aimed)
+            return;
+        if (aimed.Target == TargetIs.Chosen)
+            _aimedAt[act.Id] = E(_index[actor.V.Name], _index[target]);
+        if (!Steering)
+            return;
+        // S1: the other party takes part, for as long as the act lasts.
+        Person other = _people[_index[target]];
+        other.BusyUntil = Math.Max(other.BusyUntil, actor.BusyUntil);
+        if (aimed.Target == TargetIs.Chosen)
+            Why(m, actor.V.Name, kind.Name, target);
     }
 
     private ActKind KindOf(Act a) => _kinds.First(k => k.Name == a.Kind);
@@ -788,9 +925,17 @@ public sealed partial class Simulation
             if (act.Tick + kind.DurationMinutes - 1 > m)
                 continue;
             int witnesses = 0;
-            foreach (var (observer, instants) in _watching[act.Id].OrderBy(p => p.Key, StringComparer.Ordinal))
+            var watchers = _watching[act.Id];
+            string? participant = null;
+            if (Steering && act.Target is { } other && kind.Affect is { Target: TargetIs.Chosen or TargetIs.Kin }
+                && _people[_index[other]] is { Asleep: false } op && op.Place == act.Location)
             {
-                double clarity = Perception.OfAct(instants, kind.ReadMinutes);
+                participant = other; // S1: they took part, so they know what happened and who did it
+                watchers.TryAdd(other, new List<double>());
+            }
+            foreach (var (observer, instants) in watchers.OrderBy(p => p.Key, StringComparer.Ordinal))
+            {
+                double clarity = observer == participant ? 1 : Perception.OfAct(instants, kind.ReadMinutes);
                 if (clarity < _po.KnowWhat)
                     continue;
                 witnesses++;
@@ -802,17 +947,30 @@ public sealed partial class Simulation
                     actor = act.Actor;
                     confidence = Math.Min(1, clarity / Perception.NeededToIdentify(Familiarity(observer, act.Actor), _po));
                 }
-                else if (Perception.GuessesConfidently(o.Temperament))
+                else if (Perception.GuessesConfidently(CharacterOf(_index[observer])))
                 {
                     actor = Guess(observer, act);
                     confidence = 0.8;
                 }
+                string? target = null, seenKind = null;
+                if (_fo.Enabled)
+                {
+                    // F3: who it was done to, as this witness knows it; the kind of person they saw.
+                    if (act.Target is { } tg && (kind.Affect?.Target == TargetIs.Keeper || observer == tg
+                                                 || Perception.Identifies(clarity, Familiarity(observer, tg), _po)))
+                        target = tg;
+                    if (actor is null)
+                        seenKind = _cast[_index[act.Actor]].Kind;
+                }
                 Add(observer, new Belief(act.Id, act.Kind, actor, confidence, clarity, Source.Witnessed,
-                    kind.Juiciness, m, Array.Empty<string>()), m);
+                    kind.Juiciness, m, Array.Empty<string>(), Target: target, SeenKind: seenKind), m);
             }
             _witnesses[act.Id] = witnesses;
             _watching.Remove(act.Id);
             LeaveTrace(act, kind, m);
+            Undergo(act, kind, m);
+            StirPity(act, kind, m);
+            Mark(act, kind, m);
         }
     }
 
@@ -821,23 +979,34 @@ public sealed partial class Simulation
     {
         var present = _people.Where(p => p.V.Name != observer && !p.Asleep && p.Place == act.Location)
             .Select(p => p.V.Name).ToList();
-        double total = present.Sum(n => Familiarity(observer, n) + 0.05);
+        // S6 (law 9; III P26, VERIFY): a guess falls more readily on someone disliked.
+        double W(string n) => Steering
+            ? Familiarity(observer, n) + 0.05 + _fo.GuessPerHate * Math.Max(0, -St(observer, n))
+            : Familiarity(observer, n) + 0.05;
+        double total = present.Sum(W);
         double r = Rng.Unit(_seed, "guess", observer, act.Id.ToString()) * total;
         foreach (string n in present)
         {
-            r -= Familiarity(observer, n) + 0.05;
+            r -= W(n);
             if (r < 0)
                 return n;
         }
         return present.Count > 0 ? present[^1] : act.Actor;
     }
 
-    private void Add(string who, Belief b, int m)
+    /// <param name="teller">Who told it, when it came in a telling.</param>
+    private void Add(string who, Belief b, int m, string? teller = null)
     {
+        _beliefs[who].TryGetValue(b.ActId, out Belief? prior);
         _beliefs[who][b.ActId] = b;
         _log.Add($"{m} belief {who} {b.ActId} {b.Actor ?? "someone"} {b.Source} {b.Juiciness:0.###}");
         OwnAccount(who, b, m);
         CurfewBroken(who, b, m);
+        if (!_fo.Enabled)
+            return;
+        Feel(who, b, prior, teller, m);
+        Answered(who, b, m);
+        StirFrom(who, b, prior, m);
     }
 
     // ---- chats and gossip ------------------------------------------------------------------
@@ -860,17 +1029,22 @@ public sealed partial class Simulation
                 }
                 _fam[i, j] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[i, j]);
                 _fam[j, i] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[j, i]);
+                if (_fo.Enabled)
+                    _together[i, j] += Clock.TickMinutes;
                 if (!_spans.TryGetValue(key, out int start))
                     _spans[key] = start = m;
                 int window = start + (m - start) / Math.Max(1, _go.ChatEveryMinutes);
                 if (m - start < _go.ChatMinMinutes || _chatted.Contains((a, b, window)))
                     continue;
-                double chattiness = (pa.V.Temperament.Chattiness + pb.V.Temperament.Chattiness) / 2;
+                double chattiness = (CharacterOf(i).Chattiness + CharacterOf(j).Chattiness) / 2;
                 double per10 = Math.Min(1, _go.ChatChance * (0.5 + chattiness));
                 double chance = 1 - Math.Pow(1 - per10, Clock.TickMinutes / 10.0);
                 if (Rng.Unit(_seed, "chat", a, b, m.ToString()) >= chance)
                     continue;
                 _chatted.Add((a, b, window));
+                Company(pa, pb);
+                Tone(i, j, m);
+                Tone(j, i, m);
                 TryTell(a, b, m);
                 TryTell(b, a, m);
             }
@@ -902,8 +1076,10 @@ public sealed partial class Simulation
             if (_tellsToday.TryGetValue((teller, b.ActId, day), out int n) && n >= TellsPerDay)
                 continue;
             string? named = b.Actor ?? b.Suspects?.FirstOrDefault();
+            // S3 (rule 8): a story is worth more to someone who knows the person well, or loves them.
             double score = Current(b, m)
-                + (named is { } who && Familiarity(listener, who) >= _go.KnowsAt ? _go.KnowsBonus : 0);
+                + (named is { } who && (Familiarity(listener, who) >= _go.KnowsAt || Steering && St(listener, who) >= _fo.CloseTieAt)
+                    ? _go.KnowsBonus : 0);
             if (score < _go.VolunteerLevel)
                 continue;
             if (best is null || score > bestScore || score == bestScore && b.ActId > best.ActId)
@@ -920,21 +1096,28 @@ public sealed partial class Simulation
         double confidence = best.Confidence * (0.5 + 0.5 * Familiarity(listener, teller));
         var told = new Belief(best.ActId, best.Kind, best.Actor, confidence, best.Clarity, Source.Told,
             _go.RetellFactor * Current(best, m), m, new[] { teller }.Concat(best.Chain).ToList(),
-            best.Actor is null ? WithoutKin(teller, best.Suspects) : null);
+            best.Actor is null ? WithoutKin(teller, best.Suspects) : null, best.Target, best.SeenKind);
         _log.Add($"{m} told {teller} {listener} {best.ActId}");
         if (_acts[best.ActId].Actor == listener)
             return; // the culprit hears about their own act: they learn nothing they didn't know
 
         if (_beliefs[listener].TryGetValue(best.ActId, out Belief? held))
         {
+            // F15: a second teller, independent of the first, names the same person (rule 9).
+            bool agrees = held.Source == Source.Told && held.Actor is not null && told.Actor == held.Actor
+                          && !told.Chain.Intersect(held.Chain).Any();
             // Already known: a name can fill in "someone", or replace a weaker name. Never more juice.
             if (told.Actor is not null && (held.Actor is null || told.Confidence > held.Confidence))
-                Add(listener, held with { Actor = told.Actor, Confidence = told.Confidence }, m);
+                Add(listener, held with { Actor = told.Actor, Confidence = told.Confidence, Target = held.Target ?? told.Target }, m, teller);
             else if (told.Actor is null && held.Actor is null && held.Suspects is not { Count: > 0 } && told.Suspects is { Count: > 0 })
-                Add(listener, held with { Suspects = told.Suspects }, m); // someone's suspicion fills in their "someone"
+                Add(listener, held with { Suspects = told.Suspects }, m, teller); // someone's suspicion fills in their "someone"
+            if (agrees)
+                Corroborate(listener, best.ActId, m);
+            KinHears(listener, best.ActId, told.Chain, told.Actor, m);
             return;
         }
-        Add(listener, told, m);
+        Add(listener, told, m, teller);
+        KinHears(listener, best.ActId, told.Chain, told.Actor, m);
     }
 
     // ---- scandal ---------------------------------------------------------------------------
@@ -957,13 +1140,25 @@ public sealed partial class Simulation
                 var members = group.Where(n => n != target && !AreKin(n, target)).ToList(); // nobody confronts their own kin
                 if (members.Count < needed)
                     continue;
-                string by = members
-                    .OrderByDescending(n => _cast[_index[n]].Temperament.Boldness * Current(_beliefs[n][act.Id], m))
-                    .ThenBy(n => n, StringComparer.Ordinal).First();
+                string? by = Steering
+                    // S7 (rule 9; III P25, VERIFY): nobody confronts someone they love; the harmed,
+                    // who feel it most, are the likeliest to.
+                    ? members.Where(n => St(n, target) < _fo.CoverAt && !InHostileCooldown(_index[n], _index[target], m))
+                        .OrderByDescending(n => CharacterOf(_index[n]).Boldness * Current(_beliefs[n][act.Id], m)
+                                                * (1 + _fo.ConfrontPerHate * Math.Max(0, -St(n, target))))
+                        .ThenBy(n => n, StringComparer.Ordinal).FirstOrDefault()
+                    : members
+                        .OrderByDescending(n => CharacterOf(_index[n]).Boldness * Current(_beliefs[n][act.Id], m))
+                        .ThenBy(n => n, StringComparer.Ordinal).First();
+                if (by is null)
+                    continue;
                 var c = new Confrontation(act.Id, m, by, target, target == act.Actor);
                 _confrontations.Add(c);
                 _confronted.Add(act.Id);
+                if (Desiring)
+                    _lastHostile[(_index[by], _index[target])] = m;
                 _log.Add($"{m} confront {by} {target} {act.Id} {(c.Correct ? "right" : "wrong")}");
+                Accused(target, act.Id, new[] { by }, _fo.ConfrontJoy, "confronted", m);
                 break;
             }
         }
@@ -973,6 +1168,8 @@ public sealed partial class Simulation
     {
         ForgetSightings((day + 1) * Clock.MinutesPerDay);
         CloseMoneyDay();
+        CloseDesires(day);
+        CloseFeelings(day, days);
         foreach (Act act in _acts)
         {
             if (!_holdersByDay.TryGetValue(act.Id, out int[]? counts))

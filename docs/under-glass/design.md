@@ -72,6 +72,8 @@ When a villager sees or hears that someone was affected:
 
 This replaces the bystander rule of draft 1. It produces friend-of-friend warmth, taking sides, envy and spite from one table.
 
+*As built in 0c (2026-10-06):* this table is the felt amount f0 of rule 6 below. Two readings of Spinoza await Sid (0c questions 2 and 3): someone who hates the person harmed comes to *love* whoever harmed them, not only feel glad (III P24); and a witness with no strong regard cools a little on whoever harmed someone like them, not only on nobody (III P27 cor. 1). Both are built.
+
 **6. Imitation of the affects: we feel what we imagine someone like us feels, even without prior feeling for them (III P27).**
 A villager with no strong regard for the person affected still feels a fraction of that person's joy or sadness: pity, or shared gladness. The fraction is scaled by how alike they are (household, age, work, kind of person) and by the observer's temperament (law 12). This is what makes a crowd react to a fall or a fight.
 
@@ -87,6 +89,8 @@ Norms are not written anywhere. They come from what people have seen others reac
 - Hate answered with love can be overcome. When it is, it turns into a love greater than if there had been no hate.
 
 This gives feuds that escalate, and reconciliations that are stronger than plain friendship, both from the same rule.
+
+*As built in 0c:* "who imagines themselves loved, loves back" is the direct attribution of an act aimed at them (rule 4); "hate returned increases" is that attribution plus whom acts are aimed at (rule 10). Hate conquered by love (III P44, VERIFY): each pair keeps the lowest point of a hate (at -0.2 or below) and the love received since; when love carries regard past zero, it gains back min(depth of the hate, love received since). In a test, a pair that argued (-0.3) and then made up with three kindnesses ends at 0.315, against 0.287 for a pair that never fought.
 
 **9. Feelings spread to a kind of person (III P46).**
 If a villager is affected by someone it knows only as a kind of person, it loves or hates the kind:
@@ -162,8 +166,11 @@ Every constant here is a first guess, to be tested in phase 0.
    - A felt value of 0.7 or more ignores retention.
    - A third slight of the same kind from one actor within 5 days adds a 0.3 mark.
    - A repeated good act counts x 0.5^(repeats in 7 days).
+   - *As built in 0c (2026-10-06; `sim/README.md`):* every act kind has a feeling row: who is pleased or hurt (the target, the actor, or the onlookers), how much (joy, separate from valence), the share that becomes regard for its cause (plastic), how freely its cause is believed to act (law 10), whom it is aimed at, and whether the glad or the sad do it more (law 1). The feeling is read from the holder's belief, never the truth, and goes to whoever they believe caused it; if they saw only "someone", to the kind of person they saw (law 9). A witness feels it by clarity; hearsay moves mood only. Mood is the last 3 days of joy and sadness, linearly fading; with need, an unmet want and being held, it gives the power of acting P. A feeling of 0.7 or more ignores retention; repeats count half within 7 days; one act moves one person's regard for one subject by at most 0.5. Named sentiments (Sims 4: Grateful, Hurt, Approving, Indignant, Pleased, Envious, Wary, Wronged, Ashamed, Reconciled) record the strongest causes and fade over about a season; no rule reads them. The third-slight mark is not built (0c question 6). The town runs every regard change at twice the rows' first guesses (PlasticScale 2).
 5. **Healing and familiarity.** Regard drifts 0.005 a day toward a baseline set on the villager's card. It heals faster on contact: a day spent together with no new slight, an accepted apology, or a good act. Betrayed keeps regard at -0.2 or below. Familiarity is kept separate from liking. It rises by 0.02 x (1 - familiarity) per exchange (chat, trade, reaction) and falls 1% a day.
+   - *As built in 0c:* regard drifts 0.005 a day toward where the pair started (housemates 0.6, friends 0.4, everyone else 0; nobody knows the newcomer). A grudge heals 0.01 x (0.5 + understanding) a day faster on a day of an hour or more together with no new slight. A friendship above where it started holds on days together and fades apart. Familiarity is unchanged from 0a (it rises with time together and does not fall yet).
 6. **Bystanders** (laws 5 and 6). A witness who loves the target shares its feeling and moves its regard for the actor by 0.5 x the target's change x its regard for the target, times clarity. One who hates the target feels the opposite, at most 0.3 of that amount. One with no strong regard feels a fraction by likeness (imitation, about 0.2 x likeness), toward the target only. Changes made by this rule never trigger it again.
+   - *As built in 0c:* someone who loves the person affected (regard 0.2 or more) feels 0.5 x their regard x that person's joy or sadness; someone who hates them (-0.2 or less) the opposite, at most 0.3 of it; anyone else 0.2 x (0.5 + 0.5 x likeness) x (1 - 0.5 x understanding) of it, and this moves their regard for the cause too (0c question 3). Likeness is a quarter each for household, life stage, kind of person and workplace. A told act whose patients are the onlookers (a drunk scene) is felt through the witness the story came from.
 7. **Reactions.** Anyone who witnesses an event of importance 1 or more can react once, within an hour, with one of 8 emotions.
    - The reaction is an act linked to the eventId. Its magnitude = the emotion's row x the event's importance.
    - Witnesses read it against their own view of the event. Siding with the actor of a harm slights the victim; siding with the victim slights the actor.
@@ -178,11 +185,13 @@ Every constant here is a first guess, to be tested in phase 0.
    - A pair chats at most once per span, and again every 2 hours they stay together (as built in 0a).
    - A teller tells a story to at most 1 listener a day in a town under 20 villagers, 2 under 30, and 3 above that.
    - Retelling never adds detail.
+   - *As built in 0c:* the close tie (+0.5) counts a listener who knows the person in the story well (familiarity 0.4 or more) or holds them at regard 0.4 or more. At the seed, every pair at 0.4 already knows each other that well, so this changes nothing yet.
 9. **Hearsay and scandal.** Hearsay moves only mood, by 0.5 x magnitude x confidence. Confidence = 0.5 + 0.5 x regard for the teller, multiplied down the chain.
    - Two kinds of hearsay give a motive: a scandal (a bad act at base 4 or more), and news that touches the listener personally (household, partner, employer, its own trade).
    - Hearsay becomes regard at 0.5 strength when confirmed first-hand, and at 0.25 when two independent tellers agree.
    - When the people holding a scandal reach a quarter of those who know the actor (minimum 3), one of them confronts the actor. A seeded draw weighted by intensity x boldness picks who, preferring the person harmed.
    - Each scandal gets one confrontation, and a confrontation has base juiciness 3.
+   - *As built in 0c:* hearsay moves mood by 0.5 x credence in the first teller, where credence is today's 0.5 + 0.5 x familiarity, leaning by at most 0.25 x (1 - understanding) toward tellers liked or disliked. Hearsay becomes regard at 0.25 x confidence when a second teller with no shared chain agrees, and at 0.5 when confirmed first-hand: seeing the culprit warned, taken in, set to service or rowed with at home, or, for the keeper, getting the goods paid back. Someone who saw or found it and then hears the name counts at 0.5 x clarity x confidence. Nobody confronts someone they love (0.4 or more); among the rest, hate for the culprit makes it up to three times likelier, so the person harmed is preferred without a special case.
    - **Tiers** (decided 2026-10-05). Every act kind belongs to one tier. The tier decides what the story can do, and each tier has a target for how often it happens in a town of 12:
 
      | Tier | Juiciness | Examples | Retold | Effect on listeners | How often, town-wide |
@@ -199,6 +208,9 @@ Every constant here is a first guess, to be tested in phase 0.
     - Each subject gets two attempt slots per day. A question is asked again only when the motive moves by 0.1.
     - Light acts are capped at 2 a day and never counted as ignored. Hostile acts have a 3-day cooldown per pair.
     - Life choices (courting, splitting up, shop hours, hiring) use the same gate. They hold for a minimum time and need a 0.3 margin to reverse.
+    - *As built in 0c (2026-10-06):* the gate itself is not built; acts still come at town-wide rates. Feelings steer two things: whom an act is aimed at, among people awake, free, within 5 tiles and in sight (love gives and helps, hate argues, and people argue less with those they love), and who acts (the glad give and help more, the sad drink more, by the power of acting). An act aimed at someone needs someone in reach, and the other party takes part. Life choices: each household chooses Pierre's store or the chain by the adults' regard for Pierre against the chain's prices (more when money is short), holding a choice for a season and changing only by a 0.3 margin.
+    - *What 0c found:* aimed acts happen mostly at home (55% of arguments are inside a household), and only about a dozen arguments a year fall between people of different households, spread over many pairs. Nobody hurt can answer: someone without the act on their list, or not standing next to the arguer when an argument is drawn, never argues back. So no feud forms between households at any setting tried (50 seed-years each: plastic 1-3, target base 0.05-0.2, joy doubled, drift 0.002), and new friendships stay rare (at most 1.2 a year). E1's target (60% of seed-years with a new feud and a new friendship) needs this gate: hate as a motive toward a person, and the 3-day hostile cooldown per pair (0c question 6).
+    - *As built in 0d (2026-10-07; `sim/README.md`):* motives from events the holder saw or took part in: Answer (argued with), Return (a gift or help), MakeUp (hurt by someone still loved), Retaliate (robbed, or named while innocent), and Fond (love above 0.2, missed after days apart). The gate as written, with fear (+0.1 cost per hostile act the other did to them in 28 days) and the power of acting; slots, re-asking, the 3-day cooldown per ordered pair (so the third slight is for light acts: built, off). The hurt who cannot answer avoid for a week and go home; a stance from hurts makes the bold combative and the shy withdrawn. Families cover. The aimed rates stay as everyday occasions (a departure from "only on a motive", for Sid: 0d question 1). E1 is met: 68% of seed-years; news rises to 267 a year and the 0a band holds at 55%.
 11. **Livelihoods.** Every adult has one livelihood (owner, employee, producer, out of work), and each household has one purse. Job routines gather people at 3-4 hubs at set hours (the square at noon, the saloon in the evening, market day), with meals in the routine. As built in 0a, a hub is a gathering that anyone free can pick like a haunt, with a weight: noon in the square (3), evenings at the saloon (2), Saturday market in the square (12). Motives replace blocks of the plan. A weekly want of 1-2 goods still unmet on day 4 becomes a NeedsHelp motive and a board post.
 12. **Market and money.** Every sale has a named buyer with cash and weekly demand.
     - Town cash changes only through named outside accounts: the trader, outside wages, a county stipend.
@@ -255,6 +267,7 @@ Every constant here is a first guess, to be tested in phase 0.
       - Suspicion travels with the story, and reaches the mayor as "nearby" names. Nearby counts for 0.25, split over the names, and never decides a case alone: a verdict needs someone who saw it, hearsay of a sighting, or a confession.
       - The constable (or the mayor, if there is none) questions the people named, most-named first, once each per case, when they meet. Being questioned is seen. The culprit may confess (0.25 + 0.5 x timidity); anyone questioned says who they saw around the place at the time, which can name the culprit or point at someone else.
       - Most people questioned are innocent (61% on placed scandals). Being suspected and questioned should cost the suspect's regard for whoever named them once feelings exist (0c).
+    - **As built in 0c** (2026-10-06): the constable tells an innocent suspect who named them (0c question 4), so they resent the namers, split between them; kin questioned only for an alibi were named by nobody. The guilty feel shame instead and resent nobody. Whoever is warned, taken in, questioned or set to service blames the official at 0.4 of the freedom of a chosen act (they are doing their job), less if they know they gave cause. With feelings steering: the mayor's trust in a teller leans by at most 0.1 toward people he likes (Lewis, understanding 0.6; 0c question 12), he counts as close anyone in his household, anyone he knows well and doesn't dislike, or anyone he loves; a witness is less willing to report a culprit they love and more willing to report one they hate.
 
 17. **Families and age** (decided 2026-10-06; see 11d).
     - **Kin.** Villagers have family ties with roles: parent, child, spouse, sibling, grandparent, grandchild, guardian, stepparent. Parents set rules (allowance, chores, curfew) and children can break them. A household is who lives together; kin is who is family (Shane rents at the ranch and is not Marnie's kin).
@@ -269,8 +282,28 @@ Every constant here is a first guess, to be tested in phase 0.
     - **Trouble inside the family stays inside.** A keeper who learns that their own kin took from them doesn't report it; it becomes a family row, which others can overhear and gossip about. A family matter becomes a town matter only through someone outside.
     - **Families cover for each other** (Sid, 2026-10-06). Family members never report kin, don't spread stories that hurt kin, don't suspect kin, and leave kin out when questioned. Asked about a suspect in their family, they give an alibi ("she was with me"). The constable knows families cover, so a family alibi counts for less, and it never outweighs a sighting.
     - **Shame by association** (laws 5 and 6, from 0c): a scandal costs the culprit's kin some standing too, so a parent is angrier at a public scandal than a private one.
+      - *As built in 0c (2026-10-06):* a witness who blames the culprit for a scandal cools on the culprit's kin by 0.2 x (1 - familiarity) x (1 - 0.5 x understanding) of it. Kin feel a step of shame (sadness, and a little at the culprit) for each new person they learn knows, up to 6: each teller in a chain that names the culprit, and three at once for seeing the culprit warned, taken in, questioned or set to service in public. Families still cover: they never report, retell, suspect or confront kin.
+      - *Grievance* (as built in 0c): dislike of the keeper beyond -0.2 adds to the motive to steal from them, kin included; it is named only when it is the largest motive, and the log says why ("why Abi Stole Kim Hurt since d0 act 0"). None happened in a year of the town: nobody dislikes a keeper that much.
     - **Curfews** (as built in 0a, 2026-10-06): anyone who lives with a parent or guardian has a curfew: children 20:00, teens 22:00, grown children 1:00. A parent who learns their child was seen out past it has it out with them at home (a family row).
     - **As built in 0a** (2026-10-06): every Stardew family is in the simulator (26 villagers with the newcomer), with ages (guesses where Stardew gives none) and kin. Stealing and rummaging need age 13, drunk scenes 18, arguments 13; a child squabbles with a sibling who is there instead. Kin never report, retell, suspect or confront each other, leave each other out when questioned, and vouch for each other. A family alibi takes back half of one "nearby" (0.125) and never offsets a sighting or a confession. The constable questions the most-suspected person's housemates for alibis. A keeper who learns their own kin took from them has a family row (a news act others can see) instead of reporting. Only adults stand for constable; everyone 16 and over votes.
+
+18. **Character over time** (Sid, 2026-10-07; see 11e). A proposal, to settle when it is built.
+    - **Traits are plastic.** The temperament weights of law 12 (chattiness, boldness, understanding, self-regard, sensitivity, retention) are each person's current character, not fixed. What happens to someone pushes them: a severe event (felt at 0.7 or more, rule 4's threshold) a lot, small events only by repetition. Examples to tune: being rebuffed, shamed or punished lowers boldness and self-regard; being thanked or helped raises self-regard; good company raises chattiness, and isolation lowers it; a reconciliation, or learning why someone did something, raises understanding; repeated hurt raises sensitivity or retention.
+    - **Hardening.** How far an event moves a trait falls with age: children change easily, adults less, elders hardly, never to zero.
+    - **Fringe people emerge from feedback.** No rule pulls anyone toward the middle. Someone shy who is rebuffed acts less, meets fewer people and grows shyer, and can end up a hermit; someone bold who wins their confrontations grows bolder. The usual case stays near the archetypes because most events are small and mixed.
+    - **Changes stick while they keep being triggered** (Sid, 2026-10-07). All six traits are plastic.
+    - **People drift toward who they surround themselves with** (Sid, 2026-10-07): slowly, each trait moves toward those of the people someone spends time with, weighted by time together and perhaps by regard. A subtle effect, noticed over several runs; to be found by experiment.
+    - **Inheritance.** A child's traits start as a combination of its two parents', with a chance of mutation at birth. Research (2026-10-07; claims from abstracts and reviews, VERIFY before relying on exact figures):
+      - **Inheritance is weak.** Personality is about 40% heritable (Vukasović & Bratko 2015), but a child correlates with a parent only about 0.10-0.20, and siblings about 0.15-0.20; the family home barely shapes traits, and almost all environmental effect is unique to each child (Plomin et al. 2016).
+      - **Proposed model:** each person has a hidden genetic value per trait, separate from their current character. A child's is the mean of its parents' plus its own share of each (so siblings differ), plus a fresh non-inherited part; the plasticity rule changes character, never the genetic value, so a parent who became a hermit passes on their nature, not their withdrawal (what they pass on is a lonely household). Traits sit on a hidden scale shown through a sigmoid, so extremes need no clamp.
+      - **Mutation:** a child carries about 60 new mutations, about 2 more for each year of the father's age (Kong et al. 2012), nearly all without effect. Game proposal: about 1 child in 11 gets one trait's genetic value shifted noticeably, likelier with an older father.
+      - **Hardening has a measured curve** (Roberts & DelVecchio 2000): yearly change about 1.0 for a child, 0.55 at 20, 0.40 at 30, 0.28 from 50, so a floor near 0.25.
+      - **Events:** life events have real but small effects; a severe event should move a trait moderately and fade unless daily life keeps reinforcing it (Bühler et al. 2024). Traits pick experiences that deepen them, which is how fringe people emerge (Roberts, Caspi & Moffitt 2003).
+      - **Convergence toward others is small** in adults (couples barely converge; Humbad et al. 2010), likely larger in teens: keep it subtle, faster for the young.
+      - **Not worth modelling:** birth order, sibling contrast. Worth it: sensitive children changed more by both good and bad surroundings.
+      The full report: `docs/under-glass/inheritance-research.md`.
+    - **Kin ties pass on as a head start, not a rule** (Sid, 2026-10-07): a child forms its parents' grudges and friendships more easily, but not certainly. Much of this may come on its own from living close to them.
+    - **Measured over 5-10 simulated years:** how far traits spread, how many people reach the fringe, and that the town neither converges on one character nor flies apart.
 
 The player is one more agent under these rules and has no meters of their own.
 
@@ -492,18 +525,13 @@ E5 is Sid's blind read of 10 season journals.
 **Phase 0: headless (about 2-3 months with agents).** It starts in this repo (`sim/UnderGlass.Sim`, `sim/UnderGlass.Run`), next to the libraries it reuses, and moves to its own repository once the rules hold.
 - **0a.** A gossip-only harness: rules 2, 8 and 9 on 12 villagers.
 - **0b.** A stock-and-flow money model, about 200 lines. Built 2026-10-06, with wants, needs, temptation and the ladder's fines.
-- **0c.** Port the core (3-4 weeks):
-  - retarget to net8;
-  - make GameClock's constants parameters;
-  - rewrite MotiveInputs, MotivesEngine and MotivesRunner so the subject can be anyone;
-  - move StressorTable into `acts.json`.
-
-  Memory, gossip, RegardBook, the decision clients and NpcMinds carry over. The run loop starts from ShadowSimulator.
+- **0c.** Feelings: the Spinozan laws of section 3a on regard, mood and the believed cause. (The first plan was to port the mod's core here. The simulator was instead built natively in 0a and 0b, so 0c builds feelings on it directly; the mod's lessons, such as D33-D35, carry over as rules, not code.) Built 2026-10-06 (`sim/README.md`): laws 1-3, 5, 6 and 8-12 with sentiments, steering ten decisions. The 0a and 0b gates still hold. E1 did not until rule 10's desire gate (0d, 2026-10-07): with it, 68% of seed-years.
 - **0d.** The simulator itself (`UnderGlass.Sim`):
   - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON;
   - the bots;
   - the event log, snapshots, metrics and the story sifter;
   - the viewer replays runs.
+- **0e (proposed, 2026-10-07).** Character over time and generations (rule 18, 11e): traits that change with events and harden with age, inheritance with mutation, the life course (couples, births, children leaving home, deaths), and time skips of 5-10 years between runs.
 - **Exit:** E0-E3 and the golden scenarios pass.
 
 **Phase 1: text REPL (about 2 weeks).** Sid plays a season through commands and sees only what the player perceives. If it is not worth playing in text, art will not fix it.
@@ -605,6 +633,17 @@ Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your ow
 
 Sid: "We also need to include the family dynamics, Abigail is the daughter of Pierre and Caroline. She could thief but why would she." And: "Age also plays into what a character would do." Agreed: scandals need motives (rule 17), age limits what anyone would do, trouble inside a family stays inside, families cover for each other (including alibis), and shame spreads to kin. All of Stardew's families come into the simulator now: "it should make for much more interesting stories." More family dynamics may follow.
 
+## 11e. Decisions of 2026-10-07: fringe people and character over time
+
+Sid: "I still want to allow for 'fringe' people. People who may be overly shy and become a hermit for example. We still need enough room for emergent personalities. We start out with the Stardew Valley archetypes and the generations that follow should change over time." And: "We need a system for how actions and events change the character over time... The character at the beginning of the run will have different weights than it does 5 years later. Severity of the events contributes to this. Across generations, 2 parents have a kid, the kid will initially be a combination of the parents' weights with some chance for mutation when born. Over time the weights harden as they grow, but never fully. There is chance for change but the older they are the harder it is. Either lots of repetitions or high severity events." The aim is to simulate the 5-10 years between runs (11c).
+
+Agreed:
+- **Room for fringe people.** Extremes are allowed and can emerge; no rule pulls behaviour toward the middle. The shy can answer by withdrawing, and withdrawal can deepen.
+- **Character changes with events**, by severity and repetition, hardening with age but never fully (rule 18, a proposal).
+- **Inheritance:** a child starts as a combination of its parents, with a chance of mutation at birth.
+- **Now:** the desire gate (0d) reads every trait from each person's current character, a state that can change, and records the events (acts done and undergone, their severity and how they turned out) that the plasticity rule will feed on. Its constants must behave sensibly at trait extremes.
+- **Later:** the plasticity rule, then the life course that generations need (couples, births, children growing up and moving out, deaths) and the time skips. At today's speed a simulated year takes about 8 seconds of one core, so 5-10 years can be simulated in full.
+
 ## 12. Questions for Sid
 
 Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
@@ -620,3 +659,18 @@ Still open:
    - a review at 8 weeks either way.
 
    Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace. With suspicion and interviews, 71% and 64%. With every family in (26 villagers, two listeners a teller a day), after retuning to fade 0.8 and retell 0.35: 57% and 51%. The limit is the number of witnesses: a scandal seen by one person who keeps to themselves stays small, and one seen by a crowd at a hub travels far.
+6. **Phase 0c's questions** (feelings, 2026-10-06). Each is built one way for now; the answer may change it.
+   1. **Starting tensions.** The town starts with none, so every dislike comes from the run. Candidates: Pierre and Shane both ways (the chain store), Sebastian toward Demetrius, Abigail toward Pierre.
+   2. **III P24.** Someone who hates the person harmed comes to love whoever harmed them, not only feel glad. Built: yes.
+   3. **III P27 cor. 1.** A witness with no strong regard cools a little on whoever harmed someone like them (rule 6 said "toward the target only"). Built: yes.
+   4. **Should the constable tell an innocent suspect who named them?** Built: yes, so they resent the namer.
+   5. **Retention.** Pam 0.2 (the mod's value), Robin 0.8 (a guess), everyone else 0.5.
+   6. **The third slight.** Rule 10's 3-day hostile cooldown per pair makes rule 4's "third slight within 5 days" impossible. A 1-day cooldown, or a wider window? Not built until decided.
+   7. **Love after conquered hate.** It gains back up to the depth of the old hate, bounded by the love given since: 0.315 against 0.287 for a pair that never fought. Too strong, too weak?
+   8. **E1's definitions.** A feud is -0.3 or below both ways, a friendship 0.4 or above both ways; feuds inside a family are counted apart; the target is 60% of seed-years with both.
+   9. **Should love cover the way kinship does?** Built: someone who loves the culprit (0.4 or more) never confronts them, and is less likely to report them.
+   10. **Shop choice** per household (one purse), or per adult? Built: per household.
+   11. **Sensitivity** from the mod's temperaments, derived from Stardew's dialogue, for the prototype only.
+   12. **The mayor's trust leaning on regard** (at most 0.1 for Lewis), or familiarity only? Built: leaning.
+   13. **Rule 10's desire gate next?** Feuds between households can't form while acts come at town-wide rates: the hurt can't answer back (rule 10, "what 0c found"). The gate (hate and love as motives toward a person, costs, cooldowns) replaces the rates, so it moves news and trivia volume and has to be retuned against the 0a band.
+7. **Character over time** (rule 18, 11e). Answered 2026-10-07: all six traits are plastic; changes stick while they keep being triggered, and people drift slowly toward those they spend time with; children form their parents' grudges and friendships more easily, not certainly. Still open: how inheritance and mutation work, to be researched first.

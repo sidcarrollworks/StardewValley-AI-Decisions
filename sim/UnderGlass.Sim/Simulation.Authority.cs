@@ -62,7 +62,7 @@ public sealed partial class Simulation
     {
         _voted = true;
         var candidates = _cast
-            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && v.Temperament.Boldness >= _ao.StandAt
+            .Where(v => v.Name != _ao.Mayor && v.Name != DefaultTown.Newcomer && CharacterOf(_index[v.Name]).Boldness >= _ao.StandAt
                         && v.Stage is Stage.Adult or Stage.Elder)
             .Select(v => v.Name).ToList();
         if (candidates.Count == 0)
@@ -88,7 +88,7 @@ public sealed partial class Simulation
 
     private double Appeal(string voter, string candidate)
     {
-        Temperament t = _cast[_index[candidate]].Temperament;
+        Temperament t = CharacterOf(_index[candidate]);
         return Familiarity(voter, candidate) + 0.4 * t.Understanding + 0.3 * t.Boldness
             + 0.6 * Rng.Unit(_seed, "vote", voter, candidate);
     }
@@ -143,7 +143,7 @@ public sealed partial class Simulation
                 continue;
             }
             bool firstHand = b.Source != Source.Told;
-            if (!victim && !(firstHand && (who == _constable || Willing(p.V, act.Id))))
+            if (!victim && !(firstHand && (who == _constable || Willing(p.V, act.Id, b.Actor))))
                 continue;
             _reported.Add((who, to, act.Id, what));
             var account = AccountOf(who, b, m);
@@ -155,8 +155,15 @@ public sealed partial class Simulation
         }
     }
 
-    private bool Willing(Villager v, int actId)
-        => Rng.Unit(_seed, "willing", v.Name, actId.ToString()) < _ao.ReportBase + _ao.ReportPerBoldness * v.Temperament.Boldness;
+    /// <summary>Whether a witness or finder goes to the authority. S5 (III P25, VERIFY): less
+    /// willing about a culprit they love, more about one they hate.</summary>
+    private bool Willing(Villager v, int actId, string? culprit)
+    {
+        double chance = Steering && culprit is not null
+            ? Feelings.ReportChance(_ao.ReportBase, _ao.ReportPerBoldness, CharacterOf(_index[v.Name]).Boldness, St(v.Name, culprit), _fo)
+            : _ao.ReportBase + _ao.ReportPerBoldness * CharacterOf(_index[v.Name]).Boldness;
+        return Rng.Unit(_seed, "willing", v.Name, actId.ToString()) < chance;
+    }
 
     private void File(Account a, int m)
     {
@@ -230,12 +237,12 @@ public sealed partial class Simulation
         _interviewed.Add((actId, suspect));
         if (_kinds.FirstOrDefault(k => k.Name == Authority.Questioned) is { } kind)
         {
-            Begin(m, kind, s, injected: false);
+            Begin(m, kind, s, injected: false, target: by.V.Name, about: actId);
             by.BusyUntil = Math.Max(by.BusyUntil, s.BusyUntil);
         }
         Account account;
         bool confessed = suspect == act.Actor
-            && Rng.Unit(_seed, "confess", actId.ToString(), suspect) < _ao.ConfessBase + _ao.ConfessPerTimidity * (1 - s.V.Temperament.Boldness);
+            && Rng.Unit(_seed, "confess", actId.ToString(), suspect) < _ao.ConfessBase + _ao.ConfessPerTimidity * (1 - CharacterOf(_index[suspect]).Boldness);
         if (confessed)
             account = new Account(actId, suspect, suspect, 1, true, m);
         else
@@ -251,6 +258,7 @@ public sealed partial class Simulation
             account = new Account(actId, suspect, null, 0, true, m, seen, since, until, alibi.Count > 0 ? alibi : null);
         }
         _interviews.Add((actId, suspect, confessed));
+        Accused(suspect, actId, Namers(known, suspect), _fo.AccusedJoy, "interview", m); // F13: the constable says who named them
         _log.Add($"{m} questioned {suspect} by {by.V.Name} for {actId}: {(confessed ? "confessed" : "saw " + string.Join(",", account.Nearby ?? Array.Empty<string>()))}{(account.Alibi is { } vouched ? "; vouched for " + string.Join(",", vouched) : "")}");
         if (!confessed && known.Any(a => a.From == suspect && a.Actor is not null))
             return; // they already named someone; that account stands
@@ -260,7 +268,11 @@ public sealed partial class Simulation
             _carried.Add(account);
     }
 
-    private double Trust(string from) => from == _ao.Mayor ? 1 : 0.5 + 0.5 * Familiarity(_ao.Mayor!, from);
+    /// <summary>How much the mayor believes a teller. S4 (rule 9): with feelings steering, he
+    /// leans a little toward people he likes, less the more understanding he is.</summary>
+    private double Trust(string from) => from == _ao.Mayor ? 1
+        : Steering ? Feelings.Credence(Familiarity(_ao.Mayor!, from), St(_ao.Mayor!, from), U(_index[_ao.Mayor!]), _fo)
+        : 0.5 + 0.5 * Familiarity(_ao.Mayor!, from);
 
     /// <summary>The mayor decides every case whose accounts point clearly at one person
     /// (<see cref="Authority.Weigh"/>). He can be wrong when the accounts are. He never accuses
@@ -276,8 +288,10 @@ public sealed partial class Simulation
             if (accused is null || accused == mayor || !_index.ContainsKey(accused))
                 continue;
             _decided.Add(actId);
-            bool close = Familiarity(mayor, accused) >= _ao.SwayCloseAt
-                         || _cast[_index[accused]].Household == _cast[_index[mayor]].Household;
+            bool household = _cast[_index[accused]].Household == _cast[_index[mayor]].Household;
+            bool close = Steering
+                ? Feelings.Close(household, Familiarity(mayor, accused), St(mayor, accused), _ao.SwayCloseAt, _fo)
+                : Familiarity(mayor, accused) >= _ao.SwayCloseAt || household;
             bool letOff = Authority.Swayed(_seed, actId, close, _ao);
             Consequence step = Authority.StepFor(_record.GetValueOrDefault(accused));
             var v = new Verdict(actId, m, mayor, accused, accused == _acts[actId].Actor, step, letOff);
@@ -289,7 +303,12 @@ public sealed partial class Simulation
             if (step == Consequence.RestitutionAndFine)
             {
                 // Paid at once from pocket and purse; whatever can't be paid is served instead.
-                if (!PayUp(actId, accused, m))
+                bool paid = PayUp(actId, accused, m, out double back);
+                Act scandal = _acts[actId];
+                if (back > 0 && scandal.Location != "Mart" && _ao.Keepers.TryGetValue(scandal.Location, out string? keeper) && _index.ContainsKey(keeper))
+                    Confirm(keeper, actId, accused, m); // F15: the goods paid back confirm it to the keeper
+                Accused(accused, actId, Namers(Known(actId), accused), _fo.AccusedJoy, "verdict", m); // F13: found guilty and fined
+                if (!paid)
                     _toDeliver.Add((actId, accused, Consequence.Service));
                 continue;
             }
@@ -314,9 +333,10 @@ public sealed partial class Simulation
             string kindName = step switch { Consequence.Detained => Authority.TakenIn, Consequence.Service => Service, _ => Authority.Warned };
             if (_kinds.FirstOrDefault(k => k.Name == kindName) is { } kind)
             {
-                Begin(m, kind, p, injected: false);
+                Begin(m, kind, p, injected: false, target: by.V.Name, about: actId);
                 by.BusyUntil = Math.Max(by.BusyUntil, p.BusyUntil);
             }
+            Accused(accused, actId, Namers(Known(actId), accused), _fo.AccusedJoy, "verdict", m);
             if (step is Consequence.Detained or Consequence.Service)
             {
                 bool detained = step == Consequence.Detained;

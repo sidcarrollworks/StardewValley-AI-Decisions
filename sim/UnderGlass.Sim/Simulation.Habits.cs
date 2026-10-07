@@ -63,6 +63,8 @@ public sealed partial class Simulation
             _scenes[act.Id] = SceneOf(act, s);
             _witnesses[act.Id] = 0;
             _outLate[key] = actId = act.Id;
+            if (_fo.Enabled)
+                _did.Add((s.V.Name, act.Id));
             _log.Add($"{m} act {act.Id} {OutLate} by {s.V.Name} at {s.Place}");
         }
         if (_beliefs[o.V.Name].ContainsKey(actId))

@@ -42,7 +42,7 @@ public sealed partial class Simulation
                 continue;
             if (_kinds.FirstOrDefault(x => x.Name == FamilyRow) is { } kind)
             {
-                Begin(m, kind, c, injected: false);
+                Begin(m, kind, c, injected: false, target: keeper, about: actId);
                 k.BusyUntil = Math.Max(k.BusyUntil, c.BusyUntil);
             }
             _log.Add($"{m} row {keeper} {culprit} for {actId}");

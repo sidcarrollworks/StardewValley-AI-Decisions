@@ -53,7 +53,8 @@ public sealed partial class Simulation
                     continue;
                 double juice = KindOf(act).Juiciness * FoundFactor;
                 _log.Add($"{m} found {who} {actId} {trace.Name}");
-                Add(who, new Belief(actId, act.Kind, null, 0, clarity, Source.Found, juice, m, Array.Empty<string>()), m);
+                string? target = _fo.Enabled && KindOf(act).Affect?.Target == TargetIs.Keeper ? act.Target : null;
+                Add(who, new Belief(actId, act.Kind, null, 0, clarity, Source.Found, juice, m, Array.Empty<string>(), Target: target), m);
             }
         }
     }
