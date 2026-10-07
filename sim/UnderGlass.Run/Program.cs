@@ -56,9 +56,10 @@ static FeelingOptions Set(FeelingOptions o, string name, string value)
 {
     var prop = typeof(FeelingOptions).GetProperty(name) ?? throw new ArgumentException($"no feeling option {name}");
     var inv = System.Globalization.CultureInfo.InvariantCulture;
-    object v = prop.PropertyType == typeof(bool) ? bool.Parse(value)
-        : prop.PropertyType == typeof(int) ? int.Parse(value, inv)
-        : prop.PropertyType == typeof(double) ? double.Parse(value, inv)
+    // Each branch boxed on its own: a bare conditional would widen an int to a double.
+    object v = prop.PropertyType == typeof(bool) ? (object)bool.Parse(value)
+        : prop.PropertyType == typeof(int) ? (object)int.Parse(value, inv)
+        : prop.PropertyType == typeof(double) ? (object)double.Parse(value, inv)
         : throw new ArgumentException($"{name} can't be set from the command line");
     prop.SetValue(o, v);
     return o;
