@@ -676,7 +676,8 @@ Still open:
 7. **Phase 0d's questions** (the desire gate, PR #41). Answered 2026-10-07:
    - **The rates stay** as the town's everyday occasions, which the gate answers (a departure from rule 10's letter); `AimedRateScale` is the dial if they need turning down.
    - **News at about 5 a week** for 26 people is "a few a week".
-   - **The first season** gets its spark from starting tensions (0c question 1), not the first-greeting tone.
+   - **The first season** gets its spark from starting tensions (0c question 1), not the first-greeting tone. After measuring (0d.5: the tensions hold their own pairs but add no new first-season dislike), Sid keeps them as they are: the first season is the starter season, and the tone stays off.
+   - **Hermits and moods that spread** (Sid, 2026-10-07): shyness plus being left out should push someone toward being a hermit, and so should shyness plus repeated bad events; how far depends on the person. A very negative person should bring the people around them down, as a positive one lifts them. As built, company always lifts a little whatever the other's mood, and withdrawal comes only from being hurt, so the town makes brawlers but no hermits. Research first (0d.6), then build.
    - **Stance stays separate from 0e's plasticity:** stance is a fast state that fades; 0e changes traits from the life record.
    - Still open, each built one way: fear's reading of law 4, slots counting attempts, one return per kindness, the light acts (off), gifts free of money, the robbed keeper's own retaliation, and the gate never acting inside a household.
 8. **Character over time** (rule 18, 11e). Answered 2026-10-07: all six traits are plastic; changes stick while they keep being triggered, and people drift slowly toward those they spend time with; children form their parents' grudges and friendships more easily, not certainly. Still open: how inheritance and mutation work, to be researched first.
