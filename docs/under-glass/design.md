@@ -290,7 +290,10 @@ Every constant here is a first guess, to be tested in phase 0.
     - **Traits are plastic.** The temperament weights of law 12 (chattiness, boldness, understanding, self-regard, sensitivity, retention) are each person's current character, not fixed. What happens to someone pushes them: a severe event (felt at 0.7 or more, rule 4's threshold) a lot, small events only by repetition. Examples to tune: being rebuffed, shamed or punished lowers boldness and self-regard; being thanked or helped raises self-regard; good company raises chattiness, and isolation lowers it; a reconciliation, or learning why someone did something, raises understanding; repeated hurt raises sensitivity or retention.
     - **Hardening.** How far an event moves a trait falls with age: children change easily, adults less, elders hardly, never to zero.
     - **Fringe people emerge from feedback.** No rule pulls anyone toward the middle. Someone shy who is rebuffed acts less, meets fewer people and grows shyer, and can end up a hermit; someone bold who wins their confrontations grows bolder. The usual case stays near the archetypes because most events are small and mixed.
-    - **Inheritance.** A child's traits start as the mean of its two parents', with a little seeded noise and a seeded chance of a larger mutation in one trait. The Stardew archetypes are the first generation.
+    - **Changes stick while they keep being triggered** (Sid, 2026-10-07). All six traits are plastic.
+    - **People drift toward who they surround themselves with** (Sid, 2026-10-07): slowly, each trait moves toward those of the people someone spends time with, weighted by time together and perhaps by regard. A subtle effect, noticed over several runs; to be found by experiment.
+    - **Inheritance.** A child's traits start as a combination of its two parents', with a chance of mutation at birth. How to model it realistically is to be researched first (behavioural genetics: heritability of traits, what parents pass on, how much is environment); it may suggest more ideas.
+    - **Kin ties pass on as a head start, not a rule** (Sid, 2026-10-07): a child forms its parents' grudges and friendships more easily, but not certainly. Much of this may come on its own from living close to them.
     - **Measured over 5-10 simulated years:** how far traits spread, how many people reach the fringe, and that the town neither converges on one character nor flies apart.
 
 The player is one more agent under these rules and has no meters of their own.
@@ -661,8 +664,4 @@ Still open:
    11. **Sensitivity** from the mod's temperaments, derived from Stardew's dialogue, for the prototype only.
    12. **The mayor's trust leaning on regard** (at most 0.1 for Lewis), or familiarity only? Built: leaning.
    13. **Rule 10's desire gate next?** Feuds between households can't form while acts come at town-wide rates: the hurt can't answer back (rule 10, "what 0c found"). The gate (hate and love as motives toward a person, costs, cooldowns) replaces the rates, so it moves news and trivia volume and has to be retuned against the 0a band.
-7. **Character over time** (rule 18, 11e). To settle when it is built:
-   1. Are all six traits plastic, or are some fixed at birth?
-   2. Do changes stick, or does each trait drift slowly back toward the person's inborn value?
-   3. How large and how likely is a mutation at birth?
-   4. Do children also pick up their parents' grudges and friendships, or only their traits?
+7. **Character over time** (rule 18, 11e). Answered 2026-10-07: all six traits are plastic; changes stick while they keep being triggered, and people drift slowly toward those they spend time with; children form their parents' grudges and friendships more easily, not certainly. Still open: how inheritance and mutation work, to be researched first.
