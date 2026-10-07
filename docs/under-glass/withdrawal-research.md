@@ -371,8 +371,8 @@ Answered on 2026-10-07 (Sid):
 - **3. Content loners:** yes. Someone who prefers solitude (low chattiness, not shy) is not harmed by being alone: time alone does not count toward being left out for them, and they are a content loner, not a hermit.
 - **5. Recovering alone:** yes: the fresh start at a season change, as well as friends and reconciliation.
 - **6. 0e:** a season as a hermit is more likely to lower boldness for good than chattiness.
-- **B1 (question 5), restated by Sid:** it is the people dealing with a combative person whose kindness toward them runs out, after a couple of rounds, not at the first one: patience drops off quickly, by how patient the person is. (Interpretation to confirm with Sid: a per-pair patience that each hostile round from the same person uses up, refilling slowly; when it runs out, kind daring toward that person falls.)
-- **2. Bad moods heavier at home:** Sid asked for scenarios first (in the 0d.6 PR).
+- **B1 (question 5), restated by Sid:** it is the people dealing with a combative person whose kindness toward them runs out, after a couple of rounds, not at the first one: patience drops off quickly, by how patient the person is. Confirmed: a per-pair patience that each hostile round from the same person uses up, refilling slowly, sized by understanding and sensitivity; when it runs out, kind daring toward that person falls.
+- **2. Bad moods heavier at home:** yes, at home only, softened by love (after scenarios: the trailer, Penny at school, Emily and Haley, the saloon). Elsewhere good and bad spread alike.
 
 Also answered: question 7 (a seventh trait, expression; and the held part's pull toward withdrawal is to be designed with `masking-research.md`), and question 8 in part (Sid likes the tone, read through expression). Sid also answered one this note did not ask: households argue, so the gate may act inside a household when regard there is bad, and rows at home (W2) come through the gate as well as through the rates.
 
