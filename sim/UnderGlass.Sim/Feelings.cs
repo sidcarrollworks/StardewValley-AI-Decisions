@@ -118,6 +118,83 @@ public sealed class FeelingOptions
     public double FeudAt { get; set; } = -0.3;
     public double FriendAt { get; set; } = 0.4;
 
+    // ---- The desire gate (phase 0d; rule 10). Each has effect only while feelings steer. ----
+    /// <summary>The gate's own switch: acts toward a person on a motive about that person.
+    /// Worlds built by tests keep 0c unless they turn it on; the town turns it on.</summary>
+    public bool Desire { get; set; }
+    /// <summary>Off: motives are stirred and weighed, and logged apart, but no act starts.</summary>
+    public bool DesireActs { get; set; } = true;
+    public bool AnswerOn { get; set; } = true;
+    public bool ReturnOn { get; set; } = true;
+    public bool MakeUpOn { get; set; } = true;
+    public bool RetaliateOn { get; set; } = true;
+    /// <summary>The hurt who cannot answer keep away for a week; and go home rather than stay near.</summary>
+    public bool AvoidOn { get; set; } = true;
+    public bool WithdrawOn { get; set; } = true;
+    /// <summary>Light hostile acts (a snub, turning away), the third-slight mark, and avoidance and
+    /// withdrawal open to the moderately shy.</summary>
+    public bool LightActsOn { get; set; }
+    /// <summary>A lasting stance: hurt makes the bold combative and the shy withdrawn.</summary>
+    public bool StanceOn { get; set; }
+    /// <summary>Love wants to be near (law 4): a gift to someone loved and not seen for days.</summary>
+    public bool FondOn { get; set; }
+    /// <summary>Pity at a witnessed mishap stirs help (III P27, VERIFY).</summary>
+    public bool PityOn { get; set; }
+    /// <summary>A day's first meeting can be taken as warm or curt.</summary>
+    public bool ToneOn { get; set; }
+    /// <summary>A seam for Laya and for tests: a non-null answer decides a close call.</summary>
+    public Func<Pursuit, bool?>? CloseCall { get; set; }
+
+    // Rule 10's gate: boldness + 0.5 x familiarity + 0.5 x intensity reaches the act's cost.
+    public double FamiliarityWeight { get; set; } = 0.5;
+    public double IntensityWeight { get; set; } = 0.5;
+    /// <summary>Law 1: + PowerWeight x (power of acting - 0.5) in effective boldness.</summary>
+    public double PowerWeight { get; set; }
+    public double GiftCost { get; set; } = 0.4;
+    public double HelpCost { get; set; } = 0.5;
+    /// <summary>An argument is a walk-up (0.5) and a snub a wave (0.2), each + the hostile surcharge.</summary>
+    public double ArgueForm { get; set; } = 0.5;
+    public double SnubForm { get; set; } = 0.2;
+    public double HostileSurcharge { get; set; } = 0.3;
+    public double GiftMin { get; set; } = 0.1;
+    public double HelpMin { get; set; } = 0.2;
+    public double ArgueMin { get; set; } = 0.2;
+    public double SnubMin { get; set; } = 0.1;
+    /// <summary>A margin more than this from the cost is decided; inside, a seeded close call.</summary>
+    public double ClearBand { get; set; } = 0.15;
+    public double MoodTilt { get; set; } = 0.1;
+    public int SlotsPerDay { get; set; } = 2;
+    public double AskAgainStep { get; set; } = 0.1;
+    public int HostileCooldownDays { get; set; } = 3;
+    public int LightPerDay { get; set; } = 2;
+    /// <summary>The event part of a motive fades to nothing over this many days.</summary>
+    public int MotiveDays { get; set; } = 7;
+    /// <summary>Fear of greater harm (law 4, III P39, VERIFY): + cost per hostile act the subject did
+    /// to the holder, as the holder saw it, within FearDays; and per member of the subject's
+    /// household in reach.</summary>
+    public double FearPerHit { get; set; } = 0.1;
+    public int FearDays { get; set; } = 28;
+    public double FearPerKin { get; set; }
+    public int AvoidDays { get; set; } = 7;
+    public int MarkCount { get; set; } = 3;
+    public int MarkDays { get; set; } = 5;
+    public double MarkSize { get; set; } = 0.3;
+    public double StanceWeight { get; set; } = 0.5;
+    public double StanceKeepPerDay { get; set; } = 0.975;
+    public double StanceHome { get; set; } = 1.0;
+    public int FondDays { get; set; } = 7;
+    public double PityScale { get; set; } = 2;
+    public int PityMinutes { get; set; } = 60;
+    public double Tone { get; set; } = 0.03;
+    public double ToneJoy { get; set; } = 0.1;
+    public int OutcomeDays { get; set; } = 7;
+    /// <summary>Scales the town-wide rates of gifts, help and arguments while the gate runs.</summary>
+    public double AimedRateScale { get; set; } = 1.0;
+
+    /// <summary>For tests: steering with the desire gate, its added rules off, and the given starting regard.</summary>
+    public static FeelingOptions WithDesire(params (string From, string To, double Regard)[] start)
+        => new() { Desire = true, Start = start.ToDictionary(x => (x.From, x.To), x => x.Regard) };
+
     /// <summary>No feelings at all: every run is as it was before phase 0c.</summary>
     public static FeelingOptions Off => new() { Enabled = false, Steer = false };
 
@@ -256,4 +333,57 @@ public static class Feelings
         "Reconciled" => change > 0 ? "Reconciled" : null,
         _ => null,
     };
+}
+
+/// <summary>The desire gate's rules that need no world (rule 10). Pure. No trait is clamped and
+/// no archetype's range assumed: boldness 0.02 and 0.98 give finite, ordered answers.</summary>
+public static class DesireMath
+{
+    /// <summary>How daring someone is toward a person: boldness, stance (a withdrawn stance lowers
+    /// all daring, a combative one raises only hostile daring), familiarity, the motive's intensity,
+    /// and the power of acting (law 1).</summary>
+    public static double Effective(double boldness, double stance, bool hostile, double familiarity, double intensity,
+        double power, FeelingOptions o)
+        => boldness + o.StanceWeight * (hostile ? stance : Math.Min(0, stance))
+           + o.FamiliarityWeight * familiarity + o.IntensityWeight * intensity + o.PowerWeight * (power - 0.5);
+
+    public static double Cost(double form, bool hostile, double fear, FeelingOptions o)
+        => form + (hostile ? o.HostileSurcharge + fear : 0);
+
+    /// <summary>logistic(8 x margin) = 0.5 + 0.5 tanh(4m), with tanh in its [3/2] Pade form: within
+    /// 7e-6 on the close-call band, and no Exp.</summary>
+    public static double CloseCallChance(double margin)
+    {
+        double y = 4 * margin;
+        return 0.5 + 0.5 * y * (15 + y * y) / (15 + 6 * y * y);
+    }
+
+    /// <summary>Mood tilts a close call: the glad toward kindness, the sad toward hostility.</summary>
+    public static double Tilted(double p, double mood, bool hostile, FeelingOptions o)
+        => Math.Clamp(p + o.MoodTilt * mood * (hostile ? -1 : 1), 0, 1);
+
+    public static string Call(double margin, FeelingOptions o) => margin > o.ClearBand ? "clear" : margin < -o.ClearBand ? "no" : "close";
+
+    /// <summary>The part of a motive an event gave it, fading linearly over the window.</summary>
+    public static double EventPart(double felt, int since, int m, int windowMinutes)
+        => felt * Math.Max(0, 1 - (m - since) / (double)windowMinutes);
+
+    /// <summary>Love wants to be near (law 4): love above LoveAt, growing with days apart.</summary>
+    public static double Fond(double regard, int daysApart, FeelingOptions o)
+        => Math.Max(0, regard - o.LoveAt) * Math.Min(1, daysApart / (double)o.FondDays);
+
+    public static double Pity(double joy, double sens, double regard, double clarity, FeelingOptions o)
+        => o.PityScale * Math.Abs(joy) * sens * (1 + Math.Max(0, regard)) * clarity;
+
+    /// <summary>Hurt moves a stance: the bold toward combat, the shy toward withdrawal.</summary>
+    public static double StanceAfterHurt(double stance, double felt, double boldness)
+        => Math.Clamp(stance + felt * (2 * boldness - 1), -1, 1);
+
+    /// <summary>Kindness pulls a stance toward 0, never across it.</summary>
+    public static double StanceAfterKindness(double stance, double felt)
+        => stance - Math.Min(1, felt) * stance;
+
+    /// <summary>The chances a day's first meeting is taken as warm, or as curt.</summary>
+    public static (double Warm, double Curt) Tone(double power, double understanding, double regard, FeelingOptions o)
+        => (o.Tone * 2 * power * (1 + regard), o.Tone * 4 * (1 - power) * (1 - understanding) * (1 - regard));
 }

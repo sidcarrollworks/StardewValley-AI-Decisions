@@ -280,3 +280,27 @@ public sealed record Felt(int Tick, string Holder, int ActId, string Route, stri
 /// <summary>The six temperament weights of law 12, for reading and setting one trait (phase 0d;
 /// rule 18: character changes over time).</summary>
 public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity, Retention }
+
+/// <summary>What a motive wants (rule 10; design section 5). Append only.</summary>
+public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity }
+
+/// <summary>One weighing of one act for one motive by the gate (rule 10; principle 5). Call is
+/// clear, no, close-yes, close-no or stands (the earlier answer stands).</summary>
+public sealed record Pursuit(int Tick, string Holder, string Subject, DesireKind Motive, int Source, string ActKind,
+    double Intensity, double Effective, double Cost, double Margin, string Call, double P, bool Acted, int ActId);
+
+/// <summary>A motive stirred, or stirred again, by the act it cites.</summary>
+public sealed record Stirring(int Tick, string Holder, string Subject, DesireKind Motive, int Source, double Felt);
+
+/// <summary>How an act turned out (rule 18's input). Answered: hostility met with hostility.
+/// Returned: kindness met with kindness. Rebuffed: kindness met with hostility. Avoided: met by
+/// keeping away. Ignored: nothing within the window. None: a light act, or a role with no outcome.</summary>
+public enum Outcome { Open, Answered, Returned, Rebuffed, Avoided, Ignored, None }
+
+/// <summary>What a person did, had done to them, or chose not to do.</summary>
+public enum LifeRole { Did, Undergone, Declined, Avoided, Withdrew, Lapsed, GaveCause, Dropped }
+
+/// <summary>One event in a person's life, for the plasticity rule of phase 0e (Sid, 2026-10-07;
+/// rule 18). Written from the truth, and never read by any rule of 0d.</summary>
+public sealed record LifeEvent(int Tick, string Person, string Other, int ActId, string Kind, LifeRole Role,
+    double Severity, bool Hostile, bool Light, Outcome Outcome = Outcome.Open, int ResolvedTick = -1);

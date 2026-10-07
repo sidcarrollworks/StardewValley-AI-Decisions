@@ -72,5 +72,17 @@ public class PinnedTests
         => Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(new Simulation(1, feelings: Town0c()).Run(112)));
 
     /// <summary>The town's feelings with the desire gate off: phase 0c's town.</summary>
-    internal static FeelingOptions Town0c() => DefaultTown.Feelings();
+    internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; return o; }
+
+    /// <summary>P2: motives watched but not acted on change nothing: the same year as P1.</summary>
+    [Fact]
+    public void WatchedMotivesChangeNothing()
+    {
+        FeelingOptions o = DefaultTown.Feelings();
+        o.DesireActs = false;
+        SimResult r = new Simulation(1, feelings: o).Run(112);
+        Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(r));
+        Assert.NotEmpty(r.MotiveLog);
+        Assert.NotEmpty(r.Stirred);
+    }
 }

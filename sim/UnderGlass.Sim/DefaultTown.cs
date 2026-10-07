@@ -156,14 +156,22 @@ public static class DefaultTown
         // Never drawn: it happens when someone's energy runs out (design rule 1).
         new ActKind(Simulation.Collapsed, 2.5, 0, 1, 1, 0, Array.Empty<string>(),
             Affect: new Affect(Patient.Actor, -0.3, 0, 0)),
+        // Never drawn: light hostile acts that only the desire gate starts (rule 10): a snub, which
+        // needs some daring, and turning away, the shy's cold shoulder. Seen and felt; at
+        // juiciness 0.5 they are never retold.
+        new ActKind(Simulation.Snubbed, 0.5, -1, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, -0.15, 0.3, 1, TargetIs.Chosen)),
+        new ActKind(Simulation.TurnedAway, 0.5, -1, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, -0.05, 0.3, 1, TargetIs.Chosen)),
     };
 
     /// <summary>The town's feelings (phase 0c): seeded from households and friends, with the
     /// starting tensions, steering decisions. Every regard change counts double the rows' first
     /// guesses (PlasticScale 2): at 1, only 2.8% of pairs moved 0.1 or more in a year and every
     /// seed was a dead town; at 2, 7.9% moved, inside the 5-25% band (sweeps of 2026-10-06,
-    /// sim/README.md).</summary>
-    public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2 };
+    /// sim/README.md). With the desire gate (phase 0d, rule 10): people answer, return, make up
+    /// and keep away; its added rules are each turned on once measured.</summary>
+    public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true };
 
     /// <summary>
     /// Regard that starts away from the seed, (from, to). Empty until Sid picks the town's tensions

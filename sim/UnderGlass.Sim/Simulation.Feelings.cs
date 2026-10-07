@@ -243,6 +243,8 @@ public sealed partial class Simulation
             AddMood(h, d);
             _feltLog.Add(new Felt(m, who, act.Id, rec.Route, basis, d, null, 0, 0));
         }
+        if (fresh && rec.Route == "Direct")
+            Underwent(h, c >= 0 ? _names[c] : null, act.Id, Math.Abs(rec.Mood), m);
         rec.W = c == rec.Cause ? Math.Max(rec.W, w) : w;
         rec.Cause = c;
 
@@ -484,6 +486,7 @@ public sealed partial class Simulation
         double f = row.Joy * Sens(s);
         AddMood(s, f);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
+        Underwent(s, act.Target, act.Id, Math.Abs(f), m);
         if (row.Freedom <= 0 || act.Target is not { } t || t == act.Actor || !_index.TryGetValue(t, out int ti))
             return;
         double phi = _fo.Freedom ? row.Freedom * (act.About >= 0 && Did(act.Actor, act.About) ? 1 - U(s) : 1) : 1;
@@ -512,6 +515,7 @@ public sealed partial class Simulation
         {
             AddMood(s, f);
             _feltLog.Add(new Felt(m, subject, actId, route, "Event", f, null, 0, 0));
+            Underwent(s, list.FirstOrDefault(), actId, Math.Abs(f), m);
             if (guilty)
                 AddSentiment(subject, subject, "Ashamed", actId, Math.Abs(f), m);
         }
@@ -519,7 +523,10 @@ public sealed partial class Simulation
             return;
         foreach (string n in list)
             if (_eventsFelt.Add((s, actId, eventName, _index[n])))
+            {
                 Move(s, _index[n], per, actId, route, "Event", true, m);
+                StirAccused(s, _index[n], actId, Math.Abs(f) / list.Count, m);
+            }
     }
 
     /// <summary>Who named someone in what the authority holds: a name, or seen nearby.</summary>
@@ -565,6 +572,7 @@ public sealed partial class Simulation
         double f = _fo.ShameJoy * (1.5 - SR(ki)) * Sens(ki);
         AddMood(ki, f);
         _feltLog.Add(new Felt(m, k, actId, "Shame", "Event", f, null, 0, 0));
+        Underwent(ki, c, actId, Math.Abs(f), m);
         double freedom = KindOf(_acts[actId]).Affect?.Freedom ?? 1;
         double raw = f * _fo.EventPlastic * _fo.PlasticScale * Feelings.Phi(freedom, Excuse(ki, ci), _fo) * Feelings.Keep(f, Ret(ki), _fo);
         Move(ki, ci, raw, actId, "Shame", "Event", true, m);
@@ -696,7 +704,8 @@ public sealed partial class Simulation
         foreach (Person o in _people)
         {
             if (o == actor || o.Asleep || o.Place != actor.Place || o.At.Chebyshev(actor.At) > _po.NearTiles
-                || Steering && !Free(o, m) || Perception.LineOfSight(place, actor.At, o.At, _po) <= 0)
+                || Steering && !Free(o, m) || Perception.LineOfSight(place, actor.At, o.At, _po) <= 0
+                || !RateTargetAllowed(kind, a, _index[o.V.Name], m))
                 continue;
             double w = Steering ? Feelings.TargetWeight(kind.Affect!.Joy, E(a, _index[o.V.Name]), _fo) : 1;
             if (w > 0)

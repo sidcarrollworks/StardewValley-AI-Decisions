@@ -135,6 +135,22 @@ public sealed class SimResult
     // Character (phase 0d): each person's temperament when the run began and when it ended.
     public required IReadOnlyDictionary<string, Temperament> CharactersAtStart { get; init; }
     public required IReadOnlyDictionary<string, Temperament> CharactersAtEnd { get; init; }
+
+    // The desire gate (phase 0d; rule 10); empty when it is off.
+    /// <summary>Every weighing of an act for a motive.</summary>
+    public required IReadOnlyList<Pursuit> Pursuits { get; init; }
+    public required IReadOnlyList<Stirring> Stirred { get; init; }
+    /// <summary>The acts the gate started (motives acted on, and turning away).</summary>
+    public required IReadOnlySet<int> Pursued { get; init; }
+    public required IReadOnlyList<(int Tick, string Holder, string Subject, int Source, int Until)> Avoids { get; init; }
+    public required int Withdrawals { get; init; }
+    public required int Marks { get; init; }
+    /// <summary>Each person's stance at the end of each day (-1 withdrawn, +1 combative).</summary>
+    public required IReadOnlyDictionary<string, double[]> Stances { get; init; }
+    /// <summary>Each life's events and how they turned out, for phase 0e (rule 18).</summary>
+    public required IReadOnlyList<LifeEvent> LifeEvents { get; init; }
+    /// <summary>With DesireActs off: the gate's lines, kept out of the log (and its hash).</summary>
+    public required IReadOnlyList<string> MotiveLog { get; init; }
 }
 
 /// <summary>
@@ -326,6 +342,7 @@ public sealed partial class Simulation
             StartSleep(p, 0, collapsed: false, log: false);
         }
         _charactersAtStart = Characters();
+        StartDesire(days);
         StartMoney();
         if (_fo.Enabled)
             foreach (string n in _names)
@@ -385,6 +402,15 @@ public sealed partial class Simulation
             AimedAt = _aimedAt,
             CharactersAtStart = _charactersAtStart,
             CharactersAtEnd = Characters(),
+            Pursuits = _pursuits,
+            Stirred = _stirred,
+            Pursued = _pursuedActs,
+            Avoids = _avoids,
+            Withdrawals = _withdrawals,
+            Marks = _marks,
+            Stances = _stances,
+            LifeEvents = LifeEvents(),
+            MotiveLog = _motiveLog,
         };
     }
 
@@ -415,6 +441,8 @@ public sealed partial class Simulation
                 Temptation(m);
                 Drinks(m);
             }
+            Pursue(m);   // the desire gate (rule 10)
+            Withdraw(m);
         }
         StartScheduled(m);
         Watch(m, t);
@@ -591,7 +619,7 @@ public sealed partial class Simulation
             options.Add((new Haunt(g.Place, spot, g.From, to, g.Weight), g.Weight));
         }
         if (hasHome)
-            options.Add((null, 1.0));
+            options.Add((null, HomeWeight(p, m)));
         if (options.Count == 0)
         {
             Goal(p, p.Place, p.At, m + 60, "home", null);
@@ -760,7 +788,8 @@ public sealed partial class Simulation
         double ticksPerDay = Clock.MinutesPerDay / (double)Clock.TickMinutes;
         foreach (ActKind kind in _kinds)
         {
-            if (kind.PerDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= kind.PerDay / ticksPerDay)
+            double perDay = Acting && kind.Affect is { Target: TargetIs.Chosen } && !IsLight(kind) ? kind.PerDay * _fo.AimedRateScale : kind.PerDay;
+            if (perDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= perDay / ticksPerDay)
                 continue;
             var candidates = _people
                 .Where(p => Free(p, m) && p.V.Acts.TryGetValue(kind.Name, out double w) && w > 0 && kind.FitsAge(p.V.Age))
@@ -838,6 +867,7 @@ public sealed partial class Simulation
         if (!_fo.Enabled)
             return;
         _did.Add((actor.V.Name, act.Id));
+        BeganAct(act, kind, m);
         if (target is null || kind.Affect is not { Target: TargetIs.Chosen or TargetIs.Kin } aimed)
             return;
         if (aimed.Target == TargetIs.Chosen)
@@ -939,6 +969,8 @@ public sealed partial class Simulation
             _watching.Remove(act.Id);
             LeaveTrace(act, kind, m);
             Undergo(act, kind, m);
+            StirPity(act, kind, m);
+            Mark(act, kind, m);
         }
     }
 
@@ -974,6 +1006,7 @@ public sealed partial class Simulation
             return;
         Feel(who, b, prior, teller, m);
         Answered(who, b, m);
+        StirFrom(who, b, prior, m);
     }
 
     // ---- chats and gossip ------------------------------------------------------------------
@@ -1010,6 +1043,8 @@ public sealed partial class Simulation
                     continue;
                 _chatted.Add((a, b, window));
                 Company(pa, pb);
+                Tone(i, j, m);
+                Tone(j, i, m);
                 TryTell(a, b, m);
                 TryTell(b, a, m);
             }
@@ -1120,6 +1155,8 @@ public sealed partial class Simulation
                 var c = new Confrontation(act.Id, m, by, target, target == act.Actor);
                 _confrontations.Add(c);
                 _confronted.Add(act.Id);
+                if (Desiring)
+                    _lastHostile[(_index[by], _index[target])] = m;
                 _log.Add($"{m} confront {by} {target} {act.Id} {(c.Correct ? "right" : "wrong")}");
                 Accused(target, act.Id, new[] { by }, _fo.ConfrontJoy, "confronted", m);
                 break;
@@ -1131,6 +1168,7 @@ public sealed partial class Simulation
     {
         ForgetSightings((day + 1) * Clock.MinutesPerDay);
         CloseMoneyDay();
+        CloseDesires(day);
         CloseFeelings(day, days);
         foreach (Act act in _acts)
         {
