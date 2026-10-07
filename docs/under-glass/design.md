@@ -286,6 +286,13 @@ Every constant here is a first guess, to be tested in phase 0.
     - **Curfews** (as built in 0a, 2026-10-06): anyone who lives with a parent or guardian has a curfew: children 20:00, teens 22:00, grown children 1:00. A parent who learns their child was seen out past it has it out with them at home (a family row).
     - **As built in 0a** (2026-10-06): every Stardew family is in the simulator (26 villagers with the newcomer), with ages (guesses where Stardew gives none) and kin. Stealing and rummaging need age 13, drunk scenes 18, arguments 13; a child squabbles with a sibling who is there instead. Kin never report, retell, suspect or confront each other, leave each other out when questioned, and vouch for each other. A family alibi takes back half of one "nearby" (0.125) and never offsets a sighting or a confession. The constable questions the most-suspected person's housemates for alibis. A keeper who learns their own kin took from them has a family row (a news act others can see) instead of reporting. Only adults stand for constable; everyone 16 and over votes.
 
+18. **Character over time** (Sid, 2026-10-07; see 11e). A proposal, to settle when it is built.
+    - **Traits are plastic.** The temperament weights of law 12 (chattiness, boldness, understanding, self-regard, sensitivity, retention) are each person's current character, not fixed. What happens to someone pushes them: a severe event (felt at 0.7 or more, rule 4's threshold) a lot, small events only by repetition. Examples to tune: being rebuffed, shamed or punished lowers boldness and self-regard; being thanked or helped raises self-regard; good company raises chattiness, and isolation lowers it; a reconciliation, or learning why someone did something, raises understanding; repeated hurt raises sensitivity or retention.
+    - **Hardening.** How far an event moves a trait falls with age: children change easily, adults less, elders hardly, never to zero.
+    - **Fringe people emerge from feedback.** No rule pulls anyone toward the middle. Someone shy who is rebuffed acts less, meets fewer people and grows shyer, and can end up a hermit; someone bold who wins their confrontations grows bolder. The usual case stays near the archetypes because most events are small and mixed.
+    - **Inheritance.** A child's traits start as the mean of its two parents', with a little seeded noise and a seeded chance of a larger mutation in one trait. The Stardew archetypes are the first generation.
+    - **Measured over 5-10 simulated years:** how far traits spread, how many people reach the fringe, and that the town neither converges on one character nor flies apart.
+
 The player is one more agent under these rules and has no meters of their own.
 
 ## 5. The villager model
@@ -512,6 +519,7 @@ E5 is Sid's blind read of 10 season journals.
   - the bots;
   - the event log, snapshots, metrics and the story sifter;
   - the viewer replays runs.
+- **0e (proposed, 2026-10-07).** Character over time and generations (rule 18, 11e): traits that change with events and harden with age, inheritance with mutation, the life course (couples, births, children leaving home, deaths), and time skips of 5-10 years between runs.
 - **Exit:** E0-E3 and the golden scenarios pass.
 
 **Phase 1: text REPL (about 2 weeks).** Sid plays a season through commands and sees only what the player perceives. If it is not worth playing in text, art will not fix it.
@@ -613,6 +621,17 @@ Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your ow
 
 Sid: "We also need to include the family dynamics, Abigail is the daughter of Pierre and Caroline. She could thief but why would she." And: "Age also plays into what a character would do." Agreed: scandals need motives (rule 17), age limits what anyone would do, trouble inside a family stays inside, families cover for each other (including alibis), and shame spreads to kin. All of Stardew's families come into the simulator now: "it should make for much more interesting stories." More family dynamics may follow.
 
+## 11e. Decisions of 2026-10-07: fringe people and character over time
+
+Sid: "I still want to allow for 'fringe' people. People who may be overly shy and become a hermit for example. We still need enough room for emergent personalities. We start out with the Stardew Valley archetypes and the generations that follow should change over time." And: "We need a system for how actions and events change the character over time... The character at the beginning of the run will have different weights than it does 5 years later. Severity of the events contributes to this. Across generations, 2 parents have a kid, the kid will initially be a combination of the parents' weights with some chance for mutation when born. Over time the weights harden as they grow, but never fully. There is chance for change but the older they are the harder it is. Either lots of repetitions or high severity events." The aim is to simulate the 5-10 years between runs (11c).
+
+Agreed:
+- **Room for fringe people.** Extremes are allowed and can emerge; no rule pulls behaviour toward the middle. The shy can answer by withdrawing, and withdrawal can deepen.
+- **Character changes with events**, by severity and repetition, hardening with age but never fully (rule 18, a proposal).
+- **Inheritance:** a child starts as a combination of its parents, with a chance of mutation at birth.
+- **Now:** the desire gate (0d) reads every trait from each person's current character, a state that can change, and records the events (acts done and undergone, their severity and how they turned out) that the plasticity rule will feed on. Its constants must behave sensibly at trait extremes.
+- **Later:** the plasticity rule, then the life course that generations need (couples, births, children growing up and moving out, deaths) and the time skips. At today's speed a simulated year takes about 8 seconds of one core, so 5-10 years can be simulated in full.
+
 ## 12. Questions for Sid
 
 Answered on 2026-10-05: free text from the player, villagers misreading the player, Laya's role (section 5a), Stardew's cast for the experiments, the name (Under Glass), assets (redone if it becomes its own game), the engine (C# for experiments, Godot for the visual build), the world going on without the player, layered perception, Spinoza as the basis, the clock and sleep, and the tiers of scandal (11b).
@@ -642,3 +661,8 @@ Still open:
    11. **Sensitivity** from the mod's temperaments, derived from Stardew's dialogue, for the prototype only.
    12. **The mayor's trust leaning on regard** (at most 0.1 for Lewis), or familiarity only? Built: leaning.
    13. **Rule 10's desire gate next?** Feuds between households can't form while acts come at town-wide rates: the hurt can't answer back (rule 10, "what 0c found"). The gate (hate and love as motives toward a person, costs, cooldowns) replaces the rates, so it moves news and trivia volume and has to be retuned against the 0a band.
+7. **Character over time** (rule 18, 11e). To settle when it is built:
+   1. Are all six traits plastic, or are some fixed at birth?
+   2. Do changes stick, or does each trait drift slowly back toward the person's inborn value?
+   3. How large and how likely is a mutation at birth?
+   4. Do children also pick up their parents' grudges and friendships, or only their traits?
