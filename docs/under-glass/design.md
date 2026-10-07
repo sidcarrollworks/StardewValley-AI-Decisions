@@ -660,7 +660,7 @@ Still open:
 
    Sid (2026-10-06) left the 0a gate to the plan above. The gate: **a scandal that someone witnessed reaches 40-70% of the town over 3 or more days in most runs.** It counts witnessed scandals only, because a scandal nobody saw can't spread by gossip; whether it should spread some other way (traces) is a separate question. Met on 2026-10-06: 72% of witnessed placed scandals land in the band. With traces (rule 16 work, the same day), 73% by sight and gossip, or 66% counting people who only found a trace. With suspicion and interviews, 71% and 64%. With every family in (26 villagers, two listeners a teller a day), after retuning to fade 0.8 and retell 0.35: 57% and 51%. The limit is the number of witnesses: a scandal seen by one person who keeps to themselves stays small, and one seen by a crowd at a hub travels far.
 6. **Phase 0c's questions** (feelings, 2026-10-06). Each is built one way for now; the answer may change it.
-   1. **Starting tensions.** The town starts with none, so every dislike comes from the run. Candidates: Pierre and Shane both ways (the chain store), Sebastian toward Demetrius, Abigail toward Pierre.
+   1. **Starting tensions.** The town starts with none, so every dislike comes from the run. Candidates: Pierre and Shane both ways (the chain store), Sebastian toward Demetrius, Abigail toward Pierre. *Answered 2026-10-07: yes, seed them; this is also the first season's spark (0d question 3).*
    2. **III P24.** Someone who hates the person harmed comes to love whoever harmed them, not only feel glad. Built: yes.
    3. **III P27 cor. 1.** A witness with no strong regard cools a little on whoever harmed someone like them (rule 6 said "toward the target only"). Built: yes.
    4. **Should the constable tell an innocent suspect who named them?** Built: yes, so they resent the namer.
@@ -673,4 +673,10 @@ Still open:
    11. **Sensitivity** from the mod's temperaments, derived from Stardew's dialogue, for the prototype only.
    12. **The mayor's trust leaning on regard** (at most 0.1 for Lewis), or familiarity only? Built: leaning.
    13. **Rule 10's desire gate next?** Feuds between households can't form while acts come at town-wide rates: the hurt can't answer back (rule 10, "what 0c found"). The gate (hate and love as motives toward a person, costs, cooldowns) replaces the rates, so it moves news and trivia volume and has to be retuned against the 0a band.
-7. **Character over time** (rule 18, 11e). Answered 2026-10-07: all six traits are plastic; changes stick while they keep being triggered, and people drift slowly toward those they spend time with; children form their parents' grudges and friendships more easily, not certainly. Still open: how inheritance and mutation work, to be researched first.
+7. **Phase 0d's questions** (the desire gate, PR #41). Answered 2026-10-07:
+   - **The rates stay** as the town's everyday occasions, which the gate answers (a departure from rule 10's letter); `AimedRateScale` is the dial if they need turning down.
+   - **News at about 5 a week** for 26 people is "a few a week".
+   - **The first season** gets its spark from starting tensions (0c question 1), not the first-greeting tone.
+   - **Stance stays separate from 0e's plasticity:** stance is a fast state that fades; 0e changes traits from the life record.
+   - Still open, each built one way: fear's reading of law 4, slots counting attempts, one return per kindness, the light acts (off), gifts free of money, the robbed keeper's own retaliation, and the gate never acting inside a household.
+8. **Character over time** (rule 18, 11e). Answered 2026-10-07: all six traits are plastic; changes stick while they keep being triggered, and people drift slowly toward those they spend time with; children form their parents' grudges and friendships more easily, not certainly. Still open: how inheritance and mutation work, to be researched first.
