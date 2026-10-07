@@ -1143,7 +1143,7 @@ public sealed partial class Simulation
                 string? by = Steering
                     // S7 (rule 9; III P25, VERIFY): nobody confronts someone they love; the harmed,
                     // who feel it most, are the likeliest to.
-                    ? members.Where(n => St(n, target) < _fo.CoverAt)
+                    ? members.Where(n => St(n, target) < _fo.CoverAt && !InHostileCooldown(_index[n], _index[target], m))
                         .OrderByDescending(n => CharacterOf(_index[n]).Boldness * Current(_beliefs[n][act.Id], m)
                                                 * (1 + _fo.ConfrontPerHate * Math.Max(0, -St(n, target))))
                         .ThenBy(n => n, StringComparer.Ordinal).FirstOrDefault()

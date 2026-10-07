@@ -104,6 +104,11 @@ public sealed partial class Simulation
         return 1.0 + (_fo.AvoidOn ? AvoidCount(i, m) : 0) + _fo.StanceHome * Math.Max(0, -Stance(i));
     }
 
+    /// <summary>The ordered pair had a heavy hostile act (an argument or a confrontation) less than
+    /// HostileCooldownDays ago.</summary>
+    private bool InHostileCooldown(int a, int o, int m)
+        => Acting && _lastHostile.TryGetValue((a, o), out int last) && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay;
+
     /// <summary>Whether a rate-drawn act may go to this person: not to someone avoided, and no
     /// argument inside the hostile cooldown.</summary>
     private bool RateTargetAllowed(ActKind kind, int a, int o, int m)
@@ -514,7 +519,7 @@ public sealed partial class Simulation
             if (from is not { } who)
                 continue;
             if (_fo.LightActsOn)
-                TurnAway(p, h, who, -1, m);
+                TurnAway(p, h, who, _avoids.Last(v => v.Holder == _names[h] && v.Subject == _names[who]).Source, m); // it answers the quarrel
             _withdrawals++;
             DesireLog($"{m} withdraws {p.V.Name} home from {_names[who]}");
             Life(m, h, who, -1, "", LifeRole.Withdrew, 0, true, false, Outcome.None);
