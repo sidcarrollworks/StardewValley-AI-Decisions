@@ -278,6 +278,10 @@ public sealed class FeelingOptions
     public double HeldPull { get; set; } = 0.3;
     public double ShowLowMood { get; set; } = 0.2;
     public double ShowMin { get; set; } = 0.05;
+    /// <summary>The expression that shows a feeling in full. At 1 (M1 as written) the town's typical
+    /// 0.75 holds a quarter of every hurt back, which weakens every answer: feuds fell 26% and
+    /// brawlers halved. At the typical 0.75, only those below it hold back.</summary>
+    public double ShowReference { get; set; } = 1;
     // X12: missing people.
     public int MissDays { get; set; } = 10;
     public double ProneSpread { get; set; } = 2;
@@ -594,9 +598,11 @@ public static class WithdrawalMath
     /// while a round or more is left, all of PatienceDrop when none is.</summary>
     public static double Impatience(double left, FeelingOptions o) => o.PatienceDrop * Math.Clamp(1 - left, 0, 1);
 
-    /// <summary>X10 (masking-research M1, with its low-mood term): how much of a feeling shows now.</summary>
+    /// <summary>X10 (masking-research M1, with its low-mood term): how much of a feeling shows now,
+    /// against ShowReference, the expression that shows in full (1: M1's own reading, where everyone
+    /// holds some back).</summary>
     public static double Show(double expression, double mood, FeelingOptions o)
-        => Math.Clamp(expression * (1 - o.ShowLowMood * Math.Max(0, -mood)), o.ShowMin, 1);
+        => Math.Clamp(expression * (1 - o.ShowLowMood * Math.Max(0, -mood)) / o.ShowReference, o.ShowMin, 1);
 
     /// <summary>X10: a hurt split. The shown part moves stance by boldness, as every hurt did; the
     /// held part pulls toward withdrawn whatever the boldness (design 12.7).</summary>
@@ -615,13 +621,18 @@ public static class WithdrawalMath
     public static double Steady(int daysTogether, FeelingOptions o) => Math.Min(1, daysTogether / (double)o.SteadyDays);
 
     /// <summary>X12: the wish to give to someone loved: missing them (sooner for the prone, less in
-    /// a steady tie), and an occasion (their birthday, a festival).</summary>
+    /// a steady tie), and in a steady tie an occasion (their birthday, a festival): Sid's "gifts
+    /// there are kept for birthdays, holidays".</summary>
     public static double Wish(double regard, int daysApart, double prone, double steady, bool occasion, FeelingOptions o)
-    {
-        double love = Math.Max(0, regard - o.LoveAt);
-        double apart = Math.Min(1, daysApart * prone / o.MissDays);
-        return love * apart * (1 - o.MissSecure * steady) + (occasion ? o.OccasionWish * love : 0);
-    }
+        => Missed(regard, daysApart, prone, steady, o) + (occasion ? OccasionPart(regard, steady, o) : 0);
+
+    /// <summary>X12: missing someone loved: sooner for the prone, less in a steady tie.</summary>
+    public static double Missed(double regard, int daysApart, double prone, double steady, FeelingOptions o)
+        => Math.Max(0, regard - o.LoveAt) * Math.Min(1, daysApart * prone / o.MissDays) * (1 - o.MissSecure * steady);
+
+    /// <summary>X12: an occasion's part of the wish, in a steady tie only.</summary>
+    public static double OccasionPart(double regard, double steady, FeelingOptions o)
+        => o.OccasionWish * Math.Max(0, regard - o.LoveAt) * steady;
 
     /// <summary>X12: hedonic adaptation: what a kindness is felt at after this many like it from the same person lately.</summary>
     public static double Adapted(int earlier, FeelingOptions o)

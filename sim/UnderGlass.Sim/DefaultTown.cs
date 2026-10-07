@@ -172,9 +172,14 @@ public static class DefaultTown
     /// sim/README.md). With the desire gate (phase 0d, rule 10): people answer, return, make up
     /// and keep away. Of its added rules (sweeps of 2026-10-07, sim/README.md), the town misses
     /// loved ones (Fond, 14 days: at 10 regard drifted up over three years), keeps a stance (hermits and brawlers can emerge), and dares by
-    /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).</summary>
+    /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).
+    /// Phase 0d.6's rules are all off; their constants are set as the sweeps of 2026-10-07 tuned them
+    /// (sim/README.md), so a step switched on (--0d6) runs as measured: being left out pushes at 0.8 a
+    /// night on shy to the fourth power (shy squared made hermits of the stay-at-home, not the shy),
+    /// and a withdrawn stance pulls home at 6 a point (at 3 the hubs outweighed it).</summary>
     public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true,
-        FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1 };
+        FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1,
+        LeftOutRate = 0.8, ShyPower = 4, StanceHomeDial = 6 };
 
     /// <summary>
     /// The town's starting tensions (0c question 1; Sid, 2026-10-07): who starts out disliking whom,

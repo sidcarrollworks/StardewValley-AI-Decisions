@@ -22,12 +22,14 @@ public sealed record WithdrawalStats(int Runs,
     double SeedYearsWithHermit, double HermitHoursFall,
     double BrawlersPerYear, double BrawlerSpellsPerYear, IReadOnlyList<(string Name, double PerYear)> TopBrawlers,
     double RecoveredWithin28, int RecoveryCases, double YearLongHermits, double YearLongHermitsExcused,
+    double HermitsRecoveredWithin28, int HermitRecoveryCases,
     double MeanPower, double PowerSpread, double LowPowerShare, double SinkSeedYears,
     IReadOnlyList<(string Name, double Gave, double Caught)> Contagion,
     IReadOnlyList<ShyRow> Shyest,
     IReadOnlyDictionary<string, (double PerYear, double SumPerYear)> Rules,
     IReadOnlyList<(string Name, double MeanE)> MostLeftOut,
-    double HomeArgumentsByGate, double HomeArgumentsAtRates);
+    double HomeArgumentsByGate, double HomeArgumentsAtRates,
+    IReadOnlyList<double> GateGiftsByYear, double OccasionGiftsPerYear);
 
 public static class WithdrawalMetrics
 {
@@ -163,14 +165,16 @@ public static class WithdrawalMetrics
                 }
             }
         }
-        // Recovery: of the withdrawn spells that end with 28 days of run left, back above -0.3 within them.
-        int cases = 0, recovered = 0;
+        // Recovery: of the withdrawn spells (and of the hermits') that end with 28 days of run left,
+        // back above -0.3 within them.
+        int cases = 0, recovered = 0, hermitCases = 0, hermitsRecovered = 0;
         foreach (var (r, s) in withdrawn.Where(x => x.S.Ended && x.S.To + SpellDays < x.R.Days))
         {
             cases++;
+            hermitCases += s.Hermit ? 1 : 0;
             double[] st = r.Stances[s.Name];
             for (int k = s.To + 1; k <= s.To + SpellDays; k++)
-                if (st[k] > RecoveredAbove) { recovered++; break; }
+                if (st[k] > RecoveredAbove) { recovered++; hermitsRecovered += s.Hermit ? 1 : 0; break; }
         }
 
         // The power of acting.
@@ -237,10 +241,15 @@ public static class WithdrawalMetrics
             cases == 0 ? double.NaN : recovered / (double)cases, cases,
             seedYears == 0 ? double.NaN : (yearLong - excused) / (double)seedYears,
             seedYears == 0 ? double.NaN : excused / (double)seedYears,
+            hermitCases == 0 ? double.NaN : hermitsRecovered / (double)hermitCases, hermitCases,
             meanPower, spread, powers.Count == 0 ? double.NaN : powers.Count(p => p < LowPower) / (double)powers.Count,
             powerYears == 0 ? double.NaN : sinkYears / (double)powerYears,
             contagion, shyest, watched, mostLeftOut,
             runs.Sum(r => r.Acts.Count(a => a.Kind == "Argued" && a.Target is { } t && Close(a.Actor, t) && r.Pursued.Contains(a.Id))) / years,
-            runs.Sum(r => r.Acts.Count(a => a.Kind == "Argued" && a.Target is { } t && Close(a.Actor, t) && !r.Pursued.Contains(a.Id) && !a.Injected)) / years);
+            runs.Sum(r => r.Acts.Count(a => a.Kind == "Argued" && a.Target is { } t && Close(a.Actor, t) && !r.Pursued.Contains(a.Id) && !a.Injected)) / years,
+            Enumerable.Range(0, Math.Max(0, length / Year)).Select(y => runs.Average(r => r.Pursued.Count(id => r.Acts[id].Kind == "GaveGift"
+                && Clock.Day(r.Acts[id].Tick) / Year == y))).ToList(),
+            runs.Sum(r => r.Pursued.Count(id => r.Acts[id] is { Kind: "GaveGift", Target: { } t } a && byName.TryGetValue(t, out Villager? v)
+                && (Calendar.IsBirthday(v.Birthday, Clock.Day(a.Tick)) || Calendar.FestivalOn(Clock.Day(a.Tick)) is not null))) / years);
     }
 }

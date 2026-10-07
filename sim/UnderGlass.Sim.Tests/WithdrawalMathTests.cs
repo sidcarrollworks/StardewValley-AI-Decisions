@@ -148,6 +148,10 @@ public class WithdrawalMathTests
         Assert.Equal(0.8, WithdrawalMath.Show(0.8, 0.3, O), 12);
         Assert.Equal(0.8 * 0.9, WithdrawalMath.Show(0.8, -0.5, O), 12);
         Assert.Equal(O.ShowMin, WithdrawalMath.Show(0, 0, O));
+        var typical = new FeelingOptions { ShowReference = 0.75 };
+        Assert.Equal(1, WithdrawalMath.Show(0.95, 0.3, typical));         // above the reference: in full
+        Assert.Equal(1, WithdrawalMath.Show(0.75, 0.3, typical), 12);
+        Assert.Equal(1 / 3.0, WithdrawalMath.Show(0.25, 0.3, typical), 12); // Penny
         foreach (double bold in new[] { 0.02, 0.5, 0.98 })
             Assert.Equal(DesireMath.StanceAfterHurt(0.1, 0.3, bold), WithdrawalMath.StanceAfterHeldHurt(0.1, 0.3, bold, 1, O), 12);
         // Held entirely: withdrawn, even for the bold.
@@ -178,7 +182,9 @@ public class WithdrawalMathTests
         Assert.Equal(0.4 * 0.5, WithdrawalMath.Wish(0.6, 5, 1, 0, false, O), 12);
         Assert.Equal(0.4 * 1.0, WithdrawalMath.Wish(0.6, 5, 2, 0, false, O), 12);     // the prone miss sooner
         Assert.Equal(0.4 * 1.0 * 0.2, WithdrawalMath.Wish(0.6, 20, 1, 1, false, O), 12); // steady: missing goes down
-        Assert.Equal(0.4 * 0.5, WithdrawalMath.Wish(0.6, 0, 1, 1, true, O), 12);       // an occasion
+        Assert.Equal(0.4 * 0.5, WithdrawalMath.Wish(0.6, 0, 1, 1, true, O), 12);       // an occasion, in a steady tie
+        Assert.Equal(0, WithdrawalMath.Wish(0.6, 0, 1, 0, true, O));                    // ... and not otherwise
+        Assert.Equal(0.4 * 0.5 * 0.5, WithdrawalMath.OccasionPart(0.6, 0.5, O), 12);
         Assert.Equal(0, WithdrawalMath.Wish(0.2, 30, 1.5, 0, true, O));                 // not loved
         Assert.Equal(1, WithdrawalMath.Steady(9, O));
         Assert.Equal(0.5, WithdrawalMath.Steady(4, O), 12);
@@ -225,6 +231,19 @@ public class WithdrawalMathTests
         Assert.Equal(25, cast.Values.Count(v => v.Birthday is not null));
         Assert.True(Calendar.IsBirthday(cast["Penny"].Birthday, 2 * 28 + 1));
         Assert.False(Calendar.IsBirthday(cast["Penny"].Birthday, 2 * 28));
+    }
+
+    /// <summary>The town ships with every 0d.6 switch off, and with the constants the sweeps tuned
+    /// (sim/README.md), so a step switched on runs as it was measured.</summary>
+    [Fact]
+    public void TheTownShipsWithEverySwitchOff()
+    {
+        FeelingOptions town = DefaultTown.Feelings();
+        Assert.False(town.WithdrawalWatch || town.HomeHurtOn || town.HouseholdGateOn || town.ContagionOn || town.LeftOutOn
+                     || town.InclusionDiscountOn || town.DialsOn || town.RecoveryOn || town.PatienceOn || town.CoercionOn
+                     || town.ShowOn || town.MissingOn || town.ToneOn);
+        Assert.Equal((0.8, 4, 6.0), (town.LeftOutRate, town.ShyPower, town.StanceHomeDial));
+        Assert.Equal((0.01, 2, 3.0), (O.LeftOutRate, O.ShyPower, O.StanceHomeDial)); // the research's first guesses
     }
 
     /// <summary>The seventh trait reads and sets like the other six, and the cast carries Sid's

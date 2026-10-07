@@ -157,6 +157,11 @@ if (logSeed is { } one)
         Console.WriteLine("strongest sentiments at the end:");
         foreach (Sentiment s in r.Sentiments.OrderByDescending(s => s.Strength).ThenBy(s => s.Holder, StringComparer.Ordinal).Take(10))
         {
+            if (s.ActId < 0) // a greeting's tone cites its minute, not an act
+            {
+                Console.WriteLine($"  {s.Holder} {s.Name} toward {s.Toward} {s.Strength:0.00} (x{s.Count}), since {Clock.Format(s.Since)}: a greeting at {Clock.Format(-2 - s.ActId)}");
+                continue;
+            }
             Act cause = r.Acts[s.ActId];
             Console.WriteLine($"  {s.Holder} {s.Name} toward {s.Toward} {s.Strength:0.00} (x{s.Count}), since {Clock.Format(s.Since)}: act {cause.Id} {cause.Kind} by {cause.Actor}{(cause.Target is { } t ? " to " + t : "")} at {cause.Location} {Clock.Format(cause.Tick)}");
         }
@@ -346,7 +351,8 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine("  most left out (mean E): " + string.Join(", ", w.MostLeftOut.Select(x => $"{x.Name} {x.MeanE:0.00}")));
     Console.WriteLine($"  withdrawn (28 d at -0.5 or below) {w.WithdrawnPerYear:0.00} people a seed-year ({Per(w.TopWithdrawn)}); hermits (and hours out under 60% of their first season) {w.HermitsPerYear:0.00} ({w.HermitSpellsPerYear:0.00} spells; {Per(w.TopHermits)}), from the shyest third {Pc(w.HermitsFromShyestThird)}, seed-years with one {Pc(w.SeedYearsWithHermit)}, hours out fell {Pc(w.HermitHoursFall)}");
     Console.WriteLine($"  brawlers (28 d at +0.5 or above) {w.BrawlersPerYear:0.00} people a seed-year ({w.BrawlerSpellsPerYear:0.00} spells; {Per(w.TopBrawlers)}); arguments at home a year: by the gate {w.HomeArgumentsByGate:0.0}, at the town's rates {w.HomeArgumentsAtRates:0.0}");
-    Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases}; a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6)");
+    Console.WriteLine($"  gifts by the gate a year, by year of the run: {string.Join(", ", w.GateGiftsByYear.Select(x => x.ToString("0", inv)))}; on a birthday or a festival {w.OccasionGiftsPerYear:0.0}");
+    Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases} (of a hermit's {Pc(w.HermitsRecoveredWithin28)} of {w.HermitRecoveryCases}); a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6)");
     Console.WriteLine($"  power of acting: mean {w.MeanPower:0.000}, spread {w.PowerSpread:0.000}, person-days below 0.35 {w.LowPowerShare:P1}, seed-years with a sink (28-day mean below 0.3) {Pc(w.SinkSeedYears)}");
     if (w.Contagion.Any(c => c.Gave > 0 || c.Caught > 0))
     {

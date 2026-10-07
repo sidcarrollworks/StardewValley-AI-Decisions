@@ -337,13 +337,13 @@ public class WithdrawalSceneTests
 
     /// <summary>Scene 8 (invariant; step d's criterion): a shy person who is not left out, in the
     /// room with the others and giving and getting kindness as they do, is never withdrawn, on any
-    /// of 20 seeds, even at a stronger rate than scene 7's. (Being left out is relative to the
+    /// of 200 seeds, even at a stronger rate than scene 7's. (Being left out is relative to the
     /// town: a weekly gift and a weekly day together, where everyone else has both daily, still
     /// counts as left out, and then only a friend protects.)</summary>
     [Fact]
     public void TheShyIncludedDoNot()
     {
-        for (long seed = 1; seed <= 20; seed++)
+        for (long seed = 1; seed <= 200; seed++)
         {
             var cast = new List<Villager> { V("Ann", "A", 11, 2, bold: 0.02, acts: Does("GaveGift")) };
             cast.AddRange(Others.Select((n, i) => V(n, n, 3 + 2 * i, 2, acts: Does("GaveGift"))));
@@ -351,7 +351,7 @@ public class WithdrawalSceneTests
             o.LeftOutRate = 0.08;
             SimResult r = new Simulation(seed, cast, new[] { Room() }, Kinds(gift: 2.0), feelings: o, body: Awake(), wander: 0).Run(84);
             Assert.True(r.Daily["Ann"].KindIn.Sum() >= 10, $"seed {seed}");
-            Assert.True(r.Daily["Ann"].LeftOut.Average() < 0.2, $"seed {seed}: {r.Daily["Ann"].LeftOut.Average():0.00}");
+            Assert.True(r.Daily["Ann"].LeftOut.Average() < 0.3, $"seed {seed}: {r.Daily["Ann"].LeftOut.Average():0.00}"); // not left out (by chance, up to about 0.2)
             Assert.Empty(WithdrawalMetrics.Spells(r, brawlers: false));
         }
     }

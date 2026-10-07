@@ -297,20 +297,27 @@ public sealed partial class Simulation
 
     // ---- X12: missing people -------------------------------------------------------------------
 
+    /// <summary>X12: who has given their one occasion gift today.</summary>
+    private readonly HashSet<(int Holder, int Day)> _occasionGiven = new();
+
     /// <summary>
     /// X12 (Sid, 2026-10-07): the wish to give to someone loved, in place of Fond's: missing them,
-    /// sooner for the prone and less in a steady tie, and an occasion (their birthday, a festival).
+    /// sooner for the prone and less in a steady tie; and in a steady tie an occasion (their
+    /// birthday, a festival), one occasion gift a person a day. Also whether the wish is an
+    /// occasion's.
     /// </summary>
-    private double Missing(int h, int s, int day, int daysApart, double fond)
+    private (double Wish, bool Occasion) Missing(int h, int s, int day, int daysApart, double fond)
     {
         if (!_fo.MissingOn || !Acting)
-            return fond;
-        bool occasion = Calendar.IsBirthday(_cast[s].Birthday, day) || Calendar.FestivalOn(day) is not null;
-        double wish = WithdrawalMath.Wish(St(_names[h], _names[s]), daysApart, WithdrawalMath.Prone(CharacterOf(h), _fo),
-            WithdrawalMath.Steady(DaysTogether(h, s), _fo), occasion, _fo);
-        if (occasion && wish > 0)
-            Note("missing: occasion", wish);
-        return Note("missing", wish - fond) ? wish : fond;
+            return (fond, false);
+        double regard = St(_names[h], _names[s]);
+        double steady = WithdrawalMath.Steady(DaysTogether(h, s), _fo);
+        double wish = WithdrawalMath.Missed(regard, daysApart, WithdrawalMath.Prone(CharacterOf(h), _fo), steady, _fo);
+        double occasion = (Calendar.IsBirthday(_cast[s].Birthday, day) || Calendar.FestivalOn(day) is not null)
+                          && !_occasionGiven.Contains((h, day)) ? WithdrawalMath.OccasionPart(regard, steady, _fo) : 0;
+        if (occasion > 0)
+            Note("missing: occasion", occasion);
+        return Note("missing", wish + occasion - fond) ? (wish + occasion, occasion > 0) : (fond, false);
     }
 
     /// <summary>X12: hedonic adaptation: a kindness of the same kind from the same giver counts
@@ -415,6 +422,7 @@ public sealed partial class Simulation
         if (_fo.RecoveryOn && Acting && day % Clock.DaysPerSeason == Clock.DaysPerSeason - 1 && Note("recovery: fresh start", 1))
             _windowFrom = day + 1; // X7: a fresh start each season (Gazelle and Faldowski 2019, VERIFY)
         Array.Clear(_caughtToday);
+        _occasionGiven.RemoveWhere(x => x.Day <= day);
         for (int i = 0; i < n; i++)
             _stances[_names[i]][day] = _stance[i]; // again, after the night's rules
     }

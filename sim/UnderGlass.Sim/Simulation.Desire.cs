@@ -27,6 +27,8 @@ public sealed partial class Simulation
         public string Act = "";
         public double AskedAt = double.NaN;
         public int Asks;
+        /// <summary>0d.6 (X12): a wish to give on an occasion; one such gift a person a day.</summary>
+        public bool Occasion;
     }
 
     private readonly SortedDictionary<(int Holder, int Subject, int Kind), Motive> _desires = new();
@@ -380,9 +382,11 @@ public sealed partial class Simulation
                 continue;
             int last = Math.Max(_lastContactDay.GetValueOrDefault((h, s)), _lastKindDay.GetValueOrDefault((h, s), int.MinValue));
             double i = DesireMath.Fond(St(_names[h], _names[s]), day - last, _fo);
-            i = Seeking(h, Missing(h, s, day, day - last, i)); // 0d.6: X12, missing people; X6, the withdrawn seek less
+            (i, bool occasion) = Missing(h, s, day, day - last, i); // 0d.6 (X12): missing people
+            i = Seeking(h, i); // 0d.6 (X6): the withdrawn seek less
             if (i > 0)
-                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i }, i);
+                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i,
+                    Occasion = occasion }, i);
         }
     }
 
@@ -480,6 +484,8 @@ public sealed partial class Simulation
         _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
         if (d.Kind != DesireKind.Fond)
             _desires.Remove((h, s, (int)d.Kind));
+        else if (d.Occasion)
+            _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {DesireMath.Cost(Form(chosen.Name), d.Hostile, fear, _fo):0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1);

@@ -315,7 +315,7 @@ How each trait sets susceptibility in both rules:
 
 ## 6. Build plan for 0d.6
 
-Each step has its own switch in `FeelingOptions`, off by default. With every step off, the pinned hash `b6a87fe3b8fc0916` (P3: the shipped gate with its starting tensions, seed 1, a year) holds. Each step also runs in observe mode first, logged and not applied.
+Each step has its own switch in `FeelingOptions`, off by default. With every step off, the pinned hash `e9fd83b284f5c1b6` (P3: the shipped gate with its starting tensions, seed 1, a year) holds. (This note first quoted `b6a87fe3b8fc0916`, which is the pin of the same town with Fond at 10 days, before 0d.5 moved it to 14.) Each step also runs in observe mode first, logged and not applied.
 
 **Gates for every step** (200 seed-years and 400 seeds x 14 days, as in 0d):
 - 0a band: 52% or more of witnessed scandals in 40-70%, 28% or less over 70%;
