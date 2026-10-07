@@ -271,7 +271,7 @@ A review of the gate (three reviewers, each finding checked by a skeptic) confir
 ## Phase 0d.5: tensions, the gate's metrics, the parameter space and E2 (built)
 
 - **Starting tensions** (Sid, 0c question 1): Pierre and Shane both ways, Sebastian toward Demetrius, Abigail toward Pierre, at -0.3. Each is its pair's baseline, so it lasts and heals back there, and a pair seeded below a feud's -0.3 both ways is never counted as a new feud. `--tensions <depth>` sets them (0: none). Phase 0c's pinned town (P1, P2) starts without them; P3 pins the town with them (`b6a87fe3b8fc0916`).
-- **`DesireMetrics`** (`DesireMetrics.cs`; the runner's "desire" block): motives stirred and weighed; acts by the gate and at the town's rates; arguments answered in kind and kindness returned across households; avoids, withdrawals and gave-cause; dislike split into across households, at home, and across without the seeded pairs; outcomes; stance at season ends with hermits and brawlers; how much of the feuding one person accounts for; and a fringe line for the boldest and the shyest, with hours a day out of home (recorded per season while the gate is on).
+- **`DesireMetrics`** (`DesireMetrics.cs`; the runner's "desire" block): motives stirred and weighed; acts by the gate and at the town's rates; arguments answered in kind and kindness returned across households; avoids, withdrawals and gave-cause; dislike split into across households, at home, and across without the seeded pairs; outcomes; stance at season ends with hermits and brawlers; how much of the feuding one person accounts for; and a fringe line for the boldest and the shyest, with free hours a day out of home (awake, not at work, recorded per season while the gate is on). A review (three reviewers, each finding checked by a skeptic) found ten metric and test defects, all fixed: answering windows cut off by the run's end, pairs that keep arguing counted inside households, run-length scaling, hours out counting work, scheduled acts counted as the town's rates, and tests that could not fail.
 - **Runner:** `--desire off|observe|on`, `--trait <Name>=<Trait>:<value>`, `--tensions <depth>`.
 - **Golden stories:** G1, a feud from answering back (seed 1: Lewis and Pam, day 10); G2, a friendship from kindness returned (seed 2: Penny and Vincent, day 80).
 
@@ -287,9 +287,9 @@ The gate, with the tensions (2026-10-07; 400 seeds x 14 days with a placed scand
 | 6 | parameter space (54 cells x 20 seed-years, run on Sid's PC) | **14 of 54 lively** (26%; 11 if three cells exactly on a threshold fail), against 9 needed | passes |
 | 7 | three years (50 x 336) | see below | pending |
 | 8 | fringe (reported) | brawlers yes, hermits no (below) | reported |
-| 10 | tests | 171 pass | passes |
+| 10 | tests | 173 pass | passes |
 
-A year of the town: feuds 7.85 and friendships 1.01 a year, reconciliations 1.6 (0.7 without the tensions: Sebastian comes round to his stepfather in most seeds, by living with him). Across households, 42% of arguments are answered in kind within a day and 88% within a week, and 70% of kindnesses are returned within a week. News 272 and trivia 862 a year.
+A year of the town: feuds 7.85 and friendships 1.01 a year, reconciliations 1.6 (0.7 without the tensions: Sebastian comes round to his stepfather in most seeds, by living with him). Across households, 42% of arguments are answered in kind within a day and 90% within a week, and 71% of kindnesses are returned within a week (counting only acts whose window ends inside the run). News 272 and trivia 862 a year.
 
 **The first season.** At depths 0, 0.2, 0.3 and 0.4 (50 seed-years each), dislike that was not seeded is 0.5-0.6% at d27 in every case: the tensions hold their own pairs and spark nothing new in the first season, and add no feuds. Sid keeps them: the first season is the starter season.
 
@@ -320,7 +320,7 @@ Plastic and FondDays work as one dial on how fast regard moves, so the lively ce
 
 Rules under the bar stay for now and are a question for Sid, not a cut: avoiding and withdrawing are what 0d.6 builds the hermit on.
 
-**The fringe** (check 8; 50 seed-years each). Brawlers emerge (3.5 a seed-year at a season end, Alex, Sam and Abigail most). Hermits do not: at boldness 0.02 Penny's stance ends at -0.01 and her hours out stay at 9 a day; the most withdrawn person in the town ends at -0.04. Alex at boldness 0.98 acts as he does at 0.80, since he already clears every gate he meets; only his stance rises (+0.61 to +0.69). The causes, from `docs/under-glass/withdrawal-research.md`: hurts at home and undergone hurts never move stance, and any kindness undoes a withdrawn stance at once. G3 and G4 are therefore not pinned; 0d.6 builds the paths Sid asked for.
+**The fringe** (check 8; 50 seed-years each). Brawlers emerge (3.5 people a seed-year reach +0.5 at a season end; Alex, Sam and Abigail most). Hermits do not: at boldness 0.02 Penny's stance ends at -0.01 and her free time out of home stays at 5.9 hours a day in season 1 and in season 4, as at her own boldness; the most withdrawn person in the town ends at -0.05. Alex at boldness 0.98 acts as he does at 0.80, since he already clears every gate he meets; only his stance rises (+0.61 to +0.69). The causes, from `docs/under-glass/withdrawal-research.md`: hurts at home and undergone hurts never move stance, and any kindness undoes a withdrawn stance at once. G3 and G4 are therefore not pinned; 0d.6 builds the paths Sid asked for.
 
 **Long runs slow down.** A one-year run costs about 17 CPU seconds a seed-year; the three-year run took several times that per seed-year, so something grows with the run. To be profiled before 0e, which needs runs of 5-10 years.
 
