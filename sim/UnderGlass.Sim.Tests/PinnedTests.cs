@@ -65,6 +65,56 @@ public class PinnedTests
         }
     }
 
+    /// <summary>T12b: watching with the desire gate and every added rule switched on still changes
+    /// nothing, and the gate keeps no record while feelings only watch.</summary>
+    [Fact]
+    public void ObservingWithTheGateOnChangesNothing()
+    {
+        for (long seed = 1; seed <= 3; seed++)
+        {
+            FeelingOptions o = FeelingOptions.Observe;
+            o.Desire = true;
+            o.LightActsOn = o.StanceOn = o.FondOn = o.PityOn = o.ToneOn = true;
+            o.PowerWeight = 1;
+            SimResult off = new Simulation(seed, feelings: FeelingOptions.Off).Run(14);
+            SimResult on = new Simulation(seed, feelings: o).Run(14);
+            Assert.Equal(off.Acts.Select(Canon), on.Acts.Select(Canon));
+            foreach (string n in off.Beliefs.Keys)
+                Assert.Equal(off.Beliefs[n].OrderBy(p => p.Key).Select(p => Canon(p.Value)),
+                    on.Beliefs[n].OrderBy(p => p.Key).Select(p => Canon(p.Value)));
+            Assert.Equal(off.Confrontations, on.Confrontations);
+            Assert.Equal(off.TownCash, on.TownCash);
+            Assert.Empty(on.Stirred);
+            Assert.Empty(on.Pursuits);
+            Assert.Empty(on.Pursued);
+            Assert.Empty(on.LifeEvents);
+            Assert.Empty(on.MotiveLog);
+            Assert.All(on.Stances.Values.SelectMany(v => v), v => Assert.Equal(0, v));
+        }
+    }
+
+    /// <summary>D34: the desire gate pinned on a year of seed 1: the base gate (every added rule off,
+    /// power weight 0), the gate with stance and the power of acting, and the town as shipped.
+    /// Update only for a deliberate change to the gate.</summary>
+    [Theory]
+    [InlineData("base", "a123526358094b43")]
+    [InlineData("stance+power", "07505a08bf1a9f78")]
+    [InlineData("shipped", "f2af5b9f5b1fb4c4")]
+    public void TheGateIsPinned(string which, string hash)
+    {
+        FeelingOptions o = DefaultTown.Feelings();
+        o.LightActsOn = o.StanceOn = o.FondOn = o.PityOn = o.ToneOn = false;
+        o.PowerWeight = 0;
+        if (which == "stance+power")
+        {
+            o.StanceOn = true;
+            o.PowerWeight = 1;
+        }
+        else if (which == "shipped")
+            o = DefaultTown.Feelings();
+        Assert.Equal(hash, Metrics.LogHash(new Simulation(1, feelings: o).Run(112)));
+    }
+
     /// <summary>P1: the town with feelings steering as 0c built it, before the desire gate. A
     /// year of seed 1. Update only for a deliberate change to 0a-0c.</summary>
     [Fact]

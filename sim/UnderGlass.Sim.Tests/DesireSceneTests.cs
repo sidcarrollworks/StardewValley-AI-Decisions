@@ -207,10 +207,14 @@ public class DesireSceneTests
         foreach (double start in new[] { 0.6, 0.35 })
         {
             SimResult r = Argument(FeelingOptions.WithDesire(("Bob", "Ann", start)));
-            Stirring stir = Assert.Single(r.Stirred);
-            Assert.Equal(("Bob", DesireKind.MakeUp), (stir.Holder, stir.Motive));
+            Stirring stir = Assert.Single(r.Stirred, s => s.Holder == "Bob");
+            Assert.Equal(DesireKind.MakeUp, stir.Motive);
             Act gift = Assert.Single(r.Acts, a => a.Actor == "Bob");
             Assert.Equal(("GaveGift", "Ann", 0), (gift.Kind, gift.Target, gift.About));
+            // A peace offering is a kindness to Ann: it cites her argument, not a kindness of hers,
+            // so she wants to return it.
+            Stirring back = Assert.Single(r.Stirred, s => s.Holder == "Ann");
+            Assert.Equal(("Bob", DesireKind.Return, gift.Id), (back.Subject, back.Motive, back.Source));
             Assert.Empty(ActsBy(r, "Bob", "Argued"));
         }
 

@@ -258,6 +258,13 @@ How we got there (50 seed-years each unless said):
 
 Two defects were found by the gate's tests and fixed: a confrontation ignored the cooldown, and turning away while withdrawing did not cite its quarrel, so the arguer escalated against the one keeping away.
 
+A review of the gate (three reviewers, each finding checked by a skeptic) confirmed nine more, all fixed:
+- A kindness that cited something other than one's own kindness was never returned: a peace offering after an argument, or help after a stumble. Only the return of one's own kindness now stops there.
+- Acts the actor undergoes (warned, taken in, questioned, service, a family row, a mishap) were recorded as things they did. They are recorded as undergone only.
+- Turning away during a weighing let the same person begin a second act in that tick. One act a person a tick now holds for it too.
+- Every curt greeting drew the same close call, because its motive cited no act. It is keyed by the greeting's minute.
+- Tests added: watching with the gate and every added rule on changes nothing (T12b); the gate pinned on a year of seed 1 three ways (base `a123526358094b43`, stance and power `07505a08bf1a9f78`, shipped `f2af5b9f5b1fb4c4`); the cooldown checked for confrontations too; no overlapping acts; actor-side rows never recorded as done; a kindness's intensity carries no grudge (now `DesireMath.Intensity`).
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.

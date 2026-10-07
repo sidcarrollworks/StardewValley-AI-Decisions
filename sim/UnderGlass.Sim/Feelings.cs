@@ -339,6 +339,12 @@ public static class Feelings
 /// no archetype's range assumed: boldness 0.02 and 0.98 give finite, ordered answers.</summary>
 public static class DesireMath
 {
+    /// <summary>A motive's intensity (R2): what is left of the event, and for a hostile motive the
+    /// grudge too (dislike, never liking). A friendly motive is the event alone, whatever the regard.
+    /// Nothing once the event has faded.</summary>
+    public static double Intensity(double eventPart, bool hostile, double regard)
+        => eventPart <= 0 ? 0 : Math.Min(1, eventPart + (hostile ? Math.Max(0, -regard) : 0));
+
     /// <summary>How daring someone is toward a person: boldness, stance (a withdrawn stance lowers
     /// all daring, a combative one raises only hostile daring), familiarity, the motive's intensity,
     /// and the power of acting (law 1).</summary>

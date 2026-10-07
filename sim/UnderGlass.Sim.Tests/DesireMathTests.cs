@@ -157,9 +157,9 @@ public class DesireMathTests
         Assert.Equal(0.5, DesireMath.Cost(0.5, false, 0, O), 12);
     }
 
-    /// <summary>D8. A motive's event part fades linearly over MotiveDays. Intensity and the re-stir
-    /// are private to the simulation; their composition (R2, R1's Stir) is rebuilt here from the
-    /// public pieces: the grudge adds to hostile motives only, and a re-stir adds to what is left.</summary>
+    /// <summary>D8. A motive's event part fades linearly over MotiveDays. Intensity adds the grudge
+    /// to hostile motives only; a friendly motive at mild dislike is the event alone. The re-stir
+    /// is private to the simulation and rebuilt here: it adds to what is left.</summary>
     [Fact]
     public void D8_TheMotiveFades()
     {
@@ -173,11 +173,15 @@ public class DesireMathTests
         Assert.Equal(0.15, DesireMath.EventPart(0.3, m0, m0 + 30, O.PityMinutes), 12); // pity fades within the hour
 
         double regard = -0.2;
-        double Hostile(int m) => Math.Min(1, DesireMath.EventPart(0.3, m0, m, window) + Math.Max(0, -regard));
-        double Friendly(int m) => Math.Min(1, DesireMath.EventPart(0.3, m0, m, window));
+        double Hostile(int m) => DesireMath.Intensity(DesireMath.EventPart(0.3, m0, m, window), true, regard);
+        double Friendly(int m) => DesireMath.Intensity(DesireMath.EventPart(0.3, m0, m, window), false, regard);
         Assert.Equal(0.5, Hostile(m0), 12);
         Assert.Equal(0.35, Hostile(m0 + 7 * D / 2), 12);
-        Assert.Equal(0.3, Friendly(m0), 12);
+        Assert.Equal(0.0, Hostile(m0 + 7 * D), 12);                       // the grudge alone moves nobody
+        Assert.Equal(0.3, Friendly(m0), 12);                              // no grudge in a kindness
+        Assert.Equal(0.15, Friendly(m0 + 7 * D / 2), 12);
+        Assert.Equal(0.3, DesireMath.Intensity(0.3, true, 0.4), 12);      // liking adds nothing
+        Assert.Equal(1.0, DesireMath.Intensity(0.9, true, -0.5), 12);     // capped at 1
 
         double restirred = Math.Min(1, DesireMath.EventPart(0.3, m0, m0 + 7 * D / 2, window) + 0.3);
         Assert.Equal(0.45, restirred, 12);

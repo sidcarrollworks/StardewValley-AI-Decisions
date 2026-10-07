@@ -178,7 +178,7 @@ public sealed partial class Simulation
         }
         else if (row.Target == TargetIs.Chosen && row.Joy > 0 && _fo.ReturnOn)
         {
-            if (act.About >= 0 && Did(who, act.About))
+            if (act.About >= 0 && Did(who, act.About) && IsKindAimed(KindOf(_acts[act.About])))
                 return; // the return of one's own kindness is not returned again
             Stir(h, si, DesireKind.Return, false, act.Kind, act.Id, felt, m);
             if (_fo.StanceOn)
@@ -234,12 +234,7 @@ public sealed partial class Simulation
     /// <summary>A motive's intensity: what the event gave it, and for a hostile one, the grudge.
     /// Positive regard never adds (it only covers).</summary>
     private double Intensity(Motive d, int m)
-    {
-        double e = EventPart(d, m);
-        if (e <= 0)
-            return 0;
-        return Math.Min(1, e + (d.Hostile ? Math.Max(0, -St(_names[d.Holder], _names[d.Subject])) : 0));
-    }
+        => DesireMath.Intensity(EventPart(d, m), d.Hostile, St(_names[d.Holder], _names[d.Subject]));
 
     /// <summary>Pity at a mishap seen (R4): when an act whose actor suffers it, with nobody to
     /// blame, ends, each witness who named them may want to help. Never at home.</summary>
@@ -339,8 +334,8 @@ public sealed partial class Simulation
             if (motives.Count == 0)
                 continue;
             foreach (var (d, I) in motives.OrderByDescending(x => x.I).ThenBy(x => x.D.Subject).ThenBy(x => (int)x.D.Kind).ToList())
-                if (Weigh(p, h, d, I, m, day))
-                    break;
+                if (Weigh(p, h, d, I, m, day) || !Free(p, m))
+                    break; // one act a tick: a turning away in the weighing counts too
         }
     }
 
@@ -485,7 +480,7 @@ public sealed partial class Simulation
             || !_turnedToday.Add((h, s, day)) || _kinds.FirstOrDefault(k => k.Name == TurnedAway) is not { } kind)
             return;
         _pursuedActs.Add(_acts.Count);
-        Begin(m, kind, p, injected: false, target: _names[s], about: source);
+        Begin(m, kind, p, injected: false, target: _names[s], about: source >= 0 ? source : -1);
     }
 
     /// <summary>Each tick: someone avoiding a person in reach during free time goes home, if they
@@ -542,8 +537,8 @@ public sealed partial class Simulation
             _lightToday[(a, Clock.Day(m))] = _lightToday.GetValueOrDefault((a, Clock.Day(m))) + 1;
         if (IsKindAimed(kind))
             _lastKindDay[(a, ti)] = Clock.Day(m);
-        if (kind.Affect is not { } row)
-            return;
+        if (kind.Affect is not { } row || row.Patient == Patient.Actor)
+            return; // an act the actor undergoes (warned, taken in) is no deed of theirs
         bool hostile = row.Joy < 0, light = IsLight(kind);
         if (kind.Affect.Target == TargetIs.Chosen)
         {
@@ -600,7 +595,7 @@ public sealed partial class Simulation
         if (sign < 0 && _fo.AnswerOn)
         {
             Hurt(i, Math.Abs(f));
-            Stir(i, j, DesireKind.Answer, true, "Argued", -1, Math.Abs(f), m);
+            Stir(i, j, DesireKind.Answer, true, "Argued", -2 - m, Math.Abs(f), m); // no act: keyed by the minute, so each greeting draws anew
         }
     }
 
@@ -612,6 +607,7 @@ public sealed partial class Simulation
     {
         if (!Desiring)
             return;
+        actId = actId >= 0 ? actId : -1; // a curt greeting's motive is keyed by its minute, not an act
         _life.Add(new LifeEvent(m, _names[person], other >= 0 ? _names[other] : "someone", actId, kind, role, severity, hostile, light,
             outcome, outcome == Outcome.Open ? -1 : m));
         if (outcome == Outcome.Open && other >= 0)

@@ -65,6 +65,7 @@ public class DesireInvariantTests
     }
 
     private static readonly Dictionary<string, Villager> Cast = DefaultTown.Cast().ToDictionary(v => v.Name);
+    private static readonly Dictionary<string, ActKind> Kinds = DefaultTown.Acts().ToDictionary(k => k.Name);
 
     /// <summary>Kin or housemates (families cover).</summary>
     private static bool Close(string a, string b)
@@ -145,15 +146,13 @@ public class DesireInvariantTests
         }
 
         // 3. Heavy hostile acts per ordered pair at least 3 days apart: every argument, gated or drawn
-        //    at a rate, at least 3 days after the pair's last argument or confrontation. (A
-        //    confrontation soon after an argument is the deviation in ConfrontationsKeepTheCooldown.)
+        //    at a rate, and every confrontation, at least 3 days after the pair's last of either.
         foreach (var pair in Heavy(r).GroupBy(x => (x.Actor, x.To)))
         {
             var list = pair.OrderBy(x => x.Tick).ToList();
             for (int i = 1; i < list.Count; i++)
-                if (list[i].Kind == "Argued")
-                    Assert.True(list[i].Tick - list[i - 1].Tick >= o.HostileCooldownDays * D,
-                        $"{pair.Key.Actor} -> {pair.Key.To}: {list[i - 1].Kind} at {list[i - 1].Tick}, Argued at {list[i].Tick}");
+                Assert.True(list[i].Tick - list[i - 1].Tick >= o.HostileCooldownDays * D,
+                    $"{pair.Key.Actor} -> {pair.Key.To}: {list[i - 1].Kind} at {list[i - 1].Tick}, {list[i].Kind} at {list[i].Tick}");
         }
 
         // 4. At most 2 slots per (holder, subject, day): a weighing uses one when it acted or drew a
@@ -196,6 +195,23 @@ public class DesireInvariantTests
 
         // 9. Cash is conserved.
         Assert.Equal(r.TownCash[^1] - r.TownCash[0], r.OutsideIn - r.OutsideOut, 3);
+
+        // 11. One act at a time: nobody begins an act of their own before their last one ended
+        //     (a turning away during a weighing ends that holder's tick).
+        foreach (var mine in r.Acts.Where(a => !a.Injected).GroupBy(a => a.Actor))
+        {
+            var list = mine.OrderBy(a => a.Tick).ThenBy(a => a.Id).ToList();
+            for (int i = 1; i < list.Count; i++)
+                Assert.True(list[i].Tick >= list[i - 1].Tick + Kinds[list[i - 1].Kind].DurationMinutes,
+                    $"{mine.Key}: {list[i - 1].Kind} at {list[i - 1].Tick}, {list[i].Kind} at {list[i].Tick}");
+        }
+
+        // 12. An act its actor undergoes (warned, taken in, a mishap) is recorded as undergone, never
+        //     as something they did.
+        var actorRows = Kinds.Values.Where(k => k.Affect?.Patient == Patient.Actor).Select(k => k.Name).ToHashSet();
+        Assert.DoesNotContain(r.LifeEvents, e => e.Role == LifeRole.Did && actorRows.Contains(e.Kind));
+        foreach (Act a in r.Acts.Where(a => actorRows.Contains(a.Kind) && a.Target is not null && Cast.ContainsKey(a.Target)))
+            Assert.Contains(r.LifeEvents, e => e is { Role: LifeRole.Undergone } && e.Person == a.Actor && e.ActId == a.Id);
 
         // 10. The same seed gives the same log; the motive log is kept out of it (empty while acting).
         Assert.Empty(r.MotiveLog);

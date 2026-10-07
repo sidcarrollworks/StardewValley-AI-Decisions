@@ -390,8 +390,14 @@ public class DesireGraftTests
     {
         SimResult r = Mishap(pity: true);
         Act stumble = Assert.Single(r.Acts, a => a.Kind == "Stumbled");
-        Act help = Assert.Single(r.Acts, a => a.Kind == "HelpedSomeone");
+        Act help = Assert.Single(r.Acts, a => a.Kind == "HelpedSomeone" && a.Actor == "Dee");
         Assert.Equal(("Dee", "Cal", stumble.Id), (help.Actor, help.Target, help.About));
+        // Cal returns the kindness: the help cites his stumble, which is no kindness of his own.
+        Stirring back = Assert.Single(r.Stirred, s => s.Holder == "Cal");
+        Assert.Equal(("Dee", DesireKind.Return, help.Id), (back.Subject, back.Motive, back.Source));
+        Act returned = Assert.Single(r.Acts, a => a.Actor == "Cal" && a.Kind == "HelpedSomeone");
+        Assert.Equal(("Dee", help.Id), (returned.Target, returned.About));
+        Assert.DoesNotContain(r.Stirred, s => s.Source == returned.Id); // and his return is not returned
         Assert.True(help.Tick - stumble.Tick <= 60);
         Stirring stir = Assert.Single(r.Stirred, s => s.Holder == "Dee");
         Assert.Equal(("Cal", DesireKind.Pity, stumble.Id), (stir.Subject, stir.Motive, stir.Source));
@@ -435,7 +441,7 @@ public class DesireGraftTests
             int m = int.Parse(line.Split(' ')[0]);
             Assert.Matches(@"^\d+ tone curt Ann Bob because power \d\.\d\d understanding 0\.00 regard [+-]\d\.\d\d$", line);
             Stirring s = Assert.Single(r.Stirred, s => s.Tick == m && s.Holder == "Ann");
-            Assert.Equal(("Bob", DesireKind.Answer, -1), (s.Subject, s.Motive, s.Source));
+            Assert.Equal(("Bob", DesireKind.Answer, -2 - m), (s.Subject, s.Motive, s.Source)); // keyed by its minute
             Assert.Equal(0.1, s.Felt, 12);
             Felt f = Assert.Single(r.Feelings, f => f.Tick == m && f.Holder == "Ann" && f.Route == "Tone");
             Assert.Equal("Bob", f.Toward);
@@ -445,15 +451,23 @@ public class DesireGraftTests
         var warm = r.Log.Where(l => l.Contains(" tone warm ")).ToList();
         Assert.NotEmpty(warm);
         Assert.All(warm, l => Assert.DoesNotContain(r.Stirred, s => s.Tick == int.Parse(l.Split(' ')[0]) && s.Holder == l.Split(' ')[3]));
-        Assert.Equal(r.Log.Count(l => l.Contains(" tone curt ")), r.Stirred.Count(s => s.Source == -1));
-        // One curt greeting is too weak to act on (0.1, an argument needs 0.2); three in a week add
-        // up, and Ann argues with Bob over them. The argument cites no act.
+        Assert.Equal(r.Log.Count(l => l.Contains(" tone curt ")), r.Stirred.Count(s => s.Source <= -2));
+        // One curt greeting is too weak to act on (0.1, an argument needs 0.2); two add up, and the
+        // one greeted curtly argues over them. Each greeting's close call is drawn anew (the
+        // motive is keyed by the greeting's minute). The argument cites no act.
         Assert.True(curt.Count >= 3);
-        Act argue = Assert.Single(r.Acts);
-        Assert.Equal(("Argued", "Ann", "Bob", -1), (argue.Kind, argue.Actor, argue.Target, argue.About));
-        Assert.True(argue.Tick > int.Parse(curt[2].Split(' ')[0]));
-        Pursuit why = Assert.Single(r.Pursuits, p => p.ActId == argue.Id);
-        Assert.Equal((DesireKind.Answer, -1), (why.Motive, why.Source));
+        Assert.Contains(r.Acts, a => a.Actor == "Ann");
+        foreach (Act argue in r.Acts)
+        {
+            string other = argue.Actor == "Ann" ? "Bob" : "Ann";
+            Assert.Equal(("Argued", other, -1), (argue.Kind, argue.Target, argue.About));
+            var before = r.Log.Where(l => l.Contains($" tone curt {argue.Actor} {other} "))
+                .Select(l => int.Parse(l.Split(' ')[0])).Where(t => t < argue.Tick).ToList();
+            // The first argument needs two greetings; after it, the grudge it left adds to one.
+            Assert.True(before.Count >= (argue.Id == 0 ? 2 : 1), $"act {argue.Id} after {before.Count} curt greetings");
+            Pursuit why = Assert.Single(r.Pursuits, p => p.ActId == argue.Id);
+            Assert.Equal((DesireKind.Answer, -2 - before[^1]), (why.Motive, why.Source)); // the last curt greeting
+        }
 
         SimResult off = Greetings(tone: false);
         Assert.DoesNotContain(off.Log, l => l.Contains(" tone "));
