@@ -25,8 +25,9 @@ public sealed record WithdrawalStats(int Runs,
     double MeanPower, double PowerSpread, double LowPowerShare, double SinkSeedYears,
     IReadOnlyList<(string Name, double Gave, double Caught)> Contagion,
     IReadOnlyList<ShyRow> Shyest,
-    IReadOnlyDictionary<string, (double PerYear, double SumPerYear)> Watched,
-    IReadOnlyList<(string Name, double MeanE)> MostLeftOut);
+    IReadOnlyDictionary<string, (double PerYear, double SumPerYear)> Rules,
+    IReadOnlyList<(string Name, double MeanE)> MostLeftOut,
+    double HomeArgumentsByGate, double HomeArgumentsAtRates);
 
 public static class WithdrawalMetrics
 {
@@ -85,8 +86,12 @@ public static class WithdrawalMetrics
         return spells;
     }
 
-    public static WithdrawalStats Summarise(IReadOnlyList<SimResult> runs)
+    /// <param name="cast">The cast the runs used, for kin and households (default: the town's).</param>
+    public static WithdrawalStats Summarise(IReadOnlyList<SimResult> runs, IReadOnlyList<Villager>? cast = null)
     {
+        var byName = (cast ?? DefaultTown.Cast()).ToDictionary(v => v.Name);
+        bool Close(string a, string b) => byName.TryGetValue(a, out Villager? va) && byName.TryGetValue(b, out Villager? vb)
+                                          && (va.Household == vb.Household || va.KinOf(b) is not null || vb.KinOf(a) is not null);
         double years = Math.Max(1e-9, runs.Sum(r => r.Days) / (double)Year);
         static double Mean(IEnumerable<double> xs) { double s = 0; int n = 0; foreach (double x in xs) { s += x; n++; } return n == 0 ? double.NaN : s / n; }
         static double Pct(List<double> sorted, double p) => sorted.Count == 0 ? double.NaN : sorted[Math.Min(sorted.Count - 1, (int)(p * sorted.Count))];
@@ -217,7 +222,7 @@ public static class WithdrawalMetrics
                 shyest.Add(new ShyRow(name, c.Boldness, e, st, h));
             }
         }
-        var watched = runs.SelectMany(r => r.Watched).GroupBy(p => p.Key)
+        var watched = runs.SelectMany(r => r.Rules).GroupBy(p => p.Key)
             .ToDictionary(g => g.Key, g => (g.Sum(p => p.Value.Count) / years, g.Sum(p => p.Value.Sum) / years));
         var mostLeftOut = runs.SelectMany(r => r.Daily).GroupBy(p => p.Key)
             .Select(g => (Name: g.Key, MeanE: Mean(g.SelectMany(p => p.Value.LeftOut))))
@@ -234,6 +239,8 @@ public static class WithdrawalMetrics
             seedYears == 0 ? double.NaN : excused / (double)seedYears,
             meanPower, spread, powers.Count == 0 ? double.NaN : powers.Count(p => p < LowPower) / (double)powers.Count,
             powerYears == 0 ? double.NaN : sinkYears / (double)powerYears,
-            contagion, shyest, watched, mostLeftOut);
+            contagion, shyest, watched, mostLeftOut,
+            runs.Sum(r => r.Acts.Count(a => a.Kind == "Argued" && a.Target is { } t && Close(a.Actor, t) && r.Pursued.Contains(a.Id))) / years,
+            runs.Sum(r => r.Acts.Count(a => a.Kind == "Argued" && a.Target is { } t && Close(a.Actor, t) && !r.Pursued.Contains(a.Id) && !a.Injected)) / years);
     }
 }

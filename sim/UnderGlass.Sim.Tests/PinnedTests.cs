@@ -140,6 +140,20 @@ public class PinnedTests
     /// <summary>The town's feelings with the desire gate and the starting tensions off: phase 0c's town.</summary>
     internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; o.Start = DefaultTown.Tensions(0); return o; }
 
+    /// <summary>0d.6 (X13): with every 0d.6 rule switched on and only watched, the town is P3's to the
+    /// byte, and the rules record what they would have done. (The tone is 0d's own rule, so it stays off.)</summary>
+    [Fact]
+    public void WatchingEvery0d6RuleChangesNothing()
+    {
+        FeelingOptions o = DefaultTown.Feelings().With0d6("bcdefghm");
+        o.WithdrawalWatch = true;
+        o.LeftOutRate = 0.05; // strong enough to want to act
+        SimResult r = new Simulation(1, feelings: o).Run(112);
+        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(r));
+        foreach (string rule in new[] { "hurt at home", "contagion", "left out", "dial: chat", "recovery: keep", "missing", "held", "shown" })
+            Assert.True(r.Rules.ContainsKey(rule), rule);
+    }
+
     /// <summary>P2: motives watched but not acted on change nothing: the same year as P1.</summary>
     [Fact]
     public void WatchedMotivesChangeNothing()

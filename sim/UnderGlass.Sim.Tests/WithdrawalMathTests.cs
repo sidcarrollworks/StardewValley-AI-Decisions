@@ -67,6 +67,25 @@ public class WithdrawalMathTests
         Assert.True(Push(0.2, sens: 1.2) > Push(0.2, sens: 0.8));
         Assert.True(Push(0.2, self: 0.1) > Push(0.2, self: 0.9));
         Assert.Equal(Push(0.2) * 0.3, Push(0.2, buffer: 0.3), 12);
+        // A content loner is not harmed by being alone.
+        Assert.Equal(0, WithdrawalMath.LeftOutPush(0.7, 0.7, 1, 0.5, 1, O, solitary: 1));
+        Assert.Equal(Push(0.7) * 0.5, WithdrawalMath.LeftOutPush(0.7, 0.7, 1, 0.5, 1, O, solitary: 0.5), 12);
+        // Shy to a higher power narrows the push onto the shyest.
+        var cubed = new FeelingOptions { ShyPower = 3 };
+        Assert.Equal(Push(0.2) * 0.8, WithdrawalMath.LeftOutPush(0.7, 0.2, 1, 0.5, 1, cubed), 12);
+    }
+
+    /// <summary>X4's included side: only the shy who are not left out, only toward 0 and never
+    /// past it, and faster for the sensitive (differential susceptibility: test 13's other half).</summary>
+    [Fact]
+    public void TheIncludedShyComeCloser()
+    {
+        Assert.Equal(0.01 * 1.2, WithdrawalMath.IncludedPull(-0.4, 0.1, 0.2, 1.2, O), 12);
+        Assert.Equal(0.01 * 0.6, WithdrawalMath.IncludedPull(-0.4, 0.1, 0.2, 0.6, O), 12);
+        Assert.Equal(0.005, WithdrawalMath.IncludedPull(-0.005, 0.1, 0.2, 1.2, O), 12); // never past 0
+        Assert.Equal(0, WithdrawalMath.IncludedPull(-0.4, 0.3, 0.2, 1.2, O));           // left out
+        Assert.Equal(0, WithdrawalMath.IncludedPull(-0.4, 0.1, 0.6, 1.2, O));           // not shy
+        Assert.Equal(0, WithdrawalMath.IncludedPull(0.4, 0.1, 0.2, 1.2, O));            // combative: not this rule
     }
 
     /// <summary>W2 (X1): each earlier hurt in the window adds a quarter, up to double.</summary>

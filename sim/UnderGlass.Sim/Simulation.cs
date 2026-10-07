@@ -158,10 +158,11 @@ public sealed class SimResult
     /// <summary>Each person's days: kindness received, company, kindness unanswered, free time out,
     /// and being left out (spec X0).</summary>
     public required IReadOnlyDictionary<string, PersonDays> Daily { get; init; }
-    /// <summary>The mood each person passed on to others and took from them by contagion, over the run (X3).</summary>
-    public required IReadOnlyDictionary<string, (double Gave, double Caught)> Contagion { get; init; }
-    /// <summary>With WithdrawalWatch: what each 0d.6 rule would have done, how often and in sum (X13).</summary>
-    public required IReadOnlyDictionary<string, (int Count, double Sum)> Watched { get; init; }
+    /// <summary>The mood each person passed on to others and took from them by contagion over the run
+    /// (X3): in all, either way; and what they took, signed (Net).</summary>
+    public required IReadOnlyDictionary<string, (double Gave, double Caught, double Net)> Contagion { get; init; }
+    /// <summary>What each 0d.6 rule did (watching: would have done), how often and in sum (X13).</summary>
+    public required IReadOnlyDictionary<string, (int Count, double Sum)> Rules { get; init; }
 }
 
 /// <summary>
@@ -440,7 +441,7 @@ public sealed partial class Simulation
             OutMinutes = _outMinutes,
             Daily = Daily(),
             Contagion = ContagionTotals(),
-            Watched = _watched,
+            Rules = _rules,
         };
     }
 
@@ -1072,7 +1073,7 @@ public sealed partial class Simulation
                 int window = start + (m - start) / Math.Max(1, _go.ChatEveryMinutes);
                 if (m - start < _go.ChatMinMinutes || _chatted.Contains((a, b, window)))
                     continue;
-                double chattiness = (CharacterOf(i).Chattiness + CharacterOf(j).Chattiness) / 2;
+                double chattiness = (ChatInUse(i) + ChatInUse(j)) / 2; // 0d.6 (X6): the withdrawn talk less
                 double per10 = Math.Min(1, _go.ChatChance * (0.5 + chattiness));
                 double chance = 1 - Math.Pow(1 - per10, Clock.TickMinutes / 10.0);
                 if (Rng.Unit(_seed, "chat", a, b, m.ToString()) >= chance)

@@ -79,7 +79,7 @@ public class WithdrawalMetricsTests
         Assert.True(kind > 0);
         Assert.True(w.BySeason[0].MetDays > 0);
         Assert.Equal(0, w.WithdrawnPerYear);
-        Assert.Empty(w.Watched);
+        Assert.Empty(w.Rules);
         Assert.Equal(5, w.Shyest.Count);
         Assert.Equal("Penny", w.Shyest[0].Name);
         // Kindness received is counted where it is felt, from outside kin and household.

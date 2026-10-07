@@ -194,7 +194,7 @@ public sealed class FeelingOptions
     // ---- Hermits, brawlers, moods that spread, and missing people (phase 0d.6; Sid, 2026-10-07;
     // docs/under-glass/specs/0d6-spec.md). Each switch acts only while the gate acts, and the stance
     // rules only while StanceOn. All off: the town is 0d.5's, byte for byte.
-    /// <summary>X13: each 0d.6 rule switched on computes what it would do and records it (Watched),
+    /// <summary>X13: each 0d.6 rule switched on computes what it would do and records it (Rules),
     /// and changes nothing.</summary>
     public bool WithdrawalWatch { get; set; }
     /// <summary>X1 (W2): hurts at home, and hurts a person undergoes, move stance, with no motive.</summary>
@@ -249,6 +249,8 @@ public sealed class FeelingOptions
     public double ContagionConditions { get; set; }
     // X4: shy plus left out (Kx), the included side, the friend buffer, losing a friend.
     public double LeftOutRate { get; set; } = 0.01;
+    /// <summary>W1's interaction with shyness: shy to this power (the research's 2).</summary>
+    public int ShyPower { get; set; } = 2;
     public double IncludedBelow { get; set; } = 0.2;
     public double IncludedShyAbove { get; set; } = 0.5;
     public double IncludedPull { get; set; } = 0.01;
@@ -544,11 +546,23 @@ public static class WithdrawalMath
                       + o.LeftOutContactWeight * (1 - solitary) * Below(met, metMedian)
                       + o.LeftOutUnansweredWeight * Above(unansweredShare, shareMedian), 0, 1);
 
-    /// <summary>W1 (X4): how far being left out pushes a stance toward withdrawn in a night. Shy
-    /// squared is the interaction (Gazelle and Ladd: little without shyness); (1.5 - self-regard):
-    /// the lonely put exclusion down to themselves (Vanhalst).</summary>
-    public static double LeftOutPush(double leftOut, double boldness, double sens, double selfRegard, double buffer, FeelingOptions o)
-        => o.LeftOutRate * leftOut * (1 - boldness) * (1 - boldness) * sens * (1.5 - selfRegard) * buffer;
+    /// <summary>W1 (X4): how far being left out pushes a stance toward withdrawn in a night. Shy to
+    /// ShyPower (2: squared) is the interaction (Gazelle and Ladd: little without shyness);
+    /// (1.5 - self-regard): the lonely put exclusion down to themselves (Vanhalst); a content loner
+    /// is not harmed by being alone (Sid's answer 3: "a content loner, not a hermit").</summary>
+    public static double LeftOutPush(double leftOut, double boldness, double sens, double selfRegard, double buffer, FeelingOptions o,
+        double solitary = 0)
+    {
+        double shy = 1 - boldness, power = 1;
+        for (int k = 0; k < o.ShyPower; k++)
+            power *= shy;
+        return o.LeftOutRate * leftOut * power * sens * (1.5 - selfRegard) * buffer * (1 - solitary);
+    }
+
+    /// <summary>The included side (X4; Gazelle and Rudolph): the shy who are not left out come
+    /// closer, toward 0 and never past it, faster for the sensitive (differential susceptibility).</summary>
+    public static double IncludedPull(double stance, double leftOut, double boldness, double sens, FeelingOptions o)
+        => leftOut < o.IncludedBelow && 1 - boldness > o.IncludedShyAbove && stance < 0 ? Math.Min(-stance, o.IncludedPull * sens) : 0;
 
     /// <summary>W2 (X1): a hurt counts more for each earlier one in the window, up to the cap
     /// (repeated losses hurt more each time; Luhmann and Eid 2009).</summary>

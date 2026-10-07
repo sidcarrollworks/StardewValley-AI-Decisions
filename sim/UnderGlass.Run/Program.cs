@@ -336,7 +336,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));
 
     // Hermits, brawlers, moods that spread (phase 0d.6; spec section 9).
-    WithdrawalStats w = WithdrawalMetrics.Summarise(runs);
+    WithdrawalStats w = WithdrawalMetrics.Summarise(runs, cast);
     string[] on = new[] { ("b", feelings.HomeHurtOn || feelings.HouseholdGateOn), ("c", feelings.ContagionOn), ("d", feelings.LeftOutOn || feelings.InclusionDiscountOn),
         ("e", feelings.DialsOn), ("f", feelings.RecoveryOn), ("g", feelings.PatienceOn || feelings.CoercionOn), ("h", feelings.ShowOn), ("t", feelings.ToneOn), ("m", feelings.MissingOn) }
         .Where(x => x.Item2).Select(x => x.Item1).ToArray();
@@ -345,7 +345,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
         + string.Join(", ", w.BySeason.Select(s => $"s{s.Season + 1} {s.MeanE:0.00}/{s.P90E:0.00}; {s.KindIn:0.0}, {s.MetDays:0.0}; {Pc(s.Unanswered)}")));
     Console.WriteLine("  most left out (mean E): " + string.Join(", ", w.MostLeftOut.Select(x => $"{x.Name} {x.MeanE:0.00}")));
     Console.WriteLine($"  withdrawn (28 d at -0.5 or below) {w.WithdrawnPerYear:0.00} people a seed-year ({Per(w.TopWithdrawn)}); hermits (and hours out under 60% of their first season) {w.HermitsPerYear:0.00} ({w.HermitSpellsPerYear:0.00} spells; {Per(w.TopHermits)}), from the shyest third {Pc(w.HermitsFromShyestThird)}, seed-years with one {Pc(w.SeedYearsWithHermit)}, hours out fell {Pc(w.HermitHoursFall)}");
-    Console.WriteLine($"  brawlers (28 d at +0.5 or above) {w.BrawlersPerYear:0.00} people a seed-year ({w.BrawlerSpellsPerYear:0.00} spells; {Per(w.TopBrawlers)})");
+    Console.WriteLine($"  brawlers (28 d at +0.5 or above) {w.BrawlersPerYear:0.00} people a seed-year ({w.BrawlerSpellsPerYear:0.00} spells; {Per(w.TopBrawlers)}); arguments at home a year: by the gate {w.HomeArgumentsByGate:0.0}, at the town's rates {w.HomeArgumentsAtRates:0.0}");
     Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases}; a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6)");
     Console.WriteLine($"  power of acting: mean {w.MeanPower:0.000}, spread {w.PowerSpread:0.000}, person-days below 0.35 {w.LowPowerShare:P1}, seed-years with a sink (28-day mean below 0.3) {Pc(w.SinkSeedYears)}");
     if (w.Contagion.Any(c => c.Gave > 0 || c.Caught > 0))
@@ -358,7 +358,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     }
     foreach (ShyRow x in w.Shyest)
         Console.WriteLine($"  shy {x.Name} ({x.Boldness:0.00}) by season: left out {string.Join(" ", x.LeftOut.Select(v => v.ToString("0.00", inv)))}; stance {string.Join(" ", x.Stance.Select(S2))}; free hours out {string.Join(" ", x.HoursOut.Select(v => v.ToString("0.0", inv)))}");
-    if (w.Watched.Count > 0)
-        Console.WriteLine("  watched, a year (count, sum): " + string.Join(", ", w.Watched.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => $"{p.Key} {p.Value.PerYear:0.0} {Sg(p.Value.SumPerYear)}")));
+    if (w.Rules.Count > 0)
+        Console.WriteLine($"  rules, a year (times, sum){(feelings.WithdrawalWatch ? ", watched only" : "")}: " + string.Join(", ", w.Rules.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => $"{p.Key} {p.Value.PerYear:0.0} {Sg(p.Value.SumPerYear)}")));
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

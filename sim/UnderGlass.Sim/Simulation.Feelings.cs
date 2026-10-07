@@ -17,7 +17,7 @@ public sealed partial class Simulation
     private double[,] _kind = null!;          // n x kinds
     private string[] _kindNames = null!;      // distinct Villager.Kind, ordinal
     private int[] _kindOf = null!;            // villager index -> kind index
-    private List<(int Tick, double Amount)>[] _affects = null!; // mood entries, last MoodDays
+    private List<(int Tick, double Amount, int Src)>[] _affects = null!; // mood entries, last MoodDays; Src: the act felt, or -1
     private int[,] _together = null!;         // minutes together today, [min(i,j), max(i,j)]
     private bool[,] _slighted = null!;        // [h, j]: an act of j lowered h's regard today
     private int _now;                         // the current minute
@@ -87,7 +87,7 @@ public sealed partial class Simulation
         _kindNames = _cast.Select(v => v.Kind).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToArray();
         _kindOf = _cast.Select(v => Array.IndexOf(_kindNames, v.Kind)).ToArray();
         _kind = new double[n, _kindNames.Length];
-        _affects = Enumerable.Range(0, n).Select(_ => new List<(int, double)>()).ToArray();
+        _affects = Enumerable.Range(0, n).Select(_ => new List<(int, double, int)>()).ToArray();
         _together = new int[n, n];
         _slighted = new bool[n, n];
         if (!_fo.Enabled)
@@ -135,16 +135,18 @@ public sealed partial class Simulation
 
     // ---- mood and the power of acting (F16) ------------------------------------------------
 
-    private void AddMood(int i, double a)
+    /// <param name="src">The act the feeling is about, or -1 (company, the tone, contagion): so
+    /// contagion can leave out what both people felt (0d.6, X3).</param>
+    private void AddMood(int i, double a, int src = -1)
     {
         if (a != 0)
-            _affects[i].Add((_now, a));
+            _affects[i].Add((_now, a, src));
     }
 
     private double MoodOf(int i)
     {
         double sum = 0;
-        foreach (var (tick, amount) in _affects[i])
+        foreach (var (tick, amount, _) in _affects[i])
             sum += amount * Feelings.MoodWeight(_now - tick, _fo);
         return Feelings.Squash(sum);
     }
@@ -170,6 +172,8 @@ public sealed partial class Simulation
         int a = _index[pa.V.Name], b = _index[pb.V.Name];
         AddMood(a, _fo.CompanyJoy * (0.5 + CharacterOf(a).Chattiness) * (E(a, b) > -_fo.LoveAt ? 1 : -1));
         AddMood(b, _fo.CompanyJoy * (0.5 + CharacterOf(b).Chattiness) * (E(b, a) > -_fo.LoveAt ? 1 : -1));
+        if (Acting && _fo.ContagionOn)
+            Catch(a, b); // 0d.6 (X3): moods spread
     }
 
     // ---- feeling a belief (F3-F11, F15) ----------------------------------------------------
@@ -225,6 +229,7 @@ public sealed partial class Simulation
                 foreach (int t in ticks)
                     if (t < act.Tick && act.Tick - t < _fo.RepeatDays * Clock.MinutesPerDay)
                         rec.Repeat *= 0.5;
+                rec.F0 *= Adaptation(ticks, act.Tick); // 0d.6 (X12): repeated gifts count for less
                 ticks.Add(act.Tick);
             }
         }
@@ -240,7 +245,7 @@ public sealed partial class Simulation
         {
             double d = mood - rec.Mood;
             rec.Mood = mood;
-            AddMood(h, d);
+            AddMood(h, d, act.Id);
             _feltLog.Add(new Felt(m, who, act.Id, rec.Route, basis, d, null, 0, 0));
         }
         if (fresh && rec.Route == "Direct")
@@ -484,11 +489,13 @@ public sealed partial class Simulation
             return;
         int s = _index[act.Actor];
         double f = row.Joy * Sens(s);
-        AddMood(s, f);
+        AddMood(s, f, act.Id);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
         Underwent(s, act.Target, act.Id, Math.Abs(f), m);
         if (row.Freedom <= 0 || act.Target is not { } t || t == act.Actor || !_index.TryGetValue(t, out int ti))
             return;
+        if (_fo.HomeHurtOn && f < 0)
+            Lasting(s, -f, Close(s, ti) ? _fo.HomeHurtWeight : 1, m, "undergone"); // 0d.6 (W2): a hurt with no motive
         double phi = _fo.Freedom ? row.Freedom * (act.About >= 0 && Did(act.Actor, act.About) ? 1 - U(s) : 1) : 1;
         double dr = f * row.Plastic * _fo.PlasticScale * phi * Feelings.Keep(f, Ret(s), _fo);
         Move(s, ti, dr, act.Id, "Undergone", "Event", true, m);
@@ -513,11 +520,13 @@ public sealed partial class Simulation
         string route = eventName == "confronted" ? "Confronted" : "Accused";
         if (_eventsFelt.Add((s, actId, eventName, -1)))
         {
-            AddMood(s, f);
+            AddMood(s, f, actId);
             _feltLog.Add(new Felt(m, subject, actId, route, "Event", f, null, 0, 0));
             Underwent(s, list.FirstOrDefault(), actId, Math.Abs(f), m);
             if (guilty)
                 AddSentiment(subject, subject, "Ashamed", actId, Math.Abs(f), m);
+            if (guilty && _fo.HomeHurtOn)
+                Lasting(s, Math.Abs(f), 1, m, "named"); // 0d.6 (W2): the guilty stir no motive, but it weighs
         }
         if (guilty || per == 0)
             return;
@@ -570,9 +579,11 @@ public sealed partial class Simulation
         if (known.Count >= _fo.ShameCap || !known.Add(holder))
             return;
         double f = _fo.ShameJoy * (1.5 - SR(ki)) * Sens(ki);
-        AddMood(ki, f);
+        AddMood(ki, f, actId);
         _feltLog.Add(new Felt(m, k, actId, "Shame", "Event", f, null, 0, 0));
         Underwent(ki, c, actId, Math.Abs(f), m);
+        if (_fo.HomeHurtOn)
+            Lasting(ki, Math.Abs(f), _fo.HomeHurtWeight, m, "shame"); // 0d.6 (W2): kin's shame weighs, at home's weight
         double freedom = KindOf(_acts[actId]).Affect?.Freedom ?? 1;
         double raw = f * _fo.EventPlastic * _fo.PlasticScale * Feelings.Phi(freedom, Excuse(ki, ci), _fo) * Feelings.Keep(f, Ret(ki), _fo);
         Move(ki, ci, raw, actId, "Shame", "Event", true, m);
