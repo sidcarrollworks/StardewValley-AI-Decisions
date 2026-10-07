@@ -217,11 +217,53 @@ How we got there:
 
 E2 is to be rerun once the desire gate makes the town lively.
 
+## Phase 0d.1: the desire gate (built)
+
+Rule 10, so that the hurt can answer back and kindness is returned (Sid, 2026-10-06). Designed by a panel (three designs, three judges; the "minimal" design won 2-1, with grafts), built in `Simulation.Desire.cs`, with `DesireMath` in `Feelings.cs`.
+
+What's modelled:
+- **Character** (0d.0): every trait is read from each person's current character, which starts as the cast's card and can be set (`SetTrait`, for tests and phase 0e). Nothing changes it yet.
+- **Motives from events**, only from what the holder saw or took part in (rule 9's robbed keeper excepted): being argued with stirs **Answer**; a gift or help, **Return**; a hurt from someone still loved (0.2 or more), **MakeUp**; a theft from one's shop or being named while innocent, **Retaliate**. A motive fades over 7 days; a hostile one is stronger by the grudge. Argued with over one's own scandal: they gave cause, and feel shame instead.
+- **Missing someone** (Fond): love above 0.2 grows into a wish to give, the more days since a day together (10 days to full).
+- **The gate**: boldness + 0.5 x familiarity + 0.5 x intensity + (power of acting - 0.5), against a gift 0.4, help 0.5, an argument 0.5 + 0.3 hostile + 0.1 for each hostile act the other did to them in 28 days (fear). Decided in code more than 0.15 either side; inside, a seeded close call (logistic of 8 x margin, tilted by mood) asked again only when the motive moves 0.1. Two attempts a pair a day; one act a person a tick; a 3-day cooldown per ordered pair for arguments and confrontations. A declined help falls back to a gift (story 2).
+- **Keeping away**: the hurt who cannot answer avoid that person for a week (no kindness to them), and go home from a haunt where they meet. A **stance** builds from hurts: the bold grow combative, the shy withdrawn (it raises the home's pull), and kindness eases it; it fades over a month. This is the loop by which hermits and brawlers can emerge (Sid, 2026-10-07).
+- **Families cover**: the gate never acts between kin or housemates. The town-wide rates of gifts, help and arguments stay, as everyday occasions the gate answers.
+- **The record**: every life's events (done, undergone, declined, avoided, withdrew, lapsed) with severity and how they turned out (answered, returned, rebuffed, avoided, ignored), for phase 0e's plasticity (rule 18).
+- **Built and off**: light snubs and turning away with the third-slight mark (they drained feuds from 7.9 to 0.6 a year), pity at a mishap, the tone of a day's first meeting.
+- **Switches**: with the gate off the town is 0c's (pinned, `c0488cc6bf81e64f`); with motives watched but not acted on, the same hash.
+
+The gate (2026-10-07; 400 seeds x 14 days with a placed scandal, and 200 seeds x 112 days):
+
+| | Check | Result | |
+|---|---|---|---|
+| 1 | witnessed placed scandals in the 40-70% band | 55% in the band, 25% over 70% | passes |
+| 1b | the authority | decided right 99%, reported 87% | passes |
+| 2 | money | 0.000 g; 2.6 tempted scandals a year, none from grievance | passes |
+| 4 | E1: a new feud and a new friendship between households | **64%** of seed-years (0c: 0%); no war towns, no dead towns | passes |
+| 5 | regard at season ends | below -0.2: 0.6% after one season, then 1.1-1.7%; mean change +0.011 to +0.025; moved 0.1+ 6.3-16% | passes from the second season |
+| 6 | tests | 160 pass | passes |
+
+A year of the town: feuds 7.8 and friendships 1.05 a year, reconciliations 0.7; most feuded: Sam and Shane (co-workers at the chain, in 109 of 200 seeds), then Emily and Pierre; friendships most often Penny and Vincent, Jas and Penny (the teacher and her pupils). 81% of arguments are with someone disliked, 11% inside a household (0c: 1% and 55%). News 267 and trivia 858 a year (0c: 95 and 478). A seed-year takes about 17 s of one core.
+
+How we got there (50 seed-years each unless said):
+
+| Setting | E1 | feuds | friendships | trivia | mean change d111 | moved 0.1+ d111 |
+|---|---|---|---|---|---|---|
+| base gate (30, then 200 seed-years) | 70%, 60% | 8.1 | 0.89 | 618 | +0.021 | 12.6% |
+| + light acts | 32% | 0.6 | 1.18 | 653 | +0.029 | 12.5% |
+| + light acts + stance 1 | 54% | 1.3 | 1.28 | 686 | +0.027 | 12.4% |
+| + Fond 7 days | 76% | 7.2 | 1.66 | 1307 | **+0.051** | 22.5% |
+| + Fond 10 days | 68% | 8.0 | 1.06 | 860 | +0.030 | 16.1% |
+| + Fond 10 + stance + power (shipped; 200 seed-years) | 64% | 7.8 | 1.05 | 858 | +0.025 | 16.0% |
+
+Two defects were found by the gate's tests and fixed: a confrontation ignored the cooldown, and turning away while withdrawing did not cite its quarrel, so the arguer escalated against the one keeping away.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
 3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
-4. **0d, starting with rule 10's desire gate** (Sid, 2026-10-06): acts toward a person come from a motive about that person, so the hurt can answer back and kindness is returned. Then the town and acts as JSON, the bots, the story sifter and the replay viewer.
+4. **0d, left:** the first season's dislike under the 1% floor (a spark: starting tensions or the first greeting), the parameter-space and three-year checks, E2 rerun now the town is lively; then the town and acts as JSON, the bots, the story sifter and the replay viewer.
+5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.
