@@ -208,6 +208,15 @@ public sealed partial class Simulation
     private readonly Person[] _people;
     private readonly double[,] _fam;
     private readonly Dictionary<string, Dictionary<int, Belief>> _beliefs = new();
+    // Indexes over the beliefs, kept by Add, the one writer (they never change what the rules do;
+    // they spare scanning everything a person has ever known): the stories each person might still
+    // volunteer, which fade out of reach and are dropped; and each person's scandal beliefs, in act order.
+    private readonly Dictionary<string, HashSet<int>> _tellable = new();
+    private readonly Dictionary<string, SortedSet<int>> _scandalBeliefs = new();
+    private readonly Dictionary<string, ActKind> _kindByName = new();
+    // The scandal acts, in act order, taken from the act list as it grows (CheckScandals).
+    private readonly List<int> _scandalActs = new();
+    private int _actsScanned;
     private readonly HashSet<(string, string, int)> _told = new();
     private readonly Dictionary<(string, int, int), int> _tellsToday = new();
     private readonly Dictionary<(string, string), int> _spans = new();
@@ -261,6 +270,8 @@ public sealed partial class Simulation
         _cast = (cast ?? DefaultTown.Cast()).OrderBy(v => v.Name, StringComparer.Ordinal).ToList();
         _places = (places ?? DefaultTown.Locations()).ToDictionary(p => p.Name);
         _kinds = kinds ?? DefaultTown.Acts();
+        foreach (ActKind k in _kinds)
+            _kindByName.TryAdd(k.Name, k); // the first of a name, as a search of the list would find
         _po = perception ?? new PerceptionOptions();
         _go = gossip ?? new GossipOptions();
         _bo = body ?? new BodyOptions();
@@ -272,7 +283,11 @@ public sealed partial class Simulation
                 if (a != b)
                     _fam[_index[a.Name], _index[b.Name]] = SeedFamiliarity(a, b);
         foreach (string n in _names)
+        {
             _beliefs[n] = new Dictionary<int, Belief>();
+            _tellable[n] = new HashSet<int>();
+            _scandalBeliefs[n] = new SortedSet<int>();
+        }
         foreach (Link l in links ?? (places is null ? DefaultTown.Links() : Array.Empty<Link>()))
         {
             Door(l.A, l.B, l.DoorA, l.DoorB);
@@ -885,7 +900,7 @@ public sealed partial class Simulation
             Why(m, actor.V.Name, kind.Name, target);
     }
 
-    private ActKind KindOf(Act a) => _kinds.First(k => k.Name == a.Kind);
+    private ActKind KindOf(Act a) => _kindByName[a.Kind];
 
     private Scene SceneOf(Act act, Person actor)
     {
@@ -903,8 +918,9 @@ public sealed partial class Simulation
 
     private void Watch(int m, int t)
     {
-        foreach (Act act in _acts.Where(a => _watching.ContainsKey(a.Id)))
+        foreach (int id in _watching.Keys.Order().ToList()) // the acts in progress, in act order
         {
+            Act act = _acts[id];
             Location place = _places[act.Location];
             foreach (Person o in _people)
             {
@@ -923,8 +939,9 @@ public sealed partial class Simulation
 
     private void FinishActs(int m)
     {
-        foreach (Act act in _acts.Where(a => _watching.ContainsKey(a.Id)).ToList())
+        foreach (int id in _watching.Keys.Order().ToList()) // the acts in progress, in act order
         {
+            Act act = _acts[id];
             ActKind kind = KindOf(act);
             if (act.Tick + kind.DurationMinutes - 1 > m)
                 continue;
@@ -1003,6 +1020,9 @@ public sealed partial class Simulation
     {
         _beliefs[who].TryGetValue(b.ActId, out Belief? prior);
         _beliefs[who][b.ActId] = b;
+        _tellable[who].Add(b.ActId);
+        if (KindOf(_acts[b.ActId]).IsScandal)
+            _scandalBeliefs[who].Add(b.ActId);
         _log.Add($"{m} belief {who} {b.ActId} {b.Actor ?? "someone"} {b.Source} {b.Juiciness:0.###}");
         OwnAccount(who, b, m);
         CurfewBroken(who, b, m);
@@ -1059,7 +1079,7 @@ public sealed partial class Simulation
     public double Current(Belief b, int m)
     {
         int days = Math.Max(0, (m - b.GotTick) / Clock.MinutesPerDay);
-        double baseJ = _kinds.First(k => k.Name == b.Kind).Juiciness;
+        double baseJ = _kindByName[b.Kind].Juiciness;
         double fade = baseJ >= 4 ? _go.ScandalFadePerDay : _go.FadePerDay;
         return Math.Max(0, b.Juiciness - fade * days);
     }
@@ -1069,8 +1089,18 @@ public sealed partial class Simulation
         int day = Clock.Day(m);
         Belief? best = null;
         double bestScore = 0;
-        foreach (Belief b in _beliefs[teller].Values.OrderBy(b => b.ActId))
+        // Only stories that could still reach the bar: the best is chosen by score, then the latest
+        // act, so the order they are looked at in does not matter. A story's juiciness only fades,
+        // so one that can no longer reach the bar with the bonus never will (until it is told again).
+        List<int>? spent = null;
+        foreach (int id in _tellable[teller])
         {
+            Belief b = _beliefs[teller][id];
+            if (Current(b, m) + Math.Max(0, _go.KnowsBonus) < _go.VolunteerLevel)
+            {
+                (spent ??= new List<int>()).Add(id);
+                continue;
+            }
             if (b.Actor == listener || b.Suspects?.Contains(listener) == true || b.Chain.Count > 0 && b.Chain[0] == listener)
                 continue; // never tell people about themselves (or that they're suspected), or back to who told you
             if (b.Actor is { } culprit && AreKin(teller, culprit))
@@ -1092,6 +1122,8 @@ public sealed partial class Simulation
                 bestScore = score;
             }
         }
+        if (spent is not null)
+            _tellable[teller].ExceptWith(spent);
         if (best is null)
             return;
 
@@ -1128,9 +1160,13 @@ public sealed partial class Simulation
 
     private void CheckScandals(int m)
     {
-        foreach (Act act in _acts)
+        for (; _actsScanned < _acts.Count; _actsScanned++)
+            if (KindOf(_acts[_actsScanned]).IsScandal)
+                _scandalActs.Add(_actsScanned);
+        foreach (int id in _scandalActs)
         {
-            if (_confronted.Contains(act.Id) || !KindOf(act).IsScandal || _watching.ContainsKey(act.Id))
+            Act act = _acts[id];
+            if (_confronted.Contains(act.Id) || _watching.ContainsKey(act.Id))
                 continue;
             var holders = _names
                 .Where(n => _beliefs[n].TryGetValue(act.Id, out Belief? b) && b.Actor is not null)

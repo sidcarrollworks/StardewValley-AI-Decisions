@@ -127,7 +127,8 @@ public sealed partial class Simulation
             _log.Add($"{m} handed-on {who} {to} {_carried.Count}");
             _carried.Clear();
         }
-        foreach (Belief b in _beliefs[who].Values.OrderBy(b => b.ActId))
+        // Only scandals are reported: the scandal beliefs, in act order, as they stood now.
+        foreach (Belief b in _scandalBeliefs[who].Select(id => _beliefs[who][id]).ToList())
         {
             Act act = _acts[b.ActId];
             // Once per authority for each thing they know: again when "someone" becomes suspects or a name.

@@ -68,9 +68,8 @@ public sealed partial class Simulation
         foreach (Person p in _people)
         {
             string who = p.V.Name;
-            var pending = _beliefs[who].Values
-                .Where(b => b.Actor is null && b.Suspects is null && b.Source != Source.Told && KindOf(_acts[b.ActId]).IsScandal)
-                .OrderBy(b => b.ActId).ToList();
+            var pending = _scandalBeliefs[who].Select(id => _beliefs[who][id])
+                .Where(b => b.Actor is null && b.Suspects is null && b.Source != Source.Told).ToList(); // in act order
             foreach (Belief b in pending)
             {
                 var (since, until) = Window(b)!.Value;
