@@ -171,10 +171,10 @@ public static class DefaultTown
     /// seed was a dead town; at 2, 7.9% moved, inside the 5-25% band (sweeps of 2026-10-06,
     /// sim/README.md). With the desire gate (phase 0d, rule 10): people answer, return, make up
     /// and keep away. Of its added rules (sweeps of 2026-10-07, sim/README.md), the town misses
-    /// loved ones (Fond, 10 days), keeps a stance (hermits and brawlers can emerge), and dares by
+    /// loved ones (Fond, 14 days: at 10 regard drifted up over three years), keeps a stance (hermits and brawlers can emerge), and dares by
     /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).</summary>
     public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true,
-        FondOn = true, FondDays = 10, StanceOn = true, PowerWeight = 1 };
+        FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1 };
 
     /// <summary>
     /// The town's starting tensions (0c question 1; Sid, 2026-10-07): who starts out disliking whom,

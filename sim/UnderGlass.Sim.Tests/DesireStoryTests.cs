@@ -5,7 +5,7 @@ namespace UnderGlass.Sim.Tests;
 
 /// <summary>
 /// Golden stories of the desire gate in the town as it ships (phase 0d; spec section 9), each the
-/// first of its kind in seeds 1-3: a feud that grows from answering back (G1), and a friendship
+/// first of its kind in a few seeds: a feud that grows from answering back (G1), and a friendship
 /// that grows from kindness returned (G2). Each runs only as long as its story needs. The hermit
 /// and the brawler (G3, G4) are measured, not pinned: neither appears as the spec expected
 /// (`sim/README.md`, phase 0d.5).
@@ -50,15 +50,16 @@ public class DesireStoryTests
         Assert.True(r.Regard[(tie.A, tie.B)] <= -0.3 && r.Regard[(tie.B, tie.A)] <= -0.3);
     }
 
-    /// <summary>G2, seed 2: Vincent gives Penny, his teacher, a gift on day 10 at a rate, and she
-    /// gives one back. From then each kindness of hers is returned by him through the gate, and on
-    /// day 80 they are friends (0.4 or more both ways), across households.</summary>
+    /// <summary>G2, seed 5 (the first friendship in seeds 1-5 since Fond went to 14 days, 0d.5):
+    /// at the saloon on day 4 Gus, who keeps it, gives Alex a gift at a rate and Alex gives one
+    /// back, then help each way; on day 17 Alex gives first and Gus returns it; on day 27 two more
+    /// rounds, and they are friends (0.4 or more both ways), across households.</summary>
     [Fact]
     public void G2_AFriendshipGrowsFromKindnessReturned()
     {
-        SimResult r = new Simulation(2, feelings: DefaultTown.Feelings()).Run(81);
+        SimResult r = new Simulation(5, feelings: DefaultTown.Feelings()).Run(28);
         var tie = r.Ties.First(t => t.What == "friendship");
-        Assert.Equal((80, "Penny", "Vincent"), (tie.Day, tie.A, tie.B));
+        Assert.Equal((27, "Alex", "Gus"), (tie.Day, tie.A, tie.B));
         Assert.False(Close(tie.A, tie.B));
 
         var kind = r.Acts.Where(a => a.Kind is "GaveGift" or "HelpedSomeone" && Between(a, tie.A, tie.B)).ToList();

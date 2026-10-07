@@ -270,26 +270,38 @@ A review of the gate (three reviewers, each finding checked by a skeptic) confir
 
 ## Phase 0d.5: tensions, the gate's metrics, the parameter space and E2 (built)
 
-- **Starting tensions** (Sid, 0c question 1): Pierre and Shane both ways, Sebastian toward Demetrius, Abigail toward Pierre, at -0.3. Each is its pair's baseline, so it lasts and heals back there, and a pair seeded below a feud's -0.3 both ways is never counted as a new feud. `--tensions <depth>` sets them (0: none). Phase 0c's pinned town (P1, P2) starts without them; P3 pins the town with them (`b6a87fe3b8fc0916`).
+- **Starting tensions** (Sid, 0c question 1): Pierre and Shane both ways, Sebastian toward Demetrius, Abigail toward Pierre, at -0.3. Each is its pair's baseline, so it lasts and heals back there, and a pair seeded below a feud's -0.3 both ways is never counted as a new feud. `--tensions <depth>` sets them (0: none). Phase 0c's pinned town (P1, P2) starts without them; P3 pins the town as it ships (`e9fd83b284f5c1b6`).
+- **Missing someone is slower:** `FondDays` 14, was 10. At 10, regard drifted up faster each season of a three-year run (check 7, below). A stopgap: Sid's model of missing people (how prone each person is, secure friendships missing less, gifts kept for birthdays and festivals) comes in 0d.6.
+- **Long runs no longer slow down.** A three-year seed took 123 s on Sid's PC, the cost of a day climbing with the run: a profile (dotnet-trace, on Sid's PC) found 68% of the time in three rules rescanning every belief a person had ever held, and 12% in finding act kinds by a linear search. Beliefs are now indexed as they are written (the stories each person might still tell, dropped once they fade out of reach; and their scandal beliefs), act kinds come from a dictionary, and the acts in progress and the scandal acts from short lists. Nothing the rules do changes: every pin holds and a 336-day seed hashes the same as before. That seed now takes 31 s in the cloud container, and a day costs about the same at the end of a run as at the start.
 - **`DesireMetrics`** (`DesireMetrics.cs`; the runner's "desire" block): motives stirred and weighed; acts by the gate and at the town's rates; arguments answered in kind and kindness returned across households; avoids, withdrawals and gave-cause; dislike split into across households, at home, and across without the seeded pairs; outcomes; stance at season ends with hermits and brawlers; how much of the feuding one person accounts for; and a fringe line for the boldest and the shyest, with free hours a day out of home (awake, not at work, recorded per season while the gate is on). A review (three reviewers, each finding checked by a skeptic) found ten metric and test defects, all fixed: answering windows cut off by the run's end, pairs that keep arguing counted inside households, run-length scaling, hours out counting work, scheduled acts counted as the town's rates, and tests that could not fail.
 - **Runner:** `--desire off|observe|on`, `--trait <Name>=<Trait>:<value>`, `--tensions <depth>`.
-- **Golden stories:** G1, a feud from answering back (seed 1: Lewis and Pam, day 10); G2, a friendship from kindness returned (seed 2: Penny and Vincent, day 80).
+- **Golden stories:** G1, a feud from answering back (seed 1: Lewis and Pam, day 10); G2, a friendship from kindness returned (seed 5: Gus, who keeps the saloon, and Alex, day 27).
 
-The gate, with the tensions (2026-10-07; 400 seeds x 14 days with a placed scandal, and 200 seeds x 112 days):
+The gate, as the town ships (2026-10-07; 400 seeds x 14 days with a placed scandal, 200 seeds x 112 days, and 50 seeds x 336 days):
 
 | | Check | Result | |
 |---|---|---|---|
 | 1 | witnessed placed scandals in the 40-70% band | 55% in the band, 25% over 70% | passes |
 | 1b | the authority | decided right 99%, reported 87% | passes |
 | 2 | money | 0.000 g; 2.7 tempted scandals a year, none from grievance | passes |
-| 4 | E1 | **66%** of seed-years; no war towns, no dead towns | passes |
-| 5 | regard at season ends | below -0.2: 1.1% at d27 (0.6% without the seeded pairs), then 1.6-2.2%; mean change +0.011 to +0.026; moved 0.1+ 6.4-16.1% | passes from the second season |
-| 6 | parameter space (54 cells x 20 seed-years, run on Sid's PC) | **14 of 54 lively** (26%; 11 if three cells exactly on a threshold fail), against 9 needed | passes |
-| 7 | three years (50 x 336) | see below | pending |
+| 4 | E1 | **60%** of seed-years (66% with Fond at 10 days); no war towns, no dead towns | passes, at the floor |
+| 5 | regard at season ends | below -0.2: 1.1% at d27 (0.6% without the seeded pairs), then 1.6-2.1%; mean change +0.010 to +0.020; moved 0.1+ 5.8-13.8% | passes from the second season |
+| 6 | parameter space (54 cells x 20 seed-years, Fond at 5-10 days, run on Sid's PC) | **14 of 54 lively** (26%; 11 if three cells exactly on a threshold fail), against 9 needed | passes |
+| 7 | three years | year 3: below -0.2 3.1-3.9%, mean change +0.027 to +0.028, moved 0.1+ 18.2-20.3%; moved at d335 1.46 x d111 (limit 1.5); no war towns, no dead towns at any year's end | passes |
 | 8 | fringe (reported) | brawlers yes, hermits no (below) | reported |
-| 10 | tests | 173 pass | passes |
+| 10 | tests | 174 pass | passes |
 
-A year of the town: feuds 7.85 and friendships 1.01 a year, reconciliations 1.6 (0.7 without the tensions: Sebastian comes round to his stepfather in most seeds, by living with him). Across households, 42% of arguments are answered in kind within a day and 90% within a week, and 71% of kindnesses are returned within a week (counting only acts whose window ends inside the run). News 272 and trivia 862 a year.
+A year of the town: feuds 7.72 and friendships 0.89 a year, reconciliations 1.4 (0.7 without the tensions: Sebastian comes round to his stepfather in most seeds, by living with him). Across households, 41% of arguments are answered in kind within a day and 90% within a week, and 62% of kindnesses are returned within a week (counting only acts whose window ends inside the run). News 265 and trivia 697 a year. E2, the parameter space and the fringe were measured with Fond at 10 days, before the three-year check.
+
+**Three years** (check 7). With Fond at 10 days, regard drifted up faster each season: mean change +0.090 and 34% of pairs moved at d335 (2.1 x d111), gifts from the gate doubling to 763 a year as friends missed each other, gave, and grew closer. Turning stance off left the drift as it was (+0.112); turning Fond off stopped it (+0.020); Fond at 14 days holds regard flat through year 3 (below). A year 3 of the town as it ships: feuds 7.2 and friendships 2.4 a year (more over three years than in the first, as people come to know each other), with every seed-span holding a new feud and a new friendship.
+
+| day | 111 | 223 | 251 | 279 | 307 | 335 |
+|---|---|---|---|---|---|---|
+| mean change | +0.022 | +0.026 | +0.028 | +0.028 | +0.027 | +0.028 |
+| below -0.2 | 1.9% | 2.9% | 3.1% | 3.3% | 3.8% | 3.9% |
+| moved 0.1+ | 13.9% | 17.4% | 18.2% | 19.0% | 19.8% | 20.3% |
+
+Pam's trailer runs deeper into debt every year (-3,200 g after three years), and the town's cash falls about 300 g a season after the first year: a phase 0b question for later.
 
 **The first season.** At depths 0, 0.2, 0.3 and 0.4 (50 seed-years each), dislike that was not seeded is 0.5-0.6% at d27 in every case: the tensions hold their own pairs and spark nothing new in the first season, and add no feuds. Sid keeps them: the first season is the starter season.
 
@@ -298,7 +310,7 @@ A year of the town: feuds 7.85 and friendships 1.01 a year, reconciliations 1.6 
 | | Fond 5 days | 7 | 10 |
 |---|---|---|---|
 | plastic 1.5 | 1 | 0 | 0 |
-| plastic 2 | 0 | 4 | **6** (the shipped town's group) |
+| plastic 2 | 0 | 4 | **6** (the town's group before Fond went to 14 days) |
 | plastic 2.5 | 0 | 0 | 3 |
 
 Plastic and FondDays work as one dial on how fast regard moves, so the lively cells lie on a diagonal. At plastic 1.5 E1 fails; at 2.5 regard moves too much and all three war towns appear; Fond at 5 days runs away (at plastic 2.5, 170-220 new friendships a year). FearPerHit 0.15 drops dislike under the 1% floor. StanceWeight changes the verdict in 2 of 27 pairs. The sweep ran in 58 minutes on Sid's Ryzen 7 7800X3D.
@@ -322,14 +334,12 @@ Rules under the bar stay for now and are a question for Sid, not a cut: avoiding
 
 **The fringe** (check 8; 50 seed-years each). Brawlers emerge (3.5 people a seed-year reach +0.5 at a season end; Alex, Sam and Abigail most). Hermits do not: at boldness 0.02 Penny's stance ends at -0.01 and her free time out of home stays at 5.9 hours a day in season 1 and in season 4, as at her own boldness; the most withdrawn person in the town ends at -0.05. Alex at boldness 0.98 acts as he does at 0.80, since he already clears every gate he meets; only his stance rises (+0.61 to +0.69). The causes, from `docs/under-glass/withdrawal-research.md`: hurts at home and undergone hurts never move stance, and any kindness undoes a withdrawn stance at once. G3 and G4 are therefore not pinned; 0d.6 builds the paths Sid asked for.
 
-**Long runs slow down.** A one-year run costs about 17 CPU seconds a seed-year; the three-year run took several times that per seed-year, so something grows with the run. To be profiled before 0e, which needs runs of 5-10 years.
-
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
 3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
-4. **0d.6:** hermits, brawlers and moods that spread (`docs/under-glass/withdrawal-research.md`, `masking-research.md`): measure first, then hurts at home (households argue), mood contagion (bad heavier at home only), shy plus left out, recovery, patience with the combative, expression as a seventh trait, and the first-greeting tone read through it. Also: the long-run slowdown. Then the town and acts as JSON, the bots, the story sifter and the replay viewer.
+4. **0d.6:** missing people and gifts (Sid's model, replacing Fond's 14-day stopgap), hermits, brawlers and moods that spread (`docs/under-glass/withdrawal-research.md`, `masking-research.md`): measure first, then hurts at home (households argue), mood contagion (bad heavier at home only), shy plus left out, recovery, patience with the combative, expression as a seventh trait, and the first-greeting tone read through it. Then the town and acts as JSON, the bots, the story sifter and the replay viewer.
 5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.

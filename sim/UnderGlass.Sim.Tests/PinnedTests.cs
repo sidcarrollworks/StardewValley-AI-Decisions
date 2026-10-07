@@ -95,13 +95,15 @@ public class PinnedTests
 
     /// <summary>D34: the desire gate pinned on a year of seed 1: the base gate (every added rule off,
     /// power weight 0), the gate with stance and the power of acting, the town as 0d.4 shipped it,
-    /// and as it ships now with its starting tensions (P3). The first three start with no tensions.
+    /// with its starting tensions at Fond's first 10 days, and as it ships now (P3: the tensions, Fond
+    /// at 14 days after the three-year check). The first three start with no tensions.
     /// Update only for a deliberate change to the gate.</summary>
     [Theory]
     [InlineData("base", "a123526358094b43")]
     [InlineData("stance+power", "07505a08bf1a9f78")]
     [InlineData("shipped without tensions", "f2af5b9f5b1fb4c4")]
-    [InlineData("shipped", "b6a87fe3b8fc0916")]
+    [InlineData("tensions, Fond at 10 days", "b6a87fe3b8fc0916")]
+    [InlineData("shipped", "e9fd83b284f5c1b6")]
     public void TheGateIsPinned(string which, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings();
@@ -117,6 +119,12 @@ public class PinnedTests
         {
             o = DefaultTown.Feelings();
             o.Start = DefaultTown.Tensions(0);
+            o.FondDays = 10; // as 0d.4 shipped it
+        }
+        else if (which == "tensions, Fond at 10 days")
+        {
+            o = DefaultTown.Feelings();
+            o.FondDays = 10; // before the three-year check (0d.5)
         }
         else if (which == "shipped")
             o = DefaultTown.Feelings(); // P3: with the starting tensions (0d.5)
