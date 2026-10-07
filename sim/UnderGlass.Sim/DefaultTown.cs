@@ -190,7 +190,9 @@ public static class DefaultTown
     };
 
     /// <summary>How far each starting tension sits below the seed: below the -0.2 floor and at a
-    /// feud's -0.3, so a seeded pair is never counted as a new feud (spec section 10).</summary>
+    /// feud's -0.3, so a pair seeded both ways starts in a feud and is never counted as a new one
+    /// (spec section 10). A shallower depth (--tensions) starts it cool, and if it falls into a feud,
+    /// that is a new one.</summary>
     public const double TensionDepth = 0.3;
 
     /// <summary>Regard that starts away from the seed, (from, to), and heals back there (it is the

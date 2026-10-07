@@ -89,14 +89,16 @@ public sealed partial class Simulation
         }
     }
 
-    /// <summary>Each tick: who is awake and away from home (the fringe line's hermit measure). Only read.</summary>
+    /// <summary>Each tick: who is awake, not at work, and away from home: free time out (the fringe
+    /// line's hermit measure; for those who work at home, their working hours are not time at home).
+    /// Only read.</summary>
     private void CountOut(int m)
     {
         if (!Desiring)
             return;
         int season = Clock.Day(m) / Clock.DaysPerSeason;
         foreach (Person p in _people)
-            if (!p.Asleep && p.Place != p.V.Home)
+            if (!p.Asleep && p.Why != "work" && p.Place != p.V.Home)
                 _outMinutes[p.V.Name][season] += Clock.TickMinutes;
     }
 

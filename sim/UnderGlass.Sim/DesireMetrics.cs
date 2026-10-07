@@ -1,9 +1,10 @@
 namespace UnderGlass.Sim;
 
 /// <summary>The town's boldest or shyest person at the start, and how their year went (the fringe
-/// line; rule 18's hermits and brawlers). Per seed-year, except the stance and the hours out.</summary>
+/// line; rule 18's hermits and brawlers). Per seed-year, except the stance and the hours out: free
+/// time away from home, hours a day, in the first season and in the fourth (or the last, if shorter).</summary>
 public sealed record FringeRow(string Name, double Boldness, double ActsPerYear, double DidPerYear, double UndergonePerYear,
-    double AvoidsPerYear, double WithdrawalsPerYear, double FirstSeasonHoursOut, double LastSeasonHoursOut, double EndStance);
+    double AvoidsPerYear, double WithdrawalsPerYear, double Season1HoursOut, double Season4HoursOut, double EndStance);
 
 /// <summary>Dislike at a season's end: the share of all ordered pairs below -0.2, split into pairs
 /// across households and pairs of kin or housemates; and across households leaving out the pairs
@@ -15,7 +16,9 @@ public sealed record DislikeAt(int Day, double Across, double KinOrHome, double 
 public sealed record StanceAt(int Day, double P10, double P50, double P90, double Hermits, double Brawlers);
 
 /// <summary>The desire gate across many runs (phase 0d; spec section 10). Per year means per 112
-/// days. A share of nothing is NaN.</summary>
+/// days; counts of distinct people or pairs over a whole run (hermits, brawlers, pairs that keep
+/// arguing) are per run. The answering shares count only acts whose window ends inside the run. A
+/// share of nothing is NaN.</summary>
 public sealed record DesireStats(int Runs,
     IReadOnlyDictionary<DesireKind, double> StirredPerYear,
     IReadOnlyDictionary<(DesireKind Motive, string Call), double> WeighedPerYear,
@@ -25,10 +28,10 @@ public sealed record DesireStats(int Runs,
     double GaveCausePerYear, double AvoidsPerYear, IReadOnlyList<(string Name, double PerYear)> TopAvoiders,
     double WithdrawalsPerYear, double TurnedAwayPerYear, double SnubsPerYear, double MarksPerYear,
     IReadOnlyList<(string Name, double PerYear)> TopGateArguers, double CrossHouseholdArgumentsPerYear,
-    double PairsTwoEachWayPerYear, double PairsThreeEachWayPerYear,
+    double PairsTwoEachWayPerRun, double PairsThreeEachWayPerRun,
     IReadOnlyList<DislikeAt> Dislike,
     IReadOnlyDictionary<(LifeRole Role, Outcome Outcome), double> Outcomes,
-    IReadOnlyList<StanceAt> Stance, double HermitsPerYear, double BrawlersPerYear,
+    IReadOnlyList<StanceAt> Stance, double HermitsPerRun, double BrawlersPerRun,
     (string Name, double Share) FeudConcentration,
     FringeRow? Boldest, FringeRow? Shyest, double MedianAvoidedAndWithdrewPerYear);
 
@@ -48,6 +51,7 @@ public static class DesireMetrics
         bool Close(string a, string b) => byName[a].Household == byName[b].Household
                                           || byName[a].KinOf(b) is not null || byName[b].KinOf(a) is not null;
         double years = Math.Max(1e-9, runs.Sum(r => r.Days) / (Clock.DaysPerSeason * 4.0));
+        double perRun = Math.Max(1, runs.Count);
         const int D = Clock.MinutesPerDay;
         static double Share(int part, int whole) => whole == 0 ? double.NaN : part / (double)whole;
         static double Pct(List<double> sorted, double p) => sorted.Count == 0 ? double.NaN : sorted[Math.Min(sorted.Count - 1, (int)(p * sorted.Count))];
@@ -62,11 +66,13 @@ public static class DesireMetrics
         var gate = runs.SelectMany(r => r.Pursued.Select(id => r.Acts[id].Kind)).GroupBy(k => k).OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.Count() / years);
         string[] aimed = { "Argued", "GaveGift", "HelpedSomeone" };
-        var rate = aimed.ToDictionary(k => k, k => runs.Sum(r => r.Acts.Count(a => a.Kind == k && a.Target is not null && !r.Pursued.Contains(a.Id))) / years);
+        var rate = aimed.ToDictionary(k => k, k => runs.Sum(r => r.Acts.Count(a => a.Kind == k && a.Target is not null && !a.Injected && !r.Pursued.Contains(a.Id))) / years);
 
-        // Answering, across households: an argument met by one back, and a kindness returned.
+        // Answering, across households: an argument met by one back, and a kindness returned. An act
+        // counts toward a window only if the window ends inside the run.
         var answered = new int[AnswerDays.Length];
-        int argumentsAcross = 0, kindAcross = 0, returned = 0;
+        var argumentsAcross = new int[AnswerDays.Length];
+        int kindAcross = 0, returned = 0;
         foreach (SimResult r in runs)
         {
             var aimedActs = r.Acts.Where(a => a.Target is not null && a.Target != a.Actor && byName.ContainsKey(a.Actor) && byName.ContainsKey(a.Target)).ToList();
@@ -81,16 +87,23 @@ public static class DesireMetrics
             static bool IsKind(Act a) => a.Kind is "GaveGift" or "HelpedSomeone";
             var argues = Ticks(a => a.Kind == "Argued");
             var kind = Ticks(IsKind);
+            int end = r.Days * D;
             foreach (Act a in aimedActs.Where(a => a.Kind == "Argued" && !Close(a.Actor, a.Target!)))
             {
-                argumentsAcross++;
                 int? back = Next(argues, a.Target!, a.Actor, a.Tick);
                 for (int k = 0; k < AnswerDays.Length; k++)
+                {
+                    if (a.Tick + AnswerDays[k] * D >= end)
+                        continue;
+                    argumentsAcross[k]++;
                     if (back is { } t && t - a.Tick <= AnswerDays[k] * D)
                         answered[k]++;
+                }
             }
             foreach (Act a in aimedActs.Where(a => IsKind(a) && !Close(a.Actor, a.Target!)))
             {
+                if (a.Tick + 7 * D >= end)
+                    continue;
                 kindAcross++;
                 if (Next(kind, a.Target!, a.Actor, a.Tick) is { } t && t - a.Tick <= 7 * D)
                     returned++;
@@ -107,7 +120,8 @@ public static class DesireMetrics
         int two = 0, three = 0;
         foreach (SimResult r in runs)
         {
-            var counts = r.Acts.Where(a => a.Kind == "Argued" && a.Target is not null).GroupBy(a => (a.Actor, a.Target!)).ToDictionary(g => g.Key, g => g.Count());
+            var counts = r.Acts.Where(a => a.Kind == "Argued" && a.Target is not null && byName.ContainsKey(a.Actor) && byName.ContainsKey(a.Target) && !Close(a.Actor, a.Target))
+                .GroupBy(a => (a.Actor, a.Target!)).ToDictionary(g => g.Key, g => g.Count());
             foreach (var ((a, b), n) in counts.Where(p => string.CompareOrdinal(p.Key.Actor, p.Key.Item2) < 0))
             {
                 int back = counts.GetValueOrDefault((b, a));
@@ -165,10 +179,12 @@ public static class DesireMetrics
                 if (test(v[d])) return true;
             return false;
         }
-        double hermits = runs.Sum(r => r.Stances.Values.Count(v => Ever(v, x => x <= HermitAt))) / years;
-        double brawlers = runs.Sum(r => r.Stances.Values.Count(v => Ever(v, x => x >= BrawlerAt))) / years;
+        double hermits = runs.Sum(r => r.Stances.Values.Count(v => Ever(v, x => x <= HermitAt))) / perRun;
+        double brawlers = runs.Sum(r => r.Stances.Values.Count(v => Ever(v, x => x >= BrawlerAt))) / perRun;
 
         // How much of the feuding one person accounts for.
+        // A pair that starts in a feud never ties as a new one; a cooler start that grows into one does
+        // (Simulation.Feelings; SteeringTests T34).
         var feuds = runs.SelectMany(r => r.Ties.Where(t => t.What == "feud")).ToList();
         var feuder = feuds.SelectMany(t => new[] { t.A, t.B }).GroupBy(n => n)
             .OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).FirstOrDefault();
@@ -184,7 +200,7 @@ public static class DesireMetrics
             double Hours(SimResult r, int season)
             {
                 if (!r.OutMinutes.TryGetValue(n, out int[]? m) || m.Length == 0) return double.NaN;
-                int s = season < 0 ? m.Length - 1 : season;
+                int s = Math.Min(season, m.Length - 1);
                 int days = Math.Min(Clock.DaysPerSeason, r.Days - s * Clock.DaysPerSeason);
                 return m[s] / 60.0 / Math.Max(1, days);
             }
@@ -194,7 +210,7 @@ public static class DesireMetrics
                 life.Count(e => e.Person == n && e.Role == LifeRole.Undergone) / years,
                 life.Count(e => e.Person == n && e.Role == LifeRole.Avoided) / years,
                 life.Count(e => e.Person == n && e.Role == LifeRole.Withdrew) / years,
-                runs.Average(r => Hours(r, 0)), runs.Average(r => Hours(r, -1)),
+                runs.Average(r => Hours(r, 0)), runs.Average(r => Hours(r, 3)),
                 runs.Average(r => r.Stances.TryGetValue(n, out double[]? v) && v.Length > 0 ? v[^1] : 0));
         }
         var keptAway = cast.Select(v => life.Count(e => e.Person == v.Name && e.Role is LifeRole.Avoided or LifeRole.Withdrew) / years)
@@ -203,12 +219,12 @@ public static class DesireMetrics
             : keptAway.Count % 2 == 1 ? keptAway[keptAway.Count / 2] : (keptAway[keptAway.Count / 2 - 1] + keptAway[keptAway.Count / 2]) / 2;
 
         return new DesireStats(runs.Count, stirred, weighed, gate, rate,
-            answered.Select(a => Share(a, argumentsAcross)).ToList(), Share(returned, kindAcross),
+            answered.Select((a, k) => Share(a, argumentsAcross[k])).ToList(), Share(returned, kindAcross),
             life.Count(e => e.Role == LifeRole.GaveCause) / years,
             runs.Sum(r => r.Avoids.Count) / years, Top(runs.SelectMany(r => r.Avoids.Select(v => v.Holder))),
             runs.Sum(r => r.Withdrawals) / years, Acts(Simulation.TurnedAway) / years, Acts(Simulation.Snubbed) / years,
             runs.Sum(r => r.Marks) / years,
-            Top(gateArgues.Select(a => a.Actor)), crossArgues / years, two / years, three / years,
+            Top(gateArgues.Select(a => a.Actor)), crossArgues / years, two / perRun, three / perRun,
             dislike, outcomes, stance, hermits, brawlers, concentration,
             Fringe(true), Fringe(false), median);
     }

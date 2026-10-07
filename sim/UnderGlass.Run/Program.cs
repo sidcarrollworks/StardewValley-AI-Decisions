@@ -72,8 +72,11 @@ for (int i = 0; i < args.Length - 1; i++)
         continue;
     string spec = args[i + 1];
     int eq = spec.IndexOf('='), colon = spec.IndexOf(':');
-    if (eq < 1 || colon < eq + 2 || !Enum.TryParse(spec[(eq + 1)..colon], ignoreCase: true, out Trait trait))
+    string? traitName = eq < 1 || colon < eq + 2 ? null
+        : Enum.GetNames<Trait>().FirstOrDefault(n => string.Equals(n, spec[(eq + 1)..colon], StringComparison.OrdinalIgnoreCase));
+    if (traitName is null) // a name only: Enum.TryParse would take "7" or "1" as a trait
         throw new ArgumentException("--trait <Name>=<Trait>:<value>, a trait one of " + string.Join(", ", Enum.GetNames<Trait>()));
+    Trait trait = Enum.Parse<Trait>(traitName);
     string who = spec[..eq];
     if (!DefaultTown.Cast().Any(v => v.Name == who))
         throw new ArgumentException($"--trait: nobody called {who}");
@@ -283,15 +286,15 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine("  stirred: " + string.Join(", ", g.StirredPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
     Console.WriteLine("  weighed: " + string.Join("; ", g.WeighedPerYear.GroupBy(p => p.Key.Motive).Select(m => $"{m.Key} " + string.Join(" ", m.Select(p => $"{p.Key.Call} {p.Value:0.0}")))));
     Console.WriteLine("  acts by the gate: " + string.Join(", ", g.GateActsPerYear.Select(p => $"{p.Key} {p.Value:0.0}")) + "; at the town's rates: " + string.Join(", ", g.RateActsPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
-    Console.WriteLine($"  across households: arguments {g.CrossHouseholdArgumentsPerYear:0.0}, answered in kind within " + string.Join(", ", DesireMetrics.AnswerDays.Select((d, k) => $"{d} d {Pc(g.AnsweredWithin[k])}")) + $"; kindness returned within 7 d {Pc(g.ReturnedWithin7)}; pairs arguing 2+ each way {g.PairsTwoEachWayPerYear:0.00}, 3+ {g.PairsThreeEachWayPerYear:0.00}");
+    Console.WriteLine($"  across households: arguments {g.CrossHouseholdArgumentsPerYear:0.0}, answered in kind within " + string.Join(", ", DesireMetrics.AnswerDays.Select((d, k) => $"{d} d {Pc(g.AnsweredWithin[k])}")) + $"; kindness returned within 7 d {Pc(g.ReturnedWithin7)}; pairs arguing 2+ each way {g.PairsTwoEachWayPerRun:0.00} a run, 3+ {g.PairsThreeEachWayPerRun:0.00}");
     Console.WriteLine($"  keeping away: gave cause {g.GaveCausePerYear:0.0}, avoids {g.AvoidsPerYear:0.0} ({Per(g.TopAvoiders)}), withdrawals {g.WithdrawalsPerYear:0.0}, turned away {g.TurnedAwayPerYear:0.0}, snubs {g.SnubsPerYear:0.0}, marks {g.MarksPerYear:0.0}");
     Console.WriteLine($"  top gate arguers {Per(g.TopGateArguers)}; feuds involving {g.FeudConcentration.Name}: {Pc(g.FeudConcentration.Share)}");
     Console.WriteLine("  under -0.2 at season ends (across households / kin or home / across, not seeded): " + string.Join(", ", g.Dislike.Select(x => $"d{x.Day} {x.Across:P1}/{x.KinOrHome:P1}/{x.AcrossUnseeded:P1}")));
     Console.WriteLine("  outcomes across households: " + string.Join("; ", g.Outcomes.GroupBy(p => p.Key.Role).Select(r => $"{r.Key} " + string.Join(" ", r.Select(p => $"{p.Key.Outcome} {p.Value:P0}")))));
-    Console.WriteLine("  stance at season ends (p10/p50/p90, hermits, brawlers a town): " + string.Join(", ", g.Stance.Select(x => $"d{x.Day} {S2(x.P10)}/{S2(x.P50)}/{S2(x.P90)} {x.Hermits:0.0} {x.Brawlers:0.0}")) + $"; ever a hermit {g.HermitsPerYear:0.0}, a brawler {g.BrawlersPerYear:0.0} a seed-year");
+    Console.WriteLine("  stance at season ends (p10/p50/p90, hermits, brawlers a town): " + string.Join(", ", g.Stance.Select(x => $"d{x.Day} {S2(x.P10)}/{S2(x.P50)}/{S2(x.P90)} {x.Hermits:0.0} {x.Brawlers:0.0}")) + $"; ever a hermit {g.HermitsPerRun:0.0}, a brawler {g.BrawlersPerRun:0.0} a run");
     foreach (FringeRow? x in new[] { g.Boldest, g.Shyest })
         if (x is not null)
-            Console.WriteLine($"  fringe {(x == g.Boldest ? "boldest" : "shyest")} {x.Name} (boldness {x.Boldness:0.00}): acts {x.ActsPerYear:0}, did {x.DidPerYear:0.0}, underwent {x.UndergonePerYear:0.0}, avoided {x.AvoidsPerYear:0.0}, withdrew {x.WithdrawalsPerYear:0.0}; hours out a day {x.FirstSeasonHoursOut:0.0} in the first season, {x.LastSeasonHoursOut:0.0} in the last; stance at the end {S2(x.EndStance)}");
+            Console.WriteLine($"  fringe {(x == g.Boldest ? "boldest" : "shyest")} {x.Name} (boldness {x.Boldness:0.00}): acts {x.ActsPerYear:0}, did {x.DidPerYear:0.0}, underwent {x.UndergonePerYear:0.0}, avoided {x.AvoidsPerYear:0.0}, withdrew {x.WithdrawalsPerYear:0.0}; free hours out a day {x.Season1HoursOut:0.0} in season 1, {x.Season4HoursOut:0.0} in season 4 (or the last); stance at the end {S2(x.EndStance)}");
     Console.WriteLine($"  town median of avoided and withdrew: {g.MedianAvoidedAndWithdrewPerYear:0.0} a person a year");
     var ends = runs[0].Stances.Keys.Select(n => (Name: n, End: runs.Average(r => r.Stances[n][^1]))).OrderBy(x => x.End).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
     Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));

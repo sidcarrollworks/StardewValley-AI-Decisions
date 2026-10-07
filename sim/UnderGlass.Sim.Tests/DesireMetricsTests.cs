@@ -28,15 +28,16 @@ public class DesireMetricsTests
     };
 
     /// <summary>DesireSceneTests' D13: Ann argues at Bob, who answers within the half hour; she gives
-    /// him a gift on day 4 and he returns it. Across households, one argument of two answered within
-    /// a day (Bob's own is never answered: Ann's close call says no), and one kindness of two returned.</summary>
+    /// him a gift on day 4 and he returns it. Run for 12 days, so every window ends inside the run.
+    /// Across households, Ann's argument is answered and Bob's is not (Ann's close calls say no), and
+    /// one kindness of two is returned. Ann's argument was scheduled: neither the gate's nor the rates'.</summary>
     [Fact]
     public void AnsweringIsCountedFromTheActs()
     {
         var cast = new[] { V("Ann", "A", 3, 2, 0.5, "Argued"), V("Bob", "B", 5, 2, 0.9) };
         FeelingOptions o = FeelingOptions.WithDesire();
         SimResult r = new Simulation(1, cast, new[] { Room() }, Kinds, feelings: o, body: new BodyOptions { AwakeHoursAtRest = 100_000 },
-            scheduled: new[] { (Ten, "Ann", "Argued"), (4 * D + Ten, "Ann", "GaveGift") }, wander: 0).Run(7);
+            scheduled: new[] { (Ten, "Ann", "Argued"), (4 * D + Ten, "Ann", "GaveGift") }, wander: 0).Run(12);
         Act argue = Assert.Single(r.Acts, a => a is { Actor: "Bob", Kind: "Argued" });
         Assert.True(argue.Tick - Ten <= 60);
         Act gift = Assert.Single(r.Acts, a => a is { Actor: "Bob", Kind: "GaveGift" });
@@ -44,10 +45,10 @@ public class DesireMetricsTests
         DesireStats s = DesireMetrics.Summarise(new[] { r }, cast, o);
         Assert.Equal(new[] { 0.5, 0.5, 0.5 }, s.AnsweredWithin);
         Assert.Equal(0.5, s.ReturnedWithin7);
-        double years = 7 / 112.0;
+        double years = 12 / 112.0;
         Assert.Equal(1 / years, s.GateActsPerYear["Argued"], 9);
         Assert.Equal(1 / years, s.GateActsPerYear["GaveGift"], 9);
-        Assert.Equal(1 / years, s.RateActsPerYear["Argued"], 9); // Ann's scheduled argument
+        Assert.Equal(0, s.RateActsPerYear["Argued"]); // Ann's argument was scheduled (injected)
         Assert.Equal(2 / years, s.CrossHouseholdArgumentsPerYear, 9);
         Assert.Equal(new[] { ("Bob", 1 / years) }, s.TopGateArguers);
         Assert.Contains(gift.Id, r.Pursued);
@@ -77,17 +78,32 @@ public class DesireMetricsTests
         DislikeAt d27 = Assert.Single(s.Dislike);
         Assert.Equal(27, d27.Day);
         Assert.Equal(f.BySnapshot[0].UnderMinus02, d27.Across + d27.KinOrHome, 9);
-        Assert.True(d27.AcrossUnseeded <= d27.Across);
+        // The seeded pairs across households (Pierre and Shane, both ways) are all that separates the two.
+        int n = r.Names.Count, seededUnder = 0;
+        foreach (var (from, to) in o.Start.Keys)
+            if (DefaultTown.Cast().First(v => v.Name == from).Household != DefaultTown.Cast().First(v => v.Name == to).Household
+                && r.RegardSnapshots[0].Regard[r.Names.ToList().IndexOf(from) * n + r.Names.ToList().IndexOf(to)] < -0.2)
+                seededUnder++;
+        Assert.Equal(2, seededUnder);
+        Assert.Equal(d27.Across - seededUnder / (double)(n * (n - 1)), d27.AcrossUnseeded, 12);
 
         StanceAt st = Assert.Single(s.Stance);
         Assert.Equal(27, st.Day);
         Assert.True(st.P10 <= st.P50 && st.P50 <= st.P90);
+        // Hermits and brawlers at the season's end, and ever, counted straight from the stances.
+        int hermits = r.Stances.Values.Count(v => v[27] <= DesireMetrics.HermitAt);
+        int brawlers = r.Stances.Values.Count(v => v[27] >= DesireMetrics.BrawlerAt);
+        Assert.Equal((hermits, brawlers), ((int)st.Hermits, (int)st.Brawlers));
+        Assert.Equal((hermits, brawlers), ((int)s.HermitsPerRun, (int)s.BrawlersPerRun)); // one run, one season end
+        // The fringe's hours out are its season's free minutes out, a day.
+        Assert.Equal(r.OutMinutes["Penny"][0] / 60.0 / 28, s.Boldest.Season1HoursOut, 12);
+        Assert.Equal(s.Boldest.Season1HoursOut, s.Boldest.Season4HoursOut, 12); // a run of one season
 
         Assert.Equal(("Penny", 0.99), (s.Boldest!.Name, s.Boldest.Boldness));
         Assert.Equal(r.Stances["Penny"][^1], s.Boldest.EndStance, 12);
-        // Hours out are at most the day's, and someone with a job is out every day.
+        // Free time out is at most the day's, and the town spends some: the haunts, the hubs.
         Assert.All(r.OutMinutes.Values, m => Assert.InRange(m[0], 0, 28 * D));
-        Assert.True(r.OutMinutes["Pierre"][0] > 28 * 8 * 60 / 2);
+        Assert.True(r.OutMinutes.Values.Count(m => m[0] > 28 * 60) > r.OutMinutes.Count / 2, "most people are out an hour a day or more");
     }
 
     /// <summary>The starting tensions: Pierre and Shane both ways, Sebastian toward Demetrius,
@@ -108,9 +124,9 @@ public class DesireMetricsTests
         Assert.Equal(0.6, r.Baseline[("Demetrius", "Sebastian")]); // one way only: he keeps a housemate's regard
     }
 
-    /// <summary>A pair that starts in a feud is never counted as a new one (spec section 10); a
-    /// pair that falls into one is. Everyone argues every three days. Ann and Bob start at -0.4 both
-    /// ways, already a feud; Bob and Cal at -0.25, not yet one, and fall under -0.3.</summary>
+    /// <summary>A pair that starts in a feud is never counted as a new one (spec section 10); a pair
+    /// that falls into one is, even from a cool start (SteeringTests T34). Everyone argues every three
+    /// days. Ann and Bob start at -0.4 both ways; Bob and Cal at -0.25, and fall under -0.3.</summary>
     [Fact]
     public void ASeededFeudIsNotANewOne()
     {
@@ -121,7 +137,53 @@ public class DesireMetricsTests
             scheduled: scheduled, wander: 0).Run(18);
         Assert.True(r.Regard[("Ann", "Bob")] <= -0.3 && r.Regard[("Bob", "Ann")] <= -0.3);
         Assert.DoesNotContain(r.Ties, t => t.What == "feud" && (t.A, t.B) == ("Ann", "Bob"));
-        var feuds = r.Ties.Where(t => t.What == "feud").ToList();
-        Assert.Contains(feuds, t => (t.A, t.B) == ("Bob", "Cal"));
+        Assert.True(r.Regard[("Bob", "Cal")] <= -0.3 && r.Regard[("Cal", "Bob")] <= -0.3);
+        Assert.Contains(r.Ties, t => t.What == "feud" && (t.A, t.B) == ("Bob", "Cal"));
+    }
+
+    /// <summary>The answering windows told apart, with the gate off so only scheduled acts happen:
+    /// Ann argues on day 0, Bob back on day 2 (answered within 3 days, not 1), Ann back on day 9 at
+    /// the same minute (exactly 7 days: answered within 7 only), and nobody answers that. Ann gives a
+    /// gift on day 0 and Bob one on day 3 (returned within 7 days); nobody returns his. Two people,
+    /// two households, 20 days: every window ends inside the run.</summary>
+    [Fact]
+    public void TheWindowsAreToldApart()
+    {
+        var cast = new[] { V("Ann", "A", 3, 2, 0.5, "Argued", "GaveGift"), V("Bob", "B", 5, 2, 0.5, "Argued", "GaveGift") };
+        FeelingOptions o = FeelingOptions.WithDesire();
+        o.Desire = false;
+        var scheduled = new[]
+        {
+            (Ten, "Ann", "Argued"), (2 * D + Ten, "Bob", "Argued"), (9 * D + Ten, "Ann", "Argued"),
+            (Ten + 60, "Ann", "GaveGift"), (3 * D + Ten + 60, "Bob", "GaveGift"),
+        };
+        SimResult r = new Simulation(1, cast, new[] { Room() }, Kinds, feelings: o, body: new BodyOptions { AwakeHoursAtRest = 100_000 },
+            scheduled: scheduled, wander: 0).Run(20);
+        Assert.Equal(5, r.Acts.Count);
+        Assert.All(r.Acts, a => Assert.Equal(a.Actor == "Ann" ? "Bob" : "Ann", a.Target));
+
+        DesireStats s = DesireMetrics.Summarise(new[] { r }, cast, o);
+        Assert.Equal(new[] { 0.0, 1 / 3.0, 2 / 3.0 }, s.AnsweredWithin);
+        Assert.Equal(0.5, s.ReturnedWithin7);
+        Assert.Equal(0, s.PairsTwoEachWayPerRun); // Ann argued twice, Bob once
+        Assert.Empty(s.GateActsPerYear);
+    }
+
+    /// <summary>Pairs that keep arguing count across households only: housemates who argue twice
+    /// each way are not one.</summary>
+    [Fact]
+    public void PairsThatKeepArguingAreAcrossHouseholds()
+    {
+        foreach (string bobsHome in new[] { "B", "A" })
+        {
+            var cast = new[] { V("Ann", "A", 3, 2, 0.5, "Argued"), V("Bob", bobsHome, 5, 2, 0.5, "Argued") };
+            FeelingOptions o = FeelingOptions.WithDesire();
+            o.Desire = false;
+            var scheduled = new[] { (Ten, "Ann", "Argued"), (Ten + 30, "Bob", "Argued"), (4 * D + Ten, "Ann", "Argued"), (4 * D + Ten + 30, "Bob", "Argued") };
+            SimResult r = new Simulation(1, cast, new[] { Room() }, Kinds, feelings: o, body: new BodyOptions { AwakeHoursAtRest = 100_000 },
+                scheduled: scheduled, wander: 0).Run(6);
+            Assert.Equal(4, r.Acts.Count(a => a.Kind == "Argued"));
+            Assert.Equal(bobsHome == "B" ? 1 : 0, DesireMetrics.Summarise(new[] { r }, cast, o).PairsTwoEachWayPerRun);
+        }
     }
 }
