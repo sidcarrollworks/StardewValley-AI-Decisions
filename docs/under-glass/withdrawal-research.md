@@ -366,7 +366,15 @@ General:
 
 ## 7. Questions for Sid
 
-Answered on 2026-10-07: question 7 (a seventh trait, expression; and the held part's pull toward withdrawal is to be designed with `masking-research.md`), and question 8 in part (Sid likes the tone, read through expression). Sid also answered one this note did not ask: households argue, so the gate may act inside a household when regard there is bad, and rows at home (W2) come through the gate as well as through the rates.
+Answered on 2026-10-07 (Sid):
+- **1. How many hermits:** 0.2-1.0 sustained hermits a seed-year, as proposed.
+- **3. Content loners:** yes. Someone who prefers solitude (low chattiness, not shy) is not harmed by being alone: time alone does not count toward being left out for them, and they are a content loner, not a hermit.
+- **5. Recovering alone:** yes: the fresh start at a season change, as well as friends and reconciliation.
+- **6. 0e:** a season as a hermit is more likely to lower boldness for good than chattiness.
+- **B1 (question 5), restated by Sid:** it is the people dealing with a combative person whose kindness toward them runs out, after a couple of rounds, not at the first one: patience drops off quickly, by how patient the person is. (Interpretation to confirm with Sid: a per-pair patience that each hostile round from the same person uses up, refilling slowly; when it runs out, kind daring toward that person falls.)
+- **2. Bad moods heavier at home:** Sid asked for scenarios first (in the 0d.6 PR).
+
+Also answered: question 7 (a seventh trait, expression; and the held part's pull toward withdrawal is to be designed with `masking-research.md`), and question 8 in part (Sid likes the tone, read through expression). Sid also answered one this note did not ask: households argue, so the gate may act inside a household when regard there is bad, and rows at home (W2) come through the gate as well as through the rates.
 
 1. **How many hermits?** Real lifetime prevalence is about 1.2%, which is 0.3 people in a town of 26 over a lifetime. A game wants them visible. Proposed: 0.2-1.0 sustained hermits a seed-year, so one appears in some years and not in most. Higher or lower?
 2. **Bad moods heavier only at home, or everywhere?** The research supports the asymmetry for couples and families, not for friends or groups. Proposed: at home only, softened by love.
