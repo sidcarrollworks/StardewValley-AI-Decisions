@@ -163,7 +163,7 @@ public static class FeelingMetrics
 {
     /// <summary>War town: at some snapshot, more than this share of ordered pairs is below -0.2.</summary>
     public const double WarShare = 0.10;
-    /// <summary>Dead town: at the end, fewer than this share of ordered pairs moved 0.1 or more.</summary>
+    /// <summary>Dead town: at a year's end, fewer than this share of ordered pairs moved 0.1 or more.</summary>
     public const double DeadShare = 0.05;
 
     /// <param name="cast">The cast the runs used (for kin and households).</param>
@@ -227,18 +227,21 @@ public static class FeelingMetrics
                 under / (double)Math.Max(1, all.Count), high / (double)Math.Max(1, all.Count), moved / (double)Math.Max(1, all.Count),
                 kinSum / Math.Max(1, kinN), nonKinSum / Math.Max(1, nonKinN)));
         }
-        // A dead town is judged at the end of the first year.
-        int yearEnd = 4 * Clock.DaysPerSeason - 1;
-        var yearRuns = runs.Where(r => r.RegardSnapshots.Any(x => x.Day == yearEnd)).ToList();
-        double dead = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r =>
-        {
-            double[] flat = r.RegardSnapshots.First(x => x.Day == yearEnd).Regard;
-            int n = r.Names.Count, moved = 0;
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    if (i != j && Math.Abs(flat[i * n + j] - r.Baseline[(r.Names[i], r.Names[j])]) >= 0.1) moved++;
-            return moved < DeadShare * n * (n - 1);
-        }) / (double)yearRuns.Count;
+        // A dead town is judged at the end of each year the runs reach (the first year's end for a
+        // one-year run): dead if at any of them fewer than DeadShare of ordered pairs have moved 0.1.
+        int yearDays = 4 * Clock.DaysPerSeason;
+        var yearRuns = runs.Where(r => r.RegardSnapshots.Any(x => x.Day == yearDays - 1)).ToList();
+        double dead = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r => r.RegardSnapshots
+            .Where(x => x.Day % yearDays == yearDays - 1)
+            .Any(x =>
+            {
+                double[] flat = x.Regard;
+                int n = r.Names.Count, moved = 0;
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < n; j++)
+                        if (i != j && Math.Abs(flat[i * n + j] - r.Baseline[(r.Names[i], r.Names[j])]) >= 0.1) moved++;
+                return moved < DeadShare * n * (n - 1);
+            })) / (double)yearRuns.Count;
 
         // Ties.
         var ties = runs.SelectMany((r, ri) => r.Ties.Select(t => (Run: ri, t.A, t.B, t.What))).ToList();
