@@ -177,11 +177,26 @@ public static class DefaultTown
         FondOn = true, FondDays = 10, StanceOn = true, PowerWeight = 1 };
 
     /// <summary>
-    /// Regard that starts away from the seed, (from, to). Empty until Sid picks the town's tensions
-    /// (0c question 1). Candidates: Pierre and Shane both ways (the chain store), Sebastian toward
-    /// Demetrius, Abigail toward Pierre.
+    /// The town's starting tensions (0c question 1; Sid, 2026-10-07): who starts out disliking whom,
+    /// and the first season's spark (0d question 3). Pierre and Shane both ways: the general store
+    /// against the chain Shane works at. Sebastian toward Demetrius, his stepfather, and Abigail
+    /// toward Pierre, her father: both feel misunderstood at home in Stardew's own stories (VERIFY
+    /// against their heart events). The last two are inside a household, so the gate never acts on
+    /// them; they colour how the rates aim and whom people report.
     /// </summary>
-    public static IReadOnlyDictionary<(string From, string To), double> Tensions() => new Dictionary<(string, string), double>();
+    public static readonly IReadOnlyList<(string From, string To)> TensionPairs = new[]
+    {
+        ("Pierre", "Shane"), ("Shane", "Pierre"), ("Sebastian", "Demetrius"), ("Abigail", "Pierre"),
+    };
+
+    /// <summary>How far each starting tension sits below the seed: below the -0.2 floor and at a
+    /// feud's -0.3, so a seeded pair is never counted as a new feud (spec section 10).</summary>
+    public const double TensionDepth = 0.3;
+
+    /// <summary>Regard that starts away from the seed, (from, to), and heals back there (it is the
+    /// pair's baseline). <paramref name="depth"/> 0 gives none.</summary>
+    public static IReadOnlyDictionary<(string From, string To), double> Tensions(double depth = TensionDepth)
+        => depth == 0 ? new Dictionary<(string, string), double>() : TensionPairs.ToDictionary(p => p, _ => -depth);
 
     /// <summary>
     /// How strongly each villager feels joy and sadness (phase 0c; law 12), from the temperaments

@@ -43,6 +43,7 @@ public sealed partial class Simulation
     private readonly HashSet<(int I, int J, int Day)> _toned = new();
     private double[] _stance = null!;
     private readonly Dictionary<string, double[]> _stances = new();
+    private readonly Dictionary<string, int[]> _outMinutes = new();
     private readonly List<Pursuit> _pursuits = new();
     private readonly List<Stirring> _stirred = new();
     private readonly List<LifeEvent> _life = new();
@@ -82,7 +83,21 @@ public sealed partial class Simulation
         if (!Desiring)
             return;
         foreach (string n in _names)
+        {
             _stances[n] = new double[days];
+            _outMinutes[n] = new int[(days + Clock.DaysPerSeason - 1) / Clock.DaysPerSeason];
+        }
+    }
+
+    /// <summary>Each tick: who is awake and away from home (the fringe line's hermit measure). Only read.</summary>
+    private void CountOut(int m)
+    {
+        if (!Desiring)
+            return;
+        int season = Clock.Day(m) / Clock.DaysPerSeason;
+        foreach (Person p in _people)
+            if (!p.Asleep && p.Place != p.V.Home)
+                _outMinutes[p.V.Name][season] += Clock.TickMinutes;
     }
 
     /// <summary>Within reach to act toward: free, in the same place, within NearTiles, in sight.</summary>

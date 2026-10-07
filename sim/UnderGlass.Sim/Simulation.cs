@@ -151,6 +151,8 @@ public sealed class SimResult
     public required IReadOnlyList<LifeEvent> LifeEvents { get; init; }
     /// <summary>With DesireActs off: the gate's lines, kept out of the log (and its hash).</summary>
     public required IReadOnlyList<string> MotiveLog { get; init; }
+    /// <summary>Minutes each person spent awake away from home, by season (the gate on).</summary>
+    public required IReadOnlyDictionary<string, int[]> OutMinutes { get; init; }
 }
 
 /// <summary>
@@ -411,6 +413,7 @@ public sealed partial class Simulation
             Stances = _stances,
             LifeEvents = LifeEvents(),
             MotiveLog = _motiveLog,
+            OutMinutes = _outMinutes,
         };
     }
 
@@ -443,6 +446,7 @@ public sealed partial class Simulation
             }
             Pursue(m);   // the desire gate (rule 10)
             Withdraw(m);
+            CountOut(m);
         }
         StartScheduled(m);
         Watch(m, t);

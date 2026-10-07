@@ -94,15 +94,18 @@ public class PinnedTests
     }
 
     /// <summary>D34: the desire gate pinned on a year of seed 1: the base gate (every added rule off,
-    /// power weight 0), the gate with stance and the power of acting, and the town as shipped.
+    /// power weight 0), the gate with stance and the power of acting, the town as 0d.4 shipped it,
+    /// and as it ships now with its starting tensions (P3). The first three start with no tensions.
     /// Update only for a deliberate change to the gate.</summary>
     [Theory]
     [InlineData("base", "a123526358094b43")]
     [InlineData("stance+power", "07505a08bf1a9f78")]
-    [InlineData("shipped", "f2af5b9f5b1fb4c4")]
+    [InlineData("shipped without tensions", "f2af5b9f5b1fb4c4")]
+    [InlineData("shipped", "b6a87fe3b8fc0916")]
     public void TheGateIsPinned(string which, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings();
+        o.Start = DefaultTown.Tensions(0);
         o.LightActsOn = o.StanceOn = o.FondOn = o.PityOn = o.ToneOn = false;
         o.PowerWeight = 0;
         if (which == "stance+power")
@@ -110,8 +113,13 @@ public class PinnedTests
             o.StanceOn = true;
             o.PowerWeight = 1;
         }
-        else if (which == "shipped")
+        else if (which == "shipped without tensions")
+        {
             o = DefaultTown.Feelings();
+            o.Start = DefaultTown.Tensions(0);
+        }
+        else if (which == "shipped")
+            o = DefaultTown.Feelings(); // P3: with the starting tensions (0d.5)
         Assert.Equal(hash, Metrics.LogHash(new Simulation(1, feelings: o).Run(112)));
     }
 
@@ -121,8 +129,8 @@ public class PinnedTests
     public void TheTownOf0cIsPinned()
         => Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(new Simulation(1, feelings: Town0c()).Run(112)));
 
-    /// <summary>The town's feelings with the desire gate off: phase 0c's town.</summary>
-    internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; return o; }
+    /// <summary>The town's feelings with the desire gate and the starting tensions off: phase 0c's town.</summary>
+    internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; o.Start = DefaultTown.Tensions(0); return o; }
 
     /// <summary>P2: motives watched but not acted on change nothing: the same year as P1.</summary>
     [Fact]
@@ -130,6 +138,7 @@ public class PinnedTests
     {
         FeelingOptions o = DefaultTown.Feelings();
         o.DesireActs = false;
+        o.Start = DefaultTown.Tensions(0);
         SimResult r = new Simulation(1, feelings: o).Run(112);
         Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(r));
         Assert.NotEmpty(r.MotiveLog);
