@@ -222,6 +222,36 @@ public static class DefaultTown
     };
 
     /// <summary>
+    /// How much of a feeling shows (phase 0d.6; expression, the seventh trait; Sid, 2026-10-07).
+    /// From the game's Data/Characters fields (fixtures/game/temperament/characters.json): 0.75, plus
+    /// 0.15 for a rude manner or less 0.1 for a polite one, plus 0.05 for the outgoing or less 0.15
+    /// for the shy. Sid's reading sets two (design 12.7; masking-research.md M1): Penny masks (0.25)
+    /// and Pam lets it out (0.85). A guess for the private prototype (VERIFY with Sid).
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, double> Expressions = new Dictionary<string, double>
+    {
+        ["Abigail"] = 0.95, ["Alex"] = 0.95, ["Caroline"] = 0.65, ["Demetrius"] = 0.65, ["Emily"] = 0.70,
+        ["Evelyn"] = 0.70, ["George"] = 0.90, ["Gus"] = 0.80, ["Haley"] = 0.95, ["Harvey"] = 0.50,
+        ["Jas"] = 0.60, ["Jodi"] = 0.65, ["Kent"] = 0.60, ["Leah"] = 0.65, ["Lewis"] = 0.80,
+        ["Marnie"] = 0.70, ["Maru"] = 0.80, ["Pam"] = 0.85, ["Penny"] = 0.25, ["Pierre"] = 0.80,
+        ["Robin"] = 0.80, ["Sam"] = 0.80, ["Sebastian"] = 0.75, ["Shane"] = 0.75, ["Vincent"] = 0.80,
+    };
+
+    /// <summary>Birthdays (phase 0d.6, an occasion for gifts), read from the game's Data/Characters
+    /// (1.6.15) on Sid's PC on 2026-10-07. Season 0 is spring. The newcomer has none.</summary>
+    private static readonly IReadOnlyDictionary<string, YearDay> Birthdays = new Dictionary<string, YearDay>
+    {
+        ["Kent"] = new(0, 4), ["Lewis"] = new(0, 7), ["Vincent"] = new(0, 10), ["Haley"] = new(0, 14),
+        ["Pam"] = new(0, 18), ["Shane"] = new(0, 20), ["Pierre"] = new(0, 26), ["Emily"] = new(0, 27),
+        ["Jas"] = new(1, 4), ["Gus"] = new(1, 8), ["Maru"] = new(1, 10), ["Alex"] = new(1, 13),
+        ["Sam"] = new(1, 17), ["Demetrius"] = new(1, 19),
+        ["Penny"] = new(2, 2), ["Jodi"] = new(2, 11), ["Abigail"] = new(2, 13), ["Marnie"] = new(2, 18),
+        ["Robin"] = new(2, 21), ["George"] = new(2, 24),
+        ["Caroline"] = new(3, 7), ["Sebastian"] = new(3, 10), ["Harvey"] = new(3, 14), ["Evelyn"] = new(3, 20),
+        ["Leah"] = new(3, 23),
+    };
+
+    /// <summary>
     /// The town's authority (design rule 16): Lewis is mayor; the constable is voted in at the
     /// opening meeting. Keepers count their stock and report as victims: Pierre his store, Shane
     /// the chain store's floor, Harvey the clinic yard, Gus the saloon, and Lewis the square. The
@@ -436,7 +466,9 @@ public static class DefaultTown
             {
                 Sensitivity = Sensitivity.GetValueOrDefault(v.Name, 0.5),
                 Retention = Retention.GetValueOrDefault(v.Name, 0.5),
+                Expression = Expressions.GetValueOrDefault(v.Name, 0.75),
             },
+            Birthday = Birthdays.TryGetValue(v.Name, out YearDay b) ? b : null,
         }).ToList();
     }
 }

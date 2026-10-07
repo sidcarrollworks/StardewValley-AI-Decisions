@@ -87,6 +87,7 @@ public sealed partial class Simulation
             _stances[n] = new double[days];
             _outMinutes[n] = new int[(days + Clock.DaysPerSeason - 1) / Clock.DaysPerSeason];
         }
+        StartWithdrawal(days);
     }
 
     /// <summary>Each tick: who is awake, not at work, and away from home: free time out (the fringe
@@ -96,10 +97,16 @@ public sealed partial class Simulation
     {
         if (!Desiring)
             return;
-        int season = Clock.Day(m) / Clock.DaysPerSeason;
-        foreach (Person p in _people)
+        int season = Clock.Day(m) / Clock.DaysPerSeason, day = Clock.Day(m);
+        for (int i = 0; i < _people.Length; i++)
+        {
+            Person p = _people[i];
             if (!p.Asleep && p.Why != "work" && p.Place != p.V.Home)
+            {
                 _outMinutes[p.V.Name][season] += Clock.TickMinutes;
+                _daily[i].OutMinutes[day] += Clock.TickMinutes;
+            }
+        }
     }
 
     /// <summary>Within reach to act toward: free, in the same place, within NearTiles, in sight.</summary>
@@ -644,6 +651,7 @@ public sealed partial class Simulation
         int other = by is not null && _index.TryGetValue(by, out int o) ? o : -1;
         Life(m, person, other, actId, kind.Name, LifeRole.Undergone, severity, (kind.Affect?.Joy ?? 0) < 0, IsLight(kind),
             other >= 0 ? Outcome.Open : Outcome.None);
+        TallyKindIn(person, other, kind, m);
     }
 
     private int? FindOpen(int person, int other, LifeRole role, int m)
@@ -667,7 +675,11 @@ public sealed partial class Simulation
                     SetOutcome(idx, outcome, m);
     }
 
-    private void SetOutcome(int idx, Outcome o, int m) => _life[idx] = _life[idx] with { Outcome = o, ResolvedTick = m };
+    private void SetOutcome(int idx, Outcome o, int m)
+    {
+        _life[idx] = _life[idx] with { Outcome = o, ResolvedTick = m };
+        TallyOutcome(_life[idx], m);
+    }
 
     // ---- night -------------------------------------------------------------------------------
 

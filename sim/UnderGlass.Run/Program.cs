@@ -11,6 +11,10 @@ using UnderGlass.Sim;
 // The desire gate (phase 0d): --desire off|observe|on (observe: motives weighed, never acted on),
 // --trait <Name>=<Trait>:<value> (repeatable) to set someone's character before the run, and
 // --tensions <depth> to seed the starting tensions at -depth (0: none).
+// Hermits, brawlers, moods that spread, missing people (phase 0d.6): --0d6 <steps> turns on those
+// steps' switches (b-h, t the tone, m missing people; e.g. --0d6 bcd), --fo WithdrawalWatch=true
+// watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
+// someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -62,8 +66,31 @@ for (int i = 0; i < args.Length - 1; i++)
             };
             break;
         case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(args[i + 1], inv)); break;
+        case "--0d6": feelings.With0d6(args[i + 1]); break;
     }
 }
+// --acts Name=Kind:weight, on a copy of the town's cast.
+var castChanges = new List<(string Who, string Kind, double Weight)>();
+for (int i = 0; i < args.Length - 1; i++)
+{
+    if (args[i] != "--acts")
+        continue;
+    string spec = args[i + 1];
+    int eq = spec.IndexOf('='), colon = spec.IndexOf(':');
+    if (eq < 1 || colon < eq + 2)
+        throw new ArgumentException("--acts <Name>=<Kind>:<weight>");
+    string who = spec[..eq];
+    if (!DefaultTown.Cast().Any(v => v.Name == who))
+        throw new ArgumentException($"--acts: nobody called {who}");
+    castChanges.Add((who, spec[(eq + 1)..colon], double.Parse(spec[(colon + 1)..], inv)));
+}
+IReadOnlyList<Villager>? cast = castChanges.Count == 0 ? null : DefaultTown.Cast().Select(v =>
+{
+    var acts = new Dictionary<string, double>(v.Acts);
+    foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
+        acts[kind] = weight;
+    return v with { Acts = acts };
+}).ToList();
 // --trait Name=Trait:value, applied to each run's simulation before it starts.
 var traits = new List<(string Who, Trait Trait, double Value)>();
 for (int i = 0; i < args.Length - 1; i++)
@@ -112,7 +139,7 @@ for (int i = 0; i < args.Length - 1; i++)
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
 Simulation Make(long seed, FeelingOptions o)
 {
-    var sim = new Simulation(seed, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o);
+    var sim = new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o);
     foreach (var (who, trait, value) in traits)
         sim.SetTrait(who, trait, value);
     return sim;
@@ -140,6 +167,15 @@ if (logSeed is { } one)
         Console.WriteLine("regard moved 0.05 or more: " + (moved.Count == 0 ? "none" : string.Join(", ", moved.Select(x => $"{x.Key.From}->{x.Key.To} {x.R:0.00} ({x.D:+0.00;-0.00})"))));
     }
     Console.WriteLine($"hash {Metrics.LogHash(r)}");
+    if (r.Daily.Count > 0)
+    {
+        // The shyest five's year (0d.6), after the hash and outside the log.
+        foreach (ShyRow x in WithdrawalMetrics.Summarise(new[] { r }).Shyest)
+            Console.WriteLine($"shy {x.Name} (boldness {x.Boldness:0.00}) by season: left out {string.Join(" ", x.LeftOut.Select(v => v.ToString("0.00", inv)))}; "
+                + $"stance at the end {string.Join(" ", x.Stance.Select(S2))}; free hours out a day {string.Join(" ", x.HoursOut.Select(v => v.ToString("0.0", inv)))}");
+        foreach (Spell s in WithdrawalMetrics.Spells(r, brawlers: false).Concat(WithdrawalMetrics.Spells(r, brawlers: true)))
+            Console.WriteLine($"spell {s.Name} d{s.From}-d{s.To} {(s.Hermit ? "hermit" : WithdrawalMetrics.Spells(r, true).Contains(s) ? "brawler" : "withdrawn")}{(double.IsNaN(s.HoursFall) ? "" : $", hours out {-s.HoursFall:+0%;-0%}")}");
+    }
     return;
 }
 
@@ -298,5 +334,31 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine($"  town median of avoided and withdrew: {g.MedianAvoidedAndWithdrewPerYear:0.0} a person a year");
     var ends = runs[0].Stances.Keys.Select(n => (Name: n, End: runs.Average(r => r.Stances[n][^1]))).OrderBy(x => x.End).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
     Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));
+
+    // Hermits, brawlers, moods that spread (phase 0d.6; spec section 9).
+    WithdrawalStats w = WithdrawalMetrics.Summarise(runs);
+    string[] on = new[] { ("b", feelings.HomeHurtOn || feelings.HouseholdGateOn), ("c", feelings.ContagionOn), ("d", feelings.LeftOutOn || feelings.InclusionDiscountOn),
+        ("e", feelings.DialsOn), ("f", feelings.RecoveryOn), ("g", feelings.PatienceOn || feelings.CoercionOn), ("h", feelings.ShowOn), ("t", feelings.ToneOn), ("m", feelings.MissingOn) }
+        .Where(x => x.Item2).Select(x => x.Item1).ToArray();
+    Console.WriteLine($"withdrawal (0d.6 steps {(on.Length == 0 ? "none" : string.Join("", on))}{(feelings.WithdrawalWatch ? ", watched only" : "")}{(castChanges.Count > 0 ? ", acts " + string.Join(", ", castChanges.Select(c => $"{c.Who} {c.Kind} {c.Weight}")) : "")}):");
+    Console.WriteLine("  left out by season (mean E, p90 of person means; kindness received, days with company a person-season; unanswered): "
+        + string.Join(", ", w.BySeason.Select(s => $"s{s.Season + 1} {s.MeanE:0.00}/{s.P90E:0.00}; {s.KindIn:0.0}, {s.MetDays:0.0}; {Pc(s.Unanswered)}")));
+    Console.WriteLine("  most left out (mean E): " + string.Join(", ", w.MostLeftOut.Select(x => $"{x.Name} {x.MeanE:0.00}")));
+    Console.WriteLine($"  withdrawn (28 d at -0.5 or below) {w.WithdrawnPerYear:0.00} people a seed-year ({Per(w.TopWithdrawn)}); hermits (and hours out under 60% of their first season) {w.HermitsPerYear:0.00} ({w.HermitSpellsPerYear:0.00} spells; {Per(w.TopHermits)}), from the shyest third {Pc(w.HermitsFromShyestThird)}, seed-years with one {Pc(w.SeedYearsWithHermit)}, hours out fell {Pc(w.HermitHoursFall)}");
+    Console.WriteLine($"  brawlers (28 d at +0.5 or above) {w.BrawlersPerYear:0.00} people a seed-year ({w.BrawlerSpellsPerYear:0.00} spells; {Per(w.TopBrawlers)})");
+    Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases}; a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6)");
+    Console.WriteLine($"  power of acting: mean {w.MeanPower:0.000}, spread {w.PowerSpread:0.000}, person-days below 0.35 {w.LowPowerShare:P1}, seed-years with a sink (28-day mean below 0.3) {Pc(w.SinkSeedYears)}");
+    if (w.Contagion.Any(c => c.Gave > 0 || c.Caught > 0))
+    {
+        var pam = w.Contagion.FirstOrDefault(c => c.Name == "Pam");
+        var penny = w.Contagion.FirstOrDefault(c => c.Name == "Penny");
+        Console.WriteLine("  contagion a year, passed on: " + string.Join(", ", w.Contagion.Take(5).Select(c => $"{c.Name} {c.Gave:0.000}"))
+            + "; taken: " + string.Join(", ", w.Contagion.OrderByDescending(c => c.Caught).ThenBy(c => c.Name, StringComparer.Ordinal).Take(5).Select(c => $"{c.Name} {c.Caught:0.000}"))
+            + $"; Pam {pam.Gave:0.000}/{pam.Caught:0.000}, Penny {penny.Gave:0.000}/{penny.Caught:0.000}");
+    }
+    foreach (ShyRow x in w.Shyest)
+        Console.WriteLine($"  shy {x.Name} ({x.Boldness:0.00}) by season: left out {string.Join(" ", x.LeftOut.Select(v => v.ToString("0.00", inv)))}; stance {string.Join(" ", x.Stance.Select(S2))}; free hours out {string.Join(" ", x.HoursOut.Select(v => v.ToString("0.0", inv)))}");
+    if (w.Watched.Count > 0)
+        Console.WriteLine("  watched, a year (count, sum): " + string.Join(", ", w.Watched.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => $"{p.Key} {p.Value.PerYear:0.0} {Sg(p.Value.SumPerYear)}")));
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

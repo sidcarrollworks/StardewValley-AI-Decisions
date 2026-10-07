@@ -49,9 +49,14 @@ public sealed record Link(string A, Tile DoorA, string B, Tile DoorB);
 /// SelfRegard is Spinoza's self-esteem: low self-regard with high boldness gives confident
 /// wrong guesses (design 11a). Sensitivity scales how much joy and sadness are felt (phase 0c);
 /// Retention how long a mild feeling is kept (design rule 4: Pam lets go, Robin keeps).
+/// Expression, the seventh (Sid, 2026-10-07; phase 0d.6): how much of a feeling shows. Penny
+/// masks, Pam lets it out (masking-research.md).
 /// </summary>
 public sealed record Temperament(double Chattiness, double Boldness, double Understanding, double SelfRegard,
-    double Sensitivity = 0.5, double Retention = 0.5);
+    double Sensitivity = 0.5, double Retention = 0.5, double Expression = 0.75);
+
+/// <summary>A day of the year: season 0 (spring) to 3 (winter), day 1 to 28 (<see cref="Calendar"/>).</summary>
+public readonly record struct YearDay(int Season, int Day);
 
 /// <summary>
 /// A body (design rule 1): the energy bar's size (stamina for hard work), and how empty it gets
@@ -80,7 +85,7 @@ public sealed record Haunt(string Place, Tile Spot, int From, int To, double Wei
 /// <summary>
 /// A villager. Household names the home (<c>Home:&lt;household&gt;</c>) and seeds familiarity.
 /// The day comes from the job, the haunts and the body (design rule 1). Acts are the act kinds the
-/// villager may commit, with a weight (design rule 15).
+/// villager may commit, with a weight (design rule 15). Birthday: an occasion for gifts (0d.6).
 /// </summary>
 public sealed record Villager(
     string Name,
@@ -93,7 +98,8 @@ public sealed record Villager(
     IReadOnlyDictionary<string, double> Acts,
     IReadOnlyList<string> Friends,
     int Age = 30,
-    IReadOnlyDictionary<string, Kin>? Family = null)
+    IReadOnlyDictionary<string, Kin>? Family = null,
+    YearDay? Birthday = null)
 {
     public string Home => "Home:" + Household;
 
@@ -277,9 +283,9 @@ public sealed record Sentiment(string Holder, string Toward, string Name, int Ac
 public sealed record Felt(int Tick, string Holder, int ActId, string Route, string Basis, double Mood,
     string? Toward, double Raw, double Change);
 
-/// <summary>The six temperament weights of law 12, for reading and setting one trait (phase 0d;
-/// rule 18: character changes over time).</summary>
-public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity, Retention }
+/// <summary>The temperament weights of law 12, for reading and setting one trait (phase 0d; rule 18:
+/// character changes over time). Expression is the seventh (0d.6). Append only.</summary>
+public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity, Retention, Expression }
 
 /// <summary>What a motive wants (rule 10; design section 5). Append only.</summary>
 public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity }
@@ -304,3 +310,12 @@ public enum LifeRole { Did, Undergone, Declined, Avoided, Withdrew, Lapsed, Gave
 /// rule 18). Written from the truth, and never read by any rule of 0d.</summary>
 public sealed record LifeEvent(int Tick, string Person, string Other, int ActId, string Kind, LifeRole Role,
     double Severity, bool Hostile, bool Light, Outcome Outcome = Outcome.Open, int ResolvedTick = -1);
+
+/// <summary>
+/// One person's days, for the measures of phase 0d.6 (hermits and brawlers; spec X0). Indexed by
+/// day of the run. KindIn: aimed kindnesses received from someone outside kin and household. Met:
+/// an hour or more together with someone outside them. KindOut: the person's own aimed kindnesses
+/// to such people whose outcome was settled that day; Unanswered: of them, ignored. OutMinutes:
+/// free minutes away from home (awake, not at work). LeftOut: being left out, E, at the day's end.
+/// </summary>
+public sealed record PersonDays(int[] KindIn, bool[] Met, int[] KindOut, int[] Unanswered, int[] OutMinutes, double[] LeftOut);

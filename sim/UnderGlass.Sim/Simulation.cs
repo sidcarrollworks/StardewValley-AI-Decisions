@@ -153,6 +153,15 @@ public sealed class SimResult
     public required IReadOnlyList<string> MotiveLog { get; init; }
     /// <summary>Minutes each person spent awake, not at work and away from home, by season (the gate on).</summary>
     public required IReadOnlyDictionary<string, int[]> OutMinutes { get; init; }
+
+    // Hermits, brawlers and moods that spread (phase 0d.6); empty when the gate is off.
+    /// <summary>Each person's days: kindness received, company, kindness unanswered, free time out,
+    /// and being left out (spec X0).</summary>
+    public required IReadOnlyDictionary<string, PersonDays> Daily { get; init; }
+    /// <summary>The mood each person passed on to others and took from them by contagion, over the run (X3).</summary>
+    public required IReadOnlyDictionary<string, (double Gave, double Caught)> Contagion { get; init; }
+    /// <summary>With WithdrawalWatch: what each 0d.6 rule would have done, how often and in sum (X13).</summary>
+    public required IReadOnlyDictionary<string, (int Count, double Sum)> Watched { get; init; }
 }
 
 /// <summary>
@@ -429,6 +438,9 @@ public sealed partial class Simulation
             LifeEvents = LifeEvents(),
             MotiveLog = _motiveLog,
             OutMinutes = _outMinutes,
+            Daily = Daily(),
+            Contagion = ContagionTotals(),
+            Watched = _watched,
         };
     }
 
@@ -1209,6 +1221,7 @@ public sealed partial class Simulation
         ForgetSightings((day + 1) * Clock.MinutesPerDay);
         CloseMoneyDay();
         CloseDesires(day);
+        CloseWithdrawal(day); // 0d.6: before CloseFeelings clears the day's time together
         CloseFeelings(day, days);
         foreach (Act act in _acts)
         {
