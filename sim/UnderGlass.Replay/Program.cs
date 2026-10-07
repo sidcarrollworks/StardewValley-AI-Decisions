@@ -64,7 +64,14 @@ for (int i = 0; i < args.Length; i++)
 if (outPath is null && htmlPath is null)
     htmlPath = $"run-seed{seed}-{days}d.html";
 
-string label = args.Length == 0 ? "the town as it ships" : string.Join(' ', args.Where((a, k) => a is not ("--out" or "--html") && (k == 0 || args[k - 1] is not ("--out" or "--html"))));
+// The label names only what differs from the town as it ships (seed and days are shown anyway).
+var shown = new List<string>();
+for (int k = 0; k < args.Length; k++)
+{
+    if (args[k] is "--out" or "--html" or "--seed" or "--days") { k++; continue; }
+    shown.Add(args[k]);
+}
+string? label = shown.Count == 0 ? null : string.Join(' ', shown);
 var clock = System.Diagnostics.Stopwatch.StartNew();
 string json = Replay.Json(new ReplayOptions { Seed = seed, Days = days, Feelings = feelings, Inject = inject, Traits = traits, Label = label });
 Console.WriteLine($"recorded seed {seed}, {days} days in {clock.Elapsed.TotalSeconds:0.0} s ({json.Length / 1024.0 / 1024:0.0} MB)");
@@ -82,7 +89,11 @@ if (htmlPath is not null)
     if (!page.Contains(slot))
         throw new InvalidOperationException("the viewer page has no slot for a run");
     // System.Text.Json escapes '<', '>' and '&', so the run cannot close the script tag early.
-    File.WriteAllText(htmlPath, page.Replace(slot, $"<script id=\"run-data\" type=\"application/json\">{json}</script>"));
+    // The page is written as a fragment (the published copy gets its document from the host); a
+    // file opened straight from disk needs its own, or browsers fall back to quirks mode.
+    page = "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n</head>\n<body>\n"
+        + page.Replace(slot, $"<script id=\"run-data\" type=\"application/json\">{json}</script>") + "\n</body>\n</html>\n";
+    File.WriteAllText(htmlPath, page);
     Console.WriteLine($"wrote {htmlPath}: open it in a browser");
 }
 
