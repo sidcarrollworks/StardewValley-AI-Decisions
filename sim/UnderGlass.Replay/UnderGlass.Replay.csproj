@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UnderGlass.Sim\UnderGlass.Sim.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The viewer page, carried inside the tool so the html option works from any folder. -->
+    <EmbeddedResource Include="..\viewer\index.html" LogicalName="viewer.html" />
+  </ItemGroup>
+</Project>
