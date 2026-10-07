@@ -8,6 +8,9 @@ using UnderGlass.Sim;
 // (sympathy, imitation, reconcile, kinds, freedom, presence, association, shame; repeatable),
 // --plastic <x>, --target-base <x>, --fo <Name>=<value> for any other FeelingOptions knob, and
 // --affect <Kind>=<joy>[,<plastic>] to change an act kind's feeling row (sweeps).
+// The desire gate (phase 0d): --desire off|observe|on (observe: motives weighed, never acted on),
+// --trait <Name>=<Trait>:<value> (repeatable) to set someone's character before the run, and
+// --tensions <depth> to seed the starting tensions at -depth (0: none).
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -49,7 +52,35 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--plastic": feelings.PlasticScale = double.Parse(args[i + 1], inv); break;
         case "--target-base": feelings.TargetBase = double.Parse(args[i + 1], inv); break;
         case "--fo": Set(feelings, args[i + 1][..args[i + 1].IndexOf('=')], args[i + 1][(args[i + 1].IndexOf('=') + 1)..]); break;
+        case "--desire":
+            (feelings.Desire, feelings.DesireActs) = args[i + 1] switch
+            {
+                "off" => (false, true),
+                "observe" => (true, false),
+                "on" => (true, true),
+                _ => throw new ArgumentException("--desire off|observe|on"),
+            };
+            break;
+        case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(args[i + 1], inv)); break;
     }
+}
+// --trait Name=Trait:value, applied to each run's simulation before it starts.
+var traits = new List<(string Who, Trait Trait, double Value)>();
+for (int i = 0; i < args.Length - 1; i++)
+{
+    if (args[i] != "--trait")
+        continue;
+    string spec = args[i + 1];
+    int eq = spec.IndexOf('='), colon = spec.IndexOf(':');
+    string? traitName = eq < 1 || colon < eq + 2 ? null
+        : Enum.GetNames<Trait>().FirstOrDefault(n => string.Equals(n, spec[(eq + 1)..colon], StringComparison.OrdinalIgnoreCase));
+    if (traitName is null) // a name only: Enum.TryParse would take "7" or "1" as a trait
+        throw new ArgumentException("--trait <Name>=<Trait>:<value>, a trait one of " + string.Join(", ", Enum.GetNames<Trait>()));
+    Trait trait = Enum.Parse<Trait>(traitName);
+    string who = spec[..eq];
+    if (!DefaultTown.Cast().Any(v => v.Name == who))
+        throw new ArgumentException($"--trait: nobody called {who}");
+    traits.Add((who, trait, double.Parse(spec[(colon + 1)..], inv)));
 }
 
 static FeelingOptions Set(FeelingOptions o, string name, string value)
@@ -79,10 +110,17 @@ for (int i = 0; i < args.Length - 1; i++)
         : k).ToList();
 }
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
+Simulation Make(long seed, FeelingOptions o)
+{
+    var sim = new Simulation(seed, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o);
+    foreach (var (who, trait, value) in traits)
+        sim.SetTrait(who, trait, value);
+    return sim;
+}
 
 if (logSeed is { } one)
 {
-    SimResult r = new Simulation(one, kinds: kinds, gossip: gossip, scheduled: Injected(one), feelings: feelings).Run(days);
+    SimResult r = Make(one, feelings).Run(days);
     foreach (string line in r.Log)
         Console.WriteLine($"{Clock.Format(int.Parse(line[..line.IndexOf(' ')]))} {line[(line.IndexOf(' ') + 1)..]}");
     if (feelings.Enabled)
@@ -107,7 +145,7 @@ if (logSeed is { } one)
 
 var clock = System.Diagnostics.Stopwatch.StartNew();
 var runs = Enumerable.Range(from, seeds).AsParallel().AsOrdered()
-    .Select(s => new Simulation(s, kinds: kinds, gossip: gossip, scheduled: Injected(s), feelings: Copy(feelings)).Run(days)).ToList();
+    .Select(s => Make(s, Copy(feelings)).Run(days)).ToList();
 double runSeconds = clock.Elapsed.TotalSeconds;
 
 // Each run gets its own options object: they are mutable, and runs go in parallel.
@@ -211,6 +249,8 @@ if (runs[0].TownCash.Count > 0)
 // A signed number to three places, with no "-0.000"; "none" for a mean over nothing.
 static string Sg(double x) => double.IsNaN(x) ? "none"
     : (Math.Round(x, 3) + 0.0).ToString("+0.000;-0.000;0.000", System.Globalization.CultureInfo.InvariantCulture);
+// A signed number to two places, with no "-0.00".
+static string S2(double x) => double.IsNaN(x) ? "none" : (Math.Round(x, 2) + 0.0).ToString("+0.00;-0.00;0.00", System.Globalization.CultureInfo.InvariantCulture);
 // A share, or "n/a" when there was nothing to share out.
 static string Pc(double x) => double.IsNaN(x) ? "n/a" : x.ToString("P0", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -236,5 +276,27 @@ if (feelings.Enabled)
     Console.WriteLine($"  aimed acts: gifts and help to someone loved (0.4+) {Pc(f.GiftsToLoved)}; arguments with someone disliked {Pc(f.ArgumentsToDisliked)}, inside a household {Pc(f.ArgumentsInHouseholds)}; news {f.NewsPerYear:0} and trivia {f.TriviaPerYear:0} a year");
     Console.WriteLine($"  grievance thefts {f.GrievancePerYear:0.00} a year; shop switches {f.ShopSwitchesPerYear:0.00} a year; households at the chain by season " + string.Join(" -> ", f.HouseholdsAtChainBySeason.Select(x => $"{x:0.0}")));
     Console.WriteLine("  regard for kinds at the end: " + string.Join(", ", f.MeanKindRegard.Select(p => $"{p.Key} {Sg(p.Value)}")) + $"; for the newcomer {Sg(f.RegardTowardNewcomer)}, the newcomer's {Sg(f.RegardFromNewcomer)}");
+}
+// The desire gate (phase 0d; spec section 10).
+if (feelings.Enabled && feelings.Steer && feelings.Desire)
+{
+    DesireStats g = DesireMetrics.Summarise(runs, DefaultTown.Cast(), feelings);
+    static string Per(IEnumerable<(string Name, double PerYear)> xs) => xs.Any() ? string.Join(", ", xs.Select(x => $"{x.Name} {x.PerYear:0.0}")) : "none";
+    Console.WriteLine($"desire ({(feelings.DesireActs ? "acting" : "watched only")}{(traits.Count > 0 ? ", " + string.Join(", ", traits.Select(t => $"{t.Who} {t.Trait} {t.Value}")) : "")}; tensions {(feelings.Start.Count == 0 ? "none" : string.Join(", ", feelings.Start.OrderBy(p => p.Key.From, StringComparer.Ordinal).ThenBy(p => p.Key.To, StringComparer.Ordinal).Select(p => $"{p.Key.From}->{p.Key.To} {p.Value:0.00}")))}), a year:");
+    Console.WriteLine("  stirred: " + string.Join(", ", g.StirredPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
+    Console.WriteLine("  weighed: " + string.Join("; ", g.WeighedPerYear.GroupBy(p => p.Key.Motive).Select(m => $"{m.Key} " + string.Join(" ", m.Select(p => $"{p.Key.Call} {p.Value:0.0}")))));
+    Console.WriteLine("  acts by the gate: " + string.Join(", ", g.GateActsPerYear.Select(p => $"{p.Key} {p.Value:0.0}")) + "; at the town's rates: " + string.Join(", ", g.RateActsPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
+    Console.WriteLine($"  across households: arguments {g.CrossHouseholdArgumentsPerYear:0.0}, answered in kind within " + string.Join(", ", DesireMetrics.AnswerDays.Select((d, k) => $"{d} d {Pc(g.AnsweredWithin[k])}")) + $"; kindness returned within 7 d {Pc(g.ReturnedWithin7)}; pairs arguing 2+ each way {g.PairsTwoEachWayPerRun:0.00} a run, 3+ {g.PairsThreeEachWayPerRun:0.00}");
+    Console.WriteLine($"  keeping away: gave cause {g.GaveCausePerYear:0.0}, avoids {g.AvoidsPerYear:0.0} ({Per(g.TopAvoiders)}), withdrawals {g.WithdrawalsPerYear:0.0}, turned away {g.TurnedAwayPerYear:0.0}, snubs {g.SnubsPerYear:0.0}, marks {g.MarksPerYear:0.0}");
+    Console.WriteLine($"  top gate arguers {Per(g.TopGateArguers)}; feuds involving {g.FeudConcentration.Name}: {Pc(g.FeudConcentration.Share)}");
+    Console.WriteLine("  under -0.2 at season ends (across households / kin or home / across, not seeded): " + string.Join(", ", g.Dislike.Select(x => $"d{x.Day} {x.Across:P1}/{x.KinOrHome:P1}/{x.AcrossUnseeded:P1}")));
+    Console.WriteLine("  outcomes across households: " + string.Join("; ", g.Outcomes.GroupBy(p => p.Key.Role).Select(r => $"{r.Key} " + string.Join(" ", r.Select(p => $"{p.Key.Outcome} {p.Value:P0}")))));
+    Console.WriteLine("  stance at season ends (p10/p50/p90, hermits, brawlers a town): " + string.Join(", ", g.Stance.Select(x => $"d{x.Day} {S2(x.P10)}/{S2(x.P50)}/{S2(x.P90)} {x.Hermits:0.0} {x.Brawlers:0.0}")) + $"; ever a hermit {g.HermitsPerRun:0.0}, a brawler {g.BrawlersPerRun:0.0} a run");
+    foreach (FringeRow? x in new[] { g.Boldest, g.Shyest })
+        if (x is not null)
+            Console.WriteLine($"  fringe {(x == g.Boldest ? "boldest" : "shyest")} {x.Name} (boldness {x.Boldness:0.00}): acts {x.ActsPerYear:0}, did {x.DidPerYear:0.0}, underwent {x.UndergonePerYear:0.0}, avoided {x.AvoidsPerYear:0.0}, withdrew {x.WithdrawalsPerYear:0.0}; free hours out a day {x.Season1HoursOut:0.0} in season 1, {x.Season4HoursOut:0.0} in season 4 (or the last); stance at the end {S2(x.EndStance)}");
+    Console.WriteLine($"  town median of avoided and withdrew: {g.MedianAvoidedAndWithdrewPerYear:0.0} a person a year");
+    var ends = runs[0].Stances.Keys.Select(n => (Name: n, End: runs.Average(r => r.Stances[n][^1]))).OrderBy(x => x.End).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
+    Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));
 }
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

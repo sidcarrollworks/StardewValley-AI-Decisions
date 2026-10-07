@@ -98,13 +98,17 @@ public class FeelingSceneTests
             Assert.Equal(0, town.PersonalRegard(n, DefaultTown.Newcomer)); // nobody knows the newcomer yet
             Assert.Equal(0, town.PersonalRegard(DefaultTown.Newcomer, n));
         }
-        // 86 of the 650 ordered pairs start at 0.4 or more: 46 in households, 40 between friends.
+        // 84 of the 650 ordered pairs start at 0.4 or more: 44 in households, 40 between friends. (86
+        // and 46 before the starting tensions, 0d.5: Sebastian toward Demetrius and Abigail toward
+        // Pierre start at -0.3, not a housemate's 0.6.)
         var pairs = names.SelectMany(a => names.Where(b => b != a).Select(b => (A: a, B: b))).ToList();
         var home = DefaultTown.Cast().ToDictionary(v => v.Name, v => v.Household);
         var close = pairs.Where(p => town.PersonalRegard(p.A, p.B) >= 0.4).ToList();
         Assert.Equal(650, pairs.Count);
-        Assert.Equal(86, close.Count);
-        Assert.Equal(46, close.Count(p => home[p.A] == home[p.B]));
+        Assert.Equal(84, close.Count);
+        Assert.Equal(44, close.Count(p => home[p.A] == home[p.B]));
+        Assert.Equal(-0.3, town.PersonalRegard("Sebastian", "Demetrius"));
+        Assert.Equal(0.6, town.PersonalRegard("Demetrius", "Sebastian"));
         Assert.All(pairs, p => Assert.Equal(town.PersonalRegard(p.A, p.B), town.Baseline(p.A, p.B)));
 
         // Starting tensions override the seed, one way only, and are where regard heals back to.
