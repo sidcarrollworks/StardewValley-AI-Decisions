@@ -211,10 +211,11 @@ public class DesireInvariantTests
         }
         else
         {
-            // As shipped, the added rules are off: no light act, and stance stays 0.
+            // As shipped: missing loved ones, stance and power of acting on; light acts and pity off.
             Assert.DoesNotContain(r.Acts, a => a.Kind == Simulation.Snubbed || a.Kind == Simulation.TurnedAway);
-            Assert.All(r.Stances.Values.SelectMany(s => s), s => Assert.Equal(0, s));
-            Assert.DoesNotContain(r.Pursuits, p => p.Motive is DesireKind.Fond or DesireKind.Pity);
+            Assert.Contains(r.Stances.Values.SelectMany(s => s), s => s != 0);
+            Assert.Contains(r.Pursuits, p => p.Motive == DesireKind.Fond);
+            Assert.DoesNotContain(r.Pursuits, p => p.Motive == DesireKind.Pity);
         }
     }
 }

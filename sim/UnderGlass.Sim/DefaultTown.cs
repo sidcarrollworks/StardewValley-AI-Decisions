@@ -170,8 +170,11 @@ public static class DefaultTown
     /// guesses (PlasticScale 2): at 1, only 2.8% of pairs moved 0.1 or more in a year and every
     /// seed was a dead town; at 2, 7.9% moved, inside the 5-25% band (sweeps of 2026-10-06,
     /// sim/README.md). With the desire gate (phase 0d, rule 10): people answer, return, make up
-    /// and keep away; its added rules are each turned on once measured.</summary>
-    public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true };
+    /// and keep away. Of its added rules (sweeps of 2026-10-07, sim/README.md), the town misses
+    /// loved ones (Fond, 10 days), keeps a stance (hermits and brawlers can emerge), and dares by
+    /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).</summary>
+    public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true,
+        FondOn = true, FondDays = 10, StanceOn = true, PowerWeight = 1 };
 
     /// <summary>
     /// Regard that starts away from the seed, (from, to). Empty until Sid picks the town's tensions
