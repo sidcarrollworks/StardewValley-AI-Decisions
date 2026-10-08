@@ -46,6 +46,8 @@ public sealed partial class Simulation
         // A treat: both of age, and the purse holds a drink (the bar's own household treats free).
         "TreatedToDrink" => o.V.Age >= 18 && (!HasMoney || HouseholdOf(p.V.Name) == BarHousehold()
                                               || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink),
+        // A mocking: in public, by someone who shows what they feel.
+        "Mocked" => !p.Place.StartsWith("Home:", StringComparison.Ordinal) && CharacterOf(_index[p.V.Name]).Expression >= 0.5,
         // A welcome: in a public place, once for each ordered pair.
         "Welcomed" => !p.Place.StartsWith("Home:", StringComparison.Ordinal) && !_welcomed.Contains((_index[p.V.Name], _index[o.V.Name])),
         _ => true,
@@ -262,6 +264,10 @@ public sealed partial class Simulation
             Welcome(a, ti);
         else if (kind.Name == "Apologised")
             AnswerApology(act, a, ti, m);
+        else if (kind.Name == "Comforted")
+            Comforted(act, ti);
+        else if (kind.Name == "StoodUpFor")
+            Defended(act, a, m);
     }
 
     // ---- welcome (acts spec 4.6; slice acts-3) ------------------------------------------------
@@ -411,5 +417,98 @@ public sealed partial class Simulation
             if (_life[i].ActId == act.Id && _life[i].Role is LifeRole.Did or LifeRole.Undergone && _life[i].Outcome == Outcome.Open)
                 found.Add(i);
         return found;
+    }
+
+    // ---- sides (acts spec 4.8-4.10; slice acts-5) ---------------------------------------------
+
+    /// <summary>
+    /// After a heavy hostile act ends (an argument, a mocking, a standing up), its witnesses take
+    /// sides (acts spec 4.8, 4.10), with Sides on. Each who saw it at clarity 0.3 or more and named
+    /// both people, other than the two, and not kin or a housemate of the aggressor:
+    /// <list type="bullet">
+    /// <item>who loves the target (regard DefendAt or more) or is their kin wants to stand up for them
+    /// (Defend): |joy| x clarity x (regard, or 0.5 for kin) x (0.5 + sensitivity), for DefendMinutes;</item>
+    /// <item>else, who holds the target at 0 or more and is not their kin or housemate pities them
+    /// (Pity, answered only with comfort), as a mishap's pity is felt, for the part of the hurt that
+    /// shows (0d.6's expression).</item>
+    /// </list>
+    /// </summary>
+    private void SidesAfter(Act act, ActKind kind, int m)
+    {
+        if (!_fo.Acts.Sides || !Acting || !IsHeavyHostile(kind) || kind.Affect is not { } row || act.Target is not { } t
+            || !_index.TryGetValue(t, out int ti) || !_index.TryGetValue(act.Actor, out int ai))
+            return;
+        foreach (string w in _names)
+        {
+            if (w == act.Actor || w == t || !_beliefs[w].TryGetValue(act.Id, out Belief? b) || b.Source != Source.Witnessed
+                || b.Clarity < 0.3 || b.Actor != act.Actor || b.Target != t)
+                continue;
+            int wi = _index[w];
+            if (Close(wi, ai))
+                continue; // nobody stands against their own
+            bool kin = AreKin(w, t);
+            double regard = St(w, t);
+            if (kin || regard >= _fo.Acts.DefendAt)
+            {
+                double felt = Math.Abs(row.Joy) * b.Clarity * (kin ? 0.5 : regard) * Sens(wi);
+                if (felt <= 0)
+                    continue;
+                if (_fo.Acts.Watch)
+                    _catalogWatch.Add(new CatalogWatched(m, w, act.Actor, DesireKind.Defend, "StoodUpFor", felt));
+                else
+                {
+                    Stir(wi, ai, DesireKind.Defend, true, "StoodUpFor", act.Id, felt, m);
+                    _desires[(wi, ai, (int)DesireKind.Defend)].With = ti;
+                }
+            }
+            else if (regard >= 0 && !Close(wi, ti))
+            {
+                double felt = DesireMath.Pity(row.Joy, Sens(wi), regard, b.Clarity, _fo) * Show(ti);
+                if (felt <= 0)
+                    continue;
+                if (_fo.Acts.Watch)
+                    _catalogWatch.Add(new CatalogWatched(m, w, t, DesireKind.Pity, "Comforted", felt));
+                else
+                    Stir(wi, ti, DesireKind.Pity, false, "Comforted", act.Id, felt, m);
+            }
+        }
+    }
+
+    /// <summary>The acts a motive may use that depend on where it came from (acts spec 4.8, 4.12): pity
+    /// at a hurt is answered only with comfort, pity at a mishap never; remorse comforts only someone
+    /// hurt within the hour.</summary>
+    private bool MotiveAllows(DesireKind motive, string act, ActKind kind, int h, int s, int m)
+    {
+        if (motive == DesireKind.Pity)
+            return (kind.Name == "Comforted") == (act == "Comforted");
+        if (motive == DesireKind.Remorse && kind.Name == "Comforted")
+            return _desires.TryGetValue((h, s, (int)DesireKind.Remorse), out Motive? d) && d.Source >= 0
+                   && m - _acts[d.Source].Tick <= 60;
+        return true;
+    }
+
+    /// <summary>A comfort ends (acts spec 4.8): the target's grudge against whoever hurt them cools by
+    /// ComfortCools. (Its warmth, its easing of the stance and the Return it stirs come as any
+    /// kindness's do.)</summary>
+    private void Comforted(Act act, int t)
+    {
+        if (act.About < 0 || act.About >= _acts.Count || !_index.TryGetValue(_acts[act.About].Actor, out int hurter)
+            || !_desires.TryGetValue((t, hurter, (int)DesireKind.Answer), out Motive? grudge))
+            return;
+        grudge.Felt *= 1 - _fo.Acts.ComfortCools;
+    }
+
+    /// <summary>A standing up ends (acts spec 4.10): the one defended, if they saw it, feels WithJoy
+    /// toward the defender, and wants to return it.</summary>
+    private void Defended(Act act, int defender, int m)
+    {
+        if (act.With is not { } with || !_index.TryGetValue(with, out int wi) || KindOf(act).Affect is not { WithJoy: > 0 } row
+            || !_beliefs[with].TryGetValue(act.Id, out Belief? b) || b.Source != Source.Witnessed || b.Actor != act.Actor)
+            return;
+        double joy = row.WithJoy * Sens(wi);
+        AddMood(wi, joy, act.Id);
+        Move(wi, defender, joy * row.Plastic * _fo.PlasticScale * Feelings.Keep(joy, Ret(wi), _fo), act.Id, "Defended", "Event", true, m);
+        if (_fo.ReturnOn && !Close(wi, defender))
+            Stir(wi, defender, DesireKind.Return, false, "StoodUpFor", act.Id, joy, m);
     }
 }
