@@ -17,7 +17,8 @@ using UnderGlass.Sim;
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
 // Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0);
 // --town <name> runs a grown town instead of the shipped one (pelican31, or a generated town such as
-// pelican:60@7: Towns.Named), and --describe prints its census card and hash instead of running.
+// pelican:60@7, or file:<path>: Towns.Named), --describe prints its census card and hash instead of
+// running, and --dump-town <path> writes it as JSON to edit by hand.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -27,6 +28,15 @@ TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[to
 // The flags below change the town's own gossip options (a grown town keeps two tellings a day).
 var gossip = town?.Gossip ?? new GossipOptions();
 IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
+int dumpAt = Array.IndexOf(args, "--dump-town");
+if (dumpAt >= 0)
+{
+    // The town as JSON, to edit by hand and run with --town file:<path> (town spec 4.5).
+    string path = dumpAt + 1 < args.Length ? args[dumpAt + 1] : throw new ArgumentException("--dump-town needs a file path");
+    File.WriteAllText(path, TownJson.Write(town ?? TownData.Default()));
+    Console.WriteLine($"wrote {path}");
+    return;
+}
 if (args.Contains("--describe"))
 {
     // The census card (town spec 4.5): every household, the keepers and the hubs, and the town's hash.
