@@ -39,7 +39,8 @@ public class TownJsonTests
             Assert.Contains(field, file);
             Assert.DoesNotContain(field, canonical);
         }
-        Assert.DoesNotContain('\n', canonical);
+        Assert.DoesNotContain('\n', canonical); // one line: the same hash on every system, whatever its line endings
+        Assert.DoesNotContain('\r', canonical);
         Assert.Contains("\"Juiciness\"", canonical); // what a town is made of stays
         string hash = Census.Hash(town);
         Assert.Equal(hash, Census.Hash(TownJson.Read(file)));

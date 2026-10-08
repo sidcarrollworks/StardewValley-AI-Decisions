@@ -142,7 +142,8 @@ public sealed record RegardSpread(int Day, double MeanChange, double P5, double 
 
 /// <summary>Feelings across many runs (phase 0c; design section 3a). Per year means per 112 days.
 /// A mean over nothing (no such holders, no such events) is NaN, not 0; so are war and dead towns
-/// for runs shorter than a season and a year.</summary>
+/// for runs shorter than a season and a year. The Scaled gates at the end are E1, war and dead towns
+/// at 26 people or fewer and count per person in a grown town (<see cref="FeelingMetrics.ShippedOthers"/>).</summary>
 public sealed record FeelingStats(int Runs,
     double MeanPower, double PowerSpread, double LowPowerShare, double HighPowerShare,
     IReadOnlyList<(string Name, double Power)> LowestPower,
@@ -157,7 +158,8 @@ public sealed record FeelingStats(int Runs,
     double GiftsToLoved, double ArgumentsToDisliked, double ArgumentsInHouseholds,
     double NewsPerYear, double TriviaPerYear,
     double GrievancePerYear, double ShopSwitchesPerYear, IReadOnlyList<double> HouseholdsAtChainBySeason,
-    IReadOnlyDictionary<string, double> MeanKindRegard, double RegardTowardNewcomer, double RegardFromNewcomer);
+    IReadOnlyDictionary<string, double> MeanKindRegard, double RegardTowardNewcomer, double RegardFromNewcomer,
+    double SeedsWithFeudAndFriendshipScaled = double.NaN, double WarTownsScaled = double.NaN, double DeadTownsScaled = double.NaN);
 
 public static class FeelingMetrics
 {
@@ -165,6 +167,18 @@ public static class FeelingMetrics
     public const double WarShare = 0.10;
     /// <summary>Dead town: at a year's end, fewer than this share of ordered pairs moved 0.1 or more.</summary>
     public const double DeadShare = 0.05;
+    /// <summary>The shipped town's others per person (26 people). E1, war and dead towns count pairs,
+    /// and a grown town has more pairs per person than anyone meets, so at 60 people E1 passes and dead
+    /// towns fail on size alone. Their scaled forms count against at most this many others per person:
+    /// a war town has more than WarShare x 25 people disliked per person, a dead town fewer than
+    /// DeadShare x 25 moved per person, and E1 needs a new feud and a new friendship per 26 people (to
+    /// the nearest whole, at least one: one at 31, two at 60, five at 120). At 26 people or fewer they
+    /// are the gates themselves.</summary>
+    public const int ShippedOthers = 25;
+
+    /// <summary>The new feuds and new friendships a seed-year needs for the scaled E1: one per 26 people,
+    /// to the nearest whole, and at least one.</summary>
+    public static int TiesNeeded(int people) => Math.Max(1, (int)Math.Round(people / (double)(ShippedOthers + 1), MidpointRounding.AwayFromZero));
 
     /// <param name="cast">The cast the runs used (for kin and households).</param>
     /// <param name="groceriesAt">Where each household shopped at the start.</param>
@@ -191,6 +205,7 @@ public static class FeelingMetrics
         var bySnapshot = new List<RegardSpread>();
         int snapshots = runs.Count == 0 ? 0 : runs.Min(r => r.RegardSnapshots.Count);
         var war = new bool[runs.Count];
+        var warScaled = new bool[runs.Count];
         bool seasonEnd = false;
         for (int s = 0; s < snapshots; s++)
         {
@@ -220,6 +235,8 @@ public static class FeelingMetrics
                     seasonEnd = true;
                     if (runUnder > WarShare * n * (n - 1))
                         war[ri] = true;
+                    if (runUnder > WarShare * n * Math.Min(n - 1, ShippedOthers))
+                        warScaled[ri] = true;
                 }
             }
             all.Sort();
@@ -231,7 +248,7 @@ public static class FeelingMetrics
         // one-year run): dead if at any of them fewer than DeadShare of ordered pairs have moved 0.1.
         int yearDays = 4 * Clock.DaysPerSeason;
         var yearRuns = runs.Where(r => r.RegardSnapshots.Any(x => x.Day == yearDays - 1)).ToList();
-        double dead = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r => r.RegardSnapshots
+        bool Dead(SimResult r, bool scaled) => r.RegardSnapshots
             .Where(x => x.Day % yearDays == yearDays - 1)
             .Any(x =>
             {
@@ -240,8 +257,10 @@ public static class FeelingMetrics
                 for (int i = 0; i < n; i++)
                     for (int j = 0; j < n; j++)
                         if (i != j && Math.Abs(flat[i * n + j] - r.Baseline[(r.Names[i], r.Names[j])]) >= 0.1) moved++;
-                return moved < DeadShare * n * (n - 1);
-            })) / (double)yearRuns.Count;
+                return moved < DeadShare * n * (scaled ? Math.Min(n - 1, ShippedOthers) : n - 1);
+            });
+        double dead = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r => Dead(r, false)) / (double)yearRuns.Count;
+        double deadScaled = yearRuns.Count == 0 ? double.NaN : yearRuns.Count(r => Dead(r, true)) / (double)yearRuns.Count;
 
         // Ties.
         var ties = runs.SelectMany((r, ri) => r.Ties.Select(t => (Run: ri, t.A, t.B, t.What))).ToList();
@@ -250,6 +269,8 @@ public static class FeelingMetrics
             .GroupBy(t => (t.A, t.B)).Select(g => (g.Key.A, g.Key.B, g.Select(t => t.Run).Distinct().Count()))
             .OrderByDescending(x => x.Item3).ThenBy(x => x.A, StringComparer.Ordinal).ThenBy(x => x.B, StringComparer.Ordinal).Take(5).ToList();
         double both = runs.Count(r => r.Ties.Any(t => t.What == "feud") && r.Ties.Any(t => t.What == "friendship")) / (double)Math.Max(1, runs.Count);
+        double bothScaled = runs.Count(r => r.Ties.Count(t => t.What == "feud") >= TiesNeeded(r.Names.Count)
+            && r.Ties.Count(t => t.What == "friendship") >= TiesNeeded(r.Names.Count)) / (double)Math.Max(1, runs.Count);
 
         // Sentiments, from the log (each one made or renewed).
         var sentimentLines = runs.SelectMany(r => r.Log.Where(l => l.Contains(" sentiment ")).Select(l => l.Split(' ')[^4])).ToList(); // "... {name} {strength} act {id}"; a kind's name has spaces
@@ -329,6 +350,7 @@ public static class FeelingMetrics
             runs.Sum(r => r.ShopSwitches.Count) / Math.Max(1e-9, years), atChain,
             kindRegard,
             Mean(hasNewcomer.SelectMany(r => r.Names.Where(n => n != newcomer).Select(n => r.Regard[(n, newcomer)]))),
-            Mean(hasNewcomer.SelectMany(r => r.Names.Where(n => n != newcomer).Select(n => r.Regard[(newcomer, n)]))));
+            Mean(hasNewcomer.SelectMany(r => r.Names.Where(n => n != newcomer).Select(n => r.Regard[(newcomer, n)]))),
+            bothScaled, seasonEnd ? warScaled.Count(w => w) / (double)Math.Max(1, runs.Count) : double.NaN, deadScaled);
     }
 }
