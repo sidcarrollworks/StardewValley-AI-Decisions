@@ -228,9 +228,10 @@ public class ReturnsTests
     }
 
     [Fact]
-    public void FondWaitsAWeekAfterASmallAct()
+    public void FondWaitsAfterASmallAct()
     {
         FeelingOptions o = Fond();
+        o.Acts.FondWarmDays = 7; // a week here, to see several waits in three weeks
         SimResult r = Scene(o, 21, giver: null, friends: true);
         var days = r.Acts.Where(a => Warm.Contains(a.Kind) && a.Actor == "Ann" && r.Pursued.Contains(a.Id)).Select(a => Clock.Day(a.Tick)).ToList();
         Assert.True(days.Count >= 2, string.Join(",", days));
