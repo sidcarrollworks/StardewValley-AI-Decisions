@@ -48,7 +48,7 @@ for (int i = 0; i < args.Length; i++)
                 _ => throw new ArgumentException("--desire off|observe|on"),
             };
             break;
-        case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(Next(), inv)); break;
+        case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(Next(), inv)); break; // keeps a town's own
         case "--0d6": feelings.With0d6(Next()); break;
         case "--fo":
             string kv = Next();

@@ -96,7 +96,7 @@ for (int i = 0; i < args.Length - 1; i++)
                 _ => throw new ArgumentException("--desire off|observe|on"),
             };
             break;
-        case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(args[i + 1], inv)); break;
+        case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(args[i + 1], inv)); break; // keeps a town's own
         case "--0d6": feelings.With0d6(args[i + 1]); break;
         case "--catalog": feelings.Acts.With(args[i + 1]); break;
     }
@@ -268,7 +268,7 @@ static string Hm(double h) => $"{(int)h % 24:00}:{(int)Math.Round(h % 1 * 60) % 
 Console.WriteLine($"sleep: bed {Hm(b.MeanBedtime)} (spread {b.BedtimeSpread:0.0} h), up {Hm(b.MeanWake)}, {b.MeanSleepHours:0.0} h a night; alarms slept through {b.MissedAlarmShare:P0}; late for work {b.LatePerSeason:0.#} a season; collapses {b.CollapsesPerSeason:0.#} a season");
 {
     // Who knows whom at the end (town spec E6): the share of ordered pairs known at all (KnowsActorAt)
-    // and known well (KnowsAt), and, with forgetting on, the ties lost from the start.
+    // and known well (KnowsAt), and whether forgetting was on.
     var fam = runs.SelectMany(r => r.Familiarity.Values).ToList();
     if (fam.Count > 0)
         Console.WriteLine($"familiarity at the end: mean {fam.Average():0.000}; known ({gossip.KnowsActorAt:0.##}+) {fam.Count(f => f >= gossip.KnowsActorAt) / (double)fam.Count:P1}, "

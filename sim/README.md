@@ -451,10 +451,21 @@ The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 
     - seeds go both ways, and nothing fades while forgetting is off;
     - a built tie fades slower, and housemates never;
     - a warm first meeting sticks;
-    - many new faces push a weak tie out;
-    - the shipped town with forgetting on is pinned (`42455eda038ae986`).
+    - many new faces push a weak tie out, and a new face counts once a week however often it is met;
+    - both halves of a tie fade alike;
+    - with forgetting on, feelings that only watch still change nothing (T12);
+    - the shipped town with forgetting on is pinned (`0fb826867e0573b5` since the review's fixes, below).
 
   254 tests.
+
+**Fixed after review** (2026-10-08, a workflow of reviewers, each finding checked by a skeptic):
+- Forgetting read regard whenever feelings were on. So feelings that only watch (`Steer` off) changed familiarity, and through it beliefs: T12 broke with forgetting on. Regard now adds to a tie's strength, and warmth to a new face, only while feelings steer.
+- The week's new faces were counted by the day, so one stranger met on seven days was seven new faces. Each face now counts once in any seven days.
+- A tie faded in place, so the second half of a pair faded from an already faded average, and pairs drifted apart by name order. Each night's fade is now worked out from the night's starting values.
+- `--town file:` runs `TownCheck` and refuses a town it finds wrong, listing what it found. A hand edit can put a door on a wall, which routing would otherwise treat as no distance at all.
+- Two comments said more than the code does: a hedge only dims people at a crowded hub, so they still count; and the runner prints no "ties lost".
+
+The forgetting pin moves to `0fb826867e0573b5`. Every other pin holds, since forgetting is off in all of them. The numbers below were measured before these fixes.
 
 **Forgetting at 26** (measured 2026-10-08): forgetting off against `FadePerDay` 0.01 (rule 5's 1% a day) on the shipped town, same seeds.
 
@@ -477,18 +488,21 @@ In a town of 26 where everyone meets at the market and the saloon, forgetting at
   - **Linus** lives in a tent on the mountain, earns nothing, and goes through the bins when he runs short.
   - **The Wizard** keeps to his tower in the forest.
 
-  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours, friends, birthdays, Linus and the bins) is marked VERIFY. The 31 town keeps two tellings a day, as the shipped town has; left to its default it would jump to three at 30 people and quietly change gossip. The runner and the replay tool take `--town pelican31`.
+  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours and days off, birthdays, Clint's crush, Linus, the tent's purse and the bins) is marked VERIFY. The 31 town keeps two tellings a day, as the shipped town has; left to its default it would jump to three at 30 people and quietly change gossip. The runner and the replay tool take `--town pelican31`.
 - **`TownCheck`** lists what the engine would forgive quietly: a place no door reaches (people would arrive at once), a spot on a wall, two doors on one tile, a keeper, mayor, friend or kin not in the town, a household with no purse, a shop that doesn't exist. The shipped town and the 31 town pass.
-- `Town31Tests` (5):
+- `Town31Tests` (8):
   - both towns are sound;
   - the 31 town keeps the shipped 26 whole (cards, places, doors);
+  - the tiles where the neighbourhoods join stay free;
   - `TownCheck` finds an unreachable place, a doubled door, a haunt on a wall and a keeper not in the town;
+  - `TownCheck` finds what a hand edit can break, without crashing: a place that isn't a rectangle, a home that doesn't exist, groceries at a shop that sells none, a starting regard or a hub's household naming nobody, a parent under 18 years older, a place too wide and too many places for the replay;
+  - `--tensions` keeps a town's own starting regards;
   - the 31 town runs the same every time and is pinned (`db268a57b95bada2`, seed 1, 112 days);
   - the five keep their days: Clint at the anvil, Willy in his shop, the Wizard in his tower.
-- **A first look** (8 seeds x 112 days, before the long runs):
-  - Linus is tempted 0.5 times a year, all from need;
-  - the Wizard is the most left out (E 0.63);
-  - E1 62%, feuds 7.1 and friendships 1.0 a year (the shipped 26: 60%, 7.7 and 0.9 on 200 seeds).
+- **Measured** (100 seeds x 112 days, two tellings a day; the runner gave `--town` towns three until 2026-10-08):
+  - E1 42%, below the 60% target: feuds 8.9, friendships 0.57 and reconciliations 1.6 a year (the shipped 26: 60%, 7.7 and 0.9 on 200 seeds);
+  - per person, the 31 town forms half the shipped town's friendships, so it misses E1; why is open (L8 in issue #46);
+  - temptation 3.5 a year (Pam 1.7, Abigail 0.9, Linus 0.8); the Wizard the most left out (E 0.62); brawlers 2.3 a seed-year.
 
 ### The town generator and the 60-person town (T3 and T4, built 2026-10-08)
 
@@ -513,38 +527,27 @@ What a neighbourhood gets, every draw keyed by slot, plot and member (`Rng`), ne
 - **Familiarity seeds** by circle: kin elsewhere 0.6, coworkers and classmates 0.4, neighbours 0.25, a public figure 0.2, strangers 0.08; housemates, friends and core pairs keep the engine's seeds.
 - **The town**: the core's hubs get limits (noon in the square is the core's, others at a quarter; at most 25 there and 30 at the saloon), each neighbourhood an evening on its green (its own households, others at a tenth, at most 15), the mayor keeps the greens, the constable patrols them, two tellings a day, and the county's stipend scales with the town.
 
-`TownCheck` also checks now that every door and spot in use can be walked to inside its place. `TownGenTests` (9): a spec builds the same town every time and three town hashes are pinned; specs read and write their short form; 200 towns of 60 are sound, with every name unique and each slot holding its people exactly; the core is untouched; kin agree with each other and with ages; generated adults keep the core's trait means (within 0.1) and spreads (within half to one and a half); the 60 town keeps the 46 town's people (kin toward later slots aside); familiarity starts by circle; and a week of `pelican:60@1` is pinned (`e067cecab875a0dd`). Building a town takes about 40 ms.
+`TownCheck` also checks now that every door and spot in use can be walked to inside its place. `TownGenTests` (12): a spec builds the same town every time and three town hashes are pinned; specs read and write their short form; 200 towns of 60 are sound, with every name unique and each slot holding its people exactly; the core is untouched; kin agree with each other and with ages (a parent 22 to 45 at the birth, at most two parents, and two parents are spouses); generated adults keep the core's trait means (within 0.1), spreads (within half to one and a half) and its link between boldness and understanding; the 60 town keeps the 46 town's people (kin toward later slots aside); familiarity starts by circle, each pair worked out from the cards; no two people share a spot, staff work near a shop's keeper, and the young without a job have an allowance; every home is within 25 tiles of its green; a spec of 31 is the 31 town; and a week of `pelican:60@1` is pinned (`c8990fcb4c6537c7`). Building a town takes about 40 ms.
+
+**Fixed after review** (generator version 2, 2026-10-08; each finding checked by a skeptic, and each test below fails on version 1):
+- A partner who was a full parent could be 15 at a child's birth, and a parent up to 54: only the first adult's age bounded the child. Now a child fits both full parents (22 to 40 at the birth); a stepparent's age doesn't bound it.
+- An elder couple's grown child elsewhere was tied to one spouse only, and the match skipped people who had children rather than people who had parents, so one adult could get two unrelated sets of parents. Now the child is every elder's in the household and has no parents yet.
+- Front-step seats skipped the spacing rule, so housemates sat on one tile (550 pairs over 200 towns). Generated bar staff stood anywhere within six tiles of the Saloon's middle, mostly in its back room. When no spot was free within a zone's radius, a spot went anywhere in the place. Now steps go through the spacing rule, staff stand near the shop's keeper, and a crowded zone widens ring by ring before spacing is relaxed.
+- Children at lessons in the square were seeded as coworkers (0.4) of the adults who work there (about 17 child-adult pairs a town). Classmates and coworkers are now separate.
+- Unhired 18- and 19-year-olds had no job, income or allowance. They now get a teen's allowance.
+- North Lane's green sat at its far end, 32 tiles from its west homes (the spec says 25). It is now in the middle of the lane, and the workshop's door is at the street's east end.
+- Wildcards ignored how traits go together in the cast, and children took after a stepparent. Wildcards are now drawn with the cast's covariance, and children take after their birth parents.
+- `pelican:31@<seed>` rescaled the 31 town's rates and so was not the 31 town. It is now the 31 town itself.
+- `Census.Hash` left out much of what a town runs on (gossip, wants, market days, juiciness, wander), so different towns could share a hash. It is now FNV-1a over the town's JSON file, as the town spec has it.
 
 **A town as a file.** `--dump-town town.json` writes the town named by `--town` (the shipped town without it) as indented JSON and exits; `--town file:town.json` runs it, in the runner and the replay tool, so a town can be edited by hand: a card's traits, a haunt, a door, an option. The file holds what a town is made of (cards, rows, doors, hubs, act kinds, options); what the code works out, and `FeelingOptions.CloseCall`, which is code, are left out. `TownJsonTests` (5): the shipped town, the 31 town and `pelican:60@1` each read back to the same file, census hash and three-day log; the file holds cards and rows but not worked-out values; an edited file changes the town, read directly and through `file:`.
 
-A first look at `pelican:60@1` (8 seeds x 56 days): feuds 14.8 and friendships 1.0 a year, E1 50% (8 seeds, two months: noisy); 2 households a run in debt (the tent and the trailer, as at 31); temptation 1.5 a year; the Wizard the most left out; late for work 10 a season, mostly the café's 6:00 starts. A run of 60 people takes about 0.15 s a day. The long runs are asked of the local agent. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics`, and ring 1's other slots.
+Measured on `pelican:60@1` with these fixes (100 seeds x 112 days): feuds 16.5 and friendships 3.1 a year; E1 100% and dead towns 16%, both from its size (E1 counts seed-years, and 60 people have 1770 pairs against the shipped 325; the dead-town rule counts every pair, and most pairs in a town of 60 never meet, so neither gate compares across sizes yet); 2 households a run in debt (the tent and the trailer, as at 31); temptation 2.5 a year; the Wizard the most left out (0.63); late for work 10.3 a season, mostly the café's 6:00 starts; by the year's end the median person knows 57 of the other 59 well (forgetting off). Two work pairs make most of the friendships: Alfred and Megan (his workshop) in 90 of 100 seeds and Bernice and Clint (his forge) in 85, so a single town seed repeats them run after run. A run of 60 people takes about 0.15 s a day. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics`, and ring 1's other slots.
 
-**`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto); the share of tellings inside a district against the share chance would give (the locality ratio: 1 is a crowd); how often a neighbourhood's story stays at home on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person. The runner prints it for any `--town`. A first look at `pelican:60@1` (4 seeds x 56 days): half of all tellings stay inside a district against 37% by chance (locality 1.35, the spec's target is 2 or more at 120); 90% of a neighbourhood's stories reach another district within two days; East Green's people act more than the core's (54 acts a person a year against 31). `TownMetricsTests` (2): districts, and shares recounted from the log.
+**`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto) and each place's (`PlaceDistricts`: a neighbourhood's road, shops and homes are its own); the share of tellings inside a district against the share chance would give, each teller's listeners drawn evenly from everyone else and averaged over the tellings there were (the locality ratio: 1 is a crowd, however unevenly people talk); how often a story that began in a neighbourhood (its people's acts at home) stays there on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person, a tie across two districts counting half in each so the rows add up to the town. The runner prints it for any `--town`. `TownMetricsTests` (5): districts of people and places; shares recounted from the log; a crowd scores 1 and a town of neighbourhoods more; the rows add up to the town, and stories begin at home. A review (2026-10-08) found the first version counted a neighbourhood person's acts in the square as its stories (so most "crossed" at once), took chance from head counts (so a crowd where the core talks more scored 1.12), and counted a tie across districts in both; the first look at `pelican:60@1` below was measured with it.
 
+A first look at `pelican:60@1` with the first version (4 seeds x 56 days): half of all tellings stay inside a district against 37% by chance (locality 1.35, the spec's target is 2 or more at 120); 90% of a neighbourhood's stories reach another district within two days; East Green's people act more than the core's (54 acts a person a year against 31).
 
-## The act catalog: acts-0, the seams (built 2026-10-08; no rows, every switch off)
-
-The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
-
-- **`ActGate`** (`Acts.cs`) is the desire gate's data for an act kind: its form cost, the least intensity a motive needs to use it, the motives it serves, whether it is light, and its limits (a card, familiarity, regard, an audience, a pride weight). A row carries it in `ActKind.Gate`. Every shipped row has none, so `Simulation.GateOf` builds theirs from today's `FeelingOptions`: an argument and a snub answer hostility (a snub only with light acts on), a help returns help and answers pity, a gift returns any kindness, makes up and answers love, and turning away serves nothing.
-- **The gate reads the rows** (`Simulation.Desire.cs`). The costs, the minimums and whether a kind is light come from `GateOf`, and the acts a motive may use are every kind whose gate serves it, most expensive first, ties by name (`Simulation.Served`). Return is in kind or less: only kinds that cost no more than the kindness returned. On the shipped rows these are exactly the old lists, whatever a sweep sets the costs to: returning help offers help, then a gift; any other kindness, a gift; an argument comes before a snub. A shipped row has no gate of its own, so it is ranked and capped by its shipped form, and a swept cost changes only what the gate charges. Light kind acts are left out of 0d.6's kindness counts. `Fits` (`Simulation.Acts.cs`) checks a row's hours and limits before the gate offers it, and the pride term raises a row's cost by its pride weight x (self-regard - 0.5); every shipped row passes `Fits` and has no pride.
-- **The records grow at the end**, with defaults that reproduce today: `Affect.ReadWarmAt` and `WithJoy`, `ActKind.Gate`, `PerHead`, `FromMinute` and `ToMinute`, `Act.With`, the motives Remorse, Defend and Curious, and the outcomes Accepted and Refused.
-- **`ActOptions`** (`FeelingOptions.Acts`, its last property) holds the switches Watch, Returns, Company, Welcome, Repair, Sides and Late, and the spec's constants. Every switch is off, and the town turns none on. The replay records the switches and numbers as `ActOptions.*`, and the viewer's Explanation tab defines all 21; it adds the slices' rows and cards to its run as the runner does.
-- **`ActCatalog`** (`ActCatalog.cs`): `Batch1(o)` gives the rows of the slices that are on (none yet: acts-1 adds Thanked, Complimented and Joked); `Kinds(o)` is the town's act list with those rows after it, so every shipped kind keeps its index; `Cards(cast, o)` adds the card weights the slices need (none yet, so the cast is returned as it is).
-- **The runner's `--catalog <slices>`** turns switches on by name, a comma list in any case, for example `--catalog returns,company`, and adds the slices' rows and cards to the town. (`--acts` is taken: it sets a card weight.)
-- `CatalogTests` (11):
-  - test 1: for every shipped motive, every source act kind, the shipped, 31 and 60 towns' act lists and the switch settings (with light acts off and on, and with each of the four costs swept), the lists built from the rows equal the old mapping (copied into the test from the code before acts-0), with the same costs and minimums, and every kind is light exactly when it was;
-  - a row's own gate is read: served by cost and name, Return in kind or less, light when it says so;
-  - test 2: with every row appended and every switch off, the act list and the cast are the shipped ones, and the runs give P3 (`e9fd83b284f5c1b6`) and the two feelings-off hashes;
-  - test 3, as far as acts-0 goes: with watch and every slice on, the same hashes;
-  - determinism: two runs give one hash, also under a German culture;
-  - the replay adds the catalog as the runner does, and records its switches;
-  - the switch names, and a window that runs past midnight;
-  - three scenes with a row of the test's own (a wave): it answers a gift the shy can't return, waits for its hours, and costs more for the proud.
-
-  288 tests.
-
-Still owed by acts-0, in a follow-up before acts-1: `StoryMetrics` and the baseline runs (acts spec 7), reading the variety measures' story events. Not built yet, for the later slices: the watch record (`CatalogWatch`) and warmth received on `SimResult`, the per-head draws, the arrivals, what follows an act, the new motives' stirrings, the warm budget, the cold reading, and every new act.
 
 ## Variety: how different the runs are (built 2026-10-08; reads results only)
 
@@ -586,6 +589,31 @@ V7 (copies of a run split at day 28) needs runs that fork, so it is not built. N
 - the median season has no twist.
 
 The longer baseline follows.
+
+## The act catalog: acts-0, the seams (built 2026-10-08; no rows, every switch off)
+
+The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
+
+- **`ActGate`** (`Acts.cs`) is the desire gate's data for an act kind: its form cost, the least intensity a motive needs to use it, the motives it serves, whether it is light, and its limits (a card, familiarity, regard, an audience, a pride weight). A row carries it in `ActKind.Gate`. Every shipped row has none, so `Simulation.GateOf` builds theirs from today's `FeelingOptions`: an argument and a snub answer hostility (a snub only with light acts on), a help returns help and answers pity, a gift returns any kindness, makes up and answers love, and turning away serves nothing.
+- **The gate reads the rows** (`Simulation.Desire.cs`). The costs, the minimums and whether a kind is light come from `GateOf`, and the acts a motive may use are every kind whose gate serves it, most expensive first, ties by name (`Simulation.Served`). Return is in kind or less: only kinds that cost no more than the kindness returned. On the shipped rows these are exactly the old lists, whatever a sweep sets the costs to: returning help offers help, then a gift; any other kindness, a gift; an argument comes before a snub. A shipped row has no gate of its own, so it is ranked and capped by its shipped form, and a swept cost changes only what the gate charges. Light kind acts are left out of 0d.6's kindness counts. `Fits` (`Simulation.Acts.cs`) checks a row's hours and limits before the gate offers it, and the pride term raises a row's cost by its pride weight x (self-regard - 0.5); every shipped row passes `Fits` and has no pride.
+- **The records grow at the end**, with defaults that reproduce today: `Affect.ReadWarmAt` and `WithJoy`, `ActKind.Gate`, `PerHead`, `FromMinute` and `ToMinute`, `Act.With`, the motives Remorse, Defend and Curious, and the outcomes Accepted and Refused.
+- **`ActOptions`** (`FeelingOptions.Acts`, its last property) holds the switches Watch, Returns, Company, Welcome, Repair, Sides and Late, and the spec's constants. Every switch is off, and the town turns none on. The replay records the switches and numbers as `ActOptions.*`, and the viewer's Explanation tab defines all 21; it adds the slices' rows and cards to its run as the runner does.
+- **`ActCatalog`** (`ActCatalog.cs`): `Batch1(o)` gives the rows of the slices that are on (none yet: acts-1 adds Thanked, Complimented and Joked); `Kinds(o)` is the town's act list with those rows after it, so every shipped kind keeps its index; `Cards(cast, o)` adds the card weights the slices need (none yet, so the cast is returned as it is).
+- **The runner's `--catalog <slices>`** turns switches on by name, a comma list in any case, for example `--catalog returns,company`, and adds the slices' rows and cards to the town. (`--acts` is taken: it sets a card weight.)
+- `CatalogTests` (11):
+  - test 1: for every shipped motive, every source act kind, the shipped, 31 and 60 towns' act lists and the switch settings (with light acts off and on, and with each of the four costs swept), the lists built from the rows equal the old mapping (copied into the test from the code before acts-0), with the same costs and minimums, and every kind is light exactly when it was;
+  - a row's own gate is read: served by cost and name, Return in kind or less, light when it says so;
+  - test 2: with every row appended and every switch off, the act list and the cast are the shipped ones, and the runs give P3 (`e9fd83b284f5c1b6`) and the two feelings-off hashes;
+  - test 3, as far as acts-0 goes: with watch and every slice on, the same hashes;
+  - determinism: two runs give one hash, also under a German culture;
+  - the replay adds the catalog as the runner does, and records its switches;
+  - the switch names, and a window that runs past midnight;
+  - three scenes with a row of the test's own (a wave): it answers a gift the shy can't return, waits for its hours, and costs more for the proud.
+
+  288 tests.
+
+Still owed by acts-0, in a follow-up before acts-1: `StoryMetrics` and the baseline runs (acts spec 7), reading the variety measures' story events. Not built yet, for the later slices: the watch record (`CatalogWatch`) and warmth received on `SimResult`, the per-head draws, the arrivals, what follows an act, the new motives' stirrings, the warm budget, the cold reading, and every new act.
+
 
 ## Next
 
