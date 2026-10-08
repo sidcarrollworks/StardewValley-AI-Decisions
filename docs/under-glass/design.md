@@ -530,7 +530,7 @@ E5 is Sid's blind read of 10 season journals.
 - **0b.** A stock-and-flow money model, about 200 lines. Built 2026-10-06, with wants, needs, temptation and the ladder's fines.
 - **0c.** Feelings: the Spinozan laws of section 3a on regard, mood and the believed cause. (The first plan was to port the mod's core here. The simulator was instead built natively in 0a and 0b, so 0c builds feelings on it directly; the mod's lessons, such as D33-D35, carry over as rules, not code.) Built 2026-10-06 (`sim/README.md`): laws 1-3, 5, 6 and 8-12 with sentiments, steering ten decisions. The 0a and 0b gates still hold. E1 did not until rule 10's desire gate (0d, 2026-10-07): with it, 68% of seed-years.
 - **0d.** The simulator itself (`UnderGlass.Sim`):
-  - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON;
+  - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON (the town as a file built 2026-10-08: the runner's `--dump-town` writes one and `--town file:` runs it);
   - the bots;
   - the event log, snapshots, metrics and the story sifter;
   - the viewer replays runs.
