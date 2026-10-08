@@ -1,0 +1,28 @@
+{
+ "town": "bloomfield",
+ "homes_within_of_everyday": {
+  "100": 0.247,
+  "200": 0.578,
+  "400": 0.912,
+  "800": 1.0
+ },
+ "homes_within_of_shop": {
+  "100": 0.13,
+  "200": 0.411,
+  "400": 0.754,
+  "800": 0.978
+ },
+ "home_nn_m_p10_p50_p90": [
+  20,
+  26,
+  52
+ ],
+ "homes_with_no_home_within_100m": 0.023,
+ "other_homes_within_50m_median": 3.0,
+ "other_homes_within_100m_median": 15.0,
+ "homes_within_centre": {
+  "200": 0.016,
+  "400": 0.19,
+  "800": 0.629
+ }
+}

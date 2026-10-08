@@ -1,0 +1,28 @@
+{
+ "town": "ogimachi",
+ "homes_within_of_everyday": {
+  "100": 0.677,
+  "200": 0.855,
+  "400": 0.969,
+  "800": 0.997
+ },
+ "homes_within_of_shop": {
+  "100": 0.637,
+  "200": 0.843,
+  "400": 0.966,
+  "800": 0.997
+ },
+ "home_nn_m_p10_p50_p90": [
+  14,
+  23,
+  50
+ ],
+ "homes_with_no_home_within_100m": 0.043,
+ "other_homes_within_50m_median": 3.0,
+ "other_homes_within_100m_median": 13.0,
+ "homes_within_centre": {
+  "200": 0.24,
+  "400": 0.44,
+  "800": 0.631
+ }
+}

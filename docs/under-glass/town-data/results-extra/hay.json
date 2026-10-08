@@ -1,0 +1,28 @@
+{
+ "town": "hay",
+ "homes_within_of_everyday": {
+  "100": 0.584,
+  "200": 0.804,
+  "400": 0.956,
+  "800": 0.996
+ },
+ "homes_within_of_shop": {
+  "100": 0.415,
+  "200": 0.63,
+  "400": 0.847,
+  "800": 0.984
+ },
+ "home_nn_m_p10_p50_p90": [
+  9,
+  16,
+  30
+ ],
+ "homes_with_no_home_within_100m": 0.012,
+ "other_homes_within_50m_median": 8.0,
+ "other_homes_within_100m_median": 32.0,
+ "homes_within_centre": {
+  "200": 0.203,
+  "400": 0.395,
+  "800": 0.7
+ }
+}

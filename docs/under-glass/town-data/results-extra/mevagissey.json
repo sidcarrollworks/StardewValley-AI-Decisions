@@ -1,0 +1,28 @@
+{
+ "town": "mevagissey",
+ "homes_within_of_everyday": {
+  "100": 0.5,
+  "200": 0.812,
+  "400": 0.988,
+  "800": 0.999
+ },
+ "homes_within_of_shop": {
+  "100": 0.321,
+  "200": 0.569,
+  "400": 0.885,
+  "800": 0.996
+ },
+ "home_nn_m_p10_p50_p90": [
+  6,
+  15,
+  26
+ ],
+ "homes_with_no_home_within_100m": 0.003,
+ "other_homes_within_50m_median": 10.0,
+ "other_homes_within_100m_median": 42.0,
+ "homes_within_centre": {
+  "200": 0.232,
+  "400": 0.501,
+  "800": 0.857
+ }
+}

@@ -1,0 +1,200 @@
+{
+ "town": "longmelford",
+ "centre": [
+  0.7185,
+  52.079,
+  "Hall Street at the post office / Bull"
+ ],
+ "buildings_in_circle": 1735,
+ "building_sources": {
+  "OpenStreetMap": 905,
+  "Microsoft ML Buildings": 830
+ },
+ "homes": 1277,
+ "homes_tagged": 378,
+ "home_footprint_median_m2": 79,
+ "civcom_buildings": 65,
+ "establishments": 124,
+ "establishment_mix": {
+  "shopping": 46,
+  "food_and_drink": 19,
+  "lifestyle_services": 16,
+  "health_care": 12,
+  "arts_and_entertainment": 9,
+  "services_and_business": 5,
+  "education": 5,
+  "sports_and_recreation": 3,
+  "cultural_and_historic": 3,
+  "lodging": 3,
+  "community_and_government": 3
+ },
+ "addresses_in_circle": null,
+ "home_addresses": null,
+ "est_d50": 278.6647756839561,
+ "est_d90": 793.3487264038934,
+ "civ_d50": 306.6573861286782,
+ "civ_d90": 781.3338647377159,
+ "home_d50": 583.2092453462348,
+ "home_d90": 1238.1524721688113,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 12.5,
+   "homes": 115,
+   "homes_per_ha": 9.17,
+   "res_footprint_pct": 10.8,
+   "establishments": 44,
+   "addresses": null
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 64.8,
+   "homes": 393,
+   "homes_per_ha": 6.07,
+   "res_footprint_pct": 7.0,
+   "establishments": 46,
+   "addresses": null
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 232.6,
+   "homes": 567,
+   "homes_per_ha": 2.44,
+   "res_footprint_pct": 2.4,
+   "establishments": 27,
+   "addresses": null
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 389.6,
+   "homes": 202,
+   "homes_per_ha": 0.52,
+   "res_footprint_pct": 0.6,
+   "establishments": 7,
+   "addresses": null
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  79,
+  178
+ ],
+ "nearest_shop_p50_p90": [
+  130,
+  307
+ ],
+ "street_m": {
+  "path_circle": 30137,
+  "path_settled": 15074,
+  "path_within500": 8779,
+  "public_circle": 21318,
+  "public_settled": 15288,
+  "public_within500": 5693,
+  "service_circle": 7402,
+  "service_settled": 6535,
+  "service_within500": 3146,
+  "track_circle": 7115,
+  "track_settled": 1453,
+  "track_within500": 908
+ },
+ "settled_area_ha": 156.2,
+ "orientation_order": 0.195,
+ "core_orientation_order": 0.44,
+ "axes_aligned_share": 0.361,
+ "axes_balance": 0.788,
+ "core_axes_aligned_share": 0.485,
+ "core_axes_balance": 0.853,
+ "core_public_street_m": 4347,
+ "main_street": "Bull Lane",
+ "main_street_home_share": 0.106,
+ "everyday_pois": 82,
+ "gathering_landuse": 16,
+ "everyday_d50": 254.20979160377706,
+ "everyday_d90": 794.1098906224421,
+ "elongation": 2.01,
+ "homes_within_500m": 0.398,
+ "shape": "linear",
+ "homes_within_500m_n": 508,
+ "far_establishments": [
+  [
+   738,
+   "second_hand_store",
+   "longmelfordantiquescentre"
+  ],
+  [
+   760,
+   "hardware_home_and_garden_store",
+   "hartofthehouse"
+  ],
+  [
+   791,
+   "cafe",
+   "bizzibeanscafe"
+  ],
+  [
+   794,
+   "restaurant",
+   "scutchers"
+  ],
+  [
+   799,
+   "inn",
+   "theblacklion"
+  ],
+  [
+   864,
+   "movie_theater",
+   "longmelfordgreen"
+  ],
+  [
+   916,
+   "christian_place_of_worship",
+   "longmelfordchurch"
+  ],
+  [
+   943,
+   "shopping",
+   "thesealextrusionco"
+  ],
+  [
+   986,
+   "christian_place_of_worship",
+   "holytrinitychurch"
+  ],
+  [
+   1091,
+   "hardware_home_and_garden_store",
+   "cherrylanelongmelford"
+  ],
+  [
+   1117,
+   "bar",
+   "thehareinn"
+  ],
+  [
+   1159,
+   "second_hand_store",
+   "bumpsteadantiquesinteriors"
+  ],
+  [
+   1459,
+   "auto_dealer",
+   "cavendishuk"
+  ],
+  [
+   1463,
+   "hospital",
+   "guildhallsurgeryclare"
+  ],
+  [
+   1496,
+   "food_and_beverage_store",
+   "sibaritaspainsorganiclarder"
+  ],
+  [
+   1497,
+   "laundry_service",
+   "lmcleaningservices"
+  ]
+ ],
+ "water_ha_in_circle": 7.3
+}

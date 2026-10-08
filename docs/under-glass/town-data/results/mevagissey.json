@@ -1,0 +1,156 @@
+{
+ "town": "mevagissey",
+ "centre": [
+  -4.7878,
+  50.27029,
+  "Market Square / inner harbour"
+ ],
+ "buildings_in_circle": 1359,
+ "building_sources": {
+  "Microsoft ML Buildings": 166,
+  "OpenStreetMap": 1193
+ },
+ "homes": 1098,
+ "homes_tagged": 428,
+ "home_footprint_median_m2": 96,
+ "civcom_buildings": 89,
+ "establishments": 102,
+ "establishment_mix": {
+  "food_and_drink": 34,
+  "shopping": 31,
+  "lodging": 13,
+  "arts_and_entertainment": 6,
+  "sports_and_recreation": 4,
+  "lifestyle_services": 3,
+  "cultural_and_historic": 3,
+  "services_and_business": 3,
+  "health_care": 2,
+  "travel_and_transportation": 1,
+  "community_and_government": 1,
+  "education": 1
+ },
+ "addresses_in_circle": null,
+ "home_addresses": null,
+ "est_d50": 72.95620194941985,
+ "est_d90": 552.9141586556515,
+ "civ_d50": 68.32220798528746,
+ "civ_d90": 513.6778467748666,
+ "home_d50": 398.5614692237998,
+ "home_d90": 883.3289721370618,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 11.1,
+   "homes": 255,
+   "homes_per_ha": 23.01,
+   "res_footprint_pct": 16.9,
+   "establishments": 76,
+   "addresses": null
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 53.7,
+   "homes": 438,
+   "homes_per_ha": 8.16,
+   "res_footprint_pct": 8.6,
+   "establishments": 14,
+   "addresses": null
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 152.2,
+   "homes": 336,
+   "homes_per_ha": 2.21,
+   "res_footprint_pct": 2.8,
+   "establishments": 10,
+   "addresses": null
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 250.4,
+   "homes": 69,
+   "homes_per_ha": 0.28,
+   "res_footprint_pct": 0.4,
+   "establishments": 2,
+   "addresses": null
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  100,
+  249
+ ],
+ "nearest_shop_p50_p90": [
+  169,
+  420
+ ],
+ "street_m": {
+  "path_circle": 9661,
+  "path_settled": 4443,
+  "path_within500": 3523,
+  "public_circle": 18324,
+  "public_settled": 15408,
+  "public_within500": 8076,
+  "service_circle": 8186,
+  "service_settled": 7317,
+  "service_within500": 3987,
+  "track_circle": 4897,
+  "track_settled": 1909,
+  "track_within500": 1049
+ },
+ "settled_area_ha": 142.2,
+ "orientation_order": 0.062,
+ "core_orientation_order": 0.176,
+ "axes_aligned_share": 0.274,
+ "axes_balance": 0.787,
+ "core_axes_aligned_share": 0.268,
+ "core_axes_balance": 0.619,
+ "core_public_street_m": 5921,
+ "main_street": "Cliff Street",
+ "main_street_home_share": 0.135,
+ "everyday_pois": 80,
+ "gathering_landuse": 13,
+ "everyday_d50": 63.44861993607209,
+ "everyday_d90": 409.1789420174192,
+ "elongation": 1.8,
+ "homes_within_500m": 0.631,
+ "shape": "nucleated",
+ "homes_within_500m_n": 693,
+ "far_establishments": [
+  [
+   724,
+   "elementary_school",
+   "mevagisseycommunityprimaryscho"
+  ],
+  [
+   745,
+   "hotel",
+   "treleavenfarm"
+  ],
+  [
+   854,
+   "hotel",
+   "mermaidcornercottagesportmello"
+  ],
+  [
+   877,
+   "inn",
+   "therisingsuninn"
+  ],
+  [
+   878,
+   "cafe",
+   "theshackatportmellon"
+  ],
+  [
+   1112,
+   "art_gallery",
+   "thegallery"
+  ],
+  [
+   1376,
+   "hotel",
+   "bodruganbarton"
+  ]
+ ],
+ "water_ha_in_circle": 239.5
+}
