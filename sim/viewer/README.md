@@ -32,6 +32,11 @@ and takes a few seconds to record; a year is about 5 MB.
   happens (blue kind, red hostile), with a line to the other party. A gathering spot shows as a
   dashed circle while it is on. The names under each map are who is there; click one to follow
   them. Each home lists who lives there.
+- **Population:** everyone in one table, at the clock: where they are, their character (a small bar
+  per trait), mood, power of acting, stance with its line over the whole run, their mean regard for
+  the town and the town's for them, their acts so far (kind, other, hostile), the stories they know
+  and have told, and their feuds and friendships. Above it, who is lowest and highest on each
+  measure. Sort by any column or trait; click a row to follow that person.
 - **Relationships:** the town as a ring, household by household, with a line for each strong tie
   (blue liking, red dislike, dashed when the two feel differently); switch to "change since the
   start" to see who has grown closer or further apart. The grid shows every person's regard for

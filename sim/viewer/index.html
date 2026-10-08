@@ -203,6 +203,42 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .tree .node.future { opacity: 0.4; }
 .believes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; font-size: var(--step--1); }
 
+/* The population: one row per person. */
+.popfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 18px; margin-bottom: 12px; }
+.popfacts div { display: grid; gap: 1px; min-width: 0; }
+.popfacts b { font-weight: 500; font-size: var(--step--1); }
+#tab-people { min-width: 0; }
+.popwrap { overflow-x: auto; margin-top: 10px; }
+.poptable { width: 100%; border-collapse: collapse; font-size: var(--step--1); font-variant-numeric: tabular-nums; }
+.poptable th { font-family: var(--font-data); font-size: var(--step--2); font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; text-align: left; padding: 0 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: bottom; }
+.poptable th button { all: unset; cursor: pointer; }
+.poptable th .sub { display: block; text-transform: none; letter-spacing: 0; font-family: var(--font-body); font-size: 0.625rem; margin-top: 1px; }
+.poptable th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.poptable th[aria-sort] button { color: var(--ink); }
+.poptable td { padding: 6px; border-bottom: 1px solid rgba(186, 178, 164, 0.4); vertical-align: middle; white-space: nowrap; }
+/* The first column stays put when a narrow screen scrolls the table. */
+.poptable th:first-child, .poptable td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.poptable tbody tr:hover td:first-child, .poptable tbody tr.sel td:first-child { background: #ecdccd; }
+.poptable .two-line { display: grid; gap: 3px; }
+.poptable .two-line .cellbar span:first-child { font-family: var(--font-data); font-size: 0.625rem; color: var(--muted); width: 1.4em; }
+.poptable tbody tr { cursor: pointer; }
+.poptable tbody tr:hover { background: var(--accent-wash); }
+.poptable tbody tr.sel { background: var(--accent-wash); box-shadow: inset 2px 0 0 var(--accent); }
+.poptable .who { display: grid; gap: 1px; }
+.poptable .who .sub { font-size: var(--step--2); color: var(--muted); }
+.poptable .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-inline-end: 6px; }
+.poptable .asleep .dot { box-shadow: inset 0 0 0 1.5px var(--muted); background: transparent !important; }
+.cellbar { display: inline-flex; align-items: center; gap: 6px; }
+.pbar { position: relative; width: 44px; height: 6px; border-radius: 3px; background: var(--surface-2); flex: none; }
+.pbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.pbar.two::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.minitraits { display: inline-flex; gap: 2px; align-items: flex-end; height: 20px; }
+.minitraits span { width: 5px; background: var(--surface-2); position: relative; height: 100%; border-radius: 1px; }
+.minitraits span i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink-2); border-radius: 1px; }
+.stack { display: inline-flex; width: 52px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--surface-2); flex: none; }
+.mark { display: inline-block; width: 7px; height: 7px; margin-inline-end: 4px; }
+.popspark { display: block; width: 72px; height: 20px; flex: none; }
+
 /* Inspector and log. */
 .inspector { padding: 18px; display: grid; gap: 14px; }
 .inspector .who { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -281,12 +317,23 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
     <section class="stage card">
       <nav class="tabs" role="tablist" aria-label="Views">
         <button role="tab" id="tab-town-btn" aria-selected="true" aria-pressed="true" data-tab="town">Town</button>
+        <button role="tab" id="tab-people-btn" aria-selected="false" aria-pressed="false" data-tab="people">Population</button>
         <button role="tab" id="tab-rel-btn" aria-selected="false" aria-pressed="false" data-tab="rel">Relationships</button>
         <button role="tab" id="tab-stories-btn" aria-selected="false" aria-pressed="false" data-tab="stories">Stories</button>
       </nav>
 
       <div id="tab-town" role="tabpanel" aria-labelledby="tab-town-btn">
         <div class="groups" id="groups"></div>
+      </div>
+
+      <div id="tab-people" role="tabpanel" aria-labelledby="tab-people-btn" hidden>
+        <div class="popfacts" id="popFacts"></div>
+        <div class="controls">
+          <label>Sort by <select id="popSort"></select></label>
+          <button id="popDir" title="Reverse the order">A to Z</button>
+          <span class="muted" id="popLegend"></span>
+        </div>
+        <div class="popwrap"><table class="poptable" id="popTable"></table></div>
       </div>
 
       <div id="tab-rel" role="tabpanel" aria-labelledby="tab-rel-btn" hidden>
@@ -420,7 +467,7 @@ const hideTip = () => { tip.hidden = true; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
-const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1,
+const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, popSort: "household", popHigh: false,
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
 const VERB = {
@@ -482,9 +529,14 @@ function load(run) {
   for (const t of run.tellings) { if (!m.tellsByAct.has(t[3])) m.tellsByAct.set(t[3], []); m.tellsByAct.get(t[3]).push(t); }
   m.reach = new Map(); // act -> number of people who came to hold it
   for (const [act, rows] of m.beliefsByAct) m.reach.set(act, new Set(rows.map((r) => r[1])).size);
-  // Acts touching each person.
-  m.actsOf = names.map(() => []);
-  for (const a of m.acts) { m.actsOf[a.actor].push(a); if (a.target >= 0 && a.target !== a.actor) m.actsOf[a.target].push(a); }
+  // Acts touching each person, and acts by each.
+  m.actsOf = names.map(() => []); m.actsBy = names.map(() => []);
+  for (const a of m.acts) { m.actsOf[a.actor].push(a); m.actsBy[a.actor].push(a); if (a.target >= 0 && a.target !== a.actor) m.actsOf[a.target].push(a); }
+  // When each person first came to hold each story, and when each told one, in time order.
+  m.knownAt = names.map(() => []); m.toldAt = names.map(() => []);
+  const firstHeld = new Set();
+  for (const b of run.beliefs) { const k = b[1] * 100000 + b[2]; if (b[1] >= 0 && !firstHeld.has(k)) { firstHeld.add(k); m.knownAt[b[1]].push(b[0]); } }
+  for (const t of run.tellings) if (t[1] >= 0) m.toldAt[t[1]].push(t[0]);
   // The log, with each line's kind of thing and the people it names.
   const nameIndex = new Map(names.map((x, i) => [x, i]));
   const CAT = { act: "acts", regard: "feelings", sentiment: "feelings", reconciled: "feelings", tone: "feelings", mark: "feelings",
@@ -572,7 +624,7 @@ function setPlaying(on) {
 }
 
 // ---- rendering ------------------------------------------------------------------------------
-let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "";
+let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "", lastPopKey = "";
 function render() {
   if (!R) return;
   const t = S.t;
@@ -585,6 +637,8 @@ function render() {
   const slow = Math.floor(t / (S.playing ? 30 : 1)), minute = Math.floor(t / (S.playing ? 5 : 1));
   const relKey = `${S.tab}|${slow}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}`;
   if (S.tab === "rel" && relKey !== lastRelKey) { lastRelKey = relKey; drawRelationships(); }
+  const popKey = `${S.tab}|${slow}|${S.person}|${S.popSort}|${S.popHigh}`;
+  if (S.tab === "people" && popKey !== lastPopKey) { lastPopKey = popKey; drawPopulation(); }
   const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}`;
   if (S.tab === "stories" && storyKey !== lastStoryKey) { lastStoryKey = storyKey; drawStories(); }
   const sideKey = `${S.person}|${slow}`;
@@ -1021,6 +1075,131 @@ function drawStory() {
     ...(track.length ? [el("h3", { text: "The mayor and the constable" }), el("div", { class: "list" }, track.map(([t, text]) => el("div", { class: "row", onclick: () => setTime(t) }, el("span", { class: "when", text: when(t) }), text)))] : [])));
 }
 
+// ---- the population ---------------------------------------------------------------------------
+// Everyone at once: who they are, their character, how they are at the clock, how the town
+// regards them and how they regard it, what they have done and heard so far, their ties, and
+// their stance over the whole run. Sorted by any column; a row selects that person.
+const traitLabel = (nm) => nm.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+function popSorts() {
+  const sorts = [["household", "household", (c) => c.order, false], ["name", "name", (c) => R.names[c.i], false], ["age", "age", (c) => R.people[c.i].age, true],
+    ["where", "where they are", (c) => c.placeName, false], ["mood", "mood", (c) => c.mood, true], ["power", "power of acting", (c) => c.power, true],
+    ["stance", "stance", (c) => c.stance, true], ["liked", "liked by", (c) => c.likedBy, true], ["likes", "likes others", (c) => c.likes, true],
+    ["acts", "acts so far", (c) => c.acts, true], ["hostile", "hostile acts", (c) => c.hostile, true], ["stories", "stories known", (c) => c.known, true],
+    ["told", "stories told", (c) => c.told, true], ["ties", "feuds", (c) => c.feuds * 100 + c.friends, true]];
+  R.run.traitNames.forEach((nm, k) => sorts.push(["trait" + k, traitLabel(nm), (c) => R.people[c.i].character[k], true]));
+  return sorts;
+}
+function buildPopulationControls() {
+  const sel = $("popSort");
+  sel.replaceChildren(...popSorts().map(([k, label]) => el("option", { value: k, text: label, selected: k === S.popSort })));
+  $("popLegend").textContent = "Character bars, left to right: " + R.run.traitNames.map(traitLabel).join(", ") + ".";
+}
+function popRow(i, t, order) {
+  const q = where(i, t), n = R.n;
+  let given = 0, got = 0, likers = 0, dislikers = 0;
+  if (R.feelings) for (let j = 0; j < n; j++) if (j !== i) {
+    const a = regardAt(i, j, t), b = regardAt(j, i, t); given += a; got += b;
+    if (b >= 0.3) likers++; else if (b <= -0.2) dislikers++;
+  }
+  let kind = 0, hostile = 0, other = 0;
+  for (const a of R.actsBy[i]) { if (a.tick > t) break; const k = R.kinds[a.kind]; if (k.joy > 0) kind++; else if (k.joy < 0 || k.valence < 0) hostile++; else other++; }
+  let feuds = 0, friends = 0;
+  for (const x of R.ties) if (x.tick <= t && (x.a === i || x.b === i)) { if (x.what === "feud" || x.what === "kin-feud") feuds++; else if (x.what === "friendship") friends++; }
+  return { i, order: order.get(i), placeName: placeName(R.places[q.place].name), home: R.places[q.place].name === "Home:" + R.people[i].household, asleep: q.asleep,
+    mood: R.feelings ? moodAt(i, t) : 0, power: R.feelings ? powerAt(i, t) : 0, stance: stanceAt(i, t),
+    likedBy: got / Math.max(1, n - 1), likes: given / Math.max(1, n - 1), likers, dislikers,
+    kind, hostile, other, acts: kind + hostile + other, known: upperBound(R.knownAt[i], t), told: upperBound(R.toldAt[i], t), feuds, friends };
+}
+/** A small bar: one-sided from the left, or two-sided from the middle (|value| at full reaches the end). */
+function cellBar(value, full, twoSided, colour, text) {
+  const b = el("span", { class: "pbar" + (twoSided ? " two" : "") }), fill = el("i");
+  const f = clamp(value / full, twoSided ? -1 : 0, 1);
+  fill.style.left = twoSided ? `${f < 0 ? 50 + f * 50 : 50}%` : "0";
+  fill.style.width = `${Math.abs(f) * (twoSided ? 50 : 100)}%`;
+  fill.style.background = colour;
+  b.append(fill);
+  return el("span", { class: "cellbar" }, b, el("span", { text }));
+}
+function popSpark(values, now) {
+  const NS = "http://www.w3.org/2000/svg", w = 90, h = 20, svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("class", "popspark"); svg.setAttribute("preserveAspectRatio", "none");
+  const X = (k) => (k / Math.max(1, values.length - 1)) * w, Y = (v) => h / 2 - clamp(v, -1, 1) * (h / 2 - 1);
+  const add = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); svg.append(e); return e; };
+  add("line", { x1: 0, x2: w, y1: h / 2, y2: h / 2, stroke: COL.line, "stroke-width": 1, "vector-effect": "non-scaling-stroke" });
+  add("polyline", { points: values.map((v, k) => `${X(k)},${Y(v)}`).join(" "), fill: "none", stroke: COL["ink-2"], "stroke-width": 1.5, "vector-effect": "non-scaling-stroke", "stroke-linejoin": "round" });
+  const k = clamp(now, 0, values.length - 1);
+  add("line", { x1: X(k), x2: X(k), y1: 0, y2: h, stroke: COL.accent, "stroke-width": 1.5, "vector-effect": "non-scaling-stroke" });
+  return svg;
+}
+function drawPopulation() {
+  const t = S.t, order = new Map(R.order.map((i, k) => [i, k]));
+  const rows = R.names.map((_, i) => popRow(i, t, order));
+  const sorts = popSorts(), [, , key] = sorts.find((x) => x[0] === S.popSort) ?? sorts[0];
+  const dir = S.popHigh ? -1 : 1;
+  rows.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === "string" ? x.localeCompare(y) : x - y) * dir || a.order - b.order; });
+
+  // The town in a line: who is lowest and highest on each measure, now.
+  const best = (f, hi) => rows.reduce((m, r) => (m === null || (hi ? f(r) > f(m) : f(r) < f(m)) ? r : m), null);
+  const fact = (label, r, f, fmt) => el("div", null, el("span", { class: "label", text: label }), el("b", { text: r ? `${R.names[r.i]} ${fmt(f(r))}` : "–" }));
+  const households = new Set(R.people.map((p) => p.household)).size, awake = rows.filter((r) => !r.asleep).length;
+  $("popFacts").replaceChildren(
+    el("div", null, el("span", { class: "label", text: "People" }), el("b", { text: `${R.n} in ${households} households, ${awake} awake` })),
+    ...(R.feelings ? [fact("Lowest mood", best((r) => r.mood, false), (r) => r.mood, sgn), fact("Highest mood", best((r) => r.mood, true), (r) => r.mood, sgn),
+      fact("Most withdrawn", best((r) => r.stance, false), (r) => r.stance, sgn), fact("Most combative", best((r) => r.stance, true), (r) => r.stance, sgn),
+      fact("Best liked", best((r) => r.likedBy, true), (r) => r.likedBy, sgn), fact("Least liked", best((r) => r.likedBy, false), (r) => r.likedBy, sgn)] : []),
+    fact("Most active", best((r) => r.acts, true), (r) => r.acts, (v) => `${v} acts`));
+
+  // The table.
+  const maxActs = Math.max(1, ...rows.map((r) => r.acts)), day = Math.floor(t / 1440), sinceNight = day - 1 + (t % 1440) / 1440;
+  const cols = [["name", "Person"], ["where", "Now"], [null, "Character"], ["mood", "Mood"], ["power", "Power"], ["stance", "Stance", "over the run"],
+    ["liked", "Regard", "by them · of them"], ["acts", "Acts", "so far"], ["stories", "Stories", "known · told"], ["ties", "Ties"]];
+  const head = el("tr", null, cols.map(([k, label, sub]) => {
+    const th = el("th", { scope: "col" });
+    if (!k) th.append(label);
+    else {
+      if (k === S.popSort) th.setAttribute("aria-sort", S.popHigh ? "descending" : "ascending");
+      th.append(el("button", { text: label, onclick: () => { if (S.popSort === k) S.popHigh = !S.popHigh; else { S.popSort = k; S.popHigh = !TEXT_SORTS.includes(k); } syncPopControls(); render(); } }));
+    }
+    if (sub) th.append(el("span", { class: "sub", text: sub }));
+    return th;
+  }));
+  const body = rows.map((r) => {
+    const p = R.people[r.i], tr = el("tr", { class: r.i === S.person ? "sel" : "", tabindex: 0, onclick: () => selectPerson(r.i),
+      onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectPerson(r.i); } } });
+    const dot = el("span", { class: "dot" }); dot.style.background = R.feelings ? moodColour(r.mood) : COL["ink-2"];
+    const traits = el("span", { class: "minitraits", title: R.run.traitNames.map((nm, k) => `${traitLabel(nm)} ${(p.character[k] / 100).toFixed(2)}`).join("\n") },
+      p.character.map((v) => { const sp = el("span"), fill = el("i"); fill.style.height = `${v}%`; sp.append(fill); return sp; }));
+    const stack = el("span", { class: "stack", title: `${r.kind} kind, ${r.hostile} hostile, ${r.other} other` },
+      [[r.kind, COL.like], [r.other, COL.mid], [r.hostile, COL.dislike]].map(([v, c]) => { const sp = el("span"); sp.style.width = `${(v / maxActs) * 100}%`; sp.style.background = c; return sp; }));
+    const ties = el("span", null, r.feuds ? [el("span", { class: "mark", style: `background:${COL.dislike}` }), `${r.feuds} `] : [],
+      r.friends ? [el("span", { class: "mark", style: `background:${COL.like}` }), `${r.friends}`] : [], !r.feuds && !r.friends ? el("span", { class: "muted", text: "–" }) : null);
+    tr.append(
+      el("td", { class: r.asleep ? "asleep" : "" }, el("div", { class: "who" }, el("span", null, dot, el("strong", { text: p.name })),
+        el("span", { class: "sub", text: `${p.household}, ${p.age}${p.job ? ", works" : ""}` }))),
+      el("td", { title: r.placeName }, r.home ? "home" : r.placeName, r.asleep ? el("span", { class: "muted", text: ", asleep" }) : null),
+      el("td", null, traits),
+      el("td", null, R.feelings ? cellBar(r.mood, 0.6, true, r.mood >= 0 ? COL.like : COL.dislike, sgn(r.mood)) : "–"),
+      el("td", null, R.feelings ? cellBar(r.power, 1, false, COL["ink-2"], r.power.toFixed(2)) : "–"),
+      el("td", { title: "Stance now, and by the night over the whole run (the orange line is now)" }, R.run.stance
+        ? el("span", { class: "cellbar" }, popSpark(R.run.stance[r.i], sinceNight), el("span", { text: sgn(r.stance) })) : "–"),
+      el("td", { title: `Their mean regard for everyone else, and everyone's for them. ${r.likers} like them (0.3 or more), ${r.dislikers} dislike them (−0.2 or less).` },
+        R.feelings ? el("div", { class: "two-line" },
+          el("span", { class: "cellbar" }, el("span", { text: "by" }), ...cellBar(r.likes, 0.5, true, r.likes >= 0 ? COL.like : COL.dislike, sgn(r.likes)).childNodes),
+          el("span", { class: "cellbar" }, el("span", { text: "of" }), ...cellBar(r.likedBy, 0.5, true, r.likedBy >= 0 ? COL.like : COL.dislike, sgn(r.likedBy)).childNodes)) : "–"),
+      el("td", null, el("span", { class: "cellbar" }, stack, el("span", { text: String(r.acts) }))),
+      el("td", { title: "Stories they know, and how many times they told one" }, `${r.known} · ${r.told}`),
+      el("td", null, ties));
+    return tr;
+  });
+  $("popTable").replaceChildren(el("thead", null, head), el("tbody", null, body));
+}
+const TEXT_SORTS = ["household", "name", "where"];
+function syncPopControls() {
+  const text = TEXT_SORTS.includes(S.popSort);
+  $("popSort").value = S.popSort;
+  $("popDir").textContent = text ? (S.popHigh ? "Z to A" : "A to Z") : S.popHigh ? "Highest first" : "Lowest first";
+}
+
 // ---- the inspector ---------------------------------------------------------------------------
 /** A small line of values by the day, with the whole run drawn and a mark at now (which may fall
     between two days). The readout is opts.value, the value at the clock. */
@@ -1197,8 +1376,8 @@ function drawFeed() {
 function showTab(tab) {
   S.tab = tab;
   for (const b of document.querySelectorAll(".tabs button")) { const on = b.dataset.tab === tab; b.setAttribute("aria-selected", on); b.setAttribute("aria-pressed", on); }
-  for (const id of ["town", "rel", "stories"]) $("tab-" + id).hidden = id !== tab;
-  lastRelKey = lastStoryKey = ""; render();
+  for (const id of ["town", "people", "rel", "stories"]) $("tab-" + id).hidden = id !== tab;
+  lastRelKey = lastStoryKey = lastPopKey = ""; render();
 }
 function start(run, source) {
   try { R = load(run); } catch (err) { showError(err.message); return; }
@@ -1206,7 +1385,7 @@ function start(run, source) {
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
-  buildTown(); buildFeedFilters();
+  buildTown(); buildFeedFilters(); buildPopulationControls(); syncPopControls();
   S.person = -1; S.pair = null; S.story = -1;
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
@@ -1226,6 +1405,8 @@ $("relMode").addEventListener("change", (e) => { S.relMode = e.target.value; if 
 $("relMin").addEventListener("input", (e) => { S.relMin = +e.target.value; $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relHome").addEventListener("change", (e) => { S.relHome = e.target.checked; render(); });
 $("storyTier").addEventListener("change", () => render());
+$("popSort").addEventListener("change", (e) => { S.popSort = e.target.value; S.popHigh = !TEXT_SORTS.includes(S.popSort); syncPopControls(); render(); });
+$("popDir").addEventListener("click", () => { S.popHigh = !S.popHigh; syncPopControls(); render(); });
 $("storyOrder").addEventListener("change", () => render());
 $("feedSearch").addEventListener("input", (e) => { S.feedSearch = e.target.value; render(); });
 document.addEventListener("keydown", (e) => {
@@ -1248,7 +1429,7 @@ document.addEventListener("dragover", (e) => { e.preventDefault(); $("app").clas
 document.addEventListener("dragleave", (e) => { if (e.target === document.documentElement || !e.relatedTarget) $("app").classList.remove("drop"); });
 document.addEventListener("drop", (e) => { e.preventDefault(); $("app").classList.remove("drop"); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
 const themeWatch = window.matchMedia("(prefers-color-scheme: dark)");
-const recolour = () => { if (!R) return; readColours(); for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = ""; render(); };
+const recolour = () => { if (!R) return; readColours(); for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
 themeWatch.addEventListener?.("change", recolour);
 new MutationObserver(recolour).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 window.addEventListener("resize", () => R && render());
