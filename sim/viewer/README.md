@@ -85,15 +85,26 @@ until one is made the page follows the host's theme, then the system's.
 
 ### Where the definitions come from
 
-The definitions live in the page itself, in the `glossary` block (one item per line): 273
-settings, 144 terms and 95 acts, act fields and log lines. Each was written from the code by one
+The definitions live in the page itself, in the `glossary` block (one item per line): 300
+settings, 145 terms and 96 acts, act fields and log lines. Each was written from the code by one
 agent and checked against it, line by line, by another (2026-10-08); each names the file and line
-it was read from (`source`). An item marked `verify` would show a "verify" tag; none is. Settings
-are keyed as the file records them: the feelings' bare (`LoveAt`), the others with their class
-(`GossipOptions.ChatChance`). `GlossaryTests` check that every setting the glossary defines exists in
-the code, and list (without failing) any recorded setting that has no definition yet, so a new
-setting can land before its definition. Numbers quoted in a definition are the code's at that date:
-when a constant is tuned, its definition is changed in the same PR.
+it was read from (`source`), with a piece of that line (`at`). An item marked `verify` would show a
+"verify" tag; none is. Settings are keyed as the file records them: the feelings' bare (`LoveAt`), the
+others with their class (`GossipOptions.ChatChance`). `GlossaryTests` check that every setting the
+glossary defines exists in the code, and list (without failing) any recorded setting that has no
+definition yet, so a new setting can land before its definition. Numbers quoted in a definition are
+the code's at that date: when a constant is tuned, its definition is changed in the same PR.
+
+**Source lines drift** as code is added above them: on 2026-10-08, 68 of the 532 pointed at other
+code than they were read from, because branches that added lines above them were merged. So each now
+carries its `at`, and `GlossaryTests` fail when the line holding it is more than 30 lines from the
+pointer. To move every pointer back to its `at`, run that test with `UNDERGLASS_REPOINT=1`:
+
+```bash
+UNDERGLASS_REPOINT=1 dotnet test sim/UnderGlass.sln --filter EverySourceLineIsNearWhatItWasReadFrom
+```
+
+Each checkpoint does this after merging.
 
 ## The file
 
