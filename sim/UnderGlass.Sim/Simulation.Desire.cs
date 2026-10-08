@@ -270,6 +270,7 @@ public sealed partial class Simulation
 
     private int Window(DesireKind k) => k == DesireKind.Pity ? _fo.PityMinutes
         : k == DesireKind.Remorse ? _fo.Acts.RemorseDays * Clock.MinutesPerDay // the act catalog: remorse lasts longer
+        : k == DesireKind.Defend ? _fo.Acts.DefendMinutes // and you stand up for someone then or not at all
         : _fo.MotiveDays * Clock.MinutesPerDay;
 
     private double EventPart(Motive d, int m) => DesireMath.EventPart(d.Felt, d.Since, m, Window(d.Kind));
@@ -392,7 +393,8 @@ public sealed partial class Simulation
                 continue;
             if (IsLight(kind) && LightCapReached(kind, h, m))
                 continue;
-            if (!Fits(kind, h, s, m, watching) || FondWarmWaits(k, kind, h, s, m) || !FondMayUse(k, kind, h, s, m, watching))
+            if (!Fits(kind, h, s, m, watching) || FondWarmWaits(k, kind, h, s, m) || !FondMayUse(k, kind, h, s, m, watching)
+                || !MotiveAllows(k, act, kind, h, s, m))
                 continue;
             list.Add(kind);
         }

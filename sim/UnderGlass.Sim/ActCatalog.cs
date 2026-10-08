@@ -22,7 +22,9 @@ public static class ActCatalog
             rows.AddRange(Welcome);
         if (o.Repair)
             rows.AddRange(Repair);
-        // acts-5 (Sides): Comforted, Mocked, StoodUpFor. acts-6 (Late): LateForWork.
+        if (o.Sides)
+            rows.AddRange(Sides);
+        // acts-6 (Late): LateForWork.
         return rows;
     }
 
@@ -131,6 +133,37 @@ public static class ActCatalog
             Gate: new ActGate(0.5, 0.15, new[] { DesireKind.Remorse }, PrideWeight: 0.5)),
     };
 
+    /// <summary>
+    /// acts-5, Sides (acts spec 4.8-4.10): one hurt in public opens three threads, the target's
+    /// answer, someone who defends them, and someone who comforts them.
+    /// <list type="bullet">
+    /// <item>Comforted, "Emily sat with Haley after the square": a story act (0.4 / 0.15); age 7 and up;
+    /// it answers Pity (a witness's, at a hurt seen: Simulation.PityAfterHurt) and Remorse (only if
+    /// the target was hurt within the hour). It eases the target's stance, cools their grudge against
+    /// whoever hurt them by ComfortCools, and stirs Return.</item>
+    /// <item>Mocked, "Haley laughed at Penny in front of the market": news; heavy hostile (0.55 / 0.25
+    /// with the hostile surcharge); only with a card, an audience of two or more and expression 0.5 or
+    /// more; in a place that isn't a home; age 10 and up. Dearer than an argument, so the gate picks
+    /// it only when someone bold has a crowd: it replaces arguments rather than adding to them.</item>
+    /// <item>StoodUpFor, "Marnie told Pierre to leave Shane alone": news; heavy hostile (0.5 / 0.2 with
+    /// the surcharge); age 7 and up; it answers Defend (Simulation.DefendAfterHurt). Its target is the
+    /// aggressor and its With the one defended, who, if they saw it, feels WithJoy toward the defender
+    /// and wants to return it.</item>
+    /// </list>
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Sides = new[]
+    {
+        new ActKind("Comforted", 1.5, 1, 2, 10, 0, Array.Empty<string>(), MinAge: 7,
+            Affect: new Affect(Patient.Target, 0.2, 0.25, 1, TargetIs.Chosen, Tilt: 1),
+            Gate: new ActGate(0.35, 0.15, new[] { DesireKind.Pity, DesireKind.Remorse })),
+        new ActKind("Mocked", 2.5, -1, 1, 3, 0, Array.Empty<string>(), MinAge: 10,
+            Affect: new Affect(Patient.Target, -0.3, 0.35, 1, TargetIs.Chosen),
+            Gate: new ActGate(0.55, 0.25, new[] { DesireKind.Answer, DesireKind.Retaliate }, NeedsCard: true, MinAudience: 2)),
+        new ActKind("StoodUpFor", 2.5, -1, 2, 5, 0, Array.Empty<string>(), MinAge: 7,
+            Affect: new Affect(Patient.Target, -0.2, 0.3, 1, TargetIs.Chosen, WithJoy: 0.2),
+            Gate: new ActGate(0.5, 0.2, new[] { DesireKind.Defend })),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
@@ -139,6 +172,7 @@ public static class ActCatalog
         "PlayedGame" or "TreatedToDrink" => nameof(ActOptions.Company),
         "Welcomed" => nameof(ActOptions.Welcome),
         "Apologised" => nameof(ActOptions.Repair),
+        "Comforted" or "Mocked" or "StoodUpFor" => nameof(ActOptions.Sides),
         _ => null,
     };
 
@@ -171,13 +205,19 @@ public static class ActCatalog
         }).ToList();
     }
 
-    /// <summary>(kind, who, weight) for the slices that are on: the cards of the four kinds drawn per
-    /// head, which come with Company (acts-2). Sid's answer to question 4 (b): cards only for the
+    /// <summary>(kind, who, weight) for the slices that are on: Mocked's (Sides), and the cards of the
+    /// four kinds drawn per head, which come with Company (acts-2). Sid's answer to question 4 (b): cards only for the
     /// per-head kinds and Mocked, the gate's acts from traits. These are first readings of the cast
     /// from memory of the game, not its files (VERIFY), for Sid to correct.</summary>
     private static IReadOnlyList<(string Kind, string Who, double Weight)> CardsOf(ActOptions o)
     {
         var cards = new List<(string, string, double)>();
+        if (o.Sides)
+        {
+            // Mocked needs a card (acts spec 4.9; question 4, answer b: cards only for the per-head kinds and Mocked).
+            cards.AddRange(new[] { "Abigail", "Alex", "George", "Haley", "Pam", "Shane" }.Select(w => ("Mocked", w, 1.0)));
+            cards.AddRange(new[] { "Pierre", "Sam", "Sebastian" }.Select(w => ("Mocked", w, 0.5)));
+        }
         if (!o.Company)
             return cards;
         void Card(string kind, double weight, params string[] who) => cards.AddRange(who.Select(w => (kind, w, weight)));

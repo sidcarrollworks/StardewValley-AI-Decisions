@@ -1008,6 +1008,7 @@ public sealed partial class Simulation
             Mark(act, kind, m);
             AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill, an apology's answer
             RemorseAfter(act, kind, m); // the act catalog: remorse in the one who hurt (Repair)
+            SidesAfter(act, kind, m); // the act catalog: witnesses take sides (Sides)
         }
     }
 

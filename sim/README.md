@@ -895,6 +895,48 @@ What it says:
 - **Friendships on the review's set reach +30% against the baseline**, the limit of the ±30% gate.
 - **Jokes are almost never read cold (1%).** Per-head jokes are aimed by the joker's regard, at people who mostly like them back. So the "only joking" thread (a joke read cold, then remorse, then an apology) barely starts.
 
+### acts-5, Sides: Mocked, StoodUpFor, Comforted (built 2026-10-08; off)
+
+`--catalog sides` (acts spec 4.8-4.10):
+- **Mocked:** news, heavy hostile, dearer than an argument. It needs a card, an audience of two and expression 0.5, and never happens at home.
+- **Witnesses take sides after a first strike** (someone picking on someone; not a stand-up, nor an answer in an exchange already going). Who loves the target (0.4) or is their kin wants to stand up for them (Defend, for an hour). Others who hold the target at 0 or more pity them: `HurtPity` (0.5) x understanding of a mishap's pity.
+- **StoodUpFor answers Defend.** The aggressor wants to answer the defender. The one defended feels `WithJoy` toward them and wants to return it.
+- **Comforted answers that pity.** It costs 0.35, so it is never returned with a gift. It cools the grudge against the one who hurt by a quarter.
+
+`SidesTests` (5) include the golden thread "the square": a mocking, a defender, a comforter, and no sides taken at the stand-up or at the answer.
+
+**Getting there** (40 seeds x a year, shipped town; baseline feuds 7.9, friendships 0.9, the gate's heavy hostile acts 153):
+
+| setting | feuds | friendships | mockings, arguments, stand-ups | comforts |
+|---|---|---|---|---|
+| as specified: pity in full, comfort at 0.4, sides after every heavy hostile act | 10.6 | **20.3** | 91, 92, 31 | 399 (and 665 gifts) |
+| comfort 0.35, pity 0.25 x understanding | **35.3** | 3.9 | 318, 285, 120 | 27 |
+| mocking alone (no defend, no pity) | 7.7 | 1.1 | 78, 75, 0 | 0 |
+| defend alone | 33.6 | 3.0 | 322, 277, 114 | 0 |
+| **built: sides at a first strike only, pity 0.5** | 7.9 (all slices) | 1.3 | 73, 66, 2 | 13 |
+
+Two guards were tried and dropped: kin needing `DefendAt` to defend, and a cap on stand-ups a day. Neither helped; the spiral came from stand-ups and answers drawing defenders of their own.
+
+**Measured with every slice** (the columns before are acts-4's):
+
+| measure | shipped (acts-4) | + Sides | review's set (acts-4) | + Sides | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 56% / 22% | 55% / 22% | 58% / 21% | 56% / 22% | 50%+ |
+| E1, 200 seeds (400) | 65% (66%) | 70% (71%) | 83% (83%) | 83% (86%) | 60%+ |
+| feuds, friendships a year (400) | 7.29, 1.10 | 8.15, 1.17 | 6.84, 1.73 | 7.85, **1.81** | ±30% of the baseline (7.85, 0.92; 7.09, 1.33) |
+| heavy hostile acts by the gate | 134 | 159 | 136 | 163 | baseline 153, +15% at most |
+| mockings, arguments, stand-ups by the gate | | 81, 76, 2 | | 86, 74, 3 | mockings replace arguments |
+| comforts a year | | 13 | | 12 | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.43 | 1.56 | 1.37 | 1.54 | |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 0.97 | 1.02 | 0.95 | 0.96 | 1.5 at most |
+| three years: war towns | 0% | 0% | 2% | **8%** | under 5% (baseline 0%) |
+| brawlers; hermits (shyest third) | 2.01; 0 | 2.22; 0 | 1.12; 0.33 | 1.32; 0.33 (100%) | |
+| median feud; apologies accepted | 35 d; 64% | 45 d; 62% | 37 d; 67% | 45 d; 64% | 28 d+; 50-80% |
+
+What it says:
+- **On the shipped town every gate holds.** One number is past a limit: moved 0.1+ over three years is 1.56 (0d.6's limit is 1.5; the baseline's 1.46). Mockings replace arguments, so the heavy hostile total moves 4%.
+- **On the review's set two gates fail:** friendships are +36% against the baseline (the limit is 30%), and 8% of three-year towns end at war (the limit is 5%).
+- **Stand-ups are rare** (2-3 a year), because first strikes are rare: most hostility answers earlier hostility.
 
 ## Next
 
