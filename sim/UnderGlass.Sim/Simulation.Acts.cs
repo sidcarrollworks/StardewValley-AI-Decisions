@@ -511,18 +511,22 @@ public sealed partial class Simulation
     private readonly HashSet<(string Name, int Day)> _arrivedLate = new();
 
     /// <summary>
-    /// Arrivals (acts spec 3, 4.11), each tick after the late check: someone marked late today who
-    /// has reached their job place, and is free, comes in late (LateForWork), once a day. With Late
-    /// on, feelings or not; not in watch mode.
+    /// Arrivals (acts spec 3, 4.11), every minute after the late check (so the minute someone
+    /// arrives is caught): someone marked late today who has reached their job place, and is free,
+    /// comes in late (LateForWork), once a day, in name order. With Late on, feelings or not; not in
+    /// watch mode.
     /// </summary>
     private void Arrivals(int m)
     {
         if (!_fo.Acts.Late || _fo.Acts.Watch || !_kindByName.TryGetValue("LateForWork", out ActKind? late))
             return;
         int day = Clock.Day(m);
+        var today = new List<string>();
         for (int i = _late.Count - 1; i >= 0 && _late[i].Item2 == day; i--)
+            today.Add(_late[i].Item1);
+        today.Sort(StringComparer.Ordinal);
+        foreach (string name in today)
         {
-            var (name, _) = _late[i];
             Person p = _people[_index[name]];
             if (p.V.Job is { } job && p.Place == job.Place && Free(p, m) && _arrivedLate.Add((name, day)))
                 Begin(m, late, p, injected: false);
