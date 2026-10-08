@@ -113,5 +113,7 @@ public sealed class ActOptions
 
 /// <summary>What the gate would have started from the catalog in watch mode (acts spec 2.3, 5):
 /// at a minute, for a holder's motive toward a subject, the catalog row it would have used and
-/// its margin. Nothing started.</summary>
+/// its margin. Nothing started. A motive the catalog would have stirred (Remorse with Repair; Defend
+/// and Pity with Sides) is recorded too: then Kind names the motive or the act it would answer with,
+/// and Margin holds the felt amount instead of a margin.</summary>
 public sealed record CatalogWatched(int Tick, string Holder, string Subject, DesireKind Motive, string Kind, double Margin);
