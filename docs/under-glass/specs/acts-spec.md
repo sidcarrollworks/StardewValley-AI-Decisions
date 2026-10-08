@@ -770,6 +770,11 @@ These come from the two proposals and are not designed further here.
 
 ## 12. Questions for Sid
 
+**Sid's answers (2026-10-08): the recommendation on every question below.** He added two directions for what comes
+after batch 1: take inspiration from The Sims, its popular mods and other life sims for actions; and make runs differ,
+with room for "lots of twists and turns", so that new games don't feel too similar. A research pass on both is in
+progress; its catalog and twist mechanisms will shape batch 2 and later.
+
 1. Fond and gifts: with the catalog's company slice on, what does missing someone lead to? (a) a gift first, as now, then the small acts; (b) the small acts (a game, a drink, a compliment, a joke), with gifts kept for birthdays and festivals through 0d.6's occasions; (c) no gifts from Fond at all. Recommendation: (b). It is Sid's own model of gifts in a steady tie (12.7), and the one most likely to hold regard flat over three years.
 
 2. Do small kindnesses count as being included? 0d.6 counts kindness received against being left out, and kindness resets missing someone. (a) thanks, compliments, jokes and games count in full; (b) they count at a quarter; (c) they don't count and are reported apart as 'warmth'. Recommendation: (c) for batch 1, plus a report of how many hermit spells (a) or (b) would have ended; decide after that.

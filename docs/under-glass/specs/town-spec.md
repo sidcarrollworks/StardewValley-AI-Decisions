@@ -693,7 +693,28 @@ T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
 
 ## 11. Questions for Sid
 
-Until Sid answers, the spec builds the recommended option.
+**Sid's answers (2026-10-08)**, which replace the recommendations where they differ:
+
+1. **Grow Pelican Town** for now (a).
+2. **A scandal's reach depends on its context**, not on a fixed band: "it could reach 100% of the town if it was really
+   public or very limited if it was resolved or covered up quickly." He also noted the town may not have enough
+   possible scandals yet. It does not: only rummaging in a bin and stealing from a shop are scandals, there is no
+   upheaval at all, and neither happened in a 56-day run of seed 1 (the band is measured on a scandal the harness
+   places). So the 40-70% band is replaced by scenario checks on reach (public and witnessed reaches nearly everyone;
+   covered up, kept in the family or settled quickly stays small), written with the new scandal kinds that the
+   life-sim research proposes (in progress, 2026-10-08).
+3. **Start with 60.**
+4. **Keep today's tile scale** (a), and measure walking minutes per person per day against the shipped town.
+5. **Forgetting, as Sid describes it:** people forget each other, but how fast depends on the relationship: the more a
+   relationship has built, the harder it is to forget; a new person is remembered more easily when there was some
+   attraction; and a person can be forgotten because too many new faces pass by. So familiarity falls by a rate that
+   shrinks with the tie's strength (familiarity and regard both ways, and kin), rises faster at a first meeting when
+   regard starts warm, and falls faster for weak ties when many new faces are met in a short time (interference, a
+   soft cap on how many people one keeps up with). Opt-in, measured at 26, then 31, then 60 (as recommended in (a)).
+6. **Add the other five** (a): Clint, Willy, Elliott, Linus and the Wizard, as the 31-person step.
+7. **As recommended:** no work out of town at 60; try it at 120 as a measured option.
+
+The original questions, with the recommendations, follow.
 
 1. **Which town to grow first?**
    - (a) Pelican Town, grown: the shipped 26 at the centre, untouched, with generated neighbourhoods round them.
