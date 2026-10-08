@@ -24,7 +24,8 @@ public static class ActCatalog
             rows.AddRange(Repair);
         if (o.Sides)
             rows.AddRange(Sides);
-        // acts-6 (Late): LateForWork.
+        if (o.Late)
+            rows.AddRange(Late);
         return rows;
     }
 
@@ -164,6 +165,20 @@ public static class ActCatalog
             Gate: new ActGate(0.5, 0.2, new[] { DesireKind.Defend })),
     };
 
+    /// <summary>
+    /// acts-6, Late (acts spec 4.11): LateForWork, "Shane came in late again". Not a gate act: it is
+    /// derived, as OutLate is. The late check marks someone not at work LateAfterMinutes after their
+    /// start; LateForWork starts when they reach their job place that day, and whoever is there sees
+    /// them come in. Trivia 1.5 (told on day 0 to those who know them); felt by the actor alone, a
+    /// little embarrassment (-0.05, freedom 0.3, so not a mishap to pity). Rule 1's "acting normal":
+    /// a break in someone's routine, seen by others. It can happen with feelings off.
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Late = new[]
+    {
+        new ActKind("LateForWork", 1.5, -1, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Actor, -0.05, 0, 0.3)),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
@@ -173,6 +188,7 @@ public static class ActCatalog
         "Welcomed" => nameof(ActOptions.Welcome),
         "Apologised" => nameof(ActOptions.Repair),
         "Comforted" or "Mocked" or "StoodUpFor" => nameof(ActOptions.Sides),
+        "LateForWork" => nameof(ActOptions.Late),
         _ => null,
     };
 

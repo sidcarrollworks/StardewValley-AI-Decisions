@@ -170,7 +170,7 @@ public class PinnedTests
     }
 
     /// <summary>The act catalog: each slice pinned on a year of seed 1, on the shipped town and on the
-    /// 0d.6 review's set (bcdefghmt): acts-1, Returns; acts-2, Company, alone and with Returns; acts-3, Welcome, acts-4, Repair, and acts-5, Sides, each alone and with the slices before it.
+    /// 0d.6 review's set (bcdefghmt): acts-1, Returns; acts-2, Company, alone and with Returns; acts-3, Welcome, acts-4, Repair, acts-5, Sides, and acts-6, Late, each alone and with the slices before it.
     /// Update only for a deliberate change to a catalog rule or row.</summary>
     [Theory]
     [InlineData("returns", "", "a43ef45b297b6d72")]
@@ -187,6 +187,9 @@ public class PinnedTests
     [InlineData("sides", "", "8f13f001c7ceb3ec")]
     [InlineData("returns,company,welcome,repair,sides", "", "abcc793d3243ccf3")]
     [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "6886d09bcabe95aa")]
+    [InlineData("late", "", "9955eddea60ce641")]
+    [InlineData("returns,company,welcome,repair,sides,late", "", "acce1ff44d1a3d56")]
+    [InlineData("returns,company,welcome,repair,sides,late", "bcdefghmt", "8009a2972386ce14")]
     public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
