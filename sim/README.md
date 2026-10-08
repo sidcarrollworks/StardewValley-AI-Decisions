@@ -663,6 +663,53 @@ What the baseline says:
 - **The review's set already spends most of the trivia budget.** Missing people (step m) doubles the gate's gifts (219 to 478 a year), so trivia is at 956 a year before any catalog act. The trivia band of 900-1,350 leaves the slices room for about 400 more a year on that base, and 650 on the shipped town.
 - Over three years the shipped town's gate gives 1.40 times as many kindnesses in year 3 as in year 1; the review's set 1.10.
 
+### acts-1, Returns: Thanked, Complimented, Joked (built 2026-10-08; off)
+
+`--catalog returns` turns on three light kind acts (acts spec 1 and 4.1-4.3):
+- **Thanked** answers Return;
+- **Complimented** answers Return, MakeUp, Fond and Remorse;
+- **Joked** answers Fond.
+
+They are gate acts only; their per-head draws come with acts-2. The rules for light kind acts (`Simulation.Acts.cs`):
+- **No motive:** they stir no motive in the target.
+- **They settle what they answer:** a gift or help they answer is marked Returned, and they hold no open outcome themselves.
+- **The warm cap:** `WarmPerDay` (3) a day per actor, apart from the light hostile cap.
+- **The warm budget:** `WarmBudget` (0.01) of regard a day per ordered pair.
+- **The cold reading:** a warm act is read cold (route `Cold`) by a target who holds the actor below the row's `ReadWarmAt` (-0.2 for a compliment, 0.1 for a joke). It is taken badly at -`ColdShare` x joy and hurts the target's stance.
+- **Out of 0d.6's counts:** they stay out of 0d.6's kindness counts (question 2, answer c).
+- **Fond's wait:** after Fond answers someone with a small act, it waits `FondWarmDays` (28) before the next. A small act doesn't reset missing someone, so without the wait Fond complimented the same person every day they met: 536 compliments a year on the shipped town, with the gate's kind acts growing 2.24 times by year 3.
+
+The sweep for the wait, 50 x 336 on the shipped town (year 3 ÷ year 1 of the gate's kind acts; baseline 1.40):
+
+| wait | 0 | 7 | 14 | 28 |
+|---|---|---|---|---|
+| kind acts | 2.24 | 1.69 | 1.58 | 1.46 |
+
+Watch mode (`--catalog watch,returns`) records in `SimResult.CatalogWatch` what the gate would have started, as the gate walks the rows, and starts nothing. `--ao <Name>=<value>` sets a catalog number. `ReturnsTests` (16).
+
+**Measured** (the acts-0 protocol; the baseline is the previous section):
+
+| measure | shipped | + Returns | review's set | + Returns | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 55% / 25% | 56% / 24% | 56% / 24% | 50%+ |
+| E1, 200 seeds (400) | 60% (61%) | 62% (62%) | 78% (73%) | 73% (75%) | 60%+ |
+| feuds, friendships a year (400) | 7.85, 0.92 | 7.97, 0.95 | 7.09, 1.33 | 7.13, 1.40 | ±30% |
+| kindness ignored across households | 40% | 37% | 39% | 31% | falls |
+| kindness returned within 7 days | 62% | 64% | 65% | 72% | rises, under 90% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.46 | **1.55** | 1.41 | 1.40 | |
+| three years: the gate's kind acts by year | 239, 292, 336 | 323, 401, 473 (1.46) | 502, 522, 554 | 617, 641, 667 (1.08) | year 3 at most 1.5 x year 1 |
+| trivia, news a year | 696, 265 | 783, 269 | 956, 264 | 1,071, 255 | trivia 900-1,350 for the batch; news +10% at most |
+| by the gate: heavy hostile acts a year | 153 | 157 | 153 | 144 | +15% at most |
+| compliments, thanks, jokes by the gate a year | | 84, 0.3, 0.1 | | 111, 4.5, 0.2 | |
+| hermits (shyest third); brawlers | 0; 2.37 | 0; 2.41 | 0.28 (100%); 1.43 | 0.22 (98%); 1.22 | above 0, 90%; ±30% |
+| threads a season; median feud | 2.72; 38 d | 2.77; 39 d | 2.81; 39 d | 2.81; 40 d | |
+
+Money is conserved to 0.000 g in every run. What it says:
+- **The spec's gates hold on both bases.** One number is past a limit: moved 0.1+ over three years on the shipped town is 1.55, against 0d.6's 1.5. The baseline is already 1.46, and no wait or warm budget brought it under 1.5 (1.51-1.59 across the sweep).
+- **Small acts close loops.** The ignored share falls 3 points on the shipped town and 8 on the review's set, where missing people makes more gifts to answer.
+- **Nearly all of the slice is compliments.** Thanks and jokes barely happen: the gate tries the dearest act first, and a compliment (0.3) clears nearly whenever a thank-you (0.2) would. Jokes need a regard of 0.3 and a familiarity of 0.5, and then a compliment usually comes first. They will come with acts-2's per-head draws.
+- **Hermits stay, all but one from the shyest third** (0.28 to 0.22 a seed-year on the review's set): settling more of the shy's kindness lowers their unanswered share.
+
 
 ## Next
 
