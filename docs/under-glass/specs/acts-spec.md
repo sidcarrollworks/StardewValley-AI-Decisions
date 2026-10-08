@@ -832,17 +832,17 @@ progress; its catalog and twist mechanisms will shape batch 2 and later.
 
 ## The slices' questions, and Sid's answers (2026-10-08)
 
-The built slices (acts-1 to acts-4, #64-#67) raised these, listed on #46 as C1-C12. Where Sid asked for more, the explanation given is noted and the question stays open.
+The built slices (acts-1 to acts-4, #64-#67) raised these, listed on #46 as C1-C12. Sid answered in two rounds; where he asked for more first, the explanation given is noted.
 
-1. **Fond's wait (#64).** Fond waits 28 days after a small act (`FondWarmDays`); without it, 536 compliments a year. Keep the wait, or should a small act reset missing someone? *Open: Sid asked for the case for each. Cloud's lean: with missing people on (0d.6 step m, which Sid has accepted), a small act eases missing in part, more for the steady, and the timer goes; measured before deciding.*
+1. **Fond's wait (#64).** Fond waits 28 days after a small act (`FondWarmDays`); without it, 536 compliments a year. Keep the wait, or should a small act reset missing someone? Cloud made the case for each (lean: with missing people on, 0d.6 step m, a small act eases missing in part, more for the steady, and the timer goes). ***Sid: test both.***
 2. **Thanks barely happen (#64, #65).** ***Sid: cloud's option:*** compliments stop answering gifts, so a thank-you is the light reply.
-3. **The trivia budget (#64).** The review's set is near its top (about 1,290 a year with acts-4). Raise it? *Open: Sid asked what the trivia budget is (7.2: 900-1,350 trivia a year at 26, against about 700 before the catalog).*
+3. **The trivia budget (#64).** The review's set is near its top (about 1,290 a year with acts-4). Raise it? After asking what it is (7.2: 900-1,350 trivia a year at 26, against about 700 before the catalog), ***Sid: cloud's recommendation:*** the budget is relative to the town's own trivia, so the catalog may add up to half again (1.5×): about 1,050 a year on today's town, about 1,430 with every 0d.6 step on.
 4. **Gifts returned (#65).** Gifts fell a third, not 40%. Return a gift with a treat or a compliment, or is a gift for a gift right? ***Sid: any of those, depending on the person and their traits.***
 5. **Per-head cards (#65).** ***Sid: yes,*** from traits instead of guesses (question 4's (b) now for the per-head kinds too).
 6. **A welcome as kindness received (#66).** ***Sid: it delays withdrawal but doesn't prevent it,*** as built.
 7. **Who welcomes the newcomer (#66).** All 25 in the first month. ***Sid: a few;*** "everyone else is preoccupied with their own lives".
-8. **Jokes read cold (#67).** 1-2%, against 10-20%. *Open: Sid asked for an explanation (jokers joke only with people they like, who mostly like them back, so a joke is rarely taken badly and the "only joking" thread barely starts).*
-9. **Friendships up 30% with the four slices on (#67).** *Open: Sid asked what the slices are.*
+8. **Jokes read cold (#67).** 1-2%, against 10-20%. After the explanation (jokers joke only with people they like, who mostly like them back, so a joke is rarely taken badly and the "only joking" thread barely starts), ***Sid: both:*** jokers joke with anyone they know well, liked or not, and a joke is taken badly more easily (by the other's mood or sensitivity).
+9. **Friendships up 30% with the four slices on (#67).** After asking what the slices are, ***Sid: yes.***
 10. **Remorse and the compliment (#67).** ***Sid: yes,*** remorse prefers an apology.
 11. **`ApologyCost` (#67).** ***Sid: 0.4.***
 12. **Remorse between kin (cloud's review of #67).** ***Sid:*** kin apologise "if it's in their nature", and parents should try to enforce it.
