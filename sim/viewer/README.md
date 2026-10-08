@@ -21,9 +21,10 @@ and takes a few seconds to record; a year is about 5 MB.
 
 ## What it shows
 
-- **The timeline** across the top: seasons, weeks, and the run's turning points (feuds, friendships,
-  reconciliations, scandals). Click to jump. Space plays; arrow keys step 5 minutes (Shift: an
-  hour); `[` and `]` step a day.
+- **The timeline** across the top, under the run's name and its clock: a ruler of seasons, weeks
+  and the run's turning points (feuds, friendships, reconciliations, scandals) over a fader, with
+  the playback keys under it. Click the ruler to jump. Space plays; arrow keys step 5 minutes
+  (Shift: an hour); `[` and `]` step a day.
 - **Town:** every place as a small map, grouped and largest first, all at one scale. The square,
   where the town gathers, spans the whole width, with who is there beside it. Each plate is as
   wide as its map, so nothing shifts as people come and go. A dot is a person, coloured by mood
