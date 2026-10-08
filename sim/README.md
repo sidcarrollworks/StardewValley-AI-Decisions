@@ -642,22 +642,23 @@ C6 counts an outsider who knows who did it. Rule 17's cover works on the believe
 
 **Today** (2026-10-08, on `claude/checkpoint-6`):
 
-| check | the shipped town | criterion | |
-|---|---|---|---|
-| C2, a crowd at a hub | witnessed by 5+ in 98%; circle reach median **92%**, over 70% in 100% | median 50-90%, 25%+ over 70% | fails |
-| C3, a lone loner | the loner saw it in 98%; the circle heard it in 20% or less in **9%** of runs (median 29%); never retold 2% | 20% or less in 70%+ | fails |
-| C4, nobody near | found in 81%; where found, circle reach median **12%** | 30% or less | passes |
-| C6, family only | placed in 63% of runs; nobody outside knew who a week on in **100%** (89%: someone outside knew only that it happened) | 95%+ | passes |
-| C10, witnesses and reach | Spearman **0.91** over 369 placed scandals | 0.5+ | passes |
-| C11, the town's own scandals | 462 scandals: circle reach 14 days on median **36%**, 90%+ in 1%, under 20% in 38% (bins: median 52%; thefts: 12%) | median 40-70%, 10%+ at 90%+, 15%+ under 20% | fails two |
-| C13, the old band, witnessed | heard by 40-70% of the town, growing 3+ days, in **55%** | 52%+ at 26 | reported |
+| check | the shipped town | the review's set (0d.6's b c d e f g h m t) | criterion | |
+|---|---|---|---|---|
+| C2, a crowd at a hub | witnessed by 5+ in 98%; circle reach median **92%**, over 70% in 100% | 98%; **92%**; 100% | median 50-90%, 25%+ over 70% | fails on both |
+| C3, a lone loner | the loner saw it in 98%; the circle heard it in 20% or less in **9%** of runs (median 29%); never retold 2% | 98%; **7%** (median 33%); 2% | 20% or less in 70%+ | fails on both |
+| C4, nobody near | found in 81%; where found, circle reach median **12%** | 81%; **12%** | 30% or less | passes on both |
+| C6, family only | placed in 63% of runs; nobody outside knew who a week on in **100%** (89%: someone outside knew only that it happened) | 63%; **100%** (88%) | 95%+ | passes on both |
+| C10, witnesses and reach | Spearman **0.91** over 369 placed scandals | **0.91** over 369 | 0.5+ | passes on both |
+| C11, the town's own scandals | 462 scandals: circle reach 14 days on median **36%**, 90%+ in 1%, under 20% in 38% (bins: median 52%; thefts: 12%) | 474: **36%**, 1%, 42% (bins 52%; thefts 12%) | median 40-70%, 10%+ at 90%+, 15%+ under 20% | fails two on both |
+| C13, the old band, witnessed | heard by 40-70% of the town, growing 3+ days, in **55%** | **56%** | 52%+ at 26 | reported |
 
 400 seeds × 14 days for each placed check; C11 200 × 112.
 
 What it says:
+- **The review's set moves none of them** by more than a few points: 0d.6's steps change what people feel, and reach is the gossip's.
 - **The harness reproduces the spec's probe** (checkpoint-3) wherever both measured: C4 12%, C10 0.91, C11's 36%, 1% and 38%, and C13 55%.
 - **A crowd makes a scandal nearly universal.** Seen by five or more at a hub, the median reaches 92% of the people who know the culprit, and every run passes 70%. C2's upper bound of 90% asks for some to stay partial.
-- **A lone witness is no quiet edge.** One loner who saw it still tells, at the hubs, and the circle hears it in nine runs of ten; question B5 on #63 is for Sid.
+- **A lone witness is no quiet edge.** One loner who saw it still tells, at the hubs, and the circle hears it in nine runs of ten. Sid's answer to question B5 (2026-10-08): the town is missing the social pressure not to spread a scandal. That rule is next, measured against C3 and C11.
 - **Families keep the culprit's name** (C6), though the theft itself gets out through the keeper's trace (89%).
 - **Natural scandals split by kind:** a bin reaches about half the circle; a theft, found later by the keeper with no name, about an eighth. The town-wide tail is missing (1% at 90%+), and the spec expects festivals and announcements (b2-4, b2-5) to make it. On a festival day today's scandals reach no further (median 16%): festivals aren't gatherings yet.
 
