@@ -5,8 +5,10 @@ namespace UnderGlass.Sim;
 /// reads: Fits, which every act the gate offers must pass, and the pride term in its cost. Every
 /// shipped row passes Fits (its hours are the whole day and its gate asks for nothing more) and has
 /// no pride, so the town is unchanged. Slice acts-1 adds the rules for light kind acts (acts spec
-/// 1): they stir no motive, a cold reading, the warm cap and the warm budget; and watch mode. The
-/// per-head draws, the arrivals, what follows an act and the new motives come with later slices.
+/// 1): they stir no motive, a cold reading, the warm cap and the warm budget; and watch mode. Slice
+/// acts-2 adds the per-head draws (3.2), the limits of a game and a treat, what follows them
+/// (AfterAct), and Fond's gifts kept to occasions. The arrivals and the new motives come with
+/// later slices.
 /// </summary>
 public sealed partial class Simulation
 {
@@ -30,8 +32,24 @@ public sealed partial class Simulation
             return false;
         if (g.MinRegard > -1 && St(_names[a], _names[o]) < g.MinRegard)
             return false;
-        return g.MinAudience <= 0 || Audience(p, o) >= g.MinAudience;
+        if (g.MinAudience > 0 && Audience(p, o) < g.MinAudience)
+            return false;
+        return KindFits(kind, p, _people[o], m);
     }
+
+    /// <summary>The rules a catalog kind adds of its own (acts spec 3.1 and section 4).</summary>
+    private bool KindFits(ActKind kind, Person p, Person o, int m) => kind.Name switch
+    {
+        // A game: at the saloon in the evening, outdoors by day; the two near in age, or both children.
+        "PlayedGame" => (p.Place == "Saloon" ? Clock.OfDay(m) >= Clock.At(17) : Clock.OfDay(m) < Clock.At(19))
+                        && (Math.Abs(p.V.Age - o.V.Age) <= 6 || p.V.Age < 13 && o.V.Age < 13),
+        // A treat: both of age, and the purse holds a drink (the bar's own household treats free).
+        "TreatedToDrink" => o.V.Age >= 18 && (!HasMoney || HouseholdOf(p.V.Name) == BarHousehold()
+                                              || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink),
+        _ => true,
+    };
+
+    private string? BarHousehold() => _ao.Keepers.TryGetValue("Saloon", out string? keeper) && _index.ContainsKey(keeper) ? HouseholdOf(keeper) : null;
 
     /// <summary>Others awake in the actor's place, within FarTiles and in sight, not counting the target.</summary>
     private int Audience(Person p, int o)
@@ -62,10 +80,11 @@ public sealed partial class Simulation
 
     private readonly Dictionary<(int Holder, int Subject), int> _fondWarmDay = new();
 
-    /// <summary>A light kind act (a thank-you, a compliment, a joke), under its rules: those are
-    /// Returns' rules (acts spec 2.3), so with Returns off a light kind row of a town's own is
-    /// treated as it was before the catalog.</summary>
-    private bool IsWarm(ActKind k) => _fo.Acts.Returns && IsLight(k) && k.Affect is { Joy: > 0 };
+    /// <summary>A light kind act (a thank-you, a compliment, a joke, a game), under its rules: those
+    /// are Returns' rules (acts spec 2.3), and a catalog row's own slice brings them too (a game with
+    /// Company alone). With them off, a light kind row of a town's own is treated as before the catalog.</summary>
+    private bool IsWarm(ActKind k) => IsLight(k) && k.Affect is { Joy: > 0 }
+        && (_fo.Acts.Returns || ActCatalog.SliceOf(k.Name) is { } slice && _fo.Acts.IsOn(slice));
 
     /// <summary>The day's cap on light acts is reached: WarmPerDay for light kind acts, counted apart
     /// from LightPerDay, the cap on light hostile ones.</summary>
@@ -167,4 +186,87 @@ public sealed partial class Simulation
     }
 
     private IReadOnlyList<CatalogWatched> CatalogWatch() => _catalogWatch;
+
+    // ---- per-head draws and company (acts spec 3.2, 4.4, 4.5; slice acts-2) -------------------
+
+    private readonly HashSet<(int Holder, int Day)> _fondGiftDay = new();
+
+    /// <summary>
+    /// The per-head draws (acts spec 3.2), each tick after the town's rate draws: for each per-head
+    /// kind whose slice is on, in catalog order, each person in name order who is free, carries it,
+    /// fits its age, place and hours and has someone to aim it at draws at weight x PerDay / 288. The
+    /// draws are keyed apart (kind, name, minute), so they move no other draw, and stay the same per
+    /// person as the town grows. They run with Company on (the slice that builds them), only while
+    /// the gate acts, and not in watch mode.
+    /// </summary>
+    private void StartPerHead(int m)
+    {
+        if (!Acting || !_fo.Acts.Company || _fo.Acts.Watch)
+            return;
+        double ticksPerDay = Clock.MinutesPerDay / (double)Clock.TickMinutes;
+        foreach (ActKind kind in _kinds)
+        {
+            if (!kind.PerHead || kind.PerDay <= 0 || ActCatalog.SliceOf(kind.Name) is not { } slice || !_fo.Acts.IsOn(slice)
+                || !kind.OpenAt(Clock.OfDay(m)))
+                continue;
+            foreach (Person p in _people)
+            {
+                if (!p.V.Acts.TryGetValue(kind.Name, out double w) || w <= 0 || !Free(p, m) || !kind.FitsAge(p.V.Age)
+                    || kind.Allowed.Count > 0 && !kind.Allowed.Contains(p.Place)
+                    || IsLight(kind) && LightCapReached(kind, _index[p.V.Name], m)
+                    || Rng.Unit(_seed, "perhead", kind.Name, p.V.Name, m.ToString()) >= w * kind.PerDay / ticksPerDay
+                    || !HasTarget(kind, p, m))
+                    continue;
+                Begin(m, kind, p, injected: false);
+            }
+        }
+    }
+
+    /// <summary>With Company on, Fond gives a gift only on an occasion (acts spec question 1, answer
+    /// b): the other's birthday or a festival, and once a day; between, it reaches for the small
+    /// acts. Any other motive and kind may go ahead. In watch mode the rule holds only for the watch
+    /// record's weighing (<paramref name="watching"/>), so the run is the town's own.</summary>
+    private bool FondMayUse(DesireKind motive, ActKind kind, int h, int s, int m, bool watching)
+    {
+        if (!_fo.Acts.Company || _fo.Acts.Watch && !watching || motive != DesireKind.Fond || kind.Name != "GaveGift")
+            return true;
+        int day = Clock.Day(m);
+        return (Calendar.IsBirthday(_cast[s].Birthday, day) || Calendar.FestivalOn(day) is not null) && !_fondGiftDay.Contains((h, day));
+    }
+
+    /// <summary>A Fond gift on an occasion was given: the day's one.</summary>
+    private void FondGave(DesireKind motive, ActKind kind, int h, int m)
+    {
+        if (_fo.Acts.Company && !_fo.Acts.Watch && motive == DesireKind.Fond && kind.Name == "GaveGift")
+            _fondGiftDay.Add((h, Clock.Day(m)));
+    }
+
+    /// <summary>What follows a catalog act as it ends (acts spec 3, AfterAct): a game warms the one who
+    /// asked as company does; a drink bought for someone is paid for.</summary>
+    private void AfterAct(Act act, ActKind kind, int m)
+    {
+        if (!Steering || ActCatalog.SliceOf(kind.Name) is null || act.Target is not { } t || !_index.TryGetValue(t, out int ti))
+            return;
+        int a = _index[act.Actor];
+        if (kind.Name == "PlayedGame")
+            AddMood(a, _fo.CompanyJoy * (0.5 + CharacterOf(a).Chattiness) * (E(a, ti) > -_fo.LoveAt ? 1 : -1));
+        else if (kind.Name == "TreatedToDrink")
+            Treat(act.Actor, t, m);
+    }
+
+    /// <summary>A drink bought for someone (acts spec 4.5): the actor's household pays one drink to the
+    /// bar's household, which restocks from outside, as Drinks does; it is the target's drink of the
+    /// day if they had none (Drinks won't charge their household again). The bar's own household
+    /// treats on the house. Money stays in town, so it is conserved to the gram.</summary>
+    private void Treat(string actor, string target, int m)
+    {
+        _drank.Add((target, Clock.Day(m)));
+        if (!HasMoney || BarHousehold() is not { } bar)
+            return;
+        string home = HouseholdOf(actor);
+        if (home == bar)
+            return;
+        Move(home, bar, _mo.SaloonDrink);
+        ToOutside(bar, _mo.SaloonDrink * _mo.SaloonRestock);
+    }
 }
