@@ -15,15 +15,20 @@ using UnderGlass.Sim;
 // steps' switches (b-h, t the tone, m missing people; e.g. --0d6 bcd), --fo WithdrawalWatch=true
 // watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
-// Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0).
+// Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0);
+// --town <name> runs a grown town instead of the shipped one (pelican31: Towns.Named).
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
 var gossip = new GossipOptions();
+// --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
+int townArg = Array.IndexOf(args, "--town");
+TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
+IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
 var inv = System.Globalization.CultureInfo.InvariantCulture;
 // Everything the runner prints reads the same on every machine, like the log (0c.0).
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CurrentCulture = inv;
-FeelingOptions feelings = DefaultTown.Feelings();
+FeelingOptions feelings = town?.Feelings ?? DefaultTown.Feelings();
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
@@ -32,8 +37,8 @@ for (int i = 0; i < args.Length - 1; i++)
             feelings = args[i + 1] switch
             {
                 "off" => FeelingOptions.Off,
-                "observe" => Set(DefaultTown.Feelings(), "Steer", "false"),
-                "on" => Set(DefaultTown.Feelings(), "Steer", "true"),
+                "observe" => Set(town?.Feelings ?? DefaultTown.Feelings(), "Steer", "false"),
+                "on" => Set(town?.Feelings ?? DefaultTown.Feelings(), "Steer", "true"),
                 _ => throw new ArgumentException("--feel off|observe|on"),
             };
             break;
@@ -82,11 +87,11 @@ for (int i = 0; i < args.Length - 1; i++)
     if (eq < 1 || colon < eq + 2)
         throw new ArgumentException("--acts <Name>=<Kind>:<weight>");
     string who = spec[..eq];
-    if (!DefaultTown.Cast().Any(v => v.Name == who))
+    if (!townCast.Any(v => v.Name == who))
         throw new ArgumentException($"--acts: nobody called {who}");
     castChanges.Add((who, spec[(eq + 1)..colon], double.Parse(spec[(colon + 1)..], inv)));
 }
-IReadOnlyList<Villager>? cast = castChanges.Count == 0 ? null : DefaultTown.Cast().Select(v =>
+IReadOnlyList<Villager>? cast = castChanges.Count == 0 ? town?.Cast : townCast.Select(v =>
 {
     var acts = new Dictionary<string, double>(v.Acts);
     foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
@@ -107,7 +112,7 @@ for (int i = 0; i < args.Length - 1; i++)
         throw new ArgumentException("--trait <Name>=<Trait>:<value>, a trait one of " + string.Join(", ", Enum.GetNames<Trait>()));
     Trait trait = Enum.Parse<Trait>(traitName);
     string who = spec[..eq];
-    if (!DefaultTown.Cast().Any(v => v.Name == who))
+    if (!townCast.Any(v => v.Name == who))
         throw new ArgumentException($"--trait: nobody called {who}");
     traits.Add((who, trait, double.Parse(spec[(colon + 1)..], inv)));
 }
@@ -141,7 +146,7 @@ static FeelingOptions Set(FeelingOptions o, string name, string value)
     return o;
 }
 
-IReadOnlyList<ActKind> kinds = DefaultTown.Acts();
+IReadOnlyList<ActKind> kinds = town?.Acts ?? DefaultTown.Acts();
 for (int i = 0; i < args.Length - 1; i++)
 {
     if (args[i] != "--affect")
@@ -157,7 +162,9 @@ for (int i = 0; i < args.Length - 1; i++)
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
 Simulation Make(long seed, FeelingOptions o)
 {
-    var sim = new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o);
+    var sim = town is null
+        ? new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o)
+        : new Simulation(seed, town with { Cast = cast ?? town.Cast, Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed));
     foreach (var (who, trait, value) in traits)
         sim.SetTrait(who, trait, value);
     return sim;
@@ -331,7 +338,7 @@ static bool PaidInFull(string l)
 // Feelings (phase 0c).
 if (feelings.Enabled)
 {
-    FeelingStats f = FeelingMetrics.Summarise(runs, kinds, DefaultTown.Cast(), DefaultTown.TownEconomy().GroceriesAt, feelings);
+    FeelingStats f = FeelingMetrics.Summarise(runs, kinds, townCast, (town?.Economy ?? DefaultTown.TownEconomy()).GroceriesAt, feelings);
     Console.WriteLine($"feelings ({(feelings.Steer ? "steering" : "observed only")}{(feelings.PlasticScale != 1 ? $", plastic {feelings.PlasticScale}" : "")}): run time {runSeconds:0.0} s");
     Console.WriteLine($"  power of acting: mean {f.MeanPower:0.00} (spread {f.PowerSpread:0.00}), under 0.3 {f.LowPowerShare:P0}, over 0.7 {f.HighPowerShare:P0}; lowest " + string.Join(", ", f.LowestPower.Select(x => $"{x.Name} {x.Power:0.00}")));
     foreach (RegardSpread s in f.BySnapshot)
@@ -348,7 +355,7 @@ if (feelings.Enabled)
 // The desire gate (phase 0d; spec section 10).
 if (feelings.Enabled && feelings.Steer && feelings.Desire)
 {
-    DesireStats g = DesireMetrics.Summarise(runs, DefaultTown.Cast(), feelings);
+    DesireStats g = DesireMetrics.Summarise(runs, townCast, feelings);
     static string Per(IEnumerable<(string Name, double PerYear)> xs) => xs.Any() ? string.Join(", ", xs.Select(x => $"{x.Name} {x.PerYear:0.0}")) : "none";
     Console.WriteLine($"desire ({(feelings.DesireActs ? "acting" : "watched only")}{(traits.Count > 0 ? ", " + string.Join(", ", traits.Select(t => $"{t.Who} {t.Trait} {t.Value}")) : "")}; tensions {(feelings.Start.Count == 0 ? "none" : string.Join(", ", feelings.Start.OrderBy(p => p.Key.From, StringComparer.Ordinal).ThenBy(p => p.Key.To, StringComparer.Ordinal).Select(p => $"{p.Key.From}->{p.Key.To} {p.Value:0.00}")))}), a year:");
     Console.WriteLine("  stirred: " + string.Join(", ", g.StirredPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
@@ -368,7 +375,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));
 
     // Hermits, brawlers, moods that spread (phase 0d.6; spec section 9).
-    WithdrawalStats w = WithdrawalMetrics.Summarise(runs, cast);
+    WithdrawalStats w = WithdrawalMetrics.Summarise(runs, cast ?? townCast);
     string[] on = new[] { ("b", feelings.HomeHurtOn || feelings.HouseholdGateOn), ("c", feelings.ContagionOn), ("d", feelings.LeftOutOn || feelings.InclusionDiscountOn),
         ("e", feelings.DialsOn), ("f", feelings.RecoveryOn), ("g", feelings.PatienceOn || feelings.CoercionOn), ("h", feelings.ShowOn), ("t", feelings.ToneOn), ("m", feelings.MissingOn) }
         .Where(x => x.Item2).Select(x => x.Item1).ToArray();
