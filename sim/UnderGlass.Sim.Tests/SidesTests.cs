@@ -34,6 +34,7 @@ public class SidesTests
         o.Acts.Sides = true;
         o.ClearBand = 0.02;
         o.HostileSurcharge = 0; // so the bold clear a hostile act in a small scene
+        o.Acts.HurtPity = 1; // the whole of a mishap's pity, so one bystander's comforts in a small scene
         return o;
     }
 

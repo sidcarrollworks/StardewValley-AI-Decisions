@@ -155,7 +155,7 @@ public static class ActCatalog
     {
         new ActKind("Comforted", 1.5, 1, 2, 10, 0, Array.Empty<string>(), MinAge: 7,
             Affect: new Affect(Patient.Target, 0.2, 0.25, 1, TargetIs.Chosen, Tilt: 1),
-            Gate: new ActGate(0.4, 0.15, new[] { DesireKind.Pity, DesireKind.Remorse })),
+            Gate: new ActGate(0.35, 0.15, new[] { DesireKind.Pity, DesireKind.Remorse })),
         new ActKind("Mocked", 2.5, -1, 1, 3, 0, Array.Empty<string>(), MinAge: 10,
             Affect: new Affect(Patient.Target, -0.3, 0.35, 1, TargetIs.Chosen),
             Gate: new ActGate(0.55, 0.25, new[] { DesireKind.Answer, DesireKind.Retaliate }, NeedsCard: true, MinAudience: 2)),

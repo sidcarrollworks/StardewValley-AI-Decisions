@@ -73,6 +73,9 @@ public sealed class ActOptions
     public double ApologyCost { get; set; } = 0.4;
     /// <summary>Mood lost by an apologiser who is refused, x (0.5 + sensitivity).</summary>
     public double RefusedSting { get; set; } = 0.08;
+    /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
+    /// (acts spec 4.8: the understanding comfort).</summary>
+    public double HurtPity { get; set; } = 0.25;
     /// <summary>The share by which comfort cools the target's open Answer.</summary>
     public double ComfortCools { get; set; } = 0.25;
 

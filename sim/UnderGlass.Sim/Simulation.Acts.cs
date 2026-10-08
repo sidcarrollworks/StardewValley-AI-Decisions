@@ -463,7 +463,7 @@ public sealed partial class Simulation
             }
             else if (regard >= 0 && !Close(wi, ti))
             {
-                double felt = DesireMath.Pity(row.Joy, Sens(wi), regard, b.Clarity, _fo) * Show(ti);
+                double felt = DesireMath.Pity(row.Joy, Sens(wi), regard, b.Clarity, _fo) * Show(ti) * _fo.Acts.HurtPity * U(wi);
                 if (felt <= 0)
                     continue;
                 if (_fo.Acts.Watch)

@@ -842,6 +842,36 @@ What it says:
 - **Friendships on the review's set reach +30% against the baseline**, the limit of the ±30% gate.
 - **Jokes are almost never read cold (1%).** Per-head jokes are aimed by the joker's regard, at people who mostly like them back. So the "only joking" thread (a joke read cold, then remorse, then an apology) barely starts.
 
+### acts-5, Sides: Mocked, StoodUpFor, Comforted (built 2026-10-08; off; NOT tuned, fails its gates)
+
+`--catalog sides` (acts spec 4.8-4.10):
+- **Mocked:** news, heavy hostile, dearer than an argument. It needs a card, an audience of two and expression 0.5, and never happens at home.
+- **Witnesses take sides** after a heavy hostile act. Who loves the target (0.4) or is their kin wants to stand up for them (Defend, for an hour). Others who hold the target at 0 or more pity them: `HurtPity` (0.25) x understanding of a mishap's pity.
+- **StoodUpFor answers Defend.** The aggressor wants to answer the defender. The one defended feels `WithJoy` toward them and wants to return it.
+- **Comforted answers that pity.** It costs 0.35, so it is never returned with a gift. It cools the grudge against the one who hurt by a quarter.
+
+`SidesTests` (5) include the golden thread "the square": a mocking, a defender, a comforter.
+
+**Measured, 40 seeds x a year (shipped town; baseline: feuds 7.9, friendships 0.9, the gate's heavy hostile acts 153 a year):**
+
+| setting | feuds a year | friendships a year | mockings, arguments, stand-ups by the gate | comforts |
+|---|---|---|---|---|
+| as the spec has it (pity in full, comfort at 0.4) | 10.6 | **20.3** | 91, 92, 31 | 399 (and 665 gifts) |
+| pity 0.25 x understanding, comfort 0.35 (built) | **35.3** | 3.9 | 318, 285, 120 | 27 |
+| and `DefendAt` 0.6 | 20.1 | 1.2 | 181, 173, 48 | 23 |
+| and `DefendAt` 0.8 | 16.3 | 1.1 | 159, 147, 30 | 20 |
+
+With every slice on, 200 seeds, before the comfort fix: E1 98%, friendships 17 a year, war towns 56% over three years.
+
+What it says:
+- **The spec's risk 3 happens: sides spiral into war towns.** A mocking has a crowd by definition, so it stirs more defenders than an argument. Each stand-up stirs the aggressor's answer, which stirs more defenders. Mockings add to arguments rather than replacing them.
+- **As specified, comfort hid the spiral.** It cooled grudges, and the kindness it stirred made friendships. With comfort tamed, the spiral shows.
+- **Next steps to try:**
+  - kin defend only when they also hold the target at `DefendAt`;
+  - the aggressor's answer to a stand-up is weaker, or is avoidance;
+  - a mocking replaces an argument by sharing its cooldown with the target's whole household;
+  - a cap on stand-ups for each victim a day.
+
 
 ## Next
 
