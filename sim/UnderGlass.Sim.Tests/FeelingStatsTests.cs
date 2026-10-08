@@ -131,7 +131,17 @@ public class FeelingStatsTests
             .Run(4 * Clock.DaysPerSeason);
         Assert.Equal(110, Clock.Day(Assert.Single(busy.Acts).Tick));
         Assert.Equal(0, Stats(lively, busy).DeadTowns);
+
+        // Under 26 people the scaled gates are the gates themselves.
+        foreach (FeelingStats f in new[] { season, y, Stats(lively, busy) })
+            Assert.Equal((f.WarTowns, f.DeadTowns, f.SeedsWithFeudAndFriendship), (f.WarTownsScaled, f.DeadTownsScaled, f.SeedsWithFeudAndFriendshipScaled));
     }
+
+    /// <summary>The scaled E1 asks for a new feud and a new friendship per 26 people, to the nearest
+    /// whole: one up to 38 people, two at 60, five at 120.</summary>
+    [Fact]
+    public void TheScaledE1AsksForTiesPer26People()
+        => Assert.Equal(new[] { 1, 1, 1, 1, 2, 2, 5 }, new[] { 3, 26, 31, 38, 39, 60, 120 }.Select(FeelingMetrics.TiesNeeded));
 
     /// <summary>In the hearsay scene, where Cal sees the warning, nobody was confronted, questioned
     /// or named after seeing, there is no constable, no newcomer, and no gift or argument: each of
