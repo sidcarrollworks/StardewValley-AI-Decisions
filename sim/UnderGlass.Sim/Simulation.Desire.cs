@@ -183,6 +183,8 @@ public sealed partial class Simulation
         double felt = _felt.TryGetValue((h, act.Id), out FeltRecord? rec) ? Math.Abs(rec.Mood) : Math.Abs(row.Joy) * Sens(h);
         if (felt <= 0)
             return;
+        if (WarmOnly(h, kind, felt, rec))
+            return; // the act catalog: a light kind act stirs no motive (read cold, it hurts a little)
         if (row.Target == TargetIs.Chosen && row.Joy < 0)
         {
             if (!IsLight(kind))
@@ -370,8 +372,9 @@ public sealed partial class Simulation
     private double Min(ActKind kind) => GateOf(kind)?.Min ?? double.PositiveInfinity;
 
     /// <summary>The acts a motive may use, most expensive first (<see cref="Served"/>), that the holder
-    /// may do here and now: their age, the place, the hostile cooldown, the light cap, and Fits.</summary>
-    private List<ActKind> ActsFor(DesireKind k, string act, Person p, int s, int m)
+    /// may do here and now: their age, the place, the hostile cooldown, the light caps, and Fits
+    /// (<paramref name="watching"/>: for the catalog's watch record).</summary>
+    private List<ActKind> ActsFor(DesireKind k, string act, Person p, int s, int m, bool watching = false)
     {
         var key = (k, k == DesireKind.Return ? act : "");
         if (!_served.TryGetValue(key, out var served))
@@ -384,9 +387,9 @@ public sealed partial class Simulation
                 continue;
             if (IsHeavyHostile(kind) && _lastHostile.TryGetValue((h, s), out int last) && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay)
                 continue;
-            if (IsLight(kind) && _lightToday.GetValueOrDefault((h, Clock.Day(m))) >= _fo.LightPerDay)
+            if (IsLight(kind) && LightCapReached(kind, h, m))
                 continue;
-            if (!Fits(kind, h, s, m))
+            if (!Fits(kind, h, s, m, watching))
                 continue;
             list.Add(kind);
         }
@@ -537,6 +540,7 @@ public sealed partial class Simulation
             declined = true;
             Life(m, h, s, d.Source, k.Name, LifeRole.Declined, I, d.Hostile, IsLight(k), Outcome.None);
         }
+        WatchCatalog(p, h, d, I, eff, fear, chosen, m); // the act catalog's watch mode: reads only
         if (chosen is null)
         {
             if (drew)
@@ -551,8 +555,8 @@ public sealed partial class Simulation
         _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
         if (d.Kind != DesireKind.Fond)
             _desires.Remove((h, s, (int)d.Kind));
-        else if (d.Occasion)
-            _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day
+        else if (d.Occasion && !IsWarm(chosen))
+            _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
@@ -643,7 +647,7 @@ public sealed partial class Simulation
         if (IsHeavyHostile(kind))
             _lastHostile[(a, ti)] = m;
         if (IsLight(kind))
-            _lightToday[(a, Clock.Day(m))] = _lightToday.GetValueOrDefault((a, Clock.Day(m))) + 1;
+            CountLight(kind, a, m); // light hostile acts and light kind acts have caps of their own
         if (IsKindAimed(kind))
             _lastKindDay[(a, ti)] = Clock.Day(m);
         if (kind.Affect is not { } row || row.Patient == Patient.Actor)
@@ -675,7 +679,7 @@ public sealed partial class Simulation
     /// few days leaves a mark (rule 4).</summary>
     private void Mark(Act act, ActKind kind, int m)
     {
-        if (!Acting || !_fo.LightActsOn || !IsLight(kind) || act.Target is not { } t || !_index.TryGetValue(t, out int ti))
+        if (!Acting || !_fo.LightActsOn || !IsLight(kind) || IsWarm(kind) || act.Target is not { } t || !_index.TryGetValue(t, out int ti))
             return;
         int since = m - _fo.MarkDays * Clock.MinutesPerDay;
         int count = _beliefs[t].Values.Count(b => b.Kind == kind.Name && b.Actor == act.Actor && b.Target == t

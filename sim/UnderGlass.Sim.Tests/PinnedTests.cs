@@ -169,6 +169,20 @@ public class PinnedTests
             Assert.True(r.Rules.ContainsKey(rule), rule);
     }
 
+    /// <summary>The act catalog: each slice pinned on a year of seed 1, on the shipped town and on the
+    /// 0d.6 review's set (bcdefghmt): acts-1, Returns. Update only for a deliberate change to a
+    /// catalog rule or row.</summary>
+    [Theory]
+    [InlineData("returns", "", "ad48feff948a981c")]
+    [InlineData("returns", "bcdefghmt", "ae6768335721450c")]
+    public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
+    {
+        FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
+        o.Acts.With(slices);
+        Assert.Equal(hash, Metrics.LogHash(new Simulation(1, cast: ActCatalog.Cards(DefaultTown.Cast(), o.Acts),
+            kinds: ActCatalog.Kinds(o.Acts), feelings: o).Run(112)));
+    }
+
     /// <summary>P2: motives watched but not acted on change nothing: the same year as P1.</summary>
     [Fact]
     public void WatchedMotivesChangeNothing()

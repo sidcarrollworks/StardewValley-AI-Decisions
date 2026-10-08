@@ -72,6 +72,18 @@ public sealed class ActOptions
     /// <summary>The slices' switches by name, for the runner's --catalog.</summary>
     public static readonly IReadOnlyList<string> Switches = new[] { "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late" };
 
+    /// <summary>Whether the slice with this switch name is on.</summary>
+    public bool IsOn(string slice) => slice switch
+    {
+        nameof(Returns) => Returns,
+        nameof(Company) => Company,
+        nameof(Welcome) => Welcome,
+        nameof(Repair) => Repair,
+        nameof(Sides) => Sides,
+        nameof(Late) => Late,
+        _ => false,
+    };
+
     /// <summary>A copy, for runs in parallel: options are mutable.</summary>
     public ActOptions Copy() => (ActOptions)MemberwiseClone();
 
@@ -88,3 +100,8 @@ public sealed class ActOptions
         return this;
     }
 }
+
+/// <summary>What the gate would have started from the catalog in watch mode (acts spec 2.3, 5):
+/// at a minute, for a holder's motive toward a subject, the catalog row it would have used and
+/// its margin. Nothing started.</summary>
+public sealed record CatalogWatched(int Tick, string Holder, string Subject, DesireKind Motive, string Kind, double Margin);
