@@ -876,7 +876,7 @@ Two guards were tried and dropped: kin needing `DefendAt` to defend, and a cap o
 | comforts a year | | 13 | | 12 | |
 | three years: moved 0.1+ d335 ÷ d111 | 1.43 | 1.56 | 1.37 | 1.54 | |
 | three years: the gate's kind acts, year 3 ÷ year 1 | 0.97 | 1.02 | 0.95 | 0.96 | 1.5 at most |
-| three years: war towns | 0% | 0% | | **8%** | under 5% |
+| three years: war towns | 0% | 0% | 2% | **8%** | under 5% (baseline 0%) |
 | brawlers; hermits (shyest third) | 2.01; 0 | 2.22; 0 | 1.12; 0.33 | 1.32; 0.33 (100%) | |
 | median feud; apologies accepted | 35 d; 64% | 45 d; 62% | 37 d; 67% | 45 d; 64% | 28 d+; 50-80% |
 
