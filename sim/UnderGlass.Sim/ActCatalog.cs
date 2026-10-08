@@ -18,8 +18,10 @@ public static class ActCatalog
             rows.AddRange(o.Company ? Returns.Select(PerHeadWithCompany) : Returns);
         if (o.Company)
             rows.AddRange(Company);
-        // acts-3 (Welcome): Welcomed. acts-4 (Repair): Apologised. acts-5 (Sides): Comforted, Mocked,
-        // StoodUpFor. acts-6 (Late): LateForWork.
+        if (o.Welcome)
+            rows.AddRange(Welcome);
+        // acts-4 (Repair): Apologised. acts-5 (Sides): Comforted, Mocked, StoodUpFor. acts-6 (Late):
+        // LateForWork.
         return rows;
     }
 
@@ -93,12 +95,30 @@ public static class ActCatalog
             PerHead: true, FromMinute: Clock.At(18), ToMinute: Clock.At(1)),
     };
 
+    /// <summary>
+    /// acts-3, Welcome (acts spec 4.6): Welcomed, "Robin showed the newcomer round the square", the
+    /// answer to the Curious motive (Simulation.CuriousMotives): someone free feels curious about
+    /// anyone in reach they know below NewAt and haven't welcomed. A story act (told on day 0 to those
+    /// who know them); 0.3 / 0.1; in a public place, not a home; at most once for each ordered pair,
+    /// ever; any age. Each comes to know the other WelcomeFamiliarity better, and it stirs Return in
+    /// the one welcomed. It is keyed on familiarity, not on the name "Newcomer": in the shipped town
+    /// only the newcomer starts that little known, and in a grown town it is how people from
+    /// different neighbourhoods meet. (VERIFY: Lewis greets the farmer on day 1 in the game.)
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Welcome = new[]
+    {
+        new ActKind("Welcomed", 1.5, 1, 1, 5, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, 0.15, 0.25, 1, TargetIs.Chosen),
+            Gate: new ActGate(0.3, 0.1, new[] { DesireKind.Curious })),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
     {
         "Thanked" or "Complimented" or "Joked" => nameof(ActOptions.Returns),
         "PlayedGame" or "TreatedToDrink" => nameof(ActOptions.Company),
+        "Welcomed" => nameof(ActOptions.Welcome),
         _ => null,
     };
 

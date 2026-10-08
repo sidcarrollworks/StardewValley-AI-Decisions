@@ -46,6 +46,8 @@ public sealed partial class Simulation
         // A treat: both of age, and the purse holds a drink (the bar's own household treats free).
         "TreatedToDrink" => o.V.Age >= 18 && (!HasMoney || HouseholdOf(p.V.Name) == BarHousehold()
                                               || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink),
+        // A welcome: in a public place, once for each ordered pair.
+        "Welcomed" => !p.Place.StartsWith("Home:", StringComparison.Ordinal) && !_welcomed.Contains((_index[p.V.Name], _index[o.V.Name])),
         _ => true,
     };
 
@@ -252,6 +254,40 @@ public sealed partial class Simulation
             AddMood(a, _fo.CompanyJoy * (0.5 + CharacterOf(a).Chattiness) * (E(a, ti) > -_fo.LoveAt ? 1 : -1));
         else if (kind.Name == "TreatedToDrink")
             Treat(act.Actor, t, m);
+        else if (kind.Name == "Welcomed")
+            Welcome(a, ti);
+    }
+
+    // ---- welcome (acts spec 4.6; slice acts-3) ------------------------------------------------
+
+    private readonly HashSet<(int Holder, int Subject)> _welcomed = new();
+
+    /// <summary>Computed motives (acts spec 4.6): worked out each tick from the world, not stored, and
+    /// asked at most once a day for a close call. Fond and Curious.</summary>
+    private static bool Computed(DesireKind k) => k is DesireKind.Fond or DesireKind.Curious;
+
+    /// <summary>Curiosity at what is new (law 13; acts spec 4.6), computed each tick as Fond is: a free
+    /// holder feels it toward everyone in reach they know below NewAt and haven't welcomed, never kin
+    /// or housemates, at CuriousBase x (0.5 + chattiness). Only with Welcome on.</summary>
+    private IEnumerable<(Motive D, double I)> CuriousMotives(int h, Person p, int m)
+    {
+        if (!_fo.Acts.Welcome)
+            yield break;
+        double i = _fo.Acts.CuriousBase * (0.5 + CharacterOf(h).Chattiness);
+        for (int s = 0; s < _people.Length; s++)
+        {
+            if (s == h || _fam[h, s] >= _fo.Acts.NewAt || _welcomed.Contains((h, s)) || Close(h, s) || !InReach(p, _people[s], m))
+                continue;
+            yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Curious, Act = "Welcomed", Source = -1, Since = m, Felt = i }, i);
+        }
+    }
+
+    /// <summary>A welcome ends: each knows the other WelcomeFamiliarity better, and it isn't asked again.</summary>
+    private void Welcome(int a, int t)
+    {
+        _welcomed.Add((a, t));
+        _fam[a, t] = Math.Min(1, _fam[a, t] + _fo.Acts.WelcomeFamiliarity);
+        _fam[t, a] = Math.Min(1, _fam[t, a] + _fo.Acts.WelcomeFamiliarity);
     }
 
     /// <summary>A drink bought for someone (acts spec 4.5): the actor's household pays one drink to the
