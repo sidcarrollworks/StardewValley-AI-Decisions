@@ -103,6 +103,11 @@ public class CompanyTests
         Assert.DoesNotContain(r.Acts, a => a.Kind is "Thanked" or "Complimented" or "Joked");
         Assert.Contains(r.Acts, a => a.Kind is "PlayedGame" or "TreatedToDrink");
         Assert.DoesNotContain(cast, v => v.Acts.ContainsKey("Complimented") || v.Acts.ContainsKey("Joked")); // their cards come with Returns
+        // A game is a light kind act under Company alone: it stirs no motive and holds no open outcome.
+        var games = r.Acts.Where(a => a.Kind == "PlayedGame").Select(a => a.Id).ToHashSet();
+        Assert.NotEmpty(games);
+        Assert.DoesNotContain(r.Stirred, s => games.Contains(s.Source));
+        Assert.All(r.LifeEvents.Where(e => games.Contains(e.ActId)), e => Assert.Equal(Outcome.None, e.Outcome));
     }
 
     [Fact]

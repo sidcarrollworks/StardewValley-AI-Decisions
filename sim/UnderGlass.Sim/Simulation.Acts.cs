@@ -78,14 +78,19 @@ public sealed partial class Simulation
     private readonly List<CatalogWatched> _catalogWatch = new();
     private readonly HashSet<(int Holder, int Subject, DesireKind Motive, int Source, int Day)> _watched = new();
 
-    /// <summary>A light kind act (a thank-you, a compliment, a joke).</summary>
-    private bool IsWarm(ActKind k) => IsLight(k) && k.Affect is { Joy: > 0 };
+    private readonly Dictionary<(int Holder, int Subject), int> _fondWarmDay = new();
+
+    /// <summary>A light kind act (a thank-you, a compliment, a joke, a game), under its rules: those
+    /// are Returns' rules (acts spec 2.3), and a catalog row's own slice brings them too (a game with
+    /// Company alone). With them off, a light kind row of a town's own is treated as before the catalog.</summary>
+    private bool IsWarm(ActKind k) => IsLight(k) && k.Affect is { Joy: > 0 }
+        && (_fo.Acts.Returns || ActCatalog.SliceOf(k.Name) is { } slice && _fo.Acts.IsOn(slice));
 
     /// <summary>The day's cap on light acts is reached: WarmPerDay for light kind acts, counted apart
     /// from LightPerDay, the cap on light hostile ones.</summary>
     private bool LightCapReached(ActKind kind, int h, int m)
         => IsWarm(kind)
-            ? _warmToday.TryGetValue(h, out var w) && w.Day == Clock.Day(m) && w.Count >= _fo.Acts.WarmPerDay
+            ? (_warmToday.TryGetValue(h, out var w) && w.Day == Clock.Day(m) ? w.Count : 0) >= _fo.Acts.WarmPerDay
             : _lightToday.GetValueOrDefault((h, Clock.Day(m))) >= _fo.LightPerDay;
 
     /// <summary>Counts a light act the actor began toward the day's cap.</summary>
@@ -135,26 +140,49 @@ public sealed partial class Simulation
     }
 
     /// <summary>Watch mode (acts spec 2.3): after the gate weighed a motive on the rows it may use,
-    /// the same weighing with the catalog's rows; if it would have started a catalog row (the first
-    /// that clears, or a close call), that is recorded and nothing starts. Reads only. A motive
-    /// stays when nothing starts, so each is recorded once (Fond, which recurs, once a day).</summary>
+    /// the same weighing with the catalog's rows, as Weigh walks them: the row the gate chose ends
+    /// it; a shipped row it weighed as a close call and didn't take is passed over, and after that
+    /// only a row that clears counts. If that is a catalog row (the first that clears, or a close
+    /// call before any was declined), it is recorded and nothing starts. Reads only. A motive stays
+    /// when nothing starts, so each is recorded once (Fond, which recurs, once a day).</summary>
     private void WatchCatalog(Person p, int h, Motive d, double I, double eff, double fear, ActKind? chosen, int m)
     {
         if (!_fo.Acts.Watch || !Acting)
             return;
+        bool declined = false;
         foreach (ActKind k in ActsFor(d.Kind, d.Act, p, d.Subject, m, watching: true))
         {
+            if (k == chosen)
+                return;
             if (I < Min(k))
                 continue;
             double margin = eff - (DesireMath.Cost(Form(k), d.Hostile, fear, _fo) + Pride(k, h));
             string call = DesireMath.Call(margin, _fo);
-            if (call == "no")
+            bool catalog = ActCatalog.SliceOf(k.Name) is not null;
+            if (call == "no" || call == "close" && (declined || !catalog))
+            {
+                declined |= call == "close"; // the gate weighed it and didn't take it
                 continue;
-            if (ActCatalog.SliceOf(k.Name) is not null && k != chosen
-                && _watched.Add((h, d.Subject, d.Kind, d.Source, d.Kind == DesireKind.Fond ? Clock.Day(m) : -1)))
+            }
+            if (catalog && _watched.Add((h, d.Subject, d.Kind, d.Source, d.Kind == DesireKind.Fond ? Clock.Day(m) : -1)))
                 _catalogWatch.Add(new CatalogWatched(m, p.V.Name, _names[d.Subject], d.Kind, k.Name, margin));
             return;
         }
+    }
+
+    /// <summary>Fond waits a few days (FondWarmDays) after it was answered with a light kind act
+    /// toward someone before it reaches for another: a small act doesn't reset missing someone
+    /// (question 2, answer c), so without the wait Fond would compliment the same person every day
+    /// they meet. A gift, which does reset it, is not held back.</summary>
+    private bool FondWarmWaits(DesireKind motive, ActKind kind, int h, int s, int m)
+        => motive == DesireKind.Fond && IsWarm(kind) && _fondWarmDay.TryGetValue((h, s), out int last)
+           && Clock.Day(m) - last < _fo.Acts.FondWarmDays;
+
+    /// <summary>Fond was answered with a light kind act: its wait starts.</summary>
+    private void FondWarmed(DesireKind motive, ActKind kind, int h, int s, int m)
+    {
+        if (motive == DesireKind.Fond && IsWarm(kind))
+            _fondWarmDay[(h, s)] = Clock.Day(m);
     }
 
     private IReadOnlyList<CatalogWatched> CatalogWatch() => _catalogWatch;
