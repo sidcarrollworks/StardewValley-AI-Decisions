@@ -151,6 +151,7 @@ public class PinnedTests
     [InlineData("m", "ebc29ca2436b0442")]
     [InlineData("bdefghm", "c0642c9c12bdf5b5")]
     [InlineData("bdefghmt", "b7ad0f53570cba04")]
+    [InlineData("bcdefghmt", "e761f7aae0eef6fe")] // the review's set: every step, contagion and the tone
     public void The0d6StepsArePinned(string steps, string hash)
         => Assert.Equal(hash, Metrics.LogHash(new Simulation(1, feelings: DefaultTown.Feelings().With0d6(steps)).Run(112)));
 

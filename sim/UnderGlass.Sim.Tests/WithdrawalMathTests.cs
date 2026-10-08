@@ -244,6 +244,7 @@ public class WithdrawalMathTests
         Assert.False(town.WithdrawalWatch || town.HomeHurtOn || town.HouseholdGateOn || town.ContagionOn || town.LeftOutOn
                      || town.InclusionDiscountOn || town.DialsOn || town.RecoveryOn || town.PatienceOn || town.CoercionOn
                      || town.ShowOn || town.MissingOn || town.ToneOn);
+        Assert.Equal((0.03, 0.1, 1.0), (town.ContagionK, town.ContagionCap, town.ContagionConditions));
         Assert.Equal((1.75, 5, 6.0, 3, 0.75, 0.002), (town.LeftOutRate, town.ShyPower, town.StanceHomeDial, town.FreshDays, town.ShowReference, town.Tone));
         Assert.Equal((0.01, 2, 3.0, 7, 1.0), (O.LeftOutRate, O.ShyPower, O.StanceHomeDial, O.FreshDays, O.ShowReference)); // first guesses
     }

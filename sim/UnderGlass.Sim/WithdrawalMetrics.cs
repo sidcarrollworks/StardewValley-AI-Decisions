@@ -29,7 +29,8 @@ public sealed record WithdrawalStats(int Runs,
     IReadOnlyDictionary<string, (double PerYear, double SumPerYear)> Rules,
     IReadOnlyList<(string Name, double MeanE)> MostLeftOut,
     double HomeArgumentsByGate, double HomeArgumentsAtRates,
-    IReadOnlyList<double> GateGiftsByYear, double OccasionGiftsPerYear);
+    IReadOnlyList<double> GateGiftsByYear, double OccasionGiftsPerYear,
+    IReadOnlyList<(string Name, int Spells)> HermitSpellsByPerson, IReadOnlyList<(string Name, int Spells)> WithdrawnSpellsByPerson);
 
 public static class WithdrawalMetrics
 {
@@ -144,6 +145,8 @@ public static class WithdrawalMetrics
         }
         var hermits = withdrawn.Where(x => x.S.Hermit).ToList();
         double Distinct(IEnumerable<(SimResult R, Spell S)> xs) => xs.Select(x => (x.R, x.S.Name)).Distinct().Count() / years;
+        static IReadOnlyList<(string, int)> ByPerson(IEnumerable<(SimResult R, Spell S)> xs) => xs.GroupBy(x => x.S.Name)
+            .Select(g => (g.Key, g.Count())).OrderByDescending(x => x.Item2).ThenBy(x => x.Key, StringComparer.Ordinal).ToList();
         double fromShy = hermits.Count == 0 ? double.NaN
             : hermits.Count(x => ShyestThird(x.R.CharactersAtStart).Contains(x.S.Name)) / (double)hermits.Count;
         int seedYears = 0, withHermit = 0, yearLong = 0, excused = 0;
@@ -250,6 +253,7 @@ public static class WithdrawalMetrics
             Enumerable.Range(0, Math.Max(0, length / Year)).Select(y => runs.Average(r => r.Pursued.Count(id => r.Acts[id].Kind == "GaveGift"
                 && Clock.Day(r.Acts[id].Tick) / Year == y))).ToList(),
             runs.Sum(r => r.Pursued.Count(id => r.Acts[id] is { Kind: "GaveGift", Target: { } t } a && byName.TryGetValue(t, out Villager? v)
-                && (Calendar.IsBirthday(v.Birthday, Clock.Day(a.Tick)) || Calendar.FestivalOn(Clock.Day(a.Tick)) is not null))) / years);
+                && (Calendar.IsBirthday(v.Birthday, Clock.Day(a.Tick)) || Calendar.FestivalOn(Clock.Day(a.Tick)) is not null))) / years,
+            ByPerson(hermits), ByPerson(withdrawn));
     }
 }
