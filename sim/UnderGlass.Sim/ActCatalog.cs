@@ -20,8 +20,9 @@ public static class ActCatalog
             rows.AddRange(Company);
         if (o.Welcome)
             rows.AddRange(Welcome);
-        // acts-4 (Repair): Apologised. acts-5 (Sides): Comforted, Mocked, StoodUpFor. acts-6 (Late):
-        // LateForWork.
+        if (o.Repair)
+            rows.AddRange(Repair);
+        // acts-5 (Sides): Comforted, Mocked, StoodUpFor. acts-6 (Late): LateForWork.
         return rows;
     }
 
@@ -112,6 +113,24 @@ public static class ActCatalog
             Gate: new ActGate(0.3, 0.1, new[] { DesireKind.Curious })),
     };
 
+    /// <summary>
+    /// acts-4, Repair (acts spec 4.7): Apologised, "Sam said sorry to Penny for the joke", the answer
+    /// to the Remorse motive (Simulation.StirRemorse): the actor of an argument, or of a joke read
+    /// cold, who doesn't dislike the target and wasn't in the right, wants to put it right. A story
+    /// act (told on day 0 to those who know them); a walk-up (0.5 / 0.15), dearer for the proud by 0.5
+    /// x (self-regard - 0.5); anywhere; age 5 and up; its About is the hurt. The target answers on the
+    /// spot (Simulation.AnswerApology): accepted, they get back part of the regard the hurt cost
+    /// (half the first time within ApologyDays, a quarter the second, then nothing: question 3,
+    /// answer b), the fear and the grudge it left are lifted, and their stance eases; refused, the
+    /// apologiser smarts and the hurt stays.
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Repair = new[]
+    {
+        new ActKind("Apologised", 1.5, 1, 2, 5, 0, Array.Empty<string>(), MinAge: 5,
+            Affect: new Affect(Patient.Target, 0.1, 0.2, 1, TargetIs.Chosen),
+            Gate: new ActGate(0.5, 0.15, new[] { DesireKind.Remorse }, PrideWeight: 0.5)),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
@@ -119,6 +138,7 @@ public static class ActCatalog
         "Thanked" or "Complimented" or "Joked" => nameof(ActOptions.Returns),
         "PlayedGame" or "TreatedToDrink" => nameof(ActOptions.Company),
         "Welcomed" => nameof(ActOptions.Welcome),
+        "Apologised" => nameof(ActOptions.Repair),
         _ => null,
     };
 
