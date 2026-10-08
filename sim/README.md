@@ -750,6 +750,38 @@ What it says:
 - **Gifts by the gate fall a third on the shipped town, short of the spec's 40%.** On the review's set they fall 8%, because 0d.6's missing people gives most of its gifts on occasions, which Company keeps. The rest are Return's and MakeUp's gifts, which Company doesn't touch.
 - **Games and jokes stay rare.** Few carry them, and the gate prefers a compliment, which comes first among the 0.3 acts by name.
 
+### acts-3, Welcome: Welcomed and the Curious motive (built 2026-10-08; off)
+
+`--catalog welcome` (acts spec 4.6):
+- **Curious** is computed each tick, as Fond is. A free person is curious about anyone in reach they know below 0.15 and haven't welcomed; never kin or housemates. Its strength is 0.25 x (0.5 + chattiness).
+- **Welcomed** answers it: a story act in any place that isn't a home, once for each ordered pair.
+  - Each comes to know the other 0.1 better.
+  - It stirs Return in the one welcomed.
+  - It is keyed on familiarity, not on the newcomer's name.
+- **Close calls:** Fond and Curious are asked once a day.
+
+`WelcomeTests` (6).
+
+**The slice's own criterion** (200 x 28 days, Welcome alone on the shipped town): the newcomer is known at 0.355 by day 28, against 0.190 without. Everyone else knows each other as before (0.570), and feuds move -6%. All 25 welcome the newcomer and the newcomer greets all 25: 50 welcomes in the first month.
+
+**Measured with Returns and Company** (the columns before are acts-2's):
+
+| measure | shipped (acts-2) | + Welcome | review's set (acts-2) | + Welcome |
+|---|---|---|---|---|
+| band: in band / over 70% | 60% / 23% | 57% / 23% | 59% / 24% | 57% / 22% |
+| E1, 200 seeds (400) | 64% (68%) | 66% (66%) | 82% (81%) | 77% (77%) |
+| feuds, friendships a year (400) | 8.02, 1.09 | 8.06, 1.02 | 7.37, 1.56 | 7.48, 1.53 |
+| kindness ignored; returned within 7 days | 36%; 65% | 32%; 69% | 30%; 73% | 28%; 74% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.50 | 1.45 | 1.42 | 1.39 |
+| three years: the gate's kind acts by year | 309, 354, 391 | 407, 352, 387 | 603, 633, 666 | 706, 633, 662 |
+| trivia, news a year | 881, 267 | 978, 273 | 1,172, 267 | 1,272, 269 |
+| the newcomer withdrawn (28 d at -0.5) in seed-years | | | 83% | 44% |
+| hermits (shyest third) | 0 | 0 | 0.24 (96%) | 0.38 (100%) |
+
+What it says:
+- **The newcomer's first month changes**, and nothing else moves by more than 10%, trivia aside (+11%: the welcomes and the thanks they stir). The gate's kindness in year one is up by the welcomes, which happen once.
+- **On the review's set the welcomes delay the newcomer's withdrawal rather than prevent it.** "Withdrawn newcomer" falls from 83% of seed-years to 44%, but they end the year at -0.86. And because they went out more in their first season, the later fall in their hours now counts them as a hermit more often (hermits 0.24 to 0.38, the newcomer 0.2 of them).
+
 
 ## Next
 
