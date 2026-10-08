@@ -22,12 +22,19 @@ using UnderGlass.Sim;
 // The act catalog (acts spec 2.4): --catalog <slices> turns on its switches, a comma list of watch,
 // returns, company, welcome, repair, sides and late (any case; e.g. --catalog returns,company), and
 // adds their rows and cards to the town. (--acts is the cards flag above.)
+// --town-seeds, with a generated town, gives each run its own town: the run's seed is also its town
+// seed (--town pelican:60@1 --town-seeds runs pelican:60@1, @2, @3 and so on), so the variety measures
+// cover towns as well as runs. It prints only what doesn't need one cast: the spread table, ties and
+// E1 worked out run by run, and the variety measures. Not with --acts or --trait.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
 // --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
 int townArg = Array.IndexOf(args, "--town");
 TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
+bool townSeeds = args.Contains("--town-seeds");
+if (townSeeds)
+    Towns.ForSeed(townArg >= 0 && townArg + 1 < args.Length ? args[townArg + 1] : "pelican", 1); // a generated town, or say why not
 // The flags below change the town's own gossip options (a grown town keeps two tellings a day).
 var gossip = town?.Gossip ?? new GossipOptions();
 IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
@@ -79,6 +86,7 @@ for (int i = 0; i < args.Length - 1; i++)
     }
 }
 // Applied after --feel, whatever the order on the line.
+double? tensionDepth = null;
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
@@ -96,7 +104,10 @@ for (int i = 0; i < args.Length - 1; i++)
                 _ => throw new ArgumentException("--desire off|observe|on"),
             };
             break;
-        case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(args[i + 1], inv)); break; // keeps a town's own
+        case "--tensions": // keeps a town's own
+            tensionDepth = double.Parse(args[i + 1], inv);
+            feelings.Start = Towns.WithTensions(feelings.Start, tensionDepth.Value);
+            break;
         case "--0d6": feelings.With0d6(args[i + 1]); break;
         case "--catalog": feelings.Acts.With(args[i + 1]); break;
     }
@@ -147,6 +158,9 @@ for (int i = 0; i < args.Length - 1; i++)
     traits.Add((who, trait, double.Parse(spec[(colon + 1)..], inv)));
 }
 
+if (townSeeds && (castChanges.Count > 0 || traits.Count > 0))
+    throw new ArgumentException("--town-seeds gives each run its own people: not with --acts or --trait");
+
 // <Name>=<value> for any switch or number of an options object.
 static void SetOption(object o, string kv)
 {
@@ -191,8 +205,18 @@ for (int i = 0; i < args.Length - 1; i++)
         : k).ToList();
 }
 IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
+// --town-seeds: each run's own town, built once (runs go in parallel).
+var seedTowns = new System.Collections.Concurrent.ConcurrentDictionary<long, TownData>();
+TownData TownFor(long seed) => seedTowns.GetOrAdd(seed, s => Towns.ForSeed(args[townArg + 1], s));
 Simulation Make(long seed, FeelingOptions o)
 {
+    if (townSeeds)
+    {
+        // The town's own tensions and cards; the act list is the same for every town of a size.
+        TownData t = TownFor(seed);
+        o.Start = tensionDepth is { } depth ? Towns.WithTensions(t.Feelings.Start, depth) : t.Feelings.Start;
+        return new Simulation(seed, t with { Cast = ActCatalog.Cards(t.Cast, o.Acts), Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed));
+    }
     var sim = town is null
         ? new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o)
         : new Simulation(seed, town with { Cast = cast ?? town.Cast, Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed));
@@ -260,6 +284,28 @@ Console.WriteLine();
 Console.WriteLine("group     acts  witn  reach  sat90  band  died  days  right  wrong  unknown");
 foreach (GroupStats g in stats.Groups)
     Console.WriteLine($"{g.Group,-9} {g.Acts,5} {g.MeanWitnesses,5:0.0} {g.MeanReach,6:P0} {g.Saturated,6:P0} {g.InBand,5:P0} {g.Died,5:P0} {g.MeanDaysSpreading,5:0.0} {g.ActorRight,6:P0} {g.ActorWrong,6:P0} {g.ActorUnknown,8:P0}");
+if (townSeeds)
+{
+    // A different town each run: ties and E1 are worked out run by run against the run's own town
+    // (a generated name in two towns is two people), and the rest that reads one cast is left out.
+    Console.WriteLine();
+    Console.WriteLine($"a different town each seed ({args[townArg + 1][..args[townArg + 1].IndexOf('@')]}@<seed>): run time {runSeconds:0.0} s");
+    if (feelings.Enabled)
+    {
+        var each = runs.Select((r, i) =>
+        {
+            TownData t = TownFor(from + i);
+            return FeelingMetrics.Summarise(new[] { r }, kinds, t.Cast, (t.Economy ?? DefaultTown.TownEconomy()).GroceriesAt, feelings);
+        }).ToList();
+        double MeanOf(Func<FeelingStats, double> f) => each.Select(f).Where(x => !double.IsNaN(x)).DefaultIfEmpty(double.NaN).Average();
+        Console.WriteLine($"  ties a year: feuds {MeanOf(f => f.FeudsPerYear):0.00}, friendships {MeanOf(f => f.FriendshipsPerYear):0.00}, reconciliations {MeanOf(f => f.ReconciliationsPerYear):0.00}; "
+            + $"seeds with a new feud and a new friendship {Pc(MeanOf(f => f.SeedsWithFeudAndFriendship))} (scaled to {runs[0].CastSize} people: {Pc(MeanOf(f => f.SeedsWithFeudAndFriendshipScaled))}); "
+            + $"war towns {Pc(MeanOf(f => f.WarTowns))} (scaled {Pc(MeanOf(f => f.WarTownsScaled))}), dead towns {Pc(MeanOf(f => f.DeadTowns))} (scaled {Pc(MeanOf(f => f.DeadTownsScaled))}); "
+            + $"per 100 people a year: feuds {MeanOf(f => f.FeudsPerYear) * 100 / runs[0].CastSize:0.0}, friendships {MeanOf(f => f.FriendshipsPerYear) * 100 / runs[0].CastSize:0.0}");
+    }
+    PrintVariety(Variety.Measure(runs, kinds));
+    return;
+}
 Console.WriteLine();
 Console.WriteLine($"confrontations a season: {stats.ConfrontationsPerSeason:0.0}; at the right person: {stats.ConfrontationsRight:P0}; scandals confronted: {stats.ScandalsConfronted:P0}");
 Console.WriteLine("natural acts a year, town-wide: " + string.Join(", ", stats.PerYear.Select(p => $"{p.Key.ToString().ToLowerInvariant()} {p.Value:0.#}")));
@@ -375,7 +421,9 @@ if (feelings.Enabled)
     Console.WriteLine($"  power of acting: mean {f.MeanPower:0.00} (spread {f.PowerSpread:0.00}), under 0.3 {f.LowPowerShare:P0}, over 0.7 {f.HighPowerShare:P0}; lowest " + string.Join(", ", f.LowestPower.Select(x => $"{x.Name} {x.Power:0.00}")));
     foreach (RegardSpread s in f.BySnapshot)
         Console.WriteLine($"  regard at d{s.Day}: mean change {Sg(s.MeanChange)}, p5 {s.P5:0.00} p50 {s.P50:0.00} p95 {s.P95:0.00}; under -0.2 {s.UnderMinus02:P1}, 0.4+ {s.AtLeast04:P1}, moved 0.1+ {s.Moved01:P1}; kin {s.KinMean:0.00}, others {s.NonKinMean:0.00}");
-    Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {Pc(f.WarTowns)}, dead towns {Pc(f.DeadTowns)}{(double.IsNaN(f.DeadTowns) ? " (runs under a year)" : "")}");
+    Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {Pc(f.WarTowns)}, dead towns {Pc(f.DeadTowns)}{(double.IsNaN(f.DeadTowns) ? " (runs under a year)" : "")}"
+        + (runs[0].CastSize == FeelingMetrics.ShippedOthers + 1 ? "" : $"; scaled to {runs[0].CastSize} people (per person, as at 26): E1 {Pc(f.SeedsWithFeudAndFriendshipScaled)}, war towns {Pc(f.WarTownsScaled)}, dead towns {Pc(f.DeadTownsScaled)}; "
+            + $"per 100 people a year: feuds {f.FeudsPerYear * 100 / runs[0].CastSize:0.0}, friendships {f.FriendshipsPerYear * 100 / runs[0].CastSize:0.0}"));
     Console.WriteLine("  top feuds " + string.Join(", ", f.TopFeuds.Select(t => $"{t.A}-{t.B} {t.Seeds}")) + "; top friendships " + string.Join(", ", f.TopFriendships.Select(t => $"{t.A}-{t.B} {t.Seeds}")));
     Console.WriteLine("  sentiments a season: " + string.Join(", ", f.SentimentsPerSeason.Select(p => $"{p.Key} {p.Value:0.#}")) + $"; share of regard change with a sentiment {Pc(f.SentimentShare)}");
     Console.WriteLine($"  toward a culprit, mean change by how it was known: witnessed {Sg(f.DropWitnessed)}, saw and heard the name {Sg(f.DropHeardName)}, told twice {Sg(f.DropCorroborated)}, confirmed {Sg(f.DropConfirmed)}");
@@ -445,12 +493,14 @@ if (town is not null)
     foreach (DistrictStats d in ts.Districts)
         Console.WriteLine($"  {d.District}: acts {d.ActsPerPerson:0.0}, tellings heard {d.HeardPerPerson:0.0}, feuds {d.FeudsPerPerson:0.00}, friendships {d.FriendshipsPerPerson:0.00} a person a year");
 }
+PrintVariety(Variety.Measure(runs, kinds));
+Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");
+
+// How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
+static void PrintVariety(VarietyStats v)
 {
-    // How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
-    VarietyStats v = Variety.Measure(runs, kinds);
     Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}); "
         + $"V2 headlines {v.V2:0.0} [20+] (top {v.TopHeadline} {v.TopHeadlineShare:P0}); V3 alike pairs {v.V3:P1} [under 5%]; V4 with a rare story {Pc(v.V4)} [60%+]{(double.IsNaN(v.V4) ? " (needs 50+ seed-years)" : "")}");
     Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}); "
         + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; V7 not built");
 }
-Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

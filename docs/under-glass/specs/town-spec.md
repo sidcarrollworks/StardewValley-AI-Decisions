@@ -523,6 +523,11 @@ Each size is run at 31 (if built), 60 and 120.
 | **Activity** | 0.30 acts per person per day; 3.8 tellings per person per day (28 days) | acts per person per day 0.24-0.36; tellings per person within ±30% of the 26 town over the same run length (the probe had 24.2 at 104) |
 | **Witnesses and walking** | 4.1 witnesses per act | witnesses per act at most 1.5× the 26 town (the probe had 21.2 at 104); walking minutes per person per day within ±30% of the 26 town (the tile-scale check, 2.4) |
 
+**As built (2026-10-08, `FeelingMetrics`, the runner's `--town-seeds`)**, where it differs from the table:
+- **Dead and war towns count per person, not over acquainted pairs.** A war town has more than `WarShare` x 25 people disliked per person, and a dead town fewer than `DeadShare` x 25 moved per person. Up to 26 people these are the gates themselves. Acquainted pairs were not used: with forgetting off (question 5's answer for now), a town of 60 knows 91% of its pairs well by the year's end, so they are nearly all pairs and the share still falls as 1/n. On `pelican:60@1` the all-pairs rule calls 16% of seed-years dead.
+- **E1 asks for a new feud and a new friendship per 26 people** (to the nearest whole: one at 31, two at 60, five at 120). E1 by ward, (a), waits for the plan's geometry, since a ward pools a neighbourhood with its nearest. The rates of (b), feuds and friendships per 100 people a year, are printed beside it.
+- The runner prints these scaled gates for any town that isn't 26 people. `--town-seeds` gives each run its own generated town (the run's seed is the town seed), so the variety measures and these gates cover towns as well as runs.
+
 ### 6.3 Locality: a bigger town, not a bigger crowd
 
 *Built 2026-10-08 as `TownMetrics` (the runner prints it for any `--town`): the locality ratio from tellings (not yet chat minutes), tellings across districts, bridges within two days, and the median person's count of people known well. Crowding and the door gradient need positions over time and are not built yet.*

@@ -43,6 +43,14 @@ public static class Towns
         _ => throw new ArgumentException($"no town called {name}: one of {string.Join(", ", Names)}, or a spec such as pelican:60@7"),
     };
 
+    /// <summary>A generated town with a run's seed as its town seed (the runner's --town-seeds):
+    /// pelican:60@1 for seed 7 is pelican:60@7, so each run of a sweep is a different town of the same
+    /// profile and size. Only a generated town has a town seed.</summary>
+    public static TownData ForSeed(string name, long seed)
+        => name.Contains(':') && !name.StartsWith("file:", StringComparison.Ordinal)
+            ? Generation.TownGen.Build(Generation.TownSpec.Parse(name) with { Seed = seed })
+            : throw new ArgumentException($"{name} has no town seed: --town-seeds needs a generated town, such as pelican:60@1");
+
     /// <summary>The five who live a little apart, as people who keep to themselves (town spec 4.6,
     /// T2b; Sid's answer 6). Lore is recalled, not checked (VERIFY against the game): Clint keeps
     /// the blacksmith's and is sweet on Emily; Willy keeps the fish shop on the beach; Elliott writes
