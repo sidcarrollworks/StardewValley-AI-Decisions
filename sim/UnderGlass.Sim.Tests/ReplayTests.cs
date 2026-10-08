@@ -112,6 +112,15 @@ public class ReplayTests
         Assert.Equal(r.Ties.Count, run.GetProperty("ties").GetArrayLength());
         Assert.Equal(r.LifeEvents.Count, run.GetProperty("life").GetArrayLength());
 
+        // Every person's character has one value for each trait the file names.
+        int traits = run.GetProperty("traitNames").GetArrayLength();
+        Assert.Equal(Enum.GetValues<Trait>().Length, traits);
+        Assert.All(run.GetProperty("people").EnumerateArray(), p =>
+        {
+            Assert.Equal(traits, p.GetProperty("character").GetArrayLength());
+            Assert.Equal(traits, p.GetProperty("characterEnd").GetArrayLength());
+        });
+
         // Regard changes: between two people in "feelings", toward a kind of person in
         // "kindFeelings", and every moving change in one or the other.
         string[] personKinds = run.GetProperty("personKinds").EnumerateArray().Select(e => e.GetString()!).ToArray();

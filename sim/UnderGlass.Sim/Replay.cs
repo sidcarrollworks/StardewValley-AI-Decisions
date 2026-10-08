@@ -135,11 +135,8 @@ public static class Replay
             events = events.OrderBy(e => (int)e[0]).ToList(); // stable: the log's own order holds within a minute
         int TieTick(int k) => tieTicks.Count == r.Ties.Count ? tieTicks[k] : r.Ties[k].Day * Clock.MinutesPerDay + Clock.MinutesPerDay - 1;
 
-        int[] Traits(Temperament t) => new[]
-        {
-            (int)Math.Round(t.Chattiness * 100), (int)Math.Round(t.Boldness * 100), (int)Math.Round(t.Understanding * 100),
-            (int)Math.Round(t.SelfRegard * 100), (int)Math.Round(t.Sensitivity * 100), (int)Math.Round(t.Retention * 100),
-        };
+        // Every trait in the order of "traitNames", so a trait added to Trait is recorded with no change here.
+        int[] Traits(Temperament t) => Enum.GetValues<Trait>().Select(x => (int)Math.Round(Simulation.Get(t, x) * 100)).ToArray();
         var byName = cast.ToDictionary(v => v.Name);
         string[] routes = r.Feelings.Select(f => f.Route).Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
         var route = routes.Select((x, i) => (x, i)).ToDictionary(p => p.x, p => p.i);
