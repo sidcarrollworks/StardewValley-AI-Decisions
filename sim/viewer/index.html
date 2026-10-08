@@ -270,6 +270,29 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .mark { display: inline-block; width: 7px; height: 7px; margin-inline-end: 4px; }
 .popspark { display: block; width: 72px; height: 20px; flex: none; }
 
+/* The explanation: definitions, grouped, searchable. */
+#tab-explain { min-width: 0; }
+.explain { display: grid; gap: 14px; }
+.explain-toc { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--step--1); }
+.explain-toc a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.explain-toc a:hover { text-decoration-color: var(--ink-2); }
+.explain section { display: grid; gap: 8px; scroll-margin-top: 12px; }
+.explain h2 { font-size: var(--step-0); letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.explain .lede { font-size: var(--step--1); color: var(--ink-2); max-width: 70ch; margin: 0; }
+.gloss { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr); gap: 8px 18px; margin: 0; font-size: var(--step--1); }
+@media (max-width: 640px) { .gloss { grid-template-columns: minmax(0, 1fr); gap: 2px; } .gloss dd { margin-bottom: 8px; } }
+.gloss dt { font-weight: 600; min-width: 0; }
+.gloss dt code, .xtable code { display: block; font-family: var(--font-data); font-size: var(--step--2); font-weight: 400; color: var(--muted); overflow-wrap: anywhere; }
+.gloss dd { margin: 0; min-width: 0; max-width: 72ch; }
+.gloss .range, .xtable .range { display: block; color: var(--muted); font-size: var(--step--2); font-family: var(--font-data); margin-top: 2px; }
+.verify { font-family: var(--font-data); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; color: var(--muted); }
+.xwrap { overflow-x: auto; }
+.xtable { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.xtable th { font-family: var(--font-data); font-size: var(--step--2); font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; text-align: left; padding: 0 8px 6px 0; border-bottom: 1px solid var(--line); }
+.xtable td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.xtable td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xtable tr.changed td.num { color: var(--accent); font-weight: 600; }
+
 /* Inspector and log. */
 .inspector { padding: 18px; display: grid; gap: 14px; }
 .inspector .who { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -362,6 +385,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <button role="tab" id="tab-people-btn" aria-selected="false" aria-pressed="false" data-tab="people">Population</button>
         <button role="tab" id="tab-rel-btn" aria-selected="false" aria-pressed="false" data-tab="rel">Relationships</button>
         <button role="tab" id="tab-stories-btn" aria-selected="false" aria-pressed="false" data-tab="stories">Stories</button>
+        <button role="tab" id="tab-explain-btn" aria-selected="false" aria-pressed="false" data-tab="explain">Explanation</button>
       </nav>
 
       <div id="tab-town" role="tabpanel" aria-labelledby="tab-town-btn">
@@ -403,6 +427,15 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
               <div class="list" id="ties"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div id="tab-explain" role="tabpanel" aria-labelledby="tab-explain-btn" hidden>
+        <div class="explain">
+          <p class="note">What the numbers and words in this viewer mean, as the simulator uses them. The settings show this run's values. Definitions marked <span class="verify">verify</span> could not be settled from the code alone.</p>
+          <div class="controls"><input type="search" id="explainSearch" placeholder="Find a word or setting" aria-label="Find a word or setting"> <span class="muted" id="explainCount"></span></div>
+          <nav class="explain-toc" id="explainToc" aria-label="Sections"></nav>
+          <div id="explainBody"></div>
         </div>
       </div>
 
@@ -1486,6 +1519,92 @@ function syncPopControls() {
   $("popDir").textContent = text ? (S.popHigh ? "Z to A" : "A to Z") : S.popHigh ? "Highest first" : "Lowest first";
 }
 
+// ---- the explanation --------------------------------------------------------------------------
+// Definitions of the settings ("weights") and the words the viewer uses, read from the simulator's
+// code and checked against it (GLOSSARY, below), with this run's own values and act kinds.
+function drawExplanation() {
+  const q = $("explainSearch").value.trim().toLowerCase();
+  const hit = (...xs) => !q || xs.some((x) => String(x ?? "").toLowerCase().includes(q));
+  const sections = [];
+  let shown = 0;
+  const glossSection = (id, title, lede, items) => {
+    const rows = items.filter((it) => hit(it.label, it.key, it.definition, it.range));
+    if (!rows.length) return;
+    shown += rows.length;
+    sections.push(el("section", { id: "x-" + id }, el("h2", { text: title }), lede ? el("p", { class: "lede", text: lede }) : null,
+      el("dl", { class: "gloss" }, rows.flatMap((it) => [
+        el("dt", null, it.label, it.key && it.key !== it.label ? el("code", { text: it.key }) : null),
+        el("dd", null, it.definition, it.verify ? [" ", el("span", { class: "verify", text: "verify" })] : null, it.range ? el("span", { class: "range", text: it.range }) : null)]))));
+  };
+  // The words, in the order a reader meets them in the viewer.
+  const ORDER = [["character", "Character", "Seven traits, each 0 to 1, set for each person at the start; they can change over a run."],
+    ["states", "How a person is now", "What changes from moment to moment: mood, the power of acting, stance and regard."],
+    ["beliefs", "Stories, beliefs and gossip", null], ["ties", "Feuds and friendships", null],
+    ["motives", "Motives and the desire gate", "Why someone acts: a motive stirred by something that happened, weighed against what it would cost."],
+    ["authority", "The mayor and the constable", null], ["life", "The life record", null], ["money", "Money", null],
+    ["withdrawal", "Withdrawal, brawlers and missing people (0d.6)", null], ["other", "Other words", null]];
+  const termGroups = new Map(ORDER.map(([k]) => [k, []]));
+  for (const it of GLOSSARY.terms) termGroups.get(glossGroup(it.group))?.push(it) ?? termGroups.get("other").push(it);
+  for (const [k, title, lede] of ORDER) glossSection(k, title, lede, termGroups.get(k));
+  // The act kinds of this run, from the file, with their definitions.
+  const actDefs = new Map(GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "acts").map((it) => [it.key, it]));
+  const who = new Map(R.kinds.map((k) => [k.name, R.people.filter((p) => p.acts.includes(k.name)).map((p) => p.name)]));
+  const kinds = R.kinds.filter((k) => hit(k.name, k.tier, actDefs.get(k.name)?.definition));
+  if (kinds.length) {
+    shown += kinds.length;
+    sections.push(el("section", { id: "x-acts" }, el("h2", { text: "Acts" }),
+      el("p", { class: "lede", text: "Every kind of act in this run. Kind: it lifts the one it is aimed at (joy above 0). Hostile: it hurts (joy or valence below 0)." }),
+      el("div", { class: "xwrap" }, el("table", { class: "xtable" },
+        el("thead", null, el("tr", null, ["Act", "Tier", "Juiciness", "Valence", "Lasts", "Joy", "Who can"].map((h) => el("th", { scope: "col", text: h })))),
+        el("tbody", null, kinds.map((k) => el("tr", null,
+          el("td", null, el("strong", { text: spaced(k.name) }), actDefs.get(k.name) ? el("span", { class: "range", text: actDefs.get(k.name).definition }) : null),
+          el("td", null, k.tier), el("td", { class: "num", text: String(k.juiciness) }), el("td", { class: "num", text: String(k.valence) }),
+          el("td", { class: "num", text: `${k.duration} min` }), el("td", { class: "num", text: k.joy == null ? "–" : sgn(k.joy) }),
+          el("td", { text: (who.get(k.name) ?? []).length ? who.get(k.name).join(", ") : "a reaction, not chosen" }))))))));
+  }
+  glossSection("actfields", "What an act's numbers mean", null, GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "actfields"));
+  // The settings: this run's value next to each definition.
+  const defs = new Map(GLOSSARY.settings.map((it) => [it.key, it]));
+  const settings = Object.entries(R.run.settings ?? {}).filter(([k, v]) => typeof v !== "object" && hit(k, defs.get(k)?.label, defs.get(k)?.definition, defs.get(k)?.group));
+  if (settings.length) {
+    shown += settings.length;
+    const byGroup = new Map();
+    for (const [k, v] of settings) { const g = defs.get(k)?.group ?? "Not described yet"; if (!byGroup.has(g)) byGroup.set(g, []); byGroup.get(g).push([k, v]); }
+    sections.push(el("section", { id: "x-settings" }, el("h2", { text: "Settings (the weights)" }),
+      el("p", { class: "lede", text: "Every switch and number of the feelings this run used, as recorded in the file. A value in orange differs from the simulator's default." }),
+      ...[...byGroup].map(([g, rows]) => el("div", { class: "xwrap" }, el("table", { class: "xtable" },
+        el("thead", null, el("tr", null, el("th", { scope: "col", text: g }), el("th", { scope: "col", text: "This run" }), el("th", { scope: "col", text: "What it does" }))),
+        el("tbody", null, rows.map(([k, v]) => {
+          const d = defs.get(k), changed = d && d.defaultValue !== undefined && String(d.defaultValue) !== String(v);
+          return el("tr", { class: changed ? "changed" : "" }, el("td", null, el("strong", { text: d?.label ?? spaced(k) }), el("code", { text: k })),
+            el("td", { class: "num", text: typeof v === "number" ? String(Math.round(v * 1000) / 1000) : String(v) }),
+            el("td", null, d ? d.definition : el("span", { class: "muted", text: "No description yet." }), d?.verify ? [" ", el("span", { class: "verify", text: "verify" })] : null, d?.range ? el("span", { class: "range", text: d.range }) : null));
+        })))))));
+  }
+  glossSection("log", "The log's lines", "Each line in the log starts with a word that says what kind of thing it records.", GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "log"));
+  $("explainBody").replaceChildren(...(sections.length ? sections : [el("p", { class: "muted", text: "Nothing matches." })]));
+  $("explainCount").textContent = q ? `${shown} found` : "";
+  $("explainToc").replaceChildren(...sections.map((sec) => el("a", { href: "#" + sec.id, text: sec.querySelector("h2").textContent, onclick: (e) => { e.preventDefault(); sec.scrollIntoView({ behavior: "smooth", block: "start" }); } })));
+}
+/** Which section of the explanation a glossary item's group belongs to. */
+function glossGroup(g) {
+  const x = String(g ?? "").toLowerCase();
+  if (/trait|character|temperament/.test(x)) return "character";
+  if (/act field|act's|fields/.test(x)) return "actfields";
+  if (/^acts?$|act kind/.test(x)) return "acts";
+  if (/log/.test(x)) return "log";
+  if (/state|mood|regard|stance|power|sentiment|baseline|tension|familiar/.test(x)) return "states";
+  if (/belief|gossip|story|stories|telling|source/.test(x)) return "beliefs";
+  if (/tie|feud|friend/.test(x)) return "ties";
+  if (/motive|desire|gate/.test(x)) return "motives";
+  if (/authority|mayor|constable|verdict|report/.test(x)) return "authority";
+  if (/life/.test(x)) return "life";
+  if (/money|purse|shop/.test(x)) return "money";
+  if (/0d\.6|withdraw|hermit|brawl|left out|missing|contagion|spread|expression/.test(x)) return "withdrawal";
+  return "other";
+}
+const GLOSSARY = { settings: [], terms: [], actsLog: [] }; // filled from the simulator's code (see sim/viewer/README.md)
+
 // ---- the inspector ---------------------------------------------------------------------------
 /** A small line of values by the day, with the whole run drawn and a mark at now (which may fall
     between two days). The readout is opts.value, the value at the clock. */
@@ -1662,7 +1781,8 @@ function drawFeed() {
 function showTab(tab) {
   S.tab = tab;
   for (const b of document.querySelectorAll(".tabs button")) { const on = b.dataset.tab === tab; b.setAttribute("aria-selected", on); b.setAttribute("aria-pressed", on); }
-  for (const id of ["town", "people", "rel", "stories"]) $("tab-" + id).hidden = id !== tab;
+  for (const id of ["town", "people", "rel", "stories", "explain"]) $("tab-" + id).hidden = id !== tab;
+  if (tab === "explain") drawExplanation();
   lastRelKey = lastStoryKey = lastPopKey = ""; render();
 }
 function start(run, source) {
@@ -1691,6 +1811,7 @@ $("relMode").addEventListener("change", (e) => { S.relMode = e.target.value; if 
 $("relMin").addEventListener("input", (e) => { S.relMin = +e.target.value; $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relHome").addEventListener("change", (e) => { S.relHome = e.target.checked; render(); });
 $("storyTier").addEventListener("change", () => render());
+$("explainSearch").addEventListener("input", () => R && drawExplanation());
 $("popSort").addEventListener("change", (e) => { S.popSort = e.target.value; S.popHigh = !TEXT_SORTS.includes(S.popSort); syncPopControls(); render(); });
 $("popDir").addEventListener("click", () => { S.popHigh = !S.popHigh; syncPopControls(); render(); });
 $("storyOrder").addEventListener("change", () => render());
