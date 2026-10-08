@@ -862,13 +862,14 @@ public sealed partial class Simulation
     /// <param name="target">The other party, when the caller gives it (the questioner, the mayor,
     /// the parent); else found from the act's feeling row. Only while feelings are on.</param>
     /// <param name="about">The act a consequence answers.</param>
-    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1)
+    /// <param name="with">A third person the act is for (the act catalog); only while feelings are on.</param>
+    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null)
     {
         if (!_fo.Enabled)
-            (target, about) = (null, -1);
+            (target, about, with) = (null, -1, null);
         else if (target is null && kind.Affect is { } row)
             target = TargetFor(kind, row, actor, m);
-        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about);
+        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);

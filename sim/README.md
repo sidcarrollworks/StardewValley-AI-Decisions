@@ -13,6 +13,7 @@ dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                     
 # --log also prints the strongest sentiments with their causes, ties and shop switches
 # the desire gate (0d): --desire off|observe|on, --trait <Name>=<Trait>:<value> (repeatable),
 # --tensions <depth> (0: none); a "desire" block reports the gate (DesireMetrics)
+# the act catalog (acts-0): --catalog <slices>, a comma list of watch, returns, company, welcome, repair, sides, late
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --html run1.html   # watch a run (viewer/README.md)
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 29 --days 112 --0d6 bdefghm --html run29.html   # with 0d.6's steps: spells in the viewer
 ```
@@ -519,6 +520,31 @@ What a neighbourhood gets, every draw keyed by slot, plot and member (`Rng`), ne
 A first look at `pelican:60@1` (8 seeds x 56 days): feuds 14.8 and friendships 1.0 a year, E1 50% (8 seeds, two months: noisy); 2 households a run in debt (the tent and the trailer, as at 31); temptation 1.5 a year; the Wizard the most left out; late for work 10 a season, mostly the café's 6:00 starts. A run of 60 people takes about 0.15 s a day. The long runs are asked of the local agent. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics`, and ring 1's other slots.
 
 **`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto); the share of tellings inside a district against the share chance would give (the locality ratio: 1 is a crowd); how often a neighbourhood's story stays at home on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person. The runner prints it for any `--town`. A first look at `pelican:60@1` (4 seeds x 56 days): half of all tellings stay inside a district against 37% by chance (locality 1.35, the spec's target is 2 or more at 120); 90% of a neighbourhood's stories reach another district within two days; East Green's people act more than the core's (54 acts a person a year against 31). `TownMetricsTests` (2): districts, and shares recounted from the log.
+
+
+## The act catalog: acts-0, the seams (built 2026-10-08; no rows, every switch off)
+
+The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
+
+- **`ActGate`** (`Acts.cs`) is the desire gate's data for an act kind: its form cost, the least intensity a motive needs to use it, the motives it serves, whether it is light, and its limits (a card, familiarity, regard, an audience, a pride weight). A row carries it in `ActKind.Gate`. Every shipped row has none, so `Simulation.GateOf` builds theirs from today's `FeelingOptions`: an argument and a snub answer hostility (a snub only with light acts on), a help returns help and answers pity, a gift returns any kindness, makes up and answers love, and turning away serves nothing.
+- **The gate reads the rows** (`Simulation.Desire.cs`). The costs, the minimums and whether a kind is light come from `GateOf`, and the acts a motive may use are every kind whose gate serves it, most expensive first, ties by name (`Simulation.Served`). Return is in kind or less: only kinds that cost no more than the kindness returned. On the shipped rows these are exactly the old lists, whatever a sweep sets the costs to: returning help offers help, then a gift; any other kindness, a gift; an argument comes before a snub. A shipped row has no gate of its own, so it is ranked and capped by its shipped form, and a swept cost changes only what the gate charges. Light kind acts are left out of 0d.6's kindness counts. `Fits` (`Simulation.Acts.cs`) checks a row's hours and limits before the gate offers it, and the pride term raises a row's cost by its pride weight x (self-regard - 0.5); every shipped row passes `Fits` and has no pride.
+- **The records grow at the end**, with defaults that reproduce today: `Affect.ReadWarmAt` and `WithJoy`, `ActKind.Gate`, `PerHead`, `FromMinute` and `ToMinute`, `Act.With`, the motives Remorse, Defend and Curious, and the outcomes Accepted and Refused.
+- **`ActOptions`** (`FeelingOptions.Acts`, its last property) holds the switches Watch, Returns, Company, Welcome, Repair, Sides and Late, and the spec's constants. Every switch is off, and the town turns none on. The replay records the switches and numbers as `ActOptions.*`, and the viewer's Explanation tab defines all 21; it adds the slices' rows and cards to its run as the runner does.
+- **`ActCatalog`** (`ActCatalog.cs`): `Batch1(o)` gives the rows of the slices that are on (none yet: acts-1 adds Thanked, Complimented and Joked); `Kinds(o)` is the town's act list with those rows after it, so every shipped kind keeps its index; `Cards(cast, o)` adds the card weights the slices need (none yet, so the cast is returned as it is).
+- **The runner's `--catalog <slices>`** turns switches on by name, a comma list in any case, for example `--catalog returns,company`, and adds the slices' rows and cards to the town. (`--acts` is taken: it sets a card weight.)
+- `CatalogTests` (11):
+  - test 1: for every shipped motive, every source act kind, the shipped, 31 and 60 towns' act lists and the switch settings (with light acts off and on, and with each of the four costs swept), the lists built from the rows equal the old mapping (copied into the test from the code before acts-0), with the same costs and minimums, and every kind is light exactly when it was;
+  - a row's own gate is read: served by cost and name, Return in kind or less, light when it says so;
+  - test 2: with every row appended and every switch off, the act list and the cast are the shipped ones, and the runs give P3 (`e9fd83b284f5c1b6`) and the two feelings-off hashes;
+  - test 3, as far as acts-0 goes: with watch and every slice on, the same hashes;
+  - determinism: two runs give one hash, also under a German culture;
+  - the replay adds the catalog as the runner does, and records its switches;
+  - the switch names, and a window that runs past midnight;
+  - three scenes with a row of the test's own (a wave): it answers a gift the shy can't return, waits for its hours, and costs more for the proud.
+
+  288 tests.
+
+Still owed by acts-0, in a follow-up before acts-1: `StoryMetrics` and the baseline runs (acts spec 7), reading the variety measures' story events. Not built yet, for the later slices: the watch record (`CatalogWatch`) and warmth received on `SimResult`, the per-head draws, the arrivals, what follows an act, the new motives' stirrings, the warm budget, the cold reading, and every new act.
 
 
 ## Next

@@ -29,6 +29,8 @@ public sealed partial class Simulation
         public int Asks;
         /// <summary>0d.6 (X12): a wish to give on an occasion; one such gift a person a day.</summary>
         public bool Occasion;
+        /// <summary>The act catalog: a third person the act is for (Defend's victim), or -1.</summary>
+        public int With = -1;
     }
 
     private readonly SortedDictionary<(int Holder, int Subject, int Kind), Motive> _desires = new();
@@ -62,12 +64,15 @@ public sealed partial class Simulation
     /// <summary>Kin or housemates: families cover, so the gate never acts between them.</summary>
     private bool Close(int a, int b) => _cast[a].Household == _cast[b].Household || AreKin(_names[a], _names[b]);
 
-    private static bool IsLight(ActKind k) => k.Name is Snubbed or TurnedAway;
+    /// <summary>A light act (a snub, turning away): its gate says so.</summary>
+    private bool IsLight(ActKind k) => GateOf(k)?.Light ?? false;
 
     /// <summary>A hostile act aimed at someone chosen, not a light one (an argument).</summary>
-    private static bool IsHeavyHostile(ActKind k) => k.Affect is { Target: TargetIs.Chosen, Joy: < 0 } && !IsLight(k);
+    private bool IsHeavyHostile(ActKind k) => k.Affect is { Target: TargetIs.Chosen, Joy: < 0 } && !IsLight(k);
 
-    private static bool IsKindAimed(ActKind k) => k.Affect is { Target: TargetIs.Chosen, Joy: > 0 };
+    /// <summary>A kindness aimed at someone chosen, not a light one (a gift, a help). Light kind acts
+    /// stay out of 0d.6's kindness counts until Sid decides otherwise (acts spec question 2).</summary>
+    private bool IsKindAimed(ActKind k) => k.Affect is { Target: TargetIs.Chosen, Joy: > 0 } && !IsLight(k);
 
     private double Stance(int i) => _fo.StanceOn ? _stance[i] : 0;
 
@@ -292,36 +297,96 @@ public sealed partial class Simulation
 
     // ---- the gate (R5, R6) ------------------------------------------------------------------
 
-    private double Form(string kind) => kind switch
+    private static readonly DesireKind[] Hostility = { DesireKind.Answer, DesireKind.Retaliate };
+    private static readonly DesireKind[] Kindness = { DesireKind.Return, DesireKind.MakeUp, DesireKind.Fond };
+    private static readonly DesireKind[] Helping = { DesireKind.Return, DesireKind.Pity };
+
+    /// <summary>The gate's data for a kind (acts spec 2.2): the row's own, or for a shipped row, which
+    /// has none, the legacy table built from the options: an argument and a snub answer hostility
+    /// (a snub only with light acts on), a help returns help and answers pity, a gift returns any
+    /// kindness, makes up and answers love, and turning away serves nothing (only TurnAway starts
+    /// it). Any other kind without a gate serves no motive: null.</summary>
+    public static ActGate? GateOf(ActKind kind, FeelingOptions o) => kind.Gate ?? LegacyGate(kind.Name, o);
+
+    private static ActGate? LegacyGate(string kind, FeelingOptions o) => kind switch
     {
-        "GaveGift" => _fo.GiftCost, "HelpedSomeone" => _fo.HelpCost, Snubbed => _fo.SnubForm, _ => _fo.ArgueForm,
+        "Argued" => new ActGate(o.ArgueForm, o.ArgueMin, Hostility),
+        Snubbed => new ActGate(o.SnubForm, o.SnubMin, o.LightActsOn ? Hostility : Array.Empty<DesireKind>(), Light: true),
+        TurnedAway => new ActGate(0, 0, Array.Empty<DesireKind>(), Light: true),
+        "HelpedSomeone" => new ActGate(o.HelpCost, o.HelpMin, Helping),
+        "GaveGift" => new ActGate(o.GiftCost, o.GiftMin, Kindness),
+        _ => null,
     };
 
-    private double Min(string kind) => kind switch
+    /// <summary>The kinds a motive may use, by the gate's data alone: every kind (the first of a
+    /// name) whose gate serves it, most expensive first, ties by name. Return is in kind or less:
+    /// only kinds whose form is at most the returned kindness's form, read from its row's own gate.
+    /// A shipped row has no gate of its own, so it is ranked and capped by its shipped form (the
+    /// value a new FeelingOptions has), not by a swept one: a help at a help's form, anything else
+    /// at a gift's. So on the shipped rows this is the list the gate used before the rows carried
+    /// it, whatever a sweep sets the costs to: returning help offers help, then a gift; any other
+    /// kindness, a gift; an argument comes before a snub. The swept costs are still what Weigh
+    /// charges.</summary>
+    public static IReadOnlyList<ActKind> Served(IReadOnlyList<ActKind> kinds, FeelingOptions o, DesireKind motive, string act)
     {
-        "GaveGift" => _fo.GiftMin, "HelpedSomeone" => _fo.HelpMin, Snubbed => _fo.SnubMin, _ => _fo.ArgueMin,
-    };
+        var shipped = new FeelingOptions();
+        var first = new List<(ActKind Kind, double Rank)>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        ActGate? source = null;
+        foreach (ActKind k in kinds)
+        {
+            if (!seen.Add(k.Name))
+                continue;
+            if (k.Name == act)
+                source = k.Gate;
+            if (GateOf(k, o) is { } g && g.Serves.Contains(motive))
+                first.Add((k, k.Gate?.Form ?? LegacyGate(k.Name, shipped)!.Form));
+        }
+        double cap = double.PositiveInfinity;
+        if (motive == DesireKind.Return)
+            cap = source?.Form ?? (act == "HelpedSomeone" ? shipped.HelpCost : shipped.GiftCost);
+        return first.Where(x => x.Rank <= cap).OrderByDescending(x => x.Rank).ThenBy(x => x.Kind.Name, StringComparer.Ordinal)
+            .Select(x => x.Kind).ToList();
+    }
 
-    /// <summary>The acts a motive may use, most expensive first.</summary>
+    private readonly Dictionary<string, ActGate?> _legacyGates = new();
+    private readonly Dictionary<(DesireKind, string), IReadOnlyList<ActKind>> _served = new();
+
+    /// <summary>The kind's gate; a shipped row's is built from the options once, when first asked
+    /// (during the run).</summary>
+    private ActGate? GateOf(ActKind kind)
+    {
+        if (kind.Gate is { } g)
+            return g;
+        if (!_legacyGates.TryGetValue(kind.Name, out ActGate? legacy))
+            _legacyGates[kind.Name] = legacy = LegacyGate(kind.Name, _fo);
+        return legacy;
+    }
+
+    /// <summary>The gate's form cost for a kind; a kind with no gate data serves nothing, so never clears.</summary>
+    private double Form(ActKind kind) => GateOf(kind)?.Form ?? double.PositiveInfinity;
+
+    /// <summary>The least intensity a motive needs to use a kind.</summary>
+    private double Min(ActKind kind) => GateOf(kind)?.Min ?? double.PositiveInfinity;
+
+    /// <summary>The acts a motive may use, most expensive first (<see cref="Served"/>), that the holder
+    /// may do here and now: their age, the place, the hostile cooldown, the light cap, and Fits.</summary>
     private List<ActKind> ActsFor(DesireKind k, string act, Person p, int s, int m)
     {
-        string[] names = k switch
-        {
-            DesireKind.Answer or DesireKind.Retaliate => _fo.LightActsOn ? new[] { "Argued", Snubbed } : new[] { "Argued" },
-            DesireKind.Return when act == "HelpedSomeone" => new[] { "HelpedSomeone", "GaveGift" },
-            DesireKind.Pity => new[] { "HelpedSomeone" },
-            _ => new[] { "GaveGift" },
-        };
+        var key = (k, k == DesireKind.Return ? act : "");
+        if (!_served.TryGetValue(key, out var served))
+            _served[key] = served = Served(_kinds, _fo, k, act);
         int h = _index[p.V.Name];
         var list = new List<ActKind>();
-        foreach (string n in names)
+        foreach (ActKind kind in served)
         {
-            if (_kinds.FirstOrDefault(x => x.Name == n) is not { } kind || !kind.FitsAge(p.V.Age)
-                || kind.Allowed.Count > 0 && !kind.Allowed.Contains(p.Place))
+            if (!kind.FitsAge(p.V.Age) || kind.Allowed.Count > 0 && !kind.Allowed.Contains(p.Place))
                 continue;
             if (IsHeavyHostile(kind) && _lastHostile.TryGetValue((h, s), out int last) && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay)
                 continue;
             if (IsLight(kind) && _lightToday.GetValueOrDefault((h, Clock.Day(m))) >= _fo.LightPerDay)
+                continue;
+            if (!Fits(kind, h, s, m))
                 continue;
             list.Add(kind);
         }
@@ -416,18 +481,19 @@ public sealed partial class Simulation
         bool declined = false, drew = false;
         double best = double.NaN;
         string call = "";
-        double chance = 1;
+        double chance = 1, chosenCost = 0;
         foreach (ActKind k in acts)
         {
-            if (I < Min(k.Name))
+            if (I < Min(k))
                 continue;
-            double cost = DesireMath.Cost(Form(k.Name), d.Hostile, fear, _fo);
+            double cost = DesireMath.Cost(Form(k), d.Hostile, fear, _fo) + Pride(k, h);
             double margin = eff - cost;
             best = double.IsNaN(best) ? margin : Math.Max(best, margin);
             string c = DesireMath.Call(margin, _fo);
             if (c == "clear")
             {
                 chosen = k;
+                chosenCost = cost;
                 call = "clear";
                 Record(m, hn, sn, d, k.Name, I, eff, cost, margin, "clear", 1, true);
                 break;
@@ -463,6 +529,7 @@ public sealed partial class Simulation
             if (yes)
             {
                 chosen = k;
+                chosenCost = cost;
                 call = "close yes";
                 chance = pr;
                 break;
@@ -487,8 +554,8 @@ public sealed partial class Simulation
         else if (d.Occasion)
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day
         _pursuedActs.Add(_acts.Count);
-        DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {DesireMath.Cost(Form(chosen.Name), d.Hostile, fear, _fo):0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
-        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1);
+        DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
+        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
         return true;
     }
 
