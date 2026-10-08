@@ -495,6 +495,8 @@ public sealed partial class Simulation
         AddMood(s, f, act.Id);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
         Underwent(s, act.Target, act.Id, Math.Abs(f), m);
+        if (_fo.MishapHurtOn && row.Freedom <= 0 && f < 0 && CharacterOf(s).Boldness < 0.5)
+            Lasting(s, -f, 1, m, "mishap"); // Sid's answer A4: a stumble or a collapse weighs on the shy
         if (row.Freedom <= 0 || act.Target is not { } t || t == act.Actor || !_index.TryGetValue(t, out int ti))
             return;
         if (_fo.HomeHurtOn && f < 0)

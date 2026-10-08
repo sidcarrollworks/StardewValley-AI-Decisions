@@ -188,6 +188,9 @@ public sealed class SimResult
     public IReadOnlyDictionary<int, IReadOnlyList<string>> Circles { get; init; } = new Dictionary<int, IReadOnlyList<string>>();
     /// <summary>The acts scenarios placed (spec 5.2), by act id, with the scenario's name.</summary>
     public IReadOnlyDictionary<int, string> Scenarios { get; init; } = new Dictionary<int, string>();
+    /// <summary>Each person's stage of life (design rule 17), for the measures: a child is never
+    /// counted a hermit (Sid's answer A9, 2026-10-08).</summary>
+    public IReadOnlyDictionary<string, Stage> Stages { get; init; } = new Dictionary<string, Stage>();
 }
 
 /// <summary>
@@ -231,7 +234,7 @@ public sealed partial class Simulation
         public string? HubSeen; // the gathering whose crowd they looked over on arriving (town spec E4)
     }
 
-    private readonly long _seed;
+    private long _seed; // not readonly: a fork (batch 2's m-2) swaps it at its minute, Simulation.Forks.cs
     private readonly IReadOnlyList<Villager> _cast;
     private readonly Dictionary<string, Location> _places;
     private readonly IReadOnlyList<ActKind> _kinds;
@@ -402,6 +405,8 @@ public sealed partial class Simulation
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
             _now = m;
+            if (m == _forkAt)
+                _seed = _forkSeed; // a fork (V7): every die from here on is drawn anew
             if (Clock.OfDay(m) == 0)
                 KeepDayStart(); // batch 2's reach checks: who knew whom as the day began
             if (HasMoney && Clock.OfDay(m) == 0)
@@ -474,6 +479,7 @@ public sealed partial class Simulation
             CatalogWatch = CatalogWatch(),
             Circles = _circles,
             Scenarios = _scenarioActs,
+            Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
         };
     }
 

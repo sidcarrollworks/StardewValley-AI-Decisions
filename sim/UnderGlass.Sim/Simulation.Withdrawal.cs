@@ -198,13 +198,18 @@ public sealed partial class Simulation
     /// X5 (Vanhalst; Masi): the share of a kindness that eases a withdrawn stance. From a friend, or
     /// inside a quarrel (a heavy hostile act between the two, either way, in FearDays), in full;
     /// from anyone else, InclusionShare. Combative stances keep the full share (a choice: it holds
-    /// the brawler count).
+    /// the brawler count), unless CombativeDiscountOn (Sid's answer A10): then kindness from anyone
+    /// else eases a stance above CombativeAt by CombativeShare only.
     /// </summary>
     private double Inclusion(int h, int s, int m)
     {
-        if (!Acting || !_fo.InclusionDiscountOn || _stance[h] >= _fo.WithdrawnAt || E(h, s) >= _fo.FriendAt || Quarrel(h, s, m))
+        if (!Acting || E(h, s) >= _fo.FriendAt || Quarrel(h, s, m))
             return 1;
-        return Note("inclusion discounted", _fo.InclusionShare) ? _fo.InclusionShare : 1;
+        if (_fo.InclusionDiscountOn && _stance[h] < _fo.WithdrawnAt)
+            return Note("inclusion discounted", _fo.InclusionShare) ? _fo.InclusionShare : 1;
+        if (_fo.CombativeDiscountOn && _stance[h] > _fo.CombativeAt)
+            return Note("kindness discounted", _fo.CombativeShare) ? _fo.CombativeShare : 1;
+        return 1;
     }
 
     private bool Quarrel(int a, int b, int m)

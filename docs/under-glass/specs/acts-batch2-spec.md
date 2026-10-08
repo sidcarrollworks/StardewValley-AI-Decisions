@@ -1,4 +1,4 @@
-> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built and today's numbers in 5.6). Nothing else in batch 2 is built.
+> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built in 5.6); m-1, story events part 2 (`claude/story-events-2`; as built in 6.7); m-2, forked runs and V7 (`claude/forks`; as built in 6.8). Nothing else in batch 2 is built.
 >
 > It merges three designers' drafts of that day: **acts** (batch 2's kinds and their engine pieces), **reach** (festivals, the reach levers, the first new scandals, the scenario harness) and **twists** (story events, the variety measures, the deal). It builds step 2 of section 4 of `actions-and-twists.md`, with the measures of its step 0, and section 9 of `specs/acts-spec.md`, and keeps the acts spec's conventions: `ActGate`; the Light, Story and Ledger classes; a switch per slice; watch mode; E2.
 >
@@ -9,7 +9,7 @@
 > - **Story events and V1-V6, V8** (#56; `Variety.cs`; `sim/README.md`, "Variety"). Not built: V7, family pooling in V1, the fair-twist rule.
 > - **The corrected `TownMetrics`** (#57) and **the 60-person town**, generator version 2 (#58). Open PRs: **the canonical town hash** (#60: appended fields with defaults no longer move a town's hash) and **scaled gates for grown towns**, with `--town-seeds` (#61).
 >
-> **Not built:** batch 1's acts-1 to acts-6 (Thanked, Complimented, Joked, PlayedGame, TreatedToDrink, Welcomed, Apologised, Comforted, Mocked, StoodUpFor, LateForWork), and with them `AfterAct`, `CatalogWatch`, the warm budget, the cold reading and the apology's answer; `StoryMetrics` comes with acts-0's follow-up. Batch 2 comes after them (1.3).
+> **Not built when this was written:** batch 1's acts-1 to acts-6 (Thanked, Complimented, Joked, PlayedGame, TreatedToDrink, Welcomed, Apologised, Comforted, Mocked, StoodUpFor, LateForWork), and with them `AfterAct`, `CatalogWatch`, the warm budget, the cold reading and the apology's answer; `StoryMetrics` comes with acts-0's follow-up. Batch 2 comes after them (1.3). *Since then* (checkpoint-7): `StoryMetrics` (#62) and acts-1 to acts-4 (#64-#67, all off) are built; acts-5, Sides, is a draft that fails its gates (#69); acts-6 is not started.
 >
 > **Numbers.** Costs, joys, plastic shares, thresholds and juiciness are first guesses for the sweeps. *Measured*: the reach designer's read-only probe on checkpoint-3. *Probe*: the twists designer's throwaway program (checkpoint-3 plus the variety code). The variety baseline (6.3) is checkpoint-5's. "Who" comes from the cast's traits in `DefaultTown.cs`. Recalled Stardew facts are marked VERIFY; the festival dates were read from the game's data (Calendar.cs:5-7).
 >
@@ -91,6 +91,22 @@ The 60 town (built) is needed only by C12 and the rerun at 60 (8.4).
 ## 2. Records and seams
 
 b2-0 (local) and m-0 (cloud) build these with no change in behaviour. Every value and field is appended, with a default that reproduces today.
+
+**Status (2026-10-08): b2-0 part one is built** (`claude/local-b2-0`, #76).
+- **Built:**
+  - 2.1's records;
+  - 2.10's nineteen switches, all off;
+  - 2.2's five edits;
+  - 2.3's general Ask, with acts-4's apology routed through it and keeping its key and log line;
+  - 2.4's unseen acts.
+
+  Nothing calls the Ask's other kinds, `BeginUnseen` or `JoyOf`'s sizing until their slices do. Every pin holds.
+- **Left (part two):**
+  - 2.5, movement goals;
+  - 2.6, promises and the appointment rule;
+  - 2.7, sound through walls and 5b;
+  - 2.8, the ban and festival seams;
+  - 2.11, the catalog's `Batch2`, `Gatherings` and `Town`, `--catalog-opt` and the replay tables.
 
 ### 2.1 Records
 
@@ -682,6 +698,27 @@ Every die reads `_seed` when drawn, the sway included, so all change after the f
 
 **Runner.** The variety line adds the families, fair twists (all, fair share, unfair kinds) and, with `--forks <K>` (needs `--days 112`+), `V7 open future {v7} [25-60%] ({S} seeds x {K} forks at day 28; headline changed {h})`. `--log <seed>` adds `stories:`, one a line: `d{day} {Kind} {people}[ {detail}][ (unfair)]: {chain}`, steps as `act {id} {Kind} by {actor}[ to {target}] d{day}`, `told d{day}`, `found d{day}`, `report d{day}`, `friends since d{day}` or `dealt: {cause}`. The recorder may write a `stories` key for a Stories tab, each kind's sentence a template.
 
+### 6.7 As built: m-1 (2026-10-08)
+
+Built on `claude/story-events-2`: `Variety.Events.cs` (`RunLog`, `CauseStep`, the leads, chains and the fair-twist rule), the new kinds BlameMoved, LetOff, FirstScandal, Upheaval and Humiliated, V1's families and V6's fair twists, the runner's variety lines, and `VarietyTests` (11). Where it differs from 6.2-6.3:
+- **Dates.** A secret out is dated by its first naming (the log's first belief row naming the actor), and a confession by its interview. Before, they were dated by the first hearing (a belief's GotTick, often a trace with no name, days earlier) and by the act.
+- **`Variety.Of` has no `record` or `dealt` yet.** No town starts with verdicts on record, and the deal is d-1's, so every person's first scandal is a FirstScandal and no chain starts from a dealt tie.
+- **Humiliated** leaves out the consequences of the harness's placed scandal, as the other kinds leave the scandal out.
+- **`StoryMetrics` doesn't read `RunLog` yet:** it is the act catalog's file (local's).
+
+`VarietyStats` gains `V1Feud`, `V1FeudPair`, `V1Culprit`, `V1CulpritName`, `V6All`, `FairShare`, `Unfair`, and `V7` and `V7Headline` (NaN until m-2's forks). The numbers are in `sim/README.md` ("Story events, part 2").
+
+### 6.8 As built: m-2 (2026-10-08)
+
+Built on `claude/forks`, as 6.3 writes it: `_seed` is no longer `readonly`, and `RunDays` swaps it at the fork's minute. `Fork` and its two fields are in a new file, `Simulation.Forks.cs`, so `Simulation.cs` changes by those two edits only. V7 is `Variety.Open` (`Variety.Forks.cs`); the runner's `--forks <K>` prints it. The tests are `ForkTests` (3). Where it differs from 6.3:
+- **The window.** V7 reads days 28-111 of each run (`MajorStories(events, ForkDay, Year)`), so a run longer than a year is compared over its first year only. A fork runs as long as its base, so a story that needs days to show (a hermit's spell) is read the same way in both.
+- **What's major.** The first 13 of `Variety.Kinds` (`MajorRanks`), WrongVerdict to Hermit. Feuds and friendships aren't among them, so a fork whose only change is another feud reads as the same year.
+- **The headline** is the biggest story over the same days; two runs with no story there have the same headline.
+- **`Fork(day, salt)`** refuses a day before 0. A fork at the run's length or later changes nothing (the test pins P3).
+- **The runner keeps each fork's story events, not its result**, so `--forks 3` over 50 seeds holds 50 results, not 200.
+
+The numbers are in `sim/README.md` ("V7, the open future").
+
 ### 6.4 The deal (d-1 to d-6)
 
 | Part | Drawn at day 0 | Lands in | Read today by |
@@ -978,19 +1015,33 @@ Each slice shows 7.2 and passes 8.1 before the next; one may go earlier only whe
 
 ## 12. Questions for Sid
 
-The first four are the research's; the rest come from the drafts and the merge.
+The first four are the research's; the rest come from the drafts and the merge. **Sid's answers (2026-10-08)** follow each question; where they differ from the recommendation, the sections they touch are to be revised before their slices are built.
 
 1. **Is a non-lethal scuffle allowed?** (a) No, violence stays out; (b) later, a shove with no injury behind its own switch, with mechanism 7's breaks; (c) yes, in batch 2. *Recommendation: (a) for batch 2, and ask again with the breaks.* Under (a) the deal's pool-table cause becomes "{other} beat {holder} at pool and gloated."
+   **Sid: (c),** a scuffle in batch 2. Its row, its breaks (mechanism 7) and its place in the tone limits are to be specified in section 3.
 2. **May the storyteller react to measured tension, or only follow a schedule drawn at setup?** (a) A schedule only; (b) it reacts; (c) (a) by default, (b) behind a switch. *Recommendation: (a) first:* it keeps occasions apart from minds (rule 15; the mind test) and V7's forks meaningful. Revisit (c) once V7 is measured.
+   **Sid: (c):** a schedule drawn at setup by default, with reacting to tension behind its own switch.
 3. **How far may the deal move a core villager?** (a) Ties and purses only, no hooks on the core; (b) bounded hooks, as here (a trait by up to 0.25, a weight × 0.6 to × 1.5); (c) larger. *Recommendation: (b),* with `HookScale` as the dial.
+   **Sid: (b).**
 4. **Should a new game avoid your recent runs?** (a) No, each seed stands alone; (b) yes, now: the runner skips seeds whose deal repeats a recent headline; (c) later, from a record kept outside the simulator. *Recommendation: (c):* the deal stays a pure function of the seed.
+   **Sid: (c).**
 5. **The lone witness (C3) and natural reach (C11).** One witness, even a loner, carries a scandal to a median of 42% of the circle; under 20% in only 8% of runs. (a) Keep C3 as a target for the 60 town's scattered edge and for hermits only; (b) let a teller's daily listeners depend on chattiness, `TellsPerDay` × (0.5 + chattiness), which re-pins the shipped town; (c) drop C3. *Recommendation: (a);* C11's 40-70% median waits until festivals and announcements are measured.
+   **Sid:** "I think we are missing the social pressure to not spread a scandal." So none of (a)-(c) yet: a rule for that pressure comes first (to be specified with the reach levers, section 4), measured against C3 and C11; then C3's target is read again. Cloud proposed its forms (holding back about someone liked, a teller losing regard for spreading about the well liked, friends confronting the teller), and Sid agreed (second round).
 6. **Festivals in the shipped town** (VERIFY against the game). Work and shops: (a) stop for the festival's hours, as written; (b) keepers stay at their counters. *Recommendation: (a),* as the game is recalled to do. The forest festivals: (a) the Square stands in for the Flower Dance and the Festival of Ice; (b) a clearing off ForestPath, for festivals only; (c) skip them. *Recommendation: (a) at 26, (b) as a green in grown towns.* Night festivals: (a) the tired go home (48-68% of the awake come); (b) a festival keeps everyone up. *Recommendation: (a):* a night festival of night people is its own story.
+   **Sid: the recommendations:** work and shops stop (a); the Square at 26 and a green in grown towns; the tired go home (a).
 7. **What does Lewis say when asked about a let-off?** (a) The truth, as written; (b) he deflects, which is a lie and waits for 7b. *Recommendation: (a) now, (b) once lies exist.*
+   **Sid: (a),** until lies exist.
 8. **When does a settlement count?** (a) Only before the second retelling, as the research says; (b) within a day, however often told. *Recommendation: (a),* measured by C5's share settled too late; switch to (b) if most come too late.
+   **Sid: (a).**
 9. **Should a kept purse be reported to the mayor?** (a) Not yet: the owner and the town deal with it; (b) yes, with `PayUp` repaying the owner instead of the place's keeper (Simulation.Money.cs:362). *Recommendation: (a).*
+   **Sid: (a).**
 10. **Visits to kin in another household** (grown towns only; at 26 all kin live together). (a) Never; (b) behind its own switch once the 60 town has kin across households. *Recommendation: (b).*
+   **Sid: (b).**
 11. **Should Pierre answer when a regular buys from the rival?** (a) Regard only, as written (a Given target); (b) a motive to answer, which can become an argument. *Recommendation: (a),* to protect the hostile budget.
+   **Sid: (a),** the recommendation, after first leaning to (b) and asking why (a). The answer: to protect the hostile budget, since each new source of arguments can feed a spiral, as acts-5's Sides showed (#69).
 12. **May the deal start some pairs warm?** The research lists tensions only; in the probe, warm ties and allies at work raised E1 to 70-82% and friendships by half without raising news. (a) Yes; (b) tensions only. *Recommendation: (a).*
+   **Sid: (a),** yes.
 13. **May the deal set the hours of co-workers from different households (the rota)?** Sam and Shane's feud falls to 30% or less only with allies at work and the rota together; at 26 the rota touches only them, and changes their hours, not their jobs or pay. (a) Yes, behind its own switch; (b) no: drop the V1 feud target for the deal and remeasure after acts-4's Repair and batch 2's MadePeace. *Recommendation: (a).*
+   **Sid: (a),** yes.
 14. **If tensions fail E2 in d-1, do they stay as texture or go?** They are the causes behind the why-lines and the viewer's opening state. (a) Keep them, as 0d.6 kept contagion; (b) drop them. *Recommendation: (a);* remeasure once acts-5's Sides and batch 2's MadePeace give a cool start more to act on.
+   **Sid: (a),** yes.
