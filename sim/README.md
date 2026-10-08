@@ -782,6 +782,47 @@ What it says:
 - **The newcomer's first month changes**, and nothing else moves by more than 10%, trivia aside (+11%: the welcomes and the thanks they stir). The gate's kindness in year one is up by the welcomes, which happen once.
 - **On the review's set the welcomes delay the newcomer's withdrawal rather than prevent it.** "Withdrawn newcomer" falls from 79% of seed-years to 44%, but they end the year at -0.86. And because they went out more in their first season, the later fall in their hours now counts them as a hermit more often (hermits 0.24 to 0.38, the newcomer 0.2 of them).
 
+### acts-4, Repair: Apologised, Remorse and the answer (built 2026-10-08; off)
+
+`--catalog repair` (acts spec 4.7, question 3):
+- **Remorse** is stirred in the actor of an argument, or of a joke read cold, as the target takes it. Only:
+  - toward someone they don't dislike;
+  - not over the target's own scandal;
+  - never between kin or housemates.
+
+  Its strength is what the target felt x 0.5 x (0.5 + understanding), and it lasts 14 days.
+- **Apologised** answers it: a walk-up (0.5 / 0.15), dearer for the proud.
+- **The target answers on the spot.** What they owe the apologiser is weighed against the cost of letting it go (`ApologyCost` 0.4 + dislike x (0.5 + retention)).
+  - **Accepted:** half the regard the hurt cost comes back the first time within 28 days, a quarter the second time, then nothing. The fear and the grudge are lifted, and the stance eases.
+  - **Refused:** the apologiser smarts.
+- **`ApologyCost`** is 0.4, not the spec's 0.2. At 0.2, 94% were accepted (40 seeds, Repair alone).
+- **With Returns on,** a compliment (0.3) also answers Remorse.
+
+`RepairTests` (7). StoryMetrics adds jokes read cold, apologies and their accepted share, and remorse that lapsed.
+
+**Measured with Returns, Company and Welcome** (the columns before are acts-3's):
+
+| measure | shipped (acts-3) | + Repair | review's set (acts-3) | + Repair | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 57% / 23% | 56% / 22% | 57% / 22% | 58% / 21% | 50%+ |
+| E1, 200 seeds (400) | 66% (66%) | 65% (66%) | 77% (77%) | 83% (83%) | 60%+ |
+| feuds, friendships a year (400) | 8.06, 1.02 | 7.29, 1.10 | 7.48, 1.53 | 6.84, 1.73 | ±30% of the baseline (7.85, 0.92; 7.09, 1.33) |
+| median feud | 41 d | 35 d | 40 d | 37 d | 28 d+ |
+| apologies a year; accepted | | 3.8; 64% | | 3.8; 67% | 50-80% |
+| remorse lapsed a year | | 1.5 | | 1.3 | |
+| heavy hostile acts by the gate a year | 161 | 134 | 158 | 136 | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.45 | 1.43 | 1.39 | 1.37 | |
+| jokes read cold | | 1% | | 1% | 10-20% |
+| brawlers; hermits (shyest third) | | 2.01; 0 | | 1.12; 0.33 (100%) | |
+| trivia, news a year | 978, 273 | 998, 245 | 1,272, 269 | 1,294, 248 | |
+
+What it says:
+- **Apologies mend fresh hurts and leave feuds standing.** Feuds last a median of 35-37 days (above 28), and apologies are accepted 64-67% of the time.
+- **Fewer arguments.** Settling a grudge removes an answer to come: the gate's heavy hostile acts fall 15%, and brawlers fall too.
+- **Most remorse is answered.** With Returns on, a compliment is cheaper than an apology, so only 1.3-1.5 remorses a year lapse.
+- **Friendships on the review's set reach +30% against the baseline**, the limit of the ±30% gate.
+- **Jokes are almost never read cold (1%).** Per-head jokes are aimed by the joker's regard, at people who mostly like them back. So the "only joking" thread (a joke read cold, then remorse, then an apology) barely starts.
+
 
 ## Next
 
