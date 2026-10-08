@@ -6,7 +6,8 @@ namespace UnderGlass.Sim;
 public sealed record SeasonLeftOut(int Season, double MeanE, double P90E, double KindIn, double MetDays, double Unanswered);
 
 /// <summary>A sustained spell (spec X0): days From to To inclusive. Hermit: the free hours out over
-/// its last 28 days fell below 60% of the person's own first season (else only withdrawn).</summary>
+/// its last 28 days fell below 60% of the person's own first season (else only withdrawn); a child
+/// is never a hermit (Sid's answer A9, 2026-10-08).</summary>
 public sealed record Spell(string Name, int From, int To, bool Hermit, double HoursFall, bool Ended);
 
 /// <summary>One of the shyest five: boldness at the start, and by season the mean E, the stance at
@@ -30,7 +31,8 @@ public sealed record WithdrawalStats(int Runs,
     IReadOnlyList<(string Name, double MeanE)> MostLeftOut,
     double HomeArgumentsByGate, double HomeArgumentsAtRates,
     IReadOnlyList<double> GateGiftsByYear, double OccasionGiftsPerYear,
-    IReadOnlyList<(string Name, int Spells)> HermitSpellsByPerson, IReadOnlyList<(string Name, int Spells)> WithdrawnSpellsByPerson);
+    IReadOnlyList<(string Name, int Spells)> HermitSpellsByPerson, IReadOnlyList<(string Name, int Spells)> WithdrawnSpellsByPerson,
+    double HermitsBackInASeason = double.NaN, int HermitSeasonCases = 0);
 
 public static class WithdrawalMetrics
 {
@@ -60,10 +62,24 @@ public static class WithdrawalMetrics
     /// (withdrawn; a hermit if the hours out fell too) or at or above +0.5 (a brawler).</summary>
     public static IReadOnlyList<Spell> Spells(SimResult r, bool brawlers)
         => r.Names.Where(n => r.Stances.ContainsKey(n))
-            .SelectMany(n => SpellsOf(n, r.Stances[n], r.Daily.GetValueOrDefault(n), brawlers)).ToList();
+            .SelectMany(n => SpellsOf(n, r.Stances[n], r.Daily.GetValueOrDefault(n), brawlers,
+                hermitAge: r.Stages.GetValueOrDefault(n, Stage.Adult) != Stage.Child)).ToList();
+
+    /// <summary>A8 (Sid, 2026-10-08): whether a spell is back above -0.3 within a season after it
+    /// counts (its first 28 days), so within 56 days of its first day; null when the run ends first.</summary>
+    public static bool? BackInASeason(Spell s, double[] stance, int days)
+    {
+        if (s.From + 2 * SpellDays > days)
+            return null;
+        for (int k = s.From + SpellDays; k < s.From + 2 * SpellDays; k++)
+            if (stance[k] > RecoveredAbove)
+                return true;
+        return false;
+    }
 
     /// <summary>One person's sustained spells, from their stance by day and their days.</summary>
-    public static IReadOnlyList<Spell> SpellsOf(string name, double[] stance, PersonDays? days, bool brawlers)
+    /// <param name="hermitAge">False for a child, whose withdrawn spells are never hermits' (A9).</param>
+    public static IReadOnlyList<Spell> SpellsOf(string name, double[] stance, PersonDays? days, bool brawlers, bool hermitAge = true)
     {
         var spells = new List<Spell>();
         if (stance.Length == 0)
@@ -81,7 +97,7 @@ public static class WithdrawalMetrics
             if (end - start + 1 >= SpellDays)
             {
                 double fall = days is null || first <= 0 ? double.NaN : 1 - Hours(days, end - SpellDays + 1, end) / first;
-                bool hermit = !brawlers && !double.IsNaN(fall) && 1 - fall < HoursOutShare;
+                bool hermit = !brawlers && hermitAge && !double.IsNaN(fall) && 1 - fall < HoursOutShare;
                 spells.Add(new Spell(name, start, end, hermit, fall, k < stance.Length));
             }
             start = -1;
@@ -180,6 +196,17 @@ public static class WithdrawalMetrics
                 if (st[k] > RecoveredAbove) { recovered++; hermitsRecovered += s.Hermit ? 1 : 0; break; }
         }
 
+        // Recovery as Sid chose it (A8, 2026-10-08): of the hermit spells whose window the run holds,
+        // back above -0.3 within a season after the spell counts (its first 28 days), so within 56
+        // days of its first day. The old measure above can hardly fail: a stance halves in 27 days.
+        int seasonCases = 0, backInSeason = 0;
+        foreach (var (r, s) in hermits)
+            if (BackInASeason(s, r.Stances[s.Name], r.Days) is { } back)
+            {
+                seasonCases++;
+                backInSeason += back ? 1 : 0;
+            }
+
         // The power of acting.
         var powers = runs.SelectMany(r => r.PowerByDay.Values.SelectMany(v => v)).ToList();
         double meanPower = Mean(powers);
@@ -254,6 +281,7 @@ public static class WithdrawalMetrics
                 && Clock.Day(r.Acts[id].Tick) / Year == y))).ToList(),
             runs.Sum(r => r.Pursued.Count(id => r.Acts[id] is { Kind: "GaveGift", Target: { } t } a && byName.TryGetValue(t, out Villager? v)
                 && (Calendar.IsBirthday(v.Birthday, Clock.Day(a.Tick)) || Calendar.FestivalOn(Clock.Day(a.Tick)) is not null))) / years,
-            ByPerson(hermits), ByPerson(withdrawn));
+            ByPerson(hermits), ByPerson(withdrawn),
+            seasonCases == 0 ? double.NaN : backInSeason / (double)seasonCases, seasonCases);
     }
 }

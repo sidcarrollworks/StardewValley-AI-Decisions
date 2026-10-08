@@ -177,6 +177,9 @@ public sealed class SimResult
     public IReadOnlyDictionary<int, IReadOnlyList<string>> Circles { get; init; } = new Dictionary<int, IReadOnlyList<string>>();
     /// <summary>The acts scenarios placed (spec 5.2), by act id, with the scenario's name.</summary>
     public IReadOnlyDictionary<int, string> Scenarios { get; init; } = new Dictionary<int, string>();
+    /// <summary>Each person's stage of life (design rule 17), for the measures: a child is never
+    /// counted a hermit (Sid's answer A9, 2026-10-08).</summary>
+    public IReadOnlyDictionary<string, Stage> Stages { get; init; } = new Dictionary<string, Stage>();
 }
 
 /// <summary>
@@ -463,6 +466,7 @@ public sealed partial class Simulation
             CatalogWatch = CatalogWatch(),
             Circles = _circles,
             Scenarios = _scenarioActs,
+            Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
         };
     }
 
