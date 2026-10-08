@@ -424,4 +424,14 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     if (w.Rules.Count > 0)
         Console.WriteLine($"  rules, a year (times, sum){(feelings.WithdrawalWatch ? ", watched only" : "")}: " + string.Join(", ", w.Rules.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => $"{p.Key} {p.Value.PerYear:0.0} {Sg(p.Value.SumPerYear)}")));
 }
+if (town is not null)
+{
+    // A grown town (town spec 6.3): tellings inside a district against chance, and how a neighbourhood's stories travel.
+    TownStats ts = TownMetrics.Summarise(runs, town);
+    Console.WriteLine($"town ({string.Join(", ", ts.Districts.Select(d => $"{d.District} {d.People}"))}): tellings {ts.Tellings:0.0} a person a year, "
+        + $"{ts.SameDistrict:P0} inside a district (by chance {ts.SameByChance:P0}; locality {ts.LocalityRatio:0.00}); "
+        + $"neighbourhood stories reaching 3+: {ts.NeighbourhoodStories}, on day one only at home {ts.FirstDayLocal:P0}, in another district within two days {ts.CrossedInTwoDays:P0}; the median person knows {ts.KnownWellMedian:0} well (0.4+)");
+    foreach (DistrictStats d in ts.Districts)
+        Console.WriteLine($"  {d.District}: acts {d.ActsPerPerson:0.0}, tellings heard {d.HeardPerPerson:0.0}, feuds {d.FeudsPerPerson:0.00}, friendships {d.FriendshipsPerPerson:0.00} a person a year");
+}
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");
