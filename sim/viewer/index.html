@@ -82,7 +82,11 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .masthead { display: grid; gap: 12px; padding: 20px 20px 14px; min-width: 0; }
 /* The whole town, like the picture of a video player: the timeline under it plays it. */
 .townview { position: relative; min-width: 0; }
-.townview canvas { display: block; width: 100%; cursor: crosshair; }
+.townview canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
+.townview canvas.zoomed { cursor: grab; touch-action: none; }
+.townview canvas.dragging { cursor: grabbing; }
+.mapkeys { position: absolute; right: 0; bottom: 0; display: flex; gap: 4px; }
+.mapkeys button { font-size: var(--step--1); padding: 2px 9px; border-radius: 7px; min-width: 30px; }
 .brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
@@ -281,7 +285,12 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   </div>
   <header class="masthead marks">
     <div class="townview" id="townview">
-      <canvas id="townmap" aria-label="The whole town: everyone where they are, and where things are happening"></canvas>
+      <canvas id="townmap" aria-label="The whole town: everyone where they are, and where things are happening. Scroll to zoom, drag to pan."></canvas>
+      <div class="mapkeys" role="group" aria-label="Zoom">
+        <button id="zoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+        <button id="zoomOut" title="Zoom out (−)" aria-label="Zoom out">−</button>
+        <button id="zoomFit" title="Show the whole town (0)">Fit</button>
+      </div>
     </div>
     <div class="timeline" role="group" aria-label="Timeline">
       <canvas id="strip" height="34"></canvas>
@@ -312,7 +321,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
           <span class="key"><b style="background: var(--ink)"></b>scandal</span>
         </div>
       </div>
-      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day</div>
+      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day · scroll on the town to zoom, drag to pan</div>
     </div>
   </header>
 
@@ -916,27 +925,48 @@ function layoutTownPlan() {
   const maxX = Math.max(...at.map((r) => r.X + r.W)); maxY = Math.max(...at.map((r) => r.Y + r.H));
   TOWN = { at, links, minX: minX - 1, minY: minY - 1, w: maxX - minX + 2, h: maxY - minY + 2, scale: 0, cssW: 0, back: null };
 }
+const VIEW = { k: 1, x: 0, y: 0 }; // zoom and pan of the plan, in canvas pixels; 1, 0, 0 shows it all
+const TX = (x) => (TOWN.offX + (x - TOWN.minX) * TOWN.scale) * VIEW.k + VIEW.x;
+const TY = (y) => (TOWN.offY + (y - TOWN.minY) * TOWN.scale) * VIEW.k + VIEW.y;
+/** Keeps some of the town in sight; at full view it sits where it was fitted. */
+function clampView() {
+  if (VIEW.k <= 1) { VIEW.k = 1; VIEW.x = 0; VIEW.y = 0; }
+  else {
+    const keep = 80, W = TOWN.cssW, H = TOWN.cssH, l = TOWN.offX * VIEW.k, r = (TOWN.offX + TOWN.w * TOWN.scale) * VIEW.k;
+    const t = TOWN.offY * VIEW.k, b = (TOWN.offY + TOWN.h * TOWN.scale) * VIEW.k;
+    VIEW.x = clamp(VIEW.x, keep - r, W - keep - l); VIEW.y = clamp(VIEW.y, keep - b, H - keep - t);
+  }
+  const c = $("townmap"); c.classList.toggle("zoomed", VIEW.k > 1);
+  TOWN.back = null;
+}
+/** Zooms by a factor about a point on the canvas (in CSS pixels), the point staying put. */
+function zoomAt(f, mx, my) {
+  if (!TOWN) return;
+  const k = clamp(VIEW.k * f, 1, 12);
+  VIEW.x = mx - (mx - VIEW.x) * (k / VIEW.k); VIEW.y = my - (my - VIEW.y) * (k / VIEW.k); VIEW.k = k;
+  clampView(); drawTownMap();
+}
 function sizeTownMap() {
   const c = $("townmap"), W = $("townview").clientWidth;
   if (!W || !TOWN) return false;
   const h = clamp(Math.round(W * TOWN.h / TOWN.w), 220, 460), scale = Math.min(W / TOWN.w, h / TOWN.h);
   if (W === TOWN.cssW && TOWN.scale === scale) return true;
   const dpr = window.devicePixelRatio || 1;
-  TOWN.cssW = W; TOWN.cssH = h; TOWN.scale = scale; TOWN.back = null;
+  TOWN.cssW = W; TOWN.cssH = h; TOWN.scale = scale; TOWN.back = null; VIEW.k = 1; clampView();
   TOWN.offX = (W - TOWN.w * scale) / 2; TOWN.offY = (h - TOWN.h * scale) / 2;
   c.width = Math.round(W * dpr); c.height = Math.round(h * dpr); c.style.height = h + "px";
   return true;
 }
 /** The plan point (in tiles) of a person's tile in a place, as pixels on the canvas. */
 function townPx(placeIdx, x, y) {
-  const a = TOWN.at[placeIdx], p = R.places[placeIdx], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h), s = TOWN.scale;
-  return [TOWN.offX + (a.X + px - TOWN.minX + 0.5) * s, TOWN.offY + (a.Y + py - TOWN.minY + 0.5) * s];
+  const a = TOWN.at[placeIdx], p = R.places[placeIdx], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h);
+  return [TX(a.X + px + 0.5), TY(a.Y + py + 0.5)];
 }
 function paintTownBack() {
-  const dpr = window.devicePixelRatio || 1, s = TOWN.scale, off = document.createElement("canvas");
+  const dpr = window.devicePixelRatio || 1, s = TOWN.scale * VIEW.k, off = document.createElement("canvas");
   off.width = Math.round(TOWN.cssW * dpr); off.height = Math.round(TOWN.cssH * dpr);
   const g = off.getContext("2d"); g.scale(dpr, dpr);
-  const X = (x) => TOWN.offX + (x - TOWN.minX) * s, Y = (y) => TOWN.offY + (y - TOWN.minY) * s;
+  const X = TX, Y = TY;
   // The ways between doors, as streets: out from the first door, across, and in to the second.
   g.strokeStyle = COL.fence; g.lineWidth = Math.max(1, s * 0.5); g.lineCap = "square"; g.lineJoin = "miter";
   for (const [x1, y1, x2, y2, across] of TOWN.links) {
@@ -957,7 +987,7 @@ function paintTownBack() {
   }
   // Names last, each on a patch of the ground so nothing drawn later hides it; largest places
   // first, and a name that would cover another is left out (hover still names the place).
-  const fs = Math.max(8, Math.min(10, s * 1.3));
+  const fs = Math.max(8, Math.min(12, s * 1.3));
   g.font = `500 ${fs}px ${css("--font-data")}`; g.textBaseline = "middle";
   for (const p of R.places.slice().sort((x, y) => y.w * y.h - x.w * x.h)) {
     const a = TOWN.at[p.i], name = (p.name.startsWith("Home:") ? p.name.slice(5) : p.name).replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase();
@@ -972,7 +1002,7 @@ function paintTownBack() {
 function drawTownMap() {
   if (!TOWN || !sizeTownMap()) return;
   if (!TOWN.back) paintTownBack();
-  const t = S.t, c = $("townmap"), g = c.getContext("2d"), dpr = window.devicePixelRatio || 1, s = TOWN.scale;
+  const t = S.t, c = $("townmap"), g = c.getContext("2d"), dpr = window.devicePixelRatio || 1, s = TOWN.scale * VIEW.k;
   g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(TOWN.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   // Where things have happened in the last two hours: each place glows by how much, fading as it ages.
   const heat = new Float64Array(R.places.length);
@@ -980,7 +1010,7 @@ function drawTownMap() {
     const a = R.acts[k]; heat[a.place] += t < a.end ? 1 : 1 - (t - a.end) / 120;
   }
   for (const p of R.places) if (heat[p.i] > 0.01) {
-    const a = TOWN.at[p.i], x = TOWN.offX + (a.X - TOWN.minX) * s, y = TOWN.offY + (a.Y - TOWN.minY) * s, f = Math.min(1, heat[p.i]);
+    const a = TOWN.at[p.i], x = TX(a.X), y = TY(a.Y), f = Math.min(1, heat[p.i]);
     g.fillStyle = COL.accent; g.globalAlpha = 0.06 + 0.12 * f; g.fillRect(x, y, a.W * s, a.H * s);
     g.globalAlpha = 0.35 + 0.65 * f; g.strokeStyle = COL.accent; g.lineWidth = 2; g.strokeRect(x - 1.5, y - 1.5, a.W * s + 3, a.H * s + 3); g.globalAlpha = 1;
   }
@@ -1002,7 +1032,7 @@ function drawTownMap() {
   }
   // Everyone.
   TOWN.dots = [];
-  const r = Math.max(2, s * 0.45);
+  const r = clamp(s * 0.45, 2, 9);
   for (let i = 0; i < R.n; i++) {
     const q = where(i, t), [cx, cy] = townPx(q.place, q.x, q.y);
     g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
@@ -1014,13 +1044,46 @@ function drawTownMap() {
 }
 function townMapHit(e) {
   const rect = $("townmap").getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
-  let best = -1, bd = Math.max(8, TOWN.scale * 1.2) ** 2;
+  let best = -1, bd = Math.max(8, TOWN.scale * VIEW.k * 1.2) ** 2;
   for (const d of TOWN.dots ?? []) { const dd = (d.cx - x) ** 2 + (d.cy - y) ** 2; if (dd < bd) { bd = dd; best = d.i; } }
-  const s = TOWN.scale, place = R.places.find((p) => { const a = TOWN.at[p.i], px = TOWN.offX + (a.X - TOWN.minX) * s, py = TOWN.offY + (a.Y - TOWN.minY) * s; return x >= px && x <= px + a.W * s && y >= py && y <= py + a.H * s; });
+  const s = TOWN.scale * VIEW.k, place = R.places.find((p) => { const a = TOWN.at[p.i], px = TX(a.X), py = TY(a.Y); return x >= px && x <= px + a.W * s && y >= py && y <= py + a.H * s; });
   return { person: best, place };
 }
-$("townmap").addEventListener("mousemove", (e) => {
+const drag = { pointers: new Map(), moved: false, last: null, pinch: 0 };
+$("townmap").addEventListener("wheel", (e) => {
   if (!R || !TOWN) return;
+  if (VIEW.k <= 1 && e.deltaY > 0 && !e.ctrlKey) return; // zoomed all the way out: let the page scroll on
+  e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+$("townmap").addEventListener("pointerdown", (e) => {
+  if (!R || !TOWN) return;
+  drag.pointers.set(e.pointerId, [e.clientX, e.clientY]); drag.moved = false; drag.last = [e.clientX, e.clientY];
+  if (drag.pointers.size === 2) { const [a, b] = [...drag.pointers.values()]; drag.pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
+});
+$("townmap").addEventListener("pointermove", (e) => {
+  if (!drag.pointers.has(e.pointerId)) return;
+  const prev = drag.pointers.get(e.pointerId); drag.pointers.set(e.pointerId, [e.clientX, e.clientY]);
+  if (drag.pointers.size === 2) { // pinch about the middle of the two fingers
+    const [a, b] = [...drag.pointers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = e.currentTarget.getBoundingClientRect();
+    if (drag.pinch > 0) zoomAt(d / drag.pinch, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top);
+    drag.pinch = d; drag.moved = true; return;
+  }
+  if (!drag.moved && Math.hypot(e.clientX - drag.last[0], e.clientY - drag.last[1]) < 4) return;
+  if (!drag.moved) { drag.moved = true; if (VIEW.k > 1) e.currentTarget.setPointerCapture(e.pointerId); }
+  if (VIEW.k <= 1) return;
+  e.currentTarget.classList.add("dragging"); hideTip();
+  VIEW.x += e.clientX - prev[0]; VIEW.y += e.clientY - prev[1]; clampView(); drawTownMap();
+});
+const endDrag = (e) => { drag.pointers.delete(e.pointerId); if (drag.pointers.size < 2) drag.pinch = 0; e.currentTarget.classList.remove("dragging"); };
+$("townmap").addEventListener("pointerup", endDrag);
+$("townmap").addEventListener("pointercancel", endDrag);
+$("zoomIn").addEventListener("click", () => TOWN && zoomAt(1.6, TOWN.cssW / 2, TOWN.cssH / 2));
+$("zoomOut").addEventListener("click", () => TOWN && zoomAt(1 / 1.6, TOWN.cssW / 2, TOWN.cssH / 2));
+$("zoomFit").addEventListener("click", () => { if (!TOWN) return; VIEW.k = 1; clampView(); drawTownMap(); });
+$("townmap").addEventListener("mousemove", (e) => {
+  if (!R || !TOWN || e.currentTarget.classList.contains("dragging")) return;
   const { person, place } = townMapHit(e);
   if (person >= 0) { panelHover({ canvas: { getBoundingClientRect: () => ({}) } }, e, person); return; }
   if (!place) { hideTip(); return; }
@@ -1031,6 +1094,7 @@ $("townmap").addEventListener("mousemove", (e) => {
 $("townmap").addEventListener("mouseleave", hideTip);
 $("townmap").addEventListener("click", (e) => {
   if (!R || !TOWN) return;
+  if (drag.moved) { drag.moved = false; return; } // the end of a drag, not a click
   const { person, place } = townMapHit(e);
   if (person >= 0) { selectPerson(person); return; }
   if (place) { if (S.tab !== "town") showTab("town"); const panel = panels.find((x) => x.p.i === place.i); panel?.node.scrollIntoView({ behavior: "smooth", block: "center" }); }
@@ -1577,7 +1641,7 @@ function start(run, source) {
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
-  buildTown(); layoutTownPlan(); buildFeedFilters(); buildPopulationControls(); syncPopControls();
+  buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls();
   S.person = -1; S.pair = null; S.story = -1;
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
@@ -1608,6 +1672,9 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft" && !e.target.matches("input[type=range]")) { e.preventDefault(); setTime(S.t - (e.shiftKey ? 60 : 5)); }
   else if (e.key === "]") setTime(S.t + 1440);
   else if (e.key === "[") setTime(S.t - 1440);
+  else if ((e.key === "+" || e.key === "=") && TOWN) zoomAt(1.6, TOWN.cssW / 2, TOWN.cssH / 2);
+  else if (e.key === "-" && TOWN) zoomAt(1 / 1.6, TOWN.cssW / 2, TOWN.cssH / 2);
+  else if (e.key === "0" && TOWN) { VIEW.k = 1; clampView(); drawTownMap(); }
   else if (e.key === "Escape") { S.person = -1; S.pair = null; lastSideKey = lastRelKey = ""; render(); }
 });
 $("openBtn").addEventListener("click", () => $("fileInput").click());

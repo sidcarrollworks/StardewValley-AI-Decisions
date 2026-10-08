@@ -27,7 +27,9 @@ and takes a few seconds to record; a year is about 5 MB.
   have happened in the last two hours, fading as they age. The run gives no positions, so the plan
   is stitched from the doors: the largest place out of doors in the middle, each place hung outside
   the door that leads to it, roads running across, streets joining the doors. Hover for who is
-  where; click a person to follow them, or a place to go to its map.
+  where; click a person to follow them, or a place to go to its map. Scroll to zoom about the
+  pointer (pinch on a touch screen), drag to pan; the keys in its corner, or `+`, `-` and `0`, zoom
+  in, out and back to the whole town. Zoomed all the way out, scrolling down scrolls the page.
 - **The timeline** under it: a ruler of seasons, weeks and the run's turning points (feuds,
   friendships, reconciliations, scandals) over a fader, then the clock and the playback keys. Click
   the ruler to jump. Space plays; arrow keys step 5 minutes (Shift: an hour); `[` and `]` step a day.
