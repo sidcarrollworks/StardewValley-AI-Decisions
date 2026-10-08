@@ -21,7 +21,8 @@ using UnderGlass.Sim;
 // running, and --dump-town <path> writes it as JSON to edit by hand.
 // The act catalog (acts spec 2.4): --catalog <slices> turns on its switches, a comma list of watch,
 // returns, company, welcome, repair, sides and late (any case; e.g. --catalog returns,company), and
-// adds their rows and cards to the town. (--acts is the cards flag above.)
+// adds their rows and cards to the town. (--acts is the cards flag above.) --ao <Name>=<value> sets
+// one of the catalog's numbers (ActOptions), e.g. --ao WarmBudget=0.005.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -99,6 +100,7 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(args[i + 1], inv)); break; // keeps a town's own
         case "--0d6": feelings.With0d6(args[i + 1]); break;
         case "--catalog": feelings.Acts.With(args[i + 1]); break;
+        case "--ao": SetOption(feelings.Acts, args[i + 1]); break; // an act catalog number, e.g. --ao WarmBudget=0.005
     }
 }
 // --acts Name=Kind:weight, on a copy of the town's cast.

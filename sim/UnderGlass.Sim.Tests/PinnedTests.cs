@@ -173,8 +173,8 @@ public class PinnedTests
     /// 0d.6 review's set (bcdefghmt): acts-1, Returns. Update only for a deliberate change to a
     /// catalog rule or row.</summary>
     [Theory]
-    [InlineData("returns", "", "ad48feff948a981c")]
-    [InlineData("returns", "bcdefghmt", "ae6768335721450c")]
+    [InlineData("returns", "", "7b0f0231636969d9")]
+    [InlineData("returns", "bcdefghmt", "636778bad6674689")]
     public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings().With0d6(steps);

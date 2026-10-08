@@ -389,7 +389,7 @@ public sealed partial class Simulation
                 continue;
             if (IsLight(kind) && LightCapReached(kind, h, m))
                 continue;
-            if (!Fits(kind, h, s, m, watching))
+            if (!Fits(kind, h, s, m, watching) || FondWarmWaits(k, kind, h, s, m))
                 continue;
             list.Add(kind);
         }
@@ -557,6 +557,7 @@ public sealed partial class Simulation
             _desires.Remove((h, s, (int)d.Kind));
         else if (d.Occasion && !IsWarm(chosen))
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
+        FondWarmed(d.Kind, chosen, h, s, m); // the act catalog: a small act, then a few days' wait
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
@@ -672,7 +673,8 @@ public sealed partial class Simulation
                 }
             }
         }
-        Life(m, a, ti, act.Id, kind.Name, LifeRole.Did, Math.Abs(row.Joy), hostile, light, Outcome.Open);
+        Life(m, a, ti, act.Id, kind.Name, LifeRole.Did, Math.Abs(row.Joy), hostile, light,
+            IsWarm(kind) ? Outcome.None : Outcome.Open); // a light kind act answers, and is never itself answered
     }
 
     /// <summary>After a light act ends: a third slight of the same kind from one person within a
@@ -739,7 +741,7 @@ public sealed partial class Simulation
         ActKind kind = KindOf(_acts[actId]);
         int other = by is not null && _index.TryGetValue(by, out int o) ? o : -1;
         Life(m, person, other, actId, kind.Name, LifeRole.Undergone, severity, (kind.Affect?.Joy ?? 0) < 0, IsLight(kind),
-            other >= 0 ? Outcome.Open : Outcome.None);
+            other >= 0 && !IsWarm(kind) ? Outcome.Open : Outcome.None);
         TallyKindIn(person, other, kind, m);
     }
 
