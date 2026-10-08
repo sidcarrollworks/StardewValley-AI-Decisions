@@ -609,7 +609,7 @@ V7 (copies of a run split at day 28) needs runs that fork, so it is not built. N
 
 **Grown-town gates.** E1, war and dead towns count pairs, and a grown town has more pairs per person than anyone meets: at 60, E1 passes on size alone and the dead-town rule calls 16% of `pelican:60@1`'s seed-years dead. `FeelingMetrics` now also gives scaled forms that count per person (town spec 6.2, "As built"): a war town has more than 2.5 people disliked per person, a dead town fewer than 1.25 moved per person, and E1 asks for a new feud and a new friendship per 26 people (two at 60). At 26 people or fewer they are the gates themselves. The runner prints them, with feuds and friendships per 100 people, for any town that isn't 26 people; `--town-seeds` gives each run its own generated town and prints the spread table, these gates run by run, and the variety measures. `FeelingStatsTests` (4) and `TownGenTests` (13) cover the scaled gates under 26 people, the ties a scaled E1 needs, and a town seed that follows the run's.
 
-## The act catalog: acts-0, the seams (built 2026-10-08; no rows, every switch off)
+## The act catalog: acts-0, the seams and the baseline (built 2026-10-08; no rows, every switch off)
 
 The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
 
@@ -631,7 +631,56 @@ The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act 
 
   288 tests.
 
-Still owed by acts-0, in a follow-up before acts-1: `StoryMetrics` and the baseline runs (acts spec 7), reading the variety measures' story events. Not built yet, for the later slices: the watch record (`CatalogWatch`) and warmth received on `SimResult`, the per-head draws, the arrivals, what follows an act, the new motives' stirrings, the warm budget, the cold reading, and every new act.
+### acts-0, second part: the story measures and the baseline (built 2026-10-08)
+
+Every later slice is measured against a baseline from the same code, so acts-0 also builds the measures of acts spec 7.2 and 7.3. `StoryMetrics.cs` reads a run's results only:
+- **The life record across households**, from the doer's side: each kind's outcomes; the Ignored share of kindnesses (light acts aside: they settle as None); the Answered and Avoided shares of hostile acts; and kindnesses returned within a week by any kind act back.
+- **Per person:** acts done and undergone, by kind; the hurt taken and the kindness received (the life record's severities); warmth received (light kind acts, from acts-1 on); and feuds and friendships. Feuds and friendships are the variety measures' story events (`Variety.Of`), so stories are counted one way. Feuds count the new feuds of people who aren't kin, friends falling out among them; feuds inside a family are counted apart.
+- **Threads:** acts linked by `Act.About` in a chain three or more deep, touching two or more households. The gate sets `About` to its motive's source act, and a consequence's `About` is its scandal, so `About` is the only link needed. A thread is counted in the season its third link lands. Trees that start from the harness's placed scandal are left out.
+- **How long feuds last.** The engine records each spell a pair spends with both at -0.3 or below (`SimResult.FeudSpells`, written at each night's close; nothing reads it and nothing reaches the log). Regard that sits at the line crosses it back and forth: in 200 seed-years of the shipped town, 611 of the 1,395 spells that ended began again, 510 of them within three days. So a feud is a pair's spells joined across pauses of 7 days or less. The median is Kaplan-Meier's: a feud still on at the end, or one whose last spell ended too close to the end for a 7-day pause to fit, counts as lasting longer than it was seen. Spell by spell the median would be 20 days. Joined, it is 38 days, with 7.9 feuds a year against the 7.7 new feuds the engine notes.
+- **The budgets of 7.2:** trivia and news a year; the heavy hostile acts and the gifts the gate started; the gate's kind acts by year of the run; warmth a person a year.
+
+The runner prints a `story` block whenever feelings are on. `StoryMetricsTests` (7):
+- threads: three deep across two households, not two deep, not one household, not from a placed act; one tree with its depth and size;
+- the median feud with feuds still on;
+- spells a week apart joined;
+- a real year agrees with the engine (every new feud starts a spell), with the ties (feuds and friendships per person) and with `DesireMetrics` (kindness returned);
+- feelings off.
+
+314 tests, all passing on CI. On Windows one fails on `claude/checkpoint-5` itself: a generated town's census hash takes the line endings of the indented JSON it hashes (reported on #58).
+
+**The baseline.** Measured as every slice will be: one year 200 seeds x 112 days (E1 also on 400 seeds), three years 50 x 336, and the band 400 x 14 with a placed scandal. The two bases are the shipped town and the 0d.6 review's set (`--0d6 bcdefghmt`), because Sid has not yet chosen which 0d.6 steps ship. Money is conserved to 0.000 g in every run.
+
+| measure | shipped | review's set (b c d e f g h m t) | gate for a slice |
+|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 56% / 24% | 50%+; under 40% at most 5 points worse |
+| E1, 200 seeds (400 seeds) | 60% (61%) | 78% (73%) | 60%+ |
+| war towns / dead towns | 0% / 0% | 0% / 0% | each under 5% |
+| feuds and friendships a year (400 seeds) | 7.85, 0.92 | 7.09, 1.33 | each within ±30% |
+| feuds, friendships per 100 people a year | 29.7, 3.4 | 27.1, 5.1 | |
+| three years: moved 0.1+ at d335 / d111 | 1.46 (13.9% -> 20.3%) | 1.41 (16.1% -> 22.7%) | 1.5 or less |
+| three years: mean regard change by season | +0.010 to +0.028 | +0.016 to +0.038 | within ±0.02 a season |
+| the gate's kind acts by year (three years) | 239, 292, 336 | 502, 522, 554 | year 3 at most 1.5 x year 1 |
+| kindness ignored across households | 40% | 39% | falls with Returns |
+| hostile acts answered / avoided | 89% / 3% | 88% / 3% | reported |
+| kindness returned within 7 days | 62% | 65% | rises, under 90% |
+| threads a season, mean (median) | 2.72 (3) | 2.81 (3) | 3+ |
+| thread shapes | argument chains 72%, an argument then gifts 16% | 78%, 13% | |
+| new feuds a year; median length | 7.9; 38 days (46% ended) | 7.4; 39 days (44% ended) | 28+ days with Repair |
+| trivia, news a year | 696, 265 | 956, 264 | trivia 900-1,350; news at most +10% |
+| by the gate: heavy hostile acts, gifts a year | 153, 219 | 153, 478 | hostile +15% at most; gifts -40% with Company |
+| hermits a seed-year (shyest third) | 0 | 0.28 (100%) | above 0, 90% from the shyest third |
+| brawlers a seed-year | 2.37 | 1.43 | within ±30% |
+| acts done a person a year | 30.6 | 40.6 | per head: within ±20% at 52 and 104 |
+| variety: V1, V2, V4, V5, V6 median (mean) | 92%, 2.7, 56%, 59%, 0 (0.39) | 94%, 2.6, 59%, 81%, 0 (0.45) | the research's targets |
+| run time, 200 x 112 and 50 x 336 (16 threads) | 58 s, 62 s | 70 s, 80 s | at most 1.5x |
+
+What the baseline says:
+- **Threads are almost there already, and almost all are arguments.** A thread forms about 2.7-2.8 times a season, against the target of 3. Three in four are argument chains (one exchange can run 70 acts deep in a year), and most of the rest are an argument made up with a gift that is then returned. Batch 1 should add other shapes rather than more of these.
+- **The Ignored share is what acts-1 aims at.** Two in five kindnesses across households go unanswered (40% of gifts and of help).
+- **Feuds last five to six weeks** (a median of 38-39 days), and more than half are still on, or ended too late to tell, when the year ends. Repair (acts-4) must keep the median at 28 days or more.
+- **The review's set already spends most of the trivia budget.** Missing people (step m) doubles the gate's gifts (219 to 478 a year), so trivia is at 956 a year before any catalog act. The trivia band of 900-1,350 leaves the slices room for about 400 more a year on that base, and 650 on the shipped town.
+- Over three years the shipped town's gate gives 1.40 times as many kindnesses in year 3 as in year 1; the review's set 1.10.
 
 
 ## Next
