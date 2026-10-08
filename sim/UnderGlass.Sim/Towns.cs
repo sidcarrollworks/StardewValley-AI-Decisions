@@ -10,12 +10,14 @@ public static class Towns
     /// <summary>The names <see cref="Named"/> knows, for the runner's and the replay's --town.</summary>
     public static readonly IReadOnlyList<string> Names = new[] { "pelican", "pelican31" };
 
-    /// <summary>A town by name: "pelican" (the shipped 26) or "pelican31".</summary>
+    /// <summary>A town by name: "pelican" (the shipped 26), "pelican31", or a generated town written
+    /// as its spec, such as "pelican:60@7" (<see cref="Generation.TownGen"/>).</summary>
     public static TownData Named(string name) => name switch
     {
         "pelican" or "pelican26" => TownData.Default(),
         "pelican31" => Pelican31(),
-        _ => throw new ArgumentException($"no town called {name}: one of {string.Join(", ", Names)}"),
+        _ when name.Contains(':') => Generation.TownGen.Build(Generation.TownSpec.Parse(name)),
+        _ => throw new ArgumentException($"no town called {name}: one of {string.Join(", ", Names)}, or a spec such as pelican:60@7"),
     };
 
     /// <summary>The five who live a little apart, as people who keep to themselves (town spec 4.6,
