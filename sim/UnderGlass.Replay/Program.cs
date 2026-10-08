@@ -9,8 +9,9 @@ using UnderGlass.Sim;
 // the run alone, for the viewer's "Open a run" button. Options as the runner's: --inject,
 // --fo <Name>=<value> (any FeelingOptions knob), --desire off|observe|on, --tensions <depth>,
 // --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on, --0d6 <steps> (hermits,
-// brawlers, moods that spread, missing people: b-h, t, m, as the runner's), and --town <name> for a
-// grown town (pelican31).
+// brawlers, moods that spread, missing people: b-h, t, m, as the runner's), --catalog <slices> (the
+// act catalog's slices, as the runner's: returns,company,welcome,repair,sides,late), and --town <name>
+// for a grown town (pelican31).
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
@@ -50,6 +51,7 @@ for (int i = 0; i < args.Length; i++)
             break;
         case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(Next(), inv)); break; // keeps a town's own
         case "--0d6": feelings.With0d6(Next()); break;
+        case "--catalog": feelings.Acts.With(Next()); break; // Replay adds the slices' rows and cards
         case "--fo":
             string kv = Next();
             Set(feelings, kv[..kv.IndexOf('=')], kv[(kv.IndexOf('=') + 1)..]);

@@ -16,7 +16,8 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --ou
 
 Open `sim/viewer/index.html` directly to load a `.json` run. The tool takes the runner's settings:
 `--inject` (place a scandal), `--fo <Name>=<value>`, `--desire off|observe|on`, `--tensions <depth>`,
-`--trait <Name>=<Trait>:<value>`, `--feel off|observe|on` and `--0d6 <steps>` (hermits, brawlers, moods that spread
+`--trait <Name>=<Trait>:<value>`, `--feel off|observe|on`, `--catalog <slices>` (the act catalog's slices, as
+the runner takes them: `--catalog returns,company,welcome,repair,late`) and `--0d6 <steps>` (hermits, brawlers, moods that spread
 and missing people: `--0d6 bdefghm`, as the runner takes it). Two months of the town is about 2.3 MB
 and takes a few seconds to record; a year is about 5 MB.
 
