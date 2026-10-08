@@ -161,7 +161,8 @@ public static class Replay
             ["label"] = o.Label,
             ["hash"] = Metrics.LogHash(r),
             ["clock"] = new { minutesPerDay = Clock.MinutesPerDay, tick = Clock.TickMinutes, daysPerWeek = Clock.DaysPerWeek, daysPerSeason = Clock.DaysPerSeason },
-            ["settings"] = Settings(feelings, o),
+            ["settings"] = Settings(town, feelings, o),
+            ["defaults"] = Scalars(TownData.Default(), DefaultTown.Feelings()),
             ["traitNames"] = Enum.GetNames<Trait>(),
             ["names"] = names,
             ["people"] = names.Select(x => byName[x]).Select(v => new
@@ -293,17 +294,38 @@ public static class Replay
 
     private static double R(double x) => Math.Round(x, 3);
 
-    /// <summary>Every switch and number of the feelings the run used, and how it was set up.</summary>
-    private static Dictionary<string, object?> Settings(FeelingOptions f, ReplayOptions o)
+    /// <summary>Every switch and number the run used, and how it was set up.</summary>
+    private static Dictionary<string, object?> Settings(TownData town, FeelingOptions f, ReplayOptions o)
     {
-        var s = new Dictionary<string, object?>();
-        foreach (var p in typeof(FeelingOptions).GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal))
-            if (p.PropertyType == typeof(bool) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double))
-                s[p.Name] = p.GetValue(f);
+        var s = Scalars(town, f);
         s["Tensions"] = f.Start.OrderBy(t => t.Key.From, StringComparer.Ordinal).ThenBy(t => t.Key.To, StringComparer.Ordinal)
             .Select(t => new object[] { t.Key.From, t.Key.To, t.Value }).ToArray();
         s["Inject"] = o.Inject;
         s["Traits"] = o.Traits.Select(t => new object[] { t.Who, t.Trait.ToString(), t.Value }).ToArray();
+        return s;
+    }
+
+    /// <summary>Every switch and number of a town's options, by name: the feelings' bare
+    /// (<c>LoveAt</c>), the others with their class (<c>GossipOptions.ChatChance</c>), each class in
+    /// name order. Written for the run and, as "defaults", for the shipped town, so the viewer can
+    /// show which differ.</summary>
+    private static Dictionary<string, object?> Scalars(TownData town, FeelingOptions f)
+    {
+        var s = new Dictionary<string, object?>();
+        void Add(string prefix, object options)
+        {
+            foreach (var p in options.GetType().GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal))
+                if (p.PropertyType == typeof(bool) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double))
+                    s[prefix + p.Name] = p.GetValue(options);
+        }
+        Add("", f);
+        Add("AuthorityOptions.", town.Authority);
+        Add("BodyOptions.", town.Body);
+        Add("GossipOptions.", town.Gossip);
+        Add("HabitOptions.", town.Habits);
+        Add("MoneyOptions.", town.Money);
+        Add("PerceptionOptions.", town.Perception);
+        s["TownData.Wander"] = town.Wander;
         return s;
     }
 }
