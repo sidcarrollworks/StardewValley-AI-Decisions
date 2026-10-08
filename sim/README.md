@@ -14,6 +14,7 @@ dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                     
 # the desire gate (0d): --desire off|observe|on, --trait <Name>=<Trait>:<value> (repeatable),
 # --tensions <depth> (0: none); a "desire" block reports the gate (DesireMetrics)
 # the act catalog (acts-0): --catalog <slices>, a comma list of watch, returns, company, welcome, repair, sides, late
+# (the replay tool takes --catalog too, so the viewer shows the slices' acts)
 # grown towns: --town pelican31 or pelican:60@<town seed>; --town-seeds gives each run its own town (seed = town seed)
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --html run1.html   # watch a run (viewer/README.md)
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 29 --days 112 --0d6 bdefghm --html run29.html   # with 0d.6's steps: spells in the viewer
