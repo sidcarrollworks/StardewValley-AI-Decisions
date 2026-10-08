@@ -659,7 +659,7 @@ Every step runs `dotnet test sim/UnderGlass.sln` with every pin unchanged.
 
 T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
 
-**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's JSON, as 4.5 says):
+**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's canonical JSON, as 4.5 says: the file without the values left at their defaults, so fields appended with a default leave every hash alone):
 - **The 60 town is the 31 town plus slots E and N**, since Sid chose both the 31 step and 60. Each slot has a fixed number of people (E 15, N 14), so the pelican profile grows to 31, 46 and 60, and a smaller town is found unchanged in a bigger one; the generator refuses other sizes.
 - **Templates are built from a few numbers** (`Templates.Green`, `Templates.Lane`) rather than drawn in a data file; the rows are the same kind of thing, and `--describe` prints the census.
 - **Each slot brings its own jobs** (the café, the workshop, staff for the core's places), filled by its own adults, so a later slot never takes an earlier slot's jobs; new staff at the clinic and the blacksmith's are paid from outside, so the core's purses aren't drained.

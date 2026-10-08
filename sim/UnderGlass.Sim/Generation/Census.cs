@@ -35,9 +35,10 @@ public static class Census
         return lines;
     }
 
-    /// <summary>The town's hash: FNV-1a over the town written as JSON (<see cref="TownJson"/>), which
-    /// holds everything a town is made of (cards, rows, doors, hubs, act kinds, every option, the
-    /// money and the familiarity seeds), and the generator's version. Two towns that run differently
-    /// can't share a hash, and a file read back keeps it.</summary>
-    public static string Hash(TownData town) => Rng.Hash(TownJson.Write(town), "generator " + TownGen.Version).ToString("x16");
+    /// <summary>The town's hash: FNV-1a over the town's canonical JSON (<see cref="TownJson.Canonical"/>),
+    /// which holds everything a town is made of (cards, rows, doors, hubs, act kinds, every option, the
+    /// money and the familiarity seeds) except the values left at their defaults, and the generator's
+    /// version. Two towns that run differently can't share a hash, a file read back keeps it, and a
+    /// field appended with a default leaves every town's hash as it was.</summary>
+    public static string Hash(TownData town) => Rng.Hash(TownJson.Canonical(town), "generator " + TownGen.Version).ToString("x16");
 }
