@@ -159,6 +159,9 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .stage { padding: 16px; display: grid; gap: 14px; min-width: 0; }
 /* The views: a segmented switch set into a well. */
 .tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 11px; justify-self: start; }
+.stagehead { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.hoodpick { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: var(--step--1); }
+.hoodpick[hidden], .panel[hidden], .group[hidden] { display: none; }
 .tabs button { font-weight: 600; background: transparent; border-color: transparent; box-shadow: none; border-radius: 8px; }
 .tabs button[aria-pressed="true"] { background: var(--key); border-color: var(--line); box-shadow: var(--key-shadow); transform: none; }
 .side { display: grid; gap: 14px; min-width: 0; }
@@ -381,6 +384,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 
   <main class="work">
     <section class="stage card">
+      <div class="stagehead">
       <nav class="tabs" role="tablist" aria-label="Views">
         <button role="tab" id="tab-town-btn" aria-selected="true" aria-pressed="true" data-tab="town">Town</button>
         <button role="tab" id="tab-people-btn" aria-selected="false" aria-pressed="false" data-tab="people">Population</button>
@@ -388,6 +392,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <button role="tab" id="tab-stories-btn" aria-selected="false" aria-pressed="false" data-tab="stories">Stories</button>
         <button role="tab" id="tab-explain-btn" aria-selected="false" aria-pressed="false" data-tab="explain">Explanation</button>
       </nav>
+      <label class="hoodpick" id="hoodBox" hidden>Neighbourhood <select id="hoodSel" title="Show one neighbourhood in the town, the population, the relationships, the stories and the log"></select></label>
+      </div>
 
       <div id="tab-town" role="tabpanel" aria-labelledby="tab-town-btn">
         <div class="groups" id="groups"></div>
@@ -907,7 +913,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "free", "label": "Free", "group": "Motives and the gate", "definition": "Awake, not about to collapse, not in the middle of an act (or taking part in someone else's), and not held (detained or doing service). Only the free act at the gate, are acted toward, or are chosen for everyday acts.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:816", "verify": false},
   {"key": "in reach", "label": "In reach", "group": "Motives and the gate", "definition": "Who a motive can be acted on toward right now: someone free, in the same place, within 5 tiles and in sight (no wall between). Everyday aimed acts pick their target from the same circle, weighted by regard.", "range": "within 5 tiles", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:115", "verify": false},
   {"key": "trust", "label": "The mayor's trust", "group": "The authority", "definition": "How much Lewis believes a teller: 0.5 + 0.5 x his familiarity with them, leaning by up to 0.25 x (1 - his understanding) x his regard for them, kept between 0.25 and 1; his own account counts 1. It weighs every account and nearby name in a verdict.", "range": "0.25 to 1; Lewis leans by at most 0.1", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:274", "verify": false},
-  {"key": "alibi", "label": "Alibi", "group": "The authority", "definition": "Someone questioned vouches for any of their kin named as seen nearby. Each vouching takes back 0.125 (half a 'nearby' 0.25) x trust from that kin's weight in the case, and never offsets a sighting or a confession.", "range": "0.125 x trust", "source": "sim/UnderGlass.Sim/Authority.cs:107", "verify": false}
+  {"key": "alibi", "label": "Alibi", "group": "The authority", "definition": "Someone questioned vouches for any of their kin named as seen nearby. Each vouching takes back 0.125 (half a 'nearby' 0.25) x trust from that kin's weight in the case, and never offsets a sighting or a confession.", "range": "0.125 x trust", "source": "sim/UnderGlass.Sim/Authority.cs:107", "verify": false},
+  {"key": "neighbourhood", "label": "Neighbourhood", "group": "The town", "definition": "In a grown town, the part of it someone lives in: the core (the shipped town and the five who live a little apart) or a neighbourhood the generator added round it, such as East Green or North Lane. A person's neighbourhood is the place their front door opens onto; a place belongs to the neighbourhood it hangs from, with its road, its shops and its homes. No rule reads it: it is for reading a run, in the viewer's Neighbourhood picker and in TownMetrics, which counts how many tellings stay inside one.", "range": "the core, or a neighbourhood's name", "source": "sim/UnderGlass.Sim/TownMetrics.cs", "verify": false}
  ],
  "actsLog": [
   {"key": "RummagedInBin", "label": "Rummaged in a bin", "group": "Acts", "definition": "Going through the bin at the clinic yard or the square. It is a scandal. It saddens the place's keeper (Harvey or Lewis) once they learn of it, and it leaves a scattered bin that anyone who can see the spot may notice for 12 hours. It is never drawn at the town's rate. It comes only from temptation, for those who carry it: Shane, Pam and the newcomer, aged 13 or more, never where they work. Temptation weighs need, the thrill and any grudge against the keeper against the risk of being seen. Note: the weight on their card is not read, only whether they carry it. A scandal placed by the replay's inject option can be done by anyone able, whether they carry it or not.", "range": "Scandal; juiciness 4.0; valence -1; lasts 3 min; read in 1 min; 0 a day (temptation only); joy -0.3 to the keeper, plastic 0.5, freedom 1; trace ScatteredBin, 12 h, noticed 0.6 an hour x clarity; adds 10g to the rummager's household purse", "source": "sim/UnderGlass.Sim/DefaultTown.cs:117", "verify": false},
@@ -1072,7 +1079,7 @@ const hideTip = () => { tip.hidden = true; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
-const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, popSort: "household", popHigh: false,
+const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, popSort: "household", popHigh: false, hood: "all",
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
 const VERB = {
@@ -1094,9 +1101,11 @@ function load(run) {
   if (run.version !== 1) throw new Error(`This run is version ${run.version}; this viewer reads version 1.`);
   const n = run.names.length, names = run.names;
   const m = { run, n, names, days: run.days, end: run.days * 1440 - 1, tick: run.clock.tick };
-  m.places = run.places.map((p, i) => ({ ...p, i, w: p.rows[0].length, h: p.rows.length }));
+  m.places = run.places.map((p, i) => ({ ...p, i, w: p.rows[0].length, h: p.rows.length, district: p.district ?? "core" }));
   m.kinds = run.kinds;
-  m.people = run.people.map((p, i) => ({ ...p, i }));
+  m.people = run.people.map((p, i) => ({ ...p, i, district: p.district ?? "core" }));
+  // Neighbourhoods of a grown town (the core first); a town without them has only the core.
+  m.districts = ["core", ...[...new Set(m.people.map((p) => p.district))].filter((d) => d !== "core").sort()];
   m.acts = run.acts.map((a) => ({ id: a[0], tick: a[1], actor: a[2], kind: a[3], place: a[4], x: a[5], y: a[6], target: a[7], about: a[8],
     injected: !!(a[9] & 1), gate: !!(a[9] & 2), witnesses: a[10], end: a[1] + Math.max(1, run.kinds[a[3]].duration) }));
   m.actText = (a) => {
@@ -1186,6 +1195,27 @@ function load(run) {
   return m;
 }
 
+// ---- neighbourhoods ---------------------------------------------------------------------------
+// One choice of neighbourhood narrows the town's maps, the population, the relationships, the
+// stories and the log to its people and places; "all" shows the whole town.
+const hoodLabel = (d) => d === "core" ? "The centre" : spaced(d);
+const inHood = (i) => S.hood === "all" || R.people[i].district === S.hood;
+const placeInHood = (pi) => S.hood === "all" || R.places[pi].district === S.hood;
+function hoodOrder() { return R.order.filter(inHood); }
+function buildHoodPicker() {
+  const sel = $("hoodSel"), box = $("hoodBox");
+  box.hidden = R.districts.length < 2;
+  sel.replaceChildren(el("option", { value: "all", text: "All" }), ...R.districts.map((d) => el("option", { value: d, text: hoodLabel(d) })));
+  sel.value = S.hood = "all";
+}
+function setHood(d) {
+  S.hood = d;
+  for (const x of panels) x.node.hidden = !placeInHood(x.p.i);
+  for (const sec of document.querySelectorAll("#groups .group")) sec.hidden = ![...sec.querySelectorAll(".panel")].some((n) => !n.hidden);
+  townWidth = 0; if (TOWN) TOWN.back = null;
+  lastRelKey = lastStoryKey = lastPopKey = lastFeedKey = ""; render();
+}
+
 // ---- reading the run at a time ----------------------------------------------------------------
 function where(i, t) {
   const mv = R.moves[i];
@@ -1259,15 +1289,15 @@ function render() {
   // The panels below are slower to draw than the map: while playing they redraw every 30 game
   // minutes (the log every 5); paused or stepped, at every minute, so they always match the clock.
   const slow = Math.floor(t / (S.playing ? 30 : 1)), minute = Math.floor(t / (S.playing ? 5 : 1));
-  const relKey = `${S.tab}|${slow}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}`;
+  const relKey = `${S.tab}|${slow}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}|${S.hood}`;
   if (S.tab === "rel" && relKey !== lastRelKey) { lastRelKey = relKey; drawRelationships(); }
-  const popKey = `${S.tab}|${slow}|${S.person}|${S.popSort}|${S.popHigh}`;
+  const popKey = `${S.tab}|${slow}|${S.person}|${S.popSort}|${S.popHigh}|${S.hood}`;
   if (S.tab === "people" && popKey !== lastPopKey) { lastPopKey = popKey; drawPopulation(); }
-  const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}`;
+  const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}|${S.hood}`;
   if (S.tab === "stories" && storyKey !== lastStoryKey) { lastStoryKey = storyKey; drawStories(); }
   const sideKey = `${S.person}|${slow}`;
   if (sideKey !== lastSideKey) { lastSideKey = sideKey; drawInspector(); }
-  const feedKey = `${minute}|${[...S.feed].join()}|${S.feedSearch}|${S.onlyPerson}|${S.person}`;
+  const feedKey = `${minute}|${[...S.feed].join()}|${S.feedSearch}|${S.onlyPerson}|${S.person}|${S.hood}`;
   if (feedKey !== lastFeedKey) { lastFeedKey = feedKey; drawFeed(); }
 }
 
@@ -1308,14 +1338,16 @@ function buildTown() {
     ["road", "Roads", "Where people walk between places"], ["home", "Homes", "One per household, with who lives there"],
   ];
   const wrap = $("groups"); wrap.replaceChildren(); panels = []; townWidth = 0;
+  const doors = R.places.map(() => 0);
+  for (const l of R.run.links) { doors[l[0]]++; doors[l[3]]++; }
   for (const [key, title, note] of groups) {
-    const ps = R.places.filter((p) => p.group === key).sort((a, b) => b.w * b.h - a.w * a.h || a.name.localeCompare(b.name));
+    const ps = R.places.filter((p) => p.group === key).sort((a, b) => (key === "outdoors" ? doors[b.i] - doors[a.i] : 0) || b.w * b.h - a.w * a.h || a.name.localeCompare(b.name));
     if (!ps.length) continue;
     const section = el("section", { class: "group" }, el("header", null, el("h2", { text: title }), el("span", { class: "muted", text: note })));
     const box = el("div", { class: "panels" });
     for (const p of ps) {
-      // The largest place out of doors is the square, where the town gathers: it gets the whole
-      // width, at a larger scale, with who is there beside the map rather than under it.
+      // The square, where the town gathers (the place out of doors with the most doors), gets the
+      // whole width, at a larger scale, with who is there beside the map rather than under it.
       const feature = key === "outdoors" && p === ps[0];
       const home = p.name.startsWith("Home:"), household = p.name.slice(5);
       const canvas = el("canvas", { "aria-label": `Map of ${placeName(p.name)}, ${p.w} by ${p.h} tiles` });
@@ -1600,6 +1632,12 @@ function paintTownBack() {
       if (c === "#" || s < 4) g.fillRect(cx, cy, s + 0.02, s + 0.02); else g.fillRect(cx, cy, s - 0.6, s - 0.6);
     }
   }
+  // With one neighbourhood chosen, the rest of the town fades back.
+  if (S.hood !== "all") {
+    g.fillStyle = COL.bg; g.globalAlpha = 0.7;
+    for (const p of R.places) if (!placeInHood(p.i)) { const a = TOWN.at[p.i]; g.fillRect(X(a.X) - 1, Y(a.Y) - 1, a.W * s + 2, a.H * s + 2); }
+    g.globalAlpha = 1;
+  }
   // Names last, each on a patch of the ground so nothing drawn later hides it; largest places
   // first, and a name that would cover another is left out (hover still names the place).
   const fs = Math.max(8, Math.min(12, s * 1.3));
@@ -1650,10 +1688,12 @@ function drawTownMap() {
   const r = clamp(s * 0.45, 2, 9);
   for (let i = 0; i < R.n; i++) {
     const q = where(i, t), [cx, cy] = townPx(q.place, q.x, q.y);
+    g.globalAlpha = inHood(i) ? 1 : 0.25;
     g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
     if (q.asleep) { g.strokeStyle = COL.muted; g.lineWidth = 1; g.stroke(); }
     else { g.fillStyle = R.feelings ? moodColour(moodAt(i, t)) : COL["ink-2"]; g.fill(); }
     if (i === S.person) { g.beginPath(); g.arc(cx, cy, r + 2.5, 0, Math.PI * 2); g.strokeStyle = COL.accent; g.lineWidth = 2; g.stroke(); }
+    g.globalAlpha = 1;
     TOWN.dots.push({ i, cx, cy });
   }
 }
@@ -1723,23 +1763,25 @@ function pairValue(i, j, t) {
 }
 function drawRelationships() {
   if (!R.feelings) { $("ring").replaceChildren(el("p", { class: "note", text: "This run was recorded with feelings off, so there is no regard to show." })); return; }
-  const t = S.t, n = R.n, order = R.order, size = 640, cx = size / 2, cy = size / 2, rad = 230;
+  const t = S.t, order = hoodOrder(), n = order.length, size = 640, cx = size / 2, cy = size / 2, rad = 230;
+  const households = R.households.map((h) => ({ name: h.name, people: h.people.filter(inHood) })).filter((h) => h.people.length);
   // Everyone around a circle, household by household, with a gap between households.
-  const angle = new Map(), gap = 0.10, step = (Math.PI * 2 - gap * R.households.length) / n;
+  const angle = new Map(), gap = 0.10, step = (Math.PI * 2 - gap * households.length) / Math.max(1, n);
   let a0 = -Math.PI / 2;
-  for (const h of R.households) { for (const i of h.people) { angle.set(i, a0 + step / 2); a0 += step; } a0 += gap; }
+  for (const h of households) { for (const i of h.people) { angle.set(i, a0 + step / 2); a0 += step; } a0 += gap; }
   const P = (i, r = rad) => [cx + Math.cos(angle.get(i)) * r, cy + Math.sin(angle.get(i)) * r];
   const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`); svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "The town as a ring, grouped by household, with lines for strong regard");
   const add = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const [k2, v] of Object.entries(attrs)) e.setAttribute(k2, v); parent.append(e); return e; };
   // Household arcs.
-  for (const h of R.households) {
+  for (const h of households) {
     const as = h.people.map((i) => angle.get(i)), lo = Math.min(...as) - step * 0.45, hi = Math.max(...as) + step * 0.45, r = rad + 10;
     add("path", { d: `M ${cx + Math.cos(lo) * r} ${cy + Math.sin(lo) * r} A ${r} ${r} 0 ${hi - lo > Math.PI ? 1 : 0} 1 ${cx + Math.cos(hi) * r} ${cy + Math.sin(hi) * r}`, fill: "none", stroke: COL.line, "stroke-width": 3, "stroke-linecap": "round" });
   }
   const edges = [];
-  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
+    const i = Math.min(order[a], order[b]), j = Math.max(order[a], order[b]);
     if (S.relHome && R.close(i, j)) continue;
     const pv = pairValue(i, j, t);
     if (Math.abs(pv.v) < S.relMin) continue;
@@ -1763,12 +1805,12 @@ function drawRelationships() {
     const [x, y] = P(i), [lx, ly] = P(i, rad + 24);
     const g = add("g", { style: "cursor:pointer", tabindex: 0, role: "button", "aria-label": R.names[i] });
     add("circle", { cx: x, cy: y, r: i === sel ? 9 : 7, fill: moodColour(moodAt(i, t)), stroke: i === sel ? COL.accent : COL.surface, "stroke-width": i === sel ? 3 : 2 }, g);
-    const text = add("text", { x: lx, y: ly, "font-size": R.n > 40 ? 9 : R.n > 30 ? 10.5 : 12, fill: i === sel ? COL.ink : COL["ink-2"], "font-weight": i === sel ? 700 : 400,
+    const text = add("text", { x: lx, y: ly, "font-size": n > 40 ? 9 : n > 30 ? 10.5 : 12, fill: i === sel ? COL.ink : COL["ink-2"], "font-weight": i === sel ? 700 : 400,
       "text-anchor": Math.cos(angle.get(i)) > 0.2 ? "start" : Math.cos(angle.get(i)) < -0.2 ? "end" : "middle", "dominant-baseline": "middle", "font-family": css("--font-body") }, g);
     text.textContent = R.names[i];
     g.addEventListener("click", () => selectPerson(i)); g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectPerson(i); } });
   }
-  for (const h of R.households) {
+  for (const h of households) {
     const as = h.people.map((i) => angle.get(i)), mid = (Math.min(...as) + Math.max(...as)) / 2, r = rad - 36;
     if (h.people.length < 2) continue;
     const tx = add("text", { x: cx + Math.cos(mid) * r, y: cy + Math.sin(mid) * r, "font-size": 9, fill: COL.muted, "text-anchor": "middle", "dominant-baseline": "middle", "font-family": css("--font-data") });
@@ -1777,13 +1819,14 @@ function drawRelationships() {
   const legend = el("div", { class: "legend" }, el("span", { class: "key" }, el("i", { style: `background:${COL.like}` }), "liking"),
     el("span", { class: "key" }, el("i", { style: `background:${COL.dislike}` }), "dislike"), el("span", { class: "muted", text: "Dashed: the two feel differently. Line width shows strength; dot colour shows mood." }),
     el("span", { class: "muted data", text: `${edges.length} ties shown` }));
-  $("ring").replaceChildren(el("h3", { text: S.relMode === "change" ? "How the town has changed since the start" : "The town now" }), svg, legend);
+  const whose = S.hood === "all" ? "The town" : hoodLabel(S.hood);
+  $("ring").replaceChildren(el("h3", { text: S.relMode === "change" ? `How ${S.hood === "all" ? "the town" : hoodLabel(S.hood).toLowerCase()} has changed since the start` : `${whose} now` }), svg, legend);
   drawMatrix(); drawTies(); drawPair();
 }
 function drawMatrix() {
   // Cells shrink to fit a bigger town in the column (at least 8 px; the column scrolls past that).
   const c = $("matrix"), room = c.parentElement?.clientWidth || 600;
-  const order = R.order, n = R.n, cell = clamp(Math.floor((room - 82) / n), 8, 15), lab = cell < 11 ? 64 : 78;
+  const order = hoodOrder(), n = order.length, cell = clamp(Math.floor((room - 82) / Math.max(1, n)), 8, 15), lab = cell < 11 ? 64 : 78;
   const dpr = window.devicePixelRatio || 1, W = lab + n * cell + 4, H = lab + n * cell + 4;
   c.width = W * dpr; c.height = H * dpr; c.style.width = W + "px"; c.style.height = H + "px";
   const g = c.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
@@ -1806,7 +1849,7 @@ function drawMatrix() {
   c.onclick = (e) => { const rect = c.getBoundingClientRect(), col = Math.floor((e.clientX - rect.left - lab) / cell), r = Math.floor((e.clientY - rect.top - lab) / cell); if (col >= 0 && r >= 0 && col < n && r < n && col !== r) selectPair(order[r], order[col]); };
 }
 function drawTies() {
-  const rows = R.ties.map((tie) => el("div", { class: "row" + (tie.tick > S.t ? " future" : ""), tabindex: 0, onclick: () => { selectPair(tie.a, tie.b); setTime(tie.tick); } },
+  const rows = R.ties.filter((tie) => inHood(tie.a) || inHood(tie.b)).map((tie) => el("div", { class: "row" + (tie.tick > S.t ? " future" : ""), tabindex: 0, onclick: () => { selectPair(tie.a, tie.b); setTime(tie.tick); } },
     el("span", { class: "when", text: `day ${tie.day}` }), `${R.names[tie.a]} and ${R.names[tie.b]}: ${tie.what === "kin-feud" ? "a feud in the family" : tie.what === "reconciled" ? "reconciled" : "a " + tie.what}`));
   $("ties").replaceChildren(...(rows.length ? rows : [el("div", { class: "muted", text: "No feuds or friendships formed in this run." })]));
 }
@@ -1851,6 +1894,7 @@ function drawPair() {
 function storyActs() {
   const tier = $("storyTier").value, order = $("storyOrder").value;
   let acts = R.acts.filter((a) => {
+    if (!inHood(a.actor)) return false;
     const k = R.kinds[a.kind];
     if (tier === "scandal") return k.tier === "Scandal" || k.tier === "Upheaval";
     if (tier === "news") return k.tier !== "Trivia";
@@ -2007,7 +2051,7 @@ function popSpark(values, now) {
 }
 function drawPopulation() {
   const t = S.t, order = new Map(R.order.map((i, k) => [i, k]));
-  const rows = R.names.map((_, i) => popRow(i, t, order));
+  const rows = R.names.map((_, i) => i).filter(inHood).map((i) => popRow(i, t, order));
   const sorts = popSorts(), [, , key] = sorts.find((x) => x[0] === S.popSort) ?? sorts[0];
   const dir = S.popHigh ? -1 : 1;
   rows.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === "string" ? x.localeCompare(y) : x - y) * dir || a.order - b.order; });
@@ -2015,9 +2059,9 @@ function drawPopulation() {
   // The town in a line: who is lowest and highest on each measure, now.
   const best = (f, hi) => rows.reduce((m, r) => (m === null || (hi ? f(r) > f(m) : f(r) < f(m)) ? r : m), null);
   const fact = (label, r, f, fmt) => el("div", null, el("span", { class: "label", text: label }), el("b", { text: r ? `${R.names[r.i]} ${fmt(f(r))}` : "–" }));
-  const households = new Set(R.people.map((p) => p.household)).size, awake = rows.filter((r) => !r.asleep).length;
+  const households = new Set(rows.map((r) => R.people[r.i].household)).size, awake = rows.filter((r) => !r.asleep).length;
   $("popFacts").replaceChildren(
-    el("div", null, el("span", { class: "label", text: "People" }), el("b", { text: `${R.n} in ${households} households, ${awake} awake` })),
+    el("div", null, el("span", { class: "label", text: S.hood === "all" ? "People" : hoodLabel(S.hood) }), el("b", { text: `${rows.length} in ${households} households, ${awake} awake` })),
     ...(R.feelings ? [fact("Lowest mood", best((r) => r.mood, false), (r) => r.mood, sgn), fact("Highest mood", best((r) => r.mood, true), (r) => r.mood, sgn),
       fact("Most withdrawn", best((r) => r.stance, false), (r) => r.stance, sgn), fact("Most combative", best((r) => r.stance, true), (r) => r.stance, sgn),
       fact("Best liked", best((r) => r.likedBy, true), (r) => r.likedBy, sgn), fact("Least liked", best((r) => r.likedBy, false), (r) => r.likedBy, sgn)] : []),
@@ -2233,7 +2277,9 @@ function drawInspector() {
     el("div", { class: "who" }, el("h2", { text: p.name }), el("button", { onclick: () => selectPerson(i), text: "Close" })),
     el("dl", { class: "facts" },
       el("dt", { text: "Now" }), el("dd", null, el("strong", { text: q.asleep ? "asleep" : "awake" }), ` at ${placeName(place.name)}`),
-      el("dt", { text: "Home" }), el("dd", { text: `${p.household}, ${p.kind}, ${p.age}` }), el("dt", { text: "Work" }), el("dd", { text: job }),
+      el("dt", { text: "Home" }), el("dd", { text: `${p.household}, ${p.kind}, ${p.age}` }),
+      ...(R.districts.length > 1 ? [el("dt", { text: "Lives in" }), el("dd", { text: hoodLabel(p.district) })] : []),
+      el("dt", { text: "Work" }), el("dd", { text: job }),
       el("dt", { text: "Family" }), el("dd", { text: fam }), el("dt", { text: "May do" }), el("dd", { text: p.acts.join(", ") || "nothing of their own" })),
     el("div", null, el("div", { class: "label", text: "Character" }), el("div", { class: "traits" }, traits),
       el("div", { class: "muted", style: "font-size:0.75rem;margin-top:4px" }, "Bar: at the start. ", el("span", { style: `color:${COL.accent}`, text: "Mark" }), ": at the end, where it changed.")),
@@ -2350,6 +2396,7 @@ function drawFeed() {
     const e = R.events[k];
     if (!S.feed.has(e.cat)) continue;
     if (S.onlyPerson && S.person >= 0 && !e.who.has(S.person)) continue;
+    if (S.hood !== "all" && ![...e.who].some(inHood)) continue;
     const text = plain(e);
     if (q && !text.toLowerCase().includes(q) && !e.text.toLowerCase().includes(q)) continue;
     out.push(el("div", { class: "row", title: e.text, onclick: () => setTime(e.tick) }, el("span", { class: "when", text: when(e.tick) }), text));
@@ -2372,7 +2419,7 @@ function start(run, source) {
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
-  buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls();
+  buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls(); buildHoodPicker();
   S.person = -1; S.pair = null; S.story = -1;
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
@@ -2388,6 +2435,7 @@ $("speed").addEventListener("change", (e) => { S.speed = +e.target.value; });
 $("scrub").addEventListener("input", (e) => R && setTime(+e.target.value, "scrub"));
 $("strip").addEventListener("click", (e) => { if (!R) return; const r = e.currentTarget.getBoundingClientRect(); setTime(((e.clientX - r.left - RULER_INSET) / (r.width - 2 * RULER_INSET)) * (R.end + 1)); });
 for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));
+$("hoodSel").addEventListener("change", (e) => setHood(e.target.value));
 $("relMode").addEventListener("change", (e) => { S.relMode = e.target.value; if (S.relMode === "change" && S.relMin > 0.2) { S.relMin = 0.1; $("relMin").value = 0.1; } $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relMin").addEventListener("input", (e) => { S.relMin = +e.target.value; $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relHome").addEventListener("change", (e) => { S.relHome = e.target.checked; render(); });
