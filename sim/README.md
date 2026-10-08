@@ -574,14 +574,47 @@ Sid wants runs with many twists and turns, so that new games don't feel alike. `
 - **V8** how many kinds of town the runs make [3 or more]. Seed-years go on a 3 x 3 grid of conflict against warmth, each axis cut at 0.8 and 1.2 times its median, and the cells holding 5% of seed-years are counted;
 - beside them, how often the commonest constable wins.
 
-V7 (copies of a run split at day 28) needs runs that fork, so it is not built. Neither is the research's fair-twist rule (a twist counts only with an earlier visible trace). The runner prints a `variety` line after every report.
+V7 (copies of a run split at day 28) needs runs that fork, so it is not built (batch 2's m-2). The runner prints a `variety` line after every report.
 
-`VarietyTests` (6):
+**Story events, part 2** (batch 2's m-1, built 2026-10-08; spec #63, 6.2-6.3). `Variety.Events.cs` reads a run's log once (`RunLog`: beliefs, tellings, traces found, suspicions, reports, interviews, making-ups) and adds:
+- **New kinds** (the story order is batch 2's, biggest first):
+  - **FirstScandal:** a person's first scandal; later ones stay **Scandal**.
+  - **BlameMoved:** a retold bad act whose leading name moves from one person to another (the name most holders give, at a day's end, with two or more holders and a strict winner). A reversal.
+  - **LetOff:** the mayor let the accused off. Nobody knows, so it's no twist.
+  - **Upheaval:** a household switched its grocer.
+  - **Humiliated:** warned, taken in or set to service before three or more.
+- **Dates:** a secret out is dated by its first naming, and a confession by its interview; before, they were dated by the first hearing (often a trace with no name) and by the act.
+- **Cause chains:** each twist carries its chain, earliest first (the act, the reports, the found traces and suspicions, the namings, the acts that hurt the pair). **The fair-twist rule** (research section 3): a twist is fair when two or more steps came before it and one of them was visible (seen, found or told by someone outside the act).
+- **V1 pools families:** a pair's feud, falling out and feud in a family are one story, and so are a person's first scandal and later ones; each family's commonest is printed beside V1.
+- **V6 counts fair twists,** with every twist, the fair share and the unfair ones by kind beside it.
+
+The kinds batch 2's slices bring (a let-off found out, a kept purse found out, a debt revealed or called in, a date stood up, a contest won) find nothing until they land.
+
+`VarietyTests` (11):
 - a town that repeats itself scores as one, and one where every seed differs scores high, each on made-up seed-years;
 - headlines and arcs;
 - Jaccard, twists and kinds of town;
-- a run's story events come from its results, the same every time;
-- measuring runs cuts them into seed-years.
+- a run's story events come from its results, the same every time, with a person's first scandal first and a secret dated by its naming;
+- measuring runs cuts them into seed-years;
+- families pooled for V1; the lead name moving with the holders; the fair-twist rule; the run log's rows;
+- on a year of the shipped town, every twist carries its chain and the season counts add up.
+
+**Measured** (2026-10-08, on checkpoint-7: 200 seed-years each; "before" is acts-0's baseline from the same runs, which m-1 doesn't change: E1 60% and 78%, feuds 7.7 and 7.1 a year):
+
+| measure | shipped, before | shipped | review's set, before | review's set | target |
+|---|---|---|---|---|---|
+| V1 commonest named story | 92% (Scandal Pam) | 92% (culprit Pam) | 94% | 94% (culprit Pam) | 30% or less |
+| the feud family's commonest | | Sam and Shane 53% | | Sam and Shane 55% | |
+| V2 effective headlines | 2.7 | 3.1 (top: Pam's first scandal, 56%) | 2.6 | 3.0 (the same, 56%) | 20+ |
+| V4 with a rare story | 56% | 57% | 59% | 59% | 60%+ |
+| V5 commonest arc | 59% (Lewis: Feud) | 57% (Lewis: Feud) | 81% | 81% (the newcomer: Withdrawn) | 50% or less |
+| V6 twists a season, median (mean) | 0 (0.39), every twist | 0 (0.36), fair twists | 0 (0.45), every twist | 0 (0.42), fair twists | 2+ |
+| fair share of twists | | 91% | | 93% | |
+| unfair twists in 200 seed-years | | making up 24, wrong verdicts 2, confessions 1 | | making up 24, confessions 2, wrong verdicts 1 | |
+
+- **Families change nothing at the top.** Pam's first scandal and later ones were already one story in V1's count, and the commonest feud family, Sam and Shane's, comes in 53-55% of seed-years (the spec's probe said 53%).
+- **V2 rises a little** because the new kinds that rank above a scandal (a moved blame, a let-off) head some years; Pam's first scandal still heads 56%.
+- **Nine twists in ten are fair.** The unfair ones are almost all making up (24 in 200 seed-years): a making-up whose chain had under two steps before it, or none that anyone outside saw or was told, so a player couldn't have seen it coming. The median season still has no twist, fair or not.
 
 **The baseline** (2026-10-08, each seed one year, so one seed-year; the 60 town on generator version 2):
 

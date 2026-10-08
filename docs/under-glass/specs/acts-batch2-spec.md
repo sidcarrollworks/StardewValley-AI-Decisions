@@ -1,4 +1,4 @@
-> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built and today's numbers in 5.6). Nothing else in batch 2 is built.
+> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built in 5.6); m-1, story events part 2 (`claude/story-events-2`; as built in 6.7). Nothing else in batch 2 is built.
 >
 > It merges three designers' drafts of that day: **acts** (batch 2's kinds and their engine pieces), **reach** (festivals, the reach levers, the first new scandals, the scenario harness) and **twists** (story events, the variety measures, the deal). It builds step 2 of section 4 of `actions-and-twists.md`, with the measures of its step 0, and section 9 of `specs/acts-spec.md`, and keeps the acts spec's conventions: `ActGate`; the Light, Story and Ledger classes; a switch per slice; watch mode; E2.
 >
@@ -681,6 +681,16 @@ public void Fork(int day, long salt)
 Every die reads `_seed` when drawn, the sway included, so all change after the fork and none before; no fork, every pin holds.
 
 **Runner.** The variety line adds the families, fair twists (all, fair share, unfair kinds) and, with `--forks <K>` (needs `--days 112`+), `V7 open future {v7} [25-60%] ({S} seeds x {K} forks at day 28; headline changed {h})`. `--log <seed>` adds `stories:`, one a line: `d{day} {Kind} {people}[ {detail}][ (unfair)]: {chain}`, steps as `act {id} {Kind} by {actor}[ to {target}] d{day}`, `told d{day}`, `found d{day}`, `report d{day}`, `friends since d{day}` or `dealt: {cause}`. The recorder may write a `stories` key for a Stories tab, each kind's sentence a template.
+
+### 6.7 As built: m-1 (2026-10-08)
+
+Built on `claude/story-events-2`: `Variety.Events.cs` (`RunLog`, `CauseStep`, the leads, chains and the fair-twist rule), the new kinds BlameMoved, LetOff, FirstScandal, Upheaval and Humiliated, V1's families and V6's fair twists, the runner's variety lines, and `VarietyTests` (11). Where it differs from 6.2-6.3:
+- **Dates.** A secret out is dated by its first naming (the log's first belief row naming the actor), and a confession by its interview. Before, they were dated by the first hearing (a belief's GotTick, often a trace with no name, days earlier) and by the act.
+- **`Variety.Of` has no `record` or `dealt` yet.** No town starts with verdicts on record, and the deal is d-1's, so every person's first scandal is a FirstScandal and no chain starts from a dealt tie.
+- **Humiliated** leaves out the consequences of the harness's placed scandal, as the other kinds leave the scandal out.
+- **`StoryMetrics` doesn't read `RunLog` yet:** it is the act catalog's file (local's).
+
+`VarietyStats` gains `V1Feud`, `V1FeudPair`, `V1Culprit`, `V1CulpritName`, `V6All`, `FairShare`, `Unfair`, and `V7` and `V7Headline` (NaN until m-2's forks). The numbers are in `sim/README.md` ("Story events, part 2").
 
 ### 6.4 The deal (d-1 to d-6)
 
