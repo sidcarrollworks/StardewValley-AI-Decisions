@@ -67,15 +67,18 @@ public readonly record struct YearDay(int Season, int Day);
 public sealed record Body(double MaxEnergy, double BedAt);
 
 /// <summary>A job: where, the hours (minutes of the day, End at most 1440), the weekdays off, and
-/// how tiring it is (1 is an ordinary waking hour's drain at work).</summary>
-public sealed record Job(string Place, Tile Spot, int Start, int End, IReadOnlyList<int> DaysOff, double Effort)
+/// how tiring it is (1 is an ordinary waking hour's drain at work). Commute: how many minutes before
+/// Start this worker leaves for work, from the route's length in a grown town (town spec E5); the
+/// town's <see cref="BodyOptions.CommuteMinutes"/> when null.</summary>
+public sealed record Job(string Place, Tile Spot, int Start, int End, IReadOnlyList<int> DaysOff, double Effort, int? Commute = null)
 {
     public bool WorksOn(int weekday) => !DaysOff.Contains(weekday);
 }
 
 /// <summary>A free-time haunt: a spot this person likes between From and To (minutes of the day;
-/// To below From runs past midnight), with a weight against their other haunts.</summary>
-public sealed record Haunt(string Place, Tile Spot, int From, int To, double Weight)
+/// To below From runs past midnight), with a weight against their other haunts. Hub: the gathering
+/// it stands for, when it is a spot in a gathering's crowd.</summary>
+public sealed record Haunt(string Place, Tile Spot, int From, int To, double Weight, string? Hub = null)
 {
     public bool Open(int minuteOfDay) => From <= To
         ? minuteOfDay >= From && minuteOfDay < To
@@ -136,9 +139,14 @@ public static class Ages
 /// evenings at the saloon or market day. While it is on, anyone free may pick it like a haunt,
 /// with this weight, and stands somewhere within Radius tiles of Center. Weekdays empty: every day.
 /// OnlyDay: a one-off on that day of the run (the opening town meeting).
+/// For grown towns (town spec E4; the defaults change nothing): only people aged MinAge to MaxAge
+/// pick it; someone who arrives and sees Capacity or more awake people within the radius turns
+/// back and doesn't pick it again that day (0: no limit); Local names the households it belongs to
+/// (null: everyone's), and anyone else picks it with its weight times Visitors.
 /// </summary>
 public sealed record Gathering(string Name, string Place, Tile Center, int Radius, int From, int To,
-    IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null)
+    IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null,
+    int MinAge = 0, int MaxAge = 200, int Capacity = 0, IReadOnlyList<string>? Local = null, double Visitors = 1)
 {
     public bool On(int minute) => (Weekdays.Count == 0 || Weekdays.Contains(Clock.Weekday(minute)))
         && (OnlyDay is null || Clock.Day(minute) == OnlyDay)
