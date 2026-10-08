@@ -15,9 +15,11 @@ public static class ActCatalog
     {
         var rows = new List<ActKind>();
         if (o.Returns)
-            rows.AddRange(Returns);
-        // acts-2 (Company): PlayedGame, TreatedToDrink. acts-3 (Welcome): Welcomed. acts-4 (Repair):
-        // Apologised. acts-5 (Sides): Comforted, Mocked, StoodUpFor. acts-6 (Late): LateForWork.
+            rows.AddRange(o.Company ? Returns.Select(PerHeadWithCompany) : Returns);
+        if (o.Company)
+            rows.AddRange(Company);
+        // acts-3 (Welcome): Welcomed. acts-4 (Repair): Apologised. acts-5 (Sides): Comforted, Mocked,
+        // StoodUpFor. acts-6 (Late): LateForWork.
         return rows;
     }
 
@@ -52,11 +54,51 @@ public static class ActCatalog
             Gate: new ActGate(0.2, 0.05, new[] { DesireKind.Fond }, Light: true, MinFamiliarity: 0.5, MinRegard: 0.3)),
     };
 
+    /// <summary>Complimented and Joked are drawn per head too once the per-head draws exist (acts-2,
+    /// Company): 0.08 and 0.15 a day for those who carry them on their cards.</summary>
+    private static ActKind PerHeadWithCompany(ActKind k) => k.Name switch
+    {
+        "Complimented" => k with { PerHead = true, PerDay = 0.08 },
+        "Joked" => k with { PerHead = true, PerDay = 0.15 },
+        _ => k,
+    };
+
+    /// <summary>
+    /// acts-2, Company (acts spec 4.4 and 4.5): time spent together, and the bar tied to money and
+    /// company. Both are drawn per head (a rate for each who carries them on their card, so acts
+    /// per person hold as the town grows) and answer Fond through the gate; with Company on, Fond
+    /// gives a gift only on the other's birthday or a festival (acts spec question 1, answer b).
+    /// <list type="bullet">
+    /// <item>PlayedGame, "Sebastian and Sam played pool": light; 0.3 / 0.1; 30 minutes, both busy;
+    /// familiarity 0.2 or more; age 5 and up, the two within 6 years of each other or both under 13;
+    /// at the saloon from 17:00 to midnight (pool, darts, the arcade: VERIFY that the saloon has
+    /// them), in the square or on the beach from 9:00 to 19:00 (children's games, catch). The target
+    /// feels it as a kindness; the actor, as company.</item>
+    /// <item>TreatedToDrink, "Shane bought Emily a drink": a story act (told on day 0 to those who know
+    /// them); 0.3 / 0.1; at the saloon from 18:00 to 01:00, both 18 or older; it answers Return,
+    /// MakeUp and Fond and stirs Return as a gift does. The actor's household pays one drink to the
+    /// bar's, which restocks; it is the target's drink of the day if they had none, else a second;
+    /// the bar's own household treats on the house. The purse must hold a drink.</item>
+    /// </list>
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Company = new[]
+    {
+        new ActKind("PlayedGame", 1.0, 1, 2, 30, 0.1, new[] { "Saloon", "Square", "Beach" }, MinAge: 5,
+            Affect: new Affect(Patient.Target, 0.08, 0.1, 1, TargetIs.Chosen),
+            Gate: new ActGate(0.3, 0.1, new[] { DesireKind.Fond }, Light: true, MinFamiliarity: 0.2),
+            PerHead: true, FromMinute: Clock.At(9), ToMinute: Clock.MinutesPerDay),
+        new ActKind("TreatedToDrink", 1.5, 1, 1, 2, 0.08, new[] { "Saloon" }, MinAge: 18,
+            Affect: new Affect(Patient.Target, 0.15, 0.25, 1, TargetIs.Chosen, Tilt: 1),
+            Gate: new ActGate(0.3, 0.1, new[] { DesireKind.Return, DesireKind.MakeUp, DesireKind.Fond }),
+            PerHead: true, FromMinute: Clock.At(18), ToMinute: Clock.At(1)),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
     {
         "Thanked" or "Complimented" or "Joked" => nameof(ActOptions.Returns),
+        "PlayedGame" or "TreatedToDrink" => nameof(ActOptions.Company),
         _ => null,
     };
 
@@ -89,8 +131,25 @@ public static class ActCatalog
         }).ToList();
     }
 
-    /// <summary>(kind, who, weight) for the slices that are on. Empty in acts-0; the cast readings
-    /// that come with acts-2 and acts-5 are guesses (VERIFY, acts spec question 4).</summary>
+    /// <summary>(kind, who, weight) for the slices that are on: the cards of the four kinds drawn per
+    /// head, which come with Company (acts-2). Sid's answer to question 4 (b): cards only for the
+    /// per-head kinds and Mocked, the gate's acts from traits. These are first readings of the cast
+    /// from memory of the game, not its files (VERIFY), for Sid to correct.</summary>
     private static IReadOnlyList<(string Kind, string Who, double Weight)> CardsOf(ActOptions o)
-        => Array.Empty<(string, string, double)>();
+    {
+        var cards = new List<(string, string, double)>();
+        if (!o.Company)
+            return cards;
+        void Card(string kind, double weight, params string[] who) => cards.AddRange(who.Select(w => (kind, w, weight)));
+        if (o.Returns)
+        {
+            Card("Complimented", 1, "Caroline", "Emily", "Evelyn", "Gus", "Harvey", "Jodi", "Leah", "Lewis", "Penny", "Robin");
+            Card("Joked", 1, "Abigail", "Alex", "Gus", "Jas", "Marnie", "Robin", "Sam", "Sebastian", "Vincent");
+            Card("Joked", 0.5, "Haley", "Pierre", "Shane");
+        }
+        Card("PlayedGame", 1, "Abigail", "Alex", "Jas", "Sam", "Sebastian", "Vincent");
+        Card("PlayedGame", 0.3, "Emily", "Haley", "Maru", "Shane");
+        Card("TreatedToDrink", 1, "Demetrius", "Gus", "Leah", "Lewis", "Marnie", "Pam", "Pierre", "Shane");
+        return cards;
+    }
 }

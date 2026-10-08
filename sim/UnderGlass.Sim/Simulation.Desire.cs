@@ -148,7 +148,8 @@ public sealed partial class Simulation
             return true;
         if (Avoids(a, o, m))
             return false;
-        return !(IsHeavyHostile(kind) && _lastHostile.TryGetValue((a, o), out int last) && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay);
+        return !(IsHeavyHostile(kind) && _lastHostile.TryGetValue((a, o), out int last) && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay)
+               && Fits(kind, a, o, m); // the act catalog: a per-head draw's target must fit its limits (shipped rows always do)
     }
 
     // ---- where motives come from (R1) -------------------------------------------------------
@@ -389,7 +390,7 @@ public sealed partial class Simulation
                 continue;
             if (IsLight(kind) && LightCapReached(kind, h, m))
                 continue;
-            if (!Fits(kind, h, s, m, watching))
+            if (!Fits(kind, h, s, m, watching) || !FondMayUse(k, kind, h, s, m, watching))
                 continue;
             list.Add(kind);
         }
@@ -557,6 +558,7 @@ public sealed partial class Simulation
             _desires.Remove((h, s, (int)d.Kind));
         else if (d.Occasion && !IsWarm(chosen))
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
+        FondGave(d.Kind, chosen, h, m); // the act catalog: with Company on, Fond's one occasion gift a day
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
