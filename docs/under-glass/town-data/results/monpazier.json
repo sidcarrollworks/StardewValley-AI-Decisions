@@ -1,0 +1,139 @@
+{
+ "town": "monpazier",
+ "centre": [
+  0.89438,
+  44.68016,
+  "Place des Cornieres"
+ ],
+ "buildings_in_circle": 1412,
+ "building_sources": {
+  "OpenStreetMap": 1196,
+  "Microsoft ML Buildings": 216
+ },
+ "homes": 521,
+ "homes_tagged": 121,
+ "home_footprint_median_m2": 124,
+ "civcom_buildings": 44,
+ "establishments": 50,
+ "establishment_mix": {
+  "food_and_drink": 17,
+  "shopping": 13,
+  "services_and_business": 6,
+  "lodging": 3,
+  "arts_and_entertainment": 3,
+  "travel_and_transportation": 3,
+  "education": 2,
+  "cultural_and_historic": 1,
+  "lifestyle_services": 1,
+  "community_and_government": 1
+ },
+ "addresses_in_circle": 740,
+ "home_addresses": 567,
+ "est_d50": 152.902329707795,
+ "est_d90": 361.2955800495366,
+ "civ_d50": 145.4464766833554,
+ "civ_d90": 332.3285737635421,
+ "home_d50": 241.67573051491172,
+ "home_d90": 1138.1407499092163,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 12.6,
+   "homes": 226,
+   "homes_per_ha": 17.98,
+   "res_footprint_pct": 19.9,
+   "establishments": 34,
+   "addresses": 340
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 65.4,
+   "homes": 120,
+   "homes_per_ha": 1.83,
+   "res_footprint_pct": 2.4,
+   "establishments": 11,
+   "addresses": 160
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 234.9,
+   "homes": 110,
+   "homes_per_ha": 0.47,
+   "res_footprint_pct": 0.9,
+   "establishments": 1,
+   "addresses": 144
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 391.3,
+   "homes": 65,
+   "homes_per_ha": 0.17,
+   "res_footprint_pct": 0.3,
+   "establishments": 4,
+   "addresses": 96
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  65,
+  594
+ ],
+ "nearest_shop_p50_p90": [
+  110,
+  697
+ ],
+ "street_m": {
+  "path_circle": 2003,
+  "path_settled": 601,
+  "path_within500": 482,
+  "public_circle": 34533,
+  "public_settled": 20241,
+  "public_within500": 9959,
+  "service_circle": 4468,
+  "service_settled": 3472,
+  "service_within500": 1784,
+  "track_circle": 2905,
+  "track_settled": 1200,
+  "track_within500": 742
+ },
+ "settled_area_ha": 165.9,
+ "orientation_order": 0.115,
+ "core_orientation_order": 0.535,
+ "axes_aligned_share": 0.346,
+ "axes_balance": 0.504,
+ "core_axes_aligned_share": 0.67,
+ "core_axes_balance": 0.478,
+ "core_public_street_m": 7269,
+ "main_street": "Rue Saint-Jacques",
+ "main_street_home_share": 0.309,
+ "everyday_pois": 37,
+ "gathering_landuse": 9,
+ "everyday_d50": 141.76210295805004,
+ "everyday_d90": 262.62065796023734,
+ "elongation": 1.11,
+ "homes_within_500m": 0.664,
+ "shape": "grid",
+ "homes_within_500m_n": 346,
+ "far_establishments": [
+  [
+   1233,
+   "restaurant",
+   "chezflolemarmiton"
+  ],
+  [
+   1276,
+   "restaurant",
+   "lemarmitontablepaysanne"
+  ],
+  [
+   1306,
+   "gas_station",
+   "totalenergies"
+  ],
+  [
+   1460,
+   "hotel",
+   "lolivierdemonpazier"
+  ]
+ ],
+ "water_ha_in_circle": 2.6
+}

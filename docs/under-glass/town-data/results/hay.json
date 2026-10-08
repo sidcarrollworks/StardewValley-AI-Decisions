@@ -1,0 +1,166 @@
+{
+ "town": "hay",
+ "centre": [
+  -3.12539,
+  52.07438,
+  "Butter Market / Clock Tower"
+ ],
+ "buildings_in_circle": 1164,
+ "building_sources": {
+  "Microsoft ML Buildings": 265,
+  "OpenStreetMap": 899
+ },
+ "homes": 856,
+ "homes_tagged": 65,
+ "home_footprint_median_m2": 104,
+ "civcom_buildings": 101,
+ "establishments": 169,
+ "establishment_mix": {
+  "shopping": 78,
+  "food_and_drink": 23,
+  "services_and_business": 15,
+  "lodging": 10,
+  "health_care": 10,
+  "lifestyle_services": 9,
+  "arts_and_entertainment": 8,
+  "sports_and_recreation": 5,
+  "cultural_and_historic": 4,
+  "travel_and_transportation": 4,
+  "education": 2,
+  "community_and_government": 1
+ },
+ "addresses_in_circle": null,
+ "home_addresses": null,
+ "est_d50": 137.23433453747714,
+ "est_d90": 447.4658932773085,
+ "civ_d50": 133.86890288934018,
+ "civ_d90": 448.91841166483,
+ "home_d50": 516.6600411708945,
+ "home_d90": 1030.9857036452781,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 12.6,
+   "homes": 174,
+   "homes_per_ha": 13.85,
+   "res_footprint_pct": 16.3,
+   "establishments": 127,
+   "addresses": null
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 60.6,
+   "homes": 240,
+   "homes_per_ha": 3.96,
+   "res_footprint_pct": 4.6,
+   "establishments": 26,
+   "addresses": null
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 228.5,
+   "homes": 333,
+   "homes_per_ha": 1.46,
+   "res_footprint_pct": 2.0,
+   "establishments": 10,
+   "addresses": null
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 384.9,
+   "homes": 109,
+   "homes_per_ha": 0.28,
+   "res_footprint_pct": 0.3,
+   "establishments": 6,
+   "addresses": null
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  79,
+  283
+ ],
+ "nearest_shop_p50_p90": [
+  131,
+  458
+ ],
+ "street_m": {
+  "path_circle": 26905,
+  "path_settled": 7405,
+  "path_within500": 6218,
+  "public_circle": 22459,
+  "public_settled": 15781,
+  "public_within500": 6408,
+  "service_circle": 11448,
+  "service_settled": 6368,
+  "service_within500": 2561,
+  "track_circle": 4448,
+  "track_settled": 1126,
+  "track_within500": 197
+ },
+ "settled_area_ha": 164.4,
+ "orientation_order": 0.043,
+ "core_orientation_order": 0.101,
+ "axes_aligned_share": 0.233,
+ "axes_balance": 0.74,
+ "core_axes_aligned_share": 0.262,
+ "core_axes_balance": 0.8,
+ "core_public_street_m": 4614,
+ "main_street": "Gipsy Castle Lane",
+ "main_street_home_share": 0.134,
+ "everyday_pois": 123,
+ "gathering_landuse": 14,
+ "everyday_d50": 134.97625915567383,
+ "everyday_d90": 433.56247473312357,
+ "elongation": 1.45,
+ "homes_within_500m": 0.484,
+ "shape": "nucleated",
+ "homes_within_500m_n": 414,
+ "far_establishments": [
+  [
+   745,
+   "hardware_home_and_garden_store",
+   "huwsgray"
+  ],
+  [
+   826,
+   "sport_or_recreation_club",
+   "thewarrenhayonwye"
+  ],
+  [
+   870,
+   "hotel",
+   "hayonwyetaxis"
+  ],
+  [
+   1201,
+   "hardware_home_and_garden_store",
+   "huwsgrayhay"
+  ],
+  [
+   1241,
+   "hardware_home_and_garden_store",
+   "sullivanflooring"
+  ],
+  [
+   1262,
+   "books_music_and_video_store",
+   "thechildrensbookshop"
+  ],
+  [
+   1326,
+   "hotel",
+   "glampingwalesnearhayfestival"
+  ],
+  [
+   1336,
+   "christian_place_of_worship",
+   "cusopstmary"
+  ],
+  [
+   1494,
+   "hotel",
+   "lowerhousegardenplasbachselfca"
+  ]
+ ],
+ "water_ha_in_circle": 20.3
+}

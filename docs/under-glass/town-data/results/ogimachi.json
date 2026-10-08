@@ -1,0 +1,193 @@
+{
+ "town": "ogimachi",
+ "centre": [
+  136.9064,
+  36.2565,
+  "main street at Myozen-ji / bus station"
+ ],
+ "buildings_in_circle": 612,
+ "building_sources": {
+  "Microsoft ML Buildings": 94,
+  "OpenStreetMap": 518
+ },
+ "homes": 325,
+ "homes_tagged": 44,
+ "home_footprint_median_m2": 130,
+ "civcom_buildings": 76,
+ "establishments": 95,
+ "establishment_mix": {
+  "food_and_drink": 49,
+  "lodging": 15,
+  "shopping": 11,
+  "travel_and_transportation": 8,
+  "cultural_and_historic": 5,
+  "arts_and_entertainment": 3,
+  "services_and_business": 2,
+  "health_care": 1,
+  "lifestyle_services": 1
+ },
+ "addresses_in_circle": null,
+ "home_addresses": null,
+ "est_d50": 297.88073252381804,
+ "est_d90": 897.0812746179206,
+ "civ_d50": 293.6063158533733,
+ "civ_d90": 848.1884220324002,
+ "home_d50": 482.5362850016871,
+ "home_d90": 1233.2908989212235,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 12.5,
+   "homes": 78,
+   "homes_per_ha": 6.23,
+   "res_footprint_pct": 8.1,
+   "establishments": 40,
+   "addresses": null
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 63.1,
+   "homes": 86,
+   "homes_per_ha": 1.36,
+   "res_footprint_pct": 1.7,
+   "establishments": 31,
+   "addresses": null
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 232.3,
+   "homes": 91,
+   "homes_per_ha": 0.39,
+   "res_footprint_pct": 0.5,
+   "establishments": 18,
+   "addresses": null
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 384.5,
+   "homes": 70,
+   "homes_per_ha": 0.18,
+   "res_footprint_pct": 0.3,
+   "establishments": 6,
+   "addresses": null
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  60,
+  272
+ ],
+ "nearest_shop_p50_p90": [
+  64,
+  275
+ ],
+ "street_m": {
+  "path_circle": 4233,
+  "path_settled": 3213,
+  "path_within500": 1634,
+  "public_circle": 25047,
+  "public_settled": 10625,
+  "public_within500": 5122,
+  "service_circle": 3067,
+  "service_settled": 1610,
+  "service_within500": 1681,
+  "track_circle": 12529,
+  "track_settled": 2246,
+  "track_within500": 1026
+ },
+ "settled_area_ha": 112.0,
+ "orientation_order": 0.076,
+ "core_orientation_order": 0.37,
+ "axes_aligned_share": 0.236,
+ "axes_balance": 0.265,
+ "core_axes_aligned_share": 0.475,
+ "core_axes_balance": 0.237,
+ "core_public_street_m": 2961,
+ "main_street": "国道156号",
+ "main_street_home_share": 0.191,
+ "everyday_pois": 70,
+ "gathering_landuse": 1,
+ "everyday_d50": 290.356470549728,
+ "everyday_d90": 924.8141150112015,
+ "elongation": 1.52,
+ "homes_within_500m": 0.505,
+ "shape": "nucleated",
+ "homes_within_500m_n": 164,
+ "far_establishments": [
+  [
+   743,
+   "travel_service",
+   "白川郷展望台"
+  ],
+  [
+   748,
+   "coffee_shop",
+   "ogimachicastleobservationdeck"
+  ],
+  [
+   829,
+   "hotel",
+   "大田屋"
+  ],
+  [
+   831,
+   "hotel",
+   "すみれ荘"
+  ],
+  [
+   893,
+   "restaurant",
+   "お休み処柊"
+  ],
+  [
+   900,
+   "hotel",
+   "伊三郎"
+  ],
+  [
+   922,
+   "restaurant",
+   "野乃居酒屋"
+  ],
+  [
+   946,
+   "restaurant",
+   "柊"
+  ],
+  [
+   953,
+   "restaurant",
+   "ます園文助"
+  ],
+  [
+   1053,
+   "convenience_store",
+   "ニューヤマザキデイリーストア飛騨白川郷店白川郷にある唯一のコ"
+  ],
+  [
+   1091,
+   "christian_place_of_worship",
+   "鳩谷八幡神社"
+  ],
+  [
+   1095,
+   "gas_station",
+   "eneos"
+  ],
+  [
+   1109,
+   "restaurant",
+   "お食事処盛善"
+  ],
+  [
+   1180,
+   "shipping_or_delivery_service",
+   "鳩谷郵便局"
+  ],
+  [
+   1436,
+   "restaurant",
+   "白川郷飛騨牛食べ処てんから"
+  ]
+ ],
+ "water_ha_in_circle": 14.4
+}

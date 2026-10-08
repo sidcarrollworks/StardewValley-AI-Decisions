@@ -1,0 +1,120 @@
+{
+ "town": "laxton",
+ "centre": [
+  -0.92195,
+  53.19578,
+  "crossroads between church and village hall"
+ ],
+ "buildings_in_circle": 229,
+ "building_sources": {
+  "Microsoft ML Buildings": 223,
+  "OpenStreetMap": 6
+ },
+ "homes": 136,
+ "homes_tagged": 0,
+ "home_footprint_median_m2": 130,
+ "civcom_buildings": 3,
+ "establishments": 6,
+ "establishment_mix": {
+  "shopping": 1,
+  "lodging": 1,
+  "food_and_drink": 1,
+  "cultural_and_historic": 1,
+  "arts_and_entertainment": 1,
+  "services_and_business": 1
+ },
+ "addresses_in_circle": null,
+ "home_addresses": null,
+ "est_d50": 158.8292715552094,
+ "est_d90": 725.8265908042897,
+ "civ_d50": 79.26458883454372,
+ "civ_d90": 221.09526474064612,
+ "home_d50": 349.45859013829966,
+ "home_d90": 744.5733354550267,
+ "rings": [
+  {
+   "ring": "0-200",
+   "land_ha": 12.6,
+   "homes": 29,
+   "homes_per_ha": 2.31,
+   "res_footprint_pct": 3.0,
+   "establishments": 3,
+   "addresses": null
+  },
+  {
+   "ring": "200-500",
+   "land_ha": 66.0,
+   "homes": 84,
+   "homes_per_ha": 1.27,
+   "res_footprint_pct": 2.0,
+   "establishments": 2,
+   "addresses": null
+  },
+  {
+   "ring": "500-1000",
+   "land_ha": 235.6,
+   "homes": 14,
+   "homes_per_ha": 0.06,
+   "res_footprint_pct": 0.1,
+   "establishments": 0,
+   "addresses": null
+  },
+  {
+   "ring": "1000-1500",
+   "land_ha": 392.7,
+   "homes": 9,
+   "homes_per_ha": 0.02,
+   "res_footprint_pct": 0.0,
+   "establishments": 1,
+   "addresses": null
+  }
+ ],
+ "nearest_everyday_p50_p90": [
+  157,
+  535
+ ],
+ "nearest_shop_p50_p90": [
+  255,
+  711
+ ],
+ "street_m": {
+  "path_circle": 7917,
+  "path_settled": 1000,
+  "path_within500": 1787,
+  "public_circle": 6980,
+  "public_settled": 2850,
+  "public_within500": 2316,
+  "service_circle": 1343,
+  "service_settled": 665,
+  "service_within500": 656,
+  "track_circle": 13168,
+  "track_settled": 1226,
+  "track_within500": 1519
+ },
+ "settled_area_ha": 40.6,
+ "orientation_order": 0.266,
+ "core_orientation_order": 0.326,
+ "axes_aligned_share": 0.328,
+ "axes_balance": 0.755,
+ "core_axes_aligned_share": 0.352,
+ "core_axes_balance": 0.39,
+ "core_public_street_m": 1593,
+ "main_street": "Main Street",
+ "main_street_home_share": 0.375,
+ "everyday_pois": 5,
+ "gathering_landuse": 3,
+ "everyday_d50": 116.70243545113284,
+ "everyday_d90": 822.0742270092071,
+ "elongation": 1.08,
+ "homes_within_500m": 0.831,
+ "shape": "linear",
+ "homes_within_500m_n": 113,
+ "far_establishments": [
+  [
+   1207,
+   "hardware_home_and_garden_store",
+   "scarthingwellreplicas"
+  ]
+ ],
+ "water_ha_in_circle": 0.0
+}

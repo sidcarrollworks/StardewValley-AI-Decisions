@@ -6,8 +6,9 @@
 /* Layout: a technical sheet. The controls across the top carry the run's clock on a recessed
    dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the left; the
    inspector and the log stand on the right. Sections sit on one warm off-white ground, marked only
-   by registration corners. One light theme, by design: warm putty neutrals, graphite ink, one
-   signal orange, and cobalt and crimson for liking and dislike. */
+   by registration corners. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
+   crimson for liking and dislike; a dark look of the same, chosen with the switch at the top (the
+   choice is remembered; until one is made it follows the host's theme, then the system's). */
 :root {
   color-scheme: light;
   --bg: #e8e3d9;          /* the ground: the same warm off-white as the panels */
@@ -32,6 +33,15 @@
   --screen-dim: #9d8f7d;
   --key: linear-gradient(#f4f1ea, #eae5dc);
   --key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 0 rgba(45, 34, 22, 0.14);
+  --key-on: linear-gradient(#e5dfd4, #ebe6dd);   /* a key held down */
+  --press: rgba(45, 34, 22, 0.14);
+  --led-off: #b9b0a0;
+  --glow: rgba(255, 110, 40, 0.55);
+  --rule: var(--rule);              /* hairlines between rows */
+  --sel-row: #ecdccd;                            /* a held first column under a hovered row */
+  --thumb-edge: #b8430a;
+  --tip-bg: #1d1a17;
+  --tip-ink: #f2eee6;
   --font-display: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-body: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-data: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -42,6 +52,21 @@
   --step-1: 1.125rem;
   --step-2: 1.5rem;
   --radius: 14px;
+}
+/* Dark: the same warm neutrals turned down, the data colours lifted so they keep their contrast
+   (cobalt, crimson and the signal orange checked for colour-blind separation on this ground). */
+:root[data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1c1a17; --surface: #1c1a17; --surface-hi: #262320; --surface-2: #302c27;
+  --ink: #ece6dc; --ink-2: #c2baac; --muted: #988f81; --line: #403a33;
+  --wall: #a2998a; --fence: #5c554b;
+  --accent: #dd6c20; --accent-wash: rgba(221, 108, 32, 0.16);
+  --like: #5a82ee; --dislike: #d64487; --mid: #4a443d;
+  --hub: rgba(221, 108, 32, 0.10); --hub-ring: rgba(221, 108, 32, 0.55);
+  --screen: #0e0d0b; --screen-ink: #ff8a4c; --screen-dim: #8c8070;
+  --key: linear-gradient(#34302a, #2b2823); --key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.45);
+  --key-on: linear-gradient(#22201c, #292622); --press: rgba(0, 0, 0, 0.4); --led-off: #5d564c; --glow: rgba(255, 120, 50, 0.5);
+  --rule: rgba(64, 58, 51, 0.8); --sel-row: #3a2c21; --thumb-edge: #8f3f0d; --tip-bg: #0e0d0b; --tip-ink: #ece6dc;
 }
 * { box-sizing: border-box; }
 body {
@@ -61,11 +86,11 @@ button, select, input { font: inherit; color: inherit; }
 button { background: var(--key); border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; cursor: pointer; box-shadow: var(--key-shadow); font-weight: 500; transition: transform 60ms ease, box-shadow 60ms ease; }
 button:hover { border-color: var(--muted); }
 button:active { transform: translateY(1px); box-shadow: none; }
-button[aria-pressed="true"], button.on { background: linear-gradient(#e5dfd4, #ebe6dd); box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.14); }
+button[aria-pressed="true"], button.on { background: var(--key-on); box-shadow: inset 0 1px 1px var(--press); }
 /* An indicator light on keys that switch something on. */
 button.led { display: inline-flex; align-items: center; gap: 7px; }
-button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; flex: none; }
-button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
+button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led-off); flex: none; }
+button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
 /* A section is marked only by registration marks in two corners, as on a technical sheet. The
@@ -79,12 +104,17 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 
 /* The masthead: one section. The run and its clock across the top; under them the ruler, the
    fader, and the playback keys with the ruler's legend. */
-.masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand screen" "timeline timeline"; align-items: center; gap: 16px 24px; padding: 18px 20px 14px; }
-.masthead .brand { grid-area: brand; }
-.masthead .screen { grid-area: screen; }
-.masthead .timeline { grid-area: timeline; }
-@media (max-width: 640px) { .masthead { grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "screen" "timeline"; } .masthead .screen { justify-self: stretch; } }
-.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; }
+.masthead { display: grid; gap: 12px; padding: 20px 20px 14px; min-width: 0; }
+/* The whole town, like the picture of a video player: the timeline under it plays it. */
+.townview { position: relative; min-width: 0; }
+.townview canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
+.townview canvas.zoomed { cursor: grab; touch-action: none; }
+.townview canvas.dragging { cursor: grabbing; }
+.mapkeys { position: absolute; right: 0; bottom: 0; display: flex; gap: 4px; }
+.mapkeys button { font-size: var(--step--1); padding: 2px 9px; border-radius: 7px; min-width: 30px; }
+.topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
+.topline .theme { font-size: var(--step--1); padding: 4px 10px; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .transport button { font-size: var(--step--1); padding: 3px 9px; border-radius: 7px; }
@@ -96,7 +126,7 @@ button.link { background: none; border: 0; box-shadow: none; padding: 0; border-
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
 button.link:hover { text-decoration-color: var(--ink-2); }
 button.link:active { transform: none; }
-.screen { justify-self: end; background: var(--screen); border-radius: 10px; padding: 8px 14px 6px; display: grid; justify-items: end; gap: 0; min-width: 210px;
+.screen { background: var(--screen); border-radius: 8px; padding: 5px 11px 4px; display: grid; justify-items: end; gap: 0; min-width: 132px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
   background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 3px 3px; }
 .screen .date { font-family: var(--font-data); font-size: var(--step--2); color: var(--screen-dim); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -105,18 +135,19 @@ button.link:active { transform: none; }
   background: var(--screen-ink); box-shadow: 0 0 5px rgba(255, 120, 50, 0.45); }
 .screen .time .colon::before { top: 0.3em; }
 .screen .time .colon::after { top: 0.54em; }
-.screen .time { font-family: var(--font-dots); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--screen-ink); letter-spacing: 0.04em;
+.screen .time { font-family: var(--font-dots); font-weight: 800; font-size: 1.7rem; line-height: 1; color: var(--screen-ink); letter-spacing: 0.04em;
   text-shadow: 0 0 5px rgba(255, 120, 50, 0.45), 0 0 14px rgba(255, 100, 30, 0.2); font-variant-numeric: tabular-nums; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
-.deck { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+.deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.deck .legend { margin-inline-start: auto; }
 .timeline canvas { width: 100%; height: 38px; display: block; cursor: pointer; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
 input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -8px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
-input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -8px; border-radius: 3px; background: var(--accent); border: 1px solid var(--thumb-edge); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius: 3px; background: var(--accent); border: 1px solid var(--thumb-edge); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--step--1); color: var(--ink-2); align-items: center; }
 .timeline .hint { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.04em; }
 .key { display: inline-flex; align-items: center; gap: 6px; }
@@ -152,9 +183,9 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .panel header h3 { font-family: var(--font-data); font-size: var(--step--2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; }
 .panel .residents { font-size: var(--step--2); color: var(--muted); margin-top: -3px; min-height: 2.9em; } /* two lines, so the maps in a row start level */
 .count { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.05em; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; }
+.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led-off); }
 .panel.busy .count { color: var(--ink); }
-.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
+.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 .panel canvas { display: block; max-width: 100%; height: auto; image-rendering: pixelated; cursor: crosshair; border-radius: 3px; }
 .roster { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; min-height: 1.5rem; }
@@ -190,7 +221,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .stories { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; align-items: start; }
 @media (max-width: 1200px) { .stories { grid-template-columns: minmax(0, 1fr); } }
 .storylist { max-height: 70vh; overflow-y: auto; display: grid; gap: 1px; padding-inline-end: 4px; }
-.story { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid rgba(186, 178, 164, 0.45); }
+.story { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid var(--rule); }
 .story:hover { background: var(--accent-wash); }
 .story.sel { background: var(--accent-wash); box-shadow: inset 2px 0 0 var(--accent); }
 .story.future { opacity: 0.5; }
@@ -202,6 +233,65 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .tree .node { display: flex; gap: 8px; align-items: baseline; padding: 1px 0; }
 .tree .node.future { opacity: 0.4; }
 .believes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; font-size: var(--step--1); }
+
+/* The population: one row per person. */
+.popfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 18px; margin-bottom: 12px; }
+.popfacts div { display: grid; gap: 1px; min-width: 0; }
+.popfacts b { font-weight: 500; font-size: var(--step--1); }
+#tab-people { min-width: 0; }
+.popwrap { overflow-x: auto; margin-top: 10px; }
+.poptable { width: 100%; border-collapse: collapse; font-size: var(--step--1); font-variant-numeric: tabular-nums; }
+.poptable th { font-family: var(--font-data); font-size: var(--step--2); font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; text-align: left; padding: 0 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: bottom; }
+.poptable th button { all: unset; cursor: pointer; }
+.poptable th .sub { display: block; text-transform: none; letter-spacing: 0; font-family: var(--font-body); font-size: 0.625rem; margin-top: 1px; }
+.poptable th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.poptable th[aria-sort] button { color: var(--ink); }
+.poptable td { padding: 6px; border-bottom: 1px solid var(--rule); vertical-align: middle; white-space: nowrap; }
+/* The first column stays put when a narrow screen scrolls the table. */
+.poptable th:first-child, .poptable td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.poptable tbody tr:hover td:first-child, .poptable tbody tr.sel td:first-child { background: var(--sel-row); }
+.poptable .two-line { display: grid; gap: 3px; }
+.poptable .two-line .cellbar span:first-child { font-family: var(--font-data); font-size: 0.625rem; color: var(--muted); width: 1.4em; }
+.poptable tbody tr { cursor: pointer; }
+.poptable tbody tr:hover { background: var(--accent-wash); }
+.poptable tbody tr.sel { background: var(--accent-wash); box-shadow: inset 2px 0 0 var(--accent); }
+.poptable .who { display: grid; gap: 1px; }
+.poptable .who .sub { font-size: var(--step--2); color: var(--muted); }
+.poptable .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-inline-end: 6px; }
+.poptable .asleep .dot { box-shadow: inset 0 0 0 1.5px var(--muted); background: transparent !important; }
+.cellbar { display: inline-flex; align-items: center; gap: 6px; }
+.pbar { position: relative; width: 44px; height: 6px; border-radius: 3px; background: var(--surface-2); flex: none; }
+.pbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.pbar.two::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.minitraits { display: inline-flex; gap: 2px; align-items: flex-end; height: 20px; }
+.minitraits span { width: 5px; background: var(--surface-2); position: relative; height: 100%; border-radius: 1px; }
+.minitraits span i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink-2); border-radius: 1px; }
+.stack { display: inline-flex; width: 52px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--surface-2); flex: none; }
+.mark { display: inline-block; width: 7px; height: 7px; margin-inline-end: 4px; }
+.popspark { display: block; width: 72px; height: 20px; flex: none; }
+
+/* The explanation: definitions, grouped, searchable. */
+#tab-explain { min-width: 0; }
+.explain { display: grid; gap: 14px; }
+.explain-toc { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--step--1); }
+.explain-toc a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.explain-toc a:hover { text-decoration-color: var(--ink-2); }
+.explain section { display: grid; gap: 8px; scroll-margin-top: 12px; }
+.explain h2 { font-size: var(--step-0); letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.explain .lede { font-size: var(--step--1); color: var(--ink-2); max-width: 70ch; margin: 0; }
+.gloss { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr); gap: 8px 18px; margin: 0; font-size: var(--step--1); }
+@media (max-width: 640px) { .gloss { grid-template-columns: minmax(0, 1fr); gap: 2px; } .gloss dd { margin-bottom: 8px; } }
+.gloss dt { font-weight: 600; min-width: 0; }
+.gloss dt code, .xtable code { display: block; font-family: var(--font-data); font-size: var(--step--2); font-weight: 400; color: var(--muted); overflow-wrap: anywhere; }
+.gloss dd { margin: 0; min-width: 0; max-width: 72ch; }
+.gloss .range, .xtable .range { display: block; color: var(--muted); font-size: var(--step--2); font-family: var(--font-data); margin-top: 2px; }
+.verify { font-family: var(--font-data); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; color: var(--muted); }
+.xwrap { overflow-x: auto; }
+.xtable { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.xtable th { font-family: var(--font-data); font-size: var(--step--2); font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; text-align: left; padding: 0 8px 6px 0; border-bottom: 1px solid var(--line); }
+.xtable td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.xtable td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xtable tr.changed td.num { color: var(--accent); font-weight: 600; }
 
 /* Inspector and log. */
 .inspector { padding: 18px; display: grid; gap: 14px; }
@@ -227,9 +317,9 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .feed .filters { display: flex; flex-wrap: wrap; gap: 5px; }
 .feed .filters button { font-size: var(--step--1); padding: 3px 9px; }
 .feedlist { max-height: 44vh; overflow-y: auto; display: grid; gap: 0; font-size: var(--step--1); border-top: 1px solid var(--line); padding-top: 6px; }
-.feedlist .row { grid-template-columns: 4.8rem minmax(0, 1fr); border-bottom: 1px solid rgba(186, 178, 164, 0.4); border-radius: 0; }
+.feedlist .row { grid-template-columns: 4.8rem minmax(0, 1fr); border-bottom: 1px solid var(--rule); border-radius: 0; }
 .empty { padding: 24px; display: grid; gap: 10px; justify-items: start; }
-.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--screen); color: var(--surface-hi); border-radius: 6px; padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
+.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
 .tooltip strong { font-family: var(--font-data); }
 .drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
 .note { font-size: var(--step--1); color: var(--ink-2); max-width: 65ch; margin: 0; }
@@ -237,21 +327,32 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 </style>
 
 <div class="app" id="app">
-  <header class="masthead marks">
+  <div class="topline">
     <div class="brand">
       <h1>Under Glass</h1>
       <div class="run" id="runLabel">No run loaded</div>
       <button id="openBtn" class="link" type="button">Open a run…</button>
       <input type="file" id="fileInput" accept=".json,application/json" hidden>
     </div>
-    <div class="screen" aria-live="off">
-      <div class="date" id="clockDate">–</div>
-      <div class="time" id="clockTime"><span id="clockH">--</span><span class="colon">:</span><span id="clockM">--</span></div>
+    <button id="themeBtn" class="theme led" aria-pressed="false" title="Switch between the light and the dark look">Dark mode</button>
+  </div>
+  <header class="masthead marks">
+    <div class="townview" id="townview">
+      <canvas id="townmap" aria-label="The whole town: everyone where they are, and where things are happening. Scroll to zoom, drag to pan."></canvas>
+      <div class="mapkeys" role="group" aria-label="Zoom">
+        <button id="zoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+        <button id="zoomOut" title="Zoom out (−)" aria-label="Zoom out">−</button>
+        <button id="zoomFit" title="Show the whole town (0)">Fit</button>
+      </div>
     </div>
     <div class="timeline" role="group" aria-label="Timeline">
       <canvas id="strip" height="34"></canvas>
       <input type="range" id="scrub" min="0" max="0" value="0" step="5" aria-label="Time in the run">
       <div class="deck">
+        <div class="screen" aria-live="off">
+          <div class="date" id="clockDate">–</div>
+          <div class="time" id="clockTime"><span id="clockH">--</span><span class="colon">:</span><span id="clockM">--</span></div>
+        </div>
         <div class="transport" role="group" aria-label="Playback">
           <button id="backDay" title="Back a day ([)" aria-label="Back a day">−1d</button>
           <button id="backHour" title="Back an hour (Shift+←)" aria-label="Back an hour">−1h</button>
@@ -273,7 +374,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
           <span class="key"><b style="background: var(--ink)"></b>scandal</span>
         </div>
       </div>
-      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day</div>
+      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day · scroll on the town to zoom, drag to pan</div>
     </div>
   </header>
 
@@ -281,12 +382,24 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
     <section class="stage card">
       <nav class="tabs" role="tablist" aria-label="Views">
         <button role="tab" id="tab-town-btn" aria-selected="true" aria-pressed="true" data-tab="town">Town</button>
+        <button role="tab" id="tab-people-btn" aria-selected="false" aria-pressed="false" data-tab="people">Population</button>
         <button role="tab" id="tab-rel-btn" aria-selected="false" aria-pressed="false" data-tab="rel">Relationships</button>
         <button role="tab" id="tab-stories-btn" aria-selected="false" aria-pressed="false" data-tab="stories">Stories</button>
+        <button role="tab" id="tab-explain-btn" aria-selected="false" aria-pressed="false" data-tab="explain">Explanation</button>
       </nav>
 
       <div id="tab-town" role="tabpanel" aria-labelledby="tab-town-btn">
         <div class="groups" id="groups"></div>
+      </div>
+
+      <div id="tab-people" role="tabpanel" aria-labelledby="tab-people-btn" hidden>
+        <div class="popfacts" id="popFacts"></div>
+        <div class="controls">
+          <label>Sort by <select id="popSort"></select></label>
+          <button id="popDir" title="Reverse the order">A to Z</button>
+          <span class="muted" id="popLegend"></span>
+        </div>
+        <div class="popwrap"><table class="poptable" id="popTable"></table></div>
       </div>
 
       <div id="tab-rel" role="tabpanel" aria-labelledby="tab-rel-btn" hidden>
@@ -314,6 +427,15 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
               <div class="list" id="ties"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div id="tab-explain" role="tabpanel" aria-labelledby="tab-explain-btn" hidden>
+        <div class="explain">
+          <p class="note">What the numbers and words in this viewer mean, as the simulator uses them. The settings show this run's values. Definitions marked <span class="verify">verify</span> could not be settled from the code alone.</p>
+          <div class="controls"><input type="search" id="explainSearch" placeholder="Find a word or setting" aria-label="Find a word or setting"> <span class="muted" id="explainCount"></span></div>
+          <nav class="explain-toc" id="explainToc" aria-label="Sections"></nav>
+          <div id="explainBody"></div>
         </div>
       </div>
 
@@ -420,7 +542,7 @@ const hideTip = () => { tip.hidden = true; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
-const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1,
+const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, popSort: "household", popHigh: false,
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
 const VERB = {
@@ -482,9 +604,14 @@ function load(run) {
   for (const t of run.tellings) { if (!m.tellsByAct.has(t[3])) m.tellsByAct.set(t[3], []); m.tellsByAct.get(t[3]).push(t); }
   m.reach = new Map(); // act -> number of people who came to hold it
   for (const [act, rows] of m.beliefsByAct) m.reach.set(act, new Set(rows.map((r) => r[1])).size);
-  // Acts touching each person.
-  m.actsOf = names.map(() => []);
-  for (const a of m.acts) { m.actsOf[a.actor].push(a); if (a.target >= 0 && a.target !== a.actor) m.actsOf[a.target].push(a); }
+  // Acts touching each person, and acts by each.
+  m.actsOf = names.map(() => []); m.actsBy = names.map(() => []);
+  for (const a of m.acts) { m.actsOf[a.actor].push(a); m.actsBy[a.actor].push(a); if (a.target >= 0 && a.target !== a.actor) m.actsOf[a.target].push(a); }
+  // When each person first came to hold each story, and when each told one, in time order.
+  m.knownAt = names.map(() => []); m.toldAt = names.map(() => []);
+  const firstHeld = new Set();
+  for (const b of run.beliefs) { const k = b[1] * 100000 + b[2]; if (b[1] >= 0 && !firstHeld.has(k)) { firstHeld.add(k); m.knownAt[b[1]].push(b[0]); } }
+  for (const t of run.tellings) if (t[1] >= 0) m.toldAt[t[1]].push(t[0]);
   // The log, with each line's kind of thing and the people it names.
   const nameIndex = new Map(names.map((x, i) => [x, i]));
   const CAT = { act: "acts", regard: "feelings", sentiment: "feelings", reconciled: "feelings", tone: "feelings", mark: "feelings",
@@ -572,19 +699,22 @@ function setPlaying(on) {
 }
 
 // ---- rendering ------------------------------------------------------------------------------
-let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "";
+let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "", lastPopKey = "";
 function render() {
   if (!R) return;
   const t = S.t;
   $("clockDate").textContent = dateOf(t);
   const [hh, mm] = hm(t).split(":"); $("clockH").textContent = hh; $("clockM").textContent = mm;
   drawStrip();
+  drawTownMap();
   if (S.tab === "town") drawTown();
   // The panels below are slower to draw than the map: while playing they redraw every 30 game
   // minutes (the log every 5); paused or stepped, at every minute, so they always match the clock.
   const slow = Math.floor(t / (S.playing ? 30 : 1)), minute = Math.floor(t / (S.playing ? 5 : 1));
   const relKey = `${S.tab}|${slow}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}`;
   if (S.tab === "rel" && relKey !== lastRelKey) { lastRelKey = relKey; drawRelationships(); }
+  const popKey = `${S.tab}|${slow}|${S.person}|${S.popSort}|${S.popHigh}`;
+  if (S.tab === "people" && popKey !== lastPopKey) { lastPopKey = popKey; drawPopulation(); }
   const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}`;
   if (S.tab === "stories" && storyKey !== lastStoryKey) { lastStoryKey = storyKey; drawStories(); }
   const sideKey = `${S.person}|${slow}`;
@@ -780,8 +910,8 @@ function panelHit(panel, e) {
   for (const d of panel.dots) { const dd = (d.cx - sx) ** 2 + (d.cy - sy) ** 2; if (dd < bd) { bd = dd; best = d.i; } }
   return best;
 }
-function panelHover(panel, e) {
-  const i = panelHit(panel, e);
+function panelHover(panel, e, who) {
+  const i = who ?? panelHit(panel, e);
   if (i < 0) { hideTip(); return; }
   const q = where(i, S.t), parts = [el("div", null, el("strong", { text: R.names[i] }), q.asleep ? " · asleep" : "")];
   if (R.feelings) parts.push(`mood ${sgn(moodAt(i, S.t))} · power ${powerAt(i, S.t).toFixed(2)}`);
@@ -789,6 +919,249 @@ function panelHover(panel, e) {
   if (a) parts.push(R.actText(a));
   showTip(e, parts);
 }
+
+// ---- the whole town ---------------------------------------------------------------------------
+// Places are tile maps joined by doors; the run has no positions for them in one plan. So the plan
+// is stitched from the doors: the largest place out of doors sits in the middle, and each place is
+// hung outside the door that leads to it, centred on that door, two tiles off. Roads always run
+// across, so the town spreads wide like the frame: one leaving a side runs outward, one leaving the
+// top or the bottom runs away from the middle, and what hangs on a road follows it. A place that
+// would overlap another goes to the nearest free spot. Streets join each pair of doors at right angles.
+let TOWN = null; // { at: per place {X, Y, W, H, rot}, links: [[x1, y1, x2, y2]], minX, minY, w, h }
+const ROT = [ // local (x, y) in a w x h map to the plan, by quarter turns clockwise; and a direction
+  { pt: (x, y) => [x, y], dir: (dx, dy) => [dx, dy], size: (w, h) => [w, h] },
+  { pt: (x, y, w, h) => [h - 1 - y, x], dir: (dx, dy) => [-dy, dx], size: (w, h) => [h, w] },
+  { pt: (x, y, w, h) => [w - 1 - x, h - 1 - y], dir: (dx, dy) => [-dx, -dy], size: (w, h) => [w, h] },
+  { pt: (x, y, w) => [y, w - 1 - x], dir: (dx, dy) => [dy, -dx], size: (w, h) => [h, w] },
+];
+function sideOf(p, x, y) { return x === 0 ? [-1, 0] : x === p.w - 1 ? [1, 0] : y === 0 ? [0, -1] : y === p.h - 1 ? [0, 1] : [0, 1]; }
+function planPoint(a, p, x, y) { const [px, py] = ROT[a.rot].pt(x, y, p.w, p.h); return [a.X + px, a.Y + py]; }
+function layoutTownPlan() {
+  const P = R.places, at = P.map(() => null), GAP = 2, M = 1;
+  const outdoor = P.filter((p) => p.group === "outdoors");
+  const root = (outdoor.length ? outdoor : P).reduce((m, p) => (p.w * p.h > m.w * m.h ? p : m));
+  at[root.i] = { X: 0, Y: 0, W: root.w, H: root.h, rot: 0 };
+  const adj = P.map(() => []);
+  for (const l of R.run.links) { adj[l[0]].push([l[1], l[2], l[3], l[4], l[5]]); adj[l[3]].push([l[4], l[5], l[0], l[1], l[2]]); }
+  const overlaps = (r) => at.some((o) => o && r.X < o.X + o.W + M && o.X < r.X + r.W + M && r.Y < o.Y + o.H + M && o.Y < r.Y + r.H + M);
+  const links = [], queue = [root.i];
+  while (queue.length) {
+    const pi = queue.shift(), p = P[pi], a = at[pi];
+    for (const [fx, fy, qi, tx, ty] of adj[pi]) {
+      if (at[qi]) continue;
+      const q = P[qi], [lx, ly] = sideOf(p, fx, fy), [dx, dy] = ROT[a.rot].dir(lx, ly), [px, py] = planPoint(a, p, fx, fy);
+      let rot = 0, X, Y;
+      const road = q.group === "road" && (tx === 0 || tx === q.w - 1);
+      if (road) {
+        // Across, its door end toward the door it hangs from: outward from a side; away from the
+        // middle of the place from its top or bottom.
+        const runs = dx !== 0 ? dx : (px >= a.X + a.W / 2 ? 1 : -1);
+        rot = (tx === 0) === (runs > 0) ? 0 : 2;
+        const [ox, oy] = ROT[rot].pt(tx, ty, q.w, q.h);
+        X = dx !== 0 ? px + dx * (1 + GAP) - ox : px - ox;
+        Y = dy !== 0 ? py + dy * (1 + GAP) - oy + (dy > 0 ? 0 : 0) : py - oy;
+      } else {
+        const [W0, H0] = [q.w, q.h];
+        X = dx > 0 ? px + 1 + GAP : dx < 0 ? px - GAP - W0 : px - Math.floor(W0 / 2);
+        Y = dy > 0 ? py + 1 + GAP : dy < 0 ? py - GAP - H0 : py - Math.floor(H0 / 2);
+      }
+      const [W, H] = ROT[rot].size(q.w, q.h);
+      // The nearest free spot: moving along the side costs a tile a tile, moving farther out more.
+      let r = null, best = Infinity;
+      for (let out = 0; out <= 60; out++) for (let slide = -50; slide <= 50; slide++) {
+        const cost = Math.abs(slide) + out * 1.5;
+        if (cost >= best) continue;
+        const c = { X: X + dx * out + (dx === 0 ? slide : 0), Y: Y + dy * out + (dy === 0 ? slide : 0) + (dx !== 0 ? 0 : 0), W, H, rot };
+        if (dx !== 0) c.Y = Y + slide; else c.X = X + slide;
+        if (!overlaps(c)) { r = c; best = cost; }
+      }
+      at[qi] = r ?? { X, Y, W, H, rot };
+      const [qx, qy] = planPoint(at[qi], q, tx, ty);
+      links.push([px + 0.5, py + 0.5, qx + 0.5, qy + 0.5, dx !== 0]);
+      queue.push(qi);
+    }
+  }
+  // Anything not reached by a door goes in a row underneath.
+  let maxY = Math.max(...at.filter(Boolean).map((r) => r.Y + r.H)), x0 = Math.min(...at.filter(Boolean).map((r) => r.X));
+  for (const p of P) if (!at[p.i]) { at[p.i] = { X: x0, Y: maxY + GAP * 2, W: p.w, H: p.h, rot: 0 }; x0 += p.w + GAP * 2; }
+  const minX = Math.min(...at.map((r) => r.X)), minY = Math.min(...at.map((r) => r.Y));
+  const maxX = Math.max(...at.map((r) => r.X + r.W)); maxY = Math.max(...at.map((r) => r.Y + r.H));
+  TOWN = { at, links, minX: minX - 1, minY: minY - 1, w: maxX - minX + 2, h: maxY - minY + 2, scale: 0, cssW: 0, back: null };
+}
+const VIEW = { k: 1, x: 0, y: 0 }; // zoom and pan of the plan, in canvas pixels; 1, 0, 0 shows it all
+const TX = (x) => (TOWN.offX + (x - TOWN.minX) * TOWN.scale) * VIEW.k + VIEW.x;
+const TY = (y) => (TOWN.offY + (y - TOWN.minY) * TOWN.scale) * VIEW.k + VIEW.y;
+/** Keeps some of the town in sight; at full view it sits where it was fitted. */
+function clampView() {
+  if (VIEW.k <= 1) { VIEW.k = 1; VIEW.x = 0; VIEW.y = 0; }
+  else {
+    const keep = 80, W = TOWN.cssW, H = TOWN.cssH, l = TOWN.offX * VIEW.k, r = (TOWN.offX + TOWN.w * TOWN.scale) * VIEW.k;
+    const t = TOWN.offY * VIEW.k, b = (TOWN.offY + TOWN.h * TOWN.scale) * VIEW.k;
+    VIEW.x = clamp(VIEW.x, keep - r, W - keep - l); VIEW.y = clamp(VIEW.y, keep - b, H - keep - t);
+  }
+  const c = $("townmap"); c.classList.toggle("zoomed", VIEW.k > 1);
+  TOWN.back = null;
+}
+/** Zooms by a factor about a point on the canvas (in CSS pixels), the point staying put. */
+function zoomAt(f, mx, my) {
+  if (!TOWN) return;
+  const k = clamp(VIEW.k * f, 1, 12);
+  VIEW.x = mx - (mx - VIEW.x) * (k / VIEW.k); VIEW.y = my - (my - VIEW.y) * (k / VIEW.k); VIEW.k = k;
+  clampView(); drawTownMap();
+}
+function sizeTownMap() {
+  const c = $("townmap"), W = $("townview").clientWidth;
+  if (!W || !TOWN) return false;
+  const h = clamp(Math.round(W * TOWN.h / TOWN.w), 220, 460), scale = Math.min(W / TOWN.w, h / TOWN.h);
+  if (W === TOWN.cssW && TOWN.scale === scale) return true;
+  const dpr = window.devicePixelRatio || 1;
+  TOWN.cssW = W; TOWN.cssH = h; TOWN.scale = scale; TOWN.back = null; VIEW.k = 1; clampView();
+  TOWN.offX = (W - TOWN.w * scale) / 2; TOWN.offY = (h - TOWN.h * scale) / 2;
+  c.width = Math.round(W * dpr); c.height = Math.round(h * dpr); c.style.height = h + "px";
+  return true;
+}
+/** The plan point (in tiles) of a person's tile in a place, as pixels on the canvas. */
+function townPx(placeIdx, x, y) {
+  const a = TOWN.at[placeIdx], p = R.places[placeIdx], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h);
+  return [TX(a.X + px + 0.5), TY(a.Y + py + 0.5)];
+}
+function paintTownBack() {
+  const dpr = window.devicePixelRatio || 1, s = TOWN.scale * VIEW.k, off = document.createElement("canvas");
+  off.width = Math.round(TOWN.cssW * dpr); off.height = Math.round(TOWN.cssH * dpr);
+  const g = off.getContext("2d"); g.scale(dpr, dpr);
+  const X = TX, Y = TY;
+  // The ways between doors, as streets: out from the first door, across, and in to the second.
+  g.strokeStyle = COL.fence; g.lineWidth = Math.max(1, s * 0.5); g.lineCap = "square"; g.lineJoin = "miter";
+  for (const [x1, y1, x2, y2, across] of TOWN.links) {
+    g.beginPath(); g.moveTo(X(x1), Y(y1));
+    if (across) { const xm = (x1 + x2) / 2; g.lineTo(X(xm), Y(y1)); g.lineTo(X(xm), Y(y2)); }
+    else { const ym = (y1 + y2) / 2; g.lineTo(X(x1), Y(ym)); g.lineTo(X(x2), Y(ym)); }
+    g.lineTo(X(x2), Y(y2)); g.stroke();
+  }
+  const labels = [];
+  for (const p of R.places) {
+    const a = TOWN.at[p.i];
+    g.fillStyle = COL["surface-hi"]; g.fillRect(X(a.X), Y(a.Y), a.W * s, a.H * s);
+    for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+      const c = p.rows[y][x], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h), cx = X(a.X + px), cy = Y(a.Y + py);
+      g.fillStyle = c === "#" ? COL.wall : c === "+" ? COL.fence : COL["surface-2"];
+      if (c === "#" || s < 4) g.fillRect(cx, cy, s + 0.02, s + 0.02); else g.fillRect(cx, cy, s - 0.6, s - 0.6);
+    }
+  }
+  // Names last, each on a patch of the ground so nothing drawn later hides it; largest places
+  // first, and a name that would cover another is left out (hover still names the place).
+  const fs = Math.max(8, Math.min(12, s * 1.3));
+  g.font = `500 ${fs}px ${css("--font-data")}`; g.textBaseline = "middle";
+  for (const p of R.places.slice().sort((x, y) => y.w * y.h - x.w * x.h)) {
+    const a = TOWN.at[p.i], name = (p.name.startsWith("Home:") ? p.name.slice(5) : p.name).replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase();
+    const lw = g.measureText(name).width, lr = { x: X(a.X) + 3, y: Y(a.Y) + 3, w: lw + 6, h: fs + 4 };
+    if (lr.w > a.W * s + 24 || lr.x + lr.w > TOWN.cssW || labels.some((o) => lr.x < o.x + o.w && o.x < lr.x + lr.w && lr.y < o.y + o.h && o.y < lr.y + lr.h)) continue;
+    labels.push(lr);
+    g.fillStyle = COL.bg; g.globalAlpha = 0.85; g.fillRect(lr.x, lr.y, lr.w, lr.h); g.globalAlpha = 1;
+    g.fillStyle = COL["ink-2"]; g.fillText(name, lr.x + 3, lr.y + lr.h / 2 + 0.5);
+  }
+  TOWN.back = off;
+}
+function drawTownMap() {
+  if (!TOWN || !sizeTownMap()) return;
+  if (!TOWN.back) paintTownBack();
+  const t = S.t, c = $("townmap"), g = c.getContext("2d"), dpr = window.devicePixelRatio || 1, s = TOWN.scale * VIEW.k;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(TOWN.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Where things have happened in the last two hours: each place glows by how much, fading as it ages.
+  const heat = new Float64Array(R.places.length);
+  for (let k = upperBound(R.acts, t, (a) => a.tick) - 1; k >= 0 && R.acts[k].tick > t - 120; k--) {
+    const a = R.acts[k]; heat[a.place] += t < a.end ? 1 : 1 - (t - a.end) / 120;
+  }
+  for (const p of R.places) if (heat[p.i] > 0.01) {
+    const a = TOWN.at[p.i], x = TX(a.X), y = TY(a.Y), f = Math.min(1, heat[p.i]);
+    g.fillStyle = COL.accent; g.globalAlpha = 0.06 + 0.12 * f; g.fillRect(x, y, a.W * s, a.H * s);
+    g.globalAlpha = 0.35 + 0.65 * f; g.strokeStyle = COL.accent; g.lineWidth = 2; g.strokeRect(x - 1.5, y - 1.5, a.W * s + 3, a.H * s + 3); g.globalAlpha = 1;
+  }
+  // Gathering spots that are on.
+  g.setLineDash([3, 3]);
+  for (const hub of R.run.hubs) if (hubOn(hub, t)) {
+    const [cx, cy] = townPx(hub.place, hub.x, hub.y);
+    g.fillStyle = COL.hub; g.strokeStyle = COL["hub-ring"]; g.lineWidth = 1;
+    g.beginPath(); g.arc(cx, cy, (hub.radius + 0.5) * s, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+  g.setLineDash([]);
+  // Acts as they happen: a ring that widens and fades over the next hour.
+  for (let k = upperBound(R.acts, t, (a) => a.tick) - 1; k >= 0 && R.acts[k].tick > t - 60; k--) {
+    const a = R.acts[k], kd = R.kinds[a.kind], age = (t - a.tick) / 60, [cx, cy] = townPx(a.place, a.x, a.y);
+    const big = kd.tier === "Scandal" || kd.tier === "Upheaval";
+    g.strokeStyle = kd.joy > 0 ? COL.like : kd.joy < 0 || kd.valence < 0 ? COL.dislike : COL["ink-2"];
+    g.globalAlpha = 1 - age; g.lineWidth = big ? 2.5 : 1.75;
+    g.beginPath(); g.arc(cx, cy, s * (1 + age * (big ? 5 : 3)), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+  }
+  // Everyone.
+  TOWN.dots = [];
+  const r = clamp(s * 0.45, 2, 9);
+  for (let i = 0; i < R.n; i++) {
+    const q = where(i, t), [cx, cy] = townPx(q.place, q.x, q.y);
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
+    if (q.asleep) { g.strokeStyle = COL.muted; g.lineWidth = 1; g.stroke(); }
+    else { g.fillStyle = R.feelings ? moodColour(moodAt(i, t)) : COL["ink-2"]; g.fill(); }
+    if (i === S.person) { g.beginPath(); g.arc(cx, cy, r + 2.5, 0, Math.PI * 2); g.strokeStyle = COL.accent; g.lineWidth = 2; g.stroke(); }
+    TOWN.dots.push({ i, cx, cy });
+  }
+}
+function townMapHit(e) {
+  const rect = $("townmap").getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+  let best = -1, bd = Math.max(8, TOWN.scale * VIEW.k * 1.2) ** 2;
+  for (const d of TOWN.dots ?? []) { const dd = (d.cx - x) ** 2 + (d.cy - y) ** 2; if (dd < bd) { bd = dd; best = d.i; } }
+  const s = TOWN.scale * VIEW.k, place = R.places.find((p) => { const a = TOWN.at[p.i], px = TX(a.X), py = TY(a.Y); return x >= px && x <= px + a.W * s && y >= py && y <= py + a.H * s; });
+  return { person: best, place };
+}
+const drag = { pointers: new Map(), moved: false, last: null, pinch: 0 };
+$("townmap").addEventListener("wheel", (e) => {
+  if (!R || !TOWN) return;
+  if (VIEW.k <= 1 && e.deltaY > 0 && !e.ctrlKey) return; // zoomed all the way out: let the page scroll on
+  e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+$("townmap").addEventListener("pointerdown", (e) => {
+  if (!R || !TOWN) return;
+  drag.pointers.set(e.pointerId, [e.clientX, e.clientY]); drag.moved = false; drag.last = [e.clientX, e.clientY];
+  if (drag.pointers.size === 2) { const [a, b] = [...drag.pointers.values()]; drag.pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
+});
+$("townmap").addEventListener("pointermove", (e) => {
+  if (!drag.pointers.has(e.pointerId)) return;
+  const prev = drag.pointers.get(e.pointerId); drag.pointers.set(e.pointerId, [e.clientX, e.clientY]);
+  if (drag.pointers.size === 2) { // pinch about the middle of the two fingers
+    const [a, b] = [...drag.pointers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = e.currentTarget.getBoundingClientRect();
+    if (drag.pinch > 0) zoomAt(d / drag.pinch, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top);
+    drag.pinch = d; drag.moved = true; return;
+  }
+  if (!drag.moved && Math.hypot(e.clientX - drag.last[0], e.clientY - drag.last[1]) < 4) return;
+  if (!drag.moved) { drag.moved = true; if (VIEW.k > 1) e.currentTarget.setPointerCapture(e.pointerId); }
+  if (VIEW.k <= 1) return;
+  e.currentTarget.classList.add("dragging"); hideTip();
+  VIEW.x += e.clientX - prev[0]; VIEW.y += e.clientY - prev[1]; clampView(); drawTownMap();
+});
+const endDrag = (e) => { drag.pointers.delete(e.pointerId); if (drag.pointers.size < 2) drag.pinch = 0; e.currentTarget.classList.remove("dragging"); };
+$("townmap").addEventListener("pointerup", endDrag);
+$("townmap").addEventListener("pointercancel", endDrag);
+$("zoomIn").addEventListener("click", () => TOWN && zoomAt(1.6, TOWN.cssW / 2, TOWN.cssH / 2));
+$("zoomOut").addEventListener("click", () => TOWN && zoomAt(1 / 1.6, TOWN.cssW / 2, TOWN.cssH / 2));
+$("zoomFit").addEventListener("click", () => { if (!TOWN) return; VIEW.k = 1; clampView(); drawTownMap(); });
+$("townmap").addEventListener("mousemove", (e) => {
+  if (!R || !TOWN || e.currentTarget.classList.contains("dragging")) return;
+  const { person, place } = townMapHit(e);
+  if (person >= 0) { panelHover({ canvas: { getBoundingClientRect: () => ({}) } }, e, person); return; }
+  if (!place) { hideTip(); return; }
+  const here = R.names.map((_, i) => i).filter((i) => where(i, S.t).place === place.i);
+  const now = R.acts.filter((a) => a.place === place.i && a.tick <= S.t && S.t < a.end);
+  showTip(e, [el("div", null, el("strong", { text: placeName(place.name) })), here.length ? here.map((i) => R.names[i]).join(", ") : "nobody here", ...now.map((a) => R.actText(a))]);
+});
+$("townmap").addEventListener("mouseleave", hideTip);
+$("townmap").addEventListener("click", (e) => {
+  if (!R || !TOWN) return;
+  if (drag.moved) { drag.moved = false; return; } // the end of a drag, not a click
+  const { person, place } = townMapHit(e);
+  if (person >= 0) { selectPerson(person); return; }
+  if (place) { if (S.tab !== "town") showTab("town"); const panel = panels.find((x) => x.p.i === place.i); panel?.node.scrollIntoView({ behavior: "smooth", block: "center" }); }
+});
 
 // ---- relationships ----------------------------------------------------------------------------
 function pairValue(i, j, t) {
@@ -1021,6 +1394,217 @@ function drawStory() {
     ...(track.length ? [el("h3", { text: "The mayor and the constable" }), el("div", { class: "list" }, track.map(([t, text]) => el("div", { class: "row", onclick: () => setTime(t) }, el("span", { class: "when", text: when(t) }), text)))] : [])));
 }
 
+// ---- the population ---------------------------------------------------------------------------
+// Everyone at once: who they are, their character, how they are at the clock, how the town
+// regards them and how they regard it, what they have done and heard so far, their ties, and
+// their stance over the whole run. Sorted by any column; a row selects that person.
+const traitLabel = (nm) => nm.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+function popSorts() {
+  const sorts = [["household", "household", (c) => c.order, false], ["name", "name", (c) => R.names[c.i], false], ["age", "age", (c) => R.people[c.i].age, true],
+    ["where", "where they are", (c) => c.placeName, false], ["mood", "mood", (c) => c.mood, true], ["power", "power of acting", (c) => c.power, true],
+    ["stance", "stance", (c) => c.stance, true], ["liked", "liked by", (c) => c.likedBy, true], ["likes", "likes others", (c) => c.likes, true],
+    ["acts", "acts so far", (c) => c.acts, true], ["hostile", "hostile acts", (c) => c.hostile, true], ["stories", "stories known", (c) => c.known, true],
+    ["told", "stories told", (c) => c.told, true], ["ties", "feuds", (c) => c.feuds * 100 + c.friends, true]];
+  R.run.traitNames.forEach((nm, k) => sorts.push(["trait" + k, traitLabel(nm), (c) => R.people[c.i].character[k], true]));
+  return sorts;
+}
+function buildPopulationControls() {
+  const sel = $("popSort");
+  sel.replaceChildren(...popSorts().map(([k, label]) => el("option", { value: k, text: label, selected: k === S.popSort })));
+  $("popLegend").textContent = "Character bars, left to right: " + R.run.traitNames.map(traitLabel).join(", ") + ".";
+}
+function popRow(i, t, order) {
+  const q = where(i, t), n = R.n;
+  let given = 0, got = 0, likers = 0, dislikers = 0;
+  if (R.feelings) for (let j = 0; j < n; j++) if (j !== i) {
+    const a = regardAt(i, j, t), b = regardAt(j, i, t); given += a; got += b;
+    if (b >= 0.3) likers++; else if (b <= -0.2) dislikers++;
+  }
+  let kind = 0, hostile = 0, other = 0;
+  for (const a of R.actsBy[i]) { if (a.tick > t) break; const k = R.kinds[a.kind]; if (k.joy > 0) kind++; else if (k.joy < 0 || k.valence < 0) hostile++; else other++; }
+  let feuds = 0, friends = 0;
+  for (const x of R.ties) if (x.tick <= t && (x.a === i || x.b === i)) { if (x.what === "feud" || x.what === "kin-feud") feuds++; else if (x.what === "friendship") friends++; }
+  return { i, order: order.get(i), placeName: placeName(R.places[q.place].name), home: R.places[q.place].name === "Home:" + R.people[i].household, asleep: q.asleep,
+    mood: R.feelings ? moodAt(i, t) : 0, power: R.feelings ? powerAt(i, t) : 0, stance: stanceAt(i, t),
+    likedBy: got / Math.max(1, n - 1), likes: given / Math.max(1, n - 1), likers, dislikers,
+    kind, hostile, other, acts: kind + hostile + other, known: upperBound(R.knownAt[i], t), told: upperBound(R.toldAt[i], t), feuds, friends };
+}
+/** A small bar: one-sided from the left, or two-sided from the middle (|value| at full reaches the end). */
+function cellBar(value, full, twoSided, colour, text) {
+  const b = el("span", { class: "pbar" + (twoSided ? " two" : "") }), fill = el("i");
+  const f = clamp(value / full, twoSided ? -1 : 0, 1);
+  fill.style.left = twoSided ? `${f < 0 ? 50 + f * 50 : 50}%` : "0";
+  fill.style.width = `${Math.abs(f) * (twoSided ? 50 : 100)}%`;
+  fill.style.background = colour;
+  b.append(fill);
+  return el("span", { class: "cellbar" }, b, el("span", { text }));
+}
+function popSpark(values, now) {
+  const NS = "http://www.w3.org/2000/svg", w = 90, h = 20, svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("class", "popspark"); svg.setAttribute("preserveAspectRatio", "none");
+  const X = (k) => (k / Math.max(1, values.length - 1)) * w, Y = (v) => h / 2 - clamp(v, -1, 1) * (h / 2 - 1);
+  const add = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); svg.append(e); return e; };
+  add("line", { x1: 0, x2: w, y1: h / 2, y2: h / 2, stroke: COL.line, "stroke-width": 1, "vector-effect": "non-scaling-stroke" });
+  add("polyline", { points: values.map((v, k) => `${X(k)},${Y(v)}`).join(" "), fill: "none", stroke: COL["ink-2"], "stroke-width": 1.5, "vector-effect": "non-scaling-stroke", "stroke-linejoin": "round" });
+  const k = clamp(now, 0, values.length - 1);
+  add("line", { x1: X(k), x2: X(k), y1: 0, y2: h, stroke: COL.accent, "stroke-width": 1.5, "vector-effect": "non-scaling-stroke" });
+  return svg;
+}
+function drawPopulation() {
+  const t = S.t, order = new Map(R.order.map((i, k) => [i, k]));
+  const rows = R.names.map((_, i) => popRow(i, t, order));
+  const sorts = popSorts(), [, , key] = sorts.find((x) => x[0] === S.popSort) ?? sorts[0];
+  const dir = S.popHigh ? -1 : 1;
+  rows.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === "string" ? x.localeCompare(y) : x - y) * dir || a.order - b.order; });
+
+  // The town in a line: who is lowest and highest on each measure, now.
+  const best = (f, hi) => rows.reduce((m, r) => (m === null || (hi ? f(r) > f(m) : f(r) < f(m)) ? r : m), null);
+  const fact = (label, r, f, fmt) => el("div", null, el("span", { class: "label", text: label }), el("b", { text: r ? `${R.names[r.i]} ${fmt(f(r))}` : "–" }));
+  const households = new Set(R.people.map((p) => p.household)).size, awake = rows.filter((r) => !r.asleep).length;
+  $("popFacts").replaceChildren(
+    el("div", null, el("span", { class: "label", text: "People" }), el("b", { text: `${R.n} in ${households} households, ${awake} awake` })),
+    ...(R.feelings ? [fact("Lowest mood", best((r) => r.mood, false), (r) => r.mood, sgn), fact("Highest mood", best((r) => r.mood, true), (r) => r.mood, sgn),
+      fact("Most withdrawn", best((r) => r.stance, false), (r) => r.stance, sgn), fact("Most combative", best((r) => r.stance, true), (r) => r.stance, sgn),
+      fact("Best liked", best((r) => r.likedBy, true), (r) => r.likedBy, sgn), fact("Least liked", best((r) => r.likedBy, false), (r) => r.likedBy, sgn)] : []),
+    fact("Most active", best((r) => r.acts, true), (r) => r.acts, (v) => `${v} acts`));
+
+  // The table.
+  const maxActs = Math.max(1, ...rows.map((r) => r.acts)), day = Math.floor(t / 1440), sinceNight = day - 1 + (t % 1440) / 1440;
+  const cols = [["name", "Person"], ["where", "Now"], [null, "Character"], ["mood", "Mood"], ["power", "Power"], ["stance", "Stance", "over the run"],
+    ["liked", "Regard", "by them · of them"], ["acts", "Acts", "so far"], ["stories", "Stories", "known · told"], ["ties", "Ties"]];
+  const head = el("tr", null, cols.map(([k, label, sub]) => {
+    const th = el("th", { scope: "col" });
+    if (!k) th.append(label);
+    else {
+      if (k === S.popSort) th.setAttribute("aria-sort", S.popHigh ? "descending" : "ascending");
+      th.append(el("button", { text: label, onclick: () => { if (S.popSort === k) S.popHigh = !S.popHigh; else { S.popSort = k; S.popHigh = !TEXT_SORTS.includes(k); } syncPopControls(); render(); } }));
+    }
+    if (sub) th.append(el("span", { class: "sub", text: sub }));
+    return th;
+  }));
+  const body = rows.map((r) => {
+    const p = R.people[r.i], tr = el("tr", { class: r.i === S.person ? "sel" : "", tabindex: 0, onclick: () => selectPerson(r.i),
+      onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectPerson(r.i); } } });
+    const dot = el("span", { class: "dot" }); dot.style.background = R.feelings ? moodColour(r.mood) : COL["ink-2"];
+    const traits = el("span", { class: "minitraits", title: R.run.traitNames.map((nm, k) => `${traitLabel(nm)} ${(p.character[k] / 100).toFixed(2)}`).join("\n") },
+      p.character.map((v) => { const sp = el("span"), fill = el("i"); fill.style.height = `${v}%`; sp.append(fill); return sp; }));
+    const stack = el("span", { class: "stack", title: `${r.kind} kind, ${r.hostile} hostile, ${r.other} other` },
+      [[r.kind, COL.like], [r.other, COL.mid], [r.hostile, COL.dislike]].map(([v, c]) => { const sp = el("span"); sp.style.width = `${(v / maxActs) * 100}%`; sp.style.background = c; return sp; }));
+    const ties = el("span", null, r.feuds ? [el("span", { class: "mark", style: `background:${COL.dislike}` }), `${r.feuds} `] : [],
+      r.friends ? [el("span", { class: "mark", style: `background:${COL.like}` }), `${r.friends}`] : [], !r.feuds && !r.friends ? el("span", { class: "muted", text: "–" }) : null);
+    tr.append(
+      el("td", { class: r.asleep ? "asleep" : "" }, el("div", { class: "who" }, el("span", null, dot, el("strong", { text: p.name })),
+        el("span", { class: "sub", text: `${p.household}, ${p.age}${p.job ? ", works" : ""}` }))),
+      el("td", { title: r.placeName }, r.home ? "home" : r.placeName, r.asleep ? el("span", { class: "muted", text: ", asleep" }) : null),
+      el("td", null, traits),
+      el("td", null, R.feelings ? cellBar(r.mood, 0.6, true, r.mood >= 0 ? COL.like : COL.dislike, sgn(r.mood)) : "–"),
+      el("td", null, R.feelings ? cellBar(r.power, 1, false, COL["ink-2"], r.power.toFixed(2)) : "–"),
+      el("td", { title: "Stance now, and by the night over the whole run (the orange line is now)" }, R.run.stance
+        ? el("span", { class: "cellbar" }, popSpark(R.run.stance[r.i], sinceNight), el("span", { text: sgn(r.stance) })) : "–"),
+      el("td", { title: `Their mean regard for everyone else, and everyone's for them. ${r.likers} like them (0.3 or more), ${r.dislikers} dislike them (−0.2 or less).` },
+        R.feelings ? el("div", { class: "two-line" },
+          el("span", { class: "cellbar" }, el("span", { text: "by" }), ...cellBar(r.likes, 0.5, true, r.likes >= 0 ? COL.like : COL.dislike, sgn(r.likes)).childNodes),
+          el("span", { class: "cellbar" }, el("span", { text: "of" }), ...cellBar(r.likedBy, 0.5, true, r.likedBy >= 0 ? COL.like : COL.dislike, sgn(r.likedBy)).childNodes)) : "–"),
+      el("td", null, el("span", { class: "cellbar" }, stack, el("span", { text: String(r.acts) }))),
+      el("td", { title: "Stories they know, and how many times they told one" }, `${r.known} · ${r.told}`),
+      el("td", null, ties));
+    return tr;
+  });
+  $("popTable").replaceChildren(el("thead", null, head), el("tbody", null, body));
+}
+const TEXT_SORTS = ["household", "name", "where"];
+function syncPopControls() {
+  const text = TEXT_SORTS.includes(S.popSort);
+  $("popSort").value = S.popSort;
+  $("popDir").textContent = text ? (S.popHigh ? "Z to A" : "A to Z") : S.popHigh ? "Highest first" : "Lowest first";
+}
+
+// ---- the explanation --------------------------------------------------------------------------
+// Definitions of the settings ("weights") and the words the viewer uses, read from the simulator's
+// code and checked against it (GLOSSARY, below), with this run's own values and act kinds.
+function drawExplanation() {
+  const q = $("explainSearch").value.trim().toLowerCase();
+  const hit = (...xs) => !q || xs.some((x) => String(x ?? "").toLowerCase().includes(q));
+  const sections = [];
+  let shown = 0;
+  const glossSection = (id, title, lede, items) => {
+    const rows = items.filter((it) => hit(it.label, it.key, it.definition, it.range));
+    if (!rows.length) return;
+    shown += rows.length;
+    sections.push(el("section", { id: "x-" + id }, el("h2", { text: title }), lede ? el("p", { class: "lede", text: lede }) : null,
+      el("dl", { class: "gloss" }, rows.flatMap((it) => [
+        el("dt", null, it.label, it.key && it.key !== it.label ? el("code", { text: it.key }) : null),
+        el("dd", null, it.definition, it.verify ? [" ", el("span", { class: "verify", text: "verify" })] : null, it.range ? el("span", { class: "range", text: it.range }) : null)]))));
+  };
+  // The words, in the order a reader meets them in the viewer.
+  const ORDER = [["character", "Character", "Seven traits, each 0 to 1, set for each person at the start; they can change over a run."],
+    ["states", "How a person is now", "What changes from moment to moment: mood, the power of acting, stance and regard."],
+    ["beliefs", "Stories, beliefs and gossip", null], ["ties", "Feuds and friendships", null],
+    ["motives", "Motives and the desire gate", "Why someone acts: a motive stirred by something that happened, weighed against what it would cost."],
+    ["authority", "The mayor and the constable", null], ["life", "The life record", null], ["money", "Money", null],
+    ["withdrawal", "Withdrawal, brawlers and missing people (0d.6)", null], ["other", "Other words", null]];
+  const termGroups = new Map(ORDER.map(([k]) => [k, []]));
+  for (const it of GLOSSARY.terms) termGroups.get(glossGroup(it.group))?.push(it) ?? termGroups.get("other").push(it);
+  for (const [k, title, lede] of ORDER) glossSection(k, title, lede, termGroups.get(k));
+  // The act kinds of this run, from the file, with their definitions.
+  const actDefs = new Map(GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "acts").map((it) => [it.key, it]));
+  const who = new Map(R.kinds.map((k) => [k.name, R.people.filter((p) => p.acts.includes(k.name)).map((p) => p.name)]));
+  const kinds = R.kinds.filter((k) => hit(k.name, k.tier, actDefs.get(k.name)?.definition));
+  if (kinds.length) {
+    shown += kinds.length;
+    sections.push(el("section", { id: "x-acts" }, el("h2", { text: "Acts" }),
+      el("p", { class: "lede", text: "Every kind of act in this run. Kind: it lifts the one it is aimed at (joy above 0). Hostile: it hurts (joy or valence below 0)." }),
+      el("div", { class: "xwrap" }, el("table", { class: "xtable" },
+        el("thead", null, el("tr", null, ["Act", "Tier", "Juiciness", "Valence", "Lasts", "Joy", "Who can"].map((h) => el("th", { scope: "col", text: h })))),
+        el("tbody", null, kinds.map((k) => el("tr", null,
+          el("td", null, el("strong", { text: spaced(k.name) }), actDefs.get(k.name) ? el("span", { class: "range", text: actDefs.get(k.name).definition }) : null),
+          el("td", null, k.tier), el("td", { class: "num", text: String(k.juiciness) }), el("td", { class: "num", text: String(k.valence) }),
+          el("td", { class: "num", text: `${k.duration} min` }), el("td", { class: "num", text: k.joy == null ? "–" : sgn(k.joy) }),
+          el("td", { text: (who.get(k.name) ?? []).length ? who.get(k.name).join(", ") : "a reaction, not chosen" }))))))));
+  }
+  glossSection("actfields", "What an act's numbers mean", null, GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "actfields"));
+  // The settings: this run's value next to each definition.
+  const defs = new Map(GLOSSARY.settings.map((it) => [it.key, it]));
+  const settings = Object.entries(R.run.settings ?? {}).filter(([k, v]) => typeof v !== "object" && hit(k, defs.get(k)?.label, defs.get(k)?.definition, defs.get(k)?.group));
+  if (settings.length) {
+    shown += settings.length;
+    const byGroup = new Map();
+    for (const [k, v] of settings) { const g = defs.get(k)?.group ?? "Not described yet"; if (!byGroup.has(g)) byGroup.set(g, []); byGroup.get(g).push([k, v]); }
+    sections.push(el("section", { id: "x-settings" }, el("h2", { text: "Settings (the weights)" }),
+      el("p", { class: "lede", text: "Every switch and number of the feelings this run used, as recorded in the file. A value in orange differs from the simulator's default." }),
+      ...[...byGroup].map(([g, rows]) => el("div", { class: "xwrap" }, el("table", { class: "xtable" },
+        el("thead", null, el("tr", null, el("th", { scope: "col", text: g }), el("th", { scope: "col", text: "This run" }), el("th", { scope: "col", text: "What it does" }))),
+        el("tbody", null, rows.map(([k, v]) => {
+          const d = defs.get(k), changed = d && d.defaultValue !== undefined && String(d.defaultValue) !== String(v);
+          return el("tr", { class: changed ? "changed" : "" }, el("td", null, el("strong", { text: d?.label ?? spaced(k) }), el("code", { text: k })),
+            el("td", { class: "num", text: typeof v === "number" ? String(Math.round(v * 1000) / 1000) : String(v) }),
+            el("td", null, d ? d.definition : el("span", { class: "muted", text: "No description yet." }), d?.verify ? [" ", el("span", { class: "verify", text: "verify" })] : null, d?.range ? el("span", { class: "range", text: d.range }) : null));
+        })))))));
+  }
+  glossSection("log", "The log's lines", "Each line in the log starts with a word that says what kind of thing it records.", GLOSSARY.actsLog.filter((it) => glossGroup(it.group) === "log"));
+  $("explainBody").replaceChildren(...(sections.length ? sections : [el("p", { class: "muted", text: "Nothing matches." })]));
+  $("explainCount").textContent = q ? `${shown} found` : "";
+  $("explainToc").replaceChildren(...sections.map((sec) => el("a", { href: "#" + sec.id, text: sec.querySelector("h2").textContent, onclick: (e) => { e.preventDefault(); sec.scrollIntoView({ behavior: "smooth", block: "start" }); } })));
+}
+/** Which section of the explanation a glossary item's group belongs to. */
+function glossGroup(g) {
+  const x = String(g ?? "").toLowerCase();
+  if (/trait|character|temperament/.test(x)) return "character";
+  if (/act field|act's|fields/.test(x)) return "actfields";
+  if (/^acts?$|act kind/.test(x)) return "acts";
+  if (/log/.test(x)) return "log";
+  if (/state|mood|regard|stance|power|sentiment|baseline|tension|familiar/.test(x)) return "states";
+  if (/belief|gossip|story|stories|telling|source/.test(x)) return "beliefs";
+  if (/tie|feud|friend/.test(x)) return "ties";
+  if (/motive|desire|gate/.test(x)) return "motives";
+  if (/authority|mayor|constable|verdict|report/.test(x)) return "authority";
+  if (/life/.test(x)) return "life";
+  if (/money|purse|shop/.test(x)) return "money";
+  if (/0d\.6|withdraw|hermit|brawl|left out|missing|contagion|spread|expression/.test(x)) return "withdrawal";
+  return "other";
+}
+const GLOSSARY = { settings: [], terms: [], actsLog: [] }; // filled from the simulator's code (see sim/viewer/README.md)
+
 // ---- the inspector ---------------------------------------------------------------------------
 /** A small line of values by the day, with the whole run drawn and a mark at now (which may fall
     between two days). The readout is opts.value, the value at the clock. */
@@ -1197,8 +1781,9 @@ function drawFeed() {
 function showTab(tab) {
   S.tab = tab;
   for (const b of document.querySelectorAll(".tabs button")) { const on = b.dataset.tab === tab; b.setAttribute("aria-selected", on); b.setAttribute("aria-pressed", on); }
-  for (const id of ["town", "rel", "stories"]) $("tab-" + id).hidden = id !== tab;
-  lastRelKey = lastStoryKey = ""; render();
+  for (const id of ["town", "people", "rel", "stories", "explain"]) $("tab-" + id).hidden = id !== tab;
+  if (tab === "explain") drawExplanation();
+  lastRelKey = lastStoryKey = lastPopKey = ""; render();
 }
 function start(run, source) {
   try { R = load(run); } catch (err) { showError(err.message); return; }
@@ -1206,7 +1791,7 @@ function start(run, source) {
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
-  buildTown(); buildFeedFilters();
+  buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls();
   S.person = -1; S.pair = null; S.story = -1;
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
@@ -1226,6 +1811,9 @@ $("relMode").addEventListener("change", (e) => { S.relMode = e.target.value; if 
 $("relMin").addEventListener("input", (e) => { S.relMin = +e.target.value; $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relHome").addEventListener("change", (e) => { S.relHome = e.target.checked; render(); });
 $("storyTier").addEventListener("change", () => render());
+$("explainSearch").addEventListener("input", () => R && drawExplanation());
+$("popSort").addEventListener("change", (e) => { S.popSort = e.target.value; S.popHigh = !TEXT_SORTS.includes(S.popSort); syncPopControls(); render(); });
+$("popDir").addEventListener("click", () => { S.popHigh = !S.popHigh; syncPopControls(); render(); });
 $("storyOrder").addEventListener("change", () => render());
 $("feedSearch").addEventListener("input", (e) => { S.feedSearch = e.target.value; render(); });
 document.addEventListener("keydown", (e) => {
@@ -1235,6 +1823,9 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft" && !e.target.matches("input[type=range]")) { e.preventDefault(); setTime(S.t - (e.shiftKey ? 60 : 5)); }
   else if (e.key === "]") setTime(S.t + 1440);
   else if (e.key === "[") setTime(S.t - 1440);
+  else if ((e.key === "+" || e.key === "=") && TOWN) zoomAt(1.6, TOWN.cssW / 2, TOWN.cssH / 2);
+  else if (e.key === "-" && TOWN) zoomAt(1 / 1.6, TOWN.cssW / 2, TOWN.cssH / 2);
+  else if (e.key === "0" && TOWN) { VIEW.k = 1; clampView(); drawTownMap(); }
   else if (e.key === "Escape") { S.person = -1; S.pair = null; lastSideKey = lastRelKey = ""; render(); }
 });
 $("openBtn").addEventListener("click", () => $("fileInput").click());
@@ -1248,9 +1839,26 @@ document.addEventListener("dragover", (e) => { e.preventDefault(); $("app").clas
 document.addEventListener("dragleave", (e) => { if (e.target === document.documentElement || !e.relatedTarget) $("app").classList.remove("drop"); });
 document.addEventListener("drop", (e) => { e.preventDefault(); $("app").classList.remove("drop"); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
 const themeWatch = window.matchMedia("(prefers-color-scheme: dark)");
-const recolour = () => { if (!R) return; readColours(); for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = ""; render(); };
-themeWatch.addEventListener?.("change", recolour);
-new MutationObserver(recolour).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+const chosenMode = () => { try { return localStorage.getItem("under-glass-mode"); } catch { return null; } };
+function autoMode() {
+  const host = document.documentElement.getAttribute("data-theme");
+  return host === "dark" || host === "light" ? host : themeWatch.matches ? "dark" : "light";
+}
+function applyMode(mode) {
+  document.documentElement.setAttribute("data-mode", mode);
+  $("themeBtn").setAttribute("aria-pressed", mode === "dark");
+  recolour();
+}
+$("themeBtn").addEventListener("click", () => {
+  const mode = document.documentElement.getAttribute("data-mode") === "dark" ? "light" : "dark";
+  try { localStorage.setItem("under-glass-mode", mode); } catch { /* remembered for this visit only */ }
+  applyMode(mode);
+});
+const recolour = () => { if (!R) return; readColours(); if (TOWN) TOWN.back = null; for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
+const followHost = () => { if (!chosenMode()) applyMode(autoMode()); };
+themeWatch.addEventListener?.("change", followHost);
+new MutationObserver(followHost).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+applyMode(chosenMode() ?? autoMode());
 window.addEventListener("resize", () => R && render());
 new ResizeObserver(() => { if (R && S.tab === "town" && $("groups").clientWidth !== townWidth) requestAnimationFrame(() => R && S.tab === "town" && drawTown()); }).observe($("groups"));
 

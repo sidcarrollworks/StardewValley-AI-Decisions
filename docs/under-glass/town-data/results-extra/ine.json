@@ -1,0 +1,28 @@
+{
+ "town": "ine",
+ "homes_within_of_everyday": {
+  "100": 0.437,
+  "200": 0.597,
+  "400": 0.748,
+  "800": 0.923
+ },
+ "homes_within_of_shop": {
+  "100": 0.332,
+  "200": 0.52,
+  "400": 0.735,
+  "800": 0.892
+ },
+ "home_nn_m_p10_p50_p90": [
+  6,
+  13,
+  29
+ ],
+ "homes_with_no_home_within_100m": 0.009,
+ "other_homes_within_50m_median": 7.0,
+ "other_homes_within_100m_median": 17.0,
+ "homes_within_centre": {
+  "200": 0.2,
+  "400": 0.326,
+  "800": 0.483
+ }
+}

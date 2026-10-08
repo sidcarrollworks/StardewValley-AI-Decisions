@@ -1,0 +1,28 @@
+{
+ "town": "longmelford",
+ "homes_within_of_everyday": {
+  "100": 0.615,
+  "200": 0.929,
+  "400": 0.982,
+  "800": 0.996
+ },
+ "homes_within_of_shop": {
+  "100": 0.403,
+  "200": 0.686,
+  "400": 0.96,
+  "800": 0.984
+ },
+ "home_nn_m_p10_p50_p90": [
+  6,
+  12,
+  25
+ ],
+ "homes_with_no_home_within_100m": 0.002,
+ "other_homes_within_50m_median": 11.0,
+ "other_homes_within_100m_median": 44.0,
+ "homes_within_centre": {
+  "200": 0.09,
+  "400": 0.276,
+  "800": 0.701
+ }
+}

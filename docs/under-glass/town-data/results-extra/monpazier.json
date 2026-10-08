@@ -1,0 +1,28 @@
+{
+ "town": "monpazier",
+ "homes_within_of_everyday": {
+  "100": 0.599,
+  "200": 0.701,
+  "400": 0.825,
+  "800": 0.944
+ },
+ "homes_within_of_shop": {
+  "100": 0.48,
+  "200": 0.612,
+  "400": 0.735,
+  "800": 0.919
+ },
+ "home_nn_m_p10_p50_p90": [
+  7,
+  17,
+  74
+ ],
+ "homes_with_no_home_within_100m": 0.067,
+ "other_homes_within_50m_median": 7.0,
+ "other_homes_within_100m_median": 39.0,
+ "homes_within_centre": {
+  "200": 0.434,
+  "400": 0.608,
+  "800": 0.818
+ }
+}
