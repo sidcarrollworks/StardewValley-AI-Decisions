@@ -8,7 +8,8 @@ using UnderGlass.Sim;
 // --html writes the viewer with the run inside it, one file to open in a browser; --out writes
 // the run alone, for the viewer's "Open a run" button. Options as the runner's: --inject,
 // --fo <Name>=<value> (any FeelingOptions knob), --desire off|observe|on, --tensions <depth>,
-// --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on.
+// --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on, --0d6 <steps> (hermits,
+// brawlers, moods that spread, missing people: b-h, t, m, as the runner's).
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
@@ -43,6 +44,7 @@ for (int i = 0; i < args.Length; i++)
             };
             break;
         case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(Next(), inv)); break;
+        case "--0d6": feelings.With0d6(Next()); break;
         case "--fo":
             string kv = Next();
             Set(feelings, kv[..kv.IndexOf('=')], kv[(kv.IndexOf('=') + 1)..]);

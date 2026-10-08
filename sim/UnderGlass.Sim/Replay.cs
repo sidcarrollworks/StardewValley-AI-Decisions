@@ -214,6 +214,7 @@ public static class Replay
                 : Array.Empty<int>(),
             ["stance"] = r.Stances.Count == 0 ? null : names.Select(x => r.Stances[x].Select(R).ToArray()).ToArray(),
             ["minutesOut"] = r.OutMinutes.Count == 0 ? null : names.Select(x => r.OutMinutes[x]).ToArray(),
+            ["withdrawal"] = Withdrawal(r, names, P),
             ["ties"] = r.Ties.Select((t, k) => new object[] { TieTick(k), P(t.A), P(t.B), t.What }).ToArray(),
             ["beliefs"] = beliefs,
             ["tellings"] = tellings,
@@ -293,6 +294,35 @@ public static class Replay
     }
 
     private static double R(double x) => Math.Round(x, 3);
+
+    /// <summary>Hermits, brawlers and being left out (phase 0d.6), while the gate runs: each person's
+    /// being left out (E) at each day's end in hundredths; every sustained spell (28 nights or more
+    /// at -0.5 or below, a hermit if their free hours out fell too, or at +0.5 or above, a brawler),
+    /// as WithdrawalMetrics finds them; the mood each person passed on and caught; and what each
+    /// 0d.6 rule did (or, watching, would have done).</summary>
+    private static object? Withdrawal(SimResult r, string[] names, Func<string?, int> person)
+    {
+        if (r.Daily.Count == 0)
+            return null;
+        var spells = WithdrawalMetrics.Spells(r, brawlers: false).Select(s => (s, Kind: s.Hermit ? "hermit" : "withdrawn"))
+            .Concat(WithdrawalMetrics.Spells(r, brawlers: true).Select(s => (s, Kind: "brawler")))
+            .OrderBy(x => x.s.From).ThenBy(x => x.s.Name, StringComparer.Ordinal).ThenBy(x => x.Kind, StringComparer.Ordinal);
+        return new
+        {
+            leftOut = names.Select(x => r.Daily.TryGetValue(x, out PersonDays? d) ? d.LeftOut.Select(v => (int)Math.Round(v * 100)).ToArray() : Array.Empty<int>()).ToArray(),
+            spells = spells.Select(x => new
+            {
+                person = person(x.s.Name),
+                from = x.s.From,
+                to = x.s.To,
+                kind = x.Kind,
+                ended = x.s.Ended,
+                hoursFall = double.IsNaN(x.s.HoursFall) ? (double?)null : R(x.s.HoursFall),
+            }).ToArray(),
+            contagion = names.Select(x => r.Contagion.TryGetValue(x, out var c) ? new[] { R(c.Gave), R(c.Caught), R(c.Net) } : null).ToArray(),
+            rules = r.Rules.OrderBy(x => x.Key, StringComparer.Ordinal).ToDictionary(x => x.Key, x => new object[] { x.Value.Count, R(x.Value.Sum) }),
+        };
+    }
 
     /// <summary>Every switch and number the run used, and how it was set up.</summary>
     private static Dictionary<string, object?> Settings(TownData town, FeelingOptions f, ReplayOptions o)
