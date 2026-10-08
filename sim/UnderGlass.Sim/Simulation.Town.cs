@@ -8,5 +8,6 @@ public sealed partial class Simulation
         : this(seed, town.Cast, town.Places, town.Acts, town.Perception, town.Gossip, scheduled, town.Wander, town.Links,
             town.Body, town.Gatherings, town.Authority, town.Habits, town.Economy, town.Money, town.Feelings)
     {
+        SeedFamiliarity(town.Familiarity);
     }
 }

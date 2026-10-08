@@ -351,6 +351,7 @@ public static class Replay
         Add("", f);
         Add("AuthorityOptions.", town.Authority);
         Add("BodyOptions.", town.Body);
+        Add("ForgettingOptions.", town.Gossip.Forgetting);
         Add("GossipOptions.", town.Gossip);
         Add("HabitOptions.", town.Habits);
         Add("MoneyOptions.", town.Money);

@@ -15,6 +15,7 @@ using UnderGlass.Sim;
 // steps' switches (b-h, t the tone, m missing people; e.g. --0d6 bcd), --fo WithdrawalWatch=true
 // watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
+// Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0).
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -45,6 +46,7 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--every": gossip.ChatEveryMinutes = int.Parse(args[i + 1]); break;
         case "--fade": gossip.ScandalFadePerDay = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--tells": gossip.TellsPerDay = int.Parse(args[i + 1]); break;
+        case "--forget": SetOption(gossip.Forgetting, args[i + 1]); break; // town spec E6: --forget FadePerDay=0.01
     }
 }
 // Applied after --feel, whatever the order on the line.
@@ -108,6 +110,22 @@ for (int i = 0; i < args.Length - 1; i++)
     if (!DefaultTown.Cast().Any(v => v.Name == who))
         throw new ArgumentException($"--trait: nobody called {who}");
     traits.Add((who, trait, double.Parse(spec[(colon + 1)..], inv)));
+}
+
+// <Name>=<value> for any switch or number of an options object.
+static void SetOption(object o, string kv)
+{
+    int eq = kv.IndexOf('=');
+    var prop = eq < 1 ? null : o.GetType().GetProperty(kv[..eq]);
+    if (prop is null)
+        throw new ArgumentException($"{kv}: expected <Name>=<value>, a name one of " + string.Join(", ", o.GetType().GetProperties().Select(p => p.Name)));
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string value = kv[(eq + 1)..];
+    object v = prop.PropertyType == typeof(bool) ? (object)bool.Parse(value)
+        : prop.PropertyType == typeof(int) ? (object)int.Parse(value, inv)
+        : prop.PropertyType == typeof(double) ? (object)double.Parse(value, inv)
+        : throw new ArgumentException($"{kv[..eq]} can't be set from the command line");
+    prop.SetValue(o, v);
 }
 
 static FeelingOptions Set(FeelingOptions o, string name, string value)
@@ -209,6 +227,15 @@ Console.WriteLine("natural acts a year, town-wide: " + string.Join(", ", stats.P
 BodyStats b = stats.Body;
 static string Hm(double h) => $"{(int)h % 24:00}:{(int)Math.Round(h % 1 * 60) % 60:00}";
 Console.WriteLine($"sleep: bed {Hm(b.MeanBedtime)} (spread {b.BedtimeSpread:0.0} h), up {Hm(b.MeanWake)}, {b.MeanSleepHours:0.0} h a night; alarms slept through {b.MissedAlarmShare:P0}; late for work {b.LatePerSeason:0.#} a season; collapses {b.CollapsesPerSeason:0.#} a season");
+{
+    // Who knows whom at the end (town spec E6): the share of ordered pairs known at all (KnowsActorAt)
+    // and known well (KnowsAt), and, with forgetting on, the ties lost from the start.
+    var fam = runs.SelectMany(r => r.Familiarity.Values).ToList();
+    if (fam.Count > 0)
+        Console.WriteLine($"familiarity at the end: mean {fam.Average():0.000}; known ({gossip.KnowsActorAt:0.##}+) {fam.Count(f => f >= gossip.KnowsActorAt) / (double)fam.Count:P1}, "
+            + $"well ({gossip.KnowsAt:0.##}+) {fam.Count(f => f >= gossip.KnowsAt) / (double)fam.Count:P1}"
+            + (gossip.Forgetting.On ? $"; forgetting on ({gossip.Forgetting.FadePerDay:0.###} a day)" : "; forgetting off"));
+}
 if (inject)
 {
     var placed = runs.SelectMany(r => r.Acts.Where(a => a.Injected).Select(a => (r, a))).ToList();
