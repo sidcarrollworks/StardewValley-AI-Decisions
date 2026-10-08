@@ -167,6 +167,8 @@ public sealed class SimResult
     public required IReadOnlyDictionary<string, (int Count, double Sum)> Rules { get; init; }
     /// <summary>Familiarity at the end, for every ordered pair (town spec E6: how forgetting leaves the town).</summary>
     public IReadOnlyDictionary<(string From, string To), double> Familiarity { get; init; } = new Dictionary<(string, string), double>();
+    /// <summary>Each spell a pair spent in a feud (acts spec 7.3: how long feuds last); empty with feelings off.</summary>
+    public IReadOnlyList<FeudSpell> FeudSpells { get; init; } = Array.Empty<FeudSpell>();
 }
 
 /// <summary>
@@ -447,6 +449,7 @@ public sealed partial class Simulation
             Contagion = ContagionTotals(),
             Rules = _rules,
             Familiarity = Pairs(_fam),
+            FeudSpells = FeudSpells(),
         };
     }
 
