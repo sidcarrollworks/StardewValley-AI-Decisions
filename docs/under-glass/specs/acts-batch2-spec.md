@@ -1,4 +1,4 @@
-> Draft spec, 2026-10-08. Nothing in batch 2 is built.
+> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built and today's numbers in 5.6). Nothing else in batch 2 is built.
 >
 > It merges three designers' drafts of that day: **acts** (batch 2's kinds and their engine pieces), **reach** (festivals, the reach levers, the first new scandals, the scenario harness) and **twists** (story events, the variety measures, the deal). It builds step 2 of section 4 of `actions-and-twists.md`, with the measures of its step 0, and section 9 of `specs/acts-spec.md`, and keeps the acts spec's conventions: `ActGate`; the Light, Story and Ledger classes; a switch per slice; watch mode; E2.
 >
@@ -567,6 +567,18 @@ For a run r and an act a:
 | S4 | `S4-kept`: Pam owes Gus 150g, due unpaid on day 2 at 20:00; `S4-called-in`: with `call-in` at 0; `S4-settled`: with `settle` at +60; one `Key` | CircleReach(d0 + 7) of the BrokePromise | kept median 40% or less; called in 70%+; settled at most half of kept | 400 × 14 | b2-12 | |
 | S6 | the placed scandal with `sway`, runs where the mayor decided | the LetOff's CircleReach 14 days on, split by the first asker's regard for the mayor | median for askers at 0.4+ at most half the rest's | 400 × 14 | b2-17 | |
 | S9 | C1's scene with `Blundered` | as C1 | as C1 | 400 × 27 | b2-15 | |
+
+### 5.6 As built: m-0 (2026-10-08)
+
+Built on `claude/reach-checks`, from `claude/checkpoint-6`: `Scenarios.cs`, `Simulation.Scenarios.cs`, `ReachMetrics.cs`, the runner's `--check` and `ScenarioTests` (7) and `ReachMetricsTests` (4). With no scenario every pin holds. Where it differs from 5.2-5.5:
+- **`Simulation.Place(scenarios)`**, called before `Run` as `SetTrait` is, instead of a constructor parameter, so the constructors in a shared file stay as they are.
+- **The circle** is read from a copy of familiarity taken at the start of each day (`KeepDayStart`, one line in `RunDays`), for every scandal and every scenario act, in name order. An actor nobody knows yet (the newcomer) has an empty circle, and no circle reach.
+- **Follow-ups:** only `sway` is built (`_forceSway`, one `||` in `Review`), for b2-17. The others, and `Amount`, are refused until their slices land.
+- **C6 counts outsiders who know who did it.** Rule 17's cover works on the believed culprit: a keeper who finds stock missing doesn't know it was his daughter, and tells it. So an outsider who knows only that something was taken is reported apart, not counted as a leak.
+- **C13 is reported only,** with 52%+ as its guide.
+- **`--check`** takes `today` (C2, C3, C4, C6, C10, C11, C13) or a name, repeatable. Each check runs its own seeds and days unless `--seeds` or `--days` is given. It refuses `--town-seeds`.
+
+**Today** is in `sim/README.md` ("Reach in context").
 
 ---
 

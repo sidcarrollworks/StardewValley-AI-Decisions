@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using UnderGlass.Sim;
 using Xunit;
 using Xunit.Abstractions;
@@ -8,8 +9,8 @@ namespace UnderGlass.Sim.Tests;
 
 /// <summary>The viewer's Explanation tab (sim/viewer/index.html, the "glossary" block) defines the
 /// settings by the names the recorder writes. These tests keep the two in step: every setting it
-/// defines exists in the code, and the recorder writes the shipped town's values beside the run's,
-/// so the viewer can show which differ.</summary>
+/// defines exists in the code, the recorder writes the shipped town's values beside the run's, so
+/// the viewer can show which differ, and each item's source line still holds what it was read from.</summary>
 public class GlossaryTests
 {
     private readonly ITestOutputHelper _out;
@@ -111,6 +112,74 @@ public class GlossaryTests
         string[] missing = recorded.Where(k => !defined.Contains(k)).Order(StringComparer.Ordinal).ToArray();
         _out.WriteLine(missing.Length == 0 ? "every recorded setting has a definition" : "no definition yet: " + string.Join(", ", missing));
         Assert.True(missing.Length < recorded.Count, "the glossary describes none of the recorded settings");
+    }
+
+    /// <summary>How far a source line may drift (code added above it) before this fails; the
+    /// checkpoints move every pointer back (UNDERGLASS_REPOINT=1, below).</summary>
+    private const int Drift = 30;
+
+    /// <summary>
+    /// Each item's "source" (a path and a line) points at the code its definition was read from, and
+    /// its "at" is a piece of that line, so the pointer can be checked and moved: the line holding
+    /// "at" nearest the pointer is within <see cref="Drift"/> lines of it. Code added above a line
+    /// moves it; with the environment variable UNDERGLASS_REPOINT=1 the test moves every pointer to
+    /// that nearest line in index.html instead of failing (each checkpoint does, after merging).
+    /// </summary>
+    [Fact]
+    public void EverySourceLineIsNearWhatItWasReadFrom()
+    {
+        string repo = Repo(), path = Path.Combine(repo, "sim", "viewer", "index.html");
+        bool repoint = Environment.GetEnvironmentVariable("UNDERGLASS_REPOINT") == "1";
+        string html = File.ReadAllText(path);
+        var files = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var problems = new List<string>();
+        int checkedLines = 0, moved = 0;
+        foreach (string section in new[] { "settings", "terms", "actsLog" })
+            foreach (JsonElement it in Glossary().GetProperty(section).EnumerateArray())
+            {
+                string key = it.GetProperty("key").GetString()!;
+                Match m = Regex.Match(it.TryGetProperty("source", out JsonElement s) ? s.GetString() ?? "" : "", @"^([^:()]+):(\d+)$");
+                if (!m.Success)
+                    continue; // a source named by its code, not a line
+                if (!it.TryGetProperty("at", out JsonElement atElement) || string.IsNullOrWhiteSpace(atElement.GetString()))
+                {
+                    problems.Add($"{section}/{key}: a source line with no \"at\"");
+                    continue;
+                }
+                string file = m.Groups[1].Value, at = atElement.GetString()!;
+                int line = int.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                if (!files.TryGetValue(file, out string[]? lines))
+                    files[file] = lines = File.Exists(Path.Combine(repo, file)) ? File.ReadAllLines(Path.Combine(repo, file)) : Array.Empty<string>();
+                int nearest = Enumerable.Range(1, lines.Length).Where(i => lines[i - 1].Contains(at, StringComparison.Ordinal))
+                    .OrderBy(i => Math.Abs(i - line)).ThenBy(i => i).FirstOrDefault();
+                checkedLines++;
+                if (nearest == 0)
+                    problems.Add($"{section}/{key}: no line of {file} holds \"{at}\"");
+                else if (repoint && nearest != line)
+                {
+                    html = MoveSource(html, key, $"{file}:{line}", $"{file}:{nearest}");
+                    moved++;
+                }
+                else if (Math.Abs(nearest - line) > Drift)
+                    problems.Add($"{section}/{key}: {file}:{line} has drifted from \"{at}\", now at line {nearest} (run this test with UNDERGLASS_REPOINT=1)");
+            }
+        if (moved > 0)
+            File.WriteAllText(path, html);
+        _out.WriteLine($"{checkedLines} source lines checked; {moved} moved");
+        Assert.Empty(problems);
+        Assert.True(checkedLines > 400, $"only {checkedLines} source lines");
+    }
+
+    /// <summary>One item's pointer moved: each item is one line of index.html, found by its key and
+    /// its old pointer.</summary>
+    private static string MoveSource(string html, string key, string from, string to)
+    {
+        string[] lines = html.Split('\n');
+        int i = Array.FindIndex(lines, l => l.TrimStart().StartsWith($"{{\"key\": \"{key}\"", StringComparison.Ordinal)
+                                            && l.Contains($"\"source\": \"{from}\"", StringComparison.Ordinal));
+        if (i >= 0)
+            lines[i] = lines[i].Replace($"\"source\": \"{from}\"", $"\"source\": \"{to}\"", StringComparison.Ordinal);
+        return string.Join('\n', lines);
     }
 
     private static Dictionary<string, string> Scalars(JsonElement o)
