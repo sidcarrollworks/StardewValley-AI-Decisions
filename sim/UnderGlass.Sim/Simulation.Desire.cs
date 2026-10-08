@@ -433,6 +433,7 @@ public sealed partial class Simulation
             var motives = byHolder.TryGetValue(h, out var mine) ? mine.Select(d => (D: d, I: Intensity(d, m))).ToList() : new List<(Motive D, double I)>();
             if (_fo.FondOn)
                 motives.AddRange(FondMotives(h, p, m));
+            motives.AddRange(CuriousMotives(h, p, m)); // the act catalog: curiosity at what is new (Welcome)
             if (motives.Count == 0)
                 continue;
             foreach (var (d, I) in motives.OrderByDescending(x => x.I).ThenBy(x => x.D.Subject).ThenBy(x => (int)x.D.Kind).ToList())
@@ -508,13 +509,13 @@ public sealed partial class Simulation
                 continue;
             }
             // A close call. The earlier answer stands until the motive moves by AskAgainStep.
-            if (d.Kind != DesireKind.Fond && !double.IsNaN(d.AskedAt) && Math.Abs(I - d.AskedAt) < _fo.AskAgainStep)
+            if (!Computed(d.Kind) && !double.IsNaN(d.AskedAt) && Math.Abs(I - d.AskedAt) < _fo.AskAgainStep)
             {
                 Record(m, hn, sn, d, k.Name, I, eff, cost, margin, "stands", 0, false);
                 declined = true;
                 continue;
             }
-            if (d.Kind == DesireKind.Fond && !_fondAsked.Add((h, s, day, k.Name)))
+            if (Computed(d.Kind) && !_fondAsked.Add((h, s, day, k.Name)))
             {
                 declined = true;
                 continue;
@@ -522,8 +523,8 @@ public sealed partial class Simulation
             double pr = DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(h), d.Hostile, _fo);
             var question = new Pursuit(m, hn, sn, d.Kind, d.Source, k.Name, I, eff, cost, margin, "close", pr, false, -1);
             bool yes = _fo.CloseCall?.Invoke(question) ?? Rng.Unit(_seed, "desire", hn, sn, d.Kind.ToString(),
-                d.Kind == DesireKind.Fond ? day.ToString() : d.Source.ToString(), d.Asks.ToString(), k.Name) < pr;
-            if (d.Kind != DesireKind.Fond)
+                Computed(d.Kind) ? day.ToString() : d.Source.ToString(), d.Asks.ToString(), k.Name) < pr;
+            if (!Computed(d.Kind))
             {
                 d.AskedAt = I;
                 d.Asks++;
@@ -554,7 +555,7 @@ public sealed partial class Simulation
         if (!Acting)
             return false; // watched only: the motive stays, nothing starts
         _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
-        if (d.Kind != DesireKind.Fond)
+        if (!Computed(d.Kind))
             _desires.Remove((h, s, (int)d.Kind));
         else if (d.Occasion && !IsWarm(chosen))
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
