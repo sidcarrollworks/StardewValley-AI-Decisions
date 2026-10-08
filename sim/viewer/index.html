@@ -1486,8 +1486,12 @@ function sideOf(p, x, y) { return x === 0 ? [-1, 0] : x === p.w - 1 ? [1, 0] : y
 function planPoint(a, p, x, y) { const [px, py] = ROT[a.rot].pt(x, y, p.w, p.h); return [a.X + px, a.Y + py]; }
 function layoutTownPlan() {
   const P = R.places, at = P.map(() => null), GAP = 2, M = 1;
+  // The plan grows from the town's hub: the place out of doors with the most doors (the square),
+  // the larger on a tie. A grown town's neighbourhoods can be bigger than the square.
   const outdoor = P.filter((p) => p.group === "outdoors");
-  const root = (outdoor.length ? outdoor : P).reduce((m, p) => (p.w * p.h > m.w * m.h ? p : m));
+  const degree = P.map(() => 0);
+  for (const l of R.run.links) { degree[l[0]]++; degree[l[3]]++; }
+  const root = (outdoor.length ? outdoor : P).reduce((m, p) => (degree[p.i] > degree[m.i] || degree[p.i] === degree[m.i] && p.w * p.h > m.w * m.h ? p : m));
   at[root.i] = { X: 0, Y: 0, W: root.w, H: root.h, rot: 0 };
   const adj = P.map(() => []);
   for (const l of R.run.links) { adj[l[0]].push([l[1], l[2], l[3], l[4], l[5]]); adj[l[3]].push([l[4], l[5], l[0], l[1], l[2]]); }
@@ -1759,7 +1763,7 @@ function drawRelationships() {
     const [x, y] = P(i), [lx, ly] = P(i, rad + 24);
     const g = add("g", { style: "cursor:pointer", tabindex: 0, role: "button", "aria-label": R.names[i] });
     add("circle", { cx: x, cy: y, r: i === sel ? 9 : 7, fill: moodColour(moodAt(i, t)), stroke: i === sel ? COL.accent : COL.surface, "stroke-width": i === sel ? 3 : 2 }, g);
-    const text = add("text", { x: lx, y: ly, "font-size": 12, fill: i === sel ? COL.ink : COL["ink-2"], "font-weight": i === sel ? 700 : 400,
+    const text = add("text", { x: lx, y: ly, "font-size": R.n > 40 ? 9 : R.n > 30 ? 10.5 : 12, fill: i === sel ? COL.ink : COL["ink-2"], "font-weight": i === sel ? 700 : 400,
       "text-anchor": Math.cos(angle.get(i)) > 0.2 ? "start" : Math.cos(angle.get(i)) < -0.2 ? "end" : "middle", "dominant-baseline": "middle", "font-family": css("--font-body") }, g);
     text.textContent = R.names[i];
     g.addEventListener("click", () => selectPerson(i)); g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectPerson(i); } });
@@ -1777,14 +1781,17 @@ function drawRelationships() {
   drawMatrix(); drawTies(); drawPair();
 }
 function drawMatrix() {
-  const c = $("matrix"), order = R.order, n = R.n, cell = 15, lab = 78, dpr = window.devicePixelRatio || 1, W = lab + n * cell + 4, H = lab + n * cell + 4;
+  // Cells shrink to fit a bigger town in the column (at least 8 px; the column scrolls past that).
+  const c = $("matrix"), room = c.parentElement?.clientWidth || 600;
+  const order = R.order, n = R.n, cell = clamp(Math.floor((room - 82) / n), 8, 15), lab = cell < 11 ? 64 : 78;
+  const dpr = window.devicePixelRatio || 1, W = lab + n * cell + 4, H = lab + n * cell + 4;
   c.width = W * dpr; c.height = H * dpr; c.style.width = W + "px"; c.style.height = H + "px";
   const g = c.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
-  g.font = `11px ${css("--font-body")}`; g.fillStyle = COL["ink-2"]; g.textBaseline = "middle";
+  g.font = `${cell < 11 ? 9 : 11}px ${css("--font-body")}`; g.fillStyle = COL["ink-2"]; g.textBaseline = "middle";
   order.forEach((i, r) => { g.textAlign = "right"; g.fillStyle = i === S.person ? COL.ink : COL["ink-2"]; g.fillText(R.names[i], lab - 6, lab + r * cell + cell / 2); });
   order.forEach((j, col) => { g.save(); g.translate(lab + col * cell + cell / 2, lab - 6); g.rotate(-Math.PI / 3); g.textAlign = "left"; g.fillStyle = j === S.person ? COL.ink : COL["ink-2"]; g.fillText(R.names[j], 0, 0); g.restore(); });
   order.forEach((i, r) => order.forEach((j, col) => {
-    if (i === j) { g.fillStyle = COL.line; g.fillRect(lab + col * cell + 6, lab + r * cell + 6, 3, 3); return; }
+    if (i === j) { g.fillStyle = COL.line; g.fillRect(lab + col * cell + cell / 2 - 1.5, lab + r * cell + cell / 2 - 1.5, 3, 3); return; }
     let v = regardAt(i, j, S.t); if (S.relMode === "change") v -= baseAt(i, j);
     g.fillStyle = diverge(v, S.relMode === "change" ? 0.5 : 1); g.fillRect(lab + col * cell + 1, lab + r * cell + 1, cell - 2, cell - 2);
   }));
