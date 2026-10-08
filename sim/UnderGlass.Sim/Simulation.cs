@@ -220,7 +220,7 @@ public sealed partial class Simulation
         public string? HubSeen; // the gathering whose crowd they looked over on arriving (town spec E4)
     }
 
-    private readonly long _seed;
+    private long _seed; // not readonly: a fork (batch 2's m-2) swaps it at its minute, Simulation.Forks.cs
     private readonly IReadOnlyList<Villager> _cast;
     private readonly Dictionary<string, Location> _places;
     private readonly IReadOnlyList<ActKind> _kinds;
@@ -391,6 +391,8 @@ public sealed partial class Simulation
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
             _now = m;
+            if (m == _forkAt)
+                _seed = _forkSeed; // a fork (V7): every die from here on is drawn anew
             if (Clock.OfDay(m) == 0)
                 KeepDayStart(); // batch 2's reach checks: who knew whom as the day began
             if (HasMoney && Clock.OfDay(m) == 0)

@@ -574,7 +574,7 @@ Sid wants runs with many twists and turns, so that new games don't feel alike. `
 - **V8** how many kinds of town the runs make [3 or more]. Seed-years go on a 3 x 3 grid of conflict against warmth, each axis cut at 0.8 and 1.2 times its median, and the cells holding 5% of seed-years are counted;
 - beside them, how often the commonest constable wins.
 
-V7 (copies of a run split at day 28) needs runs that fork, so it is not built (batch 2's m-2). The runner prints a `variety` line after every report.
+V7 (copies of a run split at day 28) is batch 2's m-2, below. The runner prints a `variety` line after every report.
 
 **Story events, part 2** (batch 2's m-1, built 2026-10-08; spec #63, 6.2-6.3). `Variety.Events.cs` reads a run's log once (`RunLog`: beliefs, tellings, traces found, suspicions, reports, interviews, making-ups) and adds:
 - **New kinds** (the story order is batch 2's, biggest first):
@@ -615,6 +615,20 @@ The kinds batch 2's slices bring (a let-off found out, a kept purse found out, a
 - **Families change nothing at the top.** Pam's first scandal and later ones were already one story in V1's count, and the commonest feud family, Sam and Shane's, comes in 53-55% of seed-years (the spec's probe said 53%).
 - **V2 rises a little** because the new kinds that rank above a scandal (a moved blame, a let-off) head some years; Pam's first scandal still heads 56%.
 - **Nine twists in ten are fair.** The unfair ones are almost all making up (24 in 200 seed-years): a making-up whose chain had under two steps before it, or none that anyone outside saw or was told, so a player couldn't have seen it coming. The median season still has no twist, fair or not.
+
+**V7, the open future** (batch 2's m-2, built 2026-10-08; spec #63, 6.3). A new game shouldn't be decided by its first month. `Simulation.Fork(day, salt)` makes a copy of a run that is the run, line for line, until that day, and then draws every die anew from a seed made of the run's seed and the salt. V7 is the share of copies forked at day 28 whose major stories over the rest of the year (days 28-111) differ from the run's own [25-60%: under 25%, a year is settled by day 28; over 60%, day 28 decides nothing]. The major stories are the first 13 kinds in the story order, WrongVerdict to Hermit, so a fork that only changes who feuds reads as the same year. The share of copies whose headline over those days changes is printed beside it.
+
+`--forks <K>` (with `--days 112` or more) runs each seed K more times, forked at day 28 with salts 1 to K, and the variety line adds `V7 open future`. Without a fork nothing changes, so every pin holds. `ForkTests` (3): a fork is its base to the line until its day and then its own, and one seed, day and salt make one run; a fork after the run's last day gives P3; V7 on made-up runs.
+
+**Today** (50 seeds x 3 forks at day 28, a year each, on checkpoint-7):
+
+| | the shipped town | the review's set | target |
+|---|---|---|---|
+| V7: forks whose major stories after day 28 differ | **92%** | **93%** | 25-60% |
+| forks whose headline after day 28 differs | 39% | 35% | |
+
+- **Day 28 settles little of the detail.** Nearly every fork changes at least one major story (a let-off, a moved blame, a secret out, who withdraws), so V7 is past its 60% ceiling. V7 counts a fork as different when any one major story differs.
+- **The year's biggest story is more settled.** The headline changes in about a third of forks: Pam's first scandal heads 42-52% of these years, and it usually comes whatever the dice do after day 28.
 
 **The baseline** (2026-10-08, each seed one year, so one seed-year; the 60 town on generator version 2):
 
