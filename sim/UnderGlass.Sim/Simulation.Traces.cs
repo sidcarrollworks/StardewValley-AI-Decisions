@@ -17,7 +17,7 @@ public sealed partial class Simulation
 
     private void LeaveTrace(Act act, ActKind kind, int m)
     {
-        if (kind.Trace is not { } trace)
+        if (kind.Trace is not { } trace || _noTrace.Contains(act.Id)) // a scenario's NoTrace
             return;
         _traces.Add((act.Id, trace, m + trace.LastsMinutes));
         _log.Add($"{m} trace {act.Id} {trace.Name} at {act.Location}");

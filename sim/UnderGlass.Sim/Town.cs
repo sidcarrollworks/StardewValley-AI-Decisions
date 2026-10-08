@@ -27,6 +27,10 @@ public sealed record TownData
     public MoneyOptions Money { get; init; } = new();
     /// <summary>How far, in tiles, people drift about a haunt's spot while they are there.</summary>
     public int Wander { get; init; } = 2;
+    /// <summary>Familiarity to start from for some pairs, both ways, in place of the seeds by
+    /// household (0.8), friends (0.5) and everyone else (0.25; the newcomer 0). A generated town sets
+    /// it by circle (town spec E6). Empty: today's seeds.</summary>
+    public IReadOnlyList<(string A, string B, double Value)> Familiarity { get; init; } = Array.Empty<(string, string, double)>();
 
     /// <summary>The town as it ships, part for part as the long constructor builds it with no
     /// arguments, so <c>new Simulation(seed, TownData.Default())</c> is <c>new Simulation(seed)</c>.</summary>

@@ -67,15 +67,18 @@ public readonly record struct YearDay(int Season, int Day);
 public sealed record Body(double MaxEnergy, double BedAt);
 
 /// <summary>A job: where, the hours (minutes of the day, End at most 1440), the weekdays off, and
-/// how tiring it is (1 is an ordinary waking hour's drain at work).</summary>
-public sealed record Job(string Place, Tile Spot, int Start, int End, IReadOnlyList<int> DaysOff, double Effort)
+/// how tiring it is (1 is an ordinary waking hour's drain at work). Commute: how many minutes before
+/// Start this worker leaves for work, from the route's length in a grown town (town spec E5); the
+/// town's <see cref="BodyOptions.CommuteMinutes"/> when null.</summary>
+public sealed record Job(string Place, Tile Spot, int Start, int End, IReadOnlyList<int> DaysOff, double Effort, int? Commute = null)
 {
     public bool WorksOn(int weekday) => !DaysOff.Contains(weekday);
 }
 
 /// <summary>A free-time haunt: a spot this person likes between From and To (minutes of the day;
-/// To below From runs past midnight), with a weight against their other haunts.</summary>
-public sealed record Haunt(string Place, Tile Spot, int From, int To, double Weight)
+/// To below From runs past midnight), with a weight against their other haunts. Hub: the gathering
+/// it stands for, when it is a spot in a gathering's crowd.</summary>
+public sealed record Haunt(string Place, Tile Spot, int From, int To, double Weight, string? Hub = null)
 {
     public bool Open(int minuteOfDay) => From <= To
         ? minuteOfDay >= From && minuteOfDay < To
@@ -136,9 +139,14 @@ public static class Ages
 /// evenings at the saloon or market day. While it is on, anyone free may pick it like a haunt,
 /// with this weight, and stands somewhere within Radius tiles of Center. Weekdays empty: every day.
 /// OnlyDay: a one-off on that day of the run (the opening town meeting).
+/// For grown towns (town spec E4; the defaults change nothing): only people aged MinAge to MaxAge
+/// pick it; someone who arrives and sees Capacity or more awake people within the radius turns
+/// back and doesn't pick it again that day (0: no limit); Local names the households it belongs to
+/// (null: everyone's), and anyone else picks it with its weight times Visitors.
 /// </summary>
 public sealed record Gathering(string Name, string Place, Tile Center, int Radius, int From, int To,
-    IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null)
+    IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null,
+    int MinAge = 0, int MaxAge = 200, int Capacity = 0, IReadOnlyList<string>? Local = null, double Visitors = 1)
 {
     public bool On(int minute) => (Weekdays.Count == 0 || Weekdays.Contains(Clock.Weekday(minute)))
         && (OnlyDay is null || Clock.Day(minute) == OnlyDay)
@@ -160,9 +168,13 @@ public enum TargetIs { None, Keeper, Chosen, Kin, Given }
 /// separate from Valence, which still decides tiers. Plastic: the share of a feeling that becomes
 /// regard for its cause, 0..1. Freedom: how freely its cause is believed to act, 0..1 (law 10).
 /// Tilt: +1 an active act the joyful do more, -1 a passive vice the sad do more, 0 neither (law 1).
+/// ReadWarmAt (the act catalog): a warm act is read cold when the patient's regard for the actor is
+/// below this, and taken badly; never, by default. WithJoy: what the act's With person feels, caused
+/// by the actor (someone stood up for). ReadWarmAt is read from slice acts-1 (Complimented, Joked),
+/// WithJoy from acts-5 (StoodUpFor).
 /// </summary>
 public sealed record Affect(Patient Patient, double Joy, double Plastic, double Freedom = 1,
-    TargetIs Target = TargetIs.None, int Tilt = 0);
+    TargetIs Target = TargetIs.None, int Tilt = 0, double ReadWarmAt = double.NegativeInfinity, double WithJoy = 0);
 
 /// <summary>The four tiers of a story (design rule 9, decided 2026-10-05).</summary>
 public enum Tier { Trivia, News, Scandal, Upheaval }
@@ -182,6 +194,10 @@ public sealed record TraceKind(string Name, bool KeeperOnly, int LastsMinutes, d
 /// Allowed: the locations it can happen in (empty: anywhere). Trace: what it leaves behind.
 /// MinAge and MaxAge: who would do it (design rule 17). WithKin: it needs kin of that kind
 /// within sight (a squabble needs a sibling). Affect: how it is felt (phase 0c); null: not at all.
+/// The act catalog (acts spec 2.1): Gate, the desire gate's data for the kind (null: the legacy
+/// table, <see cref="Simulation.GateOf(ActKind, FeelingOptions)"/>); PerHead, PerDay is a rate for
+/// each card-carrier instead of the town's; FromMinute and ToMinute, the minutes of the day it can
+/// start in (ToMinute below FromMinute runs past midnight, as a haunt's window does).
 /// </summary>
 public sealed record ActKind(
     string Name,
@@ -196,9 +212,18 @@ public sealed record ActKind(
     int MinAge = 0,
     int MaxAge = 200,
     Kin? WithKin = null,
-    Affect? Affect = null)
+    Affect? Affect = null,
+    ActGate? Gate = null,
+    bool PerHead = false,
+    int FromMinute = 0,
+    int ToMinute = Clock.MinutesPerDay)
 {
     public bool FitsAge(int age) => age >= MinAge && age <= MaxAge;
+
+    /// <summary>The act can start at this minute of the day. Every shipped kind can, at any.</summary>
+    public bool OpenAt(int minuteOfDay) => FromMinute <= ToMinute
+        ? minuteOfDay >= FromMinute && minuteOfDay < ToMinute
+        : minuteOfDay >= FromMinute || minuteOfDay < ToMinute;
 
     /// <summary>A bad act at base juiciness 4 or more (D34; design rule 9).</summary>
     public bool IsScandal => !Upheaval && Valence < 0 && Juiciness >= 4;
@@ -209,9 +234,10 @@ public sealed record ActKind(
 /// <summary>Something that happened, at a game minute. Injected acts were placed by the harness to
 /// measure spread. Target: the other party (the keeper robbed, the person given a gift, the
 /// sibling, the official), set only while feelings are on. About: the act a consequence answers
-/// (a warning's scandal; design rule 2's causes), public because the official says what it is for.</summary>
+/// (a warning's scandal; design rule 2's causes), public because the official says what it is for.
+/// With: a third person (the act catalog; the one stood up for), set only while feelings are on.</summary>
 public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false,
-    string? Target = null, int About = -1);
+    string? Target = null, int About = -1, string? With = null);
 
 /// <summary>Where a belief came from. Found: from a trace, after the fact (never with a name).</summary>
 public enum Source { Witnessed, Told, Found }
@@ -287,8 +313,9 @@ public sealed record Felt(int Tick, string Holder, int ActId, string Route, stri
 /// character changes over time). Expression is the seventh (0d.6). Append only.</summary>
 public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity, Retention, Expression }
 
-/// <summary>What a motive wants (rule 10; design section 5). Append only.</summary>
-public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity }
+/// <summary>What a motive wants (rule 10; design section 5). Remorse, Defend and Curious come with
+/// the act catalog (acts spec 4.6, 4.7, 4.10) and nothing stirs them before their slices. Append only.</summary>
+public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity, Remorse, Defend, Curious }
 
 /// <summary>One weighing of one act for one motive by the gate (rule 10; principle 5). Call is
 /// clear, no, close-yes, close-no or stands (the earlier answer stands).</summary>
@@ -300,8 +327,9 @@ public sealed record Stirring(int Tick, string Holder, string Subject, DesireKin
 
 /// <summary>How an act turned out (rule 18's input). Answered: hostility met with hostility.
 /// Returned: kindness met with kindness. Rebuffed: kindness met with hostility. Avoided: met by
-/// keeping away. Ignored: nothing within the window. None: a light act, or a role with no outcome.</summary>
-public enum Outcome { Open, Answered, Returned, Rebuffed, Avoided, Ignored, None }
+/// keeping away. Ignored: nothing within the window. None: a light act, or a role with no outcome.
+/// Accepted and Refused: an apology's answer (the act catalog's Repair slice). Append only.</summary>
+public enum Outcome { Open, Answered, Returned, Rebuffed, Avoided, Ignored, None, Accepted, Refused }
 
 /// <summary>What a person did, had done to them, or chose not to do.</summary>
 public enum LifeRole { Did, Undergone, Declined, Avoided, Withdrew, Lapsed, GaveCause, Dropped }

@@ -45,13 +45,19 @@ public static class Replay
 
     public static Dictionary<string, object?> Record(ReplayOptions o)
     {
-        TownData town = o.Town ?? TownData.Default();
-        FeelingOptions feelings = o.Feelings ?? town.Feelings;
+        TownData given = o.Town ?? TownData.Default();
+        FeelingOptions feelings = o.Feelings ?? given.Feelings;
+        // The act catalog's rows and cards for the slices that are on, added as the runner adds them
+        // (acts spec 2.4); none yet in acts-0, so this is the town given.
+        TownData town = given with { Acts = ActCatalog.Kinds(feelings.Acts, given.Acts), Cast = ActCatalog.Cards(given.Cast, feelings.Acts) };
         IReadOnlyList<Villager> cast = town.Cast;
         IReadOnlyList<Location> places = town.Places;
         IReadOnlyList<Link> links = town.Links;
         IReadOnlyList<Gathering> hubs = town.Gatherings;
         IReadOnlyList<ActKind> kinds = town.Acts;
+        // Neighbourhoods (TownMetrics): every person and place of the shipped and 31 towns is "core".
+        var districts = TownMetrics.Districts(town);
+        var placeDistricts = TownMetrics.PlaceDistricts(town);
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         foreach (var (who, trait, value) in o.Traits)
@@ -161,13 +167,15 @@ public static class Replay
             ["label"] = o.Label,
             ["hash"] = Metrics.LogHash(r),
             ["clock"] = new { minutesPerDay = Clock.MinutesPerDay, tick = Clock.TickMinutes, daysPerWeek = Clock.DaysPerWeek, daysPerSeason = Clock.DaysPerSeason },
-            ["settings"] = Settings(feelings, o),
+            ["settings"] = Settings(town, feelings, o),
+            ["defaults"] = Scalars(TownData.Default(), DefaultTown.Feelings()),
             ["traitNames"] = Enum.GetNames<Trait>(),
             ["names"] = names,
             ["people"] = names.Select(x => byName[x]).Select(v => new
             {
                 name = v.Name,
                 household = v.Household,
+                district = districts.GetValueOrDefault(v.Name, "core"),
                 home = place.TryGetValue(v.Home, out int h) ? h : -1,
                 kind = v.Kind,
                 age = v.Age,
@@ -186,6 +194,7 @@ public static class Replay
                 outdoor = p.Outdoor,
                 group = p.Name.StartsWith("Home:", StringComparison.Ordinal) ? "home" : p.Outdoor && p.Height <= 3 ? "road" : p.Outdoor ? "outdoors" : "indoors",
                 rows = p.Rows,
+                district = placeDistricts.GetValueOrDefault(p.Name, "core"),
             }).ToArray(),
             ["links"] = links.Select(l => new[] { place[l.A], l.DoorA.X, l.DoorA.Y, place[l.B], l.DoorB.X, l.DoorB.Y }).ToArray(),
             ["hubs"] = hubs.Select(g => new
@@ -213,6 +222,7 @@ public static class Replay
                 : Array.Empty<int>(),
             ["stance"] = r.Stances.Count == 0 ? null : names.Select(x => r.Stances[x].Select(R).ToArray()).ToArray(),
             ["minutesOut"] = r.OutMinutes.Count == 0 ? null : names.Select(x => r.OutMinutes[x]).ToArray(),
+            ["withdrawal"] = Withdrawal(r, names, P),
             ["ties"] = r.Ties.Select((t, k) => new object[] { TieTick(k), P(t.A), P(t.B), t.What }).ToArray(),
             ["beliefs"] = beliefs,
             ["tellings"] = tellings,
@@ -293,17 +303,69 @@ public static class Replay
 
     private static double R(double x) => Math.Round(x, 3);
 
-    /// <summary>Every switch and number of the feelings the run used, and how it was set up.</summary>
-    private static Dictionary<string, object?> Settings(FeelingOptions f, ReplayOptions o)
+    /// <summary>Hermits, brawlers and being left out (phase 0d.6), while the gate runs: each person's
+    /// being left out (E) at each day's end in hundredths; every sustained spell (28 nights or more
+    /// at -0.5 or below, a hermit if their free hours out fell too, or at +0.5 or above, a brawler),
+    /// as WithdrawalMetrics finds them; the mood each person passed on and caught; and what each
+    /// 0d.6 rule did (or, watching, would have done).</summary>
+    private static object? Withdrawal(SimResult r, string[] names, Func<string?, int> person)
     {
-        var s = new Dictionary<string, object?>();
-        foreach (var p in typeof(FeelingOptions).GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal))
-            if (p.PropertyType == typeof(bool) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double))
-                s[p.Name] = p.GetValue(f);
+        if (r.Daily.Count == 0)
+            return null;
+        var spells = WithdrawalMetrics.Spells(r, brawlers: false).Select(s => (s, Kind: s.Hermit ? "hermit" : "withdrawn"))
+            .Concat(WithdrawalMetrics.Spells(r, brawlers: true).Select(s => (s, Kind: "brawler")))
+            .OrderBy(x => x.s.From).ThenBy(x => x.s.Name, StringComparer.Ordinal).ThenBy(x => x.Kind, StringComparer.Ordinal);
+        return new
+        {
+            leftOut = names.Select(x => r.Daily.TryGetValue(x, out PersonDays? d) ? d.LeftOut.Select(v => (int)Math.Round(v * 100)).ToArray() : Array.Empty<int>()).ToArray(),
+            spells = spells.Select(x => new
+            {
+                person = person(x.s.Name),
+                from = x.s.From,
+                to = x.s.To,
+                kind = x.Kind,
+                ended = x.s.Ended,
+                hoursFall = double.IsNaN(x.s.HoursFall) ? (double?)null : R(x.s.HoursFall),
+            }).ToArray(),
+            contagion = names.Select(x => r.Contagion.TryGetValue(x, out var c) ? new[] { R(c.Gave), R(c.Caught), R(c.Net) } : null).ToArray(),
+            rules = r.Rules.OrderBy(x => x.Key, StringComparer.Ordinal).ToDictionary(x => x.Key, x => new object[] { x.Value.Count, R(x.Value.Sum) }),
+        };
+    }
+
+    /// <summary>Every switch and number the run used, and how it was set up.</summary>
+    private static Dictionary<string, object?> Settings(TownData town, FeelingOptions f, ReplayOptions o)
+    {
+        var s = Scalars(town, f);
         s["Tensions"] = f.Start.OrderBy(t => t.Key.From, StringComparer.Ordinal).ThenBy(t => t.Key.To, StringComparer.Ordinal)
             .Select(t => new object[] { t.Key.From, t.Key.To, t.Value }).ToArray();
         s["Inject"] = o.Inject;
         s["Traits"] = o.Traits.Select(t => new object[] { t.Who, t.Trait.ToString(), t.Value }).ToArray();
+        return s;
+    }
+
+    /// <summary>Every switch and number of a town's options, by name: the feelings' bare
+    /// (<c>LoveAt</c>), the others with their class (<c>GossipOptions.ChatChance</c>), each class in
+    /// name order. Written for the run and, as "defaults", for the shipped town, so the viewer can
+    /// show which differ.</summary>
+    private static Dictionary<string, object?> Scalars(TownData town, FeelingOptions f)
+    {
+        var s = new Dictionary<string, object?>();
+        void Add(string prefix, object options)
+        {
+            foreach (var p in options.GetType().GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal))
+                if (p.PropertyType == typeof(bool) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double))
+                    s[prefix + p.Name] = p.GetValue(options);
+        }
+        Add("", f);
+        Add("ActOptions.", f.Acts);
+        Add("AuthorityOptions.", town.Authority);
+        Add("BodyOptions.", town.Body);
+        Add("ForgettingOptions.", town.Gossip.Forgetting);
+        Add("GossipOptions.", town.Gossip);
+        Add("HabitOptions.", town.Habits);
+        Add("MoneyOptions.", town.Money);
+        Add("PerceptionOptions.", town.Perception);
+        s["TownData.Wander"] = town.Wander;
         return s;
     }
 }

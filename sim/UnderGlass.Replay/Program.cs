@@ -8,14 +8,19 @@ using UnderGlass.Sim;
 // --html writes the viewer with the run inside it, one file to open in a browser; --out writes
 // the run alone, for the viewer's "Open a run" button. Options as the runner's: --inject,
 // --fo <Name>=<value> (any FeelingOptions knob), --desire off|observe|on, --tensions <depth>,
-// --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on.
+// --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on, --0d6 <steps> (hermits,
+// brawlers, moods that spread, missing people: b-h, t, m, as the runner's), and --town <name> for a
+// grown town (pelican31).
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
 int days = 28;
 bool inject = false;
 string? outPath = null, htmlPath = null;
-FeelingOptions feelings = DefaultTown.Feelings();
+// --town <name>: a grown town (Towns.Named), with its own cast and feelings, in place of the shipped one.
+int townAt = Array.IndexOf(args, "--town");
+TownData? town = townAt >= 0 && townAt + 1 < args.Length ? Towns.Named(args[townAt + 1]) : null;
+FeelingOptions feelings = town?.Feelings ?? DefaultTown.Feelings();
 var traits = new List<(string, Trait, double)>();
 for (int i = 0; i < args.Length; i++)
 {
@@ -27,6 +32,7 @@ for (int i = 0; i < args.Length; i++)
         case "--inject": inject = true; break;
         case "--out": outPath = Next(); break;
         case "--html": htmlPath = Next(); break;
+        case "--town": Next(); break; // read above
         case "--feel":
             string mode = Next();
             if (mode == "off") feelings = FeelingOptions.Off;
@@ -42,7 +48,8 @@ for (int i = 0; i < args.Length; i++)
                 _ => throw new ArgumentException("--desire off|observe|on"),
             };
             break;
-        case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(Next(), inv)); break;
+        case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(Next(), inv)); break; // keeps a town's own
+        case "--0d6": feelings.With0d6(Next()); break;
         case "--fo":
             string kv = Next();
             Set(feelings, kv[..kv.IndexOf('=')], kv[(kv.IndexOf('=') + 1)..]);
@@ -54,7 +61,7 @@ for (int i = 0; i < args.Length; i++)
                 : Enum.GetNames<Trait>().FirstOrDefault(n => string.Equals(n, spec[(eq + 1)..colon], StringComparison.OrdinalIgnoreCase));
             if (traitName is null)
                 throw new ArgumentException("--trait <Name>=<Trait>:<value>, a trait one of " + string.Join(", ", Enum.GetNames<Trait>()));
-            if (!DefaultTown.Cast().Any(v => v.Name == spec[..eq]))
+            if (!(town?.Cast ?? DefaultTown.Cast()).Any(v => v.Name == spec[..eq]))
                 throw new ArgumentException($"--trait: nobody called {spec[..eq]}");
             traits.Add((spec[..eq], Enum.Parse<Trait>(traitName), double.Parse(spec[(colon + 1)..], inv)));
             break;
@@ -73,7 +80,7 @@ for (int k = 0; k < args.Length; k++)
 }
 string? label = shown.Count == 0 ? null : string.Join(' ', shown);
 var clock = System.Diagnostics.Stopwatch.StartNew();
-string json = Replay.Json(new ReplayOptions { Seed = seed, Days = days, Feelings = feelings, Inject = inject, Traits = traits, Label = label });
+string json = Replay.Json(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings, Inject = inject, Traits = traits, Label = label });
 Console.WriteLine($"recorded seed {seed}, {days} days in {clock.Elapsed.TotalSeconds:0.0} s ({json.Length / 1024.0 / 1024:0.0} MB)");
 if (outPath is not null)
 {

@@ -34,6 +34,8 @@ public sealed class GossipOptions
     public int SuspectSeenMinutes { get; set; } = 30;
     public int SuspectFoundHours { get; set; } = 8;
     public int MaxSuspects { get; set; } = 3;
+    /// <summary>Familiarity fading, by Sid's forgetting model (town spec E6); off unless its FadePerDay is set.</summary>
+    public ForgettingOptions Forgetting { get; set; } = new();
 }
 
 /// <summary>Knobs for bodies, sleep and getting about (design rule 1). First guesses.</summary>
@@ -163,6 +165,21 @@ public sealed class SimResult
     public required IReadOnlyDictionary<string, (double Gave, double Caught, double Net)> Contagion { get; init; }
     /// <summary>What each 0d.6 rule did (watching: would have done), how often and in sum (X13).</summary>
     public required IReadOnlyDictionary<string, (int Count, double Sum)> Rules { get; init; }
+    /// <summary>Familiarity at the end, for every ordered pair (town spec E6: how forgetting leaves the town).</summary>
+    public IReadOnlyDictionary<(string From, string To), double> Familiarity { get; init; } = new Dictionary<(string, string), double>();
+    /// <summary>Each spell a pair spent in a feud (acts spec 7.3: how long feuds last); empty with feelings off.</summary>
+    public IReadOnlyList<FeudSpell> FeudSpells { get; init; } = Array.Empty<FeudSpell>();
+    /// <summary>The act catalog's watch record (acts spec 2.3): the catalog rows the gate would have
+    /// started, had watch been off. Empty unless <see cref="ActOptions.Watch"/> is on.</summary>
+    public IReadOnlyList<CatalogWatched> CatalogWatch { get; init; } = Array.Empty<CatalogWatched>();
+    /// <summary>Batch 2's reach checks (spec 5.4): each scandal's and each scenario act's circle, the
+    /// people who knew its actor at familiarity 0.2 or more as its day began, by act id.</summary>
+    public IReadOnlyDictionary<int, IReadOnlyList<string>> Circles { get; init; } = new Dictionary<int, IReadOnlyList<string>>();
+    /// <summary>The acts scenarios placed (spec 5.2), by act id, with the scenario's name.</summary>
+    public IReadOnlyDictionary<int, string> Scenarios { get; init; } = new Dictionary<int, string>();
+    /// <summary>Each person's stage of life (design rule 17), for the measures: a child is never
+    /// counted a hermit (Sid's answer A9, 2026-10-08).</summary>
+    public IReadOnlyDictionary<string, Stage> Stages { get; init; } = new Dictionary<string, Stage>();
 }
 
 /// <summary>
@@ -203,9 +220,10 @@ public sealed partial class Simulation
         public int DetainedUntil = -1;
         public string HoldPlace = "";
         public Tile HoldSpot;
+        public string? HubSeen; // the gathering whose crowd they looked over on arriving (town spec E4)
     }
 
-    private readonly long _seed;
+    private long _seed; // not readonly: a fork (batch 2's m-2) swaps it at its minute, Simulation.Forks.cs
     private readonly IReadOnlyList<Villager> _cast;
     private readonly Dictionary<string, Location> _places;
     private readonly IReadOnlyList<ActKind> _kinds;
@@ -245,7 +263,6 @@ public sealed partial class Simulation
     private readonly List<string> _log = new();
     private readonly List<(int Tick, string Actor, string Kind)> _pending;
     private readonly int _wander;
-    private readonly Dictionary<(string, string), (Tile Exit, string Next, Tile Entry)?> _hops = new();
     private readonly Dictionary<string, List<(string Next, Tile Exit, Tile Entry)>> _doors = new();
     private readonly Dictionary<(string, Tile), int[,]> _fields = new();
 
@@ -377,6 +394,10 @@ public sealed partial class Simulation
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
             _now = m;
+            if (m == _forkAt)
+                _seed = _forkSeed; // a fork (V7): every die from here on is drawn anew
+            if (Clock.OfDay(m) == 0)
+                KeepDayStart(); // batch 2's reach checks: who knew whom as the day began
             if (HasMoney && Clock.OfDay(m) == 0)
             {
                 if (Clock.Weekday(m) == 0)
@@ -442,6 +463,12 @@ public sealed partial class Simulation
             Daily = Daily(),
             Contagion = ContagionTotals(),
             Rules = _rules,
+            Familiarity = Pairs(_fam),
+            FeudSpells = FeudSpells(),
+            CatalogWatch = CatalogWatch(),
+            Circles = _circles,
+            Scenarios = _scenarioActs,
+            Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
         };
     }
 
@@ -467,6 +494,7 @@ public sealed partial class Simulation
         if (tick)
         {
             StartActs(m);
+            StartPerHead(m); // the act catalog's per-head draws (acts spec 3.2); none without Company
             if (HasMoney)
             {
                 Temptation(m);
@@ -477,6 +505,7 @@ public sealed partial class Simulation
             CountOut(m);
         }
         StartScheduled(m);
+        StartScenarios(m); // batch 2's scenario harness; nothing without a scenario
         Watch(m, t);
         FinishActs(m);
         if (tick)
@@ -490,6 +519,7 @@ public sealed partial class Simulation
             Rows(m);
         }
         CheckLate(m, t);
+        Arrivals(m); // the act catalog: coming in late (Late)
     }
 
     // ---- bodies: energy, sleep, alarms (design rule 1) -------------------------------------
@@ -547,6 +577,7 @@ public sealed partial class Simulation
             return; // in the middle of an act: stands still
         }
         Walk(p, m, tick);
+        Arrive(p, m);
         if (p.Why == "bed" && p.Place == p.GoalPlace && p.At == p.GoalSpot)
             StartSleep(p, m, collapsed: false, log: true);
     }
@@ -584,7 +615,7 @@ public sealed partial class Simulation
         {
             if (!job.WorksOn(d % Clock.DaysPerWeek))
                 continue;
-            int a = d * Clock.MinutesPerDay + job.Start - _bo.MorningMinutes;
+            int a = d * Clock.MinutesPerDay + job.Start - _bo.MorningMinutes - ((job.Commute ?? _bo.CommuteMinutes) - _bo.CommuteMinutes);
             if (a > m)
                 return a;
         }
@@ -628,7 +659,7 @@ public sealed partial class Simulation
                 Goal(p, p.Place, p.At, int.MaxValue, "bed", null); // no home in this world: sleep where you stand
             return;
         }
-        if (p.V.Job is { } job && job.WorksOn(Clock.Weekday(m)) && t >= job.Start - _bo.CommuteMinutes && t < job.End)
+        if (p.V.Job is { } job && job.WorksOn(Clock.Weekday(m)) && t >= job.Start - (job.Commute ?? _bo.CommuteMinutes) && t < job.End)
         {
             Goal(p, job.Place, job.Spot, m - t + job.End, "work", null);
             return;
@@ -639,7 +670,7 @@ public sealed partial class Simulation
             return;
 
         var options = p.V.Haunts.Where(h => h.Open(t)).Select(h => (Haunt: (Haunt?)h, h.Weight)).ToList();
-        foreach (Gathering g in _gatherings.Where(g => g.On(m)))
+        foreach (Gathering g in _gatherings.Where(g => g.On(m) && Admits(g, p, m)))
         {
             // A spot in the crowd, the same for this person all through the gathering.
             int day = Clock.Day(m);
@@ -648,7 +679,7 @@ public sealed partial class Simulation
             if (!_places[g.Place].Walkable(spot))
                 spot = g.Center;
             int to = g.To;
-            options.Add((new Haunt(g.Place, spot, g.From, to, g.Weight), g.Weight));
+            options.Add((new Haunt(g.Place, spot, g.From, to, g.Weight, g.Name), HubWeight(g, p)));
         }
         if (hasHome)
             options.Add((null, HomeWeight(p, m)));
@@ -697,7 +728,7 @@ public sealed partial class Simulation
         {
             if (p.Place != p.GoalPlace)
             {
-                if (Hop(p.Place, p.GoalPlace) is not { } hop)
+                if (Route(p.Place, p.GoalPlace, p.At) is not { } hop)
                 {
                     p.Place = p.GoalPlace; // no road there in this world: arrive
                     p.At = p.Target = p.GoalSpot;
@@ -784,33 +815,6 @@ public sealed partial class Simulation
         return f;
     }
 
-    /// <summary>The next door on the way from one place to another (fewest doors), or null.</summary>
-    private (Tile Exit, string Next, Tile Entry)? Hop(string from, string to)
-    {
-        if (_hops.TryGetValue((from, to), out var cached))
-            return cached;
-        var dist = new Dictionary<string, int> { [to] = 0 };
-        var queue = new Queue<string>();
-        queue.Enqueue(to);
-        while (queue.Count > 0)
-        {
-            string c = queue.Dequeue();
-            foreach (var (next, _, _) in _doors.GetValueOrDefault(c) ?? new())
-                if (dist.TryAdd(next, dist[c] + 1))
-                    queue.Enqueue(next);
-        }
-        (Tile, string, Tile)? hop = null;
-        if (dist.TryGetValue(from, out int d) && d > 0)
-            foreach (var (next, exit, entry) in _doors[from])
-                if (dist.TryGetValue(next, out int dn) && dn == d - 1)
-                {
-                    hop = (exit, next, entry);
-                    break;
-                }
-        _hops[(from, to)] = hop;
-        return hop;
-    }
-
     // ---- acts and witnessing ---------------------------------------------------------------
 
     private bool Free(Person p, int m) => !p.Asleep && !p.PendingCollapse && p.BusyUntil < m && p.DetainedUntil <= m;
@@ -820,6 +824,8 @@ public sealed partial class Simulation
         double ticksPerDay = Clock.MinutesPerDay / (double)Clock.TickMinutes;
         foreach (ActKind kind in _kinds)
         {
+            if (kind.PerHead)
+                continue; // drawn per head instead (StartPerHead)
             double perDay = Acting && kind.Affect is { Target: TargetIs.Chosen } && !IsLight(kind) ? kind.PerDay * _fo.AimedRateScale : kind.PerDay;
             if (perDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= perDay / ticksPerDay)
                 continue;
@@ -883,14 +889,16 @@ public sealed partial class Simulation
     /// <param name="target">The other party, when the caller gives it (the questioner, the mayor,
     /// the parent); else found from the act's feeling row. Only while feelings are on.</param>
     /// <param name="about">The act a consequence answers.</param>
-    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1)
+    /// <param name="with">A third person the act is for (the act catalog); only while feelings are on.</param>
+    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null)
     {
         if (!_fo.Enabled)
-            (target, about) = (null, -1);
+            (target, about, with) = (null, -1, null);
         else if (target is null && kind.Affect is { } row)
             target = TargetFor(kind, row, actor, m);
-        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about);
+        var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
+        RecordCircle(act, kind); // batch 2's reach checks: a scandal's circle
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);
         actor.BusyUntil = m + kind.DurationMinutes - 1;
@@ -1005,6 +1013,9 @@ public sealed partial class Simulation
             Undergo(act, kind, m);
             StirPity(act, kind, m);
             Mark(act, kind, m);
+            AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill, an apology's answer
+            RemorseAfter(act, kind, m); // the act catalog: remorse in the one who hurt (Repair)
+            SidesAfter(act, kind, m); // the act catalog: witnesses take sides (Sides)
         }
     }
 
@@ -1064,8 +1075,8 @@ public sealed partial class Simulation
                     _spans.Remove(key);
                     continue;
                 }
-                _fam[i, j] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[i, j]);
-                _fam[j, i] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[j, i]);
+                _fam[i, j] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[i, j]) * Meeting(i, j, m);
+                _fam[j, i] += _go.FamiliarityGrowthPerHour * hours * (1 - _fam[j, i]) * Meeting(j, i, m);
                 if (_fo.Enabled)
                     _together[i, j] += Clock.TickMinutes;
                 if (!_spans.TryGetValue(key, out int start))
@@ -1224,6 +1235,7 @@ public sealed partial class Simulation
         CloseDesires(day);
         CloseWithdrawal(day); // 0d.6: before CloseFeelings clears the day's time together
         CloseFeelings(day, days);
+        Forget(day);
         foreach (Act act in _acts)
         {
             if (!_holdersByDay.TryGetValue(act.Id, out int[]? counts))

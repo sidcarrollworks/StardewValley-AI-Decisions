@@ -13,7 +13,10 @@ dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                     
 # --log also prints the strongest sentiments with their causes, ties and shop switches
 # the desire gate (0d): --desire off|observe|on, --trait <Name>=<Trait>:<value> (repeatable),
 # --tensions <depth> (0: none); a "desire" block reports the gate (DesireMetrics)
+# the act catalog (acts-0): --catalog <slices>, a comma list of watch, returns, company, welcome, repair, sides, late
+# grown towns: --town pelican31 or pelican:60@<town seed>; --town-seeds gives each run its own town (seed = town seed)
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --html run1.html   # watch a run (viewer/README.md)
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 29 --days 112 --0d6 bdefghm --html run29.html   # with 0d.6's steps: spells in the viewer
 ```
 
 Every run formats its log in the invariant culture, so a seed hashes the same on every machine (before 0c, juiciness printed as "1,5" under a German culture).
@@ -430,11 +433,617 @@ The difference form pulls the town together: the spread of the power of acting n
 - The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
 - Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
 
+**Sid's answers (2026-10-08), built:** steps **i** (`MishapHurtOn`, A4: a stumble or a collapse weighs on the shy as a hurt does) and **j** (`CombativeDiscountOn`, A10: a combative stance eases only `CombativeShare` 0.3 as much at a stranger's kindness), both off; a child is never counted a hermit, and the player can be (A9; `SimResult.Stages`); and the recovery measure Sid chose (A8): hermits back above -0.3 within a season after the spell counts, 56 days from its first day. `WithdrawalAnswersTests` (4). On the review's set, one year, 200 seeds:
+
+| | the review's set | + i + j |
+|---|---|---|
+| E1 | 78% | 77% |
+| feuds, friendships a year | 7.06, 1.33 | 7.33, 1.33 |
+| hermits a seed-year (shyest third) | 0.28 (100%) | 0.36 (100%) |
+| brawlers a seed-year | 1.40 | 1.56 |
+| hermits back within a season after the spell counts (A8) | 17% of 40 | 20% of 55 |
+
+Mishaps add hermits and the discount keeps brawlers (they had fallen 42% with the review's set). A8's measure shows what the old one hid: four hermits in five are still withdrawn a season after their spell counts, against a target of half.
+
+## Growing the town: T0, T1, T2b, T3 and T4 (built; every option off, the grown towns opt-in)
+
+The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 60 people (Sid's answers, 2026-10-08). Its first two steps change no run of the shipped town: every pin holds.
+
+- **T0, the town as one value** (`Town.cs`, `Simulation.Town.cs`). `TownData` holds the cast, the places and doors, the hubs, the act kinds and every option, and `new Simulation(seed, town)` passes all of it through. A town built elsewhere can't quietly lose its feelings, money or authority, as it does when `places:` is passed to the long constructor alone. `ReplayOptions.Town` records any town. `TownDataTests`: P3 and the feelings-off pin through `TownData`, a placed scandal, one town shared by four runs at once, and the recorder.
+- **T1, the engine options** (`Simulation.Growth.cs`, with one-line hooks in `Simulation.cs`):
+  - **Walking distance (E3).** A walker bound for another place takes the door with the fewest tiles to walk from where they stand, not the fewest doors (Dijkstra over the door tiles, once per target place). The shipped town's doors form a tree, so every route is as it was, and it is the only rule.
+  - **Hubs (E4).** A gathering can have an age range, a crowd limit and households of its own. Someone who arrives and sees that many awake people within its radius turns back and doesn't pick it again that day (a `turned-back` line). Anyone not of its households picks it at `Visitors` times its weight.
+  - **Commutes (E5).** A job can set its own commute. The worker leaves that long before work, and the alarm moves with it.
+  - **Familiarity by circle, and forgetting (E6).** `TownData.Familiarity` seeds chosen pairs both ways. `GossipOptions.Forgetting` fades familiarity by Sid's model (design rule 5, "As built in T1"): a tie that has built fades slower, kin and housemates never fade, a new face met with warmth sticks, and too many new faces in a week push weak ties out. It is off unless `FadePerDay` is set. The runner's `--forget FadePerDay=0.01` turns it on, and the runner now prints who knows whom at the end.
+  - `TownGrowthTests` (12):
+    - the shorter walk wins over fewer doors;
+    - a longer commute leaves earlier and isn't late, and the alarm allows for it;
+    - a hub turns three visitors away at its limit, and takes them with none;
+    - a local hub draws its own households over four times as much;
+    - a child never picks a hub for grown-ups;
+    - seeds go both ways, and nothing fades while forgetting is off;
+    - a built tie fades slower, and housemates never;
+    - a warm first meeting sticks;
+    - many new faces push a weak tie out, and a new face counts once a week however often it is met;
+    - both halves of a tie fade alike;
+    - with forgetting on, feelings that only watch still change nothing (T12);
+    - the shipped town with forgetting on is pinned (`0fb826867e0573b5` since the review's fixes, below).
+
+  254 tests.
+
+**Fixed after review** (2026-10-08, a workflow of reviewers, each finding checked by a skeptic):
+- Forgetting read regard whenever feelings were on. So feelings that only watch (`Steer` off) changed familiarity, and through it beliefs: T12 broke with forgetting on. Regard now adds to a tie's strength, and warmth to a new face, only while feelings steer.
+- The week's new faces were counted by the day, so one stranger met on seven days was seven new faces. Each face now counts once in any seven days.
+- A tie faded in place, so the second half of a pair faded from an already faded average, and pairs drifted apart by name order. Each night's fade is now worked out from the night's starting values.
+- `--town file:` runs `TownCheck` and refuses a town it finds wrong, listing what it found. A hand edit can put a door on a wall, which routing would otherwise treat as no distance at all.
+- Two comments said more than the code does: a hedge only dims people at a crowded hub, so they still count; and the runner prints no "ties lost".
+
+The forgetting pin moves to `0fb826867e0573b5`. Every other pin holds, since forgetting is off in all of them. The numbers below were measured before these fixes.
+
+**Forgetting at 26** (measured 2026-10-08): forgetting off against `FadePerDay` 0.01 (rule 5's 1% a day) on the shipped town, same seeds.
+
+| | Year (200 x 112), off | on | Three years (50 x 336), off | on | Band (400 x 14), off | on |
+|---|---|---|---|---|---|---|
+| Mean familiarity at the end | 0.820 | 0.763 | 0.959 | 0.914 | 0.435 | 0.418 |
+| Pairs known well (0.4 or more) | 97.1% | 89.7% | 100% | 96.5% | 50.1% | 43.9% |
+| Pairs known at all (0.2 or more) | 100% | 96.3% | 100% | 98.3% | 92.5% | 92.4% |
+| E1 | 60% | 60% | 100% | 100% | | |
+| Feuds / friendships a year | 7.72 / 0.89 | 7.39 / 0.92 | 7.21 / 2.35 | 6.92 / 2.32 | | |
+| Under -0.2 at the end | 2.1% | 2.1% | 3.9% | 4.1% | | |
+| Witnessed placed scandals in the band | | | | | 50% | 51% |
+
+In a town of 26 where everyone meets at the market and the saloon, forgetting at 1% a day moves no gate beyond noise and hardly dents how well everyone knows everyone. Without it the shipped town saturates: after three years every pair knows each other well. It matters where strangers start low (0.08 in a generated town), which the 31 and 60 measurements will show; it stays off until then (question 5, answer a).
+
+- **T2b, the 31-person town** (`Towns.cs`, `TownCheck.cs`; Sid's answer 6). `Towns.Pelican31()` is the shipped 26, untouched, with the five who live a little apart:
+  - **Clint** keeps the blacksmith's and lives behind it; he is sweet on Emily (a starting regard of 0.4, one way).
+  - **Willy** keeps the fish shop on the pier.
+  - **Elliott** writes in his cabin by the sea.
+  - **Linus** lives in a tent on the mountain, earns nothing, and goes through the bins when he runs short.
+  - **The Wizard** keeps to his tower in the forest.
+
+  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours and days off, birthdays, Clint's crush, Linus, the tent's purse and the bins) is marked VERIFY. The 31 town keeps two tellings a day, as the shipped town has; left to its default it would jump to three at 30 people and quietly change gossip. The runner and the replay tool take `--town pelican31`.
+- **`TownCheck`** lists what the engine would forgive quietly: a place no door reaches (people would arrive at once), a spot on a wall, two doors on one tile, a keeper, mayor, friend or kin not in the town, a household with no purse, a shop that doesn't exist. The shipped town and the 31 town pass.
+- `Town31Tests` (8):
+  - both towns are sound;
+  - the 31 town keeps the shipped 26 whole (cards, places, doors);
+  - the tiles where the neighbourhoods join stay free;
+  - `TownCheck` finds an unreachable place, a doubled door, a haunt on a wall and a keeper not in the town;
+  - `TownCheck` finds what a hand edit can break, without crashing: a place that isn't a rectangle, a home that doesn't exist, groceries at a shop that sells none, a starting regard or a hub's household naming nobody, a parent under 18 years older, a place too wide and too many places for the replay;
+  - `--tensions` keeps a town's own starting regards;
+  - the 31 town runs the same every time and is pinned (`db268a57b95bada2`, seed 1, 112 days);
+  - the five keep their days: Clint at the anvil, Willy in his shop, the Wizard in his tower.
+- **Measured** (100 seeds x 112 days, two tellings a day; the runner gave `--town` towns three until 2026-10-08):
+  - E1 42%, below the 60% target: feuds 8.9, friendships 0.57 and reconciliations 1.6 a year (the shipped 26: 60%, 7.7 and 0.9 on 200 seeds);
+  - per person, the 31 town forms half the shipped town's friendships, so it misses E1; why is open (L8 in issue #46);
+  - temptation 3.5 a year (Pam 1.7, Abigail 0.9, Linus 0.8); the Wizard the most left out (E 0.62); brawlers 2.3 a seed-year.
+
+### The town generator and the 60-person town (T3 and T4, built 2026-10-08)
+
+`Generation/` builds a whole town from a spec written `pelican:60@7` (profile, people, town seed; the town seed is not the run seed). `--town pelican:60@7` runs it in the runner and the replay tool, and `--describe` prints its census card and hash. The pelican profile keeps the 31 town at the centre, untouched, and adds ring-1 neighbourhoods in slot order:
+
+| Slot | Joins the core at | Template | Homes (occupied) | People |
+|---|---|---|---|---|
+| E, East Green | Square (29,10), by East Road | Green: two rows facing a green | 8 (7) | 15 |
+| N, North Lane | MountainPath (12,0), by North Road | Lane: facing rows with hedged gardens, a small green at the end | 8 (7) | 14 |
+
+So the pelican profile grows to 31, 46 and 60 people (W, SE, NE and SW, for 120, are step T6).
+
+What a neighbourhood gets, every draw keyed by slot, plot and member (`Rng`), never by how many draws came before:
+- **Households** drawn from the census shares (one person 30%, two 34%, three 16%, four 13%, five 7%) and evened out to the slot's people exactly. Shapes: singles, couples, families (one in seven blended, with a stepparent), single parents, elders, elders with a grandchild, housemates; about one couple in twelve is same-sex. Couples 21-55, children 5-17 (born when a parent was 22 or more), elders 65-85. Each household has a surname and a home sized by how many live there.
+- **Names** from common English lists, unique in the town, never a Stardew name or a reserved word, each slot drawing from its own share of the lists.
+- **Kin** inside the household, and toward earlier slots only: about 30% of elder households have an adult child's household, and about 20% of adults a sibling, elsewhere in town.
+- **Character** after a core card of the same life stage (not reused in a neighbourhood until all have been), each trait moved by N(0, half the core's spread); one in ten a wildcard from the core's means; children from their parents. Body and birthday likewise.
+- **Jobs** that each slot brings, filled by its nearest adults: East Green brings a café on East Road (owner and staff, 6:00-14:00), a clerk at Pierre's, bar staff at the saloon and a town clerk; North Lane a workshop at the lane's end, a nurse at the clinic, staff at the chain store and Clint's apprentice. Each job's commute is half its route in tiles plus 10 minutes. Children and teens to 17 go to lessons; the old retire on a pension; a household with no wage and no pension has a member who earns from outside, enough for its size, as Leah and Sebastian do.
+- **Haunts**, one to four, chosen by each zone's weight x exp(-tiles from home / 40), doubled where the card they take after goes, the shy favouring quiet places; spots at least 2 tiles from anyone else's; most elders and some adults sit on their front step in the evening.
+- **Acts** from the card at 0.7-1.3 of its weights; vices drawn on their own among adults (Stole 0.2, RummagedInBin 0.12, DrunkScene 0.08); squabbles for children with a child sibling. The town's act rates scale by 0.8 x n / 26, and rummaging is allowed on the greens too.
+- **Friends**, zero to three by likeness, seven in ten returned inside a neighbourhood; **tensions** between rival keepers (the café and the saloon, the workshop and Robin), a stepchild toward a stepparent, a young adult toward a strict parent.
+- **Familiarity seeds** by circle: kin elsewhere 0.6, coworkers and classmates 0.4, neighbours 0.25, a public figure 0.2, strangers 0.08; housemates, friends and core pairs keep the engine's seeds.
+- **The town**: the core's hubs get limits (noon in the square is the core's, others at a quarter; at most 25 there and 30 at the saloon), each neighbourhood an evening on its green (its own households, others at a tenth, at most 15), the mayor keeps the greens, the constable patrols them, two tellings a day, and the county's stipend scales with the town.
+
+`TownCheck` also checks now that every door and spot in use can be walked to inside its place. `TownGenTests` (13): a spec builds the same town every time and three town hashes are pinned; specs read and write their short form; 200 towns of 60 are sound, with every name unique and each slot holding its people exactly; the core is untouched; kin agree with each other and with ages (a parent 22 to 45 at the birth, at most two parents, and two parents are spouses); generated adults keep the core's trait means (within 0.1), spreads (within half to one and a half) and its link between boldness and understanding; the 60 town keeps the 46 town's people (kin toward later slots aside); familiarity starts by circle, each pair worked out from the cards; no two people share a spot, staff work near a shop's keeper, and the young without a job have an allowance; every home is within 25 tiles of its green; a spec of 31 is the 31 town; a week of `pelican:60@1` is pinned (`c8990fcb4c6537c7`); and a town seed can follow a run's seed (`Towns.ForSeed`, for `--town-seeds`), with the same act list in every town of a size. Building a town takes about 40 ms.
+
+**Fixed after review** (generator version 2, 2026-10-08; each finding checked by a skeptic, and each test below fails on version 1):
+- A partner who was a full parent could be 15 at a child's birth, and a parent up to 54: only the first adult's age bounded the child. Now a child fits both full parents (22 to 40 at the birth); a stepparent's age doesn't bound it.
+- An elder couple's grown child elsewhere was tied to one spouse only, and the match skipped people who had children rather than people who had parents, so one adult could get two unrelated sets of parents. Now the child is every elder's in the household and has no parents yet.
+- Front-step seats skipped the spacing rule, so housemates sat on one tile (550 pairs over 200 towns). Generated bar staff stood anywhere within six tiles of the Saloon's middle, mostly in its back room. When no spot was free within a zone's radius, a spot went anywhere in the place. Now steps go through the spacing rule, staff stand near the shop's keeper, and a crowded zone widens ring by ring before spacing is relaxed.
+- Children at lessons in the square were seeded as coworkers (0.4) of the adults who work there (about 17 child-adult pairs a town). Classmates and coworkers are now separate.
+- Unhired 18- and 19-year-olds had no job, income or allowance. They now get a teen's allowance.
+- North Lane's green sat at its far end, 32 tiles from its west homes (the spec says 25). It is now in the middle of the lane, and the workshop's door is at the street's east end.
+- Wildcards ignored how traits go together in the cast, and children took after a stepparent. Wildcards are now drawn with the cast's covariance, and children take after their birth parents.
+- `pelican:31@<seed>` rescaled the 31 town's rates and so was not the 31 town. It is now the 31 town itself.
+- `Census.Hash` left out much of what a town runs on (gossip, wants, market days, juiciness, wander), so different towns could share a hash. It is now FNV-1a over the town's canonical JSON, as the town spec has it: the file on one line without the values left at their defaults (`TownJson.Canonical`). A field appended with a default, as the act catalog's were, is in every file but leaves every town's hash as it was; the generated towns' hashes are the same before and after the catalog's fields, and only a value away from its default moves one.
+
+**A town as a file.** `--dump-town town.json` writes the town named by `--town` (the shipped town without it) as indented JSON and exits; `--town file:town.json` runs it, in the runner and the replay tool, so a town can be edited by hand: a card's traits, a haunt, a door, an option. The file holds what a town is made of (cards, rows, doors, hubs, act kinds, options); what the code works out, and `FeelingOptions.CloseCall`, which is code, are left out. `TownJsonTests` (8): the shipped town, the 31 town and `pelican:60@1` each read back to the same file, census hash and three-day log; the file holds cards and rows but not worked-out values; a broken file, and a misspelt, missing or null field, are refused; an edited file changes the town, read directly and through `file:`; and the hash reads the canonical form, so a field at its default is in the file but not in the hash, and away from it moves the hash.
+
+Measured on `pelican:60@1` with these fixes (100 seeds x 112 days): feuds 16.5 and friendships 3.1 a year; E1 100% and dead towns 16%, both from its size (E1 counts seed-years, and 60 people have 1770 pairs against the shipped 325; the dead-town rule counts every pair, and most pairs in a town of 60 never meet, so neither gate compares across sizes; the scaled gates under "Variety" do: across 100 towns of 60, E1 96% and no dead towns); 2 households a run in debt (the tent and the trailer, as at 31); temptation 2.5 a year; the Wizard the most left out (0.63); late for work 10.3 a season, mostly the café's 6:00 starts; by the year's end the median person knows 57 of the other 59 well (forgetting off). Two work pairs make most of the friendships: Alfred and Megan (his workshop) in 90 of 100 seeds and Bernice and Clint (his forge) in 85, so a single town seed repeats them run after run. A run of 60 people takes about 0.15 s a day. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics`, and ring 1's other slots.
+
+**`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto) and each place's (`PlaceDistricts`: a neighbourhood's road, shops and homes are its own); the share of tellings inside a district against the share chance would give, each teller's listeners drawn evenly from everyone else and averaged over the tellings there were (the locality ratio: 1 is a crowd, however unevenly people talk); how often a story that began in a neighbourhood (its people's acts at home) stays there on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person, a tie across two districts counting half in each so the rows add up to the town. The runner prints it for any `--town`. `TownMetricsTests` (5): districts of people and places; shares recounted from the log; a crowd scores 1 and a town of neighbourhoods more; the rows add up to the town, and stories begin at home. A review (2026-10-08) found the first version counted a neighbourhood person's acts in the square as its stories (so most "crossed" at once), took chance from head counts (so a crowd where the core talks more scored 1.12), and counted a tie across districts in both; the first look at `pelican:60@1` below was measured with it.
+
+Measured on `pelican:60@1` with the corrected metric (100 seeds x 112 days, checkpoint-5): 52% of tellings stay inside a district against 39% by chance (locality 1.35; the spec's target is 2 or more at 120); a third of the stories that begin in a neighbourhood are only at home on their first day, and 68% reach another district within two days (the first version, counting acts in the square as a neighbourhood's, had 11% and 90%); East Green's people act more than the core's (52 acts a person a year against 35, North Lane 28); feuds 0.31 a person a year in the core, 0.23 in East Green and 0.24 in North Lane, and friendships 0.04, 0.03 and 0.11.
+
+
+## Variety: how different the runs are (built 2026-10-08; reads results only)
+
+Sid wants runs with many twists and turns, so that new games don't feel alike. `Variety.cs` measures that, as the first step of `docs/under-glass/actions-and-twists.md` (section 3 and step 0 of section 4). Nothing in a run changes, and every pin holds.
+
+**Story events.** `Variety.Of` reads a run's results and lists what a player would tell a friend about. Each event has a kind, a day and the people in it. Its `Id` is the kind and the people, with no day, so the same story in two seeds has the same `Id`.
+- Ties: a feud, a feud in a family, a friendship, and a reconciliation (one per pair a season). A feud between a pair who were friends earlier is a falling out.
+- Scandals: one the town made itself (not the harness's), with its culprit.
+  - A secret out: a scandal nobody saw, which someone other than the culprit later pins on them by name.
+  - A confession.
+  - A verdict on the wrong person.
+- The constable's election.
+- Spells: a hermit, the withdrawn, a brawler.
+- A household that ends the run in debt.
+
+**The measures** (the research's targets in brackets) are counted over seed-years; a run of a year or less counts as one:
+- **V1** the share of seed-years holding the commonest named story, such as a feud pair, a culprit or a brawler [30% or less];
+- **V2** the effective number of headlines: e to the power of the entropy of each seed-year's biggest story [20 or more];
+- **V3** the share of seed-year pairs that share 80% of their stories [under 5%];
+- **V4** the share of seed-years holding a story found in under 2% of seed-years [60% or more; it needs 50 seed-years];
+- **V5** for the person whose arc repeats most, how often their commonest arc comes up [50% or less]. An arc is the kinds of story they were in that year;
+- **V6** the median number of twists a seed-season [2 or more]. A twist is a reversal (a feud mended, friends who fell out, the wrong person punished) or a revelation (a secret out, a confession);
+- **V8** how many kinds of town the runs make [3 or more]. Seed-years go on a 3 x 3 grid of conflict against warmth, each axis cut at 0.8 and 1.2 times its median, and the cells holding 5% of seed-years are counted;
+- beside them, how often the commonest constable wins.
+
+V7 (copies of a run split at day 28) is batch 2's m-2, below. The runner prints a `variety` line after every report.
+
+**Story events, part 2** (batch 2's m-1, built 2026-10-08; spec #63, 6.2-6.3). `Variety.Events.cs` reads a run's log once (`RunLog`: beliefs, tellings, traces found, suspicions, reports, interviews, making-ups) and adds:
+- **New kinds** (the story order is batch 2's, biggest first):
+  - **FirstScandal:** a person's first scandal; later ones stay **Scandal**.
+  - **BlameMoved:** a retold bad act whose leading name moves from one person to another (the name most holders give, at a day's end, with two or more holders and a strict winner). A reversal.
+  - **LetOff:** the mayor let the accused off. Nobody knows, so it's no twist.
+  - **Upheaval:** a household switched its grocer.
+  - **Humiliated:** warned, taken in or set to service before three or more.
+- **Dates:** a secret out is dated by its first naming, and a confession by its interview; before, they were dated by the first hearing (often a trace with no name) and by the act.
+- **Cause chains:** each twist carries its chain, earliest first (the act, the reports, the found traces and suspicions, the namings, the acts that hurt the pair). **The fair-twist rule** (research section 3): a twist is fair when two or more steps came before it and one of them was visible (seen, found or told by someone outside the act).
+- **V1 pools families:** a pair's feud, falling out and feud in a family are one story, and so are a person's first scandal and later ones; each family's commonest is printed beside V1.
+- **V6 counts fair twists,** with every twist, the fair share and the unfair ones by kind beside it.
+
+The kinds batch 2's slices bring (a let-off found out, a kept purse found out, a debt revealed or called in, a date stood up, a contest won) find nothing until they land.
+
+`VarietyTests` (11):
+- a town that repeats itself scores as one, and one where every seed differs scores high, each on made-up seed-years;
+- headlines and arcs;
+- Jaccard, twists and kinds of town;
+- a run's story events come from its results, the same every time, with a person's first scandal first and a secret dated by its naming;
+- measuring runs cuts them into seed-years;
+- families pooled for V1; the lead name moving with the holders; the fair-twist rule; the run log's rows;
+- on a year of the shipped town, every twist carries its chain and the season counts add up.
+
+**Measured** (2026-10-08, on checkpoint-7: 200 seed-years each; "before" is acts-0's baseline from the same runs, which m-1 doesn't change: E1 60% and 78%, feuds 7.7 and 7.1 a year):
+
+| measure | shipped, before | shipped | review's set, before | review's set | target |
+|---|---|---|---|---|---|
+| V1 commonest named story | 92% (Scandal Pam) | 92% (culprit Pam) | 94% | 94% (culprit Pam) | 30% or less |
+| the feud family's commonest | | Sam and Shane 53% | | Sam and Shane 55% | |
+| V2 effective headlines | 2.7 | 3.1 (top: Pam's first scandal, 56%) | 2.6 | 3.0 (the same, 56%) | 20+ |
+| V4 with a rare story | 56% | 57% | 59% | 59% | 60%+ |
+| V5 commonest arc | 59% (Lewis: Feud) | 57% (Lewis: Feud) | 81% | 81% (the newcomer: Withdrawn) | 50% or less |
+| V6 twists a season, median (mean) | 0 (0.39), every twist | 0 (0.36), fair twists | 0 (0.45), every twist | 0 (0.42), fair twists | 2+ |
+| fair share of twists | | 91% | | 93% | |
+| unfair twists in 200 seed-years | | making up 24, wrong verdicts 2, confessions 1 | | making up 24, confessions 2, wrong verdicts 1 | |
+
+- **Families change nothing at the top.** Pam's first scandal and later ones were already one story in V1's count, and the commonest feud family, Sam and Shane's, comes in 53-55% of seed-years (the spec's probe said 53%).
+- **V2 rises a little** because the new kinds that rank above a scandal (a moved blame, a let-off) head some years; Pam's first scandal still heads 56%.
+- **Nine twists in ten are fair.** The unfair ones are almost all making up (24 in 200 seed-years): a making-up whose chain had under two steps before it, or none that anyone outside saw or was told, so a player couldn't have seen it coming. The median season still has no twist, fair or not.
+
+**V7, the open future** (batch 2's m-2, built 2026-10-08; spec #63, 6.3). A new game shouldn't be decided by its first month. `Simulation.Fork(day, salt)` makes a copy of a run that is the run, line for line, until that day, and then draws every die anew from a seed made of the run's seed and the salt. V7 is the share of copies forked at day 28 whose major stories over the rest of the year (days 28-111) differ from the run's own [25-60%: under 25%, a year is settled by day 28; over 60%, day 28 decides nothing]. The major stories are the first 13 kinds in the story order, WrongVerdict to Hermit, so a fork that only changes who feuds reads as the same year. The share of copies whose headline over those days changes is printed beside it.
+
+`--forks <K>` (with `--days 112` or more) runs each seed K more times, forked at day 28 with salts 1 to K, and the variety line adds `V7 open future`. Without a fork nothing changes, so every pin holds. `ForkTests` (3): a fork is its base to the line until its day and then its own, and one seed, day and salt make one run; a fork after the run's last day gives P3; V7 on made-up runs.
+
+**Today** (50 seeds x 3 forks at day 28, a year each, on checkpoint-7):
+
+| | the shipped town | the review's set | target |
+|---|---|---|---|
+| V7: forks whose major stories after day 28 differ | **92%** | **93%** | 25-60% |
+| forks whose headline after day 28 differs | 39% | 35% | |
+
+- **Day 28 settles little of the detail.** Nearly every fork changes at least one major story (a let-off, a moved blame, a secret out, who withdraws), so V7 is past its 60% ceiling. V7 counts a fork as different when any one major story differs.
+- **The year's biggest story is more settled.** The headline changes in about a third of forks: Pam's first scandal heads 42-52% of these years, and it usually comes whatever the dice do after day 28.
+
+**The baseline** (2026-10-08, each seed one year, so one seed-year; the 60 town on generator version 2):
+
+| measure | shipped 26 (200 seeds) | 31 town (100) | `pelican:60@1` (100) | target |
+|---|---|---|---|---|
+| V1 commonest named story | 92% (Scandal Pam) | 95% (Scandal Pam) | 74% (Brawler Alex) | 30% or less |
+| V2 effective headlines | 2.7 | 3.5 | 5.3 | 20+ |
+| V3 alike seed-year pairs | 0.0% | 0.0% | 0.0% | under 5% |
+| V4 with a rare story | 56% | 53% | 83% | 60%+ |
+| V5 commonest arc | 59% (Lewis: Feud) | 57% (Lewis: Feud) | 88% (Megan: Friendship) | 50% or less |
+| V6 twists a season, median (mean) | 0 (0.39) | 0 (0.45) | 0 (0.50) | 2+ |
+| V8 kinds of town | 3 | 3 | 3 | 3+ |
+
+- **One culprit carries the headlines.** Pam is tempted 1.8 times a year of the town's 2.7, the same as the town's need-driven count, and her household ends the year in debt; a scandal outranks every other story, so hers is the headline in most years. The 31 town adds Linus (56%).
+- **Twists are the biggest gap:** the median season has none.
+- **V3 and V8 pass everywhere**, mostly as "conflict mid, warmth mid".
+- **The 60 town passes V4 on size alone** (1770 pairs against 325), and its V5 is one work pair: Megan works at Alfred's workshop and they become friends in 90 of 100 seeds, as Bernice and Clint (his forge) do in 85. All 100 runs are one town (`@1`); `--town-seeds`, below, measures across towns.
+
+**Across towns** (`--town pelican:60@1 --town-seeds`: each seed builds its own town of 60, so 100 towns, a year each). A new town each game removes the town's own repeats but not the core's:
+- V2 rises from 5.3 to 6.8 headlines and V4 from 83% to 100%; the constable spreads out (Maru 13%, against Anita's 57% in one town).
+- V1 stays at 70% (Pam's scandal 70%, Alex a brawler 60%): the 31 people of the core are the same in every town.
+- V5 falls from 88% to 71%, and the repeat moves to Harvey's friendships: every town gives the clinic a generated worker beside him (Allan, Graham, Bernice, Toby, Frank in towns 2-6), and they become friends. The person changes; Harvey's story doesn't.
+- The median season still has no twist (mean 0.53).
+- Ties: feuds 17.9 and friendships 3.4 a year, which is 29.9 and 5.7 per 100 people (the shipped town: 29.7 and 3.4). E1 99%, and 96% scaled to 60 people; dead towns 5%, and none scaled.
+
+**Grown-town gates.** E1, war and dead towns count pairs, and a grown town has more pairs per person than anyone meets: at 60, E1 passes on size alone and the dead-town rule calls 16% of `pelican:60@1`'s seed-years dead. `FeelingMetrics` now also gives scaled forms that count per person (town spec 6.2, "As built"): a war town has more than 2.5 people disliked per person, a dead town fewer than 1.25 moved per person, and E1 asks for a new feud and a new friendship per 26 people (two at 60). At 26 people or fewer they are the gates themselves. The runner prints them, with feuds and friendships per 100 people, for any town that isn't 26 people; `--town-seeds` gives each run its own generated town and prints the spread table, these gates run by run, and the variety measures. `FeelingStatsTests` (4) and `TownGenTests` (13) cover the scaled gates under 26 people, the ties a scaled E1 needs, and a town seed that follows the run's.
+
+## Reach in context: the scenario checks (batch 2's m-0, built 2026-10-08; measures only)
+
+Sid's answer on reach: a scandal "could reach 100% of the town if it was really public or very limited if it was resolved or covered up quickly." So one band (40-70% of the town) can't be the target for every scandal. Batch 2's spec (`docs/under-glass/specs/acts-batch2-spec.md`, section 5) replaces it with scenes and a criterion for each, and m-0 builds the harness that stages them and the measures that read them. A run with no scenario is the run it was, so every pin holds.
+
+**Scenarios** (`Scenarios.cs`, `Simulation.Scenarios.cs`). `Simulation.Place` stages a chosen kind in a chosen scene, as the harness's placed scandal is staged:
+- **When:** each minute of its window, if someone is able, it begins with a chance of 1 in 120, drawn by its key. A named actor acts at their first able minute. After its days are up it is dropped, with a log line.
+- **Able:** free, of the kind's age, in one of its places, with a target if the kind needs one, and not the keeper at work. Then the scene: between a fewest and a most others within 8 tiles; those others all loners (chattiness 0.4 or less) or all kin and housemates, if asked; inside a gathering that is on, or on a festival day, if asked.
+- **No trace:** the act leaves none, so only those who saw it or are told know.
+- **One key, one act:** scenarios that share a key place the same act at the same minute.
+- **Follow-ups:** `sway` has the mayor let the accused off when he decides the case. The others (settle, read-out, post, call-in) come with batch 2's levers.
+
+**The circle** (`SimResult.Circles`). For every scandal and every scenario act: everyone else who knew its actor at familiarity 0.2 or more as its day began. Reach is measured against them as well as against the town.
+
+**The measures** (`ReachMetrics.cs`): circle reach and circle heard by a day (heard leaves out a trace found with no name), town reach and town heard, whether a story died (no more heard it than saw it), how many days it grew, how exposed it was (the town's on a festival day or at the meeting; a crowd at 5+ witnesses or inside a gathering; seen by 2-4; private), and Spearman's rank correlation.
+
+**The checks** (`--check C3`, repeatable, or `--check today`; each runs its own seeds and days unless `--seeds` or `--days` is given):
+
+| check | scene | criterion |
+|---|---|---|
+| C2 | a bin in the Square while Noon or the Market is on, inside it, 5+ within 8 tiles | witnessed by 5+: median circle reach at the end 50-90%, and 25%+ of runs over 70% |
+| C3 | a bin at the ClinicYard, exactly 1 within 8 tiles, a loner, no trace | the circle has heard it in 20% or less in 70%+ of runs; it dies in about half |
+| C4 | the placed scandal's kind with nobody within 8 tiles | where found, median circle reach 30% or less |
+| C6 | a theft with only kin and housemates within 8 tiles | nobody outside the household knows who did it a week on, in 95%+ of runs |
+| C10 | the placed scandal (`--inject`) | Spearman of witnesses with circle reach 0.5+ |
+| C11 | the town's own scandals | circle reach 14 days on: median 40-70%, 10%+ at 90%+, 15%+ under 20% |
+| C13 | the placed scandal, witnessed | reported: heard by 40-70% of the town and growing 3+ days (52%+ at 26) |
+
+C6 counts an outsider who knows who did it. Rule 17's cover works on the believed culprit, so a keeper who finds stock missing, not knowing it was his daughter, tells it; an outsider who knows only that something was taken is reported apart.
+
+`ScenarioTests` (7): a scene that never comes changes nothing but its log line; an act begins only in its scene; onlookers are loners or family as asked, read from where everyone stood; a named actor acts, and one key places one act; what the town can't stage is refused; a swayed case is let off; the circle is who knew the actor as the day began. `ReachMetricsTests` (4): Spearman with ties; on runs the measures agree with each other and with the run's counts; a festival day is the town's exposure; today's checks run.
+
+**Today** (2026-10-08, on `claude/checkpoint-6`):
+
+| check | the shipped town | the review's set (0d.6's b c d e f g h m t) | criterion | |
+|---|---|---|---|---|
+| C2, a crowd at a hub | witnessed by 5+ in 98%; circle reach median **92%**, over 70% in 100% | 98%; **92%**; 100% | median 50-90%, 25%+ over 70% | fails on both |
+| C3, a lone loner | the loner saw it in 98%; the circle heard it in 20% or less in **9%** of runs (median 29%); never retold 2% | 98%; **7%** (median 33%); 2% | 20% or less in 70%+ | fails on both |
+| C4, nobody near | found in 81%; where found, circle reach median **12%** | 81%; **12%** | 30% or less | passes on both |
+| C6, family only | placed in 63% of runs; nobody outside knew who a week on in **100%** (89%: someone outside knew only that it happened) | 63%; **100%** (88%) | 95%+ | passes on both |
+| C10, witnesses and reach | Spearman **0.91** over 369 placed scandals | **0.91** over 369 | 0.5+ | passes on both |
+| C11, the town's own scandals | 462 scandals: circle reach 14 days on median **36%**, 90%+ in 1%, under 20% in 38% (bins: median 52%; thefts: 12%) | 474: **36%**, 1%, 42% (bins 52%; thefts 12%) | median 40-70%, 10%+ at 90%+, 15%+ under 20% | fails two on both |
+| C13, the old band, witnessed | heard by 40-70% of the town, growing 3+ days, in **55%** | **56%** | 52%+ at 26 | reported |
+
+400 seeds × 14 days for each placed check; C11 200 × 112.
+
+What it says:
+- **The review's set moves none of them** by more than a few points: 0d.6's steps change what people feel, and reach is the gossip's.
+- **The harness reproduces the spec's probe** (checkpoint-3) wherever both measured: C4 12%, C10 0.91, C11's 36%, 1% and 38%, and C13 55%.
+- **A crowd makes a scandal nearly universal.** Seen by five or more at a hub, the median reaches 92% of the people who know the culprit, and every run passes 70%. C2's upper bound of 90% asks for some to stay partial.
+- **A lone witness is no quiet edge.** One loner who saw it still tells, at the hubs, and the circle hears it in nine runs of ten. Sid's answer to question B5 (2026-10-08): the town is missing the social pressure not to spread a scandal. That rule is next, measured against C3 and C11.
+- **Families keep the culprit's name** (C6), though the theft itself gets out through the keeper's trace (89%).
+- **Natural scandals split by kind:** a bin reaches about half the circle; a theft, found later by the keeper with no name, about an eighth. The town-wide tail is missing (1% at 90%+), and the spec expects festivals and announcements (b2-4, b2-5) to make it. On a festival day today's scandals reach no further (median 16%): festivals aren't gatherings yet.
+
+## The act catalog: acts-0, the seams and the baseline (built 2026-10-08; no rows, every switch off)
+
+The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
+
+- **`ActGate`** (`Acts.cs`) is the desire gate's data for an act kind: its form cost, the least intensity a motive needs to use it, the motives it serves, whether it is light, and its limits (a card, familiarity, regard, an audience, a pride weight). A row carries it in `ActKind.Gate`. Every shipped row has none, so `Simulation.GateOf` builds theirs from today's `FeelingOptions`: an argument and a snub answer hostility (a snub only with light acts on), a help returns help and answers pity, a gift returns any kindness, makes up and answers love, and turning away serves nothing.
+- **The gate reads the rows** (`Simulation.Desire.cs`). The costs, the minimums and whether a kind is light come from `GateOf`, and the acts a motive may use are every kind whose gate serves it, most expensive first, ties by name (`Simulation.Served`). Return is in kind or less: only kinds that cost no more than the kindness returned. On the shipped rows these are exactly the old lists, whatever a sweep sets the costs to: returning help offers help, then a gift; any other kindness, a gift; an argument comes before a snub. A shipped row has no gate of its own, so it is ranked and capped by its shipped form, and a swept cost changes only what the gate charges. Light kind acts are left out of 0d.6's kindness counts. `Fits` (`Simulation.Acts.cs`) checks a row's hours and limits before the gate offers it, and the pride term raises a row's cost by its pride weight x (self-regard - 0.5); every shipped row passes `Fits` and has no pride.
+- **The records grow at the end**, with defaults that reproduce today: `Affect.ReadWarmAt` and `WithJoy`, `ActKind.Gate`, `PerHead`, `FromMinute` and `ToMinute`, `Act.With`, the motives Remorse, Defend and Curious, and the outcomes Accepted and Refused.
+- **`ActOptions`** (`FeelingOptions.Acts`, its last property) holds the switches Watch, Returns, Company, Welcome, Repair, Sides and Late, and the spec's constants. Every switch is off, and the town turns none on. The replay records the switches and numbers as `ActOptions.*`, and the viewer's Explanation tab defines all 21; it adds the slices' rows and cards to its run as the runner does.
+- **`ActCatalog`** (`ActCatalog.cs`): `Batch1(o)` gives the rows of the slices that are on (none yet: acts-1 adds Thanked, Complimented and Joked); `Kinds(o)` is the town's act list with those rows after it, so every shipped kind keeps its index; `Cards(cast, o)` adds the card weights the slices need (none yet, so the cast is returned as it is).
+- **The runner's `--catalog <slices>`** turns switches on by name, a comma list in any case, for example `--catalog returns,company`, and adds the slices' rows and cards to the town. (`--acts` is taken: it sets a card weight.)
+- `CatalogTests` (11):
+  - test 1: for every shipped motive, every source act kind, the shipped, 31 and 60 towns' act lists and the switch settings (with light acts off and on, and with each of the four costs swept), the lists built from the rows equal the old mapping (copied into the test from the code before acts-0), with the same costs and minimums, and every kind is light exactly when it was;
+  - a row's own gate is read: served by cost and name, Return in kind or less, light when it says so;
+  - test 2: with every row appended and every switch off, the act list and the cast are the shipped ones, and the runs give P3 (`e9fd83b284f5c1b6`) and the two feelings-off hashes;
+  - test 3, as far as acts-0 goes: with watch and every slice on, the same hashes;
+  - determinism: two runs give one hash, also under a German culture;
+  - the replay adds the catalog as the runner does, and records its switches;
+  - the switch names, and a window that runs past midnight;
+  - three scenes with a row of the test's own (a wave): it answers a gift the shy can't return, waits for its hours, and costs more for the proud.
+
+  288 tests.
+
+### acts-0, second part: the story measures and the baseline (built 2026-10-08)
+
+Every later slice is measured against a baseline from the same code, so acts-0 also builds the measures of acts spec 7.2 and 7.3. `StoryMetrics.cs` reads a run's results only:
+- **The life record across households**, from the doer's side: each kind's outcomes; the Ignored share of kindnesses (light acts aside: they settle as None); the Answered and Avoided shares of hostile acts; and kindnesses returned within a week by any kind act back.
+- **Per person:** acts done and undergone, by kind; the hurt taken and the kindness received (the life record's severities); warmth received (light kind acts, from acts-1 on); and feuds and friendships. Feuds and friendships are the variety measures' story events (`Variety.Of`), so stories are counted one way. Feuds count the new feuds of people who aren't kin, friends falling out among them; feuds inside a family are counted apart.
+- **Threads:** acts linked by `Act.About` in a chain three or more deep, touching two or more households. The gate sets `About` to its motive's source act, and a consequence's `About` is its scandal, so `About` is the only link needed. A thread is counted in the season its third link lands. Trees that start from the harness's placed scandal are left out.
+- **How long feuds last.** The engine records each spell a pair spends with both at -0.3 or below (`SimResult.FeudSpells`, written at each night's close; nothing reads it and nothing reaches the log). Regard that sits at the line crosses it back and forth: in 200 seed-years of the shipped town, 611 of the 1,395 spells that ended began again, 510 of them within three days. So a feud is a pair's spells joined across pauses of 7 days or less. The median is Kaplan-Meier's: a feud still on at the end, or one whose last spell ended too close to the end for a 7-day pause to fit, counts as lasting longer than it was seen. Spell by spell the median would be 20 days. Joined, it is 38 days, with 7.9 feuds a year against the 7.7 new feuds the engine notes.
+- **The budgets of 7.2:** trivia and news a year; the heavy hostile acts and the gifts the gate started; the gate's kind acts by year of the run; warmth a person a year.
+
+The runner prints a `story` block whenever feelings are on. `StoryMetricsTests` (7):
+- threads: three deep across two households, not two deep, not one household, not from a placed act; one tree with its depth and size;
+- the median feud with feuds still on;
+- spells a week apart joined;
+- a real year agrees with the engine (every new feud starts a spell), with the ties (feuds and friendships per person) and with `DesireMetrics` (kindness returned);
+- feelings off.
+
+314 tests, all passing on CI. On Windows one fails on `claude/checkpoint-5` itself: a generated town's census hash takes the line endings of the indented JSON it hashes (reported on #58).
+
+**The baseline.** Measured as every slice will be: one year 200 seeds x 112 days (E1 also on 400 seeds), three years 50 x 336, and the band 400 x 14 with a placed scandal. The two bases are the shipped town and the 0d.6 review's set (`--0d6 bcdefghmt`), because Sid has not yet chosen which 0d.6 steps ship. Money is conserved to 0.000 g in every run.
+
+| measure | shipped | review's set (b c d e f g h m t) | gate for a slice |
+|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 56% / 24% | 50%+; under 40% at most 5 points worse |
+| E1, 200 seeds (400 seeds) | 60% (61%) | 78% (73%) | 60%+ |
+| war towns / dead towns | 0% / 0% | 0% / 0% | each under 5% |
+| feuds and friendships a year (400 seeds) | 7.85, 0.92 | 7.09, 1.33 | each within ±30% |
+| feuds, friendships per 100 people a year | 29.7, 3.4 | 27.1, 5.1 | |
+| three years: moved 0.1+ at d335 / d111 | 1.46 (13.9% -> 20.3%) | 1.41 (16.1% -> 22.7%) | 1.5 or less |
+| three years: mean regard change by season | +0.010 to +0.028 | +0.016 to +0.038 | within ±0.02 a season |
+| the gate's kind acts by year (three years) | 239, 292, 336 | 502, 522, 554 | year 3 at most 1.5 x year 1 |
+| kindness ignored across households | 40% | 39% | falls with Returns |
+| hostile acts answered / avoided | 89% / 3% | 88% / 3% | reported |
+| kindness returned within 7 days | 62% | 65% | rises, under 90% |
+| threads a season, mean (median) | 2.72 (3) | 2.81 (3) | 3+ |
+| thread shapes | argument chains 72%, an argument then gifts 16% | 78%, 13% | |
+| new feuds a year; median length | 7.9; 38 days (46% ended) | 7.4; 39 days (44% ended) | 28+ days with Repair |
+| trivia, news a year | 696, 265 | 956, 264 | trivia 900-1,350; news at most +10% |
+| by the gate: heavy hostile acts, gifts a year | 153, 219 | 153, 478 | hostile +15% at most; gifts -40% with Company |
+| hermits a seed-year (shyest third) | 0 | 0.28 (100%) | above 0, 90% from the shyest third |
+| brawlers a seed-year | 2.37 | 1.43 | within ±30% |
+| acts done a person a year | 30.6 | 40.6 | per head: within ±20% at 52 and 104 |
+| variety: V1, V2, V4, V5, V6 median (mean) | 92%, 2.7, 56%, 59%, 0 (0.39) | 94%, 2.6, 59%, 81%, 0 (0.45) | the research's targets |
+| run time, 200 x 112 and 50 x 336 (16 threads) | 58 s, 62 s | 70 s, 80 s | at most 1.5x |
+
+What the baseline says:
+- **Threads are almost there already, and almost all are arguments.** A thread forms about 2.7-2.8 times a season, against the target of 3. Three in four are argument chains (one exchange can run 70 acts deep in a year), and most of the rest are an argument made up with a gift that is then returned. Batch 1 should add other shapes rather than more of these.
+- **The Ignored share is what acts-1 aims at.** Two in five kindnesses across households go unanswered (40% of gifts and of help).
+- **Feuds last five to six weeks** (a median of 38-39 days), and more than half are still on, or ended too late to tell, when the year ends. Repair (acts-4) must keep the median at 28 days or more.
+- **The review's set already spends most of the trivia budget.** Missing people (step m) doubles the gate's gifts (219 to 478 a year), so trivia is at 956 a year before any catalog act. The trivia band of 900-1,350 leaves the slices room for about 400 more a year on that base, and 650 on the shipped town.
+- Over three years the shipped town's gate gives 1.40 times as many kindnesses in year 3 as in year 1; the review's set 1.10.
+
+### acts-1, Returns: Thanked, Complimented, Joked (built 2026-10-08; off)
+
+`--catalog returns` turns on three light kind acts (acts spec 1 and 4.1-4.3):
+- **Thanked** answers Return;
+- **Complimented** answers Return, MakeUp, Fond and Remorse;
+- **Joked** answers Fond.
+
+They are gate acts only; their per-head draws come with acts-2. The rules for light kind acts (`Simulation.Acts.cs`):
+- **No motive:** they stir no motive in the target.
+- **They settle what they answer:** a gift or help they answer is marked Returned, and they hold no open outcome themselves.
+- **The warm cap:** `WarmPerDay` (3) a day per actor, apart from the light hostile cap.
+- **The warm budget:** `WarmBudget` (0.01) of regard a day per ordered pair.
+- **The cold reading:** a warm act is read cold (route `Cold`) by a target who holds the actor below the row's `ReadWarmAt` (-0.2 for a compliment, 0.1 for a joke). It is taken badly at -`ColdShare` x joy and hurts the target's stance.
+- **Out of 0d.6's counts:** they stay out of 0d.6's kindness counts (question 2, answer c).
+- **Fond's wait:** after Fond answers someone with a small act, it waits `FondWarmDays` (28) before the next. A small act doesn't reset missing someone, so without the wait Fond complimented the same person every day they met: 536 compliments a year on the shipped town, with the gate's kind acts growing 2.24 times by year 3.
+
+The sweep for the wait, 50 x 336 on the shipped town (year 3 ÷ year 1 of the gate's kind acts; baseline 1.40):
+
+| wait | 0 | 7 | 14 | 28 |
+|---|---|---|---|---|
+| kind acts | 2.24 | 1.69 | 1.58 | 1.46 |
+
+Watch mode (`--catalog watch,returns`) records in `SimResult.CatalogWatch` what the gate would have started, as the gate walks the rows, and starts nothing. A row the gate would weigh as a close call is recorded as if it were taken, so the record counts close calls at 100%, not at their chance. `--ao <Name>=<value>` sets a catalog number. `ReturnsTests` (16).
+
+**Measured** (the acts-0 protocol; the baseline is the previous section):
+
+| measure | shipped | + Returns | review's set | + Returns | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 55% / 25% | 56% / 24% | 56% / 24% | 50%+ |
+| E1, 200 seeds (400) | 60% (61%) | 62% (62%) | 78% (73%) | 73% (75%) | 60%+ |
+| feuds, friendships a year (400) | 7.85, 0.92 | 7.97, 0.95 | 7.09, 1.33 | 7.13, 1.40 | ±30% |
+| kindness ignored across households | 40% | 37% | 39% | 31% | falls |
+| kindness returned within 7 days | 62% | 64% | 65% | 72% | rises, under 90% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.46 | **1.55** | 1.41 | 1.40 | |
+| three years: the gate's kind acts by year | 239, 292, 336 | 323, 401, 473 (1.46) | 502, 522, 554 | 617, 641, 667 (1.08) | year 3 at most 1.5 x year 1 |
+| trivia, news a year | 696, 265 | 783, 269 | 956, 264 | 1,071, 255 | trivia 900-1,350 for the batch; news +10% at most |
+| by the gate: heavy hostile acts a year | 153 | 157 | 153 | 144 | +15% at most |
+| compliments, thanks, jokes by the gate a year | | 84, 0.3, 0.1 | | 111, 4.5, 0.2 | |
+| hermits (shyest third); brawlers | 0; 2.37 | 0; 2.41 | 0.28 (100%); 1.43 | 0.22 (98%); 1.22 | above 0, 90%; ±30% |
+| threads a season; median feud | 2.72; 38 d | 2.77; 39 d | 2.81; 39 d | 2.81; 40 d | |
+
+Money is conserved to 0.000 g in every run. What it says:
+- **The spec's gates hold on both bases.** One number is past a limit: moved 0.1+ over three years on the shipped town is 1.55, against 0d.6's 1.5. The baseline is already 1.46, and no wait or warm budget brought it under 1.5 (1.51-1.59 across the sweep).
+- **Small acts close loops.** The ignored share falls 3 points on the shipped town and 8 on the review's set, where missing people makes more gifts to answer.
+- **Nearly all of the slice is compliments.** Thanks and jokes barely happen: the gate tries the dearest act first, and a compliment (0.3) clears nearly whenever a thank-you (0.2) would. Jokes need a regard of 0.3 and a familiarity of 0.5, and then a compliment usually comes first. They will come with acts-2's per-head draws.
+- **Hermits stay, all but one from the shyest third** (0.28 to 0.22 a seed-year on the review's set): settling more of the shy's kindness lowers their unanswered share.
+
+### acts-2, Company: PlayedGame, TreatedToDrink, per-head draws (built 2026-10-08; off)
+
+`--catalog company` (measured with Returns: `--catalog returns,company`) adds (acts spec 3.2, 4.4, 4.5, question 1):
+- **PlayedGame:** light; both busy for half an hour.
+  - Where and when: the saloon from 17:00, the square and the beach from 9:00 to 19:00.
+  - Who: the two within 6 years of each other, or both children.
+  - The asker is warmed as company is.
+- **TreatedToDrink:** a story act at the saloon, 18:00 to 01:00, both of age.
+  - The actor's household pays one drink (12 g) to the bar's, which restocks, as `Drinks` pays.
+  - It is the target's drink of the day if they had none. The bar's own household treats free.
+  - It stirs Return, as a gift does.
+- **Per-head draws** (`StartPerHead`): each who carries a per-head kind on their card draws at weight x PerDay / 288 a tick, keyed by kind, name and minute, so acts per person hold as a town grows.
+  - Games 0.1 a day, treats 0.08. With Returns on too, compliments 0.08 and jokes 0.15.
+  - The cards are first readings of the cast (VERIFY), for Sid to correct (question 4).
+- **Fond's gifts** come only on the other's birthday or a festival, one a day (question 1, answer b). Between, Fond reaches for the small acts.
+
+`CompanyTests` (6).
+
+**Measured** (with Returns; the columns before are acts-1's):
+
+| measure | shipped + Returns | + Company | review's set + Returns | + Company | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 60% / 23% | 56% / 24% | 59% / 24% | 50%+ |
+| E1, 200 seeds (400) | 62% (62%) | 64% (68%) | 73% (75%) | 82% (81%) | 60%+ |
+| feuds, friendships a year (400) | 7.97, 0.95 | 8.02, 1.09 | 7.13, 1.40 | 7.37, 1.56 | ±30% of the baseline |
+| kindness ignored; returned within 7 days | 37%; 64% | 36%; 65% | 31%; 72% | 30%; 73% | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.55 | 1.50 | 1.40 | 1.42 | |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 1.46 | 1.27 | 1.08 | 1.11 | 1.5 at most |
+| gifts by the gate a year (baseline) | 221 (219) | 149 | 477 (478) | 438 | down 40% with Company |
+| trivia, news a year | 783, 269 | 881, 267 | 1,071, 255 | 1,172, 267 | |
+| heavy hostile acts by the gate | 157 | 156 | 144 | 155 | +15% at most |
+| hermits (shyest third); brawlers | 0; 2.41 | 0; 2.32 | 0.22 (98%); 1.22 | 0.24 (96%); 1.35 | |
+
+Across households a year, on the shipped town: compliments 137, treats 33, jokes 21, games 13. Every treat is answered, usually by a compliment on the spot. Money is conserved to 0.000 g.
+
+What it says:
+- **The gates hold, and Company slows the three-year growth** (1.46 to 1.27): Fond's gifts on ordinary days are gone.
+- **Gifts by the gate fall a third on the shipped town, short of the spec's 40%.** On the review's set they fall 8%, because 0d.6's missing people gives most of its gifts on occasions, which Company keeps. The rest are Return's and MakeUp's gifts, which Company doesn't touch.
+- **Games and jokes stay rare.** Few carry them, and the gate prefers a compliment, which comes first among the 0.3 acts by name.
+
+### acts-3, Welcome: Welcomed and the Curious motive (built 2026-10-08; off)
+
+`--catalog welcome` (acts spec 4.6):
+- **Curious** is computed each tick, as Fond is. A free person is curious about anyone in reach they know below 0.15 and haven't welcomed; never kin or housemates. Its strength is 0.25 x (0.5 + chattiness).
+- **Welcomed** answers it: a story act in any place that isn't a home, once for each ordered pair.
+  - Each comes to know the other 0.1 better.
+  - It stirs Return in the one welcomed.
+  - It is keyed on familiarity, not on the newcomer's name.
+- **Close calls:** Fond and Curious are asked once a day.
+
+`WelcomeTests` (6).
+
+**The slice's own criterion** (200 x 28 days, Welcome alone on the shipped town): the newcomer is known at 0.355 by day 28, against 0.190 without. Everyone else knows each other as before (0.570), and feuds move -6%. All 25 welcome the newcomer and the newcomer greets all 25: 50 welcomes in the first month.
+
+**Measured with Returns and Company** (the columns before are acts-2's):
+
+| measure | shipped (acts-2) | + Welcome | review's set (acts-2) | + Welcome |
+|---|---|---|---|---|
+| band: in band / over 70% | 60% / 23% | 57% / 23% | 59% / 24% | 57% / 22% |
+| E1, 200 seeds (400) | 64% (68%) | 66% (66%) | 82% (81%) | 77% (77%) |
+| feuds, friendships a year (400) | 8.02, 1.09 | 8.06, 1.02 | 7.37, 1.56 | 7.48, 1.53 |
+| kindness ignored; returned within 7 days | 36%; 65% | 32%; 69% | 30%; 73% | 28%; 74% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.50 | 1.45 | 1.42 | 1.39 |
+| three years: the gate's kind acts by year | 309, 354, 391 | 407, 352, 387 | 603, 633, 666 | 706, 633, 662 |
+| trivia, news a year | 881, 267 | 978, 273 | 1,172, 267 | 1,272, 269 |
+| the newcomer withdrawn (28 d at -0.5) in seed-years | | | 79% | 44% |
+| hermits (shyest third) | 0 | 0 | 0.24 (96%) | 0.38 (100%) |
+
+What it says:
+- **The newcomer's first month changes**, and nothing else moves by more than 10%, trivia aside (+11%: the welcomes and the thanks they stir). The gate's kindness in year one is up by the welcomes, which happen once.
+- **On the review's set the welcomes delay the newcomer's withdrawal rather than prevent it.** "Withdrawn newcomer" falls from 79% of seed-years to 44%, but they end the year at -0.86. And because they went out more in their first season, the later fall in their hours now counts them as a hermit more often (hermits 0.24 to 0.38, the newcomer 0.2 of them).
+
+### acts-4, Repair: Apologised, Remorse and the answer (built 2026-10-08; off)
+
+`--catalog repair` (acts spec 4.7, question 3):
+- **Remorse** is stirred in the actor of an argument, or of a joke read cold, as the target takes it. Only:
+  - toward someone they don't dislike;
+  - not over the target's own scandal;
+  - never between kin or housemates.
+
+  Its strength is what the target felt x 0.5 x (0.5 + understanding), and it lasts 14 days.
+- **Apologised** answers it: a walk-up (0.5 / 0.15), dearer for the proud.
+- **The target answers on the spot.** What they owe the apologiser is weighed against the cost of letting it go (`ApologyCost` 0.4 + dislike x (0.5 + retention)).
+  - **Accepted:** half the regard the hurt cost comes back the first time within 28 days, a quarter the second time, then nothing. The fear and the grudge are lifted, and the stance eases.
+  - **Refused:** the apologiser smarts.
+- **`ApologyCost`** is 0.4, not the spec's 0.2. At 0.2, 94% were accepted (40 seeds, Repair alone).
+- **With Returns on,** a compliment (0.3) also answers Remorse.
+
+`RepairTests` (7). StoryMetrics adds jokes read cold, apologies and their accepted share, and remorse that lapsed.
+
+**Measured with Returns, Company and Welcome** (the columns before are acts-3's):
+
+| measure | shipped (acts-3) | + Repair | review's set (acts-3) | + Repair | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 57% / 23% | 56% / 22% | 57% / 22% | 58% / 21% | 50%+ |
+| E1, 200 seeds (400) | 66% (66%) | 65% (66%) | 77% (77%) | 83% (83%) | 60%+ |
+| feuds, friendships a year (400) | 8.06, 1.02 | 7.29, 1.10 | 7.48, 1.53 | 6.84, 1.73 | ±30% of the baseline (7.85, 0.92; 7.09, 1.33) |
+| median feud | 41 d | 35 d | 40 d | 37 d | 28 d+ |
+| apologies a year; accepted | | 3.8; 64% | | 3.8; 67% | 50-80% |
+| remorse lapsed a year | | 1.5 | | 1.3 | |
+| heavy hostile acts by the gate a year | 161 | 134 | 158 | 136 | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.45 | 1.43 | 1.39 | 1.37 | |
+| jokes read cold | | 1% | | 1% | 10-20% |
+| brawlers; hermits (shyest third) | | 2.01; 0 | | 1.12; 0.33 (100%) | |
+| trivia, news a year | 978, 273 | 998, 245 | 1,272, 269 | 1,294, 248 | |
+
+What it says:
+- **Apologies mend fresh hurts and leave feuds standing.** Feuds last a median of 35-37 days (above 28), and apologies are accepted 64-67% of the time.
+- **Fewer arguments.** Settling a grudge removes an answer to come: the gate's heavy hostile acts fall 15%, and brawlers fall too.
+- **Most remorse is answered.** With Returns on, a compliment is cheaper than an apology, so only 1.3-1.5 remorses a year lapse.
+- **Friendships on the review's set reach +30% against the baseline**, the limit of the ±30% gate.
+- **Jokes are almost never read cold (1%).** Per-head jokes are aimed by the joker's regard, at people who mostly like them back. So the "only joking" thread (a joke read cold, then remorse, then an apology) barely starts.
+
+### acts-5, Sides: Mocked, StoodUpFor, Comforted (built 2026-10-08; off)
+
+`--catalog sides` (acts spec 4.8-4.10):
+- **Mocked:** news, heavy hostile, dearer than an argument. It needs a card, an audience of two and expression 0.5, and never happens at home.
+- **Witnesses take sides after a first strike** (someone picking on someone; not a stand-up, nor an answer in an exchange already going). Who loves the target (0.4) or is their kin wants to stand up for them (Defend, for an hour). Others who hold the target at 0 or more pity them: `HurtPity` (0.5) x understanding of a mishap's pity.
+- **StoodUpFor answers Defend.** The aggressor wants to answer the defender. The one defended feels `WithJoy` toward them and wants to return it.
+- **Comforted answers that pity.** It costs 0.35, so it is never returned with a gift. It cools the grudge against the one who hurt by a quarter.
+
+`SidesTests` (5) include the golden thread "the square": a mocking, a defender, a comforter, and no sides taken at the stand-up or at the answer.
+
+**Getting there** (40 seeds x a year, shipped town; baseline feuds 7.9, friendships 0.9, the gate's heavy hostile acts 153):
+
+| setting | feuds | friendships | mockings, arguments, stand-ups | comforts |
+|---|---|---|---|---|
+| as specified: pity in full, comfort at 0.4, sides after every heavy hostile act | 10.6 | **20.3** | 91, 92, 31 | 399 (and 665 gifts) |
+| comfort 0.35, pity 0.25 x understanding | **35.3** | 3.9 | 318, 285, 120 | 27 |
+| mocking alone (no defend, no pity) | 7.7 | 1.1 | 78, 75, 0 | 0 |
+| defend alone | 33.6 | 3.0 | 322, 277, 114 | 0 |
+| **built: sides at a first strike only, pity 0.5** | 7.9 (all slices) | 1.3 | 73, 66, 2 | 13 |
+
+Two guards were tried and dropped: kin needing `DefendAt` to defend, and a cap on stand-ups a day. Neither helped; the spiral came from stand-ups and answers drawing defenders of their own.
+
+**Measured with every slice** (the columns before are acts-4's):
+
+| measure | shipped (acts-4) | + Sides | review's set (acts-4) | + Sides | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 56% / 22% | 55% / 22% | 58% / 21% | 56% / 22% | 50%+ |
+| E1, 200 seeds (400) | 65% (66%) | 70% (71%) | 83% (83%) | 83% (86%) | 60%+ |
+| feuds, friendships a year (400) | 7.29, 1.10 | 8.15, 1.17 | 6.84, 1.73 | 7.85, **1.81** | ±30% of the baseline (7.85, 0.92; 7.09, 1.33) |
+| heavy hostile acts by the gate | 134 | 159 | 136 | 163 | baseline 153, +15% at most |
+| mockings, arguments, stand-ups by the gate | | 81, 76, 2 | | 86, 74, 3 | mockings replace arguments |
+| comforts a year | | 13 | | 12 | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.43 | 1.56 | 1.37 | 1.54 | |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 0.97 | 1.02 | 0.95 | 0.96 | 1.5 at most |
+| three years: war towns | 0% | 0% | 2% | **8%** | under 5% (baseline 0%) |
+| brawlers; hermits (shyest third) | 2.01; 0 | 2.22; 0 | 1.12; 0.33 | 1.32; 0.33 (100%) | |
+| median feud; apologies accepted | 35 d; 64% | 45 d; 62% | 37 d; 67% | 45 d; 64% | 28 d+; 50-80% |
+
+What it says:
+- **On the shipped town every gate holds.** One number is past a limit: moved 0.1+ over three years is 1.56 (0d.6's limit is 1.5; the baseline's 1.46). Mockings replace arguments, so the heavy hostile total moves 4%.
+- **On the review's set two gates fail:** friendships are +36% against the baseline (the limit is 30%), and 8% of three-year towns end at war (the limit is 5%).
+- **Stand-ups are rare** (2-3 a year), because first strikes are rare: most hostility answers earlier hostility.
+
+### acts-6, Late: LateForWork (built 2026-10-08; off)
+
+`--catalog late` (acts spec 4.11): someone the late check marks late comes in late when they reach their job place that day (`Arrivals`), once a day. Whoever is there sees it.
+- Trivia 1.5, felt by the late one alone (-0.05, freedom 0.3, so not a mishap to pity).
+- Derived, not a gate act, so it happens with feelings off too.
+- About 2 a season, as before: the late check is unchanged.
+
+`LateTests` (3).
+
+### The batch gate: batch 1 with every slice on (acts spec 8, acts-z)
+
+The acts-0 protocol, on both bases. "All six" is `--catalog returns,company,welcome,repair,sides,late`, measured after cloud's two cuts to Sides (#69's review); "without Sides" is the same less `sides`.
+
+| measure | baseline | all six | without Sides | gate |
+|---|---|---|---|---|
+| **shipped town** | | | | |
+| band: in band / over 70% | 55% / 25% | 55% / 22% | 55% / 22% | 50%+ |
+| E1, 400 seeds | 61% | 68% | 62% | 60%+ |
+| feuds, friendships a year (400) | 7.85, 0.92 | 8.58 (+9%), 1.11 (+21%) | 7.21 (-8%), 1.04 (+13%) | ±30% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.46 | 1.60 | **1.46** | 0d.6: 1.5 |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 1.40 | 1.01 | 0.96 | 1.5 at most |
+| three years: war towns | 0% | 4% | 0% | under 5% |
+| trivia, news a year | 696, 265 | 1,037, 283 (+7%) | 1,008, 248 (-6%) | 900-1,350; news +10% at most |
+| heavy hostile acts by the gate | 153 | 172 (+12%) | 137 (-10%) | +15% at most |
+| kindness ignored; returned within 7 days | 40%; 62% | 31%; 70% | 32%; 69% | falls; rises, under 90% |
+| median feud | 38 d | 45 d | | 28 d+ |
+| **review's set** | | | | |
+| band | 56% / 24% | 57% / 21% | 57% / 21% | |
+| E1, 400 seeds | 73% | 86% | 81% | |
+| feuds, friendships a year (400) | 7.09, 1.33 | 8.09 (+14%), **1.83 (+38%)** | 6.77 (-5%), 1.64 (+23%) | ±30% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.41 | 1.46 | 1.37 | |
+| three years: war towns | 0% | 0% | 0% | under 5% |
+| trivia | 956 | 1,328 | 1,301 | 900-1,350 |
+| hermits (shyest third) | 0.28 (100%) | 0.34 (100%) | | above 0, 90% |
+
+Money is conserved to 0.000 g in every run.
+
+What it says:
+- **Batch 1 without Sides passes every gate on both bases**, the three-year drift included. Feuds fall a little and friendships rise a little: thanks, compliments and apologies settle what used to sour.
+- **With Sides**, the shipped town passes the spec's gates, but its three-year drift is 1.60. On the review's set, friendships rise 38%, past the 30% limit.
+- **Trivia sits inside its band on both bases** (1,000-1,330 a year), and news moves under 5%.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
-3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
+3. **0c, left for later:** the third-slight mark (0c question 6), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard. (Familiarity falling, weighted by regard, is built as T1's forgetting option.)
 4. **0d.6, left for Sid:** which steps to turn on (design section 12, question 9); then the town and acts as JSON, the bots, the story sifter and the replay viewer.
 5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 

@@ -68,6 +68,9 @@ run locally. A deterministic fake is the default.
   ```
   All tests must pass and the mod must build (it compiles against the installed game). Warning
   CS8032 about SMAPI analyzers is expected on the installed SDK 6.0.300.
+- **CI.** `.github/workflows/tests.yml` runs the Under Glass tests and every `tests/*.Tests` project on each pull
+  request and on pushes to `main` and `claude/checkpoint-*`. It can't build the mod itself (no game on the runner),
+  so `dotnet build mod/StardewNpcMod` stays a local check. A red check on your PR is yours to fix first.
 - **Under Glass** (`sim/`, design in `docs/under-glass/design.md`) is Sid's own game, built from what the mod
   taught us. It has its own solution on .NET 8 and must never reference the game or SMAPI. Test it with
   `dotnet test sim/UnderGlass.sln`. The mod's rules on shadow mode and live state don't apply there; determinism does.

@@ -196,5 +196,37 @@ public class ReplayTests
         Assert.Equal(0, run.GetProperty("mood").GetArrayLength());
         Assert.True(run.GetProperty("acts").GetArrayLength() > 0);
         Assert.Equal(JsonValueKind.Null, run.GetProperty("stance").ValueKind);
+        Assert.Equal(JsonValueKind.Null, run.GetProperty("withdrawal").ValueKind);
+    }
+
+    /// <summary>With 0d.6's steps on (seed 29, the year that has Penny's hermit spell), the file
+    /// holds each person's being left out by the night and every spell WithdrawalMetrics finds in
+    /// the same run, by person, days and kind.</summary>
+    [Fact]
+    public void TheWithdrawalBlockHoldsTheRunsSpellsAndBeingLeftOut()
+    {
+        var feelings = DefaultTown.Feelings().With0d6("bdefghm");
+        JsonElement run = Parse(Replay.Json(new ReplayOptions { Seed = 29, Days = 112, Feelings = feelings }));
+        SimResult r = new Simulation(29, feelings: DefaultTown.Feelings().With0d6("bdefghm")).Run(112);
+        string[] names = r.Names.ToArray();
+        JsonElement w = run.GetProperty("withdrawal");
+
+        var expected = WithdrawalMetrics.Spells(r, brawlers: false).Select(x => (x.Name, x.From, x.To, Kind: x.Hermit ? "hermit" : "withdrawn"))
+            .Concat(WithdrawalMetrics.Spells(r, brawlers: true).Select(x => (x.Name, x.From, x.To, Kind: "brawler")))
+            .OrderBy(x => x.From).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
+        var recorded = w.GetProperty("spells").EnumerateArray()
+            .Select(x => (names[x.GetProperty("person").GetInt32()], x.GetProperty("from").GetInt32(), x.GetProperty("to").GetInt32(), x.GetProperty("kind").GetString()!)).ToList();
+        Assert.Equal(expected, recorded);
+        Assert.Contains(recorded, x => x.Item1 == "Penny" && x.Item4 == "hermit");
+
+        JsonElement leftOut = w.GetProperty("leftOut");
+        for (int i = 0; i < names.Length; i++)
+        {
+            double[] e = r.Daily[names[i]].LeftOut;
+            Assert.Equal(e.Length, leftOut[i].GetArrayLength());
+            for (int d = 0; d < e.Length; d++)
+                Assert.Equal((int)Math.Round(e[d] * 100), leftOut[i][d].GetInt32());
+        }
+        Assert.Equal(r.Rules.Count, w.GetProperty("rules").EnumerateObject().Count());
     }
 }

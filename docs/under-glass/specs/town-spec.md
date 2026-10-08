@@ -228,7 +228,7 @@ Everything social needs two people in the same place and within 8 tiles. A chat 
 | E3 | Routing by walking tiles, not fewest doors | `Hop`, `Simulation.cs:775-799` | the only rule, if every pin holds | unchanged (tested) | T1 |
 | E4 | `Gathering` + `MinAge = 0, MaxAge = 200, Capacity = 0, Local = null, Visitors = 1` | `Model.cs:134-140`; `Decide` `:629-640`; an arrival check in `Walk` | today's behaviour | unchanged | T1 |
 | E5 | `Job` + `int? Commute = null` | `Model.cs:66`; the work rule `:618` | `BodyOptions.CommuteMinutes` | unchanged | T1 |
-| E6 | `TownData.Familiarity` (sparse seed pairs) and `GossipOptions.FamiliarityFadePerDay = 0` | `SeedFamiliarity` `:310-319`; the night's close | none; 0 | unchanged | T1 |
+| E6 | `TownData.Familiarity` (sparse seed pairs) and forgetting, built as `GossipOptions.Forgetting` (`ForgettingOptions`, Sid's model, question 5) | `SeedFamiliarity`; `Meeting` in `Socialise`; `Forget` at the night's close | none; `FadePerDay = 0` | unchanged | T1 |
 | E7 | Performance work (section 5) | several | n/a | **byte-identical** | T5 |
 | E8 | `Economy.Shops` (shop roles: grocer, chain, bar) | `Simulation.Money.cs` (94-372), `Simulation.Feelings.cs:766-782`, `Simulation.Authority.cs:309`, `Metrics.cs:304-307` | null: today's Store, Mart and Saloon, in today's order of arithmetic | unchanged | T6 |
 | E9 | `Location.Offstage` (only if question 7 says yes) | `Socialise` `:1048`, `See` (Suspicion.cs:124), `Watch` `:929`, `InReach` | false | unchanged | T6 |
@@ -250,6 +250,12 @@ Notes:
   The pins prove that it changes nothing in the shipped town. If one moves, E3 becomes an option instead.
 - **E6 values** are set by the generator (4.3, step 11), and the engine only reads them. Pairs not listed keep today's seeds: household 0.8, friends 0.5, everyone else 0.25, and 0 for the newcomer.
 - **Rule 5 says familiarity "falls 1% a day", but that was never built.** E6 builds it as an option. Whether it goes on everywhere is question 5.
+- **As built in T1 (2026-10-08)**, where it differs from or adds to the above:
+  - **E3** replaces the fewest-doors `Hop` outright with `Route`: Dijkstra over door tiles once per target place, then at each step the exit with the fewest tiles from where the walker stands. On a tie the nearer door wins, then the doors' order. A walker on a tile that can't reach a door steps over to it, as before. Every pin held, so it is the only rule.
+  - **E4** appends `MinAge`, `MaxAge`, `Capacity`, `Local` and `Visitors` to `Gathering`, and `Hub` to `Haunt` (the gathering a crowd spot stands for). The crowd is counted once, on entering the hub's place: awake people within the radius whom the arriving person can see (line of sight, any distance). Turning back is logged (`turned-back`). The weight fallback is not built.
+  - **E5** also moves the alarm: it rings `MorningMinutes` before work, plus the job's commute less the town's.
+  - **E6, forgetting** (Sid's answer 5). Each night, every tie but kin's and housemates' falls by `FadePerDay` x (1 - strength)^`StrengthPower` (2). Strength is 1 - (1 - familiarity)(1 - |regard|), each averaged both ways. A new face (familiarity under `NewFaceBelow`, 0.2) gains familiarity 1 + `WarmMeetingBoost` (2) x warmth times as fast, warmth being effective regard toward them (their kind included). New faces met in the last seven days over `NewFacesPerWeek` (10) multiply a tie's fade by 1 + `InterferenceWeight` (1) x (count / 10 - 1) x (1 - strength). Familiarity falls toward 0, with no floor. After review (2026-10-08): each face counts once in any seven days, however often it is met; regard counts toward strength and warmth only while feelings steer (T12 holds with forgetting on); and each night's fade is worked out from the night's starting values, so a pair's two halves fade alike.
+  - Also added: `SimResult.Familiarity` (every pair at the end), the runner's `--forget <Name>=<value>` and a "familiarity at the end" line, and the replay's `ForgettingOptions.*` settings.
 - **TellsPerDay** needs no engine change. Generated towns set it to 2 explicitly and sweep 2-4. Left at its default it jumps to 3 at 30 people (`Simulation.cs:330`), which would quietly change gossip.
 - **Teleports stay.** With no route, people arrive instantly (`:687-693, 721-724`). Tests build small worlds that rely on this. `TownCheck` prevents it in generated towns.
 
@@ -385,6 +391,8 @@ public sealed record TownSpec(long Seed, int People, string Profile = "pelican" 
 - the route limits from 2.4 hold;
 - before replay version 2 exists, there are at most 127 places.
 
+*As built (`TownCheck.cs`, 2026-10-08; it returns a list of problems, and the generator and `--town file:` refuse a town with any):* every place reachable from the largest outdoor place; doors walkable and one link to a tile; every job, haunt, hub, patrol and named spot walkable and reachable inside its place; bed and sofa in every home, and every villager's home exists; names unique; kin in the town, both ways, and a parent at least 18 years older; the mayor, constable and keepers in the town; purses, incomes, groceries (only the Store or the Mart sell them), allowances and wants; starting regards and hubs' own households naming people and households in the town; places up to 255 tiles a side, and at most 127 places. Not checked yet: reserved names, households with no adult, keepers working at their place, plan lots (the plan isn't built), and the route limits of 2.4 (`TownGenTests` checks the generator's 25-tile limit to the green).
+
 `LayoutMetrics` measures a town before it is run, against the real-town bands (brief, section 5). It measures:
 - doors within 8 tiles of a door;
 - homes per neighbourhood;
@@ -402,6 +410,8 @@ These are reported, not gated, until the first runs set the bands.
   - Sid can edit a town by hand.
   - This also delivers 0d's "the town as JSON".
 - `TownHash` is FNV-1a over the town's canonical JSON.
+
+**As built (2026-10-08, `TownJson`, `TownJsonTests`)**: `--dump-town town.json` writes the town named by `--town` (the shipped town without it) and exits; `--town file:town.json` runs it, in the runner and the replay tool. The file is `TownData` itself, indented: the cast's cards, the places' rows, the doors, the hubs, the act kinds and every option. Tuples are arrays (`[from, to]` for a patrol hour, `[a, b, value]` for a familiarity seed, `[from, to, regard]` for a starting tension), enums are names, and numbers that are not finite are written `"Infinity"`. What the code works out (a place's width and height, a villager's home, a life stage, an act kind's tier) and the one setting that is code (`FeelingOptions.CloseCall`) are left out. A town read back writes the same file, has the same census hash and runs the same log. The hash stays `Census.Hash`, over the census card rather than the JSON, so a file's formatting can't change it.
 
 ### 4.6 The 31 town (optional, question 6)
 
@@ -513,7 +523,14 @@ Each size is run at 31 (if built), 60 and 120.
 | **Activity** | 0.30 acts per person per day; 3.8 tellings per person per day (28 days) | acts per person per day 0.24-0.36; tellings per person within ±30% of the 26 town over the same run length (the probe had 24.2 at 104) |
 | **Witnesses and walking** | 4.1 witnesses per act | witnesses per act at most 1.5× the 26 town (the probe had 21.2 at 104); walking minutes per person per day within ±30% of the 26 town (the tile-scale check, 2.4) |
 
+**As built (2026-10-08, `FeelingMetrics`, the runner's `--town-seeds`)**, where it differs from the table:
+- **Dead and war towns count per person, not over acquainted pairs.** A war town has more than `WarShare` x 25 people disliked per person, and a dead town fewer than `DeadShare` x 25 moved per person. Up to 26 people these are the gates themselves. Acquainted pairs were not used: with forgetting off (question 5's answer for now), a town of 60 knows 91% of its pairs well by the year's end, so they are nearly all pairs and the share still falls as 1/n. On `pelican:60@1` the all-pairs rule calls 16% of seed-years dead.
+- **E1 asks for a new feud and a new friendship per 26 people** (to the nearest whole: one at 31, two at 60, five at 120). E1 by ward, (a), waits for the plan's geometry, since a ward pools a neighbourhood with its nearest. The rates of (b), feuds and friendships per 100 people a year, are printed beside it.
+- The runner prints these scaled gates for any town that isn't 26 people. `--town-seeds` gives each run its own generated town (the run's seed is the town seed), so the variety measures and these gates cover towns as well as runs.
+
 ### 6.3 Locality: a bigger town, not a bigger crowd
+
+*Built 2026-10-08 as `TownMetrics` (the runner prints it for any `--town`): the locality ratio from tellings (not yet chat minutes), tellings across districts, bridges within two days, and the median person's count of people known well. Crowding and the door gradient need positions over time and are not built yet.*
 
 | Measure | Target (first guess) | Probe |
 |---|---|---|
@@ -607,6 +624,7 @@ The map guesses each place's position from its doors (`layoutTownPlan`). Changes
    - Draw people from per-place lists and skip anything outside the view, to keep 60 frames a second at 120 people.
    - Add a mini-map inset when zoomed in, and a "follow" mode for the selected person.
 3. **Neighbourhood chips** (All, Centre, and one per neighbourhood). One choice filters the Town tab, the Population rows, the matrix order, the stories and the log.
+   - *Built 2026-10-08* as a picker beside the tabs. It filters rather than reorders the matrix, and also narrows the ring and the ties and fades the rest of the town on the map. Places take their neighbourhood from `TownMetrics.PlaceDistricts`, and the replay records `people[].district` and `places[].district` in version 1, since old viewers ignore extra fields.
 4. **Town tab.** One map per place does not work for about 88 places. Instead the tab shows:
    - the chosen neighbourhood's public places, as maps;
    - its homes as a street strip, with a small box per home and occupant dots;
@@ -634,17 +652,25 @@ Every step runs `dotnet test sim/UnderGlass.sln` with every pin unchanged.
 | Step | What | Tests and measurements |
 |---|---|---|
 | **T0 Plumbing** (built 2026-10-08: `Town.cs`, `Simulation.Town.cs`, `ReplayOptions.Town`, `TownDataTests`) | E1 and E2. `TownData.Default()` built from `DefaultTown`'s public methods | Every pinned hash is reproduced through `new Simulation(seed, TownData.Default() with { … })`; the default replay JSON is byte-identical |
-| **T1 Engine options** | E3-E6, each a one-line hook into `Simulation.Growth.cs`; appended fields on `Gathering` and `Job` | A small scene per option: a hub turns people away at its limit; a local hub draws its own households; a commute starts on time; tile routing takes a loop; familiarity is seeded from the list and fades. All pins and every existing scene test hold, which also proves E3 on the shipped tree |
-| **T2 Plan and pipeline** | `TownPlan`; the default's hand-placed plan; replay version 2; the runner's `--town`, `copy:k`, `--describe` and `--dump-town`; per-run stats and the streamed log hash (section 5, item 6); the viewer reads version 2 and the plan | Every place has a lot, and no lots overlap; `Pack` and `Unpack` round-trip in both versions, including place 300; a version 2 file of the default town decodes to the same moves, regard and acts as version 1; runner memory stays flat across 50 runs |
-| **T2b The 31 town** (if question 6 says yes) | the five cards and places | `TownCheck`; a new pin; the full gate set at 31 |
-| **T3 People generator: the recast** | `Generation/` (Names, Households, Archetypes, Livelihoods, Haunts, Economy), filling the shipped map's 12 homes, jobs and haunt zones with generated people | The same spec gives the same town; `TownCheck` for seeds 1-200; trait means, spreads and the three main correlations (boldness-understanding −0.70, chattiness-self-regard +0.44, understanding-self-regard +0.46) within bands of the cast's; the hamlet test of 4.7 |
-| **T4 Layout generator, 60** | templates, slots, connectors, loops, local hubs, familiarity seeds, per-person rates, `LayoutMetrics`, `TownMetrics` | `TownCheck` for seeds 1-200 at 60 and 120; `TownHash` pinned for three specs; nesting (the 60 town's people are found unchanged in the 120 town); a 7-day log hash pinned for `pelican:60@1`; the full gate set and 6.3-6.5 at 60 |
+| **T1 Engine options** (built 2026-10-08: `Simulation.Growth.cs`, `TownGrowthTests`; section 3's "As built in T1") | E3-E6, each a one-line hook into `Simulation.Growth.cs`; appended fields on `Gathering` and `Job` | A small scene per option: a hub turns people away at its limit; a local hub draws its own households; a commute starts on time; tile routing takes a loop; familiarity is seeded from the list and fades. All pins and every existing scene test hold, which also proves E3 on the shipped tree |
+| **T2 Plan and pipeline** (`--town`, `--describe`, `--dump-town` and `--town file:` built 2026-10-08 with T2b-T4; the rest not yet) | `TownPlan`; the default's hand-placed plan; replay version 2; the runner's `--town`, `copy:k`, `--describe` and `--dump-town`; per-run stats and the streamed log hash (section 5, item 6); the viewer reads version 2 and the plan | Every place has a lot, and no lots overlap; `Pack` and `Unpack` round-trip in both versions, including place 300; a version 2 file of the default town decodes to the same moves, regard and acts as version 1; runner memory stays flat across 50 runs |
+| **T2b The 31 town** (Sid said yes; built 2026-10-08: `Towns.Pelican31()`, `TownCheck`, `Town31Tests`, `--town pelican31`) | the five cards and places | `TownCheck`; a new pin; the full gate set at 31 |
+| **T3 People generator: the recast** (the people generator built 2026-10-08 with T4, in `Generation/`; the recast of the shipped map and the hamlet test are not built yet) | `Generation/` (Names, Households, Archetypes, Livelihoods, Haunts, Economy), filling the shipped map's 12 homes, jobs and haunt zones with generated people | The same spec gives the same town; `TownCheck` for seeds 1-200; trait means, spreads and the three main correlations (boldness-understanding −0.70, chattiness-self-regard +0.44, understanding-self-regard +0.46) within bands of the cast's; the hamlet test of 4.7 |
+| **T4 Layout generator, 60** (built 2026-10-08: `TownGen`, `TownGenTests`, `--town pelican:60@<seed>`, `--describe`; see "As built in T3 and T4" below) | templates, slots, connectors, loops, local hubs, familiarity seeds, per-person rates, `LayoutMetrics`, `TownMetrics` | `TownCheck` for seeds 1-200 at 60 and 120; `TownHash` pinned for three specs; nesting (the 60 town's people are found unchanged in the 120 town); a 7-day log hash pinned for `pelican:60@1`; the full gate set and 6.3-6.5 at 60 |
 | **T5 Performance** | the list in section 5 | **Every pin byte-identical**, and the `copy:4` and `pelican:60` hashes unchanged; s per day and memory at 26, 60, 120 and `copy:8`; target 0.4 s per day or less at 120 |
 | **T6 The 120 town** | ring 1 complete; the second bar, with E8; the school; E9 if question 7 says yes | `Shops = null` gives every old hash; new pins; the full gate set at 120, with and without the second loop |
 | **T7 Viewer at scale** | section 7.3, items 2-8 | a 120-person replay loads and plays; frame time measured with the town in view and in each tab |
 | **T8 Stress and the own profile** | ring 2 (240); 400; the own profile if question 1 chooses it | report only at 240 and 400; the hamlet test for the own profile |
 
 T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
+
+**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's canonical JSON, as 4.5 says: the file without the values left at their defaults, so fields appended with a default leave every hash alone):
+- **The 60 town is the 31 town plus slots E and N**, since Sid chose both the 31 step and 60. Each slot has a fixed number of people (E 15, N 14), so the pelican profile grows to 31, 46 and 60, and a smaller town is found unchanged in a bigger one; the generator refuses other sizes.
+- **Templates are built from a few numbers** (`Templates.Green`, `Templates.Lane`) rather than drawn in a data file; the rows are the same kind of thing, and `--describe` prints the census.
+- **Each slot brings its own jobs** (the café, the workshop, staff for the core's places), filled by its own adults, so a later slot never takes an earlier slot's jobs; new staff at the clinic and the blacksmith's are paid from outside, so the core's purses aren't drained.
+- **A household with no wage and no pension gets an outside earner**, enough for its size; without it, a third of the generated households ran into debt and one young man rummaged from need four times a year.
+- **Names**: each slot draws from its own keyed share of the lists (a rare town with many of one sex borrows from the whole list).
+- **Not built yet:** the recast of the shipped map and the hamlet test (4.7), `LayoutMetrics` (4.4, 6.1; `TownMetrics` was built in #54), the per-person rates' own column, the plan (T2), and the other ring-1 slots (T6).
 
 ---
 
@@ -713,6 +739,11 @@ T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
    soft cap on how many people one keeps up with). Opt-in, measured at 26, then 31, then 60 (as recommended in (a)).
 6. **Add the other five** (a): Clint, Willy, Elliott, Linus and the Wizard, as the 31-person step.
 7. **As recommended:** no work out of town at 60; try it at 120 as a measured option.
+
+**Sid's answers, second round (2026-10-08)**, to the grown-town questions on #46 (D1-D3):
+- **D1, forgetting at 60.** At 1% a day each person knows about 14 others well after a year (the range is 15-45); off, about 54. Sid: "What do you think? It might require playtesting." Cloud suggested it on at about 0.5% a day, with a sweep at 60 to pick the rate. ***Sid: take the recommendation.***
+- **D2, a new town seed for each game:** ***an option.***
+- **D3, the per-person gates for grown towns (6.2, "As built").** After asking what it means (at 60 people, E1 and the dead-town rule count pairs, so they pass or fail on size alone; the per-person forms ask the same of each 26 people), ***Sid: yes.***
 
 The original questions, with the recommendations, follow.
 

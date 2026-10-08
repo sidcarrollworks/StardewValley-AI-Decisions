@@ -15,14 +15,58 @@ using UnderGlass.Sim;
 // steps' switches (b-h, t the tone, m missing people; e.g. --0d6 bcd), --fo WithdrawalWatch=true
 // watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
-int seeds = 200, days = 28, from = 1;
+// Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0);
+// --town <name> runs a grown town instead of the shipped one (pelican31, or a generated town such as
+// pelican:60@7, or file:<path>: Towns.Named), --describe prints its census card and hash instead of
+// running, and --dump-town <path> writes it as JSON to edit by hand.
+// The act catalog (acts spec 2.4): --catalog <slices> turns on its switches, a comma list of watch,
+// returns, company, welcome, repair, sides and late (any case; e.g. --catalog returns,company), and
+// adds their rows and cards to the town. (--acts is the cards flag above.) --ao <Name>=<value> sets
+// one of the catalog's numbers (ActOptions), e.g. --ao WarmBudget=0.005.
+// --town-seeds, with a generated town, gives each run its own town: the run's seed is also its town
+// seed (--town pelican:60@1 --town-seeds runs pelican:60@1, @2, @3 and so on), so the variety measures
+// cover towns as well as runs. It prints only what doesn't need one cast: the spread table, ties and
+// E1 worked out run by run, and the variety measures. Not with --acts or --trait.
+// --check <name> (repeatable; "today" for all of them) runs a scenario check of batch 2's spec (5.5:
+// C2, C3, C4, C6, C10, C11, C13) on the town as the other flags make it, each with its own seeds and
+// days unless --seeds or --days is given, and prints its scene, its numbers and whether it passes.
+// --forks <K> (needs --days 112 or more) also runs each seed K times more, forked at day 28 with salts
+// 1 to K (Simulation.Fork), and the variety lines add V7, the share of forks whose major stories over
+// the rest of the year differ from their base's (batch 2 spec 6.3).
+int seeds = 200, days = 28, from = 1, forks = 0;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
-var gossip = new GossipOptions();
+// --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
+int townArg = Array.IndexOf(args, "--town");
+TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
+bool townSeeds = args.Contains("--town-seeds");
+if (townSeeds)
+    Towns.ForSeed(townArg >= 0 && townArg + 1 < args.Length ? args[townArg + 1] : "pelican", 1); // a generated town, or say why not
+// The flags below change the town's own gossip options (a grown town keeps two tellings a day).
+var gossip = town?.Gossip ?? new GossipOptions();
+IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
+int dumpAt = Array.IndexOf(args, "--dump-town");
+if (dumpAt >= 0)
+{
+    // The town as JSON, to edit by hand and run with --town file:<path> (town spec 4.5).
+    string path = dumpAt + 1 < args.Length ? args[dumpAt + 1] : throw new ArgumentException("--dump-town needs a file path");
+    File.WriteAllText(path, TownJson.Write(town ?? TownData.Default()));
+    Console.WriteLine($"wrote {path}");
+    return;
+}
+if (args.Contains("--describe"))
+{
+    // The census card (town spec 4.5): every household, the keepers and the hubs, and the town's hash.
+    TownData described = town ?? TownData.Default();
+    foreach (string line in UnderGlass.Sim.Generation.Census.Describe(described))
+        Console.WriteLine(line);
+    Console.WriteLine($"town hash {UnderGlass.Sim.Generation.Census.Hash(described)}; problems: {(TownCheck.Problems(described) is { Count: > 0 } p ? string.Join("; ", p) : "none")}");
+    return;
+}
 var inv = System.Globalization.CultureInfo.InvariantCulture;
 // Everything the runner prints reads the same on every machine, like the log (0c.0).
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CurrentCulture = inv;
-FeelingOptions feelings = DefaultTown.Feelings();
+FeelingOptions feelings = town?.Feelings ?? DefaultTown.Feelings();
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
@@ -31,13 +75,14 @@ for (int i = 0; i < args.Length - 1; i++)
             feelings = args[i + 1] switch
             {
                 "off" => FeelingOptions.Off,
-                "observe" => Set(DefaultTown.Feelings(), "Steer", "false"),
-                "on" => Set(DefaultTown.Feelings(), "Steer", "true"),
+                "observe" => Set(town?.Feelings ?? DefaultTown.Feelings(), "Steer", "false"),
+                "on" => Set(town?.Feelings ?? DefaultTown.Feelings(), "Steer", "true"),
                 _ => throw new ArgumentException("--feel off|observe|on"),
             };
             break;
         case "--seeds": seeds = int.Parse(args[i + 1]); break;
         case "--days": days = int.Parse(args[i + 1]); break;
+        case "--forks": forks = int.Parse(args[i + 1]); break;
         case "--from": from = int.Parse(args[i + 1]); break;
         case "--log": logSeed = long.Parse(args[i + 1]); break;
         case "--chat": gossip.ChatChance = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -45,9 +90,11 @@ for (int i = 0; i < args.Length - 1; i++)
         case "--every": gossip.ChatEveryMinutes = int.Parse(args[i + 1]); break;
         case "--fade": gossip.ScandalFadePerDay = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--tells": gossip.TellsPerDay = int.Parse(args[i + 1]); break;
+        case "--forget": SetOption(gossip.Forgetting, args[i + 1]); break; // town spec E6: --forget FadePerDay=0.01
     }
 }
 // Applied after --feel, whatever the order on the line.
+double? tensionDepth = null;
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
@@ -65,8 +112,13 @@ for (int i = 0; i < args.Length - 1; i++)
                 _ => throw new ArgumentException("--desire off|observe|on"),
             };
             break;
-        case "--tensions": feelings.Start = DefaultTown.Tensions(double.Parse(args[i + 1], inv)); break;
+        case "--tensions": // keeps a town's own
+            tensionDepth = double.Parse(args[i + 1], inv);
+            feelings.Start = Towns.WithTensions(feelings.Start, tensionDepth.Value);
+            break;
         case "--0d6": feelings.With0d6(args[i + 1]); break;
+        case "--catalog": feelings.Acts.With(args[i + 1]); break;
+        case "--ao": SetOption(feelings.Acts, args[i + 1]); break; // an act catalog number, e.g. --ao WarmBudget=0.005
     }
 }
 // --acts Name=Kind:weight, on a copy of the town's cast.
@@ -80,17 +132,22 @@ for (int i = 0; i < args.Length - 1; i++)
     if (eq < 1 || colon < eq + 2)
         throw new ArgumentException("--acts <Name>=<Kind>:<weight>");
     string who = spec[..eq];
-    if (!DefaultTown.Cast().Any(v => v.Name == who))
+    if (!townCast.Any(v => v.Name == who))
         throw new ArgumentException($"--acts: nobody called {who}");
     castChanges.Add((who, spec[(eq + 1)..colon], double.Parse(spec[(colon + 1)..], inv)));
 }
-IReadOnlyList<Villager>? cast = castChanges.Count == 0 ? null : DefaultTown.Cast().Select(v =>
-{
-    var acts = new Dictionary<string, double>(v.Acts);
-    foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
-        acts[kind] = weight;
-    return v with { Acts = acts };
-}).ToList();
+// The catalog's cards for the slices that are on come first (none yet in acts-0, so the cast stays
+// as it was), and the --acts flags after them, so a weight typed on the line wins over a card.
+IReadOnlyList<Villager> baseCast = ActCatalog.Cards(townCast, feelings.Acts);
+IReadOnlyList<Villager>? cast = castChanges.Count == 0
+    ? ReferenceEquals(baseCast, townCast) ? town?.Cast : baseCast
+    : baseCast.Select(v =>
+    {
+        var acts = new Dictionary<string, double>(v.Acts);
+        foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
+            acts[kind] = weight;
+        return v with { Acts = acts };
+    }).ToList();
 // --trait Name=Trait:value, applied to each run's simulation before it starts.
 var traits = new List<(string Who, Trait Trait, double Value)>();
 for (int i = 0; i < args.Length - 1; i++)
@@ -105,9 +162,28 @@ for (int i = 0; i < args.Length - 1; i++)
         throw new ArgumentException("--trait <Name>=<Trait>:<value>, a trait one of " + string.Join(", ", Enum.GetNames<Trait>()));
     Trait trait = Enum.Parse<Trait>(traitName);
     string who = spec[..eq];
-    if (!DefaultTown.Cast().Any(v => v.Name == who))
+    if (!townCast.Any(v => v.Name == who))
         throw new ArgumentException($"--trait: nobody called {who}");
     traits.Add((who, trait, double.Parse(spec[(colon + 1)..], inv)));
+}
+
+if (townSeeds && (castChanges.Count > 0 || traits.Count > 0))
+    throw new ArgumentException("--town-seeds gives each run its own people: not with --acts or --trait");
+
+// <Name>=<value> for any switch or number of an options object.
+static void SetOption(object o, string kv)
+{
+    int eq = kv.IndexOf('=');
+    var prop = eq < 1 ? null : o.GetType().GetProperty(kv[..eq]);
+    if (prop is null)
+        throw new ArgumentException($"{kv}: expected <Name>=<value>, a name one of " + string.Join(", ", o.GetType().GetProperties().Select(p => p.Name)));
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string value = kv[(eq + 1)..];
+    object v = prop.PropertyType == typeof(bool) ? (object)bool.Parse(value)
+        : prop.PropertyType == typeof(int) ? (object)int.Parse(value, inv)
+        : prop.PropertyType == typeof(double) ? (object)double.Parse(value, inv)
+        : throw new ArgumentException($"{kv[..eq]} can't be set from the command line");
+    prop.SetValue(o, v);
 }
 
 static FeelingOptions Set(FeelingOptions o, string name, string value)
@@ -123,7 +199,8 @@ static FeelingOptions Set(FeelingOptions o, string name, string value)
     return o;
 }
 
-IReadOnlyList<ActKind> kinds = DefaultTown.Acts();
+// The catalog's rows for the slices that are on come after the town's own (none in acts-0).
+IReadOnlyList<ActKind> kinds = ActCatalog.Kinds(feelings.Acts, town?.Acts ?? DefaultTown.Acts());
 for (int i = 0; i < args.Length - 1; i++)
 {
     if (args[i] != "--affect")
@@ -136,13 +213,55 @@ for (int i = 0; i < args.Length - 1; i++)
         ? k with { Affect = a with { Joy = v[0], Plastic = v.Length > 1 ? v[1] : a.Plastic } }
         : k).ToList();
 }
-IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
-Simulation Make(long seed, FeelingOptions o)
+IReadOnlyList<(int, string, string)> Injected(long seed, bool? placed) => placed ?? inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
+// --town-seeds: each run's own town, built once (runs go in parallel).
+var seedTowns = new System.Collections.Concurrent.ConcurrentDictionary<long, TownData>();
+TownData TownFor(long seed) => seedTowns.GetOrAdd(seed, s => Towns.ForSeed(args[townArg + 1], s));
+// placed: the harness's scandal or none, whatever --inject says (the scenario checks).
+Simulation Make(long seed, FeelingOptions o, bool? placed = null)
 {
-    var sim = new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o);
+    if (townSeeds)
+    {
+        // The town's own tensions and cards; the act list is the same for every town of a size.
+        TownData t = TownFor(seed);
+        o.Start = tensionDepth is { } depth ? Towns.WithTensions(t.Feelings.Start, depth) : t.Feelings.Start;
+        return new Simulation(seed, t with { Cast = ActCatalog.Cards(t.Cast, o.Acts), Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed, placed));
+    }
+    var sim = town is null
+        ? new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed, placed), feelings: o)
+        : new Simulation(seed, town with { Cast = cast ?? town.Cast, Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed, placed));
     foreach (var (who, trait, value) in traits)
         sim.SetTrait(who, trait, value);
     return sim;
+}
+
+// The scenario checks (batch 2 spec 5.5): each its own runs, then its result.
+var checkNames = new List<string>();
+for (int i = 0; i < args.Length - 1; i++)
+    if (args[i] == "--check")
+        checkNames.AddRange(string.Equals(args[i + 1], "today", StringComparison.OrdinalIgnoreCase) ? ReachMetrics.Today : new[] { args[i + 1] });
+if (checkNames.Count > 0)
+{
+    if (townSeeds)
+        throw new ArgumentException("--check runs one town: not with --town-seeds");
+    foreach (string name in checkNames)
+    {
+        Check check = ReachMetrics.Named(name);
+        int n = args.Contains("--seeds") ? seeds : check.Seeds, length = args.Contains("--days") ? days : check.Days;
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        var checkRuns = Enumerable.Range(from, n).AsParallel().AsOrdered().Select(s =>
+        {
+            Simulation sim = Make(s, Copy(feelings), placed: check.Placement == Placement.PlacedScandal);
+            if (check.Scenarios is { } scenes)
+                sim.Place(scenes(s, kinds));
+            return sim.Run(length);
+        }).ToList();
+        CheckResult res = ReachMetrics.Evaluate(check, checkRuns, kinds, cast ?? townCast, town?.Gatherings ?? DefaultTown.Gatherings());
+        Console.WriteLine($"{res.Check} ({n} seeds x {length} days, {timer.Elapsed.TotalSeconds:0} s): {res.Scene}");
+        Console.WriteLine($"  {res.Summary}");
+        Console.WriteLine($"  {(res.Pass is null ? "reported" : res.Pass.Value ? "passes" : "fails")}: {res.Criterion}");
+    }
+    return;
 }
 
 if (logSeed is { } one)
@@ -189,12 +308,30 @@ var runs = Enumerable.Range(from, seeds).AsParallel().AsOrdered()
     .Select(s => Make(s, Copy(feelings)).Run(days)).ToList();
 double runSeconds = clock.Elapsed.TotalSeconds;
 
+// V7 (batch 2's m-2): each seed again, forked at day 28 with salts 1 to --forks, kept as story events.
+(double V7, double Headline) open = (double.NaN, double.NaN);
+if (forks < 0 || forks > 0 && days < Variety.Year)
+    throw new ArgumentException($"--forks needs a count of 1 or more and --days {Variety.Year} or more: V7 reads days {Variety.ForkDay}-{Variety.Year - 1}");
+if (forks > 0)
+{
+    var forked = Enumerable.Range(from, seeds).SelectMany(s => Enumerable.Range(1, forks).Select(salt => (Seed: s, Salt: salt)))
+        .AsParallel().AsOrdered().Select(x =>
+        {
+            Simulation sim = Make(x.Seed, Copy(feelings));
+            sim.Fork(Variety.ForkDay, x.Salt);
+            return Variety.Of(sim.Run(days), kinds);
+        }).ToList();
+    open = Variety.Open(runs.Select((r, i) => (Variety.Of(r, kinds), (IReadOnlyList<IReadOnlyList<StoryEvent>>)forked.GetRange(i * forks, forks))).ToList());
+}
+string forkNote = forks > 0 ? $"{seeds} seeds x {forks} forks at day {Variety.ForkDay}" : "";
+
 // Each run gets its own options object: they are mutable, and runs go in parallel.
 static FeelingOptions Copy(FeelingOptions o)
 {
     var c = new FeelingOptions();
     foreach (var p in typeof(FeelingOptions).GetProperties().Where(p => p.CanWrite))
         p.SetValue(c, p.GetValue(o));
+    c.Acts = o.Acts.Copy();
     return c;
 }
 RunStats stats = Metrics.Summarise(runs, kinds, injectedOnly: inject);
@@ -203,12 +340,43 @@ Console.WriteLine();
 Console.WriteLine("group     acts  witn  reach  sat90  band  died  days  right  wrong  unknown");
 foreach (GroupStats g in stats.Groups)
     Console.WriteLine($"{g.Group,-9} {g.Acts,5} {g.MeanWitnesses,5:0.0} {g.MeanReach,6:P0} {g.Saturated,6:P0} {g.InBand,5:P0} {g.Died,5:P0} {g.MeanDaysSpreading,5:0.0} {g.ActorRight,6:P0} {g.ActorWrong,6:P0} {g.ActorUnknown,8:P0}");
+if (townSeeds)
+{
+    // A different town each run: ties and E1 are worked out run by run against the run's own town
+    // (a generated name in two towns is two people), and the rest that reads one cast is left out.
+    Console.WriteLine();
+    Console.WriteLine($"a different town each seed ({args[townArg + 1][..args[townArg + 1].IndexOf('@')]}@<seed>): run time {runSeconds:0.0} s");
+    if (feelings.Enabled)
+    {
+        var each = runs.Select((r, i) =>
+        {
+            TownData t = TownFor(from + i);
+            return FeelingMetrics.Summarise(new[] { r }, kinds, t.Cast, (t.Economy ?? DefaultTown.TownEconomy()).GroceriesAt, feelings);
+        }).ToList();
+        double MeanOf(Func<FeelingStats, double> f) => each.Select(f).Where(x => !double.IsNaN(x)).DefaultIfEmpty(double.NaN).Average();
+        Console.WriteLine($"  ties a year: feuds {MeanOf(f => f.FeudsPerYear):0.00}, friendships {MeanOf(f => f.FriendshipsPerYear):0.00}, reconciliations {MeanOf(f => f.ReconciliationsPerYear):0.00}; "
+            + $"seeds with a new feud and a new friendship {Pc(MeanOf(f => f.SeedsWithFeudAndFriendship))} (scaled to {runs[0].CastSize} people: {Pc(MeanOf(f => f.SeedsWithFeudAndFriendshipScaled))}); "
+            + $"war towns {Pc(MeanOf(f => f.WarTowns))} (scaled {Pc(MeanOf(f => f.WarTownsScaled))}), dead towns {Pc(MeanOf(f => f.DeadTowns))} (scaled {Pc(MeanOf(f => f.DeadTownsScaled))}); "
+            + $"per 100 people a year: feuds {MeanOf(f => f.FeudsPerYear) * 100 / runs[0].CastSize:0.0}, friendships {MeanOf(f => f.FriendshipsPerYear) * 100 / runs[0].CastSize:0.0}");
+    }
+    PrintVariety(Variety.Measure(runs, kinds) with { V7 = open.V7, V7Headline = open.Headline }, forkNote);
+    return;
+}
 Console.WriteLine();
 Console.WriteLine($"confrontations a season: {stats.ConfrontationsPerSeason:0.0}; at the right person: {stats.ConfrontationsRight:P0}; scandals confronted: {stats.ScandalsConfronted:P0}");
 Console.WriteLine("natural acts a year, town-wide: " + string.Join(", ", stats.PerYear.Select(p => $"{p.Key.ToString().ToLowerInvariant()} {p.Value:0.#}")));
 BodyStats b = stats.Body;
 static string Hm(double h) => $"{(int)h % 24:00}:{(int)Math.Round(h % 1 * 60) % 60:00}";
 Console.WriteLine($"sleep: bed {Hm(b.MeanBedtime)} (spread {b.BedtimeSpread:0.0} h), up {Hm(b.MeanWake)}, {b.MeanSleepHours:0.0} h a night; alarms slept through {b.MissedAlarmShare:P0}; late for work {b.LatePerSeason:0.#} a season; collapses {b.CollapsesPerSeason:0.#} a season");
+{
+    // Who knows whom at the end (town spec E6): the share of ordered pairs known at all (KnowsActorAt)
+    // and known well (KnowsAt), and whether forgetting was on.
+    var fam = runs.SelectMany(r => r.Familiarity.Values).ToList();
+    if (fam.Count > 0)
+        Console.WriteLine($"familiarity at the end: mean {fam.Average():0.000}; known ({gossip.KnowsActorAt:0.##}+) {fam.Count(f => f >= gossip.KnowsActorAt) / (double)fam.Count:P1}, "
+            + $"well ({gossip.KnowsAt:0.##}+) {fam.Count(f => f >= gossip.KnowsAt) / (double)fam.Count:P1}"
+            + (gossip.Forgetting.On ? $"; forgetting on ({gossip.Forgetting.FadePerDay:0.###} a day)" : "; forgetting off"));
+}
 if (inject)
 {
     var placed = runs.SelectMany(r => r.Acts.Where(a => a.Injected).Select(a => (r, a))).ToList();
@@ -304,12 +472,14 @@ static bool PaidInFull(string l)
 // Feelings (phase 0c).
 if (feelings.Enabled)
 {
-    FeelingStats f = FeelingMetrics.Summarise(runs, kinds, DefaultTown.Cast(), DefaultTown.TownEconomy().GroceriesAt, feelings);
+    FeelingStats f = FeelingMetrics.Summarise(runs, kinds, townCast, (town?.Economy ?? DefaultTown.TownEconomy()).GroceriesAt, feelings);
     Console.WriteLine($"feelings ({(feelings.Steer ? "steering" : "observed only")}{(feelings.PlasticScale != 1 ? $", plastic {feelings.PlasticScale}" : "")}): run time {runSeconds:0.0} s");
     Console.WriteLine($"  power of acting: mean {f.MeanPower:0.00} (spread {f.PowerSpread:0.00}), under 0.3 {f.LowPowerShare:P0}, over 0.7 {f.HighPowerShare:P0}; lowest " + string.Join(", ", f.LowestPower.Select(x => $"{x.Name} {x.Power:0.00}")));
     foreach (RegardSpread s in f.BySnapshot)
         Console.WriteLine($"  regard at d{s.Day}: mean change {Sg(s.MeanChange)}, p5 {s.P5:0.00} p50 {s.P50:0.00} p95 {s.P95:0.00}; under -0.2 {s.UnderMinus02:P1}, 0.4+ {s.AtLeast04:P1}, moved 0.1+ {s.Moved01:P1}; kin {s.KinMean:0.00}, others {s.NonKinMean:0.00}");
-    Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {Pc(f.WarTowns)}, dead towns {Pc(f.DeadTowns)}{(double.IsNaN(f.DeadTowns) ? " (runs under a year)" : "")}");
+    Console.WriteLine($"  ties a year: feuds {f.FeudsPerYear:0.00}, in families {f.KinFeudsPerYear:0.00}, friendships {f.FriendshipsPerYear:0.00}, reconciliations {f.ReconciliationsPerYear:0.00}; seeds with a new feud and a new friendship {f.SeedsWithFeudAndFriendship:P0}; war towns {Pc(f.WarTowns)}, dead towns {Pc(f.DeadTowns)}{(double.IsNaN(f.DeadTowns) ? " (runs under a year)" : "")}"
+        + (runs[0].CastSize == FeelingMetrics.ShippedOthers + 1 ? "" : $"; scaled to {runs[0].CastSize} people (per person, as at 26): E1 {Pc(f.SeedsWithFeudAndFriendshipScaled)}, war towns {Pc(f.WarTownsScaled)}, dead towns {Pc(f.DeadTownsScaled)}; "
+            + $"per 100 people a year: feuds {f.FeudsPerYear * 100 / runs[0].CastSize:0.0}, friendships {f.FriendshipsPerYear * 100 / runs[0].CastSize:0.0}"));
     Console.WriteLine("  top feuds " + string.Join(", ", f.TopFeuds.Select(t => $"{t.A}-{t.B} {t.Seeds}")) + "; top friendships " + string.Join(", ", f.TopFriendships.Select(t => $"{t.A}-{t.B} {t.Seeds}")));
     Console.WriteLine("  sentiments a season: " + string.Join(", ", f.SentimentsPerSeason.Select(p => $"{p.Key} {p.Value:0.#}")) + $"; share of regard change with a sentiment {Pc(f.SentimentShare)}");
     Console.WriteLine($"  toward a culprit, mean change by how it was known: witnessed {Sg(f.DropWitnessed)}, saw and heard the name {Sg(f.DropHeardName)}, told twice {Sg(f.DropCorroborated)}, confirmed {Sg(f.DropConfirmed)}");
@@ -321,7 +491,7 @@ if (feelings.Enabled)
 // The desire gate (phase 0d; spec section 10).
 if (feelings.Enabled && feelings.Steer && feelings.Desire)
 {
-    DesireStats g = DesireMetrics.Summarise(runs, DefaultTown.Cast(), feelings);
+    DesireStats g = DesireMetrics.Summarise(runs, townCast, feelings);
     static string Per(IEnumerable<(string Name, double PerYear)> xs) => xs.Any() ? string.Join(", ", xs.Select(x => $"{x.Name} {x.PerYear:0.0}")) : "none";
     Console.WriteLine($"desire ({(feelings.DesireActs ? "acting" : "watched only")}{(traits.Count > 0 ? ", " + string.Join(", ", traits.Select(t => $"{t.Who} {t.Trait} {t.Value}")) : "")}; tensions {(feelings.Start.Count == 0 ? "none" : string.Join(", ", feelings.Start.OrderBy(p => p.Key.From, StringComparer.Ordinal).ThenBy(p => p.Key.To, StringComparer.Ordinal).Select(p => $"{p.Key.From}->{p.Key.To} {p.Value:0.00}")))}), a year:");
     Console.WriteLine("  stirred: " + string.Join(", ", g.StirredPerYear.Select(p => $"{p.Key} {p.Value:0.0}")));
@@ -341,7 +511,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     Console.WriteLine("  stance at the end, mean: most withdrawn " + string.Join(", ", ends.Take(3).Select(x => $"{x.Name} {S2(x.End)}")) + "; most combative " + string.Join(", ", ends.AsEnumerable().Reverse().Take(3).Select(x => $"{x.Name} {S2(x.End)}")));
 
     // Hermits, brawlers, moods that spread (phase 0d.6; spec section 9).
-    WithdrawalStats w = WithdrawalMetrics.Summarise(runs, cast);
+    WithdrawalStats w = WithdrawalMetrics.Summarise(runs, cast ?? townCast);
     string[] on = new[] { ("b", feelings.HomeHurtOn || feelings.HouseholdGateOn), ("c", feelings.ContagionOn), ("d", feelings.LeftOutOn || feelings.InclusionDiscountOn),
         ("e", feelings.DialsOn), ("f", feelings.RecoveryOn), ("g", feelings.PatienceOn || feelings.CoercionOn), ("h", feelings.ShowOn), ("t", feelings.ToneOn), ("m", feelings.MissingOn) }
         .Where(x => x.Item2).Select(x => x.Item1).ToArray();
@@ -354,7 +524,7 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
         + "; withdrawn " + (w.WithdrawnSpellsByPerson.Count == 0 ? "none" : string.Join(", ", w.WithdrawnSpellsByPerson.Select(x => $"{x.Name} {x.Spells}"))));
     Console.WriteLine($"  brawlers (28 d at +0.5 or above) {w.BrawlersPerYear:0.00} people a seed-year ({w.BrawlerSpellsPerYear:0.00} spells; {Per(w.TopBrawlers)}); arguments at home a year: by the gate {w.HomeArgumentsByGate:0.0}, at the town's rates {w.HomeArgumentsAtRates:0.0}");
     Console.WriteLine($"  gifts by the gate a year, by year of the run: {string.Join(", ", w.GateGiftsByYear.Select(x => x.ToString("0", inv)))}; on a birthday or a festival {w.OccasionGiftsPerYear:0.0}");
-    Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases} (of a hermit's {Pc(w.HermitsRecoveredWithin28)} of {w.HermitRecoveryCases}); a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6)");
+    Console.WriteLine($"  recovery: back above -0.3 within 28 d of a withdrawn spell's end {Pc(w.RecoveredWithin28)} of {w.RecoveryCases} (of a hermit's {Pc(w.HermitsRecoveredWithin28)} of {w.HermitRecoveryCases}); a hermit through a whole year in {Pc(w.YearLongHermits)} of seed-years (and {Pc(w.YearLongHermitsExcused)} still left out above 0.6); hermits back within a season after the spell counts {Pc(w.HermitsBackInASeason)} of {w.HermitSeasonCases} [half or more]");
     Console.WriteLine($"  power of acting: mean {w.MeanPower:0.000}, spread {w.PowerSpread:0.000}, person-days below 0.35 {w.LowPowerShare:P1}, seed-years with a sink (28-day mean below 0.3) {Pc(w.SinkSeedYears)}");
     if (w.Contagion.Any(c => c.Gave > 0 || c.Caught > 0))
     {
@@ -369,4 +539,48 @@ if (feelings.Enabled && feelings.Steer && feelings.Desire)
     if (w.Rules.Count > 0)
         Console.WriteLine($"  rules, a year (times, sum){(feelings.WithdrawalWatch ? ", watched only" : "")}: " + string.Join(", ", w.Rules.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => $"{p.Key} {p.Value.PerYear:0.0} {Sg(p.Value.SumPerYear)}")));
 }
+if (town is not null)
+{
+    // A grown town (town spec 6.3): tellings inside a district against chance, and how a neighbourhood's stories travel.
+    TownStats ts = TownMetrics.Summarise(runs, town);
+    Console.WriteLine($"town ({string.Join(", ", ts.Districts.Select(d => $"{d.District} {d.People}"))}): tellings {ts.Tellings:0.0} a person a year, "
+        + $"{ts.SameDistrict:P0} inside a district (by chance {ts.SameByChance:P0}; locality {ts.LocalityRatio:0.00}); "
+        + $"neighbourhood stories reaching 3+: {ts.NeighbourhoodStories}, on day one only at home {ts.FirstDayLocal:P0}, in another district within two days {ts.CrossedInTwoDays:P0}; the median person knows {ts.KnownWellMedian:0} well (0.4+)");
+    foreach (DistrictStats d in ts.Districts)
+        Console.WriteLine($"  {d.District}: acts {d.ActsPerPerson:0.0}, tellings heard {d.HeardPerPerson:0.0}, feuds {d.FeudsPerPerson:0.00}, friendships {d.FriendshipsPerPerson:0.00} a person a year");
+}
+PrintVariety(Variety.Measure(runs, kinds) with { V7 = open.V7, V7Headline = open.Headline }, forkNote);
+if (feelings.Enabled)
+{
+    // The act catalog's story measures (acts spec 7.2 and 7.3; targets in brackets).
+    StoryStats s = StoryMetrics.Summarise(runs, kinds, cast ?? townCast, feelings);
+    Console.WriteLine($"story (acts spec 7): across households, kindness ignored {Pc(s.IgnoredKindness)} [falls with returns], hostile acts answered {Pc(s.AnsweredHostile)} and avoided {Pc(s.AvoidedHostile)}; "
+        + $"kindness returned within 7 d {Pc(s.ReturnedWithin7)} [rises, under 90%]");
+    static string N1(double x) => double.IsNaN(x) ? "n/a" : x.ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+    Console.WriteLine("  outcomes by kind (settled; shares): " + (s.Outcomes.Count == 0 ? "none" : string.Join("; ", s.Outcomes.Select(k => $"{k.Kind} {k.Settled} ("
+        + string.Join(" ", k.Shares.OrderByDescending(p => p.Value).ThenBy(p => p.Key).Select(p => $"{p.Key} {p.Value:P0}")) + ")"))));
+    Console.WriteLine($"  per person a year: acts {s.ActsPerPerson:0.0}; per 100 people a year, feuds {s.FeudsPer100:0.0} (between households {Pc(s.FeudsAcrossHouseholds)}), in families {s.KinFeudsPer100:0.0}, "
+        + $"friendships {s.FriendshipsPer100:0.0}; warmth {s.WarmthPerPerson:0.0}");
+    Console.WriteLine($"  threads (3+ deep, 2+ households) a whole season {N1(s.ThreadsPerSeason)} [3+], median {N1(s.MedianThreadsPerSeason)}; depth mean {N1(s.MeanThreadDepth)}, longest {s.LongestThread}; shapes "
+        + (s.ThreadShapes.Count == 0 ? "none" : string.Join(", ", s.ThreadShapes.Select(x => $"{x.Shape} {x.Share:P0}"))));
+    Console.WriteLine($"  new feuds (not kin or home; pauses of {StoryMetrics.FeudPauseDays} d or less joined): {s.TimedFeudsPerYear:0.0} a year, median length {(double.IsNaN(s.MedianFeudDays) ? "n/a" : double.IsPositiveInfinity(s.MedianFeudDays) ? "past the run's end" : $"{s.MedianFeudDays:0} days")} [28+ with repair], ended {Pc(s.EndedFeudShare)}");
+    Console.WriteLine($"  a year: trivia {s.TriviaPerYear:0}, news {s.NewsPerYear:0}; by the gate, heavy hostile acts {s.HeavyHostileByGate:0.0}, gifts {s.GiftsByGate:0.0}; "
+        + "the gate's kind acts by whole year of the run " + (s.GateKindnessByYear.Count == 0 ? "n/a (under a year)" : string.Join(", ", s.GateKindnessByYear.Select(x => x.ToString("0.0", inv)))));
+    if (s.ColdShare is >= 0 || s.ApologiesPerYear > 0 || s.RemorseLapsedPerYear > 0)
+        Console.WriteLine($"  jokes read cold {Pc(s.ColdShare)} [10-20%]; apologies {s.ApologiesPerYear:0.0} a year, accepted {Pc(s.ApologiesAccepted)} [50-80%]; remorse lapsed with no apology {s.RemorseLapsedPerYear:0.0} a year");
+    Console.WriteLine("  most hurt a year: " + string.Join(", ", s.People.OrderByDescending(p => p.Hurt).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Hurt:0.00}"))
+        + "; fewest acts done: " + string.Join(", ", s.People.OrderBy(p => p.Did).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Did:0}")));
+}
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");
+
+// How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
+static void PrintVariety(VarietyStats v, string forkNote)
+{
+    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}; "
+        + $"families pooled: feud {(v.V1FeudPair == "" ? "none" : $"{v.V1FeudPair} {v.V1Feud:P0}")}, culprit {(v.V1CulpritName == "" ? "none" : $"{v.V1CulpritName} {v.V1Culprit:P0}")}); "
+        + $"V2 headlines {v.V2:0.0} [20+] (top {v.TopHeadline} {v.TopHeadlineShare:P0}); V3 alike pairs {v.V3:P1} [under 5%]; V4 with a rare story {Pc(v.V4)} [60%+]{(double.IsNaN(v.V4) ? " (needs 50+ seed-years)" : "")}");
+    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 fair twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}; every twist, median {v.V6All:0.#}; "
+        + $"fair {Pc(v.FairShare)}{(v.Unfair is { Count: > 0 } u ? "; unfair " + string.Join(", ", u.Select(x => $"{x.Key} {x.Value}")) : "")}); "
+        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; "
+        + (double.IsNaN(v.V7) ? "V7 needs forked runs (--forks <K>)" : $"V7 open future {v.V7:P0} [25-60%] ({forkNote}; headline changed {v.V7Headline:P0})"));
+}

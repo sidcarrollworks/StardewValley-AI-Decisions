@@ -214,8 +214,11 @@ public sealed partial class Simulation
         if (fresh || x != rec.Patient)
         {
             bool known = x >= 0 && x != h;
-            (rec.F0, rec.Route) = Feelings.Base(row.Joy, Sens(h), x == h, known, known ? E(h, x) : 0,
+            double joy = ReadJoy(h, x, act, row); // the act catalog: a warm act read cold is taken badly
+            (rec.F0, rec.Route) = Feelings.Base(joy, Sens(h), x == h, known, known ? E(h, x) : 0,
                 known ? Feelings.Likeness(_cast[h], _cast[x]) : 0, U(h), row.Patient == Patient.Onlookers, _fo);
+            if (joy != row.Joy)
+                rec.Route = "Cold"; // read cold: its own route, so the measures can count it
             rec.Patient = x;
         }
         if (fresh)
@@ -248,7 +251,7 @@ public sealed partial class Simulation
             AddMood(h, d, act.Id);
             _feltLog.Add(new Felt(m, who, act.Id, rec.Route, basis, d, null, 0, 0));
         }
-        if (fresh && rec.Route == "Direct")
+        if (fresh && rec.Route is "Direct" or "Cold")
             Underwent(h, c >= 0 ? _names[c] : null, act.Id, Math.Abs(rec.Mood), m);
         rec.W = c == rec.Cause ? Math.Max(rec.W, w) : w;
         rec.Cause = c;
@@ -265,7 +268,7 @@ public sealed partial class Simulation
         {
             // F7: regard toward the believed cause, by how freely they acted.
             double phi = Feelings.Phi(row.Freedom, Excuse(h, c), _fo);
-            double dr = rec.F0 * rec.W * row.Plastic * _fo.PlasticScale * phi * keep * rec.Repeat;
+            double dr = WarmBudgeted(h, c, act, kind, rec.F0 * rec.W * row.Plastic * _fo.PlasticScale * phi * keep * rec.Repeat);
             Want(c, dr, rec.Route);
             // F9b: a little of it spills onto their kind, as far as they are a stranger (III P46).
             if (_fo.Kinds)
@@ -492,6 +495,8 @@ public sealed partial class Simulation
         AddMood(s, f, act.Id);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
         Underwent(s, act.Target, act.Id, Math.Abs(f), m);
+        if (_fo.MishapHurtOn && row.Freedom <= 0 && f < 0 && CharacterOf(s).Boldness < 0.5)
+            Lasting(s, -f, 1, m, "mishap"); // Sid's answer A4: a stumble or a collapse weighs on the shy
         if (row.Freedom <= 0 || act.Target is not { } t || t == act.Actor || !_index.TryGetValue(t, out int ti))
             return;
         if (_fo.HomeHurtOn && f < 0)
@@ -675,6 +680,7 @@ public sealed partial class Simulation
             for (int j = i + 1; j < n; j++)
             {
                 bool kin = AreKin(_names[i], _names[j]);
+                FeudSpellAt(day, i, j); // the story measures' record (acts spec 7.3); no rule reads it
                 if (_regard[i, j] <= _fo.FeudAt && _regard[j, i] <= _fo.FeudAt
                     && !(_baseline[i, j] <= _fo.FeudAt && _baseline[j, i] <= _fo.FeudAt))
                     Tie(day, i, j, kin ? "kin-feud" : "feud");

@@ -169,6 +169,35 @@ public class PinnedTests
             Assert.True(r.Rules.ContainsKey(rule), rule);
     }
 
+    /// <summary>The act catalog: each slice pinned on a year of seed 1, on the shipped town and on the
+    /// 0d.6 review's set (bcdefghmt): acts-1, Returns; acts-2, Company, alone and with Returns; acts-3, Welcome, acts-4, Repair, acts-5, Sides, and acts-6, Late, each alone and with the slices before it.
+    /// Update only for a deliberate change to a catalog rule or row.</summary>
+    [Theory]
+    [InlineData("returns", "", "a43ef45b297b6d72")]
+    [InlineData("returns", "bcdefghmt", "91f49099ce1f1a8a")]
+    [InlineData("company", "", "5922838f89262278")]
+    [InlineData("returns,company", "", "8a14f966ed4a9510")]
+    [InlineData("returns,company", "bcdefghmt", "502e1f220652a4d1")]
+    [InlineData("welcome", "", "9b1949cb4fce55f1")]
+    [InlineData("returns,company,welcome", "", "491377bce4a325d3")]
+    [InlineData("returns,company,welcome", "bcdefghmt", "5c472a536d5b165a")]
+    [InlineData("repair", "", "936f4953aff04d00")]
+    [InlineData("returns,company,welcome,repair", "", "887e2607cbd9b819")]
+    [InlineData("returns,company,welcome,repair", "bcdefghmt", "29c0e8be61dd0a00")]
+    [InlineData("sides", "", "1e0eed9d1583b0b0")]
+    [InlineData("returns,company,welcome,repair,sides", "", "9dd54d2696596d67")]
+    [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "e1cf7c5f999bb28d")]
+    [InlineData("late", "", "9955eddea60ce641")]
+    [InlineData("returns,company,welcome,repair,sides,late", "", "3ff4143ab007d5e9")]
+    [InlineData("returns,company,welcome,repair,sides,late", "bcdefghmt", "7701a5a8af63b3f4")]
+    public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
+    {
+        FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
+        o.Acts.With(slices);
+        Assert.Equal(hash, Metrics.LogHash(new Simulation(1, cast: ActCatalog.Cards(DefaultTown.Cast(), o.Acts),
+            kinds: ActCatalog.Kinds(o.Acts), feelings: o).Run(112)));
+    }
+
     /// <summary>P2: motives watched but not acted on change nothing: the same year as P1.</summary>
     [Fact]
     public void WatchedMotivesChangeNothing()
