@@ -28,7 +28,7 @@ public class GlossaryTests
         return JsonDocument.Parse(html[start..end]).RootElement;
     }
 
-    private static string Repo()
+    internal static string Repo()
     {
         for (var d = new DirectoryInfo(AppContext.BaseDirectory); d is not null; d = d.Parent)
             if (File.Exists(Path.Combine(d.FullName, "sim", "viewer", "index.html")))
