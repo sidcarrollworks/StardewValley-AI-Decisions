@@ -22,6 +22,13 @@ public static class TownJson
 {
     public static string Write(TownData town) => JsonSerializer.Serialize(town, Options);
 
+    /// <summary>The town's canonical form (town spec 4.5), which <see cref="Generation.Census.Hash"/>
+    /// reads: the file on one line, without the values left at their defaults (a record parameter's
+    /// default, or the value a new options object has). A field appended with a default, as records
+    /// grow, is left out wherever it holds that default, so a town's hash moves only when the town
+    /// does. Not for reading back: the reader wants every field.</summary>
+    public static string Canonical(TownData town) => JsonSerializer.Serialize(town, CanonicalOptions);
+
     public static TownData Read(string json)
     {
         TownData town = JsonSerializer.Deserialize<TownData>(json, Options) ?? throw new JsonException("the file holds no town");
@@ -45,6 +52,46 @@ public static class TownJson
         Converters = { new JsonStringEnumConverter(), new TupleConverterFactory(), new TensionsConverter() },
         TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { LeaveOutWorkedOut } },
     };
+
+    private static readonly JsonSerializerOptions CanonicalOptions = new()
+    {
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        Converters = { new JsonStringEnumConverter(), new TupleConverterFactory(), new TensionsConverter() },
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { LeaveOutWorkedOut, LeaveOutDefaults } },
+    };
+
+    /// <summary>For the canonical form: leaves out a property whose value, written, is its default
+    /// written. The default is the value a new object of the type has, for a type with a parameterless
+    /// constructor (the options classes), or else its constructor parameter's default (a record's
+    /// appended fields). A property with neither is always written.</summary>
+    private static void LeaveOutDefaults(JsonTypeInfo info)
+    {
+        if (info.Kind != JsonTypeInfoKind.Object || Nullable.GetUnderlyingType(info.Type) is not null)
+            return;
+        object? fresh = info.Type.IsValueType ? null : info.Type.GetConstructor(Type.EmptyTypes)?.Invoke(null);
+        var parameters = info.Type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+            .SelectMany(c => c.GetParameters()).Where(p => p.HasDefaultValue && p.Name is not null)
+            .GroupBy(p => p.Name!, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        foreach (JsonPropertyInfo p in info.Properties)
+        {
+            object? def;
+            if (fresh is not null && p.Get is { } get)
+                def = get(fresh);
+            else if (parameters.TryGetValue(p.Name, out ParameterInfo? param))
+            {
+                def = param.DefaultValue;
+                Type t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+                if (def is not null && t.IsEnum && def.GetType() != t)
+                    def = Enum.ToObject(t, def);
+            }
+            else
+                continue;
+            Type type = p.PropertyType;
+            // Written when first asked, once every type's contract is built.
+            var written = new Lazy<string>(() => JsonSerializer.Serialize(def, type, CanonicalOptions));
+            p.ShouldSerialize = (_, value) => JsonSerializer.Serialize(value, type, CanonicalOptions) != written.Value;
+        }
+    }
 
     /// <summary>Leaves out delegates, and properties the code works out (no setter and no constructor
     /// parameter of the same name), so the file holds only what a town is made of; every property
