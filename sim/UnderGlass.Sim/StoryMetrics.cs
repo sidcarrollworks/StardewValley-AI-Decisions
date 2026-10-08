@@ -55,6 +55,9 @@ public sealed record PersonStory(string Name, string Household, double Did, doub
 /// <item>The budgets of 7.2: trivia and news a year (the town's own acts, not the harness's), the
 /// heavy hostile acts and the gifts the gate started, the gate's kind acts by year of the run (the
 /// three-year drift: year 3 at most 1.5 x year 1), and warmth a person a year.</item>
+/// <item>Repair and the cold reading (acts-1, acts-4): the share of jokes read cold (target 10-20%);
+/// apologies a year and the share accepted (target 50-80%); and remorse that lapsed with no apology,
+/// a year.</item>
 /// </list>
 /// </summary>
 public sealed record StoryStats(int Runs, double SeedYears, double CastSize,
@@ -66,7 +69,8 @@ public sealed record StoryStats(int Runs, double SeedYears, double CastSize,
     IReadOnlyList<(string Shape, double Share)> ThreadShapes,
     double TimedFeudsPerYear, double MedianFeudDays, double EndedFeudShare,
     double TriviaPerYear, double NewsPerYear, double HeavyHostileByGate, double GiftsByGate,
-    IReadOnlyList<double> GateKindnessByYear, double WarmthPerPerson);
+    IReadOnlyList<double> GateKindnessByYear, double WarmthPerPerson,
+    double ColdShare = double.NaN, double ApologiesPerYear = 0, double ApologiesAccepted = double.NaN, double RemorseLapsedPerYear = 0);
 
 public static class StoryMetrics
 {
@@ -233,6 +237,22 @@ public static class StoryMetrics
             .Select(g => (Shape: g.Key, Share: g.Count() / (double)threads.Count))
             .OrderByDescending(x => x.Share).ThenBy(x => x.Shape, StringComparer.Ordinal).Take(5).ToList();
 
+        // The cold reading, apologies and remorse.
+        int coldable = 0, cold = 0;
+        foreach (SimResult r in runs)
+        {
+            var coldActs = r.Feelings.Where(f => f.Route == "Cold" && f.Toward is null && f.ActId >= 0).Select(f => f.ActId).ToHashSet();
+            foreach (Act a in r.Acts)
+                if (a.Kind == "Joked")
+                {
+                    coldable++;
+                    if (coldActs.Contains(a.Id)) cold++;
+                }
+        }
+        var apologies = runs.SelectMany(r => r.LifeEvents.Where(e => e.Kind == "Apologised" && e.Role == LifeRole.Did)).ToList();
+        int answered = apologies.Count(e => e.Outcome is Outcome.Accepted or Outcome.Refused);
+        double lapsed = runs.Sum(r => r.LifeEvents.Count(e => e.Role == LifeRole.Lapsed && e.Kind == "Apologised"));
+
         // How long new feuds between people who aren't close last.
         var spells = runs.SelectMany(r => Feuds(r.FeudSpells.Where(s => !s.Close && !s.Seeded), r.Days)).ToList();
 
@@ -246,7 +266,8 @@ public static class StoryMetrics
             threads.Count == 0 ? double.NaN : threads.Average(t => t.Depth), threads.Count == 0 ? 0 : threads.Max(t => t.Depth), shapes,
             PerYear(spells.Count), MedianDays(spells), Ratio(spells.Count(s => s.Ended), spells.Count),
             PerYear(trivia), PerYear(news), PerYear(heavyByGate), PerYear(giftsByGate),
-            gateKind.Select((x, y) => Ratio(x, gateKindRuns[y])).ToList(), PerPerson(warmth.Values.Sum()));
+            gateKind.Select((x, y) => Ratio(x, gateKindRuns[y])).ToList(), PerPerson(warmth.Values.Sum()),
+            Ratio(cold, coldable), PerYear(apologies.Count), Ratio(apologies.Count(e => e.Outcome == Outcome.Accepted), answered), PerYear(lapsed));
     }
 
     /// <summary>A run's threads (<see cref="StoryThread"/>), by the day each became one. An act's
