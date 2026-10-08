@@ -16,15 +16,36 @@ using UnderGlass.Sim;
 // watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
 // Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0);
-// --town <name> runs a grown town instead of the shipped one (pelican31: Towns.Named).
+// --town <name> runs a grown town instead of the shipped one (pelican31, or a generated town such as
+// pelican:60@7, or file:<path>: Towns.Named), --describe prints its census card and hash instead of
+// running, and --dump-town <path> writes it as JSON to edit by hand.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
-var gossip = new GossipOptions();
 // --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
 int townArg = Array.IndexOf(args, "--town");
 TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
+// The flags below change the town's own gossip options (a grown town keeps two tellings a day).
+var gossip = town?.Gossip ?? new GossipOptions();
 IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
+int dumpAt = Array.IndexOf(args, "--dump-town");
+if (dumpAt >= 0)
+{
+    // The town as JSON, to edit by hand and run with --town file:<path> (town spec 4.5).
+    string path = dumpAt + 1 < args.Length ? args[dumpAt + 1] : throw new ArgumentException("--dump-town needs a file path");
+    File.WriteAllText(path, TownJson.Write(town ?? TownData.Default()));
+    Console.WriteLine($"wrote {path}");
+    return;
+}
+if (args.Contains("--describe"))
+{
+    // The census card (town spec 4.5): every household, the keepers and the hubs, and the town's hash.
+    TownData described = town ?? TownData.Default();
+    foreach (string line in UnderGlass.Sim.Generation.Census.Describe(described))
+        Console.WriteLine(line);
+    Console.WriteLine($"town hash {UnderGlass.Sim.Generation.Census.Hash(described)}; problems: {(TownCheck.Problems(described) is { Count: > 0 } p ? string.Join("; ", p) : "none")}");
+    return;
+}
 var inv = System.Globalization.CultureInfo.InvariantCulture;
 // Everything the runner prints reads the same on every machine, like the log (0c.0).
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CurrentCulture = inv;
