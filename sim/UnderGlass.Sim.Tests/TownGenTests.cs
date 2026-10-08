@@ -263,6 +263,21 @@ public class TownGenTests
         Assert.Equal(0.0, sim.Familiarity(people[0].Name, DefaultTown.Newcomer)); // nobody knows the newcomer
     }
 
+    /// <summary>The runner's --town-seeds: a run's seed is its town seed, and every town of a size has
+    /// the same act list, so the runs of a sweep can share one.</summary>
+    [Fact]
+    public void ATownSeedCanFollowTheRun()
+    {
+        Assert.Equal(Census.Hash(Towns.Named("pelican:60@7")), Census.Hash(Towns.ForSeed("pelican:60@1", 7)));
+        Assert.NotEqual(Census.Hash(Towns.ForSeed("pelican:60@1", 7)), Census.Hash(Towns.ForSeed("pelican:60@1", 8)));
+        Assert.Throws<ArgumentException>(() => Towns.ForSeed("pelican31", 7));
+        Assert.Throws<ArgumentException>(() => Towns.ForSeed("file:town.json", 7));
+        static string Acts(TownData t) => string.Join("; ", t.Acts.Select(k => $"{k.Name} {k.PerDay} {string.Join(",", k.Allowed)}"));
+        string first = Acts(Towns.ForSeed("pelican:60@1", 1));
+        foreach (long s in new long[] { 2, 3, 4 })
+            Assert.Equal(first, Acts(Towns.ForSeed("pelican:60@1", s)));
+    }
+
     [Fact]
     public void ARunOfTheSixtyTownIsPinned()
     {
