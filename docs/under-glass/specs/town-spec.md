@@ -521,6 +521,8 @@ Each size is run at 31 (if built), 60 and 120.
 
 ### 6.3 Locality: a bigger town, not a bigger crowd
 
+*Built 2026-10-08 as `TownMetrics` (the runner prints it for any `--town`): the locality ratio from tellings (not yet chat minutes), tellings across districts, bridges within two days, and the median person's count of people known well. Crowding and the door gradient need positions over time and are not built yet.*
+
 | Measure | Target (first guess) | Probe |
 |---|---|---|
 | **Locality ratio**: the share of chat minutes and tellings inside a neighbourhood, divided by the share random mixing would give | 2 or more at 120 | about 1 |
