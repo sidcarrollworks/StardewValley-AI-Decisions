@@ -40,6 +40,16 @@ public class Town31Tests
         Assert.Equal(5, grown.Cast.Where(v => Five.Contains(v.Name)).Select(v => v.Household).Distinct().Count());
     }
 
+    /// <summary>The tiles where the generated neighbourhoods join the core (town spec 2.3) stay free,
+    /// so the 31 town nests inside the 60 and the 120.</summary>
+    [Fact]
+    public void TheSlotsAttachmentTilesStayFree()
+    {
+        var used = Towns.Pelican31().Links.SelectMany(l => new[] { (l.A, l.DoorA), (l.B, l.DoorB) }).ToHashSet();
+        foreach (var tile in new[] { ("Square", new Tile(29, 10)), ("MountainPath", new Tile(12, 0)), ("ForestPath", new Tile(8, 2)), ("Beach", new Tile(29, 6)) })
+            Assert.DoesNotContain(tile, used);
+    }
+
     [Fact]
     public void TownCheckFindsWhatTheEngineWouldForgive()
     {
@@ -47,14 +57,14 @@ public class Town31Tests
         var bad = t with
         {
             Places = t.Places.Append(new Location("Island", true, new[] { "....", "...." })).ToList(),
-            Links = t.Links.Append(new Link("Square", new Tile(29, 10), "Beach", new Tile(1, 1))).ToList(),
+            Links = t.Links.Append(new Link("TownLane", new Tile(14, 2), "Beach", new Tile(1, 1))).ToList(),
             Cast = t.Cast.Select(v => v.Name == "Linus" ? v with { Haunts = new[] { new Haunt("Saloon", new Tile(3, 7), 0, 60, 1) } } : v).ToList(),
             Authority = new AuthorityOptions { Mayor = "Lewis", Keepers = new Dictionary<string, string> { ["Store"] = "Nobody" },
                 LockupPlace = "Home:Manor", LockupSpot = new Tile(7, 2), ServicePlace = "Square", ServiceSpot = new Tile(12, 16) },
         };
         var problems = TownCheck.Problems(bad);
         Assert.Contains(problems, p => p.Contains("Island") && p.Contains("no door leads there"));
-        Assert.Contains(problems, p => p.Contains("Square (29,10) is already a door"));
+        Assert.Contains(problems, p => p.Contains("TownLane (14,2) is already a door"));
         Assert.Contains(problems, p => p.Contains("Linus's haunt") && p.Contains("can't be stood on"));
         Assert.Contains(problems, p => p.Contains("keeper of Store: Nobody"));
     }
@@ -64,7 +74,7 @@ public class Town31Tests
     {
         string first = Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(7));
         Assert.Equal(first, Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(7)));
-        Assert.Equal("f0103b3ea9ec7bf3", Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(112)));
+        Assert.Equal("662153f815e249d3", Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(112)));
     }
 
     /// <summary>The five go about their days where their cards put them: Clint at the anvil on a

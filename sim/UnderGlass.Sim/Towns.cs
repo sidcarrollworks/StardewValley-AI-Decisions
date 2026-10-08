@@ -45,9 +45,9 @@ public static class Towns
         static Link H(string from, int x, int y, string household) => L(from, x, y, "Home:" + household, DefaultTown.HomeDoor.X, DefaultTown.HomeDoor.Y);
         var links = town.Links.Concat(new[]
         {
-            L("Square", 29, 10, "Blacksmith", 0, 5),   // the east side of the square, toward the river
+            L("TownLane", 14, 2, "Blacksmith", 0, 5),  // on the lane (town spec 4.6); the square's (29,10) is slot E's
             H("Blacksmith", 13, 5, "Blacksmith"),       // Clint lives behind the shop
-            L("Beach", 29, 6, "FishShop", 0, 4),       // the pier
+            L("Beach", 29, 10, "FishShop", 0, 4),      // the pier; the beach's (29,6) is slot SE's
             H("FishShop", 11, 4, "FishShop"),           // and Willy behind his
             H("Beach", 2, 0, "ElliottCabin"),
             H("MountainPath", 12, 2, "Tent"),
