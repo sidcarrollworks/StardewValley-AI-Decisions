@@ -434,4 +434,12 @@ if (town is not null)
     foreach (DistrictStats d in ts.Districts)
         Console.WriteLine($"  {d.District}: acts {d.ActsPerPerson:0.0}, tellings heard {d.HeardPerPerson:0.0}, feuds {d.FeudsPerPerson:0.00}, friendships {d.FriendshipsPerPerson:0.00} a person a year");
 }
+{
+    // How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
+    VarietyStats v = Variety.Measure(runs, kinds);
+    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}); "
+        + $"V2 headlines {v.V2:0.0} [20+] (top {v.TopHeadline} {v.TopHeadlineShare:P0}); V3 alike pairs {v.V3:P1} [under 5%]; V4 with a rare story {Pc(v.V4)} [60%+]{(double.IsNaN(v.V4) ? " (needs 50+ seed-years)" : "")}");
+    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}); "
+        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; V7 not built");
+}
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");

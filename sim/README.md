@@ -543,8 +543,51 @@ What a neighbourhood gets, every draw keyed by slot, plot and member (`Rng`), ne
 
 Measured on `pelican:60@1` with these fixes (100 seeds x 112 days): feuds 16.5 and friendships 3.1 a year; E1 100% and dead towns 16%, both from its size (E1 counts seed-years, and 60 people have 1770 pairs against the shipped 325; the dead-town rule counts every pair, and most pairs in a town of 60 never meet, so neither gate compares across sizes yet); 2 households a run in debt (the tent and the trailer, as at 31); temptation 2.5 a year; the Wizard the most left out (0.63); late for work 10.3 a season, mostly the café's 6:00 starts; by the year's end the median person knows 57 of the other 59 well (forgetting off). Two work pairs make most of the friendships: Alfred and Megan (his workshop) in 90 of 100 seeds and Bernice and Clint (his forge) in 85, so a single town seed repeats them run after run. A run of 60 people takes about 0.15 s a day. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics`, and ring 1's other slots.
 
-**`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto); the share of tellings inside a district against the share chance would give (the locality ratio: 1 is a crowd); how often a neighbourhood's story stays at home on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person. The runner prints it for any `--town`. On `pelican:60@1` (100 seeds x 112 days): 52% of tellings stay inside a district against 37% by chance (locality 1.39; the spec's target is 2 or more at 120); 11% of a neighbourhood's stories are only at home on their first day, and 90% reach another district within two days; East Green's people act more than the core's (52 acts a person a year against 35, North Lane 28). `TownMetricsTests` (2): districts, and shares recounted from the log.
+**`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto) and each place's (`PlaceDistricts`: a neighbourhood's road, shops and homes are its own); the share of tellings inside a district against the share chance would give, each teller's listeners drawn evenly from everyone else and averaged over the tellings there were (the locality ratio: 1 is a crowd, however unevenly people talk); how often a story that began in a neighbourhood (its people's acts at home) stays there on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person, a tie across two districts counting half in each so the rows add up to the town. The runner prints it for any `--town`. `TownMetricsTests` (5): districts of people and places; shares recounted from the log; a crowd scores 1 and a town of neighbourhoods more; the rows add up to the town, and stories begin at home. A review (2026-10-08) found the first version counted a neighbourhood person's acts in the square as its stories (so most "crossed" at once), took chance from head counts (so a crowd where the core talks more scored 1.12), and counted a tie across districts in both; the first look at `pelican:60@1` below was measured with it.
 
+A first look at `pelican:60@1` with the first version (4 seeds x 56 days): half of all tellings stay inside a district against 37% by chance (locality 1.35, the spec's target is 2 or more at 120); 90% of a neighbourhood's stories reach another district within two days; East Green's people act more than the core's (54 acts a person a year against 31).
+
+
+## Variety: how different the runs are (built 2026-10-08; reads results only)
+
+Sid wants runs with many twists and turns, so that new games don't feel alike. `Variety.cs` measures that, as the first step of `docs/under-glass/actions-and-twists.md` (section 3 and step 0 of section 4). Nothing in a run changes, and every pin holds.
+
+**Story events.** `Variety.Of` reads a run's results and lists what a player would tell a friend about. Each event has a kind, a day and the people in it. Its `Id` is the kind and the people, with no day, so the same story in two seeds has the same `Id`.
+- Ties: a feud, a feud in a family, a friendship, and a reconciliation (one per pair a season). A feud between a pair who were friends earlier is a falling out.
+- Scandals: one the town made itself (not the harness's), with its culprit.
+  - A secret out: a scandal nobody saw, which someone other than the culprit later pins on them by name.
+  - A confession.
+  - A verdict on the wrong person.
+- The constable's election.
+- Spells: a hermit, the withdrawn, a brawler.
+- A household that ends the run in debt.
+
+**The measures** (the research's targets in brackets) are counted over seed-years; a run of a year or less counts as one:
+- **V1** the share of seed-years holding the commonest named story, such as a feud pair, a culprit or a brawler [30% or less];
+- **V2** the effective number of headlines: e to the power of the entropy of each seed-year's biggest story [20 or more];
+- **V3** the share of seed-year pairs that share 80% of their stories [under 5%];
+- **V4** the share of seed-years holding a story found in under 2% of seed-years [60% or more; it needs 50 seed-years];
+- **V5** for the person whose arc repeats most, how often their commonest arc comes up [50% or less]. An arc is the kinds of story they were in that year;
+- **V6** the median number of twists a seed-season [2 or more]. A twist is a reversal (a feud mended, friends who fell out, the wrong person punished) or a revelation (a secret out, a confession);
+- **V8** how many kinds of town the runs make [3 or more]. Seed-years go on a 3 x 3 grid of conflict against warmth, each axis cut at 0.8 and 1.2 times its median, and the cells holding 5% of seed-years are counted;
+- beside them, how often the commonest constable wins.
+
+V7 (copies of a run split at day 28) needs runs that fork, so it is not built. Neither is the research's fair-twist rule (a twist counts only with an earlier visible trace). The runner prints a `variety` line after every report.
+
+`VarietyTests` (6):
+- a town that repeats itself scores as one, and one where every seed differs scores high, each on made-up seed-years;
+- headlines and arcs;
+- Jaccard, twists and kinds of town;
+- a run's story events come from its results, the same every time;
+- measuring runs cuts them into seed-years.
+
+**A first look at the shipped town** (20 seeds x 112 days) shows how much it repeats itself:
+- Pam's scandal is in 85% of seed-years and is the headline in 65%;
+- Sam and Shane feud in 55%;
+- there are 3 headlines in effect;
+- the median season has no twist.
+
+The longer baseline follows.
 
 ## Next
 

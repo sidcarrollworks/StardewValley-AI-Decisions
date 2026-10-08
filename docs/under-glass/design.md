@@ -532,7 +532,7 @@ E5 is Sid's blind read of 10 season journals.
 - **0d.** The simulator itself (`UnderGlass.Sim`):
   - the town, the cast (12 of Stardew's villagers, privately, until our own exist), the acts and the occasions as JSON (the town as a file built 2026-10-08: the runner's `--dump-town` writes one and `--town file:` runs it);
   - the bots;
-  - the event log, snapshots, metrics and the story sifter;
+  - the event log, snapshots, metrics and the story sifter (its first part built 2026-10-08: `Variety.cs` lists each run's story events and measures how different the runs are, V1-V8 of `actions-and-twists.md`);
   - the viewer replays runs.
 - **0e (proposed, 2026-10-07).** Character over time and generations (rule 18, 11e): traits that change with events and harden with age, inheritance with mutation, the life course (couples, births, children leaving home, deaths), and time skips of 5-10 years between runs.
 - **Exit:** E0-E3 and the golden scenarios pass.

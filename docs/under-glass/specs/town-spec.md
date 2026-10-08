@@ -619,6 +619,7 @@ The map guesses each place's position from its doors (`layoutTownPlan`). Changes
    - Draw people from per-place lists and skip anything outside the view, to keep 60 frames a second at 120 people.
    - Add a mini-map inset when zoomed in, and a "follow" mode for the selected person.
 3. **Neighbourhood chips** (All, Centre, and one per neighbourhood). One choice filters the Town tab, the Population rows, the matrix order, the stories and the log.
+   - *Built 2026-10-08* as a picker beside the tabs. It filters rather than reorders the matrix, and also narrows the ring and the ties and fades the rest of the town on the map. Places take their neighbourhood from `TownMetrics.PlaceDistricts`, and the replay records `people[].district` and `places[].district` in version 1, since old viewers ignore extra fields.
 4. **Town tab.** One map per place does not work for about 88 places. Instead the tab shows:
    - the chosen neighbourhood's public places, as maps;
    - its homes as a street strip, with a small box per home and occupant dots;
