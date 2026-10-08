@@ -22,10 +22,11 @@ using UnderGlass.Sim;
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
-var gossip = new GossipOptions();
 // --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
 int townArg = Array.IndexOf(args, "--town");
 TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
+// The flags below change the town's own gossip options (a grown town keeps two tellings a day).
+var gossip = town?.Gossip ?? new GossipOptions();
 IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
 int dumpAt = Array.IndexOf(args, "--dump-town");
 if (dumpAt >= 0)
