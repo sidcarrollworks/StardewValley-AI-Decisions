@@ -21,6 +21,9 @@ and takes a few seconds to record; a year is about 5 MB.
 
 ## What it shows
 
+A switch at the top turns the dark look on and off; the choice is remembered in that browser, and
+until one is made the page follows the host's theme, then the system's.
+
 - **The whole town**, across the top like the picture of a video player: every place on one plan,
   everyone moving through it, a dashed circle where a gathering is on, a ring where an act happens
   (blue kind, red hostile; larger for a scandal), and an orange outline on each place where things

@@ -6,8 +6,9 @@
 /* Layout: a technical sheet. The controls across the top carry the run's clock on a recessed
    dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the left; the
    inspector and the log stand on the right. Sections sit on one warm off-white ground, marked only
-   by registration corners. One light theme, by design: warm putty neutrals, graphite ink, one
-   signal orange, and cobalt and crimson for liking and dislike. */
+   by registration corners. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
+   crimson for liking and dislike; a dark look of the same, chosen with the switch at the top (the
+   choice is remembered; until one is made it follows the host's theme, then the system's). */
 :root {
   color-scheme: light;
   --bg: #e8e3d9;          /* the ground: the same warm off-white as the panels */
@@ -32,6 +33,15 @@
   --screen-dim: #9d8f7d;
   --key: linear-gradient(#f4f1ea, #eae5dc);
   --key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 0 rgba(45, 34, 22, 0.14);
+  --key-on: linear-gradient(#e5dfd4, #ebe6dd);   /* a key held down */
+  --press: rgba(45, 34, 22, 0.14);
+  --led-off: #b9b0a0;
+  --glow: rgba(255, 110, 40, 0.55);
+  --rule: var(--rule);              /* hairlines between rows */
+  --sel-row: #ecdccd;                            /* a held first column under a hovered row */
+  --thumb-edge: #b8430a;
+  --tip-bg: #1d1a17;
+  --tip-ink: #f2eee6;
   --font-display: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-body: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-data: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -42,6 +52,21 @@
   --step-1: 1.125rem;
   --step-2: 1.5rem;
   --radius: 14px;
+}
+/* Dark: the same warm neutrals turned down, the data colours lifted so they keep their contrast
+   (cobalt, crimson and the signal orange checked for colour-blind separation on this ground). */
+:root[data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1c1a17; --surface: #1c1a17; --surface-hi: #262320; --surface-2: #302c27;
+  --ink: #ece6dc; --ink-2: #c2baac; --muted: #988f81; --line: #403a33;
+  --wall: #a2998a; --fence: #5c554b;
+  --accent: #dd6c20; --accent-wash: rgba(221, 108, 32, 0.16);
+  --like: #5a82ee; --dislike: #d64487; --mid: #4a443d;
+  --hub: rgba(221, 108, 32, 0.10); --hub-ring: rgba(221, 108, 32, 0.55);
+  --screen: #0e0d0b; --screen-ink: #ff8a4c; --screen-dim: #8c8070;
+  --key: linear-gradient(#34302a, #2b2823); --key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 0 rgba(0, 0, 0, 0.45);
+  --key-on: linear-gradient(#22201c, #292622); --press: rgba(0, 0, 0, 0.4); --led-off: #5d564c; --glow: rgba(255, 120, 50, 0.5);
+  --rule: rgba(64, 58, 51, 0.8); --sel-row: #3a2c21; --thumb-edge: #8f3f0d; --tip-bg: #0e0d0b; --tip-ink: #ece6dc;
 }
 * { box-sizing: border-box; }
 body {
@@ -61,11 +86,11 @@ button, select, input { font: inherit; color: inherit; }
 button { background: var(--key); border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; cursor: pointer; box-shadow: var(--key-shadow); font-weight: 500; transition: transform 60ms ease, box-shadow 60ms ease; }
 button:hover { border-color: var(--muted); }
 button:active { transform: translateY(1px); box-shadow: none; }
-button[aria-pressed="true"], button.on { background: linear-gradient(#e5dfd4, #ebe6dd); box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.14); }
+button[aria-pressed="true"], button.on { background: var(--key-on); box-shadow: inset 0 1px 1px var(--press); }
 /* An indicator light on keys that switch something on. */
 button.led { display: inline-flex; align-items: center; gap: 7px; }
-button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; flex: none; }
-button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
+button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led-off); flex: none; }
+button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
 /* A section is marked only by registration marks in two corners, as on a technical sheet. The
@@ -87,7 +112,9 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .townview canvas.dragging { cursor: grabbing; }
 .mapkeys { position: absolute; right: 0; bottom: 0; display: flex; gap: 4px; }
 .mapkeys button { font-size: var(--step--1); padding: 2px 9px; border-radius: 7px; min-width: 30px; }
+.topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
+.topline .theme { font-size: var(--step--1); padding: 4px 10px; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .transport button { font-size: var(--step--1); padding: 3px 9px; border-radius: 7px; }
@@ -119,8 +146,8 @@ button.link:active { transform: none; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
 input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -8px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
-input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -8px; border-radius: 3px; background: var(--accent); border: 1px solid var(--thumb-edge); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius: 3px; background: var(--accent); border: 1px solid var(--thumb-edge); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--step--1); color: var(--ink-2); align-items: center; }
 .timeline .hint { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.04em; }
 .key { display: inline-flex; align-items: center; gap: 6px; }
@@ -156,9 +183,9 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .panel header h3 { font-family: var(--font-data); font-size: var(--step--2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; }
 .panel .residents { font-size: var(--step--2); color: var(--muted); margin-top: -3px; min-height: 2.9em; } /* two lines, so the maps in a row start level */
 .count { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.05em; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; }
+.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led-off); }
 .panel.busy .count { color: var(--ink); }
-.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
+.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 .panel canvas { display: block; max-width: 100%; height: auto; image-rendering: pixelated; cursor: crosshair; border-radius: 3px; }
 .roster { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; min-height: 1.5rem; }
@@ -194,7 +221,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .stories { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; align-items: start; }
 @media (max-width: 1200px) { .stories { grid-template-columns: minmax(0, 1fr); } }
 .storylist { max-height: 70vh; overflow-y: auto; display: grid; gap: 1px; padding-inline-end: 4px; }
-.story { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid rgba(186, 178, 164, 0.45); }
+.story { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid var(--rule); }
 .story:hover { background: var(--accent-wash); }
 .story.sel { background: var(--accent-wash); box-shadow: inset 2px 0 0 var(--accent); }
 .story.future { opacity: 0.5; }
@@ -219,10 +246,10 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .poptable th .sub { display: block; text-transform: none; letter-spacing: 0; font-family: var(--font-body); font-size: 0.625rem; margin-top: 1px; }
 .poptable th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .poptable th[aria-sort] button { color: var(--ink); }
-.poptable td { padding: 6px; border-bottom: 1px solid rgba(186, 178, 164, 0.4); vertical-align: middle; white-space: nowrap; }
+.poptable td { padding: 6px; border-bottom: 1px solid var(--rule); vertical-align: middle; white-space: nowrap; }
 /* The first column stays put when a narrow screen scrolls the table. */
 .poptable th:first-child, .poptable td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
-.poptable tbody tr:hover td:first-child, .poptable tbody tr.sel td:first-child { background: #ecdccd; }
+.poptable tbody tr:hover td:first-child, .poptable tbody tr.sel td:first-child { background: var(--sel-row); }
 .poptable .two-line { display: grid; gap: 3px; }
 .poptable .two-line .cellbar span:first-child { font-family: var(--font-data); font-size: 0.625rem; color: var(--muted); width: 1.4em; }
 .poptable tbody tr { cursor: pointer; }
@@ -267,9 +294,9 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .feed .filters { display: flex; flex-wrap: wrap; gap: 5px; }
 .feed .filters button { font-size: var(--step--1); padding: 3px 9px; }
 .feedlist { max-height: 44vh; overflow-y: auto; display: grid; gap: 0; font-size: var(--step--1); border-top: 1px solid var(--line); padding-top: 6px; }
-.feedlist .row { grid-template-columns: 4.8rem minmax(0, 1fr); border-bottom: 1px solid rgba(186, 178, 164, 0.4); border-radius: 0; }
+.feedlist .row { grid-template-columns: 4.8rem minmax(0, 1fr); border-bottom: 1px solid var(--rule); border-radius: 0; }
 .empty { padding: 24px; display: grid; gap: 10px; justify-items: start; }
-.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--screen); color: var(--surface-hi); border-radius: 6px; padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
+.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
 .tooltip strong { font-family: var(--font-data); }
 .drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
 .note { font-size: var(--step--1); color: var(--ink-2); max-width: 65ch; margin: 0; }
@@ -277,11 +304,14 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 </style>
 
 <div class="app" id="app">
-  <div class="brand">
-    <h1>Under Glass</h1>
-    <div class="run" id="runLabel">No run loaded</div>
-    <button id="openBtn" class="link" type="button">Open a run…</button>
-    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  <div class="topline">
+    <div class="brand">
+      <h1>Under Glass</h1>
+      <div class="run" id="runLabel">No run loaded</div>
+      <button id="openBtn" class="link" type="button">Open a run…</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <button id="themeBtn" class="theme led" aria-pressed="false" title="Switch between the light and the dark look">Dark mode</button>
   </div>
   <header class="masthead marks">
     <div class="townview" id="townview">
@@ -1688,9 +1718,26 @@ document.addEventListener("dragover", (e) => { e.preventDefault(); $("app").clas
 document.addEventListener("dragleave", (e) => { if (e.target === document.documentElement || !e.relatedTarget) $("app").classList.remove("drop"); });
 document.addEventListener("drop", (e) => { e.preventDefault(); $("app").classList.remove("drop"); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
 const themeWatch = window.matchMedia("(prefers-color-scheme: dark)");
+const chosenMode = () => { try { return localStorage.getItem("under-glass-mode"); } catch { return null; } };
+function autoMode() {
+  const host = document.documentElement.getAttribute("data-theme");
+  return host === "dark" || host === "light" ? host : themeWatch.matches ? "dark" : "light";
+}
+function applyMode(mode) {
+  document.documentElement.setAttribute("data-mode", mode);
+  $("themeBtn").setAttribute("aria-pressed", mode === "dark");
+  recolour();
+}
+$("themeBtn").addEventListener("click", () => {
+  const mode = document.documentElement.getAttribute("data-mode") === "dark" ? "light" : "dark";
+  try { localStorage.setItem("under-glass-mode", mode); } catch { /* remembered for this visit only */ }
+  applyMode(mode);
+});
 const recolour = () => { if (!R) return; readColours(); if (TOWN) TOWN.back = null; for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
-themeWatch.addEventListener?.("change", recolour);
-new MutationObserver(recolour).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+const followHost = () => { if (!chosenMode()) applyMode(autoMode()); };
+themeWatch.addEventListener?.("change", followHost);
+new MutationObserver(followHost).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+applyMode(chosenMode() ?? autoMode());
 window.addEventListener("resize", () => R && render());
 new ResizeObserver(() => { if (R && S.tab === "town" && $("groups").clientWidth !== townWidth) requestAnimationFrame(() => R && S.tab === "town" && drawTown()); }).observe($("groups"));
 
