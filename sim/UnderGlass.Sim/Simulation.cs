@@ -172,6 +172,17 @@ public sealed class SimResult
     /// <summary>The act catalog's watch record (acts spec 2.3): the catalog rows the gate would have
     /// started, had watch been off. Empty unless <see cref="ActOptions.Watch"/> is on.</summary>
     public IReadOnlyList<CatalogWatched> CatalogWatch { get; init; } = Array.Empty<CatalogWatched>();
+    // Batch 2's records (acts-batch2 spec 2.1), empty unless their slice is on.
+    public IReadOnlyList<Promise> Promises { get; init; } = Array.Empty<Promise>();
+    public IReadOnlyList<(string Who, string Place, int From, int Until)> Bans { get; init; } = Array.Empty<(string, string, int, int)>();
+    /// <summary>Result: in, out, no-answer, shut.</summary>
+    public IReadOnlyList<(int Tick, string Visitor, string Host, string Result)> Visits { get; init; } = Array.Empty<(int, string, string, string)>();
+    public IReadOnlyList<LostItem> Items { get; init; } = Array.Empty<LostItem>();
+    public IReadOnlyList<(int Day, string Contest, IReadOnlyList<string> Entrants, string Winner)> Contests { get; init; } = Array.Empty<(int, string, IReadOnlyList<string>, string)>();
+    public IReadOnlyList<Announcement> Announcements { get; init; } = Array.Empty<Announcement>();
+    /// <summary>Act -> the minute it was settled.</summary>
+    public IReadOnlyDictionary<int, int> Settled { get; init; } = new Dictionary<int, int>();
+    public IReadOnlyList<FestivalDay> FestivalDays { get; init; } = Array.Empty<FestivalDay>();
     /// <summary>Batch 2's reach checks (spec 5.4): each scandal's and each scenario act's circle, the
     /// people who knew its actor at familiarity 0.2 or more as its day began, by act id.</summary>
     public IReadOnlyDictionary<int, IReadOnlyList<string>> Circles { get; init; } = new Dictionary<int, IReadOnlyList<string>>();

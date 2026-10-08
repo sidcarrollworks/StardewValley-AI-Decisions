@@ -128,8 +128,8 @@ public sealed partial class Simulation
     /// (a compliment from someone disliked is flattery; a tease from someone not liked is a jab).</summary>
     private double ReadJoy(int h, int patient, Act act, Affect row)
         => patient == h && row.Joy > 0 && row.ReadWarmAt > double.NegativeInfinity && St(_names[h], act.Actor) < row.ReadWarmAt
-            ? -_fo.Acts.ColdShare * Math.Abs(row.Joy)
-            : row.Joy;
+            ? -_fo.Acts.ColdShare * Math.Abs(JoyOf(act, row))
+            : JoyOf(act, row);
 
     /// <summary>The warm budget (acts spec 1): regard h gains toward the actor c from light kind acts
     /// is at most WarmBudget a day, all such acts together. Repeat halving is kept per kind, so
@@ -274,10 +274,6 @@ public sealed partial class Simulation
 
     private readonly HashSet<(int Holder, int Subject)> _welcomed = new();
 
-    /// <summary>Computed motives (acts spec 4.6): worked out each tick from the world, not stored, and
-    /// asked at most once a day for a close call. Fond and Curious.</summary>
-    private static bool Computed(DesireKind k) => k is DesireKind.Fond or DesireKind.Curious;
-
     /// <summary>Curiosity at what is new (law 13; acts spec 4.6), computed each tick as Fond is: a free
     /// holder feels it toward everyone in reach they know below NewAt and haven't welcomed, never kin
     /// or housemates, at CuriousBase x (0.5 + chattiness). Only with Welcome on.</summary>
@@ -290,7 +286,7 @@ public sealed partial class Simulation
         {
             if (s == h || _fam[h, s] >= _fo.Acts.NewAt || _welcomed.Contains((h, s)) || Close(h, s) || !InReach(p, _people[s], m))
                 continue;
-            yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Curious, Act = "Welcomed", Source = -1, Since = m, Felt = i }, i);
+            yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Curious, Act = "Welcomed", Source = -1, Since = m, Felt = i, Computed = true }, i);
         }
     }
 
@@ -366,17 +362,7 @@ public sealed partial class Simulation
     /// </summary>
     private void AnswerApology(Act act, int a, int t, int m)
     {
-        double regard = St(_names[t], _names[a]);
-        double obliged = 0.5 * Math.Max(0, regard) + 0.5 * _fam[t, a] + 0.3 * U(t);
-        double cost = _fo.Acts.ApologyCost + Math.Max(0, -regard) * (0.5 + Ret(t));
-        double margin = obliged - cost;
-        bool accepted = DesireMath.Call(margin, _fo) switch
-        {
-            "clear" => true,
-            "no" => false,
-            _ => Rng.Unit(_seed, "apology", act.Id.ToString())
-                 < DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(t), false, _fo),
-        };
+        var (accepted, margin) = Ask(t, a, AskKind.Apology, act.Id, m); // batch 2's general Ask (acts-batch2 spec 2.3)
         foreach (int i in LifeOf(act))
             SetOutcome(i, accepted ? Outcome.Accepted : Outcome.Refused, m);
         DesireLog($"{m} apology {_names[a]} {_names[t]} act {act.About} {(accepted ? "accepted" : "refused")} margin {margin:+0.00;-0.00}");
@@ -525,18 +511,22 @@ public sealed partial class Simulation
     private readonly HashSet<(string Name, int Day)> _arrivedLate = new();
 
     /// <summary>
-    /// Arrivals (acts spec 3, 4.11), each tick after the late check: someone marked late today who
-    /// has reached their job place, and is free, comes in late (LateForWork), once a day. With Late
-    /// on, feelings or not; not in watch mode.
+    /// Arrivals (acts spec 3, 4.11), every minute after the late check (so the minute someone
+    /// arrives is caught): someone marked late today who has reached their job place, and is free,
+    /// comes in late (LateForWork), once a day, in name order. With Late on, feelings or not; not in
+    /// watch mode.
     /// </summary>
     private void Arrivals(int m)
     {
         if (!_fo.Acts.Late || _fo.Acts.Watch || !_kindByName.TryGetValue("LateForWork", out ActKind? late))
             return;
         int day = Clock.Day(m);
+        var today = new List<string>();
         for (int i = _late.Count - 1; i >= 0 && _late[i].Item2 == day; i--)
+            today.Add(_late[i].Item1);
+        today.Sort(StringComparer.Ordinal);
+        foreach (string name in today)
         {
-            var (name, _) = _late[i];
             Person p = _people[_index[name]];
             if (p.V.Job is { } job && p.Place == job.Place && Free(p, m) && _arrivedLate.Add((name, day)))
                 Begin(m, late, p, injected: false);

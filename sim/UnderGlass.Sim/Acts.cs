@@ -9,9 +9,21 @@ namespace UnderGlass.Sim;
 /// Null on every shipped row: <see cref="Simulation.GateOf(ActKind, FeelingOptions)"/> builds their
 /// gates from today's <see cref="FeelingOptions"/>.
 /// </summary>
+/// Batch 2 (acts-batch2 spec 2.1) appends: Loud, heard through walls up to HearTiles without who
+/// did it (rule 2); HeardStirs, hearsay about the holder stirs at corroboration strength (5b);
+/// Going, reached by walking, to a door (a visit) or a person seen; Asked, the holder asks and on a
+/// yes the person asked acts (a loan); KeeperOnly, only the place's keeper, toward a customer (a
+/// ban); ToEnemy, exempt from "nobody is kind to someone they dislike"; Sized, joy scales with
+/// Act.Amount over the debtor's weekly costs; MinExpression, the actor's expression must reach this.
 public sealed record ActGate(double Form, double Min, IReadOnlyList<DesireKind> Serves,
     bool Light = false, bool NeedsCard = false, double PrideWeight = 0,
-    double MinFamiliarity = 0, double MinRegard = -1, int MinAudience = 0);
+    double MinFamiliarity = 0, double MinRegard = -1, int MinAudience = 0,
+    bool Loud = false, bool HeardStirs = false, Going Going = Going.None, bool Asked = false,
+    bool KeeperOnly = false, bool ToEnemy = false, bool Sized = false, double MinExpression = 0);
+
+/// <summary>How a gate act's actor reaches its target (acts-batch2 spec 2.5): in reach as today,
+/// by walking to their home's door (a visit), or to where they are seen.</summary>
+public enum Going { None, Door, Walk }
 
 /// <summary>
 /// The act catalog's switches and numbers (acts spec 2.3; Sid, 2026-10-08: "expand the amount of
@@ -39,6 +51,28 @@ public sealed class ActOptions
     public bool Sides { get; set; }
     /// <summary>acts-6: LateForWork. It can happen with feelings off, so it is off in every pinned run.</summary>
     public bool Late { get; set; }
+
+    // Batch 2's switches (acts-batch2 spec 2.10), each with its slice; b2-0 builds the seams only,
+    // so none has rows or rules yet.
+    public bool Visits { get; set; }
+    public bool Dates { get; set; }
+    public bool Peace { get; set; }
+    public bool Festivals { get; set; }
+    public bool PublicConfront { get; set; }
+    public bool ReadVerdicts { get; set; }
+    public bool Settled { get; set; }
+    public bool Amends { get; set; }
+    public bool MadeScenes { get; set; }
+    public bool Bans { get; set; }
+    public bool Counter { get; set; }
+    public bool Hosting { get; set; }
+    public bool Debts { get; set; }
+    public bool Loans { get; set; }
+    public bool Items { get; set; }
+    public bool Blunders { get; set; }
+    public bool Contests { get; set; }
+    public bool Partiality { get; set; }
+    public bool Board { get; set; }
 
     /// <summary>Light kind acts an actor may do in a day, counted apart from the light hostile cap.</summary>
     public int WarmPerDay { get; set; } = 3;
@@ -84,7 +118,12 @@ public sealed class ActOptions
     public double ComfortCools { get; set; } = 0.25;
 
     /// <summary>The slices' switches by name, for the runner's --catalog.</summary>
-    public static readonly IReadOnlyList<string> Switches = new[] { "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late" };
+    public static readonly IReadOnlyList<string> Switches = new[]
+    {
+        "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late",
+        "Visits", "Dates", "Peace", "Festivals", "PublicConfront", "ReadVerdicts", "Settled", "Amends", "MadeScenes",
+        "Bans", "Counter", "Hosting", "Debts", "Loans", "Items", "Blunders", "Contests", "Partiality", "Board",
+    };
 
     /// <summary>Whether the slice with this switch name is on.</summary>
     public bool IsOn(string slice) => slice switch
@@ -95,6 +134,25 @@ public sealed class ActOptions
         nameof(Repair) => Repair,
         nameof(Sides) => Sides,
         nameof(Late) => Late,
+        nameof(Visits) => Visits,
+        nameof(Dates) => Dates,
+        nameof(Peace) => Peace,
+        nameof(Festivals) => Festivals,
+        nameof(PublicConfront) => PublicConfront,
+        nameof(ReadVerdicts) => ReadVerdicts,
+        nameof(Settled) => Settled,
+        nameof(Amends) => Amends,
+        nameof(MadeScenes) => MadeScenes,
+        nameof(Bans) => Bans,
+        nameof(Counter) => Counter,
+        nameof(Hosting) => Hosting,
+        nameof(Debts) => Debts,
+        nameof(Loans) => Loans,
+        nameof(Items) => Items,
+        nameof(Blunders) => Blunders,
+        nameof(Contests) => Contests,
+        nameof(Partiality) => Partiality,
+        nameof(Board) => Board,
         _ => false,
     };
 

@@ -491,7 +491,7 @@ public sealed partial class Simulation
         if (!_fo.Enabled || kind.Affect is not { Patient: Patient.Actor } row || row.Joy == 0)
             return;
         int s = _index[act.Actor];
-        double f = row.Joy * Sens(s);
+        double f = JoyOf(act, row) * Sens(s);
         AddMood(s, f, act.Id);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
         Underwent(s, act.Target, act.Id, Math.Abs(f), m);

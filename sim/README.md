@@ -1039,6 +1039,25 @@ What it says:
 - **With Sides**, the shipped town passes the spec's gates, but its three-year drift is 1.60. On the review's set, friendships rise 38%, past the 30% limit.
 - **Trivia sits inside its band on both bases** (1,000-1,330 a year), and news moves under 5%.
 
+## Batch 2's seams, part one (b2-0)
+
+This adds the records, switches and edits batch 2's slices build on (acts-batch2 spec section 2). No run changes, and every pin holds.
+- **What it adds:**
+  - the batch 2 fields on `ActGate`, `Gathering`, `ActKind` and `Act`;
+  - the appended motives and outcomes;
+  - promises, lost items, venues, announcements and festival days;
+  - `SimResult`'s batch 2 tables, empty for now;
+  - nineteen switches, all off.
+- **The five edits:**
+  - only placeable scandals are placed;
+  - reporting reads `IsCrime`;
+  - a Given deed resolves None;
+  - computed motives are a flag on the motive;
+  - a Sized row's joy scales with the act's amount.
+- **Also:** the general `Ask`, through which acts-4's apology now goes, and `BeginUnseen` for acts nobody watches.
+
+407 tests, all passing (`Batch2SeamsTests`, 6). Part two (movement goals, promises, sound, the ban and festival seams, the catalog's batch 2 lists) is next.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.

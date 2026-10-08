@@ -133,7 +133,7 @@ public sealed partial class Simulation
             Act act = _acts[b.ActId];
             // Once per authority for each thing they know: again when "someone" becomes suspects or a name.
             string what = b.Actor ?? string.Join(",", b.Suspects ?? Array.Empty<string>());
-            if (!KindOf(act).IsScandal || _decided.Contains(act.Id) || b.Actor == who || _reported.Contains((who, to, act.Id, what)))
+            if (!KindOf(act).IsCrime || _decided.Contains(act.Id) || b.Actor == who || _reported.Contains((who, to, act.Id, what)))
                 continue;
             bool victim = _ao.Keepers.TryGetValue(act.Location, out string? keeper) && keeper == who;
             if (b.Actor is { } culprit && AreKin(who, culprit))
@@ -178,7 +178,7 @@ public sealed partial class Simulation
     /// changes a belief).</summary>
     private void OwnAccount(string who, Belief b, int m)
     {
-        if (who != _ao.Mayor || _decided.Contains(b.ActId) || !KindOf(_acts[b.ActId]).IsScandal)
+        if (who != _ao.Mayor || _decided.Contains(b.ActId) || !KindOf(_acts[b.ActId]).IsCrime)
             return;
         File(AccountOf(who, b, m), m);
     }

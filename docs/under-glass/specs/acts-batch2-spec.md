@@ -92,6 +92,22 @@ The 60 town (built) is needed only by C12 and the rerun at 60 (8.4).
 
 b2-0 (local) and m-0 (cloud) build these with no change in behaviour. Every value and field is appended, with a default that reproduces today.
 
+**Status (2026-10-08): b2-0 part one is built** (`claude/local-b2-0`, #76).
+- **Built:**
+  - 2.1's records;
+  - 2.10's nineteen switches, all off;
+  - 2.2's five edits;
+  - 2.3's general Ask, with acts-4's apology routed through it and keeping its key and log line;
+  - 2.4's unseen acts.
+
+  Nothing calls the Ask's other kinds, `BeginUnseen` or `JoyOf`'s sizing until their slices do. Every pin holds.
+- **Left (part two):**
+  - 2.5, movement goals;
+  - 2.6, promises and the appointment rule;
+  - 2.7, sound through walls and 5b;
+  - 2.8, the ban and festival seams;
+  - 2.11, the catalog's `Batch2`, `Gatherings` and `Town`, `--catalog-opt` and the replay tables.
+
 ### 2.1 Records
 
 ```csharp
