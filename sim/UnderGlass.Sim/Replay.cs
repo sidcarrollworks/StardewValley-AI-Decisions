@@ -3,13 +3,16 @@ using System.Text.Json.Serialization;
 
 namespace UnderGlass.Sim;
 
-/// <summary>What to record: a seed of the default town, for how many days, with which feelings,
-/// whether a scandal is placed (as the runner's --inject), and any traits set before the run.</summary>
+/// <summary>What to record: a seed of a town (the default one unless given), for how many days,
+/// with which feelings, whether a scandal is placed (as the runner's --inject), and any traits set
+/// before the run.</summary>
 public sealed record ReplayOptions
 {
     public long Seed { get; init; } = 1;
     public int Days { get; init; } = 28;
-    /// <summary>The town's feelings when null (DefaultTown.Feelings).</summary>
+    /// <summary>The town to run; the default town when null.</summary>
+    public TownData? Town { get; init; }
+    /// <summary>Feelings in place of the town's own; the town's when null.</summary>
     public FeelingOptions? Feelings { get; init; }
     public bool Inject { get; init; }
     public IReadOnlyList<(string Who, Trait Trait, double Value)> Traits { get; init; } = Array.Empty<(string, Trait, double)>();
@@ -42,14 +45,15 @@ public static class Replay
 
     public static Dictionary<string, object?> Record(ReplayOptions o)
     {
-        IReadOnlyList<Villager> cast = DefaultTown.Cast();
-        IReadOnlyList<Location> places = DefaultTown.Locations();
-        IReadOnlyList<Link> links = DefaultTown.Links();
-        IReadOnlyList<Gathering> hubs = DefaultTown.Gatherings();
-        IReadOnlyList<ActKind> kinds = DefaultTown.Acts();
-        FeelingOptions feelings = o.Feelings ?? DefaultTown.Feelings();
+        TownData town = o.Town ?? TownData.Default();
+        FeelingOptions feelings = o.Feelings ?? town.Feelings;
+        IReadOnlyList<Villager> cast = town.Cast;
+        IReadOnlyList<Location> places = town.Places;
+        IReadOnlyList<Link> links = town.Links;
+        IReadOnlyList<Gathering> hubs = town.Gatherings;
+        IReadOnlyList<ActKind> kinds = town.Acts;
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
-        var sim = new Simulation(o.Seed, scheduled: scheduled, feelings: feelings);
+        var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         foreach (var (who, trait, value) in o.Traits)
             sim.SetTrait(who, trait, value);
 

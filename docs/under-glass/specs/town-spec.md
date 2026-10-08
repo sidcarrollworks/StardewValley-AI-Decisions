@@ -633,7 +633,7 @@ Every step runs `dotnet test sim/UnderGlass.sln` with every pin unchanged.
 
 | Step | What | Tests and measurements |
 |---|---|---|
-| **T0 Plumbing** | E1 and E2. `TownData.Default()` built from `DefaultTown`'s public methods | Every pinned hash is reproduced through `new Simulation(seed, TownData.Default() with { … })`; the default replay JSON is byte-identical |
+| **T0 Plumbing** (built 2026-10-08: `Town.cs`, `Simulation.Town.cs`, `ReplayOptions.Town`, `TownDataTests`) | E1 and E2. `TownData.Default()` built from `DefaultTown`'s public methods | Every pinned hash is reproduced through `new Simulation(seed, TownData.Default() with { … })`; the default replay JSON is byte-identical |
 | **T1 Engine options** | E3-E6, each a one-line hook into `Simulation.Growth.cs`; appended fields on `Gathering` and `Job` | A small scene per option: a hub turns people away at its limit; a local hub draws its own households; a commute starts on time; tile routing takes a loop; familiarity is seeded from the list and fades. All pins and every existing scene test hold, which also proves E3 on the shipped tree |
 | **T2 Plan and pipeline** | `TownPlan`; the default's hand-placed plan; replay version 2; the runner's `--town`, `copy:k`, `--describe` and `--dump-town`; per-run stats and the streamed log hash (section 5, item 6); the viewer reads version 2 and the plan | Every place has a lot, and no lots overlap; `Pack` and `Unpack` round-trip in both versions, including place 300; a version 2 file of the default town decodes to the same moves, regard and acts as version 1; runner memory stays flat across 50 runs |
 | **T2b The 31 town** (if question 6 says yes) | the five cards and places | `TownCheck`; a new pin; the full gate set at 31 |
