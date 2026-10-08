@@ -334,7 +334,11 @@ public sealed partial class Simulation
         if (act.About >= 0 && Did(_names[t], act.About) && KindOf(_acts[act.About]).IsScandal)
             return; // over their own scandal: they gave cause
         double felt = targetFelt * _fo.Acts.RemorseShare * (0.5 + U(a));
-        if (felt > 0)
+        if (felt <= 0)
+            return;
+        if (_fo.Acts.Watch)
+            _catalogWatch.Add(new CatalogWatched(m, _names[a], _names[t], DesireKind.Remorse, "Remorse", felt)); // watched: recorded, not stirred
+        else
             Stir(a, t, DesireKind.Remorse, false, "Apologised", act.Id, felt, m);
     }
 
