@@ -1,0 +1,72 @@
+# Runs the tests on every pull request and on pushes to main and the checkpoint branches.
+# Under Glass (sim/) is game-free on .NET 8. The mod's libraries (src/, tests/) are game-free too and
+# target .NET 6; the mod itself (mod/StardewNpcMod) compiles against the installed game, so CI never
+# builds it: that check stays on Sid's PC (AGENTS.md, "Tests").
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'claude/checkpoint-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  under-glass:
+    name: Under Glass (sim)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore sim/UnderGlass.sln
+      - name: Build
+        run: dotnet build sim/UnderGlass.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test sim/UnderGlass.sln -c Release --no-build --logger "trx;LogFileName=sim.trx" --results-directory test-results
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-test-results
+          path: test-results
+          if-no-files-found: ignore
+
+  mod-libraries:
+    name: Mod libraries (src, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+      - name: Test each library
+        shell: bash
+        run: |
+          set -euo pipefail
+          for project in tests/*/*.Tests.csproj; do
+            echo "::group::$project"
+            dotnet test "$project" -c Release --logger "trx;LogFilePrefix=$(basename "$project" .csproj)" --results-directory test-results
+            echo "::endgroup::"
+          done
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod-test-results
+          path: test-results
+          if-no-files-found: ignore
