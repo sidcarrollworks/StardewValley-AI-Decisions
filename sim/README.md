@@ -454,7 +454,19 @@ The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 
 
   254 tests.
 
-FORGETTING-MEASURED
+**Forgetting at 26** (measured 2026-10-08): forgetting off against `FadePerDay` 0.01 (rule 5's 1% a day) on the shipped town, same seeds.
+
+| | Year (200 x 112), off | on | Three years (50 x 336), off | on | Band (400 x 14), off | on |
+|---|---|---|---|---|---|---|
+| Mean familiarity at the end | 0.820 | 0.763 | 0.959 | 0.914 | 0.435 | 0.418 |
+| Pairs known well (0.4 or more) | 97.1% | 89.7% | 100% | 96.5% | 50.1% | 43.9% |
+| Pairs known at all (0.2 or more) | 100% | 96.3% | 100% | 98.3% | 92.5% | 92.4% |
+| E1 | 60% | 60% | 100% | 100% | | |
+| Feuds / friendships a year | 7.72 / 0.89 | 7.39 / 0.92 | 7.21 / 2.35 | 6.92 / 2.32 | | |
+| Under -0.2 at the end | 2.1% | 2.1% | 3.9% | 4.1% | | |
+| Witnessed placed scandals in the band | | | | | 50% | 51% |
+
+In a town of 26 where everyone meets at the market and the saloon, forgetting at 1% a day moves no gate beyond noise and hardly dents how well everyone knows everyone. Without it the shipped town saturates: after three years every pair knows each other well. It matters where strangers start low (0.08 in a generated town), which the 31 and 60 measurements will show; it stays off until then (question 5, answer a).
 
 - **T2b, the 31-person town** (`Towns.cs`, `TownCheck.cs`; Sid's answer 6). `Towns.Pelican31()` is the shipped 26, untouched, with the five who live a little apart:
   - **Clint** keeps the blacksmith's and lives behind it; he is sweet on Emily (a starting regard of 0.4, one way).
