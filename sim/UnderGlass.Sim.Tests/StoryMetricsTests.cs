@@ -58,6 +58,8 @@ public class StoryMetricsTests
     public void TheMedianFeudCountsFeudsStillOnAsLastingAtLeastThatLong()
     {
         Assert.Equal(3, StoryMetrics.MedianDays(new[] { (1, true), (2, true), (3, true), (4, true), (5, true) }));
+        // Twenty-four, none still on: half have ended at 12, though the running product is a hair over a half.
+        Assert.Equal(12, StoryMetrics.MedianDays(Enumerable.Range(1, 24).Select(t => (t, true)).ToList()));
         // After day 5 three of four are on; after day 10, half.
         Assert.Equal(10, StoryMetrics.MedianDays(new[] { (5, true), (10, true), (15, false), (20, true) }));
         // Two of three were still on when the runs ended: past every ended one.
@@ -74,9 +76,25 @@ public class StoryMetricsTests
             new FeudSpell("Sam", "Shane", 18, 40, false, false), // three days' pause: the same feud
             new FeudSpell("Sam", "Shane", 60, -1, false, false), // twenty days: a new one, still on
             new FeudSpell("Pam", "Shane", 5, 6, false, false),
+            new FeudSpell("Alex", "Haley", 10, 15, false, false),
+            new FeudSpell("Alex", "Haley", 22, 30, false, false), // exactly seven days' pause: joined
+            new FeudSpell("Abigail", "Haley", 40, 45, false, false),
+            new FeudSpell("Abigail", "Haley", 53, 60, false, false), // eight: two feuds
         };
-        Assert.Equal(new[] { (1, true), (30, true), (52, false) }, StoryMetrics.Feuds(spells, 112));
-        Assert.Equal(52, spells[2].Days(112));
+        // In pair order. A feud still on at the end lasted longer than the nights before the last
+        // night (111): seen from night 60 through 111, it outlasted 51.
+        Assert.Equal(new[] { (5, true), (7, true), (20, true), (1, true), (30, true), (51, false) }, StoryMetrics.Feuds(spells, 112));
+        Assert.Equal(52, spells[2].Days(112)); // the nights it was seen, 60 to 111
+    }
+
+    [Fact]
+    public void AFeudThatEndsTooLateToTellIsStillOn()
+    {
+        // Ended on night 108 of a run whose last night is 111: a pause of seven nights doesn't fit,
+        // so it may yet start again. It lasted longer than 7 (nights 100 to 107 seen feuding).
+        Assert.Equal(new[] { (7, false) }, StoryMetrics.Feuds(new[] { new FeudSpell("Sam", "Shane", 100, 108, false, false) }, 112));
+        // Ended on night 104: seven nights fit (105 to 111), and none started it again.
+        Assert.Equal(new[] { (4, true) }, StoryMetrics.Feuds(new[] { new FeudSpell("Sam", "Shane", 100, 104, false, false) }, 112));
     }
 
     [Fact]
@@ -103,8 +121,13 @@ public class StoryMetricsTests
         Assert.Equal(runs.Sum(r => r.Ties.Count(t => t.What == "friendship")), s.FriendshipsPer100 * personYears / 100, 6);
         Assert.Equal(2 * runs.Sum(r => r.Ties.Count(t => t.What == "feud")), s.People.Sum(p => p.Feuds) * s.SeedYears, 6); // two people a feud
 
-        // Acts done add up to the town's acts; kindness returned is the gate's measure on the shipped rows.
-        Assert.Equal(runs.Sum(r => r.Acts.Count(a => !a.Injected)) / 2.0, s.People.Sum(p => p.Did), 6);
+        // Acts done add up to the town's acts, those that happen to their actor aside (a stumble; a
+        // warning, done by the official); kindness returned is the gate's measure on the shipped rows.
+        var byKind = kinds.ToDictionary(k => k.Name);
+        Assert.Equal(runs.Sum(r => r.Acts.Count(a => !a.Injected && (byKind[a.Kind].Affect?.Patient != Patient.Actor || a.Target is not null))) / 2.0,
+            s.People.Sum(p => p.Did), 6);
+        Assert.Equal(0, s.People.Sum(p => p.DidByKind.GetValueOrDefault("Stumbled")));
+        Assert.Equal(runs.Sum(r => r.Acts.Count(a => a.Kind == "Stumbled")) / 2.0, s.People.Sum(p => p.UndergoneByKind.GetValueOrDefault("Stumbled")), 6);
         Assert.Equal(DesireMetrics.Summarise(runs, cast, o).ReturnedWithin7, s.ReturnedWithin7, 9);
         Assert.Equal(0, s.WarmthPerPerson); // no light kind act ships
         Assert.Equal(new[] { "Argued", "GaveGift" }, s.Outcomes.Where(k => k.Settled > 100).Select(k => k.Kind).Take(2));
@@ -126,7 +149,8 @@ public class StoryMetricsTests
         StoryStats s = StoryMetrics.Summarise(new[] { r }, DefaultTown.Acts(), DefaultTown.Cast(), FeelingOptions.Off);
         Assert.True(double.IsNaN(s.IgnoredKindness));
         Assert.True(double.IsNaN(s.MedianFeudDays));
-        Assert.Equal(0, s.ThreadsPerSeason);
+        Assert.True(double.IsNaN(s.ThreadsPerSeason)); // under a season: no whole season to count in
+        Assert.Empty(s.GateKindnessByYear); // under a year
         Assert.True(s.ActsPerPerson > 0);
     }
 }

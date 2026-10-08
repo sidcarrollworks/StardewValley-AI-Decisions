@@ -459,15 +459,16 @@ if (feelings.Enabled)
     StoryStats s = StoryMetrics.Summarise(runs, kinds, cast ?? townCast, feelings);
     Console.WriteLine($"story (acts spec 7): across households, kindness ignored {Pc(s.IgnoredKindness)} [falls with returns], hostile acts answered {Pc(s.AnsweredHostile)} and avoided {Pc(s.AvoidedHostile)}; "
         + $"kindness returned within 7 d {Pc(s.ReturnedWithin7)} [rises, under 90%]");
-    Console.WriteLine("  outcomes by kind (settled; shares): " + string.Join("; ", s.Outcomes.Select(k => $"{k.Kind} {k.Settled} ("
-        + string.Join(" ", k.Shares.OrderByDescending(p => p.Value).ThenBy(p => p.Key).Select(p => $"{p.Key} {p.Value:P0}")) + ")")));
+    static string N1(double x) => double.IsNaN(x) ? "n/a" : x.ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+    Console.WriteLine("  outcomes by kind (settled; shares): " + (s.Outcomes.Count == 0 ? "none" : string.Join("; ", s.Outcomes.Select(k => $"{k.Kind} {k.Settled} ("
+        + string.Join(" ", k.Shares.OrderByDescending(p => p.Value).ThenBy(p => p.Key).Select(p => $"{p.Key} {p.Value:P0}")) + ")"))));
     Console.WriteLine($"  per person a year: acts {s.ActsPerPerson:0.0}; per 100 people a year, feuds {s.FeudsPer100:0.0} (between households {Pc(s.FeudsAcrossHouseholds)}), in families {s.KinFeudsPer100:0.0}, "
         + $"friendships {s.FriendshipsPer100:0.0}; warmth {s.WarmthPerPerson:0.0}");
-    Console.WriteLine($"  threads (3+ deep, 2+ households) a season {s.ThreadsPerSeason:0.00} [3+], median {s.MedianThreadsPerSeason:0.#}; depth mean {s.MeanThreadDepth:0.0}, longest {s.LongestThread}; shapes "
+    Console.WriteLine($"  threads (3+ deep, 2+ households) a whole season {N1(s.ThreadsPerSeason)} [3+], median {N1(s.MedianThreadsPerSeason)}; depth mean {N1(s.MeanThreadDepth)}, longest {s.LongestThread}; shapes "
         + (s.ThreadShapes.Count == 0 ? "none" : string.Join(", ", s.ThreadShapes.Select(x => $"{x.Shape} {x.Share:P0}"))));
-    Console.WriteLine($"  new feuds (not kin or home; pauses of {StoryMetrics.FeudPauseDays} d or less joined): {s.TimedFeudsPerYear:0.0} a year, median length {(double.IsPositiveInfinity(s.MedianFeudDays) ? "past the run's end" : $"{s.MedianFeudDays:0} days")} [28+ with repair], ended {Pc(s.EndedFeudShare)}");
+    Console.WriteLine($"  new feuds (not kin or home; pauses of {StoryMetrics.FeudPauseDays} d or less joined): {s.TimedFeudsPerYear:0.0} a year, median length {(double.IsNaN(s.MedianFeudDays) ? "n/a" : double.IsPositiveInfinity(s.MedianFeudDays) ? "past the run's end" : $"{s.MedianFeudDays:0} days")} [28+ with repair], ended {Pc(s.EndedFeudShare)}");
     Console.WriteLine($"  a year: trivia {s.TriviaPerYear:0}, news {s.NewsPerYear:0}; by the gate, heavy hostile acts {s.HeavyHostileByGate:0.0}, gifts {s.GiftsByGate:0.0}; "
-        + "the gate's kind acts by year of the run " + string.Join(", ", s.GateKindnessByYear.Select(x => x.ToString("0.0", inv))));
+        + "the gate's kind acts by whole year of the run " + (s.GateKindnessByYear.Count == 0 ? "n/a (under a year)" : string.Join(", ", s.GateKindnessByYear.Select(x => x.ToString("0.0", inv)))));
     Console.WriteLine("  most hurt a year: " + string.Join(", ", s.People.OrderByDescending(p => p.Hurt).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Hurt:0.00}"))
         + "; fewest acts done: " + string.Join(", ", s.People.OrderBy(p => p.Did).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Did:0}")));
 }

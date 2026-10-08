@@ -8,7 +8,8 @@ public sealed record FeudSpell(string A, string B, int From, int To, bool Close,
 {
     public bool Ended => To >= 0;
 
-    /// <summary>Its length in days, up to the run's end if it never ended.</summary>
+    /// <summary>The nights it was seen: From up to To, or through the run's last night (runDays - 1)
+    /// if it never ended.</summary>
     public int Days(int runDays) => (Ended ? To : runDays) - From;
 }
 
@@ -137,7 +138,7 @@ public static class StoryMetrics
         var friendships = cast.ToDictionary(v => v.Name, _ => 0.0, StringComparer.Ordinal);
         int feudEvents = 0, kinFeudEvents = 0, feudsAcross = 0, friendshipEvents = 0;
         double trivia = 0, news = 0, heavyByGate = 0, giftsByGate = 0;
-        int runYears = runs.Count == 0 ? 0 : runs.Max(r => Math.Max(1, r.Days / Variety.Year));
+        int runYears = runs.Count == 0 ? 0 : runs.Max(r => r.Days / Variety.Year); // whole years only
         var gateKind = new double[runYears];
         var gateKindRuns = new int[runYears];
         foreach (SimResult r in runs)
@@ -148,16 +149,21 @@ public static class StoryMetrics
                     continue;
                 if (k.Tier == Tier.Trivia) trivia++;
                 else if (k.Tier == Tier.News) news++;
-                if (did.TryGetValue(a.Actor, out var d))
+                // Who did it and who underwent it. In a kind whose patient is the actor (a warning, a
+                // stumble), the act's actor underwent it, and its target, if any (the official), did it.
+                bool actorUndergoes = k.Affect?.Patient == Patient.Actor;
+                string? doer = actorUndergoes ? a.Target : a.Actor;
+                string? subject = actorUndergoes ? a.Actor : a.Target;
+                if (doer is not null && did.TryGetValue(doer, out var d))
                     d[a.Kind] = d.GetValueOrDefault(a.Kind) + 1;
-                if (a.Target is { } t && t != a.Actor && undergone.TryGetValue(t, out var u))
+                if (subject is not null && subject != doer && undergone.TryGetValue(subject, out var u))
                 {
                     u[a.Kind] = u.GetValueOrDefault(a.Kind) + 1;
                     if (Light(k) && KindAimed(k))
-                        warmth[t]++;
+                        warmth[subject]++;
                 }
             }
-            int years1 = Math.Max(1, r.Days / Variety.Year);
+            int years1 = r.Days / Variety.Year;
             var thisRun = new double[years1];
             foreach (int id in r.Pursued)
             {
@@ -166,8 +172,8 @@ public static class StoryMetrics
                     continue;
                 if (HostileAimed(k) && !Light(k)) heavyByGate++;
                 if (a.Kind == "GaveGift") giftsByGate++;
-                if (KindAimed(k))
-                    thisRun[Math.Min(years1 - 1, Clock.Day(a.Tick) / Variety.Year)]++;
+                if (KindAimed(k) && Clock.Day(a.Tick) / Variety.Year < years1)
+                    thisRun[Clock.Day(a.Tick) / Variety.Year]++;
             }
             for (int y = 0; y < years1; y++)
             {
@@ -215,13 +221,14 @@ public static class StoryMetrics
         {
             var mine = Threads(r.Acts, name => people.TryGetValue(name, out Villager? v) ? v.Household : null);
             threads.AddRange(mine);
-            int seasons = Math.Max(1, r.Days / Clock.DaysPerSeason);
+            int seasons = r.Days / Clock.DaysPerSeason; // whole seasons only
             var counts = new int[seasons];
             foreach (StoryThread t in mine)
-                counts[Math.Min(seasons - 1, t.Day / Clock.DaysPerSeason)]++;
+                if (t.Day / Clock.DaysPerSeason < seasons)
+                    counts[t.Day / Clock.DaysPerSeason]++;
             perSeason.AddRange(counts);
         }
-        double seasonsRun = runs.Sum(r => r.Days) / (double)Clock.DaysPerSeason;
+        int seasonsRun = perSeason.Count;
         var shapes = threads.GroupBy(t => t.Shape, StringComparer.Ordinal)
             .Select(g => (Shape: g.Key, Share: g.Count() / (double)threads.Count))
             .OrderByDescending(x => x.Share).ThenBy(x => x.Shape, StringComparer.Ordinal).Take(5).ToList();
@@ -235,7 +242,7 @@ public static class StoryMetrics
             Ratio(returned, kindAcross),
             rows, PerPerson(did.Values.Sum(d => d.Values.Sum())),
             100 * PerPerson(feudEvents), 100 * PerPerson(kinFeudEvents), 100 * PerPerson(friendshipEvents), Ratio(feudsAcross, feudEvents),
-            Ratio(threads.Count, seasonsRun), Median(perSeason.Select(x => (double)x)),
+            Ratio(perSeason.Sum(), seasonsRun), Median(perSeason.Select(x => (double)x)),
             threads.Count == 0 ? double.NaN : threads.Average(t => t.Depth), threads.Count == 0 ? 0 : threads.Max(t => t.Depth), shapes,
             PerYear(spells.Count), MedianDays(spells), Ratio(spells.Count(s => s.Ended), spells.Count),
             PerYear(trivia), PerYear(news), PerYear(heavyByGate), PerYear(giftsByGate),
@@ -282,10 +289,17 @@ public static class StoryMetrics
     }
 
     /// <summary>Feuds from spells: each pair's spells in order, joined across pauses of
-    /// <see cref="FeudPauseDays"/> or less; each feud's length in days (up to the run's end if it
-    /// was still on) and whether it ended.</summary>
+    /// <see cref="FeudPauseDays"/> or less. Each feud as <see cref="MedianDays"/> takes it: ended, the
+    /// nights it lasted; not ended, a length it outlasted. A feud is still on at the run's end if its
+    /// last spell is, and unsettled if that spell ended so late that a pause of FeudPauseDays does
+    /// not fit before the last night (it may start again unseen). Either way it lasted longer than
+    /// the nights before the last night it was seen feuding.</summary>
     public static IReadOnlyList<(int Days, bool Ended)> Feuds(IEnumerable<FeudSpell> spells, int runDays)
     {
+        int last = runDays - 1;
+        (int, bool) Feud(int from, int to) => to < 0 ? (last - from, false)
+            : to + FeudPauseDays > last ? (to - 1 - from, false)
+            : (to - from, true);
         var feuds = new List<(int Days, bool Ended)>();
         foreach (var pair in spells.GroupBy(s => (s.A, s.B)).OrderBy(g => g.Key.A, StringComparer.Ordinal).ThenBy(g => g.Key.B, StringComparer.Ordinal))
         {
@@ -298,18 +312,20 @@ public static class StoryMetrics
                     continue;
                 }
                 if (from >= 0)
-                    feuds.Add(((to >= 0 ? to : runDays) - from, to >= 0));
+                    feuds.Add(Feud(from, to));
                 (from, to) = (s.From, s.To);
             }
             if (from >= 0)
-                feuds.Add(((to >= 0 ? to : runDays) - from, to >= 0));
+                feuds.Add(Feud(from, to));
         }
         return feuds;
     }
 
     /// <summary>The median length of spells, some still running when they were last seen
-    /// (Kaplan-Meier): the first length at which half or fewer are still running. Infinity if more
-    /// than half outlast every ended one; NaN for none.</summary>
+    /// (Kaplan-Meier). Ended: the spell lasted exactly Days. Not ended: it lasted longer than Days.
+    /// The median is the first length at which half or fewer are still running, to within rounding
+    /// (a product that is exactly a half can come out a hair above it). Infinity if more than half
+    /// outlast every ended one; NaN for none.</summary>
     public static double MedianDays(IReadOnlyCollection<(int Days, bool Ended)> spells)
     {
         if (spells.Count == 0)
@@ -326,7 +342,7 @@ public static class StoryMetrics
             if (ended > 0)
             {
                 running *= 1 - ended / (double)atRisk;
-                if (running <= 0.5)
+                if (running <= 0.5 + 1e-9)
                     return t;
             }
             atRisk -= all;
