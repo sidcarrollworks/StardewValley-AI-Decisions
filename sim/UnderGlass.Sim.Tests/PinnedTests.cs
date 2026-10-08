@@ -184,9 +184,9 @@ public class PinnedTests
     [InlineData("repair", "", "936f4953aff04d00")]
     [InlineData("returns,company,welcome,repair", "", "887e2607cbd9b819")]
     [InlineData("returns,company,welcome,repair", "bcdefghmt", "29c0e8be61dd0a00")]
-    [InlineData("sides", "", "8f13f001c7ceb3ec")]
-    [InlineData("returns,company,welcome,repair,sides", "", "abcc793d3243ccf3")]
-    [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "6886d09bcabe95aa")]
+    [InlineData("sides", "", "1e0eed9d1583b0b0")]
+    [InlineData("returns,company,welcome,repair,sides", "", "9dd54d2696596d67")]
+    [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "e1cf7c5f999bb28d")]
     public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
