@@ -16,7 +16,8 @@ using UnderGlass.Sim;
 // watches them instead, and --acts <Name>=<Kind>:<weight> (repeatable) sets an act's weight on
 // someone's card (e.g. Pam=Argued:0.5). A "withdrawal" block reports them (WithdrawalMetrics).
 // Town growth (town spec T1): --forget <Name>=<value> sets forgetting (ForgettingOptions; on with FadePerDay > 0);
-// --town <name> runs a grown town instead of the shipped one (pelican31: Towns.Named).
+// --town <name> runs a grown town instead of the shipped one (pelican31, or a generated town such as
+// pelican:60@7: Towns.Named), and --describe prints its census card and hash instead of running.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -25,6 +26,15 @@ var gossip = new GossipOptions();
 int townArg = Array.IndexOf(args, "--town");
 TownData? town = townArg >= 0 && townArg + 1 < args.Length ? Towns.Named(args[townArg + 1]) : null;
 IReadOnlyList<Villager> townCast = town?.Cast ?? DefaultTown.Cast();
+if (args.Contains("--describe"))
+{
+    // The census card (town spec 4.5): every household, the keepers and the hubs, and the town's hash.
+    TownData described = town ?? TownData.Default();
+    foreach (string line in UnderGlass.Sim.Generation.Census.Describe(described))
+        Console.WriteLine(line);
+    Console.WriteLine($"town hash {UnderGlass.Sim.Generation.Census.Hash(described)}; problems: {(TownCheck.Problems(described) is { Count: > 0 } p ? string.Join("; ", p) : "none")}");
+    return;
+}
 var inv = System.Globalization.CultureInfo.InvariantCulture;
 // Everything the runner prints reads the same on every machine, like the log (0c.0).
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CurrentCulture = inv;

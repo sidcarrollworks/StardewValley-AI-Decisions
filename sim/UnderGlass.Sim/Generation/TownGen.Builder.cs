@@ -147,7 +147,7 @@ public static partial class TownGen
             var houses = new List<Household>();
             for (int h = 0; h < plots.Count; h++)
             {
-                string surname = Draw(surnames, "surname", slot.Code, plots[h].ToString());
+                string surname = Draw(surnames, Names.Surnames, "surname", slot.Code, plots[h].ToString());
                 var house = new Household { Surname = surname, Hood = slot.Name, Slot = k, Step = t.Steps[plots[h]], Shape = Shape(sizes[h], slot.Code, plots[h]) };
                 var (home, door) = Templates.Home("Home:" + surname, sizes[h]);
                 AddPlace(home);
@@ -215,10 +215,16 @@ public static partial class TownGen
             => names.Where(n => !_names.Contains(n) && (int)(Rng.Hash("name-slot", n) % 6) == k % 6)
                 .OrderBy(n => U("pool", slot.Code, n)).ToList();
 
-        private string Draw(List<string> pool, params string[] key)
+        private string Draw(List<string> pool, IReadOnlyList<string> source, params string[] key)
         {
             if (pool.Count == 0)
-                throw new InvalidOperationException("ran out of names for " + string.Join(" ", key));
+            {
+                // A slot's own share ran out (a rare town with many of one sex): take from the whole
+                // list. Such a town no longer nests its later slots' names exactly.
+                pool.AddRange(source.Where(n => !_names.Contains(n)).OrderBy(n => U("refill", n)));
+                if (pool.Count == 0)
+                    throw new InvalidOperationException("ran out of names for " + string.Join(" ", key));
+            }
             int i = (int)Math.Floor(U(key) * pool.Count);
             string name = pool[i];
             pool.RemoveAt(i);
@@ -254,7 +260,7 @@ public static partial class TownGen
             Gen Person(int age, bool female, string role)
             {
                 var g = new Gen { Age = age, Female = female, Surname = house.Surname, Kind = KindOf(age, female) };
-                g.Name = Draw(female ? women : men, "first", P(role));
+                g.Name = Draw(female ? women : men, female ? Names.Women : Names.Men, "first", P(role));
                 house.Members.Add(g);
                 return g;
             }
@@ -460,9 +466,9 @@ public static partial class TownGen
                 AddLink(new Link(slot.Name, new Tile(t.Width - 1, 2), "Workshop", new Tile(0, 5)));
                 posts.Add(new Post("Workshop", "workshop-owner", Clock.At(9), Clock.At(17), new[] { 6 }, 1.2, 700, null, Keeper: true));
                 posts.Add(new Post("Workshop", "workshop-staff", Clock.At(9), Clock.At(17), new[] { 5, 6 }, 1.2, 450, null));
-                posts.Add(new Post("Home:Clinic", "nurse", Clock.At(9), Clock.At(15), new[] { 5, 6 }, 1.0, 500, "Clinic"));
+                posts.Add(new Post("Home:Clinic", "nurse", Clock.At(9), Clock.At(15), new[] { 5, 6 }, 1.0, 500, null)); // the county pays
                 posts.Add(new Post("Mart", "mart-staff", Clock.At(9), Clock.At(17), new[] { 3 }, 1.1, 350, null));
-                posts.Add(new Post("Blacksmith", "apprentice", Clock.At(9), Clock.At(16), new[] { 4 }, 1.3, 350, "Blacksmith"));
+                posts.Add(new Post("Blacksmith", "apprentice", Clock.At(9), Clock.At(16), new[] { 4 }, 1.3, 350, null)); // from the orders out of town
             }
             var free = houses.SelectMany(h => h.Members).Where(g => g.Age >= 18 && g.Age < 65).ToList();
             foreach (Post post in posts)
@@ -502,6 +508,18 @@ public static partial class TownGen
                 else if (g.Age >= 65 && g.Job is null)
                     _incomes.Add((g.Name, 400 + 50 * R(0, 4, "pension", g.Name), null));
                 _wants[g.Name] = g.Age < 13 ? (20, 80) : g.Age < 20 ? (50, 200) : (50, 300);
+            }
+            // Every household lives on something: one with no wage and no pension has a member who
+            // earns from outside (art, freelance work, a stall in the next town), as Leah and Sebastian
+            // do, enough for its size (200 + 100 a member + up to 200).
+            var earners = _incomes.Select(i => i.Who).ToHashSet(StringComparer.Ordinal);
+            foreach (Household house in houses)
+            {
+                if (house.Members.Any(m => earners.Contains(m.Name)))
+                    continue;
+                Gen? earner = house.Members.Where(m => m.Age >= 18).OrderByDescending(m => m.Age < 65).ThenByDescending(m => m.Age).FirstOrDefault();
+                if (earner is not null)
+                    _incomes.Add((earner.Name, 200 + 100 * house.Members.Count + 50 * R(0, 4, "outside", earner.Name), null));
             }
         }
 

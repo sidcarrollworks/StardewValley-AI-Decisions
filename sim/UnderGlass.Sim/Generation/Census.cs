@@ -36,7 +36,8 @@ public static class Census
     }
 
     /// <summary>The town's hash: FNV-1a over its census, every card's numbers, the places' rows, the
-    /// doors, the hubs, the act rates and the familiarity seeds, in a fixed order.</summary>
+    /// doors, the hubs, the act rates, the familiarity seeds, the money and the starting tensions, in
+    /// a fixed order.</summary>
     public static string Hash(TownData town)
     {
         var parts = new List<string>(Describe(town));
@@ -57,6 +58,18 @@ public static class Census
             parts.Add($"{a.Name} {F(a.PerDay)} {string.Join(",", a.Allowed)}");
         foreach (var (a, b, value) in town.Familiarity)
             parts.Add($"{a} {b} {F(value)}");
+        if (town.Economy is { } e)
+        {
+            foreach (var (who, perWeek, from) in e.Incomes)
+                parts.Add($"income {who} {F(perWeek)} {from}");
+            foreach (var (h, purse) in e.StartPurse.OrderBy(x => x.Key, StringComparer.Ordinal))
+                parts.Add($"purse {h} {F(purse)} {e.GroceriesAt.GetValueOrDefault(h)}");
+            foreach (var (who, a) in e.Allowances.OrderBy(x => x.Key, StringComparer.Ordinal))
+                parts.Add($"allowance {who} {F(a)}");
+            parts.Add($"stipend {F(e.TownStipend)} start {F(e.TownStart)}");
+        }
+        foreach (var ((from, to), regard) in town.Feelings.Start.OrderBy(x => x.Key.From, StringComparer.Ordinal).ThenBy(x => x.Key.To, StringComparer.Ordinal))
+            parts.Add($"tension {from} {to} {F(regard)}");
         parts.Add("generator " + TownGen.Version);
         return Rng.Hash(parts.ToArray()).ToString("x16");
     }
