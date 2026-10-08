@@ -3,14 +3,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@600;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: an instrument on a lab bench. A device bar across the top carries the run's clock on a
-   recessed dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the
-   left; the inspector and the log stand on the right. One light theme, by design: warm putty
-   neutrals, graphite ink, one signal orange, and cobalt and crimson for liking and dislike. */
+/* Layout: a technical sheet. The controls across the top carry the run's clock on a recessed
+   dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the left; the
+   inspector and the log stand on the right. Sections sit on one warm off-white ground, marked only
+   by registration corners. One light theme, by design: warm putty neutrals, graphite ink, one
+   signal orange, and cobalt and crimson for liking and dislike. */
 :root {
   color-scheme: light;
-  --bg: #d9d3c7;          /* the bench: a fairly dark warm off-white */
-  --surface: #e8e3d9;     /* instrument panels */
+  --bg: #e8e3d9;          /* the ground: the same warm off-white as the panels */
+  --surface: #e8e3d9;     /* panels */
   --surface-hi: #f2eee6;  /* raised keys */
   --surface-2: #d2cbbe;   /* wells, tracks, floor tiles */
   --ink: #1d1a17;         /* graphite */
@@ -45,8 +46,6 @@
 * { box-sizing: border-box; }
 body {
   background-color: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.45; margin: 0;
-  /* A faint grain, so the bench reads as a surface rather than a fill. */
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.08 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .app { padding-inline: 16px; padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
@@ -69,12 +68,14 @@ button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; b
 button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
-/* Cards are flat panels of a lighter tone, marked only by their corners. */
-.card { position: relative; background: var(--surface); border-radius: var(--radius); }
-/* Registration marks in two corners, as on a technical sheet. */
-.card::before, .card::after { content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none; }
-.card::before { top: 7px; left: 7px; border-top: 1px solid var(--muted); border-left: 1px solid var(--muted); }
-.card::after { bottom: 7px; right: 7px; border-bottom: 1px solid var(--muted); border-right: 1px solid var(--muted); }
+/* A section is marked only by registration marks in two corners, as on a technical sheet. The
+   controls and the timeline are open sections on the ground (.marks); the rest are flat panels
+   (.card) of the same tone. */
+.card, .marks { position: relative; }
+.card { background: var(--surface); border-radius: var(--radius); }
+.card::before, .card::after, .marks::before, .marks::after { content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none; }
+.card::before, .marks::before { top: 7px; left: 7px; border-top: 1px solid var(--muted); border-left: 1px solid var(--muted); }
+.card::after, .marks::after { bottom: 7px; right: 7px; border-bottom: 1px solid var(--muted); border-right: 1px solid var(--muted); }
 
 /* The device bar. */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 14px 18px; }
@@ -223,7 +224,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 </style>
 
 <div class="app" id="app">
-  <header class="bar card">
+  <header class="bar marks">
     <div class="brand">
       <h1>Under Glass</h1>
       <div class="run" id="runLabel">No run loaded</div>
@@ -252,7 +253,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
     </div>
   </header>
 
-  <section class="timeline card" aria-label="Timeline">
+  <section class="timeline marks" aria-label="Timeline">
     <canvas id="strip" height="34"></canvas>
     <input type="range" id="scrub" min="0" max="0" value="0" step="5" aria-label="Time in the run">
     <div class="legend">
