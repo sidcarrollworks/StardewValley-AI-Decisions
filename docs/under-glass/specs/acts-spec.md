@@ -42,8 +42,8 @@
   - **Mocked needs expression 0.5 or more whatever 0d.6's `ShowOn` says:** the trait is on every card.
   - **Watched sides are recorded, not stirred**, as watched remorse is.
   - **The defended person's `WithJoy` is felt in `AfterAct`,** if they saw the act, rather than in `Feel`: `Feel` has one patient a row.
-  - **Pity at a hurt is `HurtPity` (0.25) x understanding of a mishap's pity, and a comfort costs 0.35, not 0.4.** As specified, every argument seen made pity in most onlookers (828 a year on the shipped town), and a comfort, at a gift's cost, was returned with a gift ("in kind or less"): 665 gifts and 20 friendships a year.
-  - **Not tuned: Sides spirals into hostility (the spec's risk 3).** With the comfort fixed, feuds rise to about 30 a year (7.9 without), mockings add to arguments rather than replacing them, and stand-ups answer stand-ups. Raising `DefendAt` to 0.8 halves it but still doubles feuds. The slice fails its gates as built; see `sim/README.md`.
+  - **Pity at a hurt is `HurtPity` (0.5) x understanding of a mishap's pity, and a comfort costs 0.35, not 0.4.** As specified, every argument seen made pity in most onlookers (828 a year on the shipped town), and a comfort, at a gift's cost, was returned with a gift ("in kind or less"): 665 gifts and 20 friendships a year.
+  - **Witnesses take sides only at a first strike (`FirstStrikeSides`):** not at a stand-up, nor at an answer in an exchange already going. Without it, the spec's risk 3 happened: a stand-up is itself a heavy hostile act, so onlookers took sides again, and every answer drew defenders of its own. Feuds reached 35 a year (7.9 without). With it, feuds hold, and stand-ups are rare (2-3 a year). On the review's set, friendships are +36% and war towns are 8% over three years: two gates fail there.
 - **Left for later slices:** `Arrivals` (3) and LateForWork (4.11).
 
 **Sid's words (2026-10-08).** "We also need to expand the amount of actions a person can do."
