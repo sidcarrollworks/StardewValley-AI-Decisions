@@ -430,11 +430,37 @@ The difference form pulls the town together: the spread of the power of acting n
 - The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
 - Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
 
+## Growing the town: T0 and T1 (built, every option off)
+
+The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 60 people (Sid's answers, 2026-10-08). Its first two steps change no run of the shipped town: every pin holds.
+
+- **T0, the town as one value** (`Town.cs`, `Simulation.Town.cs`). `TownData` holds the cast, the places and doors, the hubs, the act kinds and every option, and `new Simulation(seed, town)` passes all of it through. A town built elsewhere can't quietly lose its feelings, money or authority, as it does when `places:` is passed to the long constructor alone. `ReplayOptions.Town` records any town. `TownDataTests`: P3 and the feelings-off pin through `TownData`, a placed scandal, one town shared by four runs at once, and the recorder.
+- **T1, the engine options** (`Simulation.Growth.cs`, with one-line hooks in `Simulation.cs`):
+  - **Walking distance (E3).** A walker bound for another place takes the door with the fewest tiles to walk from where they stand, not the fewest doors (Dijkstra over the door tiles, once per target place). The shipped town's doors form a tree, so every route is as it was, and it is the only rule.
+  - **Hubs (E4).** A gathering can have an age range, a crowd limit and households of its own. Someone who arrives and sees that many awake people within its radius turns back and doesn't pick it again that day (a `turned-back` line). Anyone not of its households picks it at `Visitors` times its weight.
+  - **Commutes (E5).** A job can set its own commute. The worker leaves that long before work, and the alarm moves with it.
+  - **Familiarity by circle, and forgetting (E6).** `TownData.Familiarity` seeds chosen pairs both ways. `GossipOptions.Forgetting` fades familiarity by Sid's model (design rule 5, "As built in T1"): a tie that has built fades slower, kin and housemates never fade, a new face met with warmth sticks, and too many new faces in a week push weak ties out. It is off unless `FadePerDay` is set. The runner's `--forget FadePerDay=0.01` turns it on, and the runner now prints who knows whom at the end.
+  - `TownGrowthTests` (12):
+    - the shorter walk wins over fewer doors;
+    - a longer commute leaves earlier and isn't late, and the alarm allows for it;
+    - a hub turns three visitors away at its limit, and takes them with none;
+    - a local hub draws its own households over four times as much;
+    - a child never picks a hub for grown-ups;
+    - seeds go both ways, and nothing fades while forgetting is off;
+    - a built tie fades slower, and housemates never;
+    - a warm first meeting sticks;
+    - many new faces push a weak tie out;
+    - the shipped town with forgetting on is pinned (`42455eda038ae986`).
+
+  254 tests.
+
+FORGETTING-MEASURED
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
-3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
+3. **0c, left for later:** the third-slight mark (0c question 6), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard. (Familiarity falling, weighted by regard, is built as T1's forgetting option.)
 4. **0d.6, left for Sid:** which steps to turn on (design section 12, question 9); then the town and acts as JSON, the bots, the story sifter and the replay viewer.
 5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 
