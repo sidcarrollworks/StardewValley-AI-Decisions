@@ -729,6 +729,46 @@ Money is conserved to 0.000 g in every run. What it says:
 - **Nearly all of the slice is compliments.** Thanks and jokes barely happen: the gate tries the dearest act first, and a compliment (0.3) clears nearly whenever a thank-you (0.2) would. Jokes need a regard of 0.3 and a familiarity of 0.5, and then a compliment usually comes first. They will come with acts-2's per-head draws.
 - **Hermits stay, all but one from the shyest third** (0.28 to 0.22 a seed-year on the review's set): settling more of the shy's kindness lowers their unanswered share.
 
+### acts-2, Company: PlayedGame, TreatedToDrink, per-head draws (built 2026-10-08; off)
+
+`--catalog company` (measured with Returns: `--catalog returns,company`) adds (acts spec 3.2, 4.4, 4.5, question 1):
+- **PlayedGame:** light; both busy for half an hour.
+  - Where and when: the saloon from 17:00, the square and the beach from 9:00 to 19:00.
+  - Who: the two within 6 years of each other, or both children.
+  - The asker is warmed as company is.
+- **TreatedToDrink:** a story act at the saloon, 18:00 to 01:00, both of age.
+  - The actor's household pays one drink (12 g) to the bar's, which restocks, as `Drinks` pays.
+  - It is the target's drink of the day if they had none. The bar's own household treats free.
+  - It stirs Return, as a gift does.
+- **Per-head draws** (`StartPerHead`): each who carries a per-head kind on their card draws at weight x PerDay / 288 a tick, keyed by kind, name and minute, so acts per person hold as a town grows.
+  - Games 0.1 a day, treats 0.08. With Returns on too, compliments 0.08 and jokes 0.15.
+  - The cards are first readings of the cast (VERIFY), for Sid to correct (question 4).
+- **Fond's gifts** come only on the other's birthday or a festival, one a day (question 1, answer b). Between, Fond reaches for the small acts.
+
+`CompanyTests` (6).
+
+**Measured** (with Returns; the columns before are acts-1's):
+
+| measure | shipped + Returns | + Company | review's set + Returns | + Company | gate |
+|---|---|---|---|---|---|
+| band: in band / over 70% | 55% / 25% | 60% / 23% | 56% / 24% | 59% / 24% | 50%+ |
+| E1, 200 seeds (400) | 62% (62%) | 64% (68%) | 73% (75%) | 82% (81%) | 60%+ |
+| feuds, friendships a year (400) | 7.97, 0.95 | 8.02, 1.09 | 7.13, 1.40 | 7.37, 1.56 | ±30% of the baseline |
+| kindness ignored; returned within 7 days | 37%; 64% | 36%; 65% | 31%; 72% | 30%; 73% | |
+| three years: moved 0.1+ d335 ÷ d111 | 1.55 | 1.50 | 1.40 | 1.42 | |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 1.46 | 1.27 | 1.08 | 1.11 | 1.5 at most |
+| gifts by the gate a year (baseline) | 221 (219) | 149 | 477 (478) | 438 | down 40% with Company |
+| trivia, news a year | 783, 269 | 881, 267 | 1,071, 255 | 1,172, 267 | |
+| heavy hostile acts by the gate | 157 | 156 | 144 | 155 | +15% at most |
+| hermits (shyest third); brawlers | 0; 2.41 | 0; 2.32 | 0.22 (98%); 1.22 | 0.24 (96%); 1.35 | |
+
+Across households a year, on the shipped town: compliments 137, treats 33, jokes 21, games 13. Every treat is answered, usually by a compliment on the spot. Money is conserved to 0.000 g.
+
+What it says:
+- **The gates hold, and Company slows the three-year growth** (1.46 to 1.27): Fond's gifts on ordinary days are gone.
+- **Gifts by the gate fall a third on the shipped town, short of the spec's 40%.** On the review's set they fall 8%, because 0d.6's missing people gives most of its gifts on occasions, which Company keeps. The rest are Return's and MakeUp's gifts, which Company doesn't touch.
+- **Games and jokes stay rare.** Few carry them, and the gate prefers a compliment, which comes first among the 0.3 acts by name.
+
 
 ## Next
 

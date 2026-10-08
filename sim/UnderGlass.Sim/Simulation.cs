@@ -479,6 +479,7 @@ public sealed partial class Simulation
         if (tick)
         {
             StartActs(m);
+            StartPerHead(m); // the act catalog's per-head draws (acts spec 3.2); none without Company
             if (HasMoney)
             {
                 Temptation(m);
@@ -806,6 +807,8 @@ public sealed partial class Simulation
         double ticksPerDay = Clock.MinutesPerDay / (double)Clock.TickMinutes;
         foreach (ActKind kind in _kinds)
         {
+            if (kind.PerHead)
+                continue; // drawn per head instead (StartPerHead)
             double perDay = Acting && kind.Affect is { Target: TargetIs.Chosen } && !IsLight(kind) ? kind.PerDay * _fo.AimedRateScale : kind.PerDay;
             if (perDay <= 0 || Rng.Unit(_seed, "act", kind.Name, m.ToString()) >= perDay / ticksPerDay)
                 continue;
@@ -992,6 +995,7 @@ public sealed partial class Simulation
             Undergo(act, kind, m);
             StirPity(act, kind, m);
             Mark(act, kind, m);
+            AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill
         }
     }
 
