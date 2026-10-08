@@ -521,6 +521,47 @@ A first look at `pelican:60@1` (8 seeds x 56 days): feuds 14.8 and friendships 1
 **`TownMetrics`** (town spec 6.3: a bigger town, or only a bigger crowd?) reads a grown town's runs: each person's district (the core, or the neighbourhood their door opens onto); the share of tellings inside a district against the share chance would give (the locality ratio: 1 is a crowd); how often a neighbourhood's story stays at home on its first day and how often it reaches another district within two; how many people the median person knows well; and each district's acts, tellings heard, feuds and friendships per person. The runner prints it for any `--town`. A first look at `pelican:60@1` (4 seeds x 56 days): half of all tellings stay inside a district against 37% by chance (locality 1.35, the spec's target is 2 or more at 120); 90% of a neighbourhood's stories reach another district within two days; East Green's people act more than the core's (54 acts a person a year against 31). `TownMetricsTests` (2): districts, and shares recounted from the log.
 
 
+## Variety: how different the runs are (built 2026-10-08; reads results only)
+
+Sid wants runs with many twists and turns, so that new games don't feel alike. `Variety.cs` measures that, as the first step of `docs/under-glass/actions-and-twists.md` (section 3 and step 0 of section 4). Nothing in a run changes, and every pin holds.
+
+**Story events.** `Variety.Of` reads a run's results and lists what a player would tell a friend about. Each event has a kind, a day and the people in it. Its `Id` is the kind and the people, with no day, so the same story in two seeds has the same `Id`.
+- Ties: a feud, a feud in a family, a friendship, and a reconciliation (one per pair a season). A feud between a pair who were friends earlier is a falling out.
+- Scandals: one the town made itself (not the harness's), with its culprit.
+  - A secret out: a scandal nobody saw, which someone other than the culprit later pins on them by name.
+  - A confession.
+  - A verdict on the wrong person.
+- The constable's election.
+- Spells: a hermit, the withdrawn, a brawler.
+- A household that ends the run in debt.
+
+**The measures** (the research's targets in brackets) are counted over seed-years; a run of a year or less counts as one:
+- **V1** the share of seed-years holding the commonest named story, such as a feud pair, a culprit or a brawler [30% or less];
+- **V2** the effective number of headlines: e to the power of the entropy of each seed-year's biggest story [20 or more];
+- **V3** the share of seed-year pairs that share 80% of their stories [under 5%];
+- **V4** the share of seed-years holding a story found in under 2% of seed-years [60% or more; it needs 50 seed-years];
+- **V5** for the person whose arc repeats most, how often their commonest arc comes up [50% or less]. An arc is the kinds of story they were in that year;
+- **V6** the median number of twists a seed-season [2 or more]. A twist is a reversal (a feud mended, friends who fell out, the wrong person punished) or a revelation (a secret out, a confession);
+- **V8** how many kinds of town the runs make [3 or more]. Seed-years go on a 3 x 3 grid of conflict against warmth, each axis cut at 0.8 and 1.2 times its median, and the cells holding 5% of seed-years are counted;
+- beside them, how often the commonest constable wins.
+
+V7 (copies of a run split at day 28) needs runs that fork, so it is not built. Neither is the research's fair-twist rule (a twist counts only with an earlier visible trace). The runner prints a `variety` line after every report.
+
+`VarietyTests` (6):
+- a town that repeats itself scores as one, and one where every seed differs scores high, each on made-up seed-years;
+- headlines and arcs;
+- Jaccard, twists and kinds of town;
+- a run's story events come from its results, the same every time;
+- measuring runs cuts them into seed-years.
+
+**A first look at the shipped town** (20 seeds x 112 days) shows how much it repeats itself:
+- Pam's scandal is in 85% of seed-years and is the headline in 65%;
+- Sam and Shane feud in 55%;
+- there are 3 headlines in effect;
+- the median season has no twist.
+
+The longer baseline follows.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
