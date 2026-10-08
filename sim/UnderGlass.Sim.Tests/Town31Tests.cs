@@ -74,7 +74,7 @@ public class Town31Tests
     {
         string first = Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(7));
         Assert.Equal(first, Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(7)));
-        Assert.Equal("662153f815e249d3", Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(112)));
+        Assert.Equal("db268a57b95bada2", Metrics.LogHash(new Simulation(1, Towns.Pelican31()).Run(112)));
     }
 
     /// <summary>The five go about their days where their cards put them: Clint at the anvil on a

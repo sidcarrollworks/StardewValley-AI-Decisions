@@ -463,13 +463,13 @@ FORGETTING-MEASURED
   - **Linus** lives in a tent on the mountain, earns nothing, and goes through the bins when he runs short.
   - **The Wizard** keeps to his tower in the forest.
 
-  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours, friends, birthdays, Linus and the bins) is marked VERIFY. The runner and the replay tool take `--town pelican31`.
+  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours, friends, birthdays, Linus and the bins) is marked VERIFY. The 31 town keeps two tellings a day, as the shipped town has; left to its default it would jump to three at 30 people and quietly change gossip. The runner and the replay tool take `--town pelican31`.
 - **`TownCheck`** lists what the engine would forgive quietly: a place no door reaches (people would arrive at once), a spot on a wall, two doors on one tile, a keeper, mayor, friend or kin not in the town, a household with no purse, a shop that doesn't exist. The shipped town and the 31 town pass.
 - `Town31Tests` (5):
   - both towns are sound;
   - the 31 town keeps the shipped 26 whole (cards, places, doors);
   - `TownCheck` finds an unreachable place, a doubled door, a haunt on a wall and a keeper not in the town;
-  - the 31 town runs the same every time and is pinned (`662153f815e249d3`, seed 1, 112 days);
+  - the 31 town runs the same every time and is pinned (`db268a57b95bada2`, seed 1, 112 days);
   - the five keep their days: Clint at the anvil, Willy in his shop, the Wizard in his tower.
 - **A first look** (8 seeds x 112 days, before the long runs):
   - Linus is tempted 0.5 times a year, all from need;

@@ -89,9 +89,12 @@ public static class Towns
             wants[v.Name] = (50, 300);
         var economy = e with { StartPurse = purses, Incomes = incomes, GroceriesAt = groceries, Wants = wants };
 
+        // At 30 people or more TellsPerDay's default jumps from 2 to 3 (Simulation.TellsPerDay), which
+        // would quietly change gossip; the grown towns keep the shipped town's 2 (town spec, section 3).
         return town with
         {
             Cast = cast, Places = places, Links = links, Feelings = feelings, Authority = authority, Economy = economy,
+            Gossip = new GossipOptions { TellsPerDay = 2 },
         };
     }
 
