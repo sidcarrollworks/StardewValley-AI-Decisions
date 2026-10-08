@@ -293,6 +293,10 @@ public sealed class FeelingOptions
     public int AdaptDays { get; set; } = 28;
     public double AdaptFactor { get; set; } = 0.85;
 
+    /// <summary>The act catalog's switches and numbers (acts spec 2.3). Every switch is off: the town
+    /// as it was before the catalog.</summary>
+    public ActOptions Acts { get; set; } = new();
+
     /// <summary>For tests: steering with the desire gate, its added rules off, and the given starting regard.</summary>
     public static FeelingOptions WithDesire(params (string From, string To, double Regard)[] start)
         => new() { Desire = true, Start = start.ToDictionary(x => (x.From, x.To), x => x.Regard) };
