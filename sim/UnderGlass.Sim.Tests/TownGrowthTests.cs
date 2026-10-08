@@ -284,6 +284,65 @@ public class TownGrowthTests
         Assert.True(calm < 0.3); // both fade; Xan's faster
     }
 
+    /// <summary>A new face counts once toward a week's new faces, however often it is met. Ann sees
+    /// the same two strangers every morning, fewer than the three new faces a week she takes in, so
+    /// her tie to Zed fades exactly as Yul's, who sees nobody. Counted by the day, the two strangers
+    /// were fourteen new faces a week, and Ann's tie faded faster.</summary>
+    [Fact]
+    public void ANewFaceCountsOnceAWeek_HoweverOftenItIsMet()
+    {
+        int ten = Clock.At(10);
+        var cast = new[]
+        {
+            V("Ann", "A", new[] { At("Hall", 2, 1) }),
+            V("Sal", "S", new[] { At("Hall", 3, 1, ten, ten + 30), At("RoomS", 1, 1, weight: 0.01) }),
+            V("Tod", "T", new[] { At("Hall", 4, 1, ten, ten + 30), At("RoomT", 1, 1, weight: 0.01) }),
+            V("Yul", "Y", new[] { At("Den", 1, 1) }),
+            V("Zed", "Z", new[] { At("Shed", 1, 1) }),
+        };
+        var seeds = new[] { ("Ann", "Sal", 0.0), ("Ann", "Tod", 0.0), ("Ann", "Zed", 0.3), ("Yul", "Zed", 0.3) };
+        var sim = new Simulation(11, Town(cast, new[] { Room("Hall", 8, 3), Room("RoomS", 4, 3), Room("RoomT", 4, 3), Room("Den", 4, 3), Room("Shed", 4, 3) },
+            gossip: new GossipOptions { Forgetting = new ForgettingOptions { FadePerDay = 0.02, NewFacesPerWeek = 3 } }, familiarity: seeds));
+        sim.Run(14);
+        Assert.True(sim.Familiarity("Ann", "Sal") > 0, "Ann has met Sal");
+        Assert.Equal(sim.Familiarity("Yul", "Zed"), sim.Familiarity("Ann", "Zed"));
+        Assert.True(sim.Familiarity("Ann", "Zed") < 0.3);
+    }
+
+    /// <summary>Both halves of a tie fade alike: each night's fade is worked out from the night's
+    /// starting values, not from the half already faded.</summary>
+    [Fact]
+    public void BothHalvesOfATieFadeAlike()
+    {
+        var sim = Alone(0.05, new[] { ("Ann", "Bea", 0.3) });
+        sim.Run(60);
+        Assert.True(sim.Familiarity("Ann", "Bea") < 0.1);
+        Assert.Equal(sim.Familiarity("Ann", "Bea"), sim.Familiarity("Bea", "Ann"));
+    }
+
+    /// <summary>T12 with forgetting on: feelings that only watch change nothing the town does,
+    /// believes or remembers. Regard adds to a tie's strength only while feelings steer.</summary>
+    [Fact]
+    public void WithForgettingOn_FeelingsThatOnlyWatchChangeNothing()
+    {
+        static SimResult Run(long seed, FeelingOptions feelings) => new Simulation(seed, TownData.Default() with
+        {
+            Feelings = feelings,
+            Gossip = new GossipOptions { Forgetting = new ForgettingOptions { FadePerDay = 0.01 } },
+        }).Run(14);
+        static IEnumerable<string> Beliefs(SimResult r) => r.Beliefs.OrderBy(b => b.Key, StringComparer.Ordinal)
+            .SelectMany(b => b.Value.OrderBy(x => x.Key).Select(x => $"{b.Key} {x.Key} {x.Value.Actor} {x.Value.Confidence:R} {x.Value.Clarity:R} {x.Value.Source} {x.Value.GotTick}"));
+        for (long seed = 1; seed <= 3; seed++)
+        {
+            SimResult off = Run(seed, FeelingOptions.Off), watched = Run(seed, FeelingOptions.Observe);
+            // As T12 compares them (PinnedTests): watched feelings name whom an act was aimed at, off they don't.
+            Assert.Equal(off.Acts.Select(a => (a.Id, a.Tick, a.Actor, a.Kind, a.Location, a.At)), watched.Acts.Select(a => (a.Id, a.Tick, a.Actor, a.Kind, a.Location, a.At)));
+            Assert.Equal(Beliefs(off), Beliefs(watched));
+            Assert.Equal(off.Familiarity.OrderBy(f => f.Key).Select(f => f.Value), watched.Familiarity.OrderBy(f => f.Key).Select(f => f.Value));
+            Assert.NotEmpty(watched.Feelings);
+        }
+    }
+
     /// <summary>The shipped town with forgetting on at rule 5's 1% a day (update only when a
     /// deliberate change to forgetting lands); with it off, P3 holds (PinnedTests).</summary>
     [Fact]
@@ -292,6 +351,6 @@ public class TownGrowthTests
         TownData town = TownData.Default() with { Gossip = new GossipOptions { Forgetting = new ForgettingOptions { FadePerDay = 0.01 } } };
         string hash = Metrics.LogHash(new Simulation(1, town).Run(112));
         Assert.NotEqual("e9fd83b284f5c1b6", hash);
-        Assert.Equal("42455eda038ae986", hash);
+        Assert.Equal("0fb826867e0573b5", hash); // 2026-10-08: a new face counts once a week, and a tie fades from the night's start
     }
 }

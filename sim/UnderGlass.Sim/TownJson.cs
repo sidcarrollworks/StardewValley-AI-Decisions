@@ -13,28 +13,45 @@ namespace UnderGlass.Sim;
 /// for a familiarity seed, [from, to, regard] for a starting tension); enums by name; numbers that are
 /// not finite as "Infinity". Values the code works out (a place's width, a villager's home) and the
 /// one setting that is code (FeelingOptions.CloseCall) are left out. A town read back runs exactly as
-/// the one written.
+/// the one written. Reading is strict, since a hand edit is easy to get wrong: a field the town
+/// doesn't have (a misspelling, or the wrong case) fails, so does a field left out (write the town
+/// again with --dump-town when the town gains a setting), and so does a part set to null (only the
+/// economy may be null, for a town with no money).
 /// </summary>
 public static class TownJson
 {
     public static string Write(TownData town) => JsonSerializer.Serialize(town, Options);
 
-    public static TownData Read(string json) => JsonSerializer.Deserialize<TownData>(json, Options)
-        ?? throw new JsonException("the file holds no town");
+    public static TownData Read(string json)
+    {
+        TownData town = JsonSerializer.Deserialize<TownData>(json, Options) ?? throw new JsonException("the file holds no town");
+        var parts = new (string Name, object? Value)[]
+        {
+            ("Cast", town.Cast), ("Places", town.Places), ("Links", town.Links), ("Gatherings", town.Gatherings), ("Acts", town.Acts),
+            ("Feelings", town.Feelings), ("Authority", town.Authority), ("Perception", town.Perception), ("Gossip", town.Gossip),
+            ("Body", town.Body), ("Habits", town.Habits), ("Money", town.Money), ("Familiarity", town.Familiarity),
+        };
+        foreach (var (name, value) in parts)
+            if (value is null)
+                throw new JsonException($"the file's {name} is null; only the Economy may be");
+        return town;
+    }
 
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
         Converters = { new JsonStringEnumConverter(), new TupleConverterFactory(), new TensionsConverter() },
         TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { LeaveOutWorkedOut } },
     };
 
     /// <summary>Leaves out delegates, and properties the code works out (no setter and no constructor
-    /// parameter of the same name), so the file holds only what a town is made of.</summary>
+    /// parameter of the same name), so the file holds only what a town is made of; every property
+    /// kept must be in the file.</summary>
     private static void LeaveOutWorkedOut(JsonTypeInfo info)
     {
-        if (info.Kind != JsonTypeInfoKind.Object)
+        if (info.Kind != JsonTypeInfoKind.Object || Nullable.GetUnderlyingType(info.Type) is not null)
             return;
         var parameters = info.Type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
             .SelectMany(c => c.GetParameters()).Select(p => p.Name ?? "").ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -45,6 +62,8 @@ public static class TownJson
             bool workedOut = p.Set is null && !parameters.Contains(p.Name);
             if (code || workedOut)
                 info.Properties.RemoveAt(i);
+            else if (p.Set is not null)
+                p.IsRequired = true;
         }
     }
 

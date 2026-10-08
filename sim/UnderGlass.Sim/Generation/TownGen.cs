@@ -29,7 +29,7 @@ public sealed record TownSpec(long Seed, int People, string Profile = "pelican",
 public static partial class TownGen
 {
     /// <summary>Raised whenever a change makes the same spec build a different town.</summary>
-    public const int Version = 1;
+    public const int Version = 2; // 2: the review's fixes (2026-10-08): ages, kin, spots, the lane's green, wildcards, the hash
 
     /// <summary>A ring-1 slot (town spec 2.3): where it joins the core, its template and size,
     /// and the people it holds.</summary>
@@ -49,6 +49,8 @@ public static partial class TownGen
             throw new ArgumentException($"profile {spec.Profile}: only pelican is built (the own profile is town spec step T8)");
         TownData core = Towns.Pelican31();
         int coreCount = core.Cast.Count;
+        if (spec.People == coreCount)
+            return core; // the 31 town itself: nothing is generated, so the town seed changes nothing
         var slots = new List<Slot>();
         int total = coreCount;
         foreach (Slot s in Ring1)

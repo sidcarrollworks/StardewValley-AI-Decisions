@@ -69,6 +69,54 @@ public class Town31Tests
         Assert.Contains(problems, p => p.Contains("keeper of Store: Nobody"));
     }
 
+    /// <summary>What a hand-edited town file can get wrong, found without a crash: a place that isn't a
+    /// rectangle, a home that doesn't exist, groceries at a shop that sells none, a starting regard
+    /// and a hub's household that name nobody, a parent too young, a place too wide and too many
+    /// places for the replay.</summary>
+    [Fact]
+    public void TownCheckFindsWhatAHandEditCanBreak()
+    {
+        TownData t = Towns.Pelican31();
+        var ragged = t.Places.Select(p => p.Name == "Blacksmith" ? p with { Rows = p.Rows.Select((r, i) => i == 6 ? r[..^1] : r).ToList() } : p);
+        var bad = t with
+        {
+            Places = ragged.Append(new Location("Field", true, new[] { new string('.', 300) })).Concat(Enumerable.Range(0, 100).Select(i => new Location($"Shed{i:000}", false, new[] { "..." }))).ToList(),
+            Cast = t.Cast.Select(v => v.Name switch
+            {
+                "Linus" => v with { Household = "Camp" },
+                "Penny" => v with { Age = 40 }, // Pam's daughter, now older than her mother
+                _ => v,
+            }).ToList(),
+            Economy = t.Economy! with { GroceriesAt = t.Economy!.GroceriesAt.Concat(new[] { KeyValuePair.Create("FishShop", "FishShop") }).GroupBy(x => x.Key).ToDictionary(g => g.Key, g => g.Last().Value) },
+            Gatherings = t.Gatherings.Select((g, i) => i == 0 ? g with { Local = new[] { "Nowhere" } } : g).ToList(),
+            Feelings = new FeelingOptions { Start = new Dictionary<(string, string), double>(t.Feelings.Start) { [("Clint", "Emilly")] = 0.4 } },
+        };
+        var problems = TownCheck.Problems(bad);
+        Assert.Contains(problems, p => p.Contains("Blacksmith is not a rectangle"));
+        Assert.Contains(problems, p => p.Contains("Linus: no home Home:Camp"));
+        Assert.Contains(problems, p => p.Contains("groceries of FishShop"));
+        Assert.Contains(problems, p => p.Contains("Clint->Emilly"));
+        Assert.Contains(problems, p => p.Contains("no household Nowhere"));
+        Assert.Contains(problems, p => p.Contains("Penny (40): parent Pam"));
+        Assert.Contains(problems, p => p.Contains("Field is 300 x 1"));
+        Assert.Contains(problems, p => p.Contains("places: the replay holds up to 127"));
+    }
+
+    /// <summary>--tensions sets the shipped tensions' depth and keeps a town's own starting regards.</summary>
+    [Fact]
+    public void TensionsKeepATownsOwnStartingRegards()
+    {
+        Assert.Equal(DefaultTown.Tensions(0.2).OrderBy(x => x.Key), Towns.WithTensions(DefaultTown.Feelings().Start, 0.2).OrderBy(x => x.Key));
+        var start = Towns.Pelican31().Feelings.Start;
+        Assert.Equal(0.4, start[("Clint", "Emily")]);
+        var shallow = Towns.WithTensions(start, 0.1);
+        Assert.Equal(0.4, shallow[("Clint", "Emily")]);
+        Assert.Equal(-0.1, shallow[("Pierre", "Shane")]);
+        var none = Towns.WithTensions(start, 0);
+        Assert.Equal(0.4, none[("Clint", "Emily")]);
+        Assert.DoesNotContain(("Pierre", "Shane"), none.Keys);
+    }
+
     [Fact]
     public void The31TownRunsTheSameEveryTime_AndIsPinned()
     {
