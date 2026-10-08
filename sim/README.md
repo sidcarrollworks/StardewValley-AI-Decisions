@@ -938,6 +938,48 @@ What it says:
 - **On the review's set two gates fail:** friendships are +36% against the baseline (the limit is 30%), and 8% of three-year towns end at war (the limit is 5%).
 - **Stand-ups are rare** (2-3 a year), because first strikes are rare: most hostility answers earlier hostility.
 
+### acts-6, Late: LateForWork (built 2026-10-08; off)
+
+`--catalog late` (acts spec 4.11): someone the late check marks late comes in late when they reach their job place that day (`Arrivals`), once a day. Whoever is there sees it.
+- Trivia 1.5, felt by the late one alone (-0.05, freedom 0.3, so not a mishap to pity).
+- Derived, not a gate act, so it happens with feelings off too.
+- About 2 a season, as before: the late check is unchanged.
+
+`LateTests` (3).
+
+### The batch gate: batch 1 with every slice on (acts spec 8, acts-z)
+
+The acts-0 protocol, on both bases. "All six" is `--catalog returns,company,welcome,repair,sides,late`, measured after cloud's two cuts to Sides (#69's review); "without Sides" is the same less `sides`.
+
+| measure | baseline | all six | without Sides | gate |
+|---|---|---|---|---|
+| **shipped town** | | | | |
+| band: in band / over 70% | 55% / 25% | 55% / 22% | 55% / 22% | 50%+ |
+| E1, 400 seeds | 61% | 68% | 62% | 60%+ |
+| feuds, friendships a year (400) | 7.85, 0.92 | 8.58 (+9%), 1.11 (+21%) | 7.21 (-8%), 1.04 (+13%) | ±30% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.46 | 1.60 | **1.46** | 0d.6: 1.5 |
+| three years: the gate's kind acts, year 3 ÷ year 1 | 1.40 | 1.01 | 0.96 | 1.5 at most |
+| three years: war towns | 0% | 4% | 0% | under 5% |
+| trivia, news a year | 696, 265 | 1,037, 283 (+7%) | 1,008, 248 (-6%) | 900-1,350; news +10% at most |
+| heavy hostile acts by the gate | 153 | 172 (+12%) | 137 (-10%) | +15% at most |
+| kindness ignored; returned within 7 days | 40%; 62% | 31%; 70% | 32%; 69% | falls; rises, under 90% |
+| median feud | 38 d | 45 d | | 28 d+ |
+| **review's set** | | | | |
+| band | 56% / 24% | 57% / 21% | 57% / 21% | |
+| E1, 400 seeds | 73% | 86% | 81% | |
+| feuds, friendships a year (400) | 7.09, 1.33 | 8.09 (+14%), **1.83 (+38%)** | 6.77 (-5%), 1.64 (+23%) | ±30% |
+| three years: moved 0.1+ d335 ÷ d111 | 1.41 | 1.46 | 1.37 | |
+| three years: war towns | 0% | 0% | 0% | under 5% |
+| trivia | 956 | 1,328 | 1,301 | 900-1,350 |
+| hermits (shyest third) | 0.28 (100%) | 0.34 (100%) | | above 0, 90% |
+
+Money is conserved to 0.000 g in every run.
+
+What it says:
+- **Batch 1 without Sides passes every gate on both bases**, the three-year drift included. Feuds fall a little and friendships rise a little: thanks, compliments and apologies settle what used to sour.
+- **With Sides**, the shipped town passes the spec's gates, but its three-year drift is 1.60. On the review's set, friendships rise 38%, past the 30% limit.
+- **Trivia sits inside its band on both bases** (1,000-1,330 a year), and news moves under 5%.
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
