@@ -452,7 +452,7 @@ public sealed partial class Simulation
             double regard = St(w, t);
             if (kin || regard >= _fo.Acts.DefendAt)
             {
-                double felt = Math.Abs(row.Joy) * b.Clarity * (kin ? 0.5 : regard) * Sens(wi);
+                double felt = Math.Abs(row.Joy) * b.Clarity * (kin ? Math.Max(0.5, regard) : regard) * Sens(wi); // kin at least 0.5, never less than their love
                 if (felt <= 0)
                     continue;
                 if (_fo.Acts.Watch)
@@ -504,6 +504,12 @@ public sealed partial class Simulation
     /// toward the defender, and wants to return it.</summary>
     private void Defended(Act act, int defender, int m)
     {
+        // The target has been defended: the other witnesses' wish to stand up against the same
+        // aggressor over the same hurt is settled (cloud's review of #69: no crowd of stand-ups).
+        if (_index.TryGetValue(act.Target ?? "", out int aggressor))
+            foreach (var key in _desires.Where(p => p.Key.Kind == (int)DesireKind.Defend && p.Key.Subject == aggressor
+                                                    && p.Key.Holder != defender && p.Value.Source == act.About).Select(p => p.Key).ToList())
+                _desires.Remove(key);
         if (act.With is not { } with || !_index.TryGetValue(with, out int wi) || KindOf(act).Affect is not { WithJoy: > 0 } row
             || !_beliefs[with].TryGetValue(act.Id, out Belief? b) || b.Source != Source.Witnessed || b.Actor != act.Actor)
             return;

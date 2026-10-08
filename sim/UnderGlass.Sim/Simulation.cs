@@ -172,6 +172,11 @@ public sealed class SimResult
     /// <summary>The act catalog's watch record (acts spec 2.3): the catalog rows the gate would have
     /// started, had watch been off. Empty unless <see cref="ActOptions.Watch"/> is on.</summary>
     public IReadOnlyList<CatalogWatched> CatalogWatch { get; init; } = Array.Empty<CatalogWatched>();
+    /// <summary>Batch 2's reach checks (spec 5.4): each scandal's and each scenario act's circle, the
+    /// people who knew its actor at familiarity 0.2 or more as its day began, by act id.</summary>
+    public IReadOnlyDictionary<int, IReadOnlyList<string>> Circles { get; init; } = new Dictionary<int, IReadOnlyList<string>>();
+    /// <summary>The acts scenarios placed (spec 5.2), by act id, with the scenario's name.</summary>
+    public IReadOnlyDictionary<int, string> Scenarios { get; init; } = new Dictionary<int, string>();
 }
 
 /// <summary>
@@ -386,6 +391,8 @@ public sealed partial class Simulation
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
             _now = m;
+            if (Clock.OfDay(m) == 0)
+                KeepDayStart(); // batch 2's reach checks: who knew whom as the day began
             if (HasMoney && Clock.OfDay(m) == 0)
             {
                 if (Clock.Weekday(m) == 0)
@@ -454,6 +461,8 @@ public sealed partial class Simulation
             Familiarity = Pairs(_fam),
             FeudSpells = FeudSpells(),
             CatalogWatch = CatalogWatch(),
+            Circles = _circles,
+            Scenarios = _scenarioActs,
         };
     }
 
@@ -490,6 +499,7 @@ public sealed partial class Simulation
             CountOut(m);
         }
         StartScheduled(m);
+        StartScenarios(m); // batch 2's scenario harness; nothing without a scenario
         Watch(m, t);
         FinishActs(m);
         if (tick)
@@ -882,6 +892,7 @@ public sealed partial class Simulation
             target = TargetFor(kind, row, actor, m);
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
+        RecordCircle(act, kind); // batch 2's reach checks: a scandal's circle
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);
         actor.BusyUntil = m + kind.DurationMinutes - 1;
