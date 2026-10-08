@@ -21,10 +21,16 @@ and takes a few seconds to record; a year is about 5 MB.
 
 ## What it shows
 
-- **The timeline** across the top, under the run's name and its clock: a ruler of seasons, weeks
-  and the run's turning points (feuds, friendships, reconciliations, scandals) over a fader, with
-  the playback keys under it. Click the ruler to jump. Space plays; arrow keys step 5 minutes
-  (Shift: an hour); `[` and `]` step a day.
+- **The whole town**, across the top like the picture of a video player: every place on one plan,
+  everyone moving through it, a dashed circle where a gathering is on, a ring where an act happens
+  (blue kind, red hostile; larger for a scandal), and an orange outline on each place where things
+  have happened in the last two hours, fading as they age. The run gives no positions, so the plan
+  is stitched from the doors: the largest place out of doors in the middle, each place hung outside
+  the door that leads to it, roads running across, streets joining the doors. Hover for who is
+  where; click a person to follow them, or a place to go to its map.
+- **The timeline** under it: a ruler of seasons, weeks and the run's turning points (feuds,
+  friendships, reconciliations, scandals) over a fader, then the clock and the playback keys. Click
+  the ruler to jump. Space plays; arrow keys step 5 minutes (Shift: an hour); `[` and `]` step a day.
 - **Town:** every place as a small map, grouped and largest first, all at one scale. The square,
   where the town gathers, spans the whole width, with who is there beside it. Each plate is as
   wide as its map, so nothing shifts as people come and go. A dot is a person, coloured by mood

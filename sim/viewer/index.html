@@ -79,12 +79,11 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 
 /* The masthead: one section. The run and its clock across the top; under them the ruler, the
    fader, and the playback keys with the ruler's legend. */
-.masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand screen" "timeline timeline"; align-items: center; gap: 16px 24px; padding: 18px 20px 14px; }
-.masthead .brand { grid-area: brand; }
-.masthead .screen { grid-area: screen; }
-.masthead .timeline { grid-area: timeline; }
-@media (max-width: 640px) { .masthead { grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "screen" "timeline"; } .masthead .screen { justify-self: stretch; } }
-.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; }
+.masthead { display: grid; gap: 12px; padding: 20px 20px 14px; min-width: 0; }
+/* The whole town, like the picture of a video player: the timeline under it plays it. */
+.townview { position: relative; min-width: 0; }
+.townview canvas { display: block; width: 100%; cursor: crosshair; }
+.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .transport button { font-size: var(--step--1); padding: 3px 9px; border-radius: 7px; }
@@ -96,7 +95,7 @@ button.link { background: none; border: 0; box-shadow: none; padding: 0; border-
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
 button.link:hover { text-decoration-color: var(--ink-2); }
 button.link:active { transform: none; }
-.screen { justify-self: end; background: var(--screen); border-radius: 10px; padding: 8px 14px 6px; display: grid; justify-items: end; gap: 0; min-width: 210px;
+.screen { background: var(--screen); border-radius: 8px; padding: 5px 11px 4px; display: grid; justify-items: end; gap: 0; min-width: 132px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
   background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 3px 3px; }
 .screen .date { font-family: var(--font-data); font-size: var(--step--2); color: var(--screen-dim); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -105,12 +104,13 @@ button.link:active { transform: none; }
   background: var(--screen-ink); box-shadow: 0 0 5px rgba(255, 120, 50, 0.45); }
 .screen .time .colon::before { top: 0.3em; }
 .screen .time .colon::after { top: 0.54em; }
-.screen .time { font-family: var(--font-dots); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--screen-ink); letter-spacing: 0.04em;
+.screen .time { font-family: var(--font-dots); font-weight: 800; font-size: 1.7rem; line-height: 1; color: var(--screen-ink); letter-spacing: 0.04em;
   text-shadow: 0 0 5px rgba(255, 120, 50, 0.45), 0 0 14px rgba(255, 100, 30, 0.2); font-variant-numeric: tabular-nums; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
-.deck { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+.deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.deck .legend { margin-inline-start: auto; }
 .timeline canvas { width: 100%; height: 38px; display: block; cursor: pointer; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
@@ -273,21 +273,24 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 </style>
 
 <div class="app" id="app">
+  <div class="brand">
+    <h1>Under Glass</h1>
+    <div class="run" id="runLabel">No run loaded</div>
+    <button id="openBtn" class="link" type="button">Open a run…</button>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  </div>
   <header class="masthead marks">
-    <div class="brand">
-      <h1>Under Glass</h1>
-      <div class="run" id="runLabel">No run loaded</div>
-      <button id="openBtn" class="link" type="button">Open a run…</button>
-      <input type="file" id="fileInput" accept=".json,application/json" hidden>
-    </div>
-    <div class="screen" aria-live="off">
-      <div class="date" id="clockDate">–</div>
-      <div class="time" id="clockTime"><span id="clockH">--</span><span class="colon">:</span><span id="clockM">--</span></div>
+    <div class="townview" id="townview">
+      <canvas id="townmap" aria-label="The whole town: everyone where they are, and where things are happening"></canvas>
     </div>
     <div class="timeline" role="group" aria-label="Timeline">
       <canvas id="strip" height="34"></canvas>
       <input type="range" id="scrub" min="0" max="0" value="0" step="5" aria-label="Time in the run">
       <div class="deck">
+        <div class="screen" aria-live="off">
+          <div class="date" id="clockDate">–</div>
+          <div class="time" id="clockTime"><span id="clockH">--</span><span class="colon">:</span><span id="clockM">--</span></div>
+        </div>
         <div class="transport" role="group" aria-label="Playback">
           <button id="backDay" title="Back a day ([)" aria-label="Back a day">−1d</button>
           <button id="backHour" title="Back an hour (Shift+←)" aria-label="Back an hour">−1h</button>
@@ -631,6 +634,7 @@ function render() {
   $("clockDate").textContent = dateOf(t);
   const [hh, mm] = hm(t).split(":"); $("clockH").textContent = hh; $("clockM").textContent = mm;
   drawStrip();
+  drawTownMap();
   if (S.tab === "town") drawTown();
   // The panels below are slower to draw than the map: while playing they redraw every 30 game
   // minutes (the log every 5); paused or stepped, at every minute, so they always match the clock.
@@ -834,8 +838,8 @@ function panelHit(panel, e) {
   for (const d of panel.dots) { const dd = (d.cx - sx) ** 2 + (d.cy - sy) ** 2; if (dd < bd) { bd = dd; best = d.i; } }
   return best;
 }
-function panelHover(panel, e) {
-  const i = panelHit(panel, e);
+function panelHover(panel, e, who) {
+  const i = who ?? panelHit(panel, e);
   if (i < 0) { hideTip(); return; }
   const q = where(i, S.t), parts = [el("div", null, el("strong", { text: R.names[i] }), q.asleep ? " · asleep" : "")];
   if (R.feelings) parts.push(`mood ${sgn(moodAt(i, S.t))} · power ${powerAt(i, S.t).toFixed(2)}`);
@@ -843,6 +847,194 @@ function panelHover(panel, e) {
   if (a) parts.push(R.actText(a));
   showTip(e, parts);
 }
+
+// ---- the whole town ---------------------------------------------------------------------------
+// Places are tile maps joined by doors; the run has no positions for them in one plan. So the plan
+// is stitched from the doors: the largest place out of doors sits in the middle, and each place is
+// hung outside the door that leads to it, centred on that door, two tiles off. Roads always run
+// across, so the town spreads wide like the frame: one leaving a side runs outward, one leaving the
+// top or the bottom runs away from the middle, and what hangs on a road follows it. A place that
+// would overlap another goes to the nearest free spot. Streets join each pair of doors at right angles.
+let TOWN = null; // { at: per place {X, Y, W, H, rot}, links: [[x1, y1, x2, y2]], minX, minY, w, h }
+const ROT = [ // local (x, y) in a w x h map to the plan, by quarter turns clockwise; and a direction
+  { pt: (x, y) => [x, y], dir: (dx, dy) => [dx, dy], size: (w, h) => [w, h] },
+  { pt: (x, y, w, h) => [h - 1 - y, x], dir: (dx, dy) => [-dy, dx], size: (w, h) => [h, w] },
+  { pt: (x, y, w, h) => [w - 1 - x, h - 1 - y], dir: (dx, dy) => [-dx, -dy], size: (w, h) => [w, h] },
+  { pt: (x, y, w) => [y, w - 1 - x], dir: (dx, dy) => [dy, -dx], size: (w, h) => [h, w] },
+];
+function sideOf(p, x, y) { return x === 0 ? [-1, 0] : x === p.w - 1 ? [1, 0] : y === 0 ? [0, -1] : y === p.h - 1 ? [0, 1] : [0, 1]; }
+function planPoint(a, p, x, y) { const [px, py] = ROT[a.rot].pt(x, y, p.w, p.h); return [a.X + px, a.Y + py]; }
+function layoutTownPlan() {
+  const P = R.places, at = P.map(() => null), GAP = 2, M = 1;
+  const outdoor = P.filter((p) => p.group === "outdoors");
+  const root = (outdoor.length ? outdoor : P).reduce((m, p) => (p.w * p.h > m.w * m.h ? p : m));
+  at[root.i] = { X: 0, Y: 0, W: root.w, H: root.h, rot: 0 };
+  const adj = P.map(() => []);
+  for (const l of R.run.links) { adj[l[0]].push([l[1], l[2], l[3], l[4], l[5]]); adj[l[3]].push([l[4], l[5], l[0], l[1], l[2]]); }
+  const overlaps = (r) => at.some((o) => o && r.X < o.X + o.W + M && o.X < r.X + r.W + M && r.Y < o.Y + o.H + M && o.Y < r.Y + r.H + M);
+  const links = [], queue = [root.i];
+  while (queue.length) {
+    const pi = queue.shift(), p = P[pi], a = at[pi];
+    for (const [fx, fy, qi, tx, ty] of adj[pi]) {
+      if (at[qi]) continue;
+      const q = P[qi], [lx, ly] = sideOf(p, fx, fy), [dx, dy] = ROT[a.rot].dir(lx, ly), [px, py] = planPoint(a, p, fx, fy);
+      let rot = 0, X, Y;
+      const road = q.group === "road" && (tx === 0 || tx === q.w - 1);
+      if (road) {
+        // Across, its door end toward the door it hangs from: outward from a side; away from the
+        // middle of the place from its top or bottom.
+        const runs = dx !== 0 ? dx : (px >= a.X + a.W / 2 ? 1 : -1);
+        rot = (tx === 0) === (runs > 0) ? 0 : 2;
+        const [ox, oy] = ROT[rot].pt(tx, ty, q.w, q.h);
+        X = dx !== 0 ? px + dx * (1 + GAP) - ox : px - ox;
+        Y = dy !== 0 ? py + dy * (1 + GAP) - oy + (dy > 0 ? 0 : 0) : py - oy;
+      } else {
+        const [W0, H0] = [q.w, q.h];
+        X = dx > 0 ? px + 1 + GAP : dx < 0 ? px - GAP - W0 : px - Math.floor(W0 / 2);
+        Y = dy > 0 ? py + 1 + GAP : dy < 0 ? py - GAP - H0 : py - Math.floor(H0 / 2);
+      }
+      const [W, H] = ROT[rot].size(q.w, q.h);
+      // The nearest free spot: moving along the side costs a tile a tile, moving farther out more.
+      let r = null, best = Infinity;
+      for (let out = 0; out <= 60; out++) for (let slide = -50; slide <= 50; slide++) {
+        const cost = Math.abs(slide) + out * 1.5;
+        if (cost >= best) continue;
+        const c = { X: X + dx * out + (dx === 0 ? slide : 0), Y: Y + dy * out + (dy === 0 ? slide : 0) + (dx !== 0 ? 0 : 0), W, H, rot };
+        if (dx !== 0) c.Y = Y + slide; else c.X = X + slide;
+        if (!overlaps(c)) { r = c; best = cost; }
+      }
+      at[qi] = r ?? { X, Y, W, H, rot };
+      const [qx, qy] = planPoint(at[qi], q, tx, ty);
+      links.push([px + 0.5, py + 0.5, qx + 0.5, qy + 0.5, dx !== 0]);
+      queue.push(qi);
+    }
+  }
+  // Anything not reached by a door goes in a row underneath.
+  let maxY = Math.max(...at.filter(Boolean).map((r) => r.Y + r.H)), x0 = Math.min(...at.filter(Boolean).map((r) => r.X));
+  for (const p of P) if (!at[p.i]) { at[p.i] = { X: x0, Y: maxY + GAP * 2, W: p.w, H: p.h, rot: 0 }; x0 += p.w + GAP * 2; }
+  const minX = Math.min(...at.map((r) => r.X)), minY = Math.min(...at.map((r) => r.Y));
+  const maxX = Math.max(...at.map((r) => r.X + r.W)); maxY = Math.max(...at.map((r) => r.Y + r.H));
+  TOWN = { at, links, minX: minX - 1, minY: minY - 1, w: maxX - minX + 2, h: maxY - minY + 2, scale: 0, cssW: 0, back: null };
+}
+function sizeTownMap() {
+  const c = $("townmap"), W = $("townview").clientWidth;
+  if (!W || !TOWN) return false;
+  const h = clamp(Math.round(W * TOWN.h / TOWN.w), 220, 460), scale = Math.min(W / TOWN.w, h / TOWN.h);
+  if (W === TOWN.cssW && TOWN.scale === scale) return true;
+  const dpr = window.devicePixelRatio || 1;
+  TOWN.cssW = W; TOWN.cssH = h; TOWN.scale = scale; TOWN.back = null;
+  TOWN.offX = (W - TOWN.w * scale) / 2; TOWN.offY = (h - TOWN.h * scale) / 2;
+  c.width = Math.round(W * dpr); c.height = Math.round(h * dpr); c.style.height = h + "px";
+  return true;
+}
+/** The plan point (in tiles) of a person's tile in a place, as pixels on the canvas. */
+function townPx(placeIdx, x, y) {
+  const a = TOWN.at[placeIdx], p = R.places[placeIdx], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h), s = TOWN.scale;
+  return [TOWN.offX + (a.X + px - TOWN.minX + 0.5) * s, TOWN.offY + (a.Y + py - TOWN.minY + 0.5) * s];
+}
+function paintTownBack() {
+  const dpr = window.devicePixelRatio || 1, s = TOWN.scale, off = document.createElement("canvas");
+  off.width = Math.round(TOWN.cssW * dpr); off.height = Math.round(TOWN.cssH * dpr);
+  const g = off.getContext("2d"); g.scale(dpr, dpr);
+  const X = (x) => TOWN.offX + (x - TOWN.minX) * s, Y = (y) => TOWN.offY + (y - TOWN.minY) * s;
+  // The ways between doors, as streets: out from the first door, across, and in to the second.
+  g.strokeStyle = COL.fence; g.lineWidth = Math.max(1, s * 0.5); g.lineCap = "square"; g.lineJoin = "miter";
+  for (const [x1, y1, x2, y2, across] of TOWN.links) {
+    g.beginPath(); g.moveTo(X(x1), Y(y1));
+    if (across) { const xm = (x1 + x2) / 2; g.lineTo(X(xm), Y(y1)); g.lineTo(X(xm), Y(y2)); }
+    else { const ym = (y1 + y2) / 2; g.lineTo(X(x1), Y(ym)); g.lineTo(X(x2), Y(ym)); }
+    g.lineTo(X(x2), Y(y2)); g.stroke();
+  }
+  const labels = [];
+  for (const p of R.places) {
+    const a = TOWN.at[p.i];
+    g.fillStyle = COL["surface-hi"]; g.fillRect(X(a.X), Y(a.Y), a.W * s, a.H * s);
+    for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+      const c = p.rows[y][x], [px, py] = ROT[a.rot].pt(x, y, p.w, p.h), cx = X(a.X + px), cy = Y(a.Y + py);
+      g.fillStyle = c === "#" ? COL.wall : c === "+" ? COL.fence : COL["surface-2"];
+      if (c === "#" || s < 4) g.fillRect(cx, cy, s + 0.02, s + 0.02); else g.fillRect(cx, cy, s - 0.6, s - 0.6);
+    }
+  }
+  // Names last, each on a patch of the ground so nothing drawn later hides it; largest places
+  // first, and a name that would cover another is left out (hover still names the place).
+  const fs = Math.max(8, Math.min(10, s * 1.3));
+  g.font = `500 ${fs}px ${css("--font-data")}`; g.textBaseline = "middle";
+  for (const p of R.places.slice().sort((x, y) => y.w * y.h - x.w * x.h)) {
+    const a = TOWN.at[p.i], name = (p.name.startsWith("Home:") ? p.name.slice(5) : p.name).replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase();
+    const lw = g.measureText(name).width, lr = { x: X(a.X) + 3, y: Y(a.Y) + 3, w: lw + 6, h: fs + 4 };
+    if (lr.w > a.W * s + 24 || lr.x + lr.w > TOWN.cssW || labels.some((o) => lr.x < o.x + o.w && o.x < lr.x + lr.w && lr.y < o.y + o.h && o.y < lr.y + lr.h)) continue;
+    labels.push(lr);
+    g.fillStyle = COL.bg; g.globalAlpha = 0.85; g.fillRect(lr.x, lr.y, lr.w, lr.h); g.globalAlpha = 1;
+    g.fillStyle = COL["ink-2"]; g.fillText(name, lr.x + 3, lr.y + lr.h / 2 + 0.5);
+  }
+  TOWN.back = off;
+}
+function drawTownMap() {
+  if (!TOWN || !sizeTownMap()) return;
+  if (!TOWN.back) paintTownBack();
+  const t = S.t, c = $("townmap"), g = c.getContext("2d"), dpr = window.devicePixelRatio || 1, s = TOWN.scale;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(TOWN.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Where things have happened in the last two hours: each place glows by how much, fading as it ages.
+  const heat = new Float64Array(R.places.length);
+  for (let k = upperBound(R.acts, t, (a) => a.tick) - 1; k >= 0 && R.acts[k].tick > t - 120; k--) {
+    const a = R.acts[k]; heat[a.place] += t < a.end ? 1 : 1 - (t - a.end) / 120;
+  }
+  for (const p of R.places) if (heat[p.i] > 0.01) {
+    const a = TOWN.at[p.i], x = TOWN.offX + (a.X - TOWN.minX) * s, y = TOWN.offY + (a.Y - TOWN.minY) * s, f = Math.min(1, heat[p.i]);
+    g.fillStyle = COL.accent; g.globalAlpha = 0.06 + 0.12 * f; g.fillRect(x, y, a.W * s, a.H * s);
+    g.globalAlpha = 0.35 + 0.65 * f; g.strokeStyle = COL.accent; g.lineWidth = 2; g.strokeRect(x - 1.5, y - 1.5, a.W * s + 3, a.H * s + 3); g.globalAlpha = 1;
+  }
+  // Gathering spots that are on.
+  g.setLineDash([3, 3]);
+  for (const hub of R.run.hubs) if (hubOn(hub, t)) {
+    const [cx, cy] = townPx(hub.place, hub.x, hub.y);
+    g.fillStyle = COL.hub; g.strokeStyle = COL["hub-ring"]; g.lineWidth = 1;
+    g.beginPath(); g.arc(cx, cy, (hub.radius + 0.5) * s, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+  g.setLineDash([]);
+  // Acts as they happen: a ring that widens and fades over the next hour.
+  for (let k = upperBound(R.acts, t, (a) => a.tick) - 1; k >= 0 && R.acts[k].tick > t - 60; k--) {
+    const a = R.acts[k], kd = R.kinds[a.kind], age = (t - a.tick) / 60, [cx, cy] = townPx(a.place, a.x, a.y);
+    const big = kd.tier === "Scandal" || kd.tier === "Upheaval";
+    g.strokeStyle = kd.joy > 0 ? COL.like : kd.joy < 0 || kd.valence < 0 ? COL.dislike : COL["ink-2"];
+    g.globalAlpha = 1 - age; g.lineWidth = big ? 2.5 : 1.75;
+    g.beginPath(); g.arc(cx, cy, s * (1 + age * (big ? 5 : 3)), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+  }
+  // Everyone.
+  TOWN.dots = [];
+  const r = Math.max(2, s * 0.45);
+  for (let i = 0; i < R.n; i++) {
+    const q = where(i, t), [cx, cy] = townPx(q.place, q.x, q.y);
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
+    if (q.asleep) { g.strokeStyle = COL.muted; g.lineWidth = 1; g.stroke(); }
+    else { g.fillStyle = R.feelings ? moodColour(moodAt(i, t)) : COL["ink-2"]; g.fill(); }
+    if (i === S.person) { g.beginPath(); g.arc(cx, cy, r + 2.5, 0, Math.PI * 2); g.strokeStyle = COL.accent; g.lineWidth = 2; g.stroke(); }
+    TOWN.dots.push({ i, cx, cy });
+  }
+}
+function townMapHit(e) {
+  const rect = $("townmap").getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+  let best = -1, bd = Math.max(8, TOWN.scale * 1.2) ** 2;
+  for (const d of TOWN.dots ?? []) { const dd = (d.cx - x) ** 2 + (d.cy - y) ** 2; if (dd < bd) { bd = dd; best = d.i; } }
+  const s = TOWN.scale, place = R.places.find((p) => { const a = TOWN.at[p.i], px = TOWN.offX + (a.X - TOWN.minX) * s, py = TOWN.offY + (a.Y - TOWN.minY) * s; return x >= px && x <= px + a.W * s && y >= py && y <= py + a.H * s; });
+  return { person: best, place };
+}
+$("townmap").addEventListener("mousemove", (e) => {
+  if (!R || !TOWN) return;
+  const { person, place } = townMapHit(e);
+  if (person >= 0) { panelHover({ canvas: { getBoundingClientRect: () => ({}) } }, e, person); return; }
+  if (!place) { hideTip(); return; }
+  const here = R.names.map((_, i) => i).filter((i) => where(i, S.t).place === place.i);
+  const now = R.acts.filter((a) => a.place === place.i && a.tick <= S.t && S.t < a.end);
+  showTip(e, [el("div", null, el("strong", { text: placeName(place.name) })), here.length ? here.map((i) => R.names[i]).join(", ") : "nobody here", ...now.map((a) => R.actText(a))]);
+});
+$("townmap").addEventListener("mouseleave", hideTip);
+$("townmap").addEventListener("click", (e) => {
+  if (!R || !TOWN) return;
+  const { person, place } = townMapHit(e);
+  if (person >= 0) { selectPerson(person); return; }
+  if (place) { if (S.tab !== "town") showTab("town"); const panel = panels.find((x) => x.p.i === place.i); panel?.node.scrollIntoView({ behavior: "smooth", block: "center" }); }
+});
 
 // ---- relationships ----------------------------------------------------------------------------
 function pairValue(i, j, t) {
@@ -1385,7 +1577,7 @@ function start(run, source) {
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
-  buildTown(); buildFeedFilters(); buildPopulationControls(); syncPopControls();
+  buildTown(); layoutTownPlan(); buildFeedFilters(); buildPopulationControls(); syncPopControls();
   S.person = -1; S.pair = null; S.story = -1;
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
@@ -1429,7 +1621,7 @@ document.addEventListener("dragover", (e) => { e.preventDefault(); $("app").clas
 document.addEventListener("dragleave", (e) => { if (e.target === document.documentElement || !e.relatedTarget) $("app").classList.remove("drop"); });
 document.addEventListener("drop", (e) => { e.preventDefault(); $("app").classList.remove("drop"); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
 const themeWatch = window.matchMedia("(prefers-color-scheme: dark)");
-const recolour = () => { if (!R) return; readColours(); for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
+const recolour = () => { if (!R) return; readColours(); if (TOWN) TOWN.back = null; for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
 themeWatch.addEventListener?.("change", recolour);
 new MutationObserver(recolour).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 window.addEventListener("resize", () => R && render());
