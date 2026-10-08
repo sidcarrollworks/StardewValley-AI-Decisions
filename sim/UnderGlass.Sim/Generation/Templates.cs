@@ -68,32 +68,37 @@ public static class Templates
         return new Template("Green", Rows(g), steps, new Tile(w - 1, h / 2), linger, 4, benches, new Tile(1, h / 2), zones);
     }
 
-    /// <summary>The Lane: two facing rows of houses with hedged back gardens along a street 4 wide,
-    /// and a small green at the far end; next-door steps 7 apart.</summary>
+    /// <summary>The Lane: facing rows of homes with hedged back gardens along a street, and a small
+    /// green (a linger spot and benches) in the middle of the lane, between the western and eastern
+    /// plots, so every home is within 25 route tiles of it (town spec 2.4). The street runs the
+    /// lane's length on its middle row, from the entry at the west end to the east end.</summary>
     public static Template Lane(int homes)
     {
-        int perRow = (homes + 1) / 2, plot = 7;
-        int w = 2 + perRow * plot + 12, h = 15;
+        int perRow = (homes + 1) / 2, plot = 7, green = 12;
+        int west = perRow / 2; // plots west of the green in each row
+        int w = 2 + perRow * plot + green, h = 15;
         var g = Blank(w, h);
-        Hedge(g, 0, 0, 2 + perRow * plot, 0);            // back gardens, north
-        Hedge(g, 0, h - 1, 2 + perRow * plot, h - 1);    // and south
+        int X(int i) => 2 + i * plot + (i >= west ? green : 0);
+        int gx = 2 + west * plot; // the green's first column
+        Hedge(g, 0, 0, gx - 1, 0);             // back gardens, north, west of the green
+        Hedge(g, gx + green, 0, w - 1, 0);     // and east of it
+        Hedge(g, 0, h - 1, gx - 1, h - 1);     // and south
+        Hedge(g, gx + green, h - 1, w - 1, h - 1);
         var steps = new List<Tile>();
         for (int i = 0; i < perRow; i++)
         {
-            steps.Add(House(g, 2 + i * plot, 2, facesDown: true));          // steps on row 5
-            Hedge(g, 2 + i * plot + Foot + 1, 1, 2 + i * plot + Foot + 1, 3); // a hedge between gardens
+            steps.Add(House(g, X(i), 2, facesDown: true));           // steps on row 5
+            Hedge(g, X(i) + Foot + 1, 1, X(i) + Foot + 1, 3);       // a hedge between gardens
         }
         for (int i = 0; i < homes - perRow; i++)
         {
-            steps.Add(House(g, 2 + i * plot, h - 2 - Deep, facesDown: false)); // steps on row 9
-            Hedge(g, 2 + i * plot + Foot + 1, h - 4, 2 + i * plot + Foot + 1, h - 2);
+            steps.Add(House(g, X(i), h - 2 - Deep, facesDown: false)); // steps on row 9
+            Hedge(g, X(i) + Foot + 1, h - 4, X(i) + Foot + 1, h - 2);
         }
-        // The small green at the east end.
-        int gx = 2 + perRow * plot + 2;
-        var linger = new Tile(gx + 4, h / 2);
-        var benches = new[] { new Tile(gx + 1, 3), new Tile(gx + 7, 3), new Tile(gx + 1, h - 4), new Tile(gx + 7, h - 4) };
+        var linger = new Tile(gx + green / 2 - 1, h / 2);
+        var benches = new[] { new Tile(gx + 1, 3), new Tile(gx + green - 3, 3), new Tile(gx + 1, h - 4), new Tile(gx + green - 3, h - 4) };
         var zones = new[] { linger, new Tile(gx + 2, h / 2 - 2), new Tile(w / 3, h / 2) };
-        return new Template("Lane", Rows(g), steps, new Tile(0, h / 2), linger, 3, benches, new Tile(gx + 8, h - 2), zones);
+        return new Template("Lane", Rows(g), steps, new Tile(0, h / 2), linger, 3, benches, new Tile(gx + green - 2, h - 2), zones);
     }
 
     /// <summary>A home's rooms, sized by household (town spec 2.2): 8 x 6 for one, 9 x 7 for two,

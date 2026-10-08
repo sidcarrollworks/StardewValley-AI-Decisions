@@ -13,11 +13,32 @@ public static class Towns
     /// <summary>A town by name: "pelican" (the shipped 26), "pelican31", a generated town written as
     /// its spec, such as "pelican:60@7" (<see cref="Generation.TownGen"/>), or a town file written by
     /// --dump-town, as "file:path" (<see cref="TownJson"/>).</summary>
+    /// <summary>A town's starting regards with the shipped tensions (<see cref="DefaultTown.TensionPairs"/>)
+    /// at -depth, or left out at depth 0; every other starting regard the town has (the 31 town's
+    /// Clint toward Emily, a grown town's rivals) is kept. For the runner's and the replay's
+    /// --tensions; on the shipped town it gives <see cref="DefaultTown.Tensions"/>.</summary>
+    public static IReadOnlyDictionary<(string From, string To), double> WithTensions(IReadOnlyDictionary<(string From, string To), double> start, double depth)
+    {
+        var shipped = DefaultTown.TensionPairs.ToHashSet();
+        var result = start.Where(x => !shipped.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
+        foreach (var (pair, value) in DefaultTown.Tensions(depth))
+            result[pair] = value;
+        return result;
+    }
+
+    /// <summary>A town read from a file, refused with what <see cref="TownCheck"/> finds wrong with it
+    /// (a hand edit can put a door on a wall, or name a keeper who isn't in the town).</summary>
+    private static TownData Checked(TownData town, string path)
+    {
+        var problems = TownCheck.Problems(town);
+        return problems.Count == 0 ? town : throw new ArgumentException($"the town in {path} has problems: {string.Join("; ", problems)}");
+    }
+
     public static TownData Named(string name) => name switch
     {
         "pelican" or "pelican26" => TownData.Default(),
         "pelican31" => Pelican31(),
-        _ when name.StartsWith("file:", StringComparison.Ordinal) => TownJson.Read(File.ReadAllText(name[5..])),
+        _ when name.StartsWith("file:", StringComparison.Ordinal) => Checked(TownJson.Read(File.ReadAllText(name[5..])), name[5..]),
         _ when name.Contains(':') => Generation.TownGen.Build(Generation.TownSpec.Parse(name)),
         _ => throw new ArgumentException($"no town called {name}: one of {string.Join(", ", Names)}, or a spec such as pelican:60@7"),
     };
