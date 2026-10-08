@@ -46,8 +46,9 @@ public sealed class ActOptions
     public double WarmBudget { get; set; } = 0.01;
     /// <summary>Days after Fond is answered with a light kind act toward someone before it may be
     /// again (0: no wait). A small act doesn't reset missing someone (question 2, answer c), so
-    /// without this Fond would compliment the same person every day they meet.</summary>
-    public int FondWarmDays { get; set; } = 7;
+    /// without this Fond would compliment the same person every day they meet. 28 holds the gate's
+    /// kindness over three years to 1.5 x year one (a sweep of 0, 3, 7, 14 and 28).</summary>
+    public int FondWarmDays { get; set; } = 28;
     /// <summary>A warm act read cold is felt as -ColdShare x |joy|.</summary>
     public double ColdShare { get; set; } = 0.5;
     /// <summary>Familiarity below which someone is new (Curious).</summary>
