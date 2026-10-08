@@ -740,6 +740,11 @@ T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
 6. **Add the other five** (a): Clint, Willy, Elliott, Linus and the Wizard, as the 31-person step.
 7. **As recommended:** no work out of town at 60; try it at 120 as a measured option.
 
+**Sid's answers, second round (2026-10-08)**, to the grown-town questions on #46 (D1-D3):
+- **D1, forgetting at 60.** At 1% a day each person knows about 14 others well after a year (the range is 15-45); off, about 54. Sid: "What do you think? It might require playtesting." Cloud suggested it on at about 0.5% a day, with a sweep at 60 to pick the rate. ***Sid: take the recommendation.***
+- **D2, a new town seed for each game:** ***an option.***
+- **D3, the per-person gates for grown towns (6.2, "As built").** After asking what it means (at 60 people, E1 and the dead-town rule count pairs, so they pass or fail on size alone; the per-person forms ask the same of each 26 people), ***Sid: yes.***
+
 The original questions, with the recommendations, follow.
 
 1. **Which town to grow first?**
