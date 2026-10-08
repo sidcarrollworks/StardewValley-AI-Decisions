@@ -519,6 +519,7 @@ public sealed partial class Simulation
             Rows(m);
         }
         CheckLate(m, t);
+        Arrivals(m); // the act catalog: coming in late (Late)
     }
 
     // ---- bodies: energy, sleep, alarms (design rule 1) -------------------------------------
