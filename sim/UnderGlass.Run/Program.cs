@@ -19,6 +19,9 @@ using UnderGlass.Sim;
 // --town <name> runs a grown town instead of the shipped one (pelican31, or a generated town such as
 // pelican:60@7, or file:<path>: Towns.Named), --describe prints its census card and hash instead of
 // running, and --dump-town <path> writes it as JSON to edit by hand.
+// The act catalog (acts spec 2.4): --catalog <slices> turns on its switches, a comma list of watch,
+// returns, company, welcome, repair, sides and late (any case; e.g. --catalog returns,company), and
+// adds their rows and cards to the town. (--acts is the cards flag above.)
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -95,6 +98,7 @@ for (int i = 0; i < args.Length - 1; i++)
             break;
         case "--tensions": feelings.Start = Towns.WithTensions(feelings.Start, double.Parse(args[i + 1], inv)); break; // keeps a town's own
         case "--0d6": feelings.With0d6(args[i + 1]); break;
+        case "--catalog": feelings.Acts.With(args[i + 1]); break;
     }
 }
 // --acts Name=Kind:weight, on a copy of the town's cast.
@@ -112,13 +116,18 @@ for (int i = 0; i < args.Length - 1; i++)
         throw new ArgumentException($"--acts: nobody called {who}");
     castChanges.Add((who, spec[(eq + 1)..colon], double.Parse(spec[(colon + 1)..], inv)));
 }
-IReadOnlyList<Villager>? cast = castChanges.Count == 0 ? town?.Cast : townCast.Select(v =>
-{
-    var acts = new Dictionary<string, double>(v.Acts);
-    foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
-        acts[kind] = weight;
-    return v with { Acts = acts };
-}).ToList();
+// The catalog's cards for the slices that are on come first (none yet in acts-0, so the cast stays
+// as it was), and the --acts flags after them, so a weight typed on the line wins over a card.
+IReadOnlyList<Villager> baseCast = ActCatalog.Cards(townCast, feelings.Acts);
+IReadOnlyList<Villager>? cast = castChanges.Count == 0
+    ? ReferenceEquals(baseCast, townCast) ? town?.Cast : baseCast
+    : baseCast.Select(v =>
+    {
+        var acts = new Dictionary<string, double>(v.Acts);
+        foreach (var (who, kind, weight) in castChanges.Where(c => c.Who == v.Name))
+            acts[kind] = weight;
+        return v with { Acts = acts };
+    }).ToList();
 // --trait Name=Trait:value, applied to each run's simulation before it starts.
 var traits = new List<(string Who, Trait Trait, double Value)>();
 for (int i = 0; i < args.Length - 1; i++)
@@ -167,7 +176,8 @@ static FeelingOptions Set(FeelingOptions o, string name, string value)
     return o;
 }
 
-IReadOnlyList<ActKind> kinds = town?.Acts ?? DefaultTown.Acts();
+// The catalog's rows for the slices that are on come after the town's own (none in acts-0).
+IReadOnlyList<ActKind> kinds = ActCatalog.Kinds(feelings.Acts, town?.Acts ?? DefaultTown.Acts());
 for (int i = 0; i < args.Length - 1; i++)
 {
     if (args[i] != "--affect")
@@ -241,6 +251,7 @@ static FeelingOptions Copy(FeelingOptions o)
     var c = new FeelingOptions();
     foreach (var p in typeof(FeelingOptions).GetProperties().Where(p => p.CanWrite))
         p.SetValue(c, p.GetValue(o));
+    c.Acts = o.Acts.Copy();
     return c;
 }
 RunStats stats = Metrics.Summarise(runs, kinds, injectedOnly: inject);

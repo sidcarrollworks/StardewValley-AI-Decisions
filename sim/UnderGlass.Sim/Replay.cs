@@ -45,8 +45,11 @@ public static class Replay
 
     public static Dictionary<string, object?> Record(ReplayOptions o)
     {
-        TownData town = o.Town ?? TownData.Default();
-        FeelingOptions feelings = o.Feelings ?? town.Feelings;
+        TownData given = o.Town ?? TownData.Default();
+        FeelingOptions feelings = o.Feelings ?? given.Feelings;
+        // The act catalog's rows and cards for the slices that are on, added as the runner adds them
+        // (acts spec 2.4); none yet in acts-0, so this is the town given.
+        TownData town = given with { Acts = ActCatalog.Kinds(feelings.Acts, given.Acts), Cast = ActCatalog.Cards(given.Cast, feelings.Acts) };
         IReadOnlyList<Villager> cast = town.Cast;
         IReadOnlyList<Location> places = town.Places;
         IReadOnlyList<Link> links = town.Links;
@@ -354,6 +357,7 @@ public static class Replay
                     s[prefix + p.Name] = p.GetValue(options);
         }
         Add("", f);
+        Add("ActOptions.", f.Acts);
         Add("AuthorityOptions.", town.Authority);
         Add("BodyOptions.", town.Body);
         Add("ForgettingOptions.", town.Gossip.Forgetting);
