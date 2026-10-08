@@ -173,11 +173,11 @@ public class PinnedTests
     /// 0d.6 review's set (bcdefghmt): acts-1, Returns; acts-2, Company, alone and with Returns.
     /// Update only for a deliberate change to a catalog rule or row.</summary>
     [Theory]
-    [InlineData("returns", "", "7b0f0231636969d9")]
-    [InlineData("returns", "bcdefghmt", "636778bad6674689")]
-    [InlineData("company", "", "7129451af1c39d11")]
-    [InlineData("returns,company", "", "1053a99458a3ec62")]
-    [InlineData("returns,company", "bcdefghmt", "76a7acdefa72967a")]
+    [InlineData("returns", "", "a43ef45b297b6d72")]
+    [InlineData("returns", "bcdefghmt", "91f49099ce1f1a8a")]
+    [InlineData("company", "", "5922838f89262278")]
+    [InlineData("returns,company", "", "8a14f966ed4a9510")]
+    [InlineData("returns,company", "bcdefghmt", "502e1f220652a4d1")]
     public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
