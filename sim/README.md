@@ -625,6 +625,59 @@ The kinds batch 2's slices bring (a let-off found out, a kept purse found out, a
 
 **Grown-town gates.** E1, war and dead towns count pairs, and a grown town has more pairs per person than anyone meets: at 60, E1 passes on size alone and the dead-town rule calls 16% of `pelican:60@1`'s seed-years dead. `FeelingMetrics` now also gives scaled forms that count per person (town spec 6.2, "As built"): a war town has more than 2.5 people disliked per person, a dead town fewer than 1.25 moved per person, and E1 asks for a new feud and a new friendship per 26 people (two at 60). At 26 people or fewer they are the gates themselves. The runner prints them, with feuds and friendships per 100 people, for any town that isn't 26 people; `--town-seeds` gives each run its own generated town and prints the spread table, these gates run by run, and the variety measures. `FeelingStatsTests` (4) and `TownGenTests` (13) cover the scaled gates under 26 people, the ties a scaled E1 needs, and a town seed that follows the run's.
 
+## Reach in context: the scenario checks (batch 2's m-0, built 2026-10-08; measures only)
+
+Sid's answer on reach: a scandal "could reach 100% of the town if it was really public or very limited if it was resolved or covered up quickly." So one band (40-70% of the town) can't be the target for every scandal. Batch 2's spec (`docs/under-glass/specs/acts-batch2-spec.md`, section 5) replaces it with scenes and a criterion for each, and m-0 builds the harness that stages them and the measures that read them. A run with no scenario is the run it was, so every pin holds.
+
+**Scenarios** (`Scenarios.cs`, `Simulation.Scenarios.cs`). `Simulation.Place` stages a chosen kind in a chosen scene, as the harness's placed scandal is staged:
+- **When:** each minute of its window, if someone is able, it begins with a chance of 1 in 120, drawn by its key. A named actor acts at their first able minute. After its days are up it is dropped, with a log line.
+- **Able:** free, of the kind's age, in one of its places, with a target if the kind needs one, and not the keeper at work. Then the scene: between a fewest and a most others within 8 tiles; those others all loners (chattiness 0.4 or less) or all kin and housemates, if asked; inside a gathering that is on, or on a festival day, if asked.
+- **No trace:** the act leaves none, so only those who saw it or are told know.
+- **One key, one act:** scenarios that share a key place the same act at the same minute.
+- **Follow-ups:** `sway` has the mayor let the accused off when he decides the case. The others (settle, read-out, post, call-in) come with batch 2's levers.
+
+**The circle** (`SimResult.Circles`). For every scandal and every scenario act: everyone else who knew its actor at familiarity 0.2 or more as its day began. Reach is measured against them as well as against the town.
+
+**The measures** (`ReachMetrics.cs`): circle reach and circle heard by a day (heard leaves out a trace found with no name), town reach and town heard, whether a story died (no more heard it than saw it), how many days it grew, how exposed it was (the town's on a festival day or at the meeting; a crowd at 5+ witnesses or inside a gathering; seen by 2-4; private), and Spearman's rank correlation.
+
+**The checks** (`--check C3`, repeatable, or `--check today`; each runs its own seeds and days unless `--seeds` or `--days` is given):
+
+| check | scene | criterion |
+|---|---|---|
+| C2 | a bin in the Square while Noon or the Market is on, inside it, 5+ within 8 tiles | witnessed by 5+: median circle reach at the end 50-90%, and 25%+ of runs over 70% |
+| C3 | a bin at the ClinicYard, exactly 1 within 8 tiles, a loner, no trace | the circle has heard it in 20% or less in 70%+ of runs; it dies in about half |
+| C4 | the placed scandal's kind with nobody within 8 tiles | where found, median circle reach 30% or less |
+| C6 | a theft with only kin and housemates within 8 tiles | nobody outside the household knows who did it a week on, in 95%+ of runs |
+| C10 | the placed scandal (`--inject`) | Spearman of witnesses with circle reach 0.5+ |
+| C11 | the town's own scandals | circle reach 14 days on: median 40-70%, 10%+ at 90%+, 15%+ under 20% |
+| C13 | the placed scandal, witnessed | reported: heard by 40-70% of the town and growing 3+ days (52%+ at 26) |
+
+C6 counts an outsider who knows who did it. Rule 17's cover works on the believed culprit, so a keeper who finds stock missing, not knowing it was his daughter, tells it; an outsider who knows only that something was taken is reported apart.
+
+`ScenarioTests` (7): a scene that never comes changes nothing but its log line; an act begins only in its scene; onlookers are loners or family as asked, read from where everyone stood; a named actor acts, and one key places one act; what the town can't stage is refused; a swayed case is let off; the circle is who knew the actor as the day began. `ReachMetricsTests` (4): Spearman with ties; on runs the measures agree with each other and with the run's counts; a festival day is the town's exposure; today's checks run.
+
+**Today** (2026-10-08, on `claude/checkpoint-6`):
+
+| check | the shipped town | the review's set (0d.6's b c d e f g h m t) | criterion | |
+|---|---|---|---|---|
+| C2, a crowd at a hub | witnessed by 5+ in 98%; circle reach median **92%**, over 70% in 100% | 98%; **92%**; 100% | median 50-90%, 25%+ over 70% | fails on both |
+| C3, a lone loner | the loner saw it in 98%; the circle heard it in 20% or less in **9%** of runs (median 29%); never retold 2% | 98%; **7%** (median 33%); 2% | 20% or less in 70%+ | fails on both |
+| C4, nobody near | found in 81%; where found, circle reach median **12%** | 81%; **12%** | 30% or less | passes on both |
+| C6, family only | placed in 63% of runs; nobody outside knew who a week on in **100%** (89%: someone outside knew only that it happened) | 63%; **100%** (88%) | 95%+ | passes on both |
+| C10, witnesses and reach | Spearman **0.91** over 369 placed scandals | **0.91** over 369 | 0.5+ | passes on both |
+| C11, the town's own scandals | 462 scandals: circle reach 14 days on median **36%**, 90%+ in 1%, under 20% in 38% (bins: median 52%; thefts: 12%) | 474: **36%**, 1%, 42% (bins 52%; thefts 12%) | median 40-70%, 10%+ at 90%+, 15%+ under 20% | fails two on both |
+| C13, the old band, witnessed | heard by 40-70% of the town, growing 3+ days, in **55%** | **56%** | 52%+ at 26 | reported |
+
+400 seeds × 14 days for each placed check; C11 200 × 112.
+
+What it says:
+- **The review's set moves none of them** by more than a few points: 0d.6's steps change what people feel, and reach is the gossip's.
+- **The harness reproduces the spec's probe** (checkpoint-3) wherever both measured: C4 12%, C10 0.91, C11's 36%, 1% and 38%, and C13 55%.
+- **A crowd makes a scandal nearly universal.** Seen by five or more at a hub, the median reaches 92% of the people who know the culprit, and every run passes 70%. C2's upper bound of 90% asks for some to stay partial.
+- **A lone witness is no quiet edge.** One loner who saw it still tells, at the hubs, and the circle hears it in nine runs of ten. Sid's answer to question B5 (2026-10-08): the town is missing the social pressure not to spread a scandal. That rule is next, measured against C3 and C11.
+- **Families keep the culprit's name** (C6), though the theft itself gets out through the keeper's trace (89%).
+- **Natural scandals split by kind:** a bin reaches about half the circle; a theft, found later by the keeper with no name, about an eighth. The town-wide tail is missing (1% at 90%+), and the spec expects festivals and announcements (b2-4, b2-5) to make it. On a festival day today's scandals reach no further (median 16%): festivals aren't gatherings yet.
+
 ## The act catalog: acts-0, the seams and the baseline (built 2026-10-08; no rows, every switch off)
 
 The acts spec (`docs/under-glass/specs/acts-spec.md`) adds batch 1's eleven act kinds in slices, each behind its own switch. Slice acts-0 builds the seams they plug into. It adds no act and changes no run: every pin holds.
