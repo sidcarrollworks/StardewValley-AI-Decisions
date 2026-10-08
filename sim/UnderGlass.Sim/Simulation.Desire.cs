@@ -27,6 +27,8 @@ public sealed partial class Simulation
         public string Act = "";
         public double AskedAt = double.NaN;
         public int Asks;
+        /// <summary>0d.6 (X12): a wish to give on an occasion; one such gift a person a day.</summary>
+        public bool Occasion;
     }
 
     private readonly SortedDictionary<(int Holder, int Subject, int Kind), Motive> _desires = new();
@@ -87,6 +89,7 @@ public sealed partial class Simulation
             _stances[n] = new double[days];
             _outMinutes[n] = new int[(days + Clock.DaysPerSeason - 1) / Clock.DaysPerSeason];
         }
+        StartWithdrawal(days);
     }
 
     /// <summary>Each tick: who is awake, not at work, and away from home: free time out (the fringe
@@ -96,10 +99,16 @@ public sealed partial class Simulation
     {
         if (!Desiring)
             return;
-        int season = Clock.Day(m) / Clock.DaysPerSeason;
-        foreach (Person p in _people)
+        int season = Clock.Day(m) / Clock.DaysPerSeason, day = Clock.Day(m);
+        for (int i = 0; i < _people.Length; i++)
+        {
+            Person p = _people[i];
             if (!p.Asleep && p.Why != "work" && p.Place != p.V.Home)
+            {
                 _outMinutes[p.V.Name][season] += Clock.TickMinutes;
+                _daily[i].OutMinutes[day] += Clock.TickMinutes;
+            }
+        }
     }
 
     /// <summary>Within reach to act toward: free, in the same place, within NearTiles, in sight.</summary>
@@ -118,7 +127,7 @@ public sealed partial class Simulation
         if (!Acting || !_fo.WithdrawOn)
             return 1.0;
         int i = _index[p.V.Name];
-        return 1.0 + (_fo.AvoidOn ? AvoidCount(i, m) : 0) + _fo.StanceHome * Math.Max(0, -Stance(i));
+        return 1.0 + (_fo.AvoidOn ? AvoidCount(i, m) : 0) + StanceHomeNow(i) * Math.Max(0, -Stance(i));
     }
 
     /// <summary>The ordered pair had a heavy hostile act (an argument or a confrontation) less than
@@ -155,7 +164,10 @@ public sealed partial class Simulation
         if (b.Source != Source.Witnessed && !keeperScandal)
             return; // seen, not heard (the mod's D34); rule 9's keeper excepted
         if (Close(h, si))
+        {
+            HomeRow(who, s, h, si, act, kind, row, m); // families cover; 0d.6: hurts at home, households arguing
             return;
+        }
         if (prior?.Actor is { } old && old != s && _index.TryGetValue(old, out int oi))
             foreach (var key in _desires.Where(p => p.Key.Holder == h && p.Key.Subject == oi && p.Value.Source == act.Id).Select(p => p.Key).ToList())
             {
@@ -183,23 +195,26 @@ public sealed partial class Simulation
             if (_fo.MakeUpOn && St(who, s) >= _fo.LoveAt)
                 Stir(h, si, DesireKind.MakeUp, false, "GaveGift", act.Id, felt, m);
             else if (_fo.AnswerOn)
-                Stir(h, si, DesireKind.Answer, true, "Argued", act.Id, felt, m);
+                Stir(h, si, DesireKind.Answer, true, "Argued", act.Id, Shown(h, felt), m);
         }
         else if (keeperScandal)
         {
             if (_fo.RetaliateOn)
             {
                 Hurt(h, felt);
-                Stir(h, si, DesireKind.Retaliate, true, "Argued", act.Id, felt, m);
+                Stir(h, si, DesireKind.Retaliate, true, "Argued", act.Id, Shown(h, felt), m);
             }
         }
         else if (row.Target == TargetIs.Chosen && row.Joy > 0 && _fo.ReturnOn)
         {
             if (act.About >= 0 && Did(who, act.About) && IsKindAimed(KindOf(_acts[act.About])))
+            {
+                AnsweredKindly(h, felt); // 0d.6 (X7): being answered kindly eases a stance
                 return; // the return of one's own kindness is not returned again
+            }
             Stir(h, si, DesireKind.Return, false, act.Kind, act.Id, felt, m);
             if (_fo.StanceOn)
-                _stance[h] = DesireMath.StanceAfterKindness(_stance[h], felt);
+                _stance[h] = DesireMath.StanceAfterKindness(_stance[h], felt * Inclusion(h, si, m)); // 0d.6 (X5)
         }
     }
 
@@ -209,17 +224,18 @@ public sealed partial class Simulation
         if (!Desiring || !_fo.RetaliateOn || Close(s, namer) || felt <= 0)
             return;
         Hurt(s, felt);
-        Stir(s, namer, DesireKind.Retaliate, true, "Argued", actId, felt, m);
+        Stir(s, namer, DesireKind.Retaliate, true, "Argued", actId, Shown(s, felt), m);
     }
 
     private void Hurt(int h, double felt)
     {
         if (_fo.StanceOn)
-            _stance[h] = DesireMath.StanceAfterHurt(_stance[h], felt, CharacterOf(h).Boldness);
+            _stance[h] = StanceAfterHurt(h, felt); // 0d.6 (X10): with expression on, the held part withdraws
     }
 
     private void Hit(int h, int by, int tick)
     {
+        PatienceRound(h, by, tick); // 0d.6 (X8)
         if (!_hits.TryGetValue((h, by), out var list))
             _hits[(h, by)] = list = new List<int>();
         list.Add(tick);
@@ -366,8 +382,11 @@ public sealed partial class Simulation
                 continue;
             int last = Math.Max(_lastContactDay.GetValueOrDefault((h, s)), _lastKindDay.GetValueOrDefault((h, s), int.MinValue));
             double i = DesireMath.Fond(St(_names[h], _names[s]), day - last, _fo);
+            (i, bool occasion) = Missing(h, s, day, day - last, i); // 0d.6 (X12): missing people
+            i = Seeking(h, i); // 0d.6 (X6): the withdrawn seek less
             if (i > 0)
-                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i }, i);
+                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i,
+                    Occasion = occasion }, i);
         }
     }
 
@@ -380,7 +399,8 @@ public sealed partial class Simulation
             return false;
         string hn = p.V.Name, sn = o.V.Name;
         double st = St(hn, sn);
-        if (d.Hostile ? st >= _fo.CoverAt : st <= -_fo.LoveAt)
+        bool home = _fo.HouseholdGateOn && Close(h, s); // 0d.6 (X2): households argue
+        if (d.Hostile ? st >= (home ? _fo.HomeCoverAt : _fo.CoverAt) : st <= -_fo.LoveAt)
             return false; // love covers; and nobody is kind to someone they dislike
         if (!d.Hostile && Avoids(h, s, m))
             return false;
@@ -389,6 +409,8 @@ public sealed partial class Simulation
         double fam = _fam[h, s];
         double fear = d.Hostile ? Fear(h, s, p, m) : 0;
         double eff = DesireMath.Effective(CharacterOf(h).Boldness, Stance(h), d.Hostile, fam, I, PowerOf(h), _fo);
+        if (!d.Hostile)
+            eff -= Impatience(h, s, m); // 0d.6 (X8): patience with the combative runs out
         var acts = ActsFor(d.Kind, d.Act, p, s, m);
         ActKind? chosen = null;
         bool declined = false, drew = false;
@@ -452,7 +474,7 @@ public sealed partial class Simulation
         {
             if (drew)
                 _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
-            if (d.Hostile && _fo.AvoidOn && Acting && !double.IsNaN(best)
+            if (d.Hostile && _fo.AvoidOn && Acting && !double.IsNaN(best) && !home // nobody keeps away at home: it lapses
                 && (_fo.LightActsOn ? best < 0 : !drew && !declined && best < -_fo.ClearBand))
                 StartAvoid(p, d, I, best, m);
             return false;
@@ -462,6 +484,8 @@ public sealed partial class Simulation
         _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
         if (d.Kind != DesireKind.Fond)
             _desires.Remove((h, s, (int)d.Kind));
+        else if (d.Occasion)
+            _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {DesireMath.Cost(Form(chosen.Name), d.Hostile, fear, _fo):0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1);
@@ -485,6 +509,7 @@ public sealed partial class Simulation
         Life(m, h, s, d.Source, d.Act, LifeRole.Avoided, I, true, false, Outcome.None);
         Resolve(h, s, LifeRole.Undergone, Outcome.Avoided, m);
         Resolve(s, h, LifeRole.Did, Outcome.Avoided, m);
+        Coerced(s, I); // 0d.6 (X9): escalation won
         if (_fo.LightActsOn)
             TurnAway(p, h, s, d.Source, m);
     }
@@ -612,7 +637,7 @@ public sealed partial class Simulation
         if (sign < 0 && _fo.AnswerOn)
         {
             Hurt(i, Math.Abs(f));
-            Stir(i, j, DesireKind.Answer, true, "Argued", -2 - m, Math.Abs(f), m); // no act: keyed by the minute, so each greeting draws anew
+            Stir(i, j, DesireKind.Answer, true, "Argued", -2 - m, Shown(i, Math.Abs(f)), m); // no act: keyed by the minute, so each greeting draws anew
         }
     }
 
@@ -644,6 +669,7 @@ public sealed partial class Simulation
         int other = by is not null && _index.TryGetValue(by, out int o) ? o : -1;
         Life(m, person, other, actId, kind.Name, LifeRole.Undergone, severity, (kind.Affect?.Joy ?? 0) < 0, IsLight(kind),
             other >= 0 ? Outcome.Open : Outcome.None);
+        TallyKindIn(person, other, kind, m);
     }
 
     private int? FindOpen(int person, int other, LifeRole role, int m)
@@ -667,7 +693,11 @@ public sealed partial class Simulation
                     SetOutcome(idx, outcome, m);
     }
 
-    private void SetOutcome(int idx, Outcome o, int m) => _life[idx] = _life[idx] with { Outcome = o, ResolvedTick = m };
+    private void SetOutcome(int idx, Outcome o, int m)
+    {
+        _life[idx] = _life[idx] with { Outcome = o, ResolvedTick = m };
+        TallyOutcome(_life[idx], m);
+    }
 
     // ---- night -------------------------------------------------------------------------------
 
@@ -685,7 +715,7 @@ public sealed partial class Simulation
         for (int i = 0; i < n; i++)
         {
             if (_fo.StanceOn)
-                _stance[i] *= _fo.StanceKeepPerDay;
+                _stance[i] *= StanceKeepTonight(i); // 0d.6 (X7): by retention, with recovery on
             _stances[_names[i]][day] = _stance[i];
         }
         int end = (day + 1) * Clock.MinutesPerDay;

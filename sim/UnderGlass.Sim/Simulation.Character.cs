@@ -1,8 +1,8 @@
 namespace UnderGlass.Sim;
 
 /// <summary>
-/// Each person's character (phase 0d; Sid, 2026-10-07; design rule 18): the six temperament weights
-/// as they are now. Every rule reads traits from here, never from the cast card, so a later
+/// Each person's character (phase 0d; Sid, 2026-10-07; design rule 18): the temperament weights
+/// as they are now (seven since 0d.6, with expression). Every rule reads traits from here, never from the cast card, so a later
 /// plasticity rule can change them. It starts as the cast's temperament; nothing in the simulator
 /// changes it yet.
 /// </summary>
@@ -31,6 +31,7 @@ public sealed partial class Simulation
         Trait.Understanding => c.Understanding,
         Trait.SelfRegard => c.SelfRegard,
         Trait.Sensitivity => c.Sensitivity,
+        Trait.Expression => c.Expression,
         _ => c.Retention,
     };
 
@@ -41,6 +42,7 @@ public sealed partial class Simulation
         Trait.Understanding => c with { Understanding = v },
         Trait.SelfRegard => c with { SelfRegard = v },
         Trait.Sensitivity => c with { Sensitivity = v },
+        Trait.Expression => c with { Expression = v },
         _ => c with { Retention = v },
     };
 

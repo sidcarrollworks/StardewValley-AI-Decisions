@@ -172,9 +172,21 @@ public static class DefaultTown
     /// sim/README.md). With the desire gate (phase 0d, rule 10): people answer, return, make up
     /// and keep away. Of its added rules (sweeps of 2026-10-07, sim/README.md), the town misses
     /// loved ones (Fond, 14 days: at 10 regard drifted up over three years), keeps a stance (hermits and brawlers can emerge), and dares by
-    /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).</summary>
+    /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).
+    /// Phase 0d.6's rules are all off; their constants are set as the sweeps of 2026-10-07 tuned them
+    /// for the candidate town (every step but contagion; sim/README.md), so steps switched on (--0d6)
+    /// run as measured: being left out pushes at 1.75 a night on shy to the fifth power (shy squared
+    /// made hermits of the stay-at-home, not the shy), with a fresh start of 3 days a season (at 7
+    /// there were almost no hermits); a withdrawn stance pulls home at 6 a point (at 3 the hubs
+    /// outweighed it); an expression of 0.75, the town's typical, shows a feeling in full (at 1 every
+    /// answer was weaker, and feuds fell a quarter); moods spread at 0.03 a chat with hardship passed on
+    /// (its best setting; at 0.01 it barely moved anything); and the first greeting is read curt or warm at a
+    /// fifteenth of 0d's first guess (at 0.03, 83% of towns went to war; at 0.005 hostility grew over
+    /// three years, at 0.002 it holds).</summary>
     public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true,
-        FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1 };
+        FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1,
+        LeftOutRate = 1.75, ShyPower = 5, StanceHomeDial = 6, FreshDays = 3, ShowReference = 0.75, Tone = 0.002,
+        ContagionK = 0.03, ContagionCap = 0.1, ContagionConditions = 1 };
 
     /// <summary>
     /// The town's starting tensions (0c question 1; Sid, 2026-10-07): who starts out disliking whom,
@@ -219,6 +231,36 @@ public static class DefaultTown
     private static readonly IReadOnlyDictionary<string, double> Retention = new Dictionary<string, double>
     {
         ["Pam"] = 0.2, ["Robin"] = 0.8,
+    };
+
+    /// <summary>
+    /// How much of a feeling shows (phase 0d.6; expression, the seventh trait; Sid, 2026-10-07).
+    /// From the game's Data/Characters fields (fixtures/game/temperament/characters.json): 0.75, plus
+    /// 0.15 for a rude manner or less 0.1 for a polite one, plus 0.05 for the outgoing or less 0.15
+    /// for the shy. Sid's reading sets two (design 12.7; masking-research.md M1): Penny masks (0.25)
+    /// and Pam lets it out (0.85). A guess for the private prototype (VERIFY with Sid).
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, double> Expressions = new Dictionary<string, double>
+    {
+        ["Abigail"] = 0.95, ["Alex"] = 0.95, ["Caroline"] = 0.65, ["Demetrius"] = 0.65, ["Emily"] = 0.70,
+        ["Evelyn"] = 0.70, ["George"] = 0.90, ["Gus"] = 0.80, ["Haley"] = 0.95, ["Harvey"] = 0.50,
+        ["Jas"] = 0.60, ["Jodi"] = 0.65, ["Kent"] = 0.60, ["Leah"] = 0.65, ["Lewis"] = 0.80,
+        ["Marnie"] = 0.70, ["Maru"] = 0.80, ["Pam"] = 0.85, ["Penny"] = 0.25, ["Pierre"] = 0.80,
+        ["Robin"] = 0.80, ["Sam"] = 0.80, ["Sebastian"] = 0.75, ["Shane"] = 0.75, ["Vincent"] = 0.80,
+    };
+
+    /// <summary>Birthdays (phase 0d.6, an occasion for gifts), read from the game's Data/Characters
+    /// (1.6.15) on Sid's PC on 2026-10-07. Season 0 is spring. The newcomer has none.</summary>
+    private static readonly IReadOnlyDictionary<string, YearDay> Birthdays = new Dictionary<string, YearDay>
+    {
+        ["Kent"] = new(0, 4), ["Lewis"] = new(0, 7), ["Vincent"] = new(0, 10), ["Haley"] = new(0, 14),
+        ["Pam"] = new(0, 18), ["Shane"] = new(0, 20), ["Pierre"] = new(0, 26), ["Emily"] = new(0, 27),
+        ["Jas"] = new(1, 4), ["Gus"] = new(1, 8), ["Maru"] = new(1, 10), ["Alex"] = new(1, 13),
+        ["Sam"] = new(1, 17), ["Demetrius"] = new(1, 19),
+        ["Penny"] = new(2, 2), ["Jodi"] = new(2, 11), ["Abigail"] = new(2, 13), ["Marnie"] = new(2, 18),
+        ["Robin"] = new(2, 21), ["George"] = new(2, 24),
+        ["Caroline"] = new(3, 7), ["Sebastian"] = new(3, 10), ["Harvey"] = new(3, 14), ["Evelyn"] = new(3, 20),
+        ["Leah"] = new(3, 23),
     };
 
     /// <summary>
@@ -436,7 +478,9 @@ public static class DefaultTown
             {
                 Sensitivity = Sensitivity.GetValueOrDefault(v.Name, 0.5),
                 Retention = Retention.GetValueOrDefault(v.Name, 0.5),
+                Expression = Expressions.GetValueOrDefault(v.Name, 0.75),
             },
+            Birthday = Birthdays.TryGetValue(v.Name, out YearDay b) ? b : null,
         }).ToList();
     }
 }

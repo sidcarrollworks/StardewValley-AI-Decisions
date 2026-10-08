@@ -18,6 +18,8 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --ht
 
 Every run formats its log in the invariant culture, so a seed hashes the same on every machine (before 0c, juiciness printed as "1,5" under a German culture).
 
+Hermits, brawlers, moods that spread and missing people (0d.6): `--0d6 <steps>` turns steps on (b-h, t the tone, m missing people; for example `--0d6 bdefghm`), `--fo WithdrawalWatch=true` makes steps b-h and m only record what they would do (it does not hold back the tone, which is 0d's own rule), and `--acts <Name>=<Kind>:<weight>` sets an act weight on someone's card. A "withdrawal" block reports them (`WithdrawalMetrics`), and `--log` adds the shyest five and every sustained spell after the hash.
+
 Needs the .NET 8 SDK. It installs beside the 6.0 SDK the mod uses.
 
 ## Phase 0a: the gossip harness (built)
@@ -335,12 +337,105 @@ Rules under the bar stay for now and are a question for Sid, not a cut: avoiding
 
 **The fringe** (check 8; 50 seed-years each). Brawlers emerge (3.5 people a seed-year reach +0.5 at a season end; Alex, Sam and Abigail most). Hermits do not: at boldness 0.02 Penny's stance ends at -0.01 and her free time out of home stays at 5.9 hours a day in season 1 and in season 4, as at her own boldness; the most withdrawn person in the town ends at -0.05. Alex at boldness 0.98 acts as he does at 0.80, since he already clears every gate he meets; only his stance rises (+0.61 to +0.69). The causes, from `docs/under-glass/withdrawal-research.md`: hurts at home and undergone hurts never move stance, and any kindness undoes a withdrawn stance at once. G3 and G4 are therefore not pinned; 0d.6 builds the paths Sid asked for.
 
+## Phase 0d.6: hermits, brawlers, moods that spread, and missing people (built, every switch off)
+
+Sid's requests of 2026-10-07 (design 11e and section 12, question 7), from the research in `docs/under-glass/withdrawal-research.md` and `masking-research.md`, built to the spec `docs/under-glass/specs/0d6-spec.md`. Each step has its own switch in `FeelingOptions`, all off, so the town is 0d.5's to the byte: every pin holds, P3 (`e9fd83b284f5c1b6`) included. `DefaultTown.Feelings()` carries the constants as the last sweeps tuned them for the candidate town, and contagion at its best setting, so the candidate and the review's set below run as measured with `--0d6`. The single-step rows were measured during tuning, at the earlier constants each names. Which steps to turn on is Sid's decision (below); turning any on re-pins P3.
+
+What's modelled (`Simulation.Withdrawal.cs`, `WithdrawalMath` in `Feelings.cs`, `Calendar.cs`, `WithdrawalMetrics.cs`):
+- **a. Measuring** (always, while the gate runs; it records only). For each person and day: kindness received from outside kin and household, days with an hour of such company, their own kindness to such people and how much went unanswered, free time out, and **being left out** (E): each part against the town's median over the last 28 days, so a quiet town leaves nobody out. Content loners (Sid: quiet and not shy) count time alone less. Sustained spells: 28 days in a row at -0.5 or below (**withdrawn**; a **hermit** when free hours out over the spell's last 28 days are also under 60% of the person's first season), or at +0.5 or above (**brawler**).
+- **b. Hurts at home** (`HomeHurtOn`, W2): a row at home, an act undergone (warned, taken in, questioned, service, a family row), being named over one's own scandal, and kin's shame move stance with no motive; at home at half weight; repetition up to double. **Households argue** (`HouseholdGateOn`): an argument from kin or a housemate held below 0.2 stirs an answer; nobody keeps away at home.
+- **c. Moods spread** (`ContagionOn`, C1): after a chat each takes a share of the other's state, toward what the other shows and never past it; bad moods weigh up to double at home (double with no love, no more than elsewhere at full love); at most a cap a day; what both felt is not passed between them again. Optionally hardship (need, want, being held) is part of what is passed on (`ContagionConditions`).
+- **d. Left out** (`LeftOutOn`, W1): at night, being left out pushes stance toward withdrawn, at 1.75 a night by shy to the fifth power, sensitivity and low self-regard; a friend seen in the last week cuts it to 0.3 (0.6 if the friend is withdrawn too); a content loner is not pushed; the included shy come closer; losing a friend (held at 0.4 or more, then falling below 0.3) is a hurt of 0.3. **Inclusion discounted** (`InclusionDiscountOn`): a withdrawn stance eases a third as much at a kindness from anyone but a friend or someone making up.
+- **e. The dials** (`DialsOn`): a withdrawn stance pulls home at 6 a point, talks less, and seeks loved ones less.
+- **f. Recovery** (`RecoveryOn`): stance fades by retention; a fresh start each season (being left out reads nothing for 3 days); one's own kindness returned eases a stance in full.
+- **g. Patience and the coercion ratchet** (`PatienceOn`, `CoercionOn`): patience with someone combative lasts a couple of rounds (2.5 for most), refills a round in 10 days, and when it runs out kind daring toward them falls by up to 0.25 (Sid's restatement of B1); an argument met by keeping away makes the arguer bolder (B2).
+- **h. Expression** (`ShowOn`), the seventh trait: others see what shows; an answer takes the shown part; the held part pulls toward withdrawn whatever the boldness (never less than the person's own pull). The cast's values come from the game's `Manner` and `SocialAnxiety` (0.75, rude +0.15, polite -0.1, outgoing +0.05, shy -0.15), with Sid's reading for Penny (0.25) and Pam (0.85); 0.75 shows in full in an even mood (`ShowReference`), and a low mood shows less.
+- **t. The first greeting, read through expression** (`ToneOn` with `ShowOn`): no new rule; a curt greeting's hurt splits and its answer takes the shown part. Its rate is 0.002 in the town (0d's first guess was 0.03).
+- **m. Missing people** (`MissingOn`, Sid's model, in place of Fond's 14 days): missing someone loved grows over 10 days apart, sooner for the prone (chatty, sensitive, keeping, low in self-regard), and less in a steady tie; in a steady tie a birthday or a festival is an occasion for a gift, one a person a day; each like gift from the same person in four weeks counts 0.85 as much. The birthdays and festival dates were read from the game's own `Data/Characters` and `Data/Festivals/FestivalDates` (1.6.15) on Sid's PC: confirmed in source, not recalled.
+- **Watching** (`WithdrawalWatch`): every rule switched on records what it would do and changes nothing; with every switch on and watching, a year of seed 1 hashes as P3 (a test). Every rule records what it did (`SimResult.Rules`).
+
+### The gate, step by step (2026-10-07)
+
+Each step on top of the earlier ones that passed; one year is 200 seeds x 112 days, three years 50 x 336, the band 400 x 14 with a placed scandal. Money is 0.000 g unexplained in every run. "Shy third" is the share of hermits from the 9 least bold.
+
+| Step | Band (in / over 70%) | E1 | Below -0.2, d55-d111 | Three years: d335 / d111, year 3 below -0.2 | Its own criterion | Verdict |
+|---|---|---|---|---|---|---|
+| shipped (0d.5) | 55% / 25% | 60% | 1.6-2.1% | 1.46, 3.1-3.9% | | |
+| a measure | 55% / 25% | 60% | 1.6-2.1% | 1.46, 3.1-3.9% | every output identical | **passes** |
+| b home | 55% / 25% | 63% | 1.6-2.2% | 1.46, 2.8-3.9% | Penny lower (-0.05, was -0.03); brawlers 2.70, 1.14 x (limit 1.2) | **passes** |
+| c contagion (best: K 0.03 with hardship) | not run | 66% | 1.6-2.2% | not run | power within bounds; E2: no story metric moves 20% (most: reconciliations -9%) | **fails E2**: stays off |
+| d+e left out and dials (shy⁴, 0.8, dial 6) | 56% / 23% | 56% (59% on 400 seeds, against 61% shipped) | 1.6-2.0% | 1.50, 2.8-3.5% | hermits **0.53** a seed-year, **88%** from the shy third; hours out fell 49% | **passes** |
+| f recovery (fresh 3 days, rate 1.0) | in the candidate | 61% | 1.5-1.9% | in the candidate | hermits 0.32, 81% shy third; back above -0.3 in 28 days 80% (target 40-60%) | recovery criterion **fails** (as without f: 78%) |
+| g patience, coercion | 56% / 23% | 59% | 1.5-2.0% | 1.50, 2.8-3.7% | brawlers 2.44 (within 50%), reconciliations 1.67, feuds 7.21 | **passes**; moves no story metric |
+| h expression (reference 0.75) | in the candidate | 62% | 1.4-2.0% | in the candidate | Pam passes on 9.0 a year, Penny 4.4; Penny more withdrawn than Pam | **passes** |
+| m missing people (alone) | 55% / 25% | **74%** | 1.5-2.1% | **1.38**, 3.1-4.0% | gifts by the gate 508, 526, 553 by year (year 3 at 1.09 x) | **passes** |
+| **candidate: b d e f g h m** (shy⁵, 1.75) | 56% / 24% | **69%** (70% on 400 seeds) | 1.5-2.0% | **1.32**, 2.4-3.3% | hermits 0.30, **98%** shy third; recovered 59-67%; brawlers 1.14 (-52%; -50.4% on 400 seeds); recovered 67% (hermits' 71%); feuds 6.93; gifts 489, 508, 537 by year | the gate **passes**; brawlers and recovery just past their step limits |
+| candidate and the tone at 0.005 | 57% / 24% | 75% | 1.6-2.5% | **1.55**, 4.9-6.4%, war towns 4% | feuds 8.03, brawlers 1.72 in year 1 | three years **fail** |
+| candidate and the tone at 0.002 | | | | 1.44, 3.3-4.5% | feuds 6.47 over three years | three years pass |
+| **review's set: b c d e f g h m t** (contagion K 0.03 with hardship, tone 0.002) | 56% / 24% | **78%** (73% on 400) | 1.5-2.1% | **1.41**, 3.3-4.3% | hermits 0.29, 99% shy third; recovered 48% (hermits' 61%); brawlers 1.43 (-42%); feuds 7.09; sinks 4% (9% without c and t) | **passes**, every step criterion inside or at its limit |
+
+At the town's constants now (shy to the fifth, 1.75), b, d and e alone give 1.09 hermits a seed-year on 400 seeds (84% from the shy third, E1 57%): too many without the kindness the other steps add.
+
+### What the steps found
+
+**Being left out, as the town is.** People spend an hour with someone outside their household on 26.6 of 28 days (the hubs, and Penny's teaching), so days with company tell nobody apart. Kindness offered outside the household is returned almost always: 1% goes unanswered once a gift that returns someone's kindness is left out (those are never returned again by design, and counted they made 40% look unanswered). So E runs on kindness received. The most left out are George (0.41), Kent (0.34), Robin, the newcomer and Sebastian: people who stay home or work at home, and whom few outside the family seek out, and the newcomer, whom nobody knows. The shy are included: Penny's E is 0.04, Evelyn's and Harvey's 0.01.
+
+**Hermits.** W1 as the research wrote it (shy squared, 0.01 a night) moves nobody: Penny's stance would settle near -0.1. Swept (one year each, with the dials):
+
+| Shy power, rate, home dial | Withdrawn a seed-year | Hermits | From the shy third | Who |
+|---|---|---|---|---|
+| 2, 0.2, 3 | 2.14 | 0.34 | 1% | Kent, George |
+| 2, 0.3, 3 (content loners not pushed) | 2.29 | 0.32 | 19% | Kent, the newcomer, George |
+| 4, 0.8, 3 | 1.13 | 0.09 | 100% | the newcomer, Jas, Penny, Jodi |
+| **4, 0.8, 6** | 1.42 | **0.53** | **88%** | Jas, the newcomer, Penny, Kent, Jodi |
+| 4, 0.8, 10 | 1.64 | 1.14 | 79% | |
+
+Shy squared made hermits of Kent and George, who are left out but not shy (boldness 0.5 and 0.6); in Stardew both are the town's shut-ins (VERIFY). Shy to the fourth power puts it on the shy; a home dial of 3 could not compete with the hubs (market day weighs 12), so the withdrawn did not stay in. Hermits' free hours out fall about half. With every step on, missing people's gifts reach the shy too, and it took shy to the fifth power at 1.75 to keep the hermits theirs (the candidate, below). Who they are depends on the steps (hermit spells in 400 seed-years at the town's constants): with b, d and e, Jas (121; aged 7, in Marnie's care: shy plus excluded is a finding about children), Jodi (116), Kent (70), the newcomer (58) and Penny (57); with every step of the candidate, Penny (53), the newcomer (36) and Jodi (30), and hardly anyone else. The newcomer is withdrawn in 374 of the 400 seed-years but mostly comes back before a hermit's 28 days. Over three years of the candidate, Kent leads (22 of 75 spells in 50 runs), and the shy third's share falls to 71%. Seed 29 is a story to read (`--log 29 --days 112 --0d6 bdefghm`): nobody argues with Penny; she just gets less kindness from outside her home each season (6, 2, 3, 1), her being left out rises to 0.22 in fall and 0.32 in winter, her stance goes 0, -0.11, -0.61, -1.00 by season, her free hours out fall from 6.1 to 2.7 a day, and she is a hermit from day 73. The newcomer withdraws from day 18 to 66 and comes back; Sam is a brawler from day 60 to 90. The scenes: a shy person left out for 84 days is withdrawn; the bold barely move (shy to the fourth); a friend seen weekly keeps her above -0.3; a stranger's gift eases a third of a friend's; a shy person not left out is never withdrawn on any of 200 seeds. A weekly gift and a weekly day together, where everyone else has both daily, still count as left out: then only a friend protects.
+
+**Moods spread** (one year each, on top of b):
+
+| K, hardship | Power spread | Seed-years with a sink | Feuds | Friendships | Reconciliations | E1 |
+|---|---|---|---|---|---|---|
+| off | 0.064 | 7% | 7.82 | 0.92 | 1.60 | 63% |
+| 0.01 | 0.062 | 8% | 7.90 | 0.95 | 1.60 | 66% |
+| 0.1 | 0.058 | 9% | 7.86 | 0.91 | 1.48 | 61% |
+| 0.03, with hardship | 0.055 | 3% | 7.80 | 0.97 | 1.45 | 66% |
+| 0.1, with hardship | 0.047 | 1% | 7.68 | 0.97 | 1.55 | 66% |
+
+The difference form pulls the town together: the spread of the power of acting narrows, and with hardship passed on the town lifts its lowest (a sink is anyone's 28-day mean power below 0.3: 7% of seed-years without contagion, 1% at K 0.1). It never moves a story metric 20%, because it moves mood and not regard. Two people who heard the same story pass nothing of it between them, and at home most sadness is soon told: a housemate passes on mostly what the other has not heard. With hardship, Pam passes on the most mood in the town; a masked Penny about half of what Pam does.
+
+**Recovery.** Without step f, 78% of withdrawn spells (86% of hermits') are back above -0.3 within 28 days of ending: above the 40-60% target. The measure is nearly automatic: a spell ends at -0.5, and stance halves in 27 days by fading alone, so only a person still pushed stays below -0.3. With f, a 7-day fresh start each season leaves almost no hermits (0.05 a seed-year), 3 days and a push of 1.0 keep 0.32 (81% from the shy third), and recovery stays near 80%.
+
+**Patience and coercion.** At their first guesses, and at a ratchet ten times stronger with patience dropping twice as far, brawlers move 2.44 to 2.75 and no story metric moves 20%.
+
+**Expression.** At the masking research's own reading (`ShowReference` 1), the town's typical 0.75 holds a quarter of every hurt back, so every answer is weaker: feuds fell 26%, brawlers halved and news fell a fifth. With 0.75 showing in full, only those below it (the polite and the shy) hold back, and the town keeps its calibration (feuds 6.85, brawlers 2.32). The held part first pulled toward withdrawal at 0.3, less than a shy person's own hurt pulls (0.6), so masking made Penny slightly less withdrawn; it now pulls at the stronger of the two, and a bold masker is drawn from combative toward withdrawn.
+
+**Missing people.** As first written, every festival had everyone giving to everyone they loved: gifts by the gate ran 900, 1,500, 3,200 by year and friendships 30 a year. Occasions now count only in a steady tie, one gift a person a day: gifts by the gate 508, 526, 553 by year, 330 of them on birthdays and festivals, friendships 3.4 a year over three years, and the d335 drift 1.38 x d111 (Fond at 14 days: 1.46). A lower occasion share drifts more (1.51), because missing becomes the main reason to give.
+
+**The candidate together.** With b, d, e, f, g, h and m on at the first tuning (shy⁴, 1.0), the gate passed with room (E1 78%, three years 1.32), but missing people's gifts reached the shy, so the hermits (0.32) came 57% from the shy third: Kent and the newcomer led again. Shy to the fifth power at 1.75 puts them back on the shy (98%), with recovery at 59-67%, inside or near the 40-60% target for the first time (the patience and gifts slow it). Every kindness eases a combative stance, and missing people adds kindness, so sustained brawlers fall by half (1.14 against 2.37, just past g's limit); feuds hold (6.93); and recovery runs a little fast (67%). The review's set adds contagion with hardship and the tone at 0.002: the tone brings brawlers back (1.43, -42%), contagion lifts the lowest (sinks 4%), recovery comes inside the target (48%), and it passes the gate in one year and three (E1 73% on 400 seeds, 1.41). Trivia rises 37%, from the gifts.
+
+**The first greeting.** At 0d's first guess (0.03) the tone is read on every day's first chat with each person outside the household, so a person meeting twenty reads several curt greetings a week: answers stirred went from 155 to about 1,400 a year, feuds tripled and 83% of towns went to war. Swept on the candidate, one year: at 0.005 feuds and brawlers come back to 0d.5's (7.67 and 1.76) and seed-years with a sink rise from 8% to 23% (contagion takes them back to 6%); but over three years hostility grows, the misreading loop the research predicted (low moods read greetings as curt, curt greetings stir answers): d335 at 1.55 x d111, year 3 below -0.2 at up to 6.4%, and 2 war towns in 50. At 0.002 it holds over three years (1.44, up to 4.5%). The town carries 0.002, off.
+
+**E1 on 400 seeds.** E1 sits at its floor (60%) in the town as it ships, and on 200 seeds it moves about 3.5 points by chance alone, so the steps were also run on 400: the shipped town 61%, b+d+e 59%, the candidate 70%.
+
+### Departures from the spec
+
+- E's unanswered part is relative to the town's median share, and kindness that returns someone's is not counted.
+- W1 uses shy to the fourth power, and a content loner is not pushed at all (the spec discounted only their contact part).
+- The friend buffer reads the holder's own regard (no rule reads another mind's regard), and a friend is lost below 0.3, not 0.4, so a seeded friendship at exactly 0.4 does not count a loss at every slight.
+- The held part pulls at the stronger of HeldPull and the person's own pull.
+- Expression has a reference that shows in full (0.75 in the town).
+- Missing people's occasions count only in a steady tie, one a person a day.
+- The tone's regard change cites the greeting's minute, not an act; the feeling metrics and `--log` now allow for it (they crashed with the tone on: a 0d defect). The tone's own constant in the town is 0.002 (0d's first guess was 0.03).
+- The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
+- Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
+
 ## Next
 
 1. **0a, left for later:** partial accounts (clothing, direction) that narrow "someone" further.
 2. **0b, left for later:** shops trading only while the keeper is at the counter, prices that move with stock (design rule 12), promises and debts (rule 13), and choosing Pierre's or the chain by regard (0c).
 3. **0c, left for later:** the third-slight mark (0c question 6), familiarity falling over time and forgetting weighted by regard (both move the 0a band), avoidance and haunts chosen by regard, law 7 (norms and reactions), law 13 (wonder), courting and jealousy, secrets, saving regard.
-4. **0d.6:** missing people and gifts (Sid's model, replacing Fond's 14-day stopgap), hermits, brawlers and moods that spread (`docs/under-glass/withdrawal-research.md`, `masking-research.md`): measure first, then hurts at home (households argue), mood contagion (bad heavier at home only), shy plus left out, recovery, patience with the combative, expression as a seventh trait, and the first-greeting tone read through it. Then the town and acts as JSON, the bots, the story sifter and the replay viewer.
+4. **0d.6, left for Sid:** which steps to turn on (design section 12, question 9); then the town and acts as JSON, the bots, the story sifter and the replay viewer.
 5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.

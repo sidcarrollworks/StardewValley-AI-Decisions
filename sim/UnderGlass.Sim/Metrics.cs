@@ -265,7 +265,7 @@ public static class FeelingMetrics
         // its row back), classed by the strongest basis it reached.
         string[] strength = { "Witnessed", "HeardName", "Corroborated", "Confirmed" };
         var culprit = runs.SelectMany((r, ri) => r.Feelings
-                .Where(f => f.Toward is not null && f.ActId < r.Acts.Count && f.Toward == r.Acts[f.ActId].Actor && f.Change != 0
+                .Where(f => f.Toward is not null && f.ActId >= 0 && f.ActId < r.Acts.Count && f.Toward == r.Acts[f.ActId].Actor && f.Change != 0 // a greeting's tone cites no act (0d.6)
                             && f.Route != "Shame" && f.Route != "Accused" && f.Route != "Confronted"
                             && kinds.First(k => k.Name == r.Acts[f.ActId].Kind).IsScandal)
                 .GroupBy(f => (Run: ri, f.Holder, f.ActId)))
