@@ -500,6 +500,12 @@ content loader (see Tools).
   3000, int preTimer = 0)`** (NPC.cs:1373): does nothing while the NPC is invisible, applies
   gender-switch blocks to the text, and sets the protected `textAboveHeadTimer` (NPC.cs:160).
 
+### Birthdays and festivals (2026-10-07, for Under Glass 0d.6)
+
+Read from the game's own content (1.6.15) with the `ContentManager` method under Tools: `CharacterData.BirthSeason` and `BirthDay` from `Data/Characters`, and `Data/Festivals/FestivalDates` (keys like `spring13`). Used by `sim/UnderGlass.Sim/Calendar.cs` and `DefaultTown`'s birthdays.
+- **Birthdays:** spring: Kent 4, Lewis 7, Vincent 10, Haley 14, Pam 18, Shane 20, Pierre 26, Emily 27. Summer: Jas 4, Gus 8, Maru 10, Alex 13, Sam 17, Demetrius 19, Dwarf 22, Willy 24, Leo 26. Fall: Penny 2, Elliott 5, Jodi 11, Abigail 13, Sandy 15, Marnie 18, Robin 21, George 24. Winter: Krobus 1, Linus 3, Caroline 7, Sebastian 10, Harvey 14, Wizard 17, Evelyn 20, Leah 23, Clint 26.
+- **Festivals:** the Egg Festival (spring 13), the Flower Dance (spring 24), the Luau (summer 11), the Dance of the Moonlight Jellies (summer 28), the Stardew Valley Fair (fall 16), Spirit's Eve (fall 27), the Festival of Ice (winter 8), the Feast of the Winter Star (winter 25).
+
 ## Tools
 
 - **Reading structured game data** (`Data/Characters` and the like) without unpacking: a throwaway

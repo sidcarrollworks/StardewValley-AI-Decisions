@@ -197,8 +197,10 @@ public class DesireInvariantTests
         Assert.Equal(r.TownCash[^1] - r.TownCash[0], r.OutsideIn - r.OutsideOut, 3);
 
         // 11. One act at a time: nobody begins an act of their own before their last one ended
-        //     (a turning away during a weighing ends that holder's tick).
-        foreach (var mine in r.Acts.Where(a => !a.Injected).GroupBy(a => a.Actor))
+        //     (a turning away during a weighing ends that holder's tick). Being seen out late is not
+        //     begun by its actor: someone else notices it, whatever they are doing (seed 2 with every
+        //     rule on, since 0d.6 set the town's tone: Shane mid-argument at 2835).
+        foreach (var mine in r.Acts.Where(a => !a.Injected && a.Kind != Simulation.OutLate).GroupBy(a => a.Actor))
         {
             var list = mine.OrderBy(a => a.Tick).ThenBy(a => a.Id).ToList();
             for (int i = 1; i < list.Count; i++)

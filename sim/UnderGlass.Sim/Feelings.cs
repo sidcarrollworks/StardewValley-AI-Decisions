@@ -605,9 +605,11 @@ public static class WithdrawalMath
         => Math.Clamp(expression * (1 - o.ShowLowMood * Math.Max(0, -mood)) / o.ShowReference, o.ShowMin, 1);
 
     /// <summary>X10: a hurt split. The shown part moves stance by boldness, as every hurt did; the
-    /// held part pulls toward withdrawn whatever the boldness (design 12.7).</summary>
+    /// held part pulls toward withdrawn whatever the boldness (design 12.7), at HeldPull or at the
+    /// person's own pull if the shy pull harder, so masking never makes anyone less withdrawn. A
+    /// bold masker is drawn from combative toward withdrawn: cold and controlled (masking-research M5).</summary>
     public static double StanceAfterHeldHurt(double stance, double felt, double boldness, double show, FeelingOptions o)
-        => Math.Clamp(DesireMath.StanceAfterHurt(stance, felt * show, boldness) - o.HeldPull * felt * (1 - show), -1, 1);
+        => Math.Clamp(stance + felt * show * (2 * boldness - 1) + felt * (1 - show) * Math.Min(2 * boldness - 1, -o.HeldPull), -1, 1);
 
     /// <summary>X7: how much of a stance is kept a night, by retention (Zadro: the anxious stay hurt longer).</summary>
     public static double StanceKeep(double retention, FeelingOptions o) => o.StanceKeepPerDay + o.StanceKeepSpan * (retention - 0.5);

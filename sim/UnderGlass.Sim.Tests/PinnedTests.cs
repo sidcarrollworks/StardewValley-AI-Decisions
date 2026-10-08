@@ -140,6 +140,20 @@ public class PinnedTests
     /// <summary>The town's feelings with the desire gate and the starting tensions off: phase 0c's town.</summary>
     internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; o.Start = DefaultTown.Tensions(0); return o; }
 
+    /// <summary>0d.6: each measured configuration pinned on a year of seed 1, with the constants the
+    /// town carries (DefaultTown.Feelings): hurts at home and households arguing (b); with being
+    /// left out and the dials (bde); missing people alone (m); the candidate town, every step but
+    /// contagion and the tone (bdefghm); and it with the tone (bdefghmt). Update only for a
+    /// deliberate change to a 0d.6 rule or constant.</summary>
+    [Theory]
+    [InlineData("b", "2ecdc13334939931")]
+    [InlineData("bde", "8d6a83059e7927cd")]
+    [InlineData("m", "ebc29ca2436b0442")]
+    [InlineData("bdefghm", "c0642c9c12bdf5b5")]
+    [InlineData("bdefghmt", "b7ad0f53570cba04")]
+    public void The0d6StepsArePinned(string steps, string hash)
+        => Assert.Equal(hash, Metrics.LogHash(new Simulation(1, feelings: DefaultTown.Feelings().With0d6(steps)).Run(112)));
+
     /// <summary>0d.6 (X13): with every 0d.6 rule switched on and only watched, the town is P3's to the
     /// byte, and the rules record what they would have done. (The tone is 0d's own rule, so it stays off.)</summary>
     [Fact]

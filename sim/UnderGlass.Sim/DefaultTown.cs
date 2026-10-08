@@ -174,12 +174,17 @@ public static class DefaultTown
     /// loved ones (Fond, 14 days: at 10 regard drifted up over three years), keeps a stance (hermits and brawlers can emerge), and dares by
     /// its power of acting; light snubs stay off, because they drain feuds (7.9 to 0.6 a year).
     /// Phase 0d.6's rules are all off; their constants are set as the sweeps of 2026-10-07 tuned them
-    /// (sim/README.md), so a step switched on (--0d6) runs as measured: being left out pushes at 0.8 a
-    /// night on shy to the fourth power (shy squared made hermits of the stay-at-home, not the shy),
-    /// and a withdrawn stance pulls home at 6 a point (at 3 the hubs outweighed it).</summary>
+    /// for the candidate town (every step but contagion; sim/README.md), so steps switched on (--0d6)
+    /// run as measured: being left out pushes at 1.75 a night on shy to the fifth power (shy squared
+    /// made hermits of the stay-at-home, not the shy), with a fresh start of 3 days a season (at 7
+    /// there were almost no hermits); a withdrawn stance pulls home at 6 a point (at 3 the hubs
+    /// outweighed it); an expression of 0.75, the town's typical, shows a feeling in full (at 1 every
+    /// answer was weaker, and feuds fell a quarter); and the first greeting is read curt or warm at a
+    /// fifteenth of 0d's first guess (at 0.03, 83% of towns went to war; at 0.005 hostility grew over
+    /// three years, at 0.002 it holds).</summary>
     public static FeelingOptions Feelings() => new() { Start = Tensions(), PlasticScale = 2, Desire = true,
         FondOn = true, FondDays = 14, StanceOn = true, PowerWeight = 1,
-        LeftOutRate = 0.8, ShyPower = 4, StanceHomeDial = 6 };
+        LeftOutRate = 1.75, ShyPower = 5, StanceHomeDial = 6, FreshDays = 3, ShowReference = 0.75, Tone = 0.002 };
 
     /// <summary>
     /// The town's starting tensions (0c question 1; Sid, 2026-10-07): who starts out disliking whom,

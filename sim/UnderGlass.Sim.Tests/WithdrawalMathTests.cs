@@ -156,6 +156,8 @@ public class WithdrawalMathTests
             Assert.Equal(DesireMath.StanceAfterHurt(0.1, 0.3, bold), WithdrawalMath.StanceAfterHeldHurt(0.1, 0.3, bold, 1, O), 12);
         // Held entirely: withdrawn, even for the bold.
         Assert.Equal(-0.09, WithdrawalMath.StanceAfterHeldHurt(0, 0.3, 0.98, 0, O), 12);
+        // Masking never makes the shy less withdrawn: their own pull is the stronger.
+        Assert.Equal(DesireMath.StanceAfterHurt(0, 0.3, 0.1), WithdrawalMath.StanceAfterHeldHurt(0, 0.3, 0.1, 0.25, O), 12);
         // A bold masker (Pam's boldness, Penny's mask) is pulled toward withdrawal.
         Assert.True(WithdrawalMath.StanceAfterHeldHurt(0, 0.3, 0.7, 0.25, O) < 0);
         Assert.True(WithdrawalMath.StanceAfterHeldHurt(0, 0.3, 0.7, 0.85, O) > 0);
@@ -242,8 +244,8 @@ public class WithdrawalMathTests
         Assert.False(town.WithdrawalWatch || town.HomeHurtOn || town.HouseholdGateOn || town.ContagionOn || town.LeftOutOn
                      || town.InclusionDiscountOn || town.DialsOn || town.RecoveryOn || town.PatienceOn || town.CoercionOn
                      || town.ShowOn || town.MissingOn || town.ToneOn);
-        Assert.Equal((0.8, 4, 6.0), (town.LeftOutRate, town.ShyPower, town.StanceHomeDial));
-        Assert.Equal((0.01, 2, 3.0), (O.LeftOutRate, O.ShyPower, O.StanceHomeDial)); // the research's first guesses
+        Assert.Equal((1.75, 5, 6.0, 3, 0.75, 0.002), (town.LeftOutRate, town.ShyPower, town.StanceHomeDial, town.FreshDays, town.ShowReference, town.Tone));
+        Assert.Equal((0.01, 2, 3.0, 7, 1.0), (O.LeftOutRate, O.ShyPower, O.StanceHomeDial, O.FreshDays, O.ShowReference)); // first guesses
     }
 
     /// <summary>The seventh trait reads and sets like the other six, and the cast carries Sid's

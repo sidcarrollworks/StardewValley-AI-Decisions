@@ -1,4 +1,4 @@
-> The implementation spec as written before building (kept for reference). Where the code differs, `sim/README.md` and `docs/under-glass/design.md` ("As built") say how and why.
+> The implementation spec as written before building (kept for reference). Where the code differs, `sim/README.md` and `docs/under-glass/design.md` ("As built") say how and why; the departures are listed at the end of `sim/README.md`'s 0d.6 section, and the tuned constants are in `DefaultTown.Feelings()`.
 
 # Under Glass phase 0d.6: hermits, brawlers, moods that spread, and missing people: implementation spec
 
