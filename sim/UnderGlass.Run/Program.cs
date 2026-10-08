@@ -27,6 +27,9 @@ using UnderGlass.Sim;
 // seed (--town pelican:60@1 --town-seeds runs pelican:60@1, @2, @3 and so on), so the variety measures
 // cover towns as well as runs. It prints only what doesn't need one cast: the spread table, ties and
 // E1 worked out run by run, and the variety measures. Not with --acts or --trait.
+// --check <name> (repeatable; "today" for all of them) runs a scenario check of batch 2's spec (5.5:
+// C2, C3, C4, C6, C10, C11, C13) on the town as the other flags make it, each with its own seeds and
+// days unless --seeds or --days is given, and prints its scene, its numbers and whether it passes.
 int seeds = 200, days = 28, from = 1;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
@@ -206,25 +209,55 @@ for (int i = 0; i < args.Length - 1; i++)
         ? k with { Affect = a with { Joy = v[0], Plastic = v.Length > 1 ? v[1] : a.Plastic } }
         : k).ToList();
 }
-IReadOnlyList<(int, string, string)> Injected(long seed) => inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
+IReadOnlyList<(int, string, string)> Injected(long seed, bool? placed) => placed ?? inject ? new[] { Harness.ScandalFor(seed, kinds) } : Array.Empty<(int, string, string)>();
 // --town-seeds: each run's own town, built once (runs go in parallel).
 var seedTowns = new System.Collections.Concurrent.ConcurrentDictionary<long, TownData>();
 TownData TownFor(long seed) => seedTowns.GetOrAdd(seed, s => Towns.ForSeed(args[townArg + 1], s));
-Simulation Make(long seed, FeelingOptions o)
+// placed: the harness's scandal or none, whatever --inject says (the scenario checks).
+Simulation Make(long seed, FeelingOptions o, bool? placed = null)
 {
     if (townSeeds)
     {
         // The town's own tensions and cards; the act list is the same for every town of a size.
         TownData t = TownFor(seed);
         o.Start = tensionDepth is { } depth ? Towns.WithTensions(t.Feelings.Start, depth) : t.Feelings.Start;
-        return new Simulation(seed, t with { Cast = ActCatalog.Cards(t.Cast, o.Acts), Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed));
+        return new Simulation(seed, t with { Cast = ActCatalog.Cards(t.Cast, o.Acts), Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed, placed));
     }
     var sim = town is null
-        ? new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed), feelings: o)
-        : new Simulation(seed, town with { Cast = cast ?? town.Cast, Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed));
+        ? new Simulation(seed, cast: cast, kinds: kinds, gossip: gossip, scheduled: Injected(seed, placed), feelings: o)
+        : new Simulation(seed, town with { Cast = cast ?? town.Cast, Acts = kinds, Gossip = gossip, Feelings = o }, Injected(seed, placed));
     foreach (var (who, trait, value) in traits)
         sim.SetTrait(who, trait, value);
     return sim;
+}
+
+// The scenario checks (batch 2 spec 5.5): each its own runs, then its result.
+var checkNames = new List<string>();
+for (int i = 0; i < args.Length - 1; i++)
+    if (args[i] == "--check")
+        checkNames.AddRange(string.Equals(args[i + 1], "today", StringComparison.OrdinalIgnoreCase) ? ReachMetrics.Today : new[] { args[i + 1] });
+if (checkNames.Count > 0)
+{
+    if (townSeeds)
+        throw new ArgumentException("--check runs one town: not with --town-seeds");
+    foreach (string name in checkNames)
+    {
+        Check check = ReachMetrics.Named(name);
+        int n = args.Contains("--seeds") ? seeds : check.Seeds, length = args.Contains("--days") ? days : check.Days;
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        var checkRuns = Enumerable.Range(from, n).AsParallel().AsOrdered().Select(s =>
+        {
+            Simulation sim = Make(s, Copy(feelings), placed: check.Placement == Placement.PlacedScandal);
+            if (check.Scenarios is { } scenes)
+                sim.Place(scenes(s, kinds));
+            return sim.Run(length);
+        }).ToList();
+        CheckResult res = ReachMetrics.Evaluate(check, checkRuns, kinds, cast ?? townCast, town?.Gatherings ?? DefaultTown.Gatherings());
+        Console.WriteLine($"{res.Check} ({n} seeds x {length} days, {timer.Elapsed.TotalSeconds:0} s): {res.Scene}");
+        Console.WriteLine($"  {res.Summary}");
+        Console.WriteLine($"  {(res.Pass is null ? "reported" : res.Pass.Value ? "passes" : "fails")}: {res.Criterion}");
+    }
+    return;
 }
 
 if (logSeed is { } one)

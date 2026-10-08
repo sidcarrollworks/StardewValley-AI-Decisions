@@ -293,7 +293,7 @@ public sealed partial class Simulation
             bool close = Steering
                 ? Feelings.Close(household, Familiarity(mayor, accused), St(mayor, accused), _ao.SwayCloseAt, _fo)
                 : Familiarity(mayor, accused) >= _ao.SwayCloseAt || household;
-            bool letOff = Authority.Swayed(_seed, actId, close, _ao);
+            bool letOff = Authority.Swayed(_seed, actId, close, _ao) || _forceSway.Contains(actId); // or a scenario's sway
             Consequence step = Authority.StepFor(_record.GetValueOrDefault(accused));
             var v = new Verdict(actId, m, mayor, accused, accused == _acts[actId].Actor, step, letOff);
             _verdicts.Add(v);
