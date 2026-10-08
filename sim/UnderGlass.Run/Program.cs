@@ -471,6 +471,8 @@ if (feelings.Enabled)
     Console.WriteLine($"  new feuds (not kin or home; pauses of {StoryMetrics.FeudPauseDays} d or less joined): {s.TimedFeudsPerYear:0.0} a year, median length {(double.IsNaN(s.MedianFeudDays) ? "n/a" : double.IsPositiveInfinity(s.MedianFeudDays) ? "past the run's end" : $"{s.MedianFeudDays:0} days")} [28+ with repair], ended {Pc(s.EndedFeudShare)}");
     Console.WriteLine($"  a year: trivia {s.TriviaPerYear:0}, news {s.NewsPerYear:0}; by the gate, heavy hostile acts {s.HeavyHostileByGate:0.0}, gifts {s.GiftsByGate:0.0}; "
         + "the gate's kind acts by whole year of the run " + (s.GateKindnessByYear.Count == 0 ? "n/a (under a year)" : string.Join(", ", s.GateKindnessByYear.Select(x => x.ToString("0.0", inv)))));
+    if (s.ColdShare is >= 0 || s.ApologiesPerYear > 0 || s.RemorseLapsedPerYear > 0)
+        Console.WriteLine($"  jokes read cold {Pc(s.ColdShare)} [10-20%]; apologies {s.ApologiesPerYear:0.0} a year, accepted {Pc(s.ApologiesAccepted)} [50-80%]; remorse lapsed with no apology {s.RemorseLapsedPerYear:0.0} a year");
     Console.WriteLine("  most hurt a year: " + string.Join(", ", s.People.OrderByDescending(p => p.Hurt).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Hurt:0.00}"))
         + "; fewest acts done: " + string.Join(", ", s.People.OrderBy(p => p.Did).ThenBy(p => p.Name, StringComparer.Ordinal).Take(5).Select(p => $"{p.Name} {p.Did:0}")));
 }

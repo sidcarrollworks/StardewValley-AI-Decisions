@@ -68,6 +68,8 @@ public sealed class ActOptions
     /// of act from the same person within ApologyDays (law 10's excuse, which wears out).</summary>
     public IReadOnlyList<double> ApologyExcuse { get; set; } = new[] { 0.5, 0.25, 0 };
     public int ApologyDays { get; set; } = 28;
+    /// <summary>The cost of accepting an apology before any dislike: what it takes to let it go.</summary>
+    public double ApologyCost { get; set; } = 0.4;
     /// <summary>Mood lost by an apologiser who is refused, x (0.5 + sensitivity).</summary>
     public double RefusedSting { get; set; } = 0.08;
     /// <summary>The share by which comfort cools the target's open Answer.</summary>

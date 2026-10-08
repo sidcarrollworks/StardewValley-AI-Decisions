@@ -184,7 +184,7 @@ public sealed partial class Simulation
         double felt = _felt.TryGetValue((h, act.Id), out FeltRecord? rec) ? Math.Abs(rec.Mood) : Math.Abs(row.Joy) * Sens(h);
         if (felt <= 0)
             return;
-        if (WarmOnly(h, kind, felt, rec))
+        if (WarmOnly(h, act, kind, felt, rec, m))
             return; // the act catalog: a light kind act stirs no motive (read cold, it hurts a little)
         if (row.Target == TargetIs.Chosen && row.Joy < 0)
         {
@@ -268,7 +268,9 @@ public sealed partial class Simulation
         DesireLog($"{m} stirred {_names[h]} {kind} {_names[s]} act {source} felt {felt:0.00}");
     }
 
-    private int Window(DesireKind k) => k == DesireKind.Pity ? _fo.PityMinutes : _fo.MotiveDays * Clock.MinutesPerDay;
+    private int Window(DesireKind k) => k == DesireKind.Pity ? _fo.PityMinutes
+        : k == DesireKind.Remorse ? _fo.Acts.RemorseDays * Clock.MinutesPerDay // the act catalog: remorse lasts longer
+        : _fo.MotiveDays * Clock.MinutesPerDay;
 
     private double EventPart(Motive d, int m) => DesireMath.EventPart(d.Felt, d.Since, m, Window(d.Kind));
 

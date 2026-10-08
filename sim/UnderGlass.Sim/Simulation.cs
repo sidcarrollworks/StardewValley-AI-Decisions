@@ -995,7 +995,8 @@ public sealed partial class Simulation
             Undergo(act, kind, m);
             StirPity(act, kind, m);
             Mark(act, kind, m);
-            AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill
+            AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill, an apology's answer
+            RemorseAfter(act, kind, m); // the act catalog: remorse in the one who hurt (Repair)
         }
     }
 

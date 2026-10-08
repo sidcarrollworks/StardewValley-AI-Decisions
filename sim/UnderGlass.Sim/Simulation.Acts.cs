@@ -108,12 +108,16 @@ public sealed partial class Simulation
     /// <summary>A light kind act seen by its target stirs no motive: a thank-you is never thanked
     /// back and a compliment obliges no gift. Read cold it hurts a little (its stance), and still
     /// stirs nothing, being light. True when handled.</summary>
-    private bool WarmOnly(int h, ActKind kind, double felt, FeltRecord? rec)
+    private bool WarmOnly(int h, Act act, ActKind kind, double felt, FeltRecord? rec, int m)
     {
         if (!IsWarm(kind))
             return false;
         if (rec is { Route: "Cold" })
+        {
             Hurt(h, felt);
+            if (_index.TryGetValue(act.Actor, out int a))
+                StirRemorse(a, h, act, felt, m); // with Repair on: the joker saw it land
+        }
         return true;
     }
 
@@ -256,6 +260,8 @@ public sealed partial class Simulation
             Treat(act.Actor, t, m);
         else if (kind.Name == "Welcomed")
             Welcome(a, ti);
+        else if (kind.Name == "Apologised")
+            AnswerApology(act, a, ti, m);
     }
 
     // ---- welcome (acts spec 4.6; slice acts-3) ------------------------------------------------
@@ -304,5 +310,102 @@ public sealed partial class Simulation
             return;
         Move(home, bar, _mo.SaloonDrink);
         ToOutside(bar, _mo.SaloonDrink * _mo.SaloonRestock);
+    }
+
+    // ---- repair (acts spec 4.7; slice acts-4) -------------------------------------------------
+
+    /// <summary>Accepted apologies, by apologiser, target and the hurt's kind, with their days: the
+    /// excuse wears out (question 3, answer b).</summary>
+    private readonly Dictionary<(int A, int T, string Kind), List<int>> _accepted = new();
+
+    /// <summary>
+    /// Remorse (acts spec 4.7), stirred in the actor of a heavy hostile act, or of a joke read cold,
+    /// as the target takes it: the actor took part, so they saw it land. Only with Repair on, and
+    /// only if the actor holds the target at RemorseAt or above, the act wasn't over the target's own
+    /// scandal (they gave cause: the actor was in the right), and the two aren't kin or housemates
+    /// (families cover). Felt: what the target felt x RemorseShare x (0.5 + understanding). It lasts
+    /// RemorseDays. A kind motive, so the gate's guard holds: nobody apologises to someone they now
+    /// dislike.
+    /// </summary>
+    private void StirRemorse(int a, int t, Act act, double targetFelt, int m)
+    {
+        if (!_fo.Acts.Repair || !Acting || a == t || Close(a, t) || St(_names[a], _names[t]) < _fo.Acts.RemorseAt)
+            return;
+        if (act.About >= 0 && Did(_names[t], act.About) && KindOf(_acts[act.About]).IsScandal)
+            return; // over their own scandal: they gave cause
+        double felt = targetFelt * _fo.Acts.RemorseShare * (0.5 + U(a));
+        if (felt > 0)
+            Stir(a, t, DesireKind.Remorse, false, "Apologised", act.Id, felt, m);
+    }
+
+    /// <summary>After a heavy hostile act ends, its actor's remorse (acts spec 4.7), from what the
+    /// target felt of it.</summary>
+    private void RemorseAfter(Act act, ActKind kind, int m)
+    {
+        if (!_fo.Acts.Repair || !IsHeavyHostile(kind) || act.Target is not { } t || !_index.TryGetValue(t, out int ti)
+            || !_index.TryGetValue(act.Actor, out int a) || !_felt.TryGetValue((ti, act.Id), out FeltRecord? rec))
+            return;
+        StirRemorse(a, ti, act, Math.Abs(rec.Mood), m);
+    }
+
+    /// <summary>
+    /// The apology's answer, on the spot (acts spec 4.7; design B's Ask in its smallest form).
+    /// Obliged = 0.5 x regard for the apologiser (if any) + 0.5 x familiarity + 0.3 x understanding;
+    /// the cost = ApologyCost + dislike x (0.5 + retention). A margin beyond the close-call band decides;
+    /// inside it, a draw keyed by the act at logistic(8 x margin), tilted by mood.
+    /// </summary>
+    private void AnswerApology(Act act, int a, int t, int m)
+    {
+        double regard = St(_names[t], _names[a]);
+        double obliged = 0.5 * Math.Max(0, regard) + 0.5 * _fam[t, a] + 0.3 * U(t);
+        double cost = _fo.Acts.ApologyCost + Math.Max(0, -regard) * (0.5 + Ret(t));
+        double margin = obliged - cost;
+        bool accepted = DesireMath.Call(margin, _fo) switch
+        {
+            "clear" => true,
+            "no" => false,
+            _ => Rng.Unit(_seed, "apology", act.Id.ToString())
+                 < DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(t), false, _fo),
+        };
+        foreach (int i in LifeOf(act))
+            SetOutcome(i, accepted ? Outcome.Accepted : Outcome.Refused, m);
+        DesireLog($"{m} apology {_names[a]} {_names[t]} act {act.About} {(accepted ? "accepted" : "refused")} margin {margin:+0.00;-0.00}");
+        if (!accepted)
+        {
+            AddMood(a, -_fo.Acts.RefusedSting * Sens(a), act.Id); // refused: the apologiser smarts, the hurt stays
+            return;
+        }
+        if (act.About < 0 || act.About >= _acts.Count)
+            return;
+        Act hurt = _acts[act.About];
+        // Law 10's excuse, which wears out: half the first time for this kind of harm from this
+        // person within ApologyDays, a quarter the second, then nothing.
+        var key = (a, t, hurt.Kind);
+        if (!_accepted.TryGetValue(key, out var days))
+            _accepted[key] = days = new List<int>();
+        days.RemoveAll(d => Clock.Day(m) - d >= _fo.Acts.ApologyDays);
+        IReadOnlyList<double> excuse = _fo.Acts.ApologyExcuse;
+        double share = excuse.Count == 0 ? 0 : excuse[Math.Min(days.Count, excuse.Count - 1)];
+        days.Add(Clock.Day(m));
+        if (share > 0 && _felt.TryGetValue((t, hurt.Id), out FeltRecord? rec)
+            && rec.Entries.Find(e => e.Subject == a) is { Applied: < 0 } cost0)
+            Move(t, a, -cost0.Applied * share, act.Id, "Apology", "Event", true, m);
+        if (_hits.TryGetValue((t, a), out var hits))
+            hits.Remove(hurt.Tick); // the fear it left is lifted
+        if (_desires.TryGetValue((t, a, (int)DesireKind.Answer), out Motive? grudge) && grudge.Source == hurt.Id)
+            _desires.Remove((t, a, (int)DesireKind.Answer)); // and the grudge it stirred
+        if (_fo.StanceOn && _felt.TryGetValue((t, act.Id), out FeltRecord? warm))
+            _stance[t] = DesireMath.StanceAfterKindness(_stance[t], Math.Abs(warm.Mood));
+    }
+
+    /// <summary>The life record's open entries for an act (its doer's and its target's). The record is
+    /// written in time order, so the search stops at the act's own minute.</summary>
+    private List<int> LifeOf(Act act)
+    {
+        var found = new List<int>();
+        for (int i = _life.Count - 1; i >= 0 && _life[i].Tick >= act.Tick; i--)
+            if (_life[i].ActId == act.Id && _life[i].Role is LifeRole.Did or LifeRole.Undergone && _life[i].Outcome == Outcome.Open)
+                found.Add(i);
+        return found;
     }
 }
