@@ -214,8 +214,11 @@ public sealed partial class Simulation
         if (fresh || x != rec.Patient)
         {
             bool known = x >= 0 && x != h;
-            (rec.F0, rec.Route) = Feelings.Base(row.Joy, Sens(h), x == h, known, known ? E(h, x) : 0,
+            double joy = ReadJoy(h, x, act, row); // the act catalog: a warm act read cold is taken badly
+            (rec.F0, rec.Route) = Feelings.Base(joy, Sens(h), x == h, known, known ? E(h, x) : 0,
                 known ? Feelings.Likeness(_cast[h], _cast[x]) : 0, U(h), row.Patient == Patient.Onlookers, _fo);
+            if (joy != row.Joy)
+                rec.Route = "Cold"; // read cold: its own route, so the measures can count it
             rec.Patient = x;
         }
         if (fresh)
@@ -248,7 +251,7 @@ public sealed partial class Simulation
             AddMood(h, d, act.Id);
             _feltLog.Add(new Felt(m, who, act.Id, rec.Route, basis, d, null, 0, 0));
         }
-        if (fresh && rec.Route == "Direct")
+        if (fresh && rec.Route is "Direct" or "Cold")
             Underwent(h, c >= 0 ? _names[c] : null, act.Id, Math.Abs(rec.Mood), m);
         rec.W = c == rec.Cause ? Math.Max(rec.W, w) : w;
         rec.Cause = c;
@@ -265,7 +268,7 @@ public sealed partial class Simulation
         {
             // F7: regard toward the believed cause, by how freely they acted.
             double phi = Feelings.Phi(row.Freedom, Excuse(h, c), _fo);
-            double dr = rec.F0 * rec.W * row.Plastic * _fo.PlasticScale * phi * keep * rec.Repeat;
+            double dr = WarmBudgeted(h, c, act, kind, rec.F0 * rec.W * row.Plastic * _fo.PlasticScale * phi * keep * rec.Repeat);
             Want(c, dr, rec.Route);
             // F9b: a little of it spills onto their kind, as far as they are a stranger (III P46).
             if (_fo.Kinds)

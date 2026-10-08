@@ -21,7 +21,8 @@ using UnderGlass.Sim;
 // running, and --dump-town <path> writes it as JSON to edit by hand.
 // The act catalog (acts spec 2.4): --catalog <slices> turns on its switches, a comma list of watch,
 // returns, company, welcome, repair, sides and late (any case; e.g. --catalog returns,company), and
-// adds their rows and cards to the town. (--acts is the cards flag above.)
+// adds their rows and cards to the town. (--acts is the cards flag above.) --ao <Name>=<value> sets
+// one of the catalog's numbers (ActOptions), e.g. --ao WarmBudget=0.005.
 // --town-seeds, with a generated town, gives each run its own town: the run's seed is also its town
 // seed (--town pelican:60@1 --town-seeds runs pelican:60@1, @2, @3 and so on), so the variety measures
 // cover towns as well as runs. It prints only what doesn't need one cast: the spread table, ties and
@@ -110,6 +111,7 @@ for (int i = 0; i < args.Length - 1; i++)
             break;
         case "--0d6": feelings.With0d6(args[i + 1]); break;
         case "--catalog": feelings.Acts.With(args[i + 1]); break;
+        case "--ao": SetOption(feelings.Acts, args[i + 1]); break; // an act catalog number, e.g. --ao WarmBudget=0.005
     }
 }
 // --acts Name=Kind:weight, on a copy of the town's cast.
