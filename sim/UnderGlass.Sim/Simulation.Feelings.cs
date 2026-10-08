@@ -675,6 +675,7 @@ public sealed partial class Simulation
             for (int j = i + 1; j < n; j++)
             {
                 bool kin = AreKin(_names[i], _names[j]);
+                FeudSpellAt(day, i, j); // the story measures' record (acts spec 7.3); no rule reads it
                 if (_regard[i, j] <= _fo.FeudAt && _regard[j, i] <= _fo.FeudAt
                     && !(_baseline[i, j] <= _fo.FeudAt && _baseline[j, i] <= _fo.FeudAt))
                     Tie(day, i, j, kin ? "kin-feud" : "feud");
