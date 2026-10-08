@@ -1,4 +1,4 @@
-> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built and today's numbers in 5.6). Nothing else in batch 2 is built.
+> Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built in 5.6); m-1, story events part 2 (`claude/story-events-2`; as built in 6.7); m-2, forked runs and V7 (`claude/forks`; as built in 6.8). Nothing else in batch 2 is built.
 >
 > It merges three designers' drafts of that day: **acts** (batch 2's kinds and their engine pieces), **reach** (festivals, the reach levers, the first new scandals, the scenario harness) and **twists** (story events, the variety measures, the deal). It builds step 2 of section 4 of `actions-and-twists.md`, with the measures of its step 0, and section 9 of `specs/acts-spec.md`, and keeps the acts spec's conventions: `ActGate`; the Light, Story and Ledger classes; a switch per slice; watch mode; E2.
 >
@@ -9,7 +9,7 @@
 > - **Story events and V1-V6, V8** (#56; `Variety.cs`; `sim/README.md`, "Variety"). Not built: V7, family pooling in V1, the fair-twist rule.
 > - **The corrected `TownMetrics`** (#57) and **the 60-person town**, generator version 2 (#58). Open PRs: **the canonical town hash** (#60: appended fields with defaults no longer move a town's hash) and **scaled gates for grown towns**, with `--town-seeds` (#61).
 >
-> **Not built:** batch 1's acts-1 to acts-6 (Thanked, Complimented, Joked, PlayedGame, TreatedToDrink, Welcomed, Apologised, Comforted, Mocked, StoodUpFor, LateForWork), and with them `AfterAct`, `CatalogWatch`, the warm budget, the cold reading and the apology's answer; `StoryMetrics` comes with acts-0's follow-up. Batch 2 comes after them (1.3).
+> **Not built when this was written:** batch 1's acts-1 to acts-6 (Thanked, Complimented, Joked, PlayedGame, TreatedToDrink, Welcomed, Apologised, Comforted, Mocked, StoodUpFor, LateForWork), and with them `AfterAct`, `CatalogWatch`, the warm budget, the cold reading and the apology's answer; `StoryMetrics` comes with acts-0's follow-up. Batch 2 comes after them (1.3). *Since then* (checkpoint-7): `StoryMetrics` (#62) and acts-1 to acts-4 (#64-#67, all off) are built; acts-5, Sides, is a draft that fails its gates (#69); acts-6 is not started.
 >
 > **Numbers.** Costs, joys, plastic shares, thresholds and juiciness are first guesses for the sweeps. *Measured*: the reach designer's read-only probe on checkpoint-3. *Probe*: the twists designer's throwaway program (checkpoint-3 plus the variety code). The variety baseline (6.3) is checkpoint-5's. "Who" comes from the cast's traits in `DefaultTown.cs`. Recalled Stardew facts are marked VERIFY; the festival dates were read from the game's data (Calendar.cs:5-7).
 >
@@ -681,6 +681,27 @@ public void Fork(int day, long salt)
 Every die reads `_seed` when drawn, the sway included, so all change after the fork and none before; no fork, every pin holds.
 
 **Runner.** The variety line adds the families, fair twists (all, fair share, unfair kinds) and, with `--forks <K>` (needs `--days 112`+), `V7 open future {v7} [25-60%] ({S} seeds x {K} forks at day 28; headline changed {h})`. `--log <seed>` adds `stories:`, one a line: `d{day} {Kind} {people}[ {detail}][ (unfair)]: {chain}`, steps as `act {id} {Kind} by {actor}[ to {target}] d{day}`, `told d{day}`, `found d{day}`, `report d{day}`, `friends since d{day}` or `dealt: {cause}`. The recorder may write a `stories` key for a Stories tab, each kind's sentence a template.
+
+### 6.7 As built: m-1 (2026-10-08)
+
+Built on `claude/story-events-2`: `Variety.Events.cs` (`RunLog`, `CauseStep`, the leads, chains and the fair-twist rule), the new kinds BlameMoved, LetOff, FirstScandal, Upheaval and Humiliated, V1's families and V6's fair twists, the runner's variety lines, and `VarietyTests` (11). Where it differs from 6.2-6.3:
+- **Dates.** A secret out is dated by its first naming (the log's first belief row naming the actor), and a confession by its interview. Before, they were dated by the first hearing (a belief's GotTick, often a trace with no name, days earlier) and by the act.
+- **`Variety.Of` has no `record` or `dealt` yet.** No town starts with verdicts on record, and the deal is d-1's, so every person's first scandal is a FirstScandal and no chain starts from a dealt tie.
+- **Humiliated** leaves out the consequences of the harness's placed scandal, as the other kinds leave the scandal out.
+- **`StoryMetrics` doesn't read `RunLog` yet:** it is the act catalog's file (local's).
+
+`VarietyStats` gains `V1Feud`, `V1FeudPair`, `V1Culprit`, `V1CulpritName`, `V6All`, `FairShare`, `Unfair`, and `V7` and `V7Headline` (NaN until m-2's forks). The numbers are in `sim/README.md` ("Story events, part 2").
+
+### 6.8 As built: m-2 (2026-10-08)
+
+Built on `claude/forks`, as 6.3 writes it: `_seed` is no longer `readonly`, and `RunDays` swaps it at the fork's minute. `Fork` and its two fields are in a new file, `Simulation.Forks.cs`, so `Simulation.cs` changes by those two edits only. V7 is `Variety.Open` (`Variety.Forks.cs`); the runner's `--forks <K>` prints it. The tests are `ForkTests` (3). Where it differs from 6.3:
+- **The window.** V7 reads days 28-111 of each run (`MajorStories(events, ForkDay, Year)`), so a run longer than a year is compared over its first year only. A fork runs as long as its base, so a story that needs days to show (a hermit's spell) is read the same way in both.
+- **What's major.** The first 13 of `Variety.Kinds` (`MajorRanks`), WrongVerdict to Hermit. Feuds and friendships aren't among them, so a fork whose only change is another feud reads as the same year.
+- **The headline** is the biggest story over the same days; two runs with no story there have the same headline.
+- **`Fork(day, salt)`** refuses a day before 0. A fork at the run's length or later changes nothing (the test pins P3).
+- **The runner keeps each fork's story events, not its result**, so `--forks 3` over 50 seeds holds 50 results, not 200.
+
+The numbers are in `sim/README.md` ("V7, the open future").
 
 ### 6.4 The deal (d-1 to d-6)
 

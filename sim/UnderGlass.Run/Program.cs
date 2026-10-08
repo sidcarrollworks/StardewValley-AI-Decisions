@@ -30,7 +30,10 @@ using UnderGlass.Sim;
 // --check <name> (repeatable; "today" for all of them) runs a scenario check of batch 2's spec (5.5:
 // C2, C3, C4, C6, C10, C11, C13) on the town as the other flags make it, each with its own seeds and
 // days unless --seeds or --days is given, and prints its scene, its numbers and whether it passes.
-int seeds = 200, days = 28, from = 1;
+// --forks <K> (needs --days 112 or more) also runs each seed K times more, forked at day 28 with salts
+// 1 to K (Simulation.Fork), and the variety lines add V7, the share of forks whose major stories over
+// the rest of the year differ from their base's (batch 2 spec 6.3).
+int seeds = 200, days = 28, from = 1, forks = 0;
 long? logSeed = null;
 bool inject = args.Contains("--inject");
 // --town <name>: a grown town (Towns.Named) in place of the shipped one, its cast and options with it.
@@ -79,6 +82,7 @@ for (int i = 0; i < args.Length - 1; i++)
             break;
         case "--seeds": seeds = int.Parse(args[i + 1]); break;
         case "--days": days = int.Parse(args[i + 1]); break;
+        case "--forks": forks = int.Parse(args[i + 1]); break;
         case "--from": from = int.Parse(args[i + 1]); break;
         case "--log": logSeed = long.Parse(args[i + 1]); break;
         case "--chat": gossip.ChatChance = double.Parse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -304,6 +308,23 @@ var runs = Enumerable.Range(from, seeds).AsParallel().AsOrdered()
     .Select(s => Make(s, Copy(feelings)).Run(days)).ToList();
 double runSeconds = clock.Elapsed.TotalSeconds;
 
+// V7 (batch 2's m-2): each seed again, forked at day 28 with salts 1 to --forks, kept as story events.
+(double V7, double Headline) open = (double.NaN, double.NaN);
+if (forks < 0 || forks > 0 && days < Variety.Year)
+    throw new ArgumentException($"--forks needs a count of 1 or more and --days {Variety.Year} or more: V7 reads days {Variety.ForkDay}-{Variety.Year - 1}");
+if (forks > 0)
+{
+    var forked = Enumerable.Range(from, seeds).SelectMany(s => Enumerable.Range(1, forks).Select(salt => (Seed: s, Salt: salt)))
+        .AsParallel().AsOrdered().Select(x =>
+        {
+            Simulation sim = Make(x.Seed, Copy(feelings));
+            sim.Fork(Variety.ForkDay, x.Salt);
+            return Variety.Of(sim.Run(days), kinds);
+        }).ToList();
+    open = Variety.Open(runs.Select((r, i) => (Variety.Of(r, kinds), (IReadOnlyList<IReadOnlyList<StoryEvent>>)forked.GetRange(i * forks, forks))).ToList());
+}
+string forkNote = forks > 0 ? $"{seeds} seeds x {forks} forks at day {Variety.ForkDay}" : "";
+
 // Each run gets its own options object: they are mutable, and runs go in parallel.
 static FeelingOptions Copy(FeelingOptions o)
 {
@@ -338,7 +359,7 @@ if (townSeeds)
             + $"war towns {Pc(MeanOf(f => f.WarTowns))} (scaled {Pc(MeanOf(f => f.WarTownsScaled))}), dead towns {Pc(MeanOf(f => f.DeadTowns))} (scaled {Pc(MeanOf(f => f.DeadTownsScaled))}); "
             + $"per 100 people a year: feuds {MeanOf(f => f.FeudsPerYear) * 100 / runs[0].CastSize:0.0}, friendships {MeanOf(f => f.FriendshipsPerYear) * 100 / runs[0].CastSize:0.0}");
     }
-    PrintVariety(Variety.Measure(runs, kinds));
+    PrintVariety(Variety.Measure(runs, kinds) with { V7 = open.V7, V7Headline = open.Headline }, forkNote);
     return;
 }
 Console.WriteLine();
@@ -528,7 +549,7 @@ if (town is not null)
     foreach (DistrictStats d in ts.Districts)
         Console.WriteLine($"  {d.District}: acts {d.ActsPerPerson:0.0}, tellings heard {d.HeardPerPerson:0.0}, feuds {d.FeudsPerPerson:0.00}, friendships {d.FriendshipsPerPerson:0.00} a person a year");
 }
-PrintVariety(Variety.Measure(runs, kinds));
+PrintVariety(Variety.Measure(runs, kinds) with { V7 = open.V7, V7Headline = open.Headline }, forkNote);
 if (feelings.Enabled)
 {
     // The act catalog's story measures (acts spec 7.2 and 7.3; targets in brackets).
@@ -553,10 +574,13 @@ if (feelings.Enabled)
 Console.WriteLine("reach: share of the town holding the story at the end; sat90: reached 90%+; band: 40-70% over 3+ days; died: never retold");
 
 // How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
-static void PrintVariety(VarietyStats v)
+static void PrintVariety(VarietyStats v, string forkNote)
 {
-    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}); "
+    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}; "
+        + $"families pooled: feud {(v.V1FeudPair == "" ? "none" : $"{v.V1FeudPair} {v.V1Feud:P0}")}, culprit {(v.V1CulpritName == "" ? "none" : $"{v.V1CulpritName} {v.V1Culprit:P0}")}); "
         + $"V2 headlines {v.V2:0.0} [20+] (top {v.TopHeadline} {v.TopHeadlineShare:P0}); V3 alike pairs {v.V3:P1} [under 5%]; V4 with a rare story {Pc(v.V4)} [60%+]{(double.IsNaN(v.V4) ? " (needs 50+ seed-years)" : "")}");
-    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}); "
-        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; V7 not built");
+    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 fair twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}; every twist, median {v.V6All:0.#}; "
+        + $"fair {Pc(v.FairShare)}{(v.Unfair is { Count: > 0 } u ? "; unfair " + string.Join(", ", u.Select(x => $"{x.Key} {x.Value}")) : "")}); "
+        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; "
+        + (double.IsNaN(v.V7) ? "V7 needs forked runs (--forks <K>)" : $"V7 open future {v.V7:P0} [25-60%] ({forkNote}; headline changed {v.V7Headline:P0})"));
 }
