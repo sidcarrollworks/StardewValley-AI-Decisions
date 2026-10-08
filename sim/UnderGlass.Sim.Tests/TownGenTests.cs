@@ -17,11 +17,11 @@ public class TownGenTests
         Assert.Equal(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(TownSpec.Parse("pelican:60@1"))));
         Assert.NotEqual(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(new TownSpec(2, 60))));
         // Update only when a deliberate change to the generator lands (and raise TownGen.Version).
-        // Version 2 (2026-10-08, the review's fixes; the hash now covers the whole town file, so it
-        // also moved when the act catalog's seams added fields to the act rows and the feelings).
-        Assert.Equal("6a3457c801ecf24d", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
-        Assert.Equal("59912ac5fdd8ac4c", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
-        Assert.Equal("a953219dce6d71a7", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
+        // Version 2 (2026-10-08, the review's fixes). The hash reads the town's canonical form, which
+        // leaves out values at their defaults, so fields appended with a default don't move it.
+        Assert.Equal("8b18e34b4b315814", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
+        Assert.Equal("933d25e7f62ecdcd", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
+        Assert.Equal("6c3ef2b45d89c41f", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
     }
 
     [Fact]
