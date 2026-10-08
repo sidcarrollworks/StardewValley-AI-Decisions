@@ -30,6 +30,9 @@ public class ReplayTests
         Replay.Pack(bytes, 1, 3, 8, 2, false);
         Replay.Pack(bytes, 300, 127, 255, 0, true); // a long wait takes a two-byte varint
         Assert.Equal(new[] { (0, 3, 7, 2, true), (5, 3, 8, 2, false), (301 * 5, 127, 255, 0, true) }, Replay.Unpack(bytes.ToArray()));
+        // The bytes themselves, as the viewer's own decoder reads them (varint low bits first, the
+        // place with 128 for asleep, then x and y), so a change to Pack and Unpack together fails here.
+        Assert.Equal(new byte[] { 0x00, 0x83, 0x07, 0x02, 0x01, 0x03, 0x08, 0x02, 0xAC, 0x02, 0xFF, 0xFF, 0x00 }, bytes.ToArray());
         Assert.Throws<ArgumentOutOfRangeException>(() => Replay.Pack(bytes, 1, 128, 0, 0, false));
     }
 
@@ -95,7 +98,7 @@ public class ReplayTests
         int beliefs = run.GetProperty("beliefs").GetArrayLength(), tellings = run.GetProperty("tellings").GetArrayLength();
         Assert.Equal(r.Log.Count(l => l.Split(' ')[1] == "belief"), beliefs);
         Assert.Equal(r.Log.Count(l => l.Split(' ')[1] == "told"), tellings);
-        Assert.Equal(r.Log.Count, beliefs + tellings + run.GetProperty("events").GetArrayLength());
+        Assert.Equal(r.Log.Count + r.MotiveLog.Count, beliefs + tellings + run.GetProperty("events").GetArrayLength());
 
         var regard = run.GetProperty("regard").EnumerateArray().ToArray();
         Assert.Equal(days, regard.Length);
@@ -108,6 +111,70 @@ public class ReplayTests
         Assert.Equal(days * 24, run.GetProperty("mood").GetArrayLength());
         Assert.Equal(r.Ties.Count, run.GetProperty("ties").GetArrayLength());
         Assert.Equal(r.LifeEvents.Count, run.GetProperty("life").GetArrayLength());
+
+        // Regard changes: between two people in "feelings", toward a kind of person in
+        // "kindFeelings", and every moving change in one or the other.
+        string[] personKinds = run.GetProperty("personKinds").EnumerateArray().Select(e => e.GetString()!).ToArray();
+        var feelings = run.GetProperty("feelings").EnumerateArray().Select(e => e.EnumerateArray().Select(x => x.GetInt32()).ToArray()).ToArray();
+        var kindFeelings = run.GetProperty("kindFeelings").EnumerateArray().Select(e => e.EnumerateArray().Select(x => x.GetInt32()).ToArray()).ToArray();
+        Assert.All(feelings, f => Assert.True(f[1] >= 0 && f[2] >= 0 && f[1] != f[2]));
+        Assert.All(kindFeelings, f => Assert.InRange(f[2], 0, personKinds.Length - 1));
+        Assert.Equal(r.Feelings.Count(f => f.Toward is not null && f.Change != 0), feelings.Length + kindFeelings.Length);
+        Assert.Equal(r.Feelings.Count(f => f.Change != 0 && f.Toward is { } t && t.StartsWith("kind:")), kindFeelings.Length);
+    }
+
+    /// <summary>Each tie is stored at its minute: 23:59 of its day for a feud or a friendship,
+    /// which are judged at night, and the moment of the act for a reconciliation.</summary>
+    [Fact]
+    public void TiesAreStoredAtTheirMinute()
+    {
+        const int days = 56;
+        JsonElement run = Parse(Replay.Json(new ReplayOptions { Seed = 1, Days = days }));
+        SimResult r = new Simulation(1, feelings: DefaultTown.Feelings()).Run(days);
+        string[] names = run.GetProperty("names").EnumerateArray().Select(e => e.GetString()!).ToArray();
+        var ties = run.GetProperty("ties").EnumerateArray().ToArray();
+        Assert.Equal(r.Ties.Count, ties.Length);
+        Assert.Contains(r.Ties, t => t.What == "reconciled");
+        for (int k = 0; k < ties.Length; k++)
+        {
+            int tick = ties[k][0].GetInt32();
+            var truth = r.Ties[k];
+            Assert.Equal((truth.Day, truth.A, truth.B, truth.What), (Clock.Day(tick), names[ties[k][1].GetInt32()], names[ties[k][2].GetInt32()], ties[k][3].GetString()));
+            if (truth.What == "reconciled")
+                Assert.Contains(r.Log, l => l.StartsWith($"{tick} reconciled {truth.A} {truth.B} ", StringComparison.Ordinal));
+            else
+                Assert.Equal(Clock.MinutesPerDay - 1, Clock.OfDay(tick));
+        }
+    }
+
+    /// <summary>With the gate only watching (DesireActs off), its lines stay out of the run's log
+    /// but are recorded with the events, in time order, so the viewer can show them.</summary>
+    [Fact]
+    public void TheWatchingGatesLinesAreRecorded()
+    {
+        FeelingOptions watching = DefaultTown.Feelings();
+        watching.DesireActs = false;
+        JsonElement run = Parse(Replay.Json(new ReplayOptions { Seed = 1, Days = 2, Feelings = watching }));
+        FeelingOptions again = DefaultTown.Feelings();
+        again.DesireActs = false;
+        SimResult r = new Simulation(1, feelings: again).Run(2);
+        Assert.NotEmpty(r.MotiveLog);
+        int[] ticks = run.GetProperty("events").EnumerateArray().Select(e => e[0].GetInt32()).ToArray();
+        string[] texts = run.GetProperty("events").EnumerateArray().Select(e => e[1].GetString()!).ToArray();
+        Assert.Equal(ticks.OrderBy(t => t), ticks);
+        foreach (string line in r.MotiveLog)
+            Assert.Contains(line[(line.IndexOf(' ') + 1)..], texts);
+    }
+
+    /// <summary>A setting that is not a finite number (a threshold of Infinity, to turn something
+    /// off) is written as a string rather than failing after the whole run.</summary>
+    [Fact]
+    public void SettingsThatAreNotFiniteAreWritten()
+    {
+        FeelingOptions noFriends = DefaultTown.Feelings();
+        noFriends.FriendAt = double.PositiveInfinity;
+        JsonElement run = Parse(Replay.Json(new ReplayOptions { Seed = 1, Days = 1, Feelings = noFriends }));
+        Assert.Equal("Infinity", run.GetProperty("settings").GetProperty("FriendAt").GetString());
     }
 
     /// <summary>With feelings off there is no regard or mood to record, and the file says so

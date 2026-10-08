@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace UnderGlass.Sim;
 
@@ -18,21 +19,26 @@ public sealed record ReplayOptions
 
 /// <summary>
 /// A run of the default town recorded for the viewer (sim/viewer/index.html): who the people are,
-/// the places, every act, where everyone was at each tick, mood by the hour, regard, power and
+/// the places, every act, where everyone was at each tick, mood and power by the hour, regard and
 /// stance by the day, ties, who came to believe what and who told whom, regard changes and their
-/// causes, the gate's weighings, the life record, the authority's cases, and the event log.
-/// Recording only reads the simulation: the run is the same run, with the same log hash, as
-/// without it. People are indexes into "names" (the cast in name order), places into "places",
-/// act kinds into "kinds"; times are game minutes from midnight of day 0. Real numbers are
-/// rounded to three places; regard is stored as integers in thousandths, and mood and power in
-/// hundredths. Movements are packed per person (see <see cref="Pack"/>).
+/// causes, the gate's weighings, the life record, the authority's cases, and the event log (with
+/// the gate's lines when it only watches). Recording only reads the simulation: the run is the
+/// same run, with the same log hash, as without it. People are indexes into "names" (the cast in
+/// name order), places into "places", and the acts' kinds into "kinds"; the gate's weighings, the
+/// life record and each person's own acts name their act kinds instead. Times are game minutes
+/// from midnight of day 0. Real numbers are rounded to three places; regard is stored as integers
+/// in thousandths, and mood and power in hundredths. Movements are packed per person (see
+/// <see cref="Pack"/>). Settings that are not finite numbers (a threshold set to Infinity to turn
+/// something off) are written as the strings "Infinity", "-Infinity" and "NaN".
 /// </summary>
 public static class Replay
 {
     /// <summary>Raised when the file's shape changes, so the viewer can tell an old file.</summary>
     public const int Version = 1;
 
-    public static string Json(ReplayOptions o) => JsonSerializer.Serialize(Record(o));
+    private static readonly JsonSerializerOptions Options = new() { NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals };
+
+    public static string Json(ReplayOptions o) => JsonSerializer.Serialize(Record(o), Options);
 
     public static Dictionary<string, object?> Record(ReplayOptions o)
     {
@@ -92,10 +98,13 @@ public static class Replay
             }
         });
 
-        // The log: beliefs and tellings become tables of their own; every other line is kept.
+        // The log: beliefs and tellings become tables of their own; every other line is kept. A
+        // tie is logged as it is made, in the order of r.Ties, which holds only its day: the line
+        // gives its minute (23:59 for feuds and friendships, the moment for a reconciliation).
         var beliefs = new List<int[]>();
         var tellings = new List<int[]>();
         var events = new List<object[]>();
+        var tieTicks = new List<int>();
         foreach (string line in r.Log)
         {
             int space = line.IndexOf(' ');
@@ -108,8 +117,23 @@ public static class Replay
             else if (w[0] == "told" && w.Length >= 4 && int.TryParse(w[3], out int tAct))
                 tellings.Add(new[] { tick, P(w[1]), P(w[2]), tAct });
             else
+            {
+                if (w[0] is "tie" or "reconciled")
+                    tieTicks.Add(tick);
                 events.Add(new object[] { tick, rest });
+            }
         }
+        // With the gate only watching (DesireActs off), its lines are kept out of the log and its
+        // hash, in r.MotiveLog; the viewer shows them with the rest, in time order.
+        foreach (string line in r.MotiveLog)
+        {
+            int space = line.IndexOf(' ');
+            if (space > 0 && int.TryParse(line.AsSpan(0, space), out int tick))
+                events.Add(new object[] { tick, line[(space + 1)..] });
+        }
+        if (r.MotiveLog.Count > 0)
+            events = events.OrderBy(e => (int)e[0]).ToList(); // stable: the log's own order holds within a minute
+        int TieTick(int k) => tieTicks.Count == r.Ties.Count ? tieTicks[k] : r.Ties[k].Day * Clock.MinutesPerDay + Clock.MinutesPerDay - 1;
 
         int[] Traits(Temperament t) => new[]
         {
@@ -119,6 +143,13 @@ public static class Replay
         var byName = cast.ToDictionary(v => v.Name);
         string[] routes = r.Feelings.Select(f => f.Route).Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
         var route = routes.Select((x, i) => (x, i)).ToDictionary(p => p.x, p => p.i);
+        // Regard can be aimed at a kind of person ("kind:<Kind>", the Kind and Spill routes and
+        // the reattributions that undo them), kept apart from regard between two people.
+        const string KindMark = "kind:";
+        string[] personKinds = cast.Select(v => v.Kind).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToArray();
+        var personKind = personKinds.Select((k, i) => (k, i)).ToDictionary(x => x.k, x => x.i);
+        int K(string? toward) => toward is not null && toward.StartsWith(KindMark, StringComparison.Ordinal)
+            && personKind.TryGetValue(toward[KindMark.Length..], out int i) ? i : -1;
 
         return new Dictionary<string, object?>
         {
@@ -180,15 +211,20 @@ public static class Replay
                 ? names.SelectMany(a => names.Select(b => a == b ? 0 : (int)Math.Round(r.Baseline[(a, b)] * 1000))).ToArray()
                 : Array.Empty<int>(),
             ["stance"] = r.Stances.Count == 0 ? null : names.Select(x => r.Stances[x].Select(R).ToArray()).ToArray(),
-            ["hoursOut"] = r.OutMinutes.Count == 0 ? null : names.Select(x => r.OutMinutes[x]).ToArray(),
-            ["ties"] = r.Ties.Select(t => new object[] { t.Day, P(t.A), P(t.B), t.What }).ToArray(),
+            ["minutesOut"] = r.OutMinutes.Count == 0 ? null : names.Select(x => r.OutMinutes[x]).ToArray(),
+            ["ties"] = r.Ties.Select((t, k) => new object[] { TieTick(k), P(t.A), P(t.B), t.What }).ToArray(),
             ["beliefs"] = beliefs,
             ["tellings"] = tellings,
             ["routes"] = routes,
             // Regard changes with a cause: [tick, holder, toward, act, route, change in thousandths].
-            ["feelings"] = r.Feelings.Where(f => f.Toward is not null && f.Change != 0)
+            ["feelings"] = r.Feelings.Where(f => f.Change != 0 && P(f.Toward) >= 0)
                 .Select(f => new[] { f.Tick, P(f.Holder), P(f.Toward), f.ActId, route[f.Route], (int)Math.Round(f.Change * 1000) }).ToArray(),
-            ["sentiments"] = r.Sentiments.Select(s => new object[] { P(s.Holder), P(s.Toward), s.Name, s.ActId, R(s.Strength), s.Since, s.Count }).ToArray(),
+            // The same for regard toward a kind of person: [tick, holder, kind, act, route, change].
+            ["personKinds"] = personKinds,
+            ["kindFeelings"] = r.Feelings.Where(f => f.Change != 0 && K(f.Toward) >= 0)
+                .Select(f => new[] { f.Tick, P(f.Holder), K(f.Toward), f.ActId, route[f.Route], (int)Math.Round(f.Change * 1000) }).ToArray(),
+            // [holder, toward (-1 for a kind), name, act, strength, since, count, kind (-1 for a person)].
+            ["sentiments"] = r.Sentiments.Select(s => new object[] { P(s.Holder), P(s.Toward), s.Name, s.ActId, R(s.Strength), s.Since, s.Count, K(s.Toward) }).ToArray(),
             ["motives"] = Enum.GetNames<DesireKind>(),
             ["pursuits"] = r.Pursuits.Select(p => new object[]
             {

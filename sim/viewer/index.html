@@ -24,13 +24,13 @@
   --like: #2a55c4;        /* regard above zero, kindness (cobalt) */
   --dislike: #a8174f;     /* regard below zero, hostility (crimson) */
   --mid: #cfc8bb;         /* the diverging midpoint */
-  --hub: rgba(224, 82, 12, 0.14);
+  --hub: rgba(224, 82, 12, 0.07);
+  --hub-ring: rgba(224, 82, 12, 0.45);
   --screen: #1d1a17;      /* the clock's screen */
   --screen-ink: #ff8a4c;  /* its lit dots */
   --screen-dim: #9d8f7d;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 1px 2px rgba(45, 34, 22, 0.10), 0 14px 30px -16px rgba(45, 34, 22, 0.35);
-  --key: linear-gradient(#f5f2eb, #e3ddd2);
-  --key-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 0 #b1a898, 0 3px 6px -2px rgba(45, 34, 22, 0.25);
+  --key: linear-gradient(#f4f1ea, #eae5dc);
+  --key-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 0 rgba(45, 34, 22, 0.14);
   --font-display: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-body: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-data: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -61,15 +61,16 @@ button, select, input { font: inherit; color: inherit; }
 /* Keys: raised, and pressed in when on or held. */
 button { background: var(--key); border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; cursor: pointer; box-shadow: var(--key-shadow); font-weight: 500; transition: transform 60ms ease, box-shadow 60ms ease; }
 button:hover { border-color: var(--muted); }
-button:active { transform: translateY(1px); box-shadow: 0 1px 0 #b1a898, 0 1px 2px rgba(45, 34, 22, 0.2); }
-button[aria-pressed="true"], button.on { background: linear-gradient(#e6e0d5, #ede8df); box-shadow: inset 0 1px 3px rgba(45, 34, 22, 0.25); transform: translateY(1px); }
+button:active { transform: translateY(1px); box-shadow: none; }
+button[aria-pressed="true"], button.on { background: linear-gradient(#e5dfd4, #ebe6dd); box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.14); }
 /* An indicator light on keys that switch something on. */
 button.led { display: inline-flex; align-items: center; gap: 7px; }
-button.led::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #b9b0a0; box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.25); flex: none; }
-button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 0 1px rgba(224, 82, 12, 0.3), 0 0 8px rgba(255, 110, 40, 0.75); }
+button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; flex: none; }
+button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; box-shadow: inset 0 1px 2px rgba(45, 34, 22, 0.12); }
-.card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
+/* Cards are flat panels of a lighter tone, marked only by their corners. */
+.card { position: relative; background: var(--surface); border-radius: var(--radius); }
 /* Registration marks in two corners, as on a technical sheet. */
 .card::before, .card::after { content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none; }
 .card::before { top: 7px; left: 7px; border-top: 1px solid var(--muted); border-left: 1px solid var(--muted); }
@@ -83,20 +84,25 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .transport .play { min-width: 86px; font-weight: 700; justify-content: center; }
 .transport .speed { display: inline-flex; align-items: center; gap: 6px; }
 .screen { margin-inline-start: auto; background: var(--screen); border-radius: 10px; padding: 8px 14px 6px; display: grid; justify-items: end; gap: 0; min-width: 210px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
   background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 3px 3px; }
 .screen .date { font-family: var(--font-data); font-size: var(--step--2); color: var(--screen-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.screen .time .colon { display: inline-block; position: relative; width: 0.34em; color: transparent; text-shadow: none; }
+.screen .time .colon::before, .screen .time .colon::after { content: ""; position: absolute; left: 50%; width: 0.1em; height: 0.1em; margin-left: -0.05em; border-radius: 50%;
+  background: var(--screen-ink); box-shadow: 0 0 5px rgba(255, 120, 50, 0.45); }
+.screen .time .colon::before { top: 0.3em; }
+.screen .time .colon::after { top: 0.54em; }
 .screen .time { font-family: var(--font-dots); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--screen-ink); letter-spacing: 0.04em;
-  text-shadow: 0 0 6px rgba(255, 120, 50, 0.65), 0 0 18px rgba(255, 100, 30, 0.35); font-variant-numeric: tabular-nums; }
+  text-shadow: 0 0 5px rgba(255, 120, 50, 0.45), 0 0 14px rgba(255, 100, 30, 0.2); font-variant-numeric: tabular-nums; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { padding: 12px 18px 12px; display: grid; gap: 6px; }
 .timeline canvas { width: 100%; height: 38px; display: block; cursor: pointer; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
-input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.25); }
-input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.25); }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 22px; margin-top: -9px; border-radius: 3px; background: linear-gradient(#ff7a33, var(--accent)); border: 1px solid #a83a06; box-shadow: 0 2px 4px rgba(45, 34, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
-input[type="range"]::-moz-range-thumb { width: 12px; height: 20px; border-radius: 3px; background: linear-gradient(#ff7a33, var(--accent)); border: 1px solid #a83a06; box-shadow: 0 2px 4px rgba(45, 34, 22, 0.35); }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -8px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius: 3px; background: var(--accent); border: 1px solid #b8430a; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--step--1); color: var(--ink-2); align-items: center; }
 .legend .hint { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.04em; }
 .key { display: inline-flex; align-items: center; gap: 6px; }
@@ -107,34 +113,45 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 20px; border-radius
 @media (max-width: 980px) { .work { grid-template-columns: minmax(0, 1fr); } }
 .stage { padding: 16px; display: grid; gap: 14px; min-width: 0; }
 /* The views: a segmented switch set into a well. */
-.tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 11px; box-shadow: inset 0 1px 3px rgba(45, 34, 22, 0.22); justify-self: start; }
+.tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 11px; justify-self: start; }
 .tabs button { font-weight: 600; background: transparent; border-color: transparent; box-shadow: none; border-radius: 8px; }
 .tabs button[aria-pressed="true"] { background: var(--key); border-color: var(--line); box-shadow: var(--key-shadow); transform: none; }
 .side { display: grid; gap: 14px; min-width: 0; }
 
-/* The town: one plate per place, grouped. */
-.groups { display: grid; gap: 18px; }
-.group { display: grid; gap: 10px; }
+/* The town: one plate per place, grouped, largest first. A plate is a heading, the map and who is
+   there, with no frame, and exactly as wide as its map, so it keeps its width whoever comes and
+   goes. The square, where the town gathers, takes the whole width. */
+.groups { display: grid; gap: 22px; }
+.group { display: grid; gap: 12px; min-width: 0; }
 .group > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
 .group > header h2 { font-size: var(--step-0); letter-spacing: 0.08em; text-transform: uppercase; }
 .group > header span { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-.panels { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
-.panel { border: 1px solid var(--line); border-radius: 10px; padding: 9px; display: grid; gap: 7px; background: var(--surface-hi); min-width: 0; max-width: 100%; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(45, 34, 22, 0.08); }
-.panel header { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-.panel header h3 { font-family: var(--font-data); font-size: var(--step--2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.panel header .dims { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); margin-inline-start: 6px; font-weight: 400; letter-spacing: 0.02em; }
-.count { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
-.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.25); }
+.panels { display: flex; flex-wrap: wrap; gap: 20px 16px; align-items: flex-start; }
+.panel { display: grid; gap: 6px; min-width: 0; max-width: 100%; align-content: start; flex: none; }
+.panel.feature { grid-template-columns: max-content minmax(0, 1fr); column-gap: 20px; }
+.panel.feature > header { grid-column: 1; grid-row: 1; }
+.panel.feature > canvas { grid-column: 1; grid-row: 2; }
+.panel.feature > .roster { grid-column: 2; grid-row: 2; }
+.panel.feature.stacked { grid-template-columns: minmax(0, 1fr); }
+.panel.feature.stacked > .roster { grid-column: 1; grid-row: 3; }
+.panel header { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; min-width: 0; }
+.panel header h3 { font-family: var(--font-data); font-size: var(--step--2); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; }
+.panel .residents { font-size: var(--step--2); color: var(--muted); margin-top: -3px; min-height: 2.9em; } /* two lines, so the maps in a row start level */
+.count { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.05em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.count::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b9b0a0; }
 .panel.busy .count { color: var(--ink); }
-.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 6px rgba(255, 110, 40, 0.75); }
+.panel.busy .count::before { background: var(--accent); box-shadow: 0 0 4px rgba(255, 110, 40, 0.55); }
 .panel canvas { display: block; max-width: 100%; height: auto; image-rendering: pixelated; cursor: crosshair; border-radius: 3px; }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; }
-.chip { font-size: var(--step--1); border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px 1px 6px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface); cursor: pointer; box-shadow: none; font-weight: 500; }
+.roster { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; min-height: 1.5rem; }
+.chip { font-size: var(--step--1); border: 1px solid transparent; border-radius: 999px; padding: 1px 9px 1px 6px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-hi); cursor: pointer; box-shadow: none; font-weight: 500; }
+.chip:hover { border-color: var(--line); }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .chip.asleep { color: var(--muted); }
 .chip.asleep .dot { box-shadow: inset 0 0 0 1.5px var(--muted); }
 .chip.sel { border-color: var(--accent); background: var(--accent-wash); }
 .doing { font-size: var(--step--1); color: var(--ink-2); display: grid; gap: 2px; }
+.doing:empty { display: none; }
 .doing .now { font-weight: 600; color: var(--ink); }
 
 /* Relationships. */
@@ -179,12 +196,12 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 20px; border-radius
 .facts dt { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 2px; }
 .facts dd { margin: 0; min-width: 0; }
 .gauges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.gauge { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 10px; padding: 6px 6px 8px; display: grid; justify-items: center; gap: 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8); }
+.gauge { background: var(--surface-hi); border-radius: 10px; padding: 6px 6px 8px; display: grid; justify-items: center; gap: 0; }
 .gauge svg { width: 100%; height: auto; display: block; }
 .gauge .read { font-family: var(--font-data); font-weight: 600; font-size: var(--step-0); font-variant-numeric: tabular-nums; }
 .traits { display: grid; gap: 5px; font-size: var(--step--1); }
 .trait { display: grid; grid-template-columns: 7.4rem minmax(0, 1fr) 2.4rem; gap: 8px; align-items: center; }
-.trait .track { height: 6px; border-radius: 3px; background: var(--surface-2); position: relative; box-shadow: inset 0 1px 1px rgba(45, 34, 22, 0.2); }
+.trait .track { height: 6px; border-radius: 3px; background: var(--surface-2); position: relative; }
 .trait .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--ink-2); }
 .trait .end { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--accent); }
 .spark { display: grid; gap: 2px; }
@@ -198,7 +215,7 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 20px; border-radius
 .feedlist { max-height: 44vh; overflow-y: auto; display: grid; gap: 0; font-size: var(--step--1); border-top: 1px solid var(--line); padding-top: 6px; }
 .feedlist .row { grid-template-columns: 4.8rem minmax(0, 1fr); border-bottom: 1px solid rgba(186, 178, 164, 0.4); border-radius: 0; }
 .empty { padding: 24px; display: grid; gap: 10px; justify-items: start; }
-.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--surface-hi); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px -8px rgba(45, 34, 22, 0.4); padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
+.tooltip { position: fixed; z-index: 10; pointer-events: none; background: var(--screen); color: var(--surface-hi); border-radius: 6px; box-shadow: 0 2px 6px rgba(29, 26, 23, 0.18); padding: 6px 9px; font-size: var(--step--1); max-width: 280px; }
 .tooltip strong { font-family: var(--font-data); }
 .drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
 .note { font-size: var(--step--1); color: var(--ink-2); max-width: 65ch; margin: 0; }
@@ -227,7 +244,7 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 20px; border-radius
     </div>
     <div class="screen" aria-live="off">
       <div class="date" id="clockDate">–</div>
-      <div class="time" id="clockTime">--:--</div>
+      <div class="time" id="clockTime"><span id="clockH">--</span><span class="colon">:</span><span id="clockM">--</span></div>
     </div>
     <div>
       <button id="openBtn">Open a run…</button>
@@ -353,7 +370,7 @@ function dateOf(t) {
   const year = Math.floor(season / 4) + 1;
   return `${SEASONS[season % 4]} ${d % 28 + 1}, ${WEEKDAYS[d % 7]}` + (year > 1 ? `, year ${year}` : "");
 }
-const hm = (t) => { const m = ((t % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+const hm = (t) => { const m = ((Math.floor(t) % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
 const when = (t) => `d${Math.floor(t / 1440)} ${hm(t)}`;
 const sgn = (x, d = 2) => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d);
 function lowerBound(arr, x, key) { let lo = 0, hi = arr.length; while (lo < hi) { const mid = (lo + hi) >> 1; if ((key ? key(arr[mid]) : arr[mid]) < x) lo = mid + 1; else hi = mid; } return lo; }
@@ -369,7 +386,7 @@ function hex(c) { // computed CSS colours may come back as rgb(); the diverging 
 }
 let COL = {};
 function readColours() {
-  for (const k of ["bg", "surface", "surface-hi", "surface-2", "ink", "ink-2", "muted", "line", "wall", "fence", "accent", "like", "dislike", "mid", "hub"]) COL[k] = css("--" + k);
+  for (const k of ["bg", "surface", "surface-hi", "surface-2", "ink", "ink-2", "muted", "line", "wall", "fence", "accent", "like", "dislike", "mid", "hub", "hub-ring"]) COL[k] = css("--" + k);
   for (const k of ["like", "dislike", "mid", "surface-2", "ink-2"]) COL[k + "Hex"] = hex(COL[k]);
 }
 /** A person's mood as a colour: dark grey when even, toward blue in good spirits and red when low. */
@@ -435,12 +452,13 @@ function load(run) {
     }
     return { t: Int32Array.from(t), p: Uint8Array.from(p), x: Uint8Array.from(x), y: Uint8Array.from(y), s: Uint8Array.from(s) };
   });
-  m.feelings = run.feelings.length > 0 && run.regard.length > 0;
+  m.feelings = run.regard.length > 0; // regard is recorded each night whenever feelings are on, moved or not
   m.regard = run.regard.map((a) => Int32Array.from(a));
   m.baseline = Int32Array.from(run.baseline.length ? run.baseline : new Array(n * n).fill(0));
   // Regard changes by ordered pair, in time order: [tick, change in thousandths, act, route].
   m.feelPair = new Map();
   for (const f of run.feelings) {
+    if (f[1] < 0 || f[2] < 0) continue; // only regard between two people (regard toward a kind of person is kept apart)
     const k = f[1] * n + f[2];
     if (!m.feelPair.has(k)) m.feelPair.set(k, []);
     m.feelPair.get(k).push([f[0], f[5], f[3], run.routes[f[4]]]);
@@ -459,7 +477,7 @@ function load(run) {
   const CAT = { act: "acts", regard: "feelings", sentiment: "feelings", reconciled: "feelings", tone: "feelings", mark: "feelings",
     stirred: "gate", desire: "gate", why: "gate", avoid: "gate", withdraws: "gate", lapsed: "gate", "gave-cause": "gate", dropped: "gate",
     tie: "ties", report: "authority", "handed-on": "authority", questioned: "authority", verdict: "authority", confront: "authority",
-    suspects: "authority", elected: "authority", "kept-in-family": "authority", warned: "authority", paid: "authority",
+    suspects: "authority", elected: "authority", "kept-in-family": "authority", warned: "authority", "taken-in": "authority", service: "authority", paid: "authority",
     wake: "daily", sleep: "daily", "slept-through": "daily", late: "daily", payday: "money", wants: "money", bought: "money", shop: "money" };
   m.events = run.events.map(([tick, text]) => {
     const words = text.split(" "), who = new Set();
@@ -469,7 +487,18 @@ function load(run) {
   for (const t of run.tellings) m.events.push({ tick: t[0], text: `told ${names[t[1]]} ${names[t[2]]} ${t[3]}`, cat: "gossip", who: new Set([t[1], t[2]]) });
   m.events.sort((a, b) => a.tick - b.tick);
   m.eventTicks = Int32Array.from(m.events.map((e) => e.tick));
-  m.ties = run.ties.map((t) => ({ day: t[0], a: t[1], b: t[2], what: t[3], tick: t[0] * 1440 + 1439 }));
+  m.ties = run.ties.map((t) => ({ day: Math.floor(t[0] / 1440), a: t[1], b: t[2], what: t[3], tick: t[0] }));
+  // The authority's lines about an act, by act, from the field that holds its id.
+  const ACT_FIELD = { report: 3, questioned: 5, suspects: 2, "kept-in-family": 3, paid: 6 }; // e.g. "questioned Jodi by Abigail for 11: confessed"
+  m.authorityByAct = new Map();
+  for (const e of m.events) {
+    const w = e.text.split(" "), f = ACT_FIELD[w[0]];
+    if (f === undefined || w.length <= f) continue;
+    const id = parseInt(w[f], 10);
+    if (!Number.isInteger(id)) continue;
+    if (!m.authorityByAct.has(id)) m.authorityByAct.set(id, []);
+    m.authorityByAct.get(id).push(e);
+  }
   m.pursuits = run.pursuits.map((p) => ({ tick: p[0], holder: p[1], subject: p[2], motive: run.motives[p[3]], source: p[4], kind: p[5], intensity: p[6], margin: p[7], call: p[8], acted: !!p[9], act: p[10] }));
   m.life = run.life.map((e) => ({ tick: e[0], person: e[1], other: e[2], act: e[3], kind: e[4], role: run.roles[e[5]], severity: e[6], hostile: !!e[7], outcome: run.outcomes[e[9]], resolved: e[10] }));
   // Households, for grouping people.
@@ -509,6 +538,7 @@ const baseAt = (i, j) => R.baseline[i * R.n + j] / 1000;
 // ---- time and playback ----------------------------------------------------------------------
 let lastFrame = 0, raf = 0;
 function setTime(t, from) {
+  if (!R) return;
   S.t = clamp(Math.round(t), 0, R.end);
   if (from !== "scrub") $("scrub").value = S.t;
   render();
@@ -534,15 +564,17 @@ function render() {
   if (!R) return;
   const t = S.t;
   $("clockDate").textContent = dateOf(t);
-  $("clockTime").textContent = hm(t);
+  const [hh, mm] = hm(t).split(":"); $("clockH").textContent = hh; $("clockM").textContent = mm;
   drawStrip();
   if (S.tab === "town") drawTown();
-  const minute = Math.floor(t / 5);
-  const relKey = `${S.tab}|${Math.floor(t / 30)}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}`;
+  // The panels below are slower to draw than the map: while playing they redraw every 30 game
+  // minutes (the log every 5); paused or stepped, at every minute, so they always match the clock.
+  const slow = Math.floor(t / (S.playing ? 30 : 1)), minute = Math.floor(t / (S.playing ? 5 : 1));
+  const relKey = `${S.tab}|${slow}|${S.relMode}|${S.relMin}|${S.relHome}|${S.person}|${S.pair}`;
   if (S.tab === "rel" && relKey !== lastRelKey) { lastRelKey = relKey; drawRelationships(); }
-  const storyKey = `${S.tab}|${Math.floor(t / 30)}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}`;
+  const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}`;
   if (S.tab === "stories" && storyKey !== lastStoryKey) { lastStoryKey = storyKey; drawStories(); }
-  const sideKey = `${S.person}|${Math.floor(t / 30)}`;
+  const sideKey = `${S.person}|${slow}`;
   if (sideKey !== lastSideKey) { lastSideKey = sideKey; drawInspector(); }
   const feedKey = `${minute}|${[...S.feed].join()}|${S.feedSearch}|${S.onlyPerson}|${S.person}`;
   if (feedKey !== lastFeedKey) { lastFeedKey = feedKey; drawFeed(); }
@@ -574,37 +606,67 @@ function drawStrip() {
 }
 
 // ---- the town -------------------------------------------------------------------------------
-let panels = [];
+let panels = [], townWidth = 0;
+const spaced = (name) => name.replace(/([a-z])([A-Z])/g, "$1 $2");
 function buildTown() {
   const groups = [
     ["indoors", "Indoors", "The shops and the saloon"], ["outdoors", "Out of doors", "The square, the beach, the clinic yard and the farm"],
-    ["road", "Roads", "Where people walk between places"], ["home", "Homes", "One per household"],
+    ["road", "Roads", "Where people walk between places"], ["home", "Homes", "One per household, with who lives there"],
   ];
-  const wrap = $("groups"); wrap.replaceChildren(); panels = [];
+  const wrap = $("groups"); wrap.replaceChildren(); panels = []; townWidth = 0;
   for (const [key, title, note] of groups) {
-    const ps = R.places.filter((p) => p.group === key).sort((a, b) => (key === "outdoors" ? b.w * b.h - a.w * a.h : 0) || a.name.localeCompare(b.name));
+    const ps = R.places.filter((p) => p.group === key).sort((a, b) => b.w * b.h - a.w * a.h || a.name.localeCompare(b.name));
     if (!ps.length) continue;
+    const section = el("section", { class: "group" }, el("header", null, el("h2", { text: title }), el("span", { class: "muted", text: note })));
     const box = el("div", { class: "panels" });
-    wrap.append(el("section", { class: "group" }, el("header", null, el("h2", { text: title }), el("span", { class: "muted", text: note })), box));
     for (const p of ps) {
-      const tile = p.group === "home" ? 9 : p.group === "road" ? 9 : 11;
-      const canvas = el("canvas", { width: p.w * tile, height: p.h * tile, "aria-label": `Map of ${placeName(p.name)}` });
+      // The largest place out of doors is the square, where the town gathers: it gets the whole
+      // width, at a larger scale, with who is there beside the map rather than under it.
+      const feature = key === "outdoors" && p === ps[0];
+      const home = p.name.startsWith("Home:"), household = p.name.slice(5);
+      const canvas = el("canvas", { "aria-label": `Map of ${placeName(p.name)}, ${p.w} by ${p.h} tiles` });
       const count = el("span", { class: "count" });
       const chips = el("div", { class: "chips" });
       const doing = el("div", { class: "doing" });
-      const node = el("article", { class: "panel" }, el("header", null, el("h3", null, placeName(p.name), el("span", { class: "dims", text: `${p.w}×${p.h}` })), count), canvas, chips, doing);
-      box.append(node);
-      const panel = { p, tile, canvas, count, chips, doing, node, back: null, dots: [] };
+      const residents = home ? R.people.filter((q) => q.household === household).map((q) => q.name).join(", ") : "";
+      const node = el("article", { class: "panel" + (feature ? " feature" : "") },
+        el("header", null, el("h3", { text: spaced(home ? household : p.name), title: `${p.w} × ${p.h} tiles` }), count),
+        residents ? el("div", { class: "residents", text: residents }) : null, canvas, el("div", { class: "roster" }, chips, doing));
+      (feature ? section : box).append(node);
+      const panel = { p, feature, tile: 0, canvas, count, chips, doing, node, back: null, dots: [] };
       canvas.addEventListener("mousemove", (e) => panelHover(panel, e));
       canvas.addEventListener("mouseleave", hideTip);
       canvas.addEventListener("click", (e) => { const hit = panelHit(panel, e); if (hit >= 0) selectPerson(hit); });
       panels.push(panel);
     }
+    if (box.childElementCount) section.append(box);
+    wrap.append(section);
+  }
+}
+/** Sizes the plates from the width there is. Every place but the square is drawn at one scale,
+    the largest at which the widest of them still fits, up to 14 px a tile, and each plate is as
+    wide as its map, so its width never depends on who is in it. The square gets its own, larger
+    scale. Does nothing while the width is unchanged. */
+function layoutTown() {
+  const W = $("groups").clientWidth;
+  if (!W || W === townWidth) return;
+  townWidth = W;
+  const rest = panels.filter((x) => !x.feature);
+  const tile = rest.length ? clamp(Math.floor(W / Math.max(...rest.map((x) => x.p.w))), 5, 14) : 14;
+  for (const x of panels) {
+    let t = tile;
+    if (x.feature) {
+      const beside = W >= 720; // room for a column of who is there beside the map
+      x.node.classList.toggle("stacked", !beside);
+      t = clamp(Math.floor((beside ? W - 280 : W) / x.p.w), 5, 22);
+    }
+    if (t !== x.tile) { x.tile = t; x.back = null; }
+    if (!x.feature) x.node.style.width = x.p.w * t + "px";
   }
 }
 function paintBack(panel) {
   const { p, tile } = panel, dpr = window.devicePixelRatio || 1;
-  const off = document.createElement("canvas"); off.width = p.w * tile * dpr; off.height = p.h * tile * dpr;
+  const off = document.createElement("canvas"); off.width = Math.round(p.w * tile * dpr); off.height = Math.round(p.h * tile * dpr);
   const g = off.getContext("2d"); g.scale(dpr, dpr);
   g.fillStyle = COL["surface-hi"]; g.fillRect(0, 0, p.w * tile, p.h * tile);
   for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
@@ -628,17 +690,21 @@ function hubOn(hub, t) {
   return (hub.weekdays.length === 0 || hub.weekdays.includes(day % 7)) && (hub.onlyDay == null || hub.onlyDay === day) && mod >= hub.from && mod < hub.to;
 }
 function drawTown() {
+  layoutTown();
   const t = S.t, dpr = window.devicePixelRatio || 1;
   const pos = R.names.map((_, i) => where(i, t));
   const active = R.acts.filter((a) => a.tick <= t && t < a.end + 20);
   for (const panel of panels) {
     const { p, tile, canvas } = panel;
+    if (!tile) continue; // not laid out yet
     if (!panel.back) paintBack(panel);
-    if (canvas.width !== p.w * tile * dpr) { canvas.width = p.w * tile * dpr; canvas.height = p.h * tile * dpr; canvas.style.width = p.w * tile + "px"; }
+    const cw = Math.round(p.w * tile * dpr), ch = Math.round(p.h * tile * dpr);
+    if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; canvas.style.width = p.w * tile + "px"; }
     const g = canvas.getContext("2d");
     g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(panel.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
     for (const hub of R.run.hubs) if (hub.place === p.i && hubOn(hub, t)) {
-      g.fillStyle = COL.hub; g.beginPath(); g.arc((hub.x + 0.5) * tile, (hub.y + 0.5) * tile, (hub.radius + 0.5) * tile, 0, Math.PI * 2); g.fill();
+      g.fillStyle = COL.hub; g.strokeStyle = COL["hub-ring"]; g.lineWidth = 1; g.setLineDash([3, 3]);
+      g.beginPath(); g.arc((hub.x + 0.5) * tile, (hub.y + 0.5) * tile, (hub.radius + 0.5) * tile, 0, Math.PI * 2); g.fill(); g.stroke(); g.setLineDash([]);
     }
     const here = [];
     pos.forEach((q, i) => { if (q.place === p.i) here.push(i); });
@@ -670,15 +736,17 @@ function drawTown() {
       const label = R.names[S.person], wpx = g.measureText(label).width, lx = clamp((q.x + 0.5) * tile - wpx / 2, 2, p.w * tile - wpx - 2);
       g.fillStyle = COL.surface; g.fillRect(lx - 2, (q.y) * tile - 15, wpx + 4, 14); g.fillStyle = COL.ink; g.fillText(label, lx, q.y * tile - 2);
     }
-    panel.count.textContent = here.length ? `${here.length} here` : "empty";
+    panel.count.textContent = String(here.length);
+    panel.count.title = here.length === 1 ? "1 person here" : `${here.length} people here`;
     panel.node.classList.toggle("busy", here.length > 0);
     // Who is here, and what is going on.
     const chipKey = here.map((i) => `${i}${pos[i].asleep ? "z" : ""}${i === S.person ? "s" : ""}`).join(",") + "|" + Math.floor(t / 60);
     if (panel.chipKey !== chipKey) {
       panel.chipKey = chipKey;
-      panel.chips.replaceChildren(...here.sort((a, b) => R.names[a].localeCompare(R.names[b])).map((i) => {
+      if (panel.feature && !here.length) panel.chips.replaceChildren(el("span", { class: "muted", style: "font-size:var(--step--1)", text: "Nobody here" }));
+      else panel.chips.replaceChildren(...here.sort((a, b) => R.names[a].localeCompare(R.names[b])).map((i) => {
         const chip = el("button", { class: "chip" + (pos[i].asleep ? " asleep" : "") + (i === S.person ? " sel" : ""), title: pos[i].asleep ? `${R.names[i]}, asleep` : R.names[i], onclick: () => selectPerson(i) },
-          el("span", { class: "dot" }), R.names[i] + (pos[i].asleep ? " · asleep" : ""));
+          el("span", { class: "dot" }), R.names[i]);
         chip.firstChild.style.background = pos[i].asleep ? "transparent" : R.feelings ? moodColour(moodAt(i, t)) : COL["ink-2"];
         return chip;
       }));
@@ -814,7 +882,7 @@ function drawPair() {
     add("line", { x1: padL, x2: w - 8, y1: Y(v), y2: Y(v), stroke: v === 0 ? COL.muted : COL.line, "stroke-width": 1 });
     const tx = add("text", { x: padL - 6, y: Y(v), "text-anchor": "end", "dominant-baseline": "middle", "font-size": 10, fill: COL.muted, "font-family": css("--font-data") }); tx.textContent = v.toFixed(1);
   }
-  for (const tie of R.ties) if ((tie.a === a && tie.b === b) || (tie.a === b && tie.b === a)) add("line", { x1: X(tie.day + 1), x2: X(tie.day + 1), y1: padT, y2: h - padB, stroke: tie.what === "friendship" ? COL.like : tie.what === "reconciled" ? COL["ink-2"] : COL.dislike, "stroke-dasharray": "3 3" });
+  for (const tie of R.ties) if ((tie.a === a && tie.b === b) || (tie.a === b && tie.b === a)) add("line", { x1: X((tie.tick + 1) / 1440), x2: X((tie.tick + 1) / 1440), y1: padT, y2: h - padB, stroke: tie.what === "friendship" ? COL.like : tie.what === "reconciled" ? COL["ink-2"] : COL.dislike, "stroke-dasharray": "3 3" });
   const line = (s, colour) => add("polyline", { points: s.map((v, d) => `${X(d)},${Y(v)}`).join(" "), fill: "none", stroke: colour, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" });
   line(sa, COL.ink); line(sb, COL.accent);
   const day = S.t / 1440; add("line", { x1: X(day), x2: X(day), y1: padT, y2: h - padB, stroke: COL.accent, "stroke-width": 1.5 });
@@ -884,20 +952,36 @@ function drawStory() {
   add("polyline", { points: pts.map(([t, v]) => `${X(t)},${Y(v)}`).join(" "), fill: "none", stroke: COL.accent, "stroke-width": 2, "stroke-linejoin": "round" });
   if (S.t >= a.tick && S.t <= until) add("line", { x1: X(S.t), x2: X(S.t), y1: padT, y2: h - padB, stroke: COL.ink, "stroke-width": 1 });
   for (const [t, label] of [[a.tick, "it happened"], [until, when(until)]]) { const tx = add("text", { x: X(t), y: h - 4, "text-anchor": t === a.tick ? "start" : "end", "font-size": 10, fill: COL.muted, "font-family": css("--font-data") }); tx.textContent = label; }
-  // Who told whom, as a tree from the first-hand holders.
-  const firstHand = rows.filter((b) => b[4] !== 1);
-  const byTeller = new Map(); for (const t of tells) { if (!byTeller.has(t[1])) byTeller.set(t[1], []); byTeller.get(t[1]).push(t); }
-  const tree = [], placed = new Set();
-  const walk = (who, depth) => { for (const t of byTeller.get(who) ?? []) { if (placed.has(t[2] + ":" + t[0])) continue; placed.add(t[2] + ":" + t[0]); tree.push({ depth, t }); if (depth < 6) walk(t[2], depth + 1); } };
-  const roots = [...new Set(firstHand.map((b) => b[1]))];
-  const treeRows = [];
-  for (const r of roots) {
-    const b = firstHand.find((x) => x[1] === r);
-    treeRows.push(el("div", { class: "node" + (b[0] > S.t ? " future" : "") }, el("span", { class: "when data muted", text: when(b[0]) }), el("strong", { text: R.names[r] }), ` ${SOURCE[b[4]]}`));
-    tree.length = 0; walk(r, 1);
-    for (const { depth, t } of tree) treeRows.push(el("div", { class: "node" + (t[0] > S.t ? " future" : ""), style: `padding-inline-start:${depth * 14}px` },
-      el("span", { class: "when data muted", text: when(t[0]) }), `${R.names[t[1]]} told ${R.names[t[2]]}`));
+  // Who told whom: how each person first came to hold it. Whoever saw it or found a trace is a
+  // root; whoever was told sits under the person whose telling gave it to them (the last telling
+  // to them by that minute). Each line counts the people that person went on to tell.
+  const first = new Map(); // holder -> their first belief row
+  for (const b of rows) if (!first.has(b[1])) first.set(b[1], b);
+  const audience = new Map(); // teller -> the people they told
+  for (const t of tells) { if (!audience.has(t[1])) audience.set(t[1], new Set()); audience.get(t[1]).add(t[2]); }
+  const parent = new Map(), under = new Map();
+  for (const [who, b] of first) {
+    if (b[4] !== 1) continue;
+    let from = -1;
+    for (const t of tells) { if (t[0] > b[0]) break; if (t[2] === who && t[1] !== who && first.has(t[1]) && first.get(t[1])[0] <= b[0]) from = t[1]; }
+    if (from < 0) continue;
+    parent.set(who, from);
+    if (!under.has(from)) under.set(from, []);
+    under.get(from).push(who);
   }
+  const byFirst = (x, y) => first.get(x)[0] - first.get(y)[0] || R.names[x].localeCompare(R.names[y]);
+  const treeRows = [], drawn = new Set();
+  const node = (who, depth) => {
+    if (drawn.has(who)) return;
+    drawn.add(who);
+    const b = first.get(who), told = audience.get(who)?.size ?? 0;
+    const how = b[4] !== 1 ? SOURCE[b[4]] : parent.has(who) ? `heard it from ${R.names[parent.get(who)]}` : "was told";
+    treeRows.push(el("div", { class: "node" + (b[0] > S.t ? " future" : ""), style: depth ? `padding-inline-start:${Math.min(depth, 8) * 14}px` : null },
+      el("span", { class: "when data muted", text: when(b[0]) }), el("span", null, el("strong", { text: R.names[who] }), ` ${how}`,
+        told ? el("span", { class: "muted", text: ` · told ${told}` }) : "")));
+    for (const k of (under.get(who) ?? []).sort(byFirst)) node(k, depth + 1);
+  };
+  for (const who of [...first.keys()].filter((x) => !parent.has(x)).sort(byFirst)) node(who, 0);
   // What each holder believes now.
   const latest = new Map(); for (const b of rows) if (b[0] <= S.t) latest.set(b[1], b);
   const beliefs = [...latest.values()].sort((x, y) => R.names[x[1]].localeCompare(R.names[y[1]])).map((b) => {
@@ -906,9 +990,8 @@ function drawStory() {
   });
   // The authority's track.
   const track = [];
-  for (const ac of R.run.accounts) if (ac[1] === a.id) track.push([ac[0], `${R.names[ac[2]] ?? "someone"} reported it, naming ${ac[3] >= 0 ? R.names[ac[3]] : "someone"}`]);
-  for (const e of R.events) if (e.cat === "authority" && (e.text.endsWith(` ${a.id}`) || e.text.includes(` for ${a.id}:`) || e.text.includes(`verdict ${a.id} `) || e.text.includes(` ${a.id} right`) || e.text.includes(` ${a.id} wrong`))) track.push([e.tick, plain(e)]);
-  for (const v of R.run.verdicts) if (v[1] === a.id) track.push([v[0], `Verdict: ${R.names[v[3]]}, ${v[4] ? "rightly" : "wrongly"}, ${v[6] ? "let off" : v[5]}`]);
+  for (const e of R.authorityByAct.get(a.id) ?? []) track.push([e.tick, plain(e)]);
+  for (const v of R.run.verdicts) if (v[1] === a.id) track.push([v[0], `Verdict: ${R.names[v[3]]}, ${v[4] ? "rightly" : "wrongly"}, ${v[6] ? "let off" : v[5].toLowerCase()}`]);
   for (const c of R.run.confrontations) if (c[1] === a.id) track.push([c[0], `${R.names[c[2]]} confronted ${R.names[c[3]]}${c[4] ? "" : " (the wrong person)"}`]);
   track.sort((x, y) => x[0] - y[0]);
   box.replaceChildren(el("div", { style: "display:grid;gap:10px" },
@@ -923,8 +1006,10 @@ function drawStory() {
 }
 
 // ---- the inspector ---------------------------------------------------------------------------
+/** A small line of values by the day, with the whole run drawn and a mark at now (which may fall
+    between two days). The readout is opts.value, the value at the clock. */
 function sparkline(values, opts) {
-  const { lo, hi, zero, colour, title, now, format } = opts, w = 300, h = 44, NS = "http://www.w3.org/2000/svg";
+  const { lo, hi, zero, colour, title, now, format, value } = opts, w = 300, h = 44, NS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("preserveAspectRatio", "none");
   const X = (k) => (k / Math.max(1, values.length - 1)) * w, Y = (v) => 3 + (1 - (v - lo) / (hi - lo)) * (h - 6);
   const add = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); svg.append(e); return e; };
@@ -933,7 +1018,7 @@ function sparkline(values, opts) {
   add("polyline", { points: values.map((v, k) => `${X(k)},${Y(v)}`).join(" "), fill: "none", stroke: colour, "stroke-width": 2, "vector-effect": "non-scaling-stroke", "stroke-linejoin": "round" });
   const k = clamp(now, 0, values.length - 1);
   add("line", { x1: X(k), x2: X(k), y1: 0, y2: h, stroke: COL.accent, "stroke-width": 1.5, "vector-effect": "non-scaling-stroke" });
-  return el("div", { class: "spark" }, el("div", { class: "head" }, el("span", { class: "muted", text: title }), el("strong", { class: "data", text: format(values[k] ?? 0) })), svg);
+  return el("div", { class: "spark" }, el("div", { class: "head" }, el("span", { class: "muted", text: title }), el("strong", { class: "data", text: format(value) })), svg);
 }
 /** An analog gauge from lo to hi: the needle at the value, and for a two-sided scale an arc from
     zero in the colour of its side (cobalt above, crimson below). */
@@ -981,16 +1066,23 @@ function drawInspector() {
       el("div", { class: "muted", style: "font-size:0.75rem;margin-top:4px" }, "Bar: at the start. ", el("span", { style: `color:${COL.accent}`, text: "Mark" }), ": at the end, where it changed.")),
   ];
   if (R.feelings) {
-    const daysN = R.regard.length, day = Math.floor(t / 1440);
+    // Each day's average, the day so far for today (hours sampled up to the clock).
+    const daysN = R.regard.length, day = Math.floor(t / 1440), lastHour = Math.floor(t / 60) - 1;
     const dailyMood = [], dailyPower = [];
-    for (let d = 0; d < daysN; d++) { let sm = 0, sp = 0, c = 0; for (let hr = d * 24; hr < d * 24 + 24 && hr < R.run.mood.length; hr++) { sm += R.run.mood[hr][i]; sp += R.run.power[hr][i]; c++; } dailyMood.push(c ? sm / c / 100 : 0); dailyPower.push(c ? sp / c / 100 : 0.5); }
+    for (let d = 0; d < daysN; d++) {
+      let sm = 0, sp = 0, c = 0;
+      const until = d === day ? lastHour : d * 24 + 23;
+      for (let hr = d * 24; hr <= until && hr < R.run.mood.length; hr++) { sm += R.run.mood[hr][i]; sp += R.run.power[hr][i]; c++; }
+      dailyMood.push(c ? sm / c / 100 : d > 0 ? dailyMood[d - 1] : 0); dailyPower.push(c ? sp / c / 100 : d > 0 ? dailyPower[d - 1] : 0.5);
+    }
+    const today = clamp(day, 0, daysN - 1), sinceNight = day - 1 + (t % 1440) / 1440; // stance is set each night
     kids.push(el("div", { class: "gauges" }, gauge(moodAt(i, t), -0.6, 0.6, "Mood", true, (v) => sgn(v)),
       gauge(powerAt(i, t), 0, 1, "Power", false, (v) => v.toFixed(2)),
       gauge(stanceAt(i, t), -1, 1, "Stance", true, (v) => sgn(v))));
     kids.push(el("div", { style: "display:grid;gap:8px" },
-      sparkline(dailyMood, { lo: -0.6, hi: 0.6, zero: 0, colour: COL.like, title: "Mood by the day", now: day, format: (v) => sgn(v) }),
-      sparkline(dailyPower, { lo: 0, hi: 1, zero: 0.5, colour: COL.ink, title: "Power of acting by the day", now: day, format: (v) => v.toFixed(2) }),
-      ...(R.run.stance ? [sparkline(R.run.stance[i], { lo: -1, hi: 1, zero: 0, colour: COL.dislike, title: "Stance (− withdrawn, + combative)", now: day, format: (v) => sgn(v) })] : [])));
+      sparkline(dailyMood, { lo: -0.6, hi: 0.6, zero: 0, colour: COL.like, title: "Mood by the day", now: today, value: dailyMood[today], format: (v) => sgn(v) }),
+      sparkline(dailyPower, { lo: 0, hi: 1, zero: 0.5, colour: COL.ink, title: "Power of acting by the day", now: today, value: dailyPower[today], format: (v) => v.toFixed(2) }),
+      ...(R.run.stance ? [sparkline(R.run.stance[i], { lo: -1, hi: 1, zero: 0, colour: COL.dislike, title: "Stance (− withdrawn, + combative)", now: sinceNight, value: stanceAt(i, t), format: (v) => sgn(v) })] : [])));
     const toward = [], from = [];
     for (let j = 0; j < R.n; j++) if (j !== i) { toward.push([j, regardAt(i, j, t)]); from.push([j, regardAt(j, i, t)]); }
     const top = (arr, desc) => arr.slice().sort((x, y) => (desc ? y[1] - x[1] : x[1] - y[1])).slice(0, 4).filter(([, v]) => (desc ? v > 0.05 : v < -0.05));
@@ -1008,7 +1100,8 @@ function drawInspector() {
     el("span", { class: "when", text: when(x.tick) }), `wanted to ${MOTIVE[x.motive] ?? x.motive} ${R.names[x.subject]}: ${x.acted ? "did, by " + x.kind.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase() : x.call === "no" || x.call === "close-no" ? "didn't dare" : x.call}`)))));
   const life = R.life.filter((e) => e.person === i && e.tick <= t);
   if (life.length) {
-    const counts = {}; for (const e of life) { const key = e.role + (e.outcome && e.outcome !== "Open" && e.outcome !== "None" ? `, ${e.outcome.toLowerCase()}` : ""); counts[key] = (counts[key] ?? 0) + 1; }
+    const decided = (e) => e.resolved >= 0 && e.resolved <= t && e.outcome && e.outcome !== "Open" && e.outcome !== "None";
+    const counts = {}; for (const e of life) { const key = e.role + (decided(e) ? `, ${e.outcome.toLowerCase()}` : ""); counts[key] = (counts[key] ?? 0) + 1; }
     kids.push(el("div", null, el("div", { class: "label", text: "Life record so far" }), el("div", { class: "muted", style: "font-size:var(--step--1)" },
       Object.entries(counts).sort((x, y) => y[1] - x[1]).slice(0, 8).map(([k, v]) => `${k} ${v}`).join(" · "))));
   }
@@ -1023,7 +1116,7 @@ function townNow() {
     el("dl", { class: "facts" }, el("dt", { text: "Awake" }), el("dd", { text: `${awake} of ${R.n}` }),
       el("dt", { text: "Busiest" }), el("dd", { text: busiest.map(([p, c]) => `${placeName(p.name)} ${c}`).join(", ") || "everyone is at home" }),
       el("dt", { text: "Acts today" }), el("dd", { text: `${today.length}` }),
-      el("dt", { text: "So far" }), el("dd", { text: `${ties.filter((x) => x.what === "feud").length} feuds, ${ties.filter((x) => x.what === "friendship").length} friendships, ${ties.filter((x) => x.what === "reconciled").length} reconciliations` }),
+      el("dt", { text: "So far" }), el("dd", { text: `${ties.filter((x) => x.what === "feud" || x.what === "kin-feud").length} feuds, ${ties.filter((x) => x.what === "friendship").length} friendships, ${ties.filter((x) => x.what === "reconciled").length} reconciliations` }),
       ...(R.run.constable >= 0 ? [el("dt", { text: "Constable" }), el("dd", { text: R.names[R.run.constable] })] : [])),
     el("p", { class: "note", text: "Click anyone on the map, in a list or on the ring to follow them. Dots are coloured by mood: blue in good spirits, red low, grey even; a hollow dot is asleep. Rings mark acts as they happen: blue kind, red hostile." })];
   if (today.length) kids.push(el("div", null, el("div", { class: "label", text: "Today" }), el("div", { class: "list" }, today.slice(-6).reverse().map((a) => el("div", { class: "row", onclick: () => setTime(a.tick) }, el("span", { class: "when", text: hm(a.tick) }), R.actText(a))))));
@@ -1053,6 +1146,15 @@ function plain(e) {
       case "elected": return `${w[2]} is voted ${w[1]} (${w.slice(3).join(" ")} votes)`;
       case "verdict": return `The mayor's verdict on act ${w[1]}: ${w[2]}, ${w[3]}, ${w[4]}`;
       case "confront": return `${w[1]} confronted ${w[2]} (${w[4]})`;
+      case "report": return `${w[1]} reported act ${w[3]} to ${w[2]}, naming ${w[4]}` + (w[5] === "nearby" ? ` (seen nearby: ${w[6].split(",").join(", ")})` : "");
+      case "handed-on": return `${w[1]} handed ${w[3]} ${w[3] === "1" ? "report" : "reports"} on to ${w[2]}`;
+      case "questioned": return `${w[3]} questioned ${w[1]}: ${w.slice(6).join(" ").replace(/^saw\s*(;|$)/, "saw nobody$1").replace(/,/g, ", ")}`;
+      case "suspects": return `${w[1]} suspects ${w[3].split(",").join(", ")} of act ${w[2]}`;
+      case "kept-in-family": return `${w[1]} kept act ${w[3]} by ${w[2]} in the family`;
+      case "paid": return `${w[1]} paid ${w[2]} of the ${w[4]} owed for act ${w[6]}`;
+      case "taken-in": return `${w[1]} was taken in by ${w[3]} for act ${w[5]}`;
+      case "service": return `${w[1]} was given community service by ${w[3]} for act ${w[5]}`;
+      case "warned": return `${w[1]} was warned by ${w[3]} for act ${w[5]}`;
       default: return e.text;
     }
   } catch { return e.text; }
@@ -1134,6 +1236,7 @@ const recolour = () => { if (!R) return; readColours(); for (const p of panels) 
 themeWatch.addEventListener?.("change", recolour);
 new MutationObserver(recolour).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 window.addEventListener("resize", () => R && render());
+new ResizeObserver(() => { if (R && S.tab === "town" && $("groups").clientWidth !== townWidth) requestAnimationFrame(() => R && S.tab === "town" && drawTown()); }).observe($("groups"));
 
 // A run carried inside the page (written by UnderGlass.Replay --html), or an invitation to open one.
 const embedded = $("run-data").textContent.trim();
