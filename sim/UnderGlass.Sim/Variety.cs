@@ -37,8 +37,10 @@ public sealed record StoryEvent(string Kind, int Day, IReadOnlyList<string> Peop
 /// <item>V8: how many kinds of town the runs make: seed-years on a 3 x 3 grid of conflict against
 /// warmth, each axis cut at 0.8 and 1.2 times its median; the cells holding 5% or more. 3 or more.</item>
 /// </list>
-/// V7 (copies of a run split at day 28) needs runs that fork (m-2), and is NaN until then. The
-/// constable's commonest winner is reported beside them (mechanism 10, fixed dates with open outcomes).
+/// V7 (batch 2's m-2), the open future: the share of a run's forks at day 28 whose major stories
+/// over the rest of its first year differ from the run's own (<see cref="Variety.Open"/>); 25-60%.
+/// It needs forked runs, and is NaN without them. The constable's commonest winner is reported beside
+/// them (mechanism 10, fixed dates with open outcomes).
 /// </summary>
 public sealed record VarietyStats(int SeedYears,
     double V1, IReadOnlyList<(string Story, double Share)> Commonest,
