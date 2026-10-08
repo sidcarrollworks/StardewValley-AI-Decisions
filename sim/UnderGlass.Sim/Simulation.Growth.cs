@@ -165,7 +165,8 @@ public sealed partial class Simulation
 
     /// <summary>On arriving at the place of a hub with a crowd limit: someone who sees Capacity or more
     /// awake people within its radius turns back, strikes it off for the day and decides again. Only
-    /// what they see counts (a wall or a hedge hides people), so it reads no one's mind.</summary>
+    /// what they see counts (a wall hides people; a hedge or a shelf only dims them, so they still
+    /// count), so it reads no one's mind.</summary>
     private void Arrive(Person p, int m)
     {
         if (p.Haunt?.Hub is not { } name)
@@ -213,58 +214,62 @@ public sealed partial class Simulation
     }
 
     private ForgettingOptions Fo => _go.Forgetting;
-    // New faces met each day, the last seven days per person (a ring by day), and today's.
-    private int[,]? _newFaces;
+    // The day each new face was last met, per person, for the faces met in the last seven days (a
+    // face counts once toward a week's new faces, however often it is met); and today's.
+    private Dictionary<(int, int), int>? _faceLastMet;
     private HashSet<(int, int)>? _metToday;
 
     /// <summary>How much faster than usual time together builds i's familiarity with j: 1, unless
-    /// forgetting is on and j is still a new face to i, when warmth toward them makes them stick.
-    /// Also counts j as a new face i met today.</summary>
+    /// forgetting is on and j is still a new face to i, when warmth toward them makes them stick
+    /// (only while feelings steer: feelings that only watch change nothing). Also counts j as a new
+    /// face i met today.</summary>
     private double Meeting(int i, int j, int m)
     {
         if (!Fo.On || _fam[i, j] >= Fo.NewFaceBelow)
             return 1;
         _metToday ??= new HashSet<(int, int)>();
         _metToday.Add((i, j));
-        double warmth = _fo.Enabled ? Math.Max(0, E(i, j)) : 0;
+        double warmth = Steering ? Math.Max(0, E(i, j)) : 0;
         return 1 + Fo.WarmMeetingBoost * warmth;
     }
 
     /// <summary>The night's forgetting: every tie but kin's and housemates' fades by its strength,
-    /// faster for weak ties of someone flooded with new faces.</summary>
+    /// faster for weak ties of someone flooded with new faces (different people met in the last seven
+    /// days while still new). Every tie fades from the night's starting values, so the two halves of
+    /// a pair fade alike. Regard adds to a tie's strength only while feelings steer.</summary>
     private void Forget(int day)
     {
         if (!Fo.On)
             return;
         int n = _people.Length;
-        _newFaces ??= new int[n, Clock.DaysPerWeek];
-        int slot = day % Clock.DaysPerWeek;
-        for (int i = 0; i < n; i++)
-            _newFaces[i, slot] = 0;
+        _faceLastMet ??= new Dictionary<(int, int), int>();
         if (_metToday is not null)
-            foreach (var (i, _) in _metToday)
-                _newFaces[i, slot]++;
+            foreach (var pair in _metToday)
+                _faceLastMet[pair] = day;
         _metToday?.Clear();
+        foreach (var gone in _faceLastMet.Where(f => f.Value <= day - Clock.DaysPerWeek).Select(f => f.Key).ToList())
+            _faceLastMet.Remove(gone);
+        var week = new int[n];
+        foreach (var ((i, _), _) in _faceLastMet)
+            week[i]++;
+        var before = (double[,])_fam.Clone();
         for (int i = 0; i < n; i++)
         {
-            int week = 0;
-            for (int d = 0; d < Clock.DaysPerWeek; d++)
-                week += _newFaces[i, d];
-            double flood = Fo.NewFacesPerWeek > 0 ? Math.Max(0, week / Fo.NewFacesPerWeek - 1) : 0;
+            double flood = Fo.NewFacesPerWeek > 0 ? Math.Max(0, week[i] / Fo.NewFacesPerWeek - 1) : 0;
             Villager vi = _people[i].V;
             for (int j = 0; j < n; j++)
             {
-                if (i == j || _fam[i, j] <= 0)
+                if (i == j || before[i, j] <= 0)
                     continue;
                 Villager vj = _people[j].V;
                 if (vi.Household == vj.Household || vi.KinOf(vj.Name) is not null)
                     continue;
-                double known = (_fam[i, j] + _fam[j, i]) / 2;
-                double felt = _fo.Enabled ? (Math.Abs(_regard[i, j]) + Math.Abs(_regard[j, i])) / 2 : 0;
+                double known = (before[i, j] + before[j, i]) / 2;
+                double felt = Steering ? (Math.Abs(_regard[i, j]) + Math.Abs(_regard[j, i])) / 2 : 0;
                 double strength = 1 - (1 - known) * (1 - Math.Min(1, felt));
                 double rate = Fo.FadePerDay * Math.Pow(1 - strength, Fo.StrengthPower)
                               * (1 + Fo.InterferenceWeight * flood * (1 - strength));
-                _fam[i, j] -= _fam[i, j] * Math.Min(1, rate);
+                _fam[i, j] = before[i, j] - before[i, j] * Math.Min(1, rate);
             }
         }
     }

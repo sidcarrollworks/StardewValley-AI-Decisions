@@ -41,6 +41,47 @@ public class TownJsonTests
         Assert.Contains(("Pierre", "Shane", -0.3), rows);
     }
 
+    /// <summary>A hand-edited file that breaks the town (a keeper who isn't in it) is refused, with
+    /// TownCheck's finding in the message.</summary>
+    [Fact]
+    public void ABrokenFileIsRefused()
+    {
+        string json = TownJson.Write(TownData.Default());
+        Assert.Contains("\"Store\": \"Pierre\"", json);
+        string path = Path.Combine(Path.GetTempPath(), $"under-glass-broken-{Environment.ProcessId}.json");
+        File.WriteAllText(path, json.Replace("\"Store\": \"Pierre\"", "\"Store\": \"Nobody\""));
+        try
+        {
+            var e = Assert.Throws<ArgumentException>(() => UnderGlass.Sim.Towns.Named("file:" + path));
+            Assert.Contains("Nobody", e.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    /// <summary>A hand edit that misspells a field, writes it in the wrong case, leaves it out or sets
+    /// a part to null is refused rather than read as the engine's defaults.</summary>
+    [Fact]
+    public void AMisspeltMissingOrNullFieldIsRefused()
+    {
+        string json = TownJson.Write(UnderGlass.Sim.Towns.Pelican31());
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(json.Replace("\"Wander\": 2", "\"Wandr\": 0")));
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(json.Replace("\"Wander\": 2", "\"wander\": 0")));
+        static string Edit(string json, Action<System.Text.Json.Nodes.JsonObject> edit)
+        {
+            var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            edit(node);
+            return node.ToJsonString();
+        }
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o.Remove("Wander"))));
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![0]!.AsObject().Remove("Age"))));
+        var e = Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Gossip"] = null)));
+        Assert.Contains("Gossip", e.Message);
+        Assert.Equal(Census.Hash(UnderGlass.Sim.Towns.Pelican31()), Census.Hash(TownJson.Read(json))); // the file as written still reads
+    }
+
     [Fact]
     public void AnEditedFileChangesTheTown()
     {

@@ -254,7 +254,7 @@ Notes:
   - **E3** replaces the fewest-doors `Hop` outright with `Route`: Dijkstra over door tiles once per target place, then at each step the exit with the fewest tiles from where the walker stands. On a tie the nearer door wins, then the doors' order. A walker on a tile that can't reach a door steps over to it, as before. Every pin held, so it is the only rule.
   - **E4** appends `MinAge`, `MaxAge`, `Capacity`, `Local` and `Visitors` to `Gathering`, and `Hub` to `Haunt` (the gathering a crowd spot stands for). The crowd is counted once, on entering the hub's place: awake people within the radius whom the arriving person can see (line of sight, any distance). Turning back is logged (`turned-back`). The weight fallback is not built.
   - **E5** also moves the alarm: it rings `MorningMinutes` before work, plus the job's commute less the town's.
-  - **E6, forgetting** (Sid's answer 5). Each night, every tie but kin's and housemates' falls by `FadePerDay` x (1 - strength)^`StrengthPower` (2). Strength is 1 - (1 - familiarity)(1 - |regard|), each averaged both ways. A new face (familiarity under `NewFaceBelow`, 0.2) gains familiarity 1 + `WarmMeetingBoost` (2) x warmth times as fast, warmth being effective regard toward them (their kind included). New faces met in the last seven days over `NewFacesPerWeek` (10) multiply a tie's fade by 1 + `InterferenceWeight` (1) x (count / 10 - 1) x (1 - strength). Familiarity falls toward 0, with no floor.
+  - **E6, forgetting** (Sid's answer 5). Each night, every tie but kin's and housemates' falls by `FadePerDay` x (1 - strength)^`StrengthPower` (2). Strength is 1 - (1 - familiarity)(1 - |regard|), each averaged both ways. A new face (familiarity under `NewFaceBelow`, 0.2) gains familiarity 1 + `WarmMeetingBoost` (2) x warmth times as fast, warmth being effective regard toward them (their kind included). New faces met in the last seven days over `NewFacesPerWeek` (10) multiply a tie's fade by 1 + `InterferenceWeight` (1) x (count / 10 - 1) x (1 - strength). Familiarity falls toward 0, with no floor. After review (2026-10-08): each face counts once in any seven days, however often it is met; regard counts toward strength and warmth only while feelings steer (T12 holds with forgetting on); and each night's fade is worked out from the night's starting values, so a pair's two halves fade alike.
   - Also added: `SimResult.Familiarity` (every pair at the end), the runner's `--forget <Name>=<value>` and a "familiarity at the end" line, and the replay's `ForgettingOptions.*` settings.
 - **TellsPerDay** needs no engine change. Generated towns set it to 2 explicitly and sweep 2-4. Left at its default it jumps to 3 at 30 people (`Simulation.cs:330`), which would quietly change gossip.
 - **Teleports stay.** With no route, people arrive instantly (`:687-693, 721-724`). Tests build small worlds that rely on this. `TownCheck` prevents it in generated towns.
@@ -390,6 +390,8 @@ public sealed record TownSpec(long Seed, int People, string Profile = "pelican" 
 - no place is wider or taller than 255, and no lots overlap;
 - the route limits from 2.4 hold;
 - before replay version 2 exists, there are at most 127 places.
+
+*As built (`TownCheck.cs`, 2026-10-08; it returns a list of problems, and the generator and `--town file:` refuse a town with any):* every place reachable from the largest outdoor place; doors walkable and one link to a tile; every job, haunt, hub, patrol and named spot walkable and reachable inside its place; bed and sofa in every home, and every villager's home exists; names unique; kin in the town, both ways, and a parent at least 18 years older; the mayor, constable and keepers in the town; purses, incomes, groceries (only the Store or the Mart sell them), allowances and wants; starting regards and hubs' own households naming people and households in the town; places up to 255 tiles a side, and at most 127 places. Not checked yet: reserved names, households with no adult, keepers working at their place, plan lots (the plan isn't built), and the route limits of 2.4 (`TownGenTests` checks the generator's 25-tile limit to the green).
 
 `LayoutMetrics` measures a town before it is run, against the real-town bands (brief, section 5). It measures:
 - doors within 8 tiles of a door;
@@ -657,13 +659,13 @@ Every step runs `dotnet test sim/UnderGlass.sln` with every pin unchanged.
 
 T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
 
-**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4:
+**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's JSON, as 4.5 says):
 - **The 60 town is the 31 town plus slots E and N**, since Sid chose both the 31 step and 60. Each slot has a fixed number of people (E 15, N 14), so the pelican profile grows to 31, 46 and 60, and a smaller town is found unchanged in a bigger one; the generator refuses other sizes.
 - **Templates are built from a few numbers** (`Templates.Green`, `Templates.Lane`) rather than drawn in a data file; the rows are the same kind of thing, and `--describe` prints the census.
 - **Each slot brings its own jobs** (the café, the workshop, staff for the core's places), filled by its own adults, so a later slot never takes an earlier slot's jobs; new staff at the clinic and the blacksmith's are paid from outside, so the core's purses aren't drained.
 - **A household with no wage and no pension gets an outside earner**, enough for its size; without it, a third of the generated households ran into debt and one young man rummaged from need four times a year.
 - **Names**: each slot draws from its own keyed share of the lists (a rare town with many of one sex borrows from the whole list).
-- **Not built yet:** the recast of the shipped map and the hamlet test (4.7), `LayoutMetrics` and `TownMetrics` (4.4, 6.1), the per-person rates' own column, the plan (T2), and the other ring-1 slots (T6).
+- **Not built yet:** the recast of the shipped map and the hamlet test (4.7), `LayoutMetrics` (4.4, 6.1; `TownMetrics` was built in #54), the per-person rates' own column, the plan (T2), and the other ring-1 slots (T6).
 
 ---
 

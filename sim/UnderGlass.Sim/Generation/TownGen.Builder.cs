@@ -61,6 +61,8 @@ public static partial class TownGen
         private readonly List<(string Hood, Tile Linger, int Radius)> _greens = new();
         private readonly List<string> _publicPlaces = new();
         private readonly Dictionary<string, (double Mean, double Sd)[]> _spread;
+        // The core cast's traits as a lower-triangular factor of their covariance, for wildcards.
+        private readonly double[,] _wildFactor;
 
         public Builder(TownSpec spec, TownData core)
         {
@@ -88,6 +90,7 @@ public static partial class TownGen
             }
             _publicPlaces.AddRange(new[] { "Square", "Beach", "Saloon", "Store", "Mart", "ClinicYard" });
             _spread = new Dictionary<string, (double, double)[]> { ["core"] = Spread(core.Cast) };
+            _wildFactor = Cholesky(Covariance(core.Cast));
         }
 
         private double U(params string[] parts) => Rng.Unit(_spec.Seed, new[] { "town" }.Concat(parts).ToArray());
@@ -304,17 +307,20 @@ public static partial class TownGen
                     }
                     int kids = size - (partner is null ? 1 : 2);
                     bool blended = !grand && partner is not null && kids > 0 && U("blended", P()) < 0.15;
+                    // A child is born when each full parent was 22 to 40 (a stepparent's age doesn't
+                    // bound it; a grandchild was born to the parent in between).
+                    bool both = !grand && !blended && partner is not null;
+                    int younger = both ? Math.Min(a.Age, partner!.Age) : a.Age, older = both ? Math.Max(a.Age, partner!.Age) : a.Age;
+                    int eldest = grand ? 17 : Math.Min(19, younger - 22), youngest = grand ? 5 : Math.Max(5, older - 40);
                     var children = new List<Gen>();
                     for (int c = 0; c < kids; c++)
                     {
-                        // A child no younger than 5, born when the parent was 22 to 40 (a grandchild: to the parent in between).
-                        int eldest = grand ? 17 : Math.Min(19, a.Age - 22);
-                        if (eldest < 5)
+                        if (eldest < youngest)
                         {
-                            Person(Adult("x" + c, 21, 40), Female("x" + c), "x" + c); // too young for children: a lodger
+                            Person(Adult("x" + c, 21, 40), Female("x" + c), "x" + c); // no child fits: a lodger
                             continue;
                         }
-                        int age = 5 + (int)Math.Floor(U("age", P("c" + c)) * (eldest - 5 + 1));
+                        int age = youngest + (int)Math.Floor(U("age", P("c" + c)) * (eldest - youngest + 1));
                         Gen child = Person(age, Female("c" + c), "c" + c);
                         Tie(a, grand ? Kin.Grandparent : Kin.Parent, child);
                         if (partner is not null)
@@ -337,20 +343,25 @@ public static partial class TownGen
             var earlier = _people.Where(p => p.Slot < k).ToList();
             foreach (Household house in houses)
             {
+                // An elder household (a widow, or a couple) with a grown child elsewhere: the child is
+                // every elder's in it, fits all their ages (22-45 at the birth), and has no parents yet.
+                var elders = house.Members.Where(m => m.Age >= 63).ToList();
+                if (elders.Count == house.Members.Count && elders.Any(m => m.Age >= 65) && U("elder-child", house.Surname) < 0.3)
+                {
+                    Gen? child = earlier.Where(p => p.Age >= 25 && elders.All(e => p.Age <= e.Age - 22 && p.Age >= e.Age - 45)
+                            && !p.Family.Values.Any(x => x is Kin.Parent or Kin.Stepparent))
+                        .OrderBy(p => U("pick-child", house.Surname, p.Name)).FirstOrDefault();
+                    if (child is not null)
+                        foreach (Gen e in elders)
+                        {
+                            child.Family[e.Name] = Kin.Parent;
+                            e.Family[child.Name] = Kin.Child;
+                        }
+                }
                 foreach (Gen g in house.Members)
                 {
                     string key = g.Name;
-                    if (g.Age >= 65 && house.Members.All(m => m.Age >= 63) && U("elder-child", key) < 0.3)
-                    {
-                        Gen? child = earlier.Where(p => p.Age >= 25 && p.Age <= g.Age - 22 && p.Age >= g.Age - 45 && !p.Family.Values.Contains(Kin.Child))
-                            .OrderBy(p => U("pick-child", key, p.Name)).FirstOrDefault();
-                        if (child is not null)
-                        {
-                            child.Family[g.Name] = Kin.Parent;
-                            g.Family[child.Name] = Kin.Child;
-                        }
-                    }
-                    else if (g.Age >= 21 && g.Age < 65 && U("sibling", key) < 0.2)
+                    if (g.Age >= 21 && g.Age < 65 && U("sibling", key) < 0.2)
                     {
                         Gen? sib = earlier.Where(p => p.Age >= 18 && Math.Abs(p.Age - g.Age) <= 12 && p.Household != g.Household)
                             .OrderBy(p => U("pick-sibling", key, p.Name)).FirstOrDefault();
@@ -382,6 +393,34 @@ public static partial class TownGen
 
         private static Temperament Make(double[] x) => new(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
 
+        /// <summary>The cast's trait covariance (population), with a small ridge so it factors.</summary>
+        private static double[,] Covariance(IReadOnlyList<Villager> cast)
+        {
+            int n = TraitOf.Length;
+            var mean = TraitOf.Select(f => cast.Average(v => f(v.Temperament))).ToArray();
+            var c = new double[n, n];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    c[i, j] = cast.Average(v => (TraitOf[i](v.Temperament) - mean[i]) * (TraitOf[j](v.Temperament) - mean[j])) + (i == j ? 1e-4 : 0);
+            return c;
+        }
+
+        /// <summary>A lower-triangular L with L Lᵀ = the matrix (Cholesky).</summary>
+        private static double[,] Cholesky(double[,] a)
+        {
+            int n = a.GetLength(0);
+            var l = new double[n, n];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j <= i; j++)
+                {
+                    double sum = a[i, j];
+                    for (int k = 0; k < j; k++)
+                        sum -= l[i, k] * l[j, k];
+                    l[i, j] = i == j ? Math.Sqrt(Math.Max(sum, 1e-9)) : sum / l[j, j];
+                }
+            return l;
+        }
+
         /// <summary>The cards a generated person may take after, by life stage (teens take after the
         /// young adults).</summary>
         private IReadOnlyList<Villager> Cards(int age)
@@ -401,7 +440,9 @@ public static partial class TownGen
 
         /// <summary>Temperament, body, birthday and the card they take after (town spec 4.3, step 8):
         /// a card of the same stage, each trait moved by N(0, half the core's spread); one in ten a
-        /// wildcard from the core's means; children from their parents (0.3 of the parents' mean).</summary>
+        /// wildcard drawn from the core's means and covariance (so a wildcard keeps the cast's links
+        /// between traits, such as bold people being less understanding); children from their birth
+        /// parents, not a stepparent (0.3 of the parents' mean).</summary>
         private void Character(Gen g, Household house, string code)
         {
             var cards = Cards(g.Age);
@@ -418,16 +459,19 @@ public static partial class TownGen
             used.Add(card.Name);
             g.Card = card;
             var spread = _spread["core"];
-            var parents = house.Members.Where(m => g.Family.TryGetValue(m.Name, out Kin kin) && kin is Kin.Parent or Kin.Stepparent && m.Traits is not null).ToList();
+            var parents = house.Members.Where(m => g.Family.TryGetValue(m.Name, out Kin kin) && kin == Kin.Parent && m.Traits is not null).ToList();
             var x = new double[TraitOf.Length];
             bool wild = U("wild", g.Name) < 0.1;
+            var z = Enumerable.Range(0, x.Length).Select(i => N("trait", g.Name, i.ToString())).ToArray();
             for (int i = 0; i < x.Length; i++)
             {
-                double z = N("trait", g.Name, i.ToString());
+                double wildValue = spread[i].Mean;
+                for (int k = 0; k <= i; k++)
+                    wildValue += _wildFactor[i, k] * z[k];
                 double value = g.Age < 13 && parents.Count > 0
-                    ? spread[i].Mean + spread[i].Sd * (0.3 * parents.Average(p => (TraitOf[i](p.Traits) - spread[i].Mean) / spread[i].Sd) + 0.977 * z)
-                    : wild ? spread[i].Mean + spread[i].Sd * z
-                    : TraitOf[i](card.Temperament) + 0.5 * spread[i].Sd * z;
+                    ? spread[i].Mean + spread[i].Sd * (0.3 * parents.Average(p => (TraitOf[i](p.Traits) - spread[i].Mean) / spread[i].Sd) + 0.977 * z[i])
+                    : wild ? wildValue
+                    : TraitOf[i](card.Temperament) + 0.5 * spread[i].Sd * z[i];
                 x[i] = Math.Round(Math.Clamp(value, 0.02, 0.98), 2);
             }
             g.Traits = Make(x);
@@ -463,7 +507,7 @@ public static partial class TownGen
                 // A workshop at the lane's far end.
                 var shop = new Location("Workshop", false, Enumerable.Range(0, 10).Select(y => y == 4 ? "..++++++++...." : "..............").ToList());
                 AddPlace(shop);
-                AddLink(new Link(slot.Name, new Tile(t.Width - 1, 2), "Workshop", new Tile(0, 5)));
+                AddLink(new Link(slot.Name, new Tile(t.Width - 1, t.Height / 2), "Workshop", new Tile(0, 5))); // at the street's east end
                 posts.Add(new Post("Workshop", "workshop-owner", Clock.At(9), Clock.At(17), new[] { 6 }, 1.2, 700, null, Keeper: true));
                 posts.Add(new Post("Workshop", "workshop-staff", Clock.At(9), Clock.At(17), new[] { 5, 6 }, 1.2, 450, null));
                 posts.Add(new Post("Home:Clinic", "nurse", Clock.At(9), Clock.At(15), new[] { 5, 6 }, 1.0, 500, null)); // the county pays
@@ -477,8 +521,12 @@ public static partial class TownGen
                     break;
                 Location place = Place(post.Place);
                 Tile door = DoorOf(post.Place);
-                // Staff stand near the middle of a core place, and near the door of a new one.
-                Tile centre = _core.Places.Any(p => p.Name == post.Place) ? new Tile(place.Width / 2, place.Height / 2) : door;
+                // Staff stand near the keeper's own spot in a core place (behind the bar, not in the back
+                // room), near the middle of a core place with no keeper, and near the door of a new one.
+                Tile? keeperSpot = _core.Authority.Keepers.TryGetValue(post.Place, out string? keeper)
+                    ? _core.Cast.FirstOrDefault(v => v.Name == keeper)?.Job is { } kj && kj.Place == post.Place ? kj.Spot : null
+                    : null;
+                Tile centre = keeperSpot ?? (_core.Places.Any(p => p.Name == post.Place) ? new Tile(place.Width / 2, place.Height / 2) : door);
                 var pick = free.Select(g => (G: g, D: Dist(g.Home, new Tile(2, 2), post.Place, door)))
                     .Where(x => x.D >= 0)
                     .OrderBy(x => x.D + 30 * U("hire", post.Role, x.G.Name)).FirstOrDefault();
@@ -486,7 +534,7 @@ public static partial class TownGen
                     continue;
                 Gen g = pick.G;
                 free.Remove(g);
-                Tile spot = FreeSpot(post.Place, place, centre, 6, "job", g.Name);
+                Tile spot = FreeSpot(post.Place, place, centre, keeperSpot is null ? 6 : 4, "job", g.Name);
                 g.Job = new Job(post.Place, spot, post.Start, post.End, post.DaysOff, post.Effort, pick.D / 2 + 10);
                 g.Workplace = post.Place;
                 _incomes.Add((g.Name, post.Wage, post.PaidBy));
@@ -507,6 +555,8 @@ public static partial class TownGen
                 }
                 else if (g.Age >= 65 && g.Job is null)
                     _incomes.Add((g.Name, 400 + 50 * R(0, 4, "pension", g.Name), null));
+                else if (g.Age < 20 && g.Job is null)
+                    _allowances[g.Name] = 30 + 10 * R(0, 2, "allowance", g.Name); // still at home, not yet working: as a teen
                 _wants[g.Name] = g.Age < 13 ? (20, 80) : g.Age < 20 ? (50, 200) : (50, 300);
             }
             // Every household lives on something: one with no wage and no pension has a member who
@@ -541,22 +591,28 @@ public static partial class TownGen
         {
             var doors = _links.SelectMany(l => new[] { (l.A, l.DoorA), (l.B, l.DoorB) }).Where(d => d.Item1 == placeName).Select(d => d.Item2).ToHashSet();
             var taken = _spots.GetValueOrDefault(placeName) ?? new List<Tile>();
-            var candidates = new List<Tile>();
-            for (int y = Math.Max(0, centre.Y - radius); y <= Math.Min(place.Height - 1, centre.Y + radius); y++)
-                for (int x = Math.Max(0, centre.X - radius); x <= Math.Min(place.Width - 1, centre.X + radius); x++)
-                {
-                    var t = new Tile(x, y);
-                    if (place.Walkable(t) && !doors.Contains(t) && taken.All(s => s.Chebyshev(t) >= 2))
-                        candidates.Add(t);
-                }
-            if (candidates.Count == 0)
-                for (int y = 0; y < place.Height; y++)
-                    for (int x = 0; x < place.Width; x++)
+            List<Tile> Around(int r, int spacing)
+            {
+                var found = new List<Tile>();
+                for (int y = Math.Max(0, centre.Y - r); y <= Math.Min(place.Height - 1, centre.Y + r); y++)
+                    for (int x = Math.Max(0, centre.X - r); x <= Math.Min(place.Width - 1, centre.X + r); x++)
                     {
                         var t = new Tile(x, y);
-                        if (place.Walkable(t) && !doors.Contains(t))
-                            candidates.Add(t);
+                        if (place.Walkable(t) && !doors.Contains(t) && taken.All(s => s.Chebyshev(t) >= spacing))
+                            found.Add(t);
                     }
+                return found;
+            }
+            // Within the radius and 2 tiles from every spot taken; failing that, the nearest ring out
+            // that has room, then anywhere 1 tile from the others, then anywhere at all.
+            int whole = Math.Max(place.Width, place.Height);
+            var candidates = Around(radius, 2);
+            for (int r = radius + 2; candidates.Count == 0 && r <= whole; r += 2)
+                candidates = Around(r, 2);
+            if (candidates.Count == 0)
+                candidates = Around(whole, 1);
+            if (candidates.Count == 0)
+                candidates = Around(whole, 0);
             Tile pick = candidates.OrderBy(t => U(key.Append("spot").Append($"{t.X},{t.Y}").ToArray())).First();
             Take(placeName, pick);
             return pick;
@@ -617,12 +673,7 @@ public static partial class TownGen
             }
             // The front step (town spec 2.6): most elders and some adults sit out in the evening.
             if (g.Age >= 18 && U("step", g.Name) < (g.Age >= 65 ? 0.8 : 0.4))
-            {
-                Location hood = Place(g.Hood);
-                var beside = new[] { new Tile(g.Step.X + 1, g.Step.Y), new Tile(g.Step.X - 1, g.Step.Y) }.FirstOrDefault(s => hood.Walkable(s));
-                if (hood.Walkable(beside))
-                    g.Haunts.Add(new Haunt(g.Hood, beside, Clock.At(16), Clock.At(19), 1));
-            }
+                g.Haunts.Add(new Haunt(g.Hood, FreeSpot(g.Hood, Place(g.Hood), g.Step, 1, "step", g.Name), Clock.At(16), Clock.At(19), 1));
             if (g.Haunts.Count == 0)
                 g.Haunts.Add(new Haunt(g.Hood, FreeSpot(g.Hood, Place(g.Hood), t.Linger, t.LingerRadius + 2, "fallback", g.Name), Clock.At(9), Clock.At(20), 1));
         }
@@ -800,7 +851,8 @@ public static partial class TownGen
                         continue; // housemates and friends keep the engine's seeds
                     double value = _spec.StrangerFamiliarity;
                     if (va.KinOf(b) is not null || vb.KinOf(a) is not null) value = Math.Max(value, 0.6);
-                    if (va.Job is { } ja && vb.Job is { } jb && ja.Place == jb.Place) value = Math.Max(value, 0.4);
+                    // Coworkers, or classmates: a child at lessons in the square isn't a coworker of the adults who work there.
+                    if (va.Job is { } ja && vb.Job is { } jb && ja.Place == jb.Place && va.Age >= 18 == vb.Age >= 18) value = Math.Max(value, 0.4);
                     if (hoodOf.TryGetValue(a, out string? ha) && hoodOf.TryGetValue(b, out string? hb) && ha == hb) value = Math.Max(value, 0.25);
                     if (publicFigures.Contains(a) || publicFigures.Contains(b)) value = Math.Max(value, 0.2);
                     if (value != engine)
