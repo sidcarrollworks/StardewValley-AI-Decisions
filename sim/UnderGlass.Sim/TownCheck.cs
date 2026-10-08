@@ -20,6 +20,7 @@ public static class TownCheck
                 problems.Add($"place {p.Name} is not a rectangle");
         }
 
+        var uses = new List<(string What, string Place, Tile At)>();
         bool Spot(string what, string place, Tile t)
         {
             if (!places.TryGetValue(place, out Location? loc))
@@ -32,6 +33,7 @@ public static class TownCheck
                 problems.Add($"{what}: {place} ({t.X},{t.Y}) can't be stood on");
                 return false;
             }
+            uses.Add((what, place, t));
             return true;
         }
 
@@ -75,6 +77,11 @@ public static class TownCheck
             {
                 if (!home.Walkable(DefaultTown.Bed) || !home.Walkable(DefaultTown.Sofa))
                     problems.Add($"{v.Name}: no bed or sofa to stand on at {v.Home}");
+                else
+                {
+                    uses.Add(($"{v.Name}'s bed", v.Home, DefaultTown.Bed));
+                    uses.Add(($"{v.Name}'s sofa", v.Home, DefaultTown.Sofa));
+                }
             }
             else if (v.Job is null && v.Haunts.Count == 0)
                 problems.Add($"{v.Name}: no home, no job and no haunt");
@@ -133,6 +140,37 @@ public static class TownCheck
                 if (!places.ContainsKey(shop))
                     problems.Add($"groceries of {h}: no shop {shop}");
         }
+        // Inside each place, every door and every spot in use can be walked to from the place's first
+        // door (8 ways over open tiles, as the engine walks); otherwise a walker steps over walls to it.
+        var region = new Dictionary<string, HashSet<Tile>>();
+        HashSet<Tile> Reach(string place)
+        {
+            if (region.TryGetValue(place, out var seen))
+                return seen;
+            Location loc = places[place];
+            Tile start = town.Links.Where(l => l.A == place).Select(l => l.DoorA).Concat(town.Links.Where(l => l.B == place).Select(l => l.DoorB)).First();
+            seen = new HashSet<Tile> { start };
+            var queue = new Queue<Tile>(seen);
+            while (queue.Count > 0)
+            {
+                Tile c = queue.Dequeue();
+                for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        var n = new Tile(c.X + dx, c.Y + dy);
+                        if ((dx != 0 || dy != 0) && loc.Walkable(n) && seen.Add(n))
+                            queue.Enqueue(n);
+                    }
+            }
+            return region[place] = seen;
+        }
+        foreach (var (place, tile) in doorTiles.OrderBy(d => d.Item1, StringComparer.Ordinal).ThenBy(d => d.Item2.X).ThenBy(d => d.Item2.Y))
+            if (!Reach(place).Contains(tile))
+                problems.Add($"door {place} ({tile.X},{tile.Y}) can't be walked to from {place}'s other doors");
+        foreach (var (what, place, at) in uses)
+            if (doorTiles.Any(d => d.Item1 == place) && !Reach(place).Contains(at))
+                problems.Add($"{what}: {place} ({at.X},{at.Y}) can't be walked to from its doors");
+
         foreach (var (x, y, _) in town.Familiarity)
             if (!names.Contains(x) || !names.Contains(y) || x == y)
                 problems.Add($"familiarity seed {x}-{y}: both must be different people in the town");
