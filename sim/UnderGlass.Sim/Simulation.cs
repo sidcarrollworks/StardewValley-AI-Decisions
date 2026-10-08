@@ -169,6 +169,9 @@ public sealed class SimResult
     public IReadOnlyDictionary<(string From, string To), double> Familiarity { get; init; } = new Dictionary<(string, string), double>();
     /// <summary>Each spell a pair spent in a feud (acts spec 7.3: how long feuds last); empty with feelings off.</summary>
     public IReadOnlyList<FeudSpell> FeudSpells { get; init; } = Array.Empty<FeudSpell>();
+    /// <summary>The act catalog's watch record (acts spec 2.3): the catalog rows the gate would have
+    /// started, had watch been off. Empty unless <see cref="ActOptions.Watch"/> is on.</summary>
+    public IReadOnlyList<CatalogWatched> CatalogWatch { get; init; } = Array.Empty<CatalogWatched>();
 }
 
 /// <summary>
@@ -450,6 +453,7 @@ public sealed partial class Simulation
             Rules = _rules,
             Familiarity = Pairs(_fam),
             FeudSpells = FeudSpells(),
+            CatalogWatch = CatalogWatch(),
         };
     }
 

@@ -8,10 +8,10 @@ namespace UnderGlass.Sim.Tests;
 /// <summary>
 /// The act catalog's seams (acts spec 2 and 6, slice acts-0): the desire gate reads its costs and
 /// act lists from the rows (ActGate), and the shipped rows rebuild the lists the gate used before,
-/// so nothing the town does changes. The catalog has no rows yet (acts-1 adds the first), so tests
-/// 2 and 3 hold the pinned hashes with every row appended and every switch off, and with every
-/// switch on. The tests of a row with its own gate use a scene: SteeringTests' room, as
-/// DesireSceneTests has it.
+/// so nothing the town does changes. Tests 2 and 3 hold the pinned hashes with every row appended
+/// (acts-1's Thanked, Complimented and Joked so far) and every switch off, and with every switch
+/// on in watch mode. The tests of a row with its own gate use a scene: SteeringTests' room, as
+/// DesireSceneTests has it; acts-1's rows have their own (ReturnsTests).
 /// </summary>
 public class CatalogTests
 {
@@ -150,7 +150,7 @@ public class CatalogTests
         Assert.True(Simulation.GateOf(kinds[^1], o)!.Light);
     }
 
-    /// <summary>Test 2: with every catalog row appended (none yet) and every switch off, the act
+    /// <summary>Test 2: with every catalog row appended and every switch off, the act
     /// list is the shipped one, the cast is the same cast, and the runs give the shipped hash (P3)
     /// and the feelings-off hashes, as PinnedTests pins them.</summary>
     [Fact]
@@ -171,9 +171,8 @@ public class CatalogTests
         AssertFeelingsOffHashes(carded, kinds, FeelingOptions.Off);
     }
 
-    /// <summary>Test 3, as far as acts-0 goes: with watch and every slice on, the run still gives the
-    /// shipped hash and the feelings-off hashes. (The watch record, CatalogWatch, comes with the
-    /// first rules to watch, in acts-1.)</summary>
+    /// <summary>Test 3: with watch and every slice on, the run still gives the shipped hash and the
+    /// feelings-off hashes, and the watch record holds what the catalog would have started.</summary>
     [Fact]
     public void WatchingEverySliceChangesNothing()
     {
@@ -181,7 +180,11 @@ public class CatalogTests
         IReadOnlyList<Villager> cast = ActCatalog.Cards(DefaultTown.Cast(), EveryOn());
         FeelingOptions o = DefaultTown.Feelings();
         o.Acts = EveryOn();
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, cast: cast, kinds: kinds, feelings: o).Run(112)));
+        SimResult watched = new Simulation(1, cast: cast, kinds: kinds, feelings: o).Run(112);
+        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(watched));
+        Assert.DoesNotContain(watched.Acts, a => ActCatalog.SliceOf(a.Kind) is not null);
+        Assert.Contains(watched.CatalogWatch, w => w.Motive == DesireKind.Return);
+        Assert.Contains(watched.CatalogWatch, w => w.Motive == DesireKind.Fond);
         FeelingOptions off = FeelingOptions.Off;
         off.Acts = EveryOn();
         AssertFeelingsOffHashes(cast, kinds, off);
