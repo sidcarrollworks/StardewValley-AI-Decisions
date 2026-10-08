@@ -75,7 +75,11 @@ public sealed class ActOptions
     public double RefusedSting { get; set; } = 0.08;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
     /// (acts spec 4.8: the understanding comfort).</summary>
-    public double HurtPity { get; set; } = 0.25;
+    public double HurtPity { get; set; } = 0.5;
+    /// <summary>Witnesses take sides only at a first strike: not at a stand-up, nor at an answer in a
+    /// hostile exchange already going. Without it, every stand-up and every answer drew defenders of
+    /// its own and sides spiralled into war (the spec's risk 3).</summary>
+    public bool FirstStrikeSides { get; set; } = true;
     /// <summary>The share by which comfort cools the target's open Answer.</summary>
     public double ComfortCools { get; set; } = 0.25;
 

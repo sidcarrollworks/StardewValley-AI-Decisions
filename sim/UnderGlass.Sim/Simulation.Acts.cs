@@ -438,6 +438,8 @@ public sealed partial class Simulation
         if (!_fo.Acts.Sides || !Acting || !IsHeavyHostile(kind) || kind.Affect is not { } row || act.Target is not { } t
             || !_index.TryGetValue(t, out int ti) || !_index.TryGetValue(act.Actor, out int ai))
             return;
+        if (_fo.Acts.FirstStrikeSides && (kind.Name == "StoodUpFor" || act.About >= 0 && act.About < act.Id && IsHeavyHostile(KindOf(_acts[act.About]))))
+            return; // sides are taken at someone picking on someone, not at a stand-up or an answer in an exchange
         foreach (string w in _names)
         {
             if (w == act.Actor || w == t || !_beliefs[w].TryGetValue(act.Id, out Belief? b) || b.Source != Source.Witnessed

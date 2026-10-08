@@ -87,6 +87,10 @@ public class SidesTests
         Assert.Contains(r.Stirred, s => s is { Holder: "Ann", Subject: "Cara", Motive: DesireKind.MakeUp or DesireKind.Answer } && s.Source == stood.Id);
         // The comfort warms Bob toward Dan, and stirs Return.
         Assert.Contains(r.Stirred, s => s is { Holder: "Bob", Subject: "Dan", Motive: DesireKind.Return } && s.Source == comfort.Id);
+        // Sides are taken at the first strike only: the stand-up, and Bob's answer to the mocking,
+        // draw no defenders or pity of their own (without this, sides spiralled into war).
+        var answers = r.Acts.Where(a => a.About >= 0 && r.Acts[a.About].Kind is "Mocked" or "Argued" && a.Kind is "Mocked" or "Argued").Select(a => a.Id).ToHashSet();
+        Assert.DoesNotContain(r.Stirred, s => s.Motive is DesireKind.Defend or DesireKind.Pity && (s.Source == stood.Id || answers.Contains(s.Source)));
     }
 
     [Fact]
