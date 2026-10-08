@@ -60,6 +60,24 @@ until one is made the page follows the host's theme, then the system's.
   the motives they weighed, and their life record. With nobody selected, the town at this moment.
 - **The log**, synced to the clock and filterable (acts, feelings, motives, ties, the authority,
   gossip, sleep and work, money), with a search box and a switch to show only the selected person.
+- **Explanation:** what the words and numbers mean, as the simulator uses them: the seven traits,
+  how a person is now (mood, power, stance, regard), stories and gossip, ties, motives and the
+  gate, the mayor and the constable, the life record, money, withdrawal; then this run's act kinds
+  with their numbers, what an act's fields mean, every setting with this run's value (in orange
+  where it differs from the shipped town's, with the town's value beside it), and the log's lines.
+  A search box finds a word or setting anywhere in it.
+
+### Where the definitions come from
+
+The definitions live in the page itself, in the `glossary` block (one item per line): 273
+settings, 144 terms and 95 acts, act fields and log lines. Each was written from the code by one
+agent and checked against it, line by line, by another (2026-10-08); each names the file and line
+it was read from (`source`). An item marked `verify` would show a "verify" tag; none is. Settings
+are keyed as the file records them: the feelings' bare (`LoveAt`), the others with their class
+(`GossipOptions.ChatChance`). `GlossaryTests` check that every setting the glossary defines exists in
+the code, and list (without failing) any recorded setting that has no definition yet, so a new
+setting can land before its definition. Numbers quoted in a definition are the code's at that date:
+when a constant is tuned, its definition is changed in the same PR.
 
 ## The file
 
@@ -82,5 +100,9 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`events`** are the log lines other than beliefs and tellings, which have tables of their own.
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
+- **`settings`** are every switch and number the run used: the feelings' by name, every other
+  options class's with the class in front (`GossipOptions.ChatChance`, `BodyOptions.CommuteMinutes`,
+  `TownData.Wander`), and how it was set up (`Inject`, `Tensions`, `Traits`). **`defaults`** are the
+  same switches and numbers for the shipped town, so the viewer can show which differ.
 - Settings that are not finite numbers (a threshold of `Infinity` to turn something off) are
   written as the strings `"Infinity"`, `"-Infinity"` and `"NaN"`.
