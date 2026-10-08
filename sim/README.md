@@ -431,7 +431,7 @@ The difference form pulls the town together: the spread of the power of acting n
 - The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
 - Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
 
-## Growing the town: T0, T1 and T2b (built; every option off, the 31 town opt-in)
+## Growing the town: T0, T1, T2b, T3 and T4 (built; every option off, the grown towns opt-in)
 
 The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 60 people (Sid's answers, 2026-10-08). Its first two steps change no run of the shipped town: every pin holds.
 
@@ -488,6 +488,33 @@ In a town of 26 where everyone meets at the market and the saloon, forgetting at
   - Linus is tempted 0.5 times a year, all from need;
   - the Wizard is the most left out (E 0.63);
   - E1 62%, feuds 7.1 and friendships 1.0 a year (the shipped 26: 60%, 7.7 and 0.9 on 200 seeds).
+
+### The town generator and the 60-person town (T3 and T4, built 2026-10-08)
+
+`Generation/` builds a whole town from a spec written `pelican:60@7` (profile, people, town seed; the town seed is not the run seed). `--town pelican:60@7` runs it in the runner and the replay tool, and `--describe` prints its census card and hash. The pelican profile keeps the 31 town at the centre, untouched, and adds ring-1 neighbourhoods in slot order:
+
+| Slot | Joins the core at | Template | Homes (occupied) | People |
+|---|---|---|---|---|
+| E, East Green | Square (29,10), by East Road | Green: two rows facing a green | 8 (7) | 15 |
+| N, North Lane | MountainPath (12,0), by North Road | Lane: facing rows with hedged gardens, a small green at the end | 8 (7) | 14 |
+
+So the pelican profile grows to 31, 46 and 60 people (W, SE, NE and SW, for 120, are step T6).
+
+What a neighbourhood gets, every draw keyed by slot, plot and member (`Rng`), never by how many draws came before:
+- **Households** drawn from the census shares (one person 30%, two 34%, three 16%, four 13%, five 7%) and evened out to the slot's people exactly. Shapes: singles, couples, families (one in seven blended, with a stepparent), single parents, elders, elders with a grandchild, housemates; about one couple in twelve is same-sex. Couples 21-55, children 5-17 (born when a parent was 22 or more), elders 65-85. Each household has a surname and a home sized by how many live there.
+- **Names** from common English lists, unique in the town, never a Stardew name or a reserved word, each slot drawing from its own share of the lists.
+- **Kin** inside the household, and toward earlier slots only: about 30% of elder households have an adult child's household, and about 20% of adults a sibling, elsewhere in town.
+- **Character** after a core card of the same life stage (not reused in a neighbourhood until all have been), each trait moved by N(0, half the core's spread); one in ten a wildcard from the core's means; children from their parents. Body and birthday likewise.
+- **Jobs** that each slot brings, filled by its nearest adults: East Green brings a café on East Road (owner and staff, 6:00-14:00), a clerk at Pierre's, bar staff at the saloon and a town clerk; North Lane a workshop at the lane's end, a nurse at the clinic, staff at the chain store and Clint's apprentice. Each job's commute is half its route in tiles plus 10 minutes. Children and teens to 17 go to lessons; the old retire on a pension; a household with no wage and no pension has a member who earns from outside, enough for its size, as Leah and Sebastian do.
+- **Haunts**, one to four, chosen by each zone's weight x exp(-tiles from home / 40), doubled where the card they take after goes, the shy favouring quiet places; spots at least 2 tiles from anyone else's; most elders and some adults sit on their front step in the evening.
+- **Acts** from the card at 0.7-1.3 of its weights; vices drawn on their own among adults (Stole 0.2, RummagedInBin 0.12, DrunkScene 0.08); squabbles for children with a child sibling. The town's act rates scale by 0.8 x n / 26, and rummaging is allowed on the greens too.
+- **Friends**, zero to three by likeness, seven in ten returned inside a neighbourhood; **tensions** between rival keepers (the café and the saloon, the workshop and Robin), a stepchild toward a stepparent, a young adult toward a strict parent.
+- **Familiarity seeds** by circle: kin elsewhere 0.6, coworkers and classmates 0.4, neighbours 0.25, a public figure 0.2, strangers 0.08; housemates, friends and core pairs keep the engine's seeds.
+- **The town**: the core's hubs get limits (noon in the square is the core's, others at a quarter; at most 25 there and 30 at the saloon), each neighbourhood an evening on its green (its own households, others at a tenth, at most 15), the mayor keeps the greens, the constable patrols them, two tellings a day, and the county's stipend scales with the town.
+
+`TownCheck` also checks now that every door and spot in use can be walked to inside its place. `TownGenTests` (9): a spec builds the same town every time and three town hashes are pinned; specs read and write their short form; 200 towns of 60 are sound, with every name unique and each slot holding its people exactly; the core is untouched; kin agree with each other and with ages; generated adults keep the core's trait means (within 0.1) and spreads (within half to one and a half); the 60 town keeps the 46 town's people (kin toward later slots aside); familiarity starts by circle; and a week of `pelican:60@1` is pinned (`e067cecab875a0dd`). Building a town takes about 40 ms.
+
+A first look at `pelican:60@1` (8 seeds x 56 days): feuds 14.8 and friendships 1.0 a year, E1 50% (8 seeds, two months: noisy); 2 households a run in debt (the tent and the trailer, as at 31); temptation 1.5 a year; the Wizard the most left out; late for work 10 a season, mostly the café's 6:00 starts. A run of 60 people takes about 0.15 s a day. The long runs are asked of the local agent. Not built yet: the recast of the shipped map (T3's hamlet test), `LayoutMetrics` and `TownMetrics`, and ring 1's other slots.
 
 ## Next
 
