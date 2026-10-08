@@ -227,9 +227,11 @@ dotnet run -c Release --project sim/UnderGlass.Run -- --check C3
 dotnet run -c Release --project sim/UnderGlass.Run -- --check today
 ```
 
-`today` runs C2, C3, C4, C6, C10, C11 and C13. C3, for example, stages someone rummaging in a bin at
-the clinic yard with one loner nearby, and wants it to reach 20% or less of the actor's circle in 70%
-or more of runs.
+Each check prints what it measured, its criterion, and "passes" or "fails". C3 runs 400 two-week runs
+in a few minutes. `today` runs C2, C3, C4, C6, C10, C11 and C13, each at its own size, so it takes much
+longer: start it in a second terminal, or add `--seeds 100` for a quicker, noisier look. C3, for
+example, stages someone rummaging in a bin at the clinic yard with one loner nearby, and wants it to
+reach 20% or less of the actor's circle in 70% or more of runs.
 
 ## 9. Variety and forks (15 minutes)
 
@@ -240,8 +242,8 @@ dotnet run -c Release --project sim/UnderGlass.Run -- --town pelican:60@1 --town
 
 The variety line measures how different the runs are. For example, V1 is the share of runs that
 tell the commonest named story (target 30% or less). `--forks 3` reruns each seed three times from day 28 with
-a new seed, and V7 says how much of the rest changed: 92-93%, while the year's headline changes in about
-a third of forks. `--town-seeds` builds a new 60-person town for each run.
+a new seed, and V7 says how much of the rest changed: 92-93%, above its 25-60% target. Day 28 settles
+little of the detail that follows, while the year's headline changes in about a third of forks. `--town-seeds` builds a new 60-person town for each run.
 
 ## 10. Decisions that wait on you
 
