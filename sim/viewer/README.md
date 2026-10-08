@@ -29,8 +29,10 @@ until one is made the page follows the host's theme, then the system's.
   everyone moving through it, a dashed circle where a gathering is on, a ring where an act happens
   (blue kind, red hostile; larger for a scandal), and an orange outline on each place where things
   have happened in the last two hours, fading as they age. The run gives no positions, so the plan
-  is stitched from the doors: the largest place out of doors in the middle, each place hung outside
-  the door that leads to it, roads running across, streets joining the doors. Hover for who is
+  is stitched from the doors: the town's hub (the place out of doors with the most doors, the
+  square) in the middle, each place hung outside the door that leads to it, roads running across,
+  streets joining the doors. A grown town (`--town pelican31`, `--town pelican:60@7`) is stitched
+  the same way, its neighbourhoods round the core. Hover for who is
   where; click a person to follow them, or a place to go to its map. Scroll to zoom about the
   pointer (pinch on a touch screen), drag to pan; the keys in its corner, or `+`, `-` and `0`, zoom
   in, out and back to the whole town. Zoomed all the way out, scrolling down scrolls the page.
@@ -53,7 +55,8 @@ until one is made the page follows the host's theme, then the system's.
 - **Relationships:** the town as a ring, household by household, with a line for each strong tie
   (blue liking, red dislike, dashed when the two feel differently); switch to "change since the
   start" to see who has grown closer or further apart. The grid shows every person's regard for
-  every other. Click a pair for both sides over the run and what moved it.
+  every other; in a bigger town its cells shrink to fit the column (at 60 people, 8 pixels), and the
+  ring's names get smaller. Click a pair for both sides over the run and what moved it.
 - **Stories:** each act, how far it spread and how fast, how each person first came to know it (saw
   it, found a trace, or heard it from someone, with how many people each went on to tell), what
   each person believes now (and who has the wrong name), and what the mayor and the constable did.
