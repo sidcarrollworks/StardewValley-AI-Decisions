@@ -433,6 +433,18 @@ The difference form pulls the town together: the spread of the power of acting n
 - The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
 - Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
 
+**Sid's answers (2026-10-08), built:** steps **i** (`MishapHurtOn`, A4: a stumble or a collapse weighs on the shy as a hurt does) and **j** (`CombativeDiscountOn`, A10: a combative stance eases only `CombativeShare` 0.3 as much at a stranger's kindness), both off; a child is never counted a hermit, and the player can be (A9; `SimResult.Stages`); and the recovery measure Sid chose (A8): hermits back above -0.3 within a season after the spell counts, 56 days from its first day. `WithdrawalAnswersTests` (4). On the review's set, one year, 200 seeds:
+
+| | the review's set | + i + j |
+|---|---|---|
+| E1 | 78% | 77% |
+| feuds, friendships a year | 7.06, 1.33 | 7.33, 1.33 |
+| hermits a seed-year (shyest third) | 0.28 (100%) | 0.36 (100%) |
+| brawlers a seed-year | 1.40 | 1.56 |
+| hermits back within a season after the spell counts (A8) | 17% of 40 | 20% of 55 |
+
+Mishaps add hermits and the discount keeps brawlers (they had fallen 42% with the review's set). A8's measure shows what the old one hid: four hermits in five are still withdrawn a season after their spell counts, against a target of half.
+
 ## Growing the town: T0, T1, T2b, T3 and T4 (built; every option off, the grown towns opt-in)
 
 The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 60 people (Sid's answers, 2026-10-08). Its first two steps change no run of the shipped town: every pin holds.

@@ -297,13 +297,27 @@ public sealed class FeelingOptions
     /// as it was before the catalog.</summary>
     public ActOptions Acts { get; set; } = new();
 
+    // Sid's answers of 2026-10-08 to 0d.6's questions (design section 12, question 9), each off, so
+    // the town is as it was. With0d6 names them i and j.
+    /// <summary>A4, step i: a mishap undergone (a stumble, a collapse: freedom 0, nobody to blame)
+    /// weighs on a shy person's stance as a hurt does. The bold shrug it off: a hurt makes them
+    /// combative, and a stumble has nobody to be combative with.</summary>
+    public bool MishapHurtOn { get; set; }
+    /// <summary>A10, step j: kindness from someone who is neither a friend nor in a quarrel eases a
+    /// combative stance (above CombativeAt) only in part, CombativeShare, as X5 does a withdrawn one.</summary>
+    public bool CombativeDiscountOn { get; set; }
+    public double CombativeAt { get; set; } = 0.3;
+    public double CombativeShare { get; set; } = 0.3;
+
     /// <summary>For tests: steering with the desire gate, its added rules off, and the given starting regard.</summary>
     public static FeelingOptions WithDesire(params (string From, string To, double Regard)[] start)
         => new() { Desire = true, Start = start.ToDictionary(x => (x.From, x.To), x => x.Regard) };
 
     /// <summary>Turns on the switches of the 0d.6 steps named, for example "bcd": b home (X1, X2),
     /// c contagion (X3), d left out (X4, X5), e the dials (X6), f recovery (X7), g patience and
-    /// coercion (X8, X9), h expression (X10), t the tone (X11), m missing people (X12).</summary>
+    /// coercion (X8, X9), h expression (X10), t the tone (X11), m missing people (X12); and from Sid's
+    /// answers of 2026-10-08, i mishaps weigh on the shy (A4) and j a combative stance discounts
+    /// kindness (A10).</summary>
     public FeelingOptions With0d6(string steps)
     {
         foreach (char s in steps)
@@ -319,7 +333,9 @@ public sealed class FeelingOptions
                 case 'h': ShowOn = true; break;
                 case 't': ToneOn = true; break;
                 case 'm': MissingOn = true; break;
-                default: throw new ArgumentException($"no 0d.6 step '{s}': b-h, t or m");
+                case 'i': MishapHurtOn = true; break;
+                case 'j': CombativeDiscountOn = true; break;
+                default: throw new ArgumentException($"no 0d.6 step '{s}': b-j, t or m");
             }
         }
         return this;
