@@ -431,7 +431,7 @@ The difference form pulls the town together: the spread of the power of acting n
 - The gate invariant "one act at a time" leaves out being seen out late, which someone else notices whatever its actor is doing (it first coincided with an argument once the tone's constant moved).
 - Pins: every pin holds; the steps b, bde, m, the candidate and the candidate with the tone are pinned on a year of seed 1 with the town's constants (225 tests).
 
-## Growing the town: T0 and T1 (built, every option off)
+## Growing the town: T0, T1 and T2b (built; every option off, the 31 town opt-in)
 
 The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 60 people (Sid's answers, 2026-10-08). Its first two steps change no run of the shipped town: every pin holds.
 
@@ -468,6 +468,26 @@ The town spec (`docs/under-glass/specs/town-spec.md`) grows Pelican Town toward 
 | Witnessed placed scandals in the band | | | | | 50% | 51% |
 
 In a town of 26 where everyone meets at the market and the saloon, forgetting at 1% a day moves no gate beyond noise and hardly dents how well everyone knows everyone. Without it the shipped town saturates: after three years every pair knows each other well. It matters where strangers start low (0.08 in a generated town), which the 31 and 60 measurements will show; it stays off until then (question 5, answer a).
+
+- **T2b, the 31-person town** (`Towns.cs`, `TownCheck.cs`; Sid's answer 6). `Towns.Pelican31()` is the shipped 26, untouched, with the five who live a little apart:
+  - **Clint** keeps the blacksmith's and lives behind it; he is sweet on Emily (a starting regard of 0.4, one way).
+  - **Willy** keeps the fish shop on the pier.
+  - **Elliott** writes in his cabin by the sea.
+  - **Linus** lives in a tent on the mountain, earns nothing, and goes through the bins when he runs short.
+  - **The Wizard** keeps to his tower in the forest.
+
+  New places: the blacksmith's (on the lane, as the spec has it), the fish shop (on the pier), a path to the tower, and five homes, all hung off the shipped doors, so the door graph is still a tree. The tiles where the generated neighbourhoods will join the core (town spec 2.3) are left free. Sensitivity and expression come from the same game data as the rest of the cast. Chattiness and boldness are the dialogue's, to a tenth. Everything else is a first guess, and the lore (hours, friends, birthdays, Linus and the bins) is marked VERIFY. The 31 town keeps two tellings a day, as the shipped town has; left to its default it would jump to three at 30 people and quietly change gossip. The runner and the replay tool take `--town pelican31`.
+- **`TownCheck`** lists what the engine would forgive quietly: a place no door reaches (people would arrive at once), a spot on a wall, two doors on one tile, a keeper, mayor, friend or kin not in the town, a household with no purse, a shop that doesn't exist. The shipped town and the 31 town pass.
+- `Town31Tests` (5):
+  - both towns are sound;
+  - the 31 town keeps the shipped 26 whole (cards, places, doors);
+  - `TownCheck` finds an unreachable place, a doubled door, a haunt on a wall and a keeper not in the town;
+  - the 31 town runs the same every time and is pinned (`db268a57b95bada2`, seed 1, 112 days);
+  - the five keep their days: Clint at the anvil, Willy in his shop, the Wizard in his tower.
+- **A first look** (8 seeds x 112 days, before the long runs):
+  - Linus is tempted 0.5 times a year, all from need;
+  - the Wizard is the most left out (E 0.63);
+  - E1 62%, feuds 7.1 and friendships 1.0 a year (the shipped 26: 60%, 7.7 and 0.9 on 200 seeds).
 
 ## Next
 
