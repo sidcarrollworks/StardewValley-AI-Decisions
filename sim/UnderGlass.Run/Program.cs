@@ -555,8 +555,10 @@ Console.WriteLine("reach: share of the town holding the story at the end; sat90:
 // How different the runs are (actions-and-twists section 3, the variety gate; targets in brackets).
 static void PrintVariety(VarietyStats v)
 {
-    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}); "
+    Console.WriteLine($"variety over {v.SeedYears} seed-years: V1 commonest named story {v.V1:P0} [30% or less] ({string.Join(", ", v.Commonest.Select(c => $"{c.Story} {c.Share:P0}"))}; "
+        + $"families pooled: feud {(v.V1FeudPair == "" ? "none" : $"{v.V1FeudPair} {v.V1Feud:P0}")}, culprit {(v.V1CulpritName == "" ? "none" : $"{v.V1CulpritName} {v.V1Culprit:P0}")}); "
         + $"V2 headlines {v.V2:0.0} [20+] (top {v.TopHeadline} {v.TopHeadlineShare:P0}); V3 alike pairs {v.V3:P1} [under 5%]; V4 with a rare story {Pc(v.V4)} [60%+]{(double.IsNaN(v.V4) ? " (needs 50+ seed-years)" : "")}");
-    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}); "
-        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; V7 not built");
+    Console.WriteLine($"  V5 commonest arc {v.V5:P0} [50% or less] ({v.V5Person}: {v.V5Arc}); V6 fair twists a season, median {v.V6:0.#} [2+] (mean {v.TwistsPerSeason:0.00}; every twist, median {v.V6All:0.#}; "
+        + $"fair {Pc(v.FairShare)}{(v.Unfair is { Count: > 0 } u ? "; unfair " + string.Join(", ", u.Select(x => $"{x.Key} {x.Value}")) : "")}); "
+        + $"V8 kinds of town {v.V8} [3+] ({string.Join(", ", v.Kinds.Take(4).Select(k => $"{k.Cell} {k.Share:P0}"))}); constable {v.Constable} {v.ConstableShare:P0}; V7 needs forked runs (m-2)");
 }
