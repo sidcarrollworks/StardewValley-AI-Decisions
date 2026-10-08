@@ -31,6 +31,9 @@ public sealed partial class Simulation
         public bool Occasion;
         /// <summary>The act catalog: a third person the act is for (Defend's victim), or -1.</summary>
         public int With = -1;
+        /// <summary>Worked out each tick from the world, not stored (Fond, Curious; batch 2's Seek,
+        /// Need, Pity for someone alone): a close call is asked once a day (acts-batch2 spec 2.2).</summary>
+        public bool Computed;
     }
 
     private readonly SortedDictionary<(int Holder, int Subject, int Kind), Motive> _desires = new();
@@ -181,7 +184,7 @@ public sealed partial class Simulation
                 _desires.Remove(key);
                 Life(m, h, oi, act.Id, kind.Name, LifeRole.Dropped, gone.Felt, gone.Hostile, false, Outcome.None);
             }
-        double felt = _felt.TryGetValue((h, act.Id), out FeltRecord? rec) ? Math.Abs(rec.Mood) : Math.Abs(row.Joy) * Sens(h);
+        double felt = _felt.TryGetValue((h, act.Id), out FeltRecord? rec) ? Math.Abs(rec.Mood) : Math.Abs(JoyOf(act, row)) * Sens(h);
         if (felt <= 0)
             return;
         if (WarmOnly(h, act, kind, felt, rec, m))
@@ -459,7 +462,7 @@ public sealed partial class Simulation
             (i, bool occasion) = Missing(h, s, day, day - last, i); // 0d.6 (X12): missing people
             i = Seeking(h, i); // 0d.6 (X6): the withdrawn seek less
             if (i > 0)
-                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i,
+                yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i, Computed = true,
                     Occasion = occasion }, i);
         }
     }
@@ -513,13 +516,13 @@ public sealed partial class Simulation
                 continue;
             }
             // A close call. The earlier answer stands until the motive moves by AskAgainStep.
-            if (!Computed(d.Kind) && !double.IsNaN(d.AskedAt) && Math.Abs(I - d.AskedAt) < _fo.AskAgainStep)
+            if (!d.Computed && !double.IsNaN(d.AskedAt) && Math.Abs(I - d.AskedAt) < _fo.AskAgainStep)
             {
                 Record(m, hn, sn, d, k.Name, I, eff, cost, margin, "stands", 0, false);
                 declined = true;
                 continue;
             }
-            if (Computed(d.Kind) && !_fondAsked.Add((h, s, day, k.Name)))
+            if (d.Computed && !_fondAsked.Add((h, s, day, k.Name)))
             {
                 declined = true;
                 continue;
@@ -527,8 +530,8 @@ public sealed partial class Simulation
             double pr = DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(h), d.Hostile, _fo);
             var question = new Pursuit(m, hn, sn, d.Kind, d.Source, k.Name, I, eff, cost, margin, "close", pr, false, -1);
             bool yes = _fo.CloseCall?.Invoke(question) ?? Rng.Unit(_seed, "desire", hn, sn, d.Kind.ToString(),
-                Computed(d.Kind) ? day.ToString() : d.Source.ToString(), d.Asks.ToString(), k.Name) < pr;
-            if (!Computed(d.Kind))
+                d.Computed ? day.ToString() : d.Source.ToString(), d.Asks.ToString(), k.Name) < pr;
+            if (!d.Computed)
             {
                 d.AskedAt = I;
                 d.Asks++;
@@ -559,7 +562,7 @@ public sealed partial class Simulation
         if (!Acting)
             return false; // watched only: the motive stays, nothing starts
         _slotsUsed[(h, s, day)] = _slotsUsed.GetValueOrDefault((h, s, day)) + 1;
-        if (!Computed(d.Kind))
+        if (!d.Computed)
             _desires.Remove((h, s, (int)d.Kind));
         else if (d.Occasion && !IsWarm(chosen))
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
@@ -681,7 +684,7 @@ public sealed partial class Simulation
             }
         }
         Life(m, a, ti, act.Id, kind.Name, LifeRole.Did, Math.Abs(row.Joy), hostile, light,
-            IsWarm(kind) ? Outcome.None : Outcome.Open); // a light kind act answers, and is never itself answered
+            IsWarm(kind) || row.Target == TargetIs.Given ? Outcome.None : Outcome.Open); // a light kind act answers, and is never itself answered; a given deed (a refusal, a repayment) isn't either
     }
 
     /// <summary>After a light act ends: a third slight of the same kind from one person within a

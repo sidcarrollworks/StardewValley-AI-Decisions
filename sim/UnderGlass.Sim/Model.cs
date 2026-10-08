@@ -146,10 +146,14 @@ public static class Ages
 /// </summary>
 public sealed record Gathering(string Name, string Place, Tile Center, int Radius, int From, int To,
     IReadOnlyList<int> Weekdays, double Weight, int? OnlyDay = null,
-    int MinAge = 0, int MaxAge = 200, int Capacity = 0, IReadOnlyList<string>? Local = null, double Visitors = 1)
+    int MinAge = 0, int MaxAge = 200, int Capacity = 0, IReadOnlyList<string>? Local = null, double Visitors = 1,
+    YearDay? Date = null, bool Holiday = false)
 {
+    /// <summary>Date (acts-batch2 spec 2.8): on only on this day of each year. Holiday: while on, nobody
+    /// works or patrols and no other gathering is on. No shipped gathering sets either.</summary>
     public bool On(int minute) => (Weekdays.Count == 0 || Weekdays.Contains(Clock.Weekday(minute)))
         && (OnlyDay is null || Clock.Day(minute) == OnlyDay)
+        && (Date is null || Calendar.DateOf(Clock.Day(minute)) == Date)
         && Clock.OfDay(minute) >= From && Clock.OfDay(minute) < To;
 }
 
@@ -216,8 +220,14 @@ public sealed record ActKind(
     ActGate? Gate = null,
     bool PerHead = false,
     int FromMinute = 0,
-    int ToMinute = Clock.MinutesPerDay)
+    int ToMinute = Clock.MinutesPerDay,
+    bool? Reportable = null,
+    bool Placeable = true)
 {
+    /// <summary>Reported and judged (rule 16; acts-batch2 spec 2.2): a scandal unless the row says
+    /// otherwise. Placeable: Harness.ScandalFor may place it (every new scandal-tier row sets false).</summary>
+    public bool IsCrime => Reportable ?? IsScandal;
+
     public bool FitsAge(int age) => age >= MinAge && age <= MaxAge;
 
     /// <summary>The act can start at this minute of the day. Every shipped kind can, at any.</summary>
@@ -237,7 +247,7 @@ public sealed record ActKind(
 /// (a warning's scandal; design rule 2's causes), public because the official says what it is for.
 /// With: a third person (the act catalog; the one stood up for), set only while feelings are on.</summary>
 public sealed record Act(int Id, int Tick, string Actor, string Kind, string Location, Tile At, bool Injected = false,
-    string? Target = null, int About = -1, string? With = null);
+    string? Target = null, int About = -1, string? With = null, double Amount = 0);
 
 /// <summary>Where a belief came from. Found: from a trace, after the fact (never with a name).</summary>
 public enum Source { Witnessed, Told, Found }
@@ -315,7 +325,7 @@ public enum Trait { Chattiness, Boldness, Understanding, SelfRegard, Sensitivity
 
 /// <summary>What a motive wants (rule 10; design section 5). Remorse, Defend and Curious come with
 /// the act catalog (acts spec 4.6, 4.7, 4.10) and nothing stirs them before their slices. Append only.</summary>
-public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity, Remorse, Defend, Curious }
+public enum DesireKind { Answer, Return, MakeUp, Retaliate, Fond, Pity, Remorse, Defend, Curious, Seek, Peace, Need, Owed, Envy }
 
 /// <summary>One weighing of one act for one motive by the gate (rule 10; principle 5). Call is
 /// clear, no, close-yes, close-no or stands (the earlier answer stands).</summary>
@@ -329,7 +339,7 @@ public sealed record Stirring(int Tick, string Holder, string Subject, DesireKin
 /// Returned: kindness met with kindness. Rebuffed: kindness met with hostility. Avoided: met by
 /// keeping away. Ignored: nothing within the window. None: a light act, or a role with no outcome.
 /// Accepted and Refused: an apology's answer (the act catalog's Repair slice). Append only.</summary>
-public enum Outcome { Open, Answered, Returned, Rebuffed, Avoided, Ignored, None, Accepted, Refused }
+public enum Outcome { Open, Answered, Returned, Rebuffed, Avoided, Ignored, None, Accepted, Refused, Kept, Broken, Reconciled, Forgiven, Won, Lost }
 
 /// <summary>What a person did, had done to them, or chose not to do.</summary>
 public enum LifeRole { Did, Undergone, Declined, Avoided, Withdrew, Lapsed, GaveCause, Dropped }

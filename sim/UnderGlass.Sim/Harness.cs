@@ -14,7 +14,7 @@ public static class Harness
     /// whoever is first able to commit it (<see cref="Anyone"/>).</summary>
     public static (int Tick, string Actor, string Kind) ScandalFor(long seed, IReadOnlyList<ActKind> kinds)
     {
-        var scandals = kinds.Where(k => k.IsScandal).OrderBy(k => k.Name, StringComparer.Ordinal).ToList();
+        var scandals = kinds.Where(k => k.IsScandal && k.Placeable).OrderBy(k => k.Name, StringComparer.Ordinal).ToList(); // batch 2's new scandals aren't placed
         ActKind kind = scandals[Rng.Range(seed, 0, scandals.Count - 1, "inject", "kind")];
         int minute = Clock.MinutesPerDay + Rng.Range(seed, Clock.At(8), Clock.At(21), "inject", "minute");
         return (minute, Anyone, kind.Name);
