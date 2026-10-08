@@ -775,12 +775,12 @@ What it says:
 | three years: moved 0.1+ d335 ÷ d111 | 1.50 | 1.45 | 1.42 | 1.39 |
 | three years: the gate's kind acts by year | 309, 354, 391 | 407, 352, 387 | 603, 633, 666 | 706, 633, 662 |
 | trivia, news a year | 881, 267 | 978, 273 | 1,172, 267 | 1,272, 269 |
-| the newcomer withdrawn (28 d at -0.5) in seed-years | | | 83% | 44% |
+| the newcomer withdrawn (28 d at -0.5) in seed-years | | | 79% | 44% |
 | hermits (shyest third) | 0 | 0 | 0.24 (96%) | 0.38 (100%) |
 
 What it says:
 - **The newcomer's first month changes**, and nothing else moves by more than 10%, trivia aside (+11%: the welcomes and the thanks they stir). The gate's kindness in year one is up by the welcomes, which happen once.
-- **On the review's set the welcomes delay the newcomer's withdrawal rather than prevent it.** "Withdrawn newcomer" falls from 83% of seed-years to 44%, but they end the year at -0.86. And because they went out more in their first season, the later fall in their hours now counts them as a hermit more often (hermits 0.24 to 0.38, the newcomer 0.2 of them).
+- **On the review's set the welcomes delay the newcomer's withdrawal rather than prevent it.** "Withdrawn newcomer" falls from 79% of seed-years to 44%, but they end the year at -0.86. And because they went out more in their first season, the later fall in their hours now counts them as a hermit more often (hermits 0.24 to 0.38, the newcomer 0.2 of them).
 
 
 ## Next
