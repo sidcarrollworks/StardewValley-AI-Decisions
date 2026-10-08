@@ -52,6 +52,9 @@ public static class Replay
         IReadOnlyList<Link> links = town.Links;
         IReadOnlyList<Gathering> hubs = town.Gatherings;
         IReadOnlyList<ActKind> kinds = town.Acts;
+        // Neighbourhoods (TownMetrics): every person and place of the shipped and 31 towns is "core".
+        var districts = TownMetrics.Districts(town);
+        var placeDistricts = TownMetrics.PlaceDistricts(town);
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         foreach (var (who, trait, value) in o.Traits)
@@ -169,6 +172,7 @@ public static class Replay
             {
                 name = v.Name,
                 household = v.Household,
+                district = districts.GetValueOrDefault(v.Name, "core"),
                 home = place.TryGetValue(v.Home, out int h) ? h : -1,
                 kind = v.Kind,
                 age = v.Age,
@@ -187,6 +191,7 @@ public static class Replay
                 outdoor = p.Outdoor,
                 group = p.Name.StartsWith("Home:", StringComparison.Ordinal) ? "home" : p.Outdoor && p.Height <= 3 ? "road" : p.Outdoor ? "outdoors" : "indoors",
                 rows = p.Rows,
+                district = placeDistricts.GetValueOrDefault(p.Name, "core"),
             }).ToArray(),
             ["links"] = links.Select(l => new[] { place[l.A], l.DoorA.X, l.DoorA.Y, place[l.B], l.DoorB.X, l.DoorB.Y }).ToArray(),
             ["hubs"] = hubs.Select(g => new

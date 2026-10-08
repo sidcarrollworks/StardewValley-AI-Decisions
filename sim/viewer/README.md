@@ -39,8 +39,16 @@ until one is made the page follows the host's theme, then the system's.
 - **The timeline** under it: a ruler of seasons, weeks and the run's turning points (feuds,
   friendships, reconciliations, scandals) over a fader, then the clock and the playback keys. Click
   the ruler to jump. Space plays; arrow keys step 5 minutes (Shift: an hour); `[` and `]` step a day.
+- **Neighbourhood**, beside the tabs, for a grown town with neighbourhoods (`--town pelican:60@7`):
+  All, the centre, or one neighbourhood. One choice narrows the town's maps, the population, the
+  relationships (the ring, the matrix and the ties), the stories (by who did it) and the log (by
+  who is in a line) to that neighbourhood's people and places. On the whole-town map, the rest of
+  the town fades back. The inspector says where each person lives. A place belongs to the
+  neighbourhood it hangs from, with its road, its shops and its homes (`TownMetrics.PlaceDistricts`);
+  the replay records each person's and place's district.
 - **Town:** every place as a small map, grouped and largest first, all at one scale. The square,
-  where the town gathers, spans the whole width, with who is there beside it. Each plate is as
+  where the town gathers (the place out of doors with the most doors), spans the whole width, with
+  who is there beside it. Each plate is as
   wide as its map, so nothing shifts as people come and go. A dot is a person, coloured by mood
   (dark grey even, blue in good spirits, red low; hollow when asleep). A ring marks an act as it
   happens (blue kind, red hostile), with a line to the other party. A gathering spot shows as a

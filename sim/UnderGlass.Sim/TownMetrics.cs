@@ -38,6 +38,34 @@ public static class TownMetrics
         return district;
     }
 
+    /// <summary>Each place's district: a neighbourhood's own place, and what hangs off it without
+    /// passing through the core (its road, its shops, its homes), take its name; the rest are "core".</summary>
+    public static IReadOnlyDictionary<string, string> PlaceDistricts(TownData town)
+    {
+        var core = Towns.Pelican31().Places.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        var district = town.Places.ToDictionary(p => p.Name, _ => "core", StringComparer.Ordinal);
+        var hoods = Districts(town).Values.Where(d => d != "core" && district.ContainsKey(d)).Distinct().OrderBy(d => d, StringComparer.Ordinal);
+        foreach (string hood in hoods)
+        {
+            var queue = new Queue<string>();
+            queue.Enqueue(hood);
+            district[hood] = hood;
+            while (queue.Count > 0)
+            {
+                string at = queue.Dequeue();
+                foreach (Link l in town.Links)
+                {
+                    string? next = l.A == at ? l.B : l.B == at ? l.A : null;
+                    if (next is null || core.Contains(next) || district[next] != "core")
+                        continue;
+                    district[next] = hood;
+                    queue.Enqueue(next);
+                }
+            }
+        }
+        return district;
+    }
+
     public static TownStats Summarise(IReadOnlyList<SimResult> runs, TownData town)
     {
         var district = Districts(town);

@@ -20,6 +20,27 @@ public class TownMetricsTests
         Assert.All(TownMetrics.Districts(TownData.Default()).Values, x => Assert.Equal("core", x));
     }
 
+    /// <summary>A place belongs to the neighbourhood it hangs from (its road, its shops, its homes),
+    /// everyone lives in their own district, and the replay records both for the viewer.</summary>
+    [Fact]
+    public void PlacesBelongToTheNeighbourhoodTheyHangFrom()
+    {
+        TownData town = TownGen.Build(new TownSpec(1, 60));
+        var places = TownMetrics.PlaceDistricts(town);
+        Assert.Equal(town.Places.Count, places.Count);
+        Assert.Equal(("EastGreen", "EastGreen", "EastGreen"), (places["EastGreen"], places["EastRoad"], places["Cafe"]));
+        Assert.Equal(("NorthLane", "NorthLane", "NorthLane"), (places["NorthLane"], places["NorthRoad"], places["Workshop"]));
+        Assert.Equal(("core", "core", "core"), (places["Square"], places["MountainPath"], places["Home:Tent"]));
+        var people = TownMetrics.Districts(town);
+        Assert.All(town.Cast, v => Assert.Equal(people[v.Name], places[v.Home]));
+        Assert.All(TownMetrics.PlaceDistricts(Towns.Pelican31()).Values, x => Assert.Equal("core", x));
+
+        using var doc = System.Text.Json.JsonDocument.Parse(Replay.Json(new ReplayOptions { Seed = 1, Days = 1, Town = town }));
+        var recorded = doc.RootElement.GetProperty("people").EnumerateArray().Select(p => p.GetProperty("district").GetString()).ToList();
+        Assert.Equal((31, 15, 14), (recorded.Count(x => x == "core"), recorded.Count(x => x == "EastGreen"), recorded.Count(x => x == "NorthLane")));
+        Assert.Contains(doc.RootElement.GetProperty("places").EnumerateArray(), p => p.GetProperty("name").GetString() == "Cafe" && p.GetProperty("district").GetString() == "EastGreen");
+    }
+
     /// <summary>The shares are what the log says: counted again here from the "told" lines.</summary>
     [Fact]
     public void TellingsInsideADistrictAreCountedFromTheLog()
