@@ -25,6 +25,36 @@ public class TownJsonTests
         Assert.Equal(Metrics.LogHash(new Simulation(3, town).Run(3)), Metrics.LogHash(new Simulation(3, back).Run(3)));
     }
 
+    /// <summary>The hash reads the canonical form: the file without the values left at their defaults.
+    /// The act catalog's fields (acts-0) were appended with defaults, so they are in every file but in
+    /// no town's canonical form, and a field appended that way leaves every hash as it was; a value
+    /// away from its default still moves the hash.</summary>
+    [Fact]
+    public void TheHashLeavesOutValuesAtTheirDefaults()
+    {
+        TownData town = TownData.Default();
+        string file = TownJson.Write(town), canonical = TownJson.Canonical(town);
+        foreach (string field in new[] { "\"Gate\"", "\"PerHead\"", "\"FromMinute\"", "\"ToMinute\"", "\"ReadWarmAt\"", "\"WithJoy\"", "\"WarmPerDay\"" })
+        {
+            Assert.Contains(field, file);
+            Assert.DoesNotContain(field, canonical);
+        }
+        Assert.DoesNotContain('\n', canonical); // one line: the same hash on every system, whatever its line endings
+        Assert.DoesNotContain('\r', canonical);
+        Assert.Contains("\"Juiciness\"", canonical); // what a town is made of stays
+        string hash = Census.Hash(town);
+        Assert.Equal(hash, Census.Hash(TownJson.Read(file)));
+
+        // Away from its default, an appended field counts.
+        var perHead = town.Acts.Select((k, i) => i == 0 ? k with { PerHead = true } : k).ToList();
+        Assert.NotEqual(hash, Census.Hash(town with { Acts = perHead }));
+        TownData edited = TownJson.Read(file);
+        edited.Feelings.Acts.Returns = true;
+        Assert.NotEqual(hash, Census.Hash(edited));
+        edited.Feelings.Acts.Returns = false;
+        Assert.Equal(hash, Census.Hash(edited));
+    }
+
     [Fact]
     public void TheFileIsMadeOfWhatATownIsMadeOf()
     {

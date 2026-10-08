@@ -523,6 +523,11 @@ Each size is run at 31 (if built), 60 and 120.
 | **Activity** | 0.30 acts per person per day; 3.8 tellings per person per day (28 days) | acts per person per day 0.24-0.36; tellings per person within ±30% of the 26 town over the same run length (the probe had 24.2 at 104) |
 | **Witnesses and walking** | 4.1 witnesses per act | witnesses per act at most 1.5× the 26 town (the probe had 21.2 at 104); walking minutes per person per day within ±30% of the 26 town (the tile-scale check, 2.4) |
 
+**As built (2026-10-08, `FeelingMetrics`, the runner's `--town-seeds`)**, where it differs from the table:
+- **Dead and war towns count per person, not over acquainted pairs.** A war town has more than `WarShare` x 25 people disliked per person, and a dead town fewer than `DeadShare` x 25 moved per person. Up to 26 people these are the gates themselves. Acquainted pairs were not used: with forgetting off (question 5's answer for now), a town of 60 knows 91% of its pairs well by the year's end, so they are nearly all pairs and the share still falls as 1/n. On `pelican:60@1` the all-pairs rule calls 16% of seed-years dead.
+- **E1 asks for a new feud and a new friendship per 26 people** (to the nearest whole: one at 31, two at 60, five at 120). E1 by ward, (a), waits for the plan's geometry, since a ward pools a neighbourhood with its nearest. The rates of (b), feuds and friendships per 100 people a year, are printed beside it.
+- The runner prints these scaled gates for any town that isn't 26 people. `--town-seeds` gives each run its own generated town (the run's seed is the town seed), so the variety measures and these gates cover towns as well as runs.
+
 ### 6.3 Locality: a bigger town, not a bigger crowd
 
 *Built 2026-10-08 as `TownMetrics` (the runner prints it for any `--town`): the locality ratio from tellings (not yet chat minutes), tellings across districts, bridges within two days, and the median person's count of people known well. Crowding and the door gradient need positions over time and are not built yet.*
@@ -659,7 +664,7 @@ Every step runs `dotnet test sim/UnderGlass.sln` with every pin unchanged.
 
 T3 and T4 are new files only. T5 can run alongside them once 0d.6 has merged.
 
-**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's JSON, as 4.5 says):
+**As built in T3 and T4 (2026-10-08)**, where it differs from sections 2-4 (generator version 2 after the review's fixes: `sim/README.md`, "Fixed after review"; `TownHash` is now FNV-1a over the town's canonical JSON, as 4.5 says: the file without the values left at their defaults, so fields appended with a default leave every hash alone):
 - **The 60 town is the 31 town plus slots E and N**, since Sid chose both the 31 step and 60. Each slot has a fixed number of people (E 15, N 14), so the pelican profile grows to 31, 46 and 60, and a smaller town is found unchanged in a bigger one; the generator refuses other sizes.
 - **Templates are built from a few numbers** (`Templates.Green`, `Templates.Lane`) rather than drawn in a data file; the rows are the same kind of thing, and `--describe` prints the census.
 - **Each slot brings its own jobs** (the café, the workshop, staff for the core's places), filled by its own adults, so a later slot never takes an earlier slot's jobs; new staff at the clinic and the blacksmith's are paid from outside, so the core's purses aren't drained.

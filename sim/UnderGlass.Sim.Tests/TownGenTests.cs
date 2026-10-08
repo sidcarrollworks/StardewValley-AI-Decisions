@@ -17,11 +17,11 @@ public class TownGenTests
         Assert.Equal(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(TownSpec.Parse("pelican:60@1"))));
         Assert.NotEqual(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(new TownSpec(2, 60))));
         // Update only when a deliberate change to the generator lands (and raise TownGen.Version).
-        // Version 2 (2026-10-08, the review's fixes; the hash now covers the whole town file, so it
-        // also moved when the act catalog's seams added fields to the act rows and the feelings).
-        Assert.Equal("6a3457c801ecf24d", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
-        Assert.Equal("59912ac5fdd8ac4c", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
-        Assert.Equal("a953219dce6d71a7", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
+        // Version 2 (2026-10-08, the review's fixes). The hash reads the town's canonical form, which
+        // leaves out values at their defaults, so fields appended with a default don't move it.
+        Assert.Equal("8b18e34b4b315814", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
+        Assert.Equal("933d25e7f62ecdcd", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
+        Assert.Equal("6c3ef2b45d89c41f", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
     }
 
     [Fact]
@@ -261,6 +261,21 @@ public class TownGenTests
             }
         Assert.Superset(new HashSet<double> { 0.08, 0.2, 0.25, 0.4 }, seen);
         Assert.Equal(0.0, sim.Familiarity(people[0].Name, DefaultTown.Newcomer)); // nobody knows the newcomer
+    }
+
+    /// <summary>The runner's --town-seeds: a run's seed is its town seed, and every town of a size has
+    /// the same act list, so the runs of a sweep can share one.</summary>
+    [Fact]
+    public void ATownSeedCanFollowTheRun()
+    {
+        Assert.Equal(Census.Hash(Towns.Named("pelican:60@7")), Census.Hash(Towns.ForSeed("pelican:60@1", 7)));
+        Assert.NotEqual(Census.Hash(Towns.ForSeed("pelican:60@1", 7)), Census.Hash(Towns.ForSeed("pelican:60@1", 8)));
+        Assert.Throws<ArgumentException>(() => Towns.ForSeed("pelican31", 7));
+        Assert.Throws<ArgumentException>(() => Towns.ForSeed("file:town.json", 7));
+        static string Acts(TownData t) => string.Join("; ", t.Acts.Select(k => $"{k.Name} {k.PerDay} {string.Join(",", k.Allowed)}"));
+        string first = Acts(Towns.ForSeed("pelican:60@1", 1));
+        foreach (long s in new long[] { 2, 3, 4 })
+            Assert.Equal(first, Acts(Towns.ForSeed("pelican:60@1", s)));
     }
 
     [Fact]
