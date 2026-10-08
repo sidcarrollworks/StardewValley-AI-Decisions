@@ -1171,6 +1171,13 @@ function load(run) {
   }
   m.pursuits = run.pursuits.map((p) => ({ tick: p[0], holder: p[1], subject: p[2], motive: run.motives[p[3]], source: p[4], kind: p[5], intensity: p[6], margin: p[7], call: p[8], acted: !!p[9], act: p[10] }));
   m.life = run.life.map((e) => ({ tick: e[0], person: e[1], other: e[2], act: e[3], kind: e[4], role: run.roles[e[5]], severity: e[6], hostile: !!e[7], outcome: run.outcomes[e[9]], resolved: e[10] }));
+  // Hermits, brawlers and being left out (0d.6), recorded while the gate runs: each person's being
+  // left out by the day (hundredths) and their sustained spells (days are the nights' stance indexes).
+  const wd = run.withdrawal ?? null;
+  m.leftOut = wd ? wd.leftOut : null;
+  m.spells = wd ? wd.spells : [];
+  m.spellsOf = names.map(() => []);
+  for (const sp of m.spells) if (sp.person >= 0) m.spellsOf[sp.person].push(sp);
   // Households, for grouping people.
   const hh = [...new Set(m.people.map((p) => p.household))].sort();
   m.households = hh.map((h) => ({ name: h, people: m.people.filter((p) => p.household === h).map((p) => p.i) }));
@@ -1194,6 +1201,17 @@ const hourOf = (t) => clamp(Math.floor(t / 60) - 1, 0, R.run.mood.length - 1);
 const moodAt = (i, t) => (R.run.mood.length ? R.run.mood[hourOf(t)][i] / 100 : 0);
 const powerAt = (i, t) => (R.run.power.length ? R.run.power[hourOf(t)][i] / 100 : 0.5);
 function stanceAt(i, t) { const s = R.run.stance; if (!s) return 0; const d = Math.floor(t / 1440) - 1; return d < 0 ? 0 : s[i][Math.min(d, s[i].length - 1)]; }
+/** The sustained spell someone is in at time t (by the last night's stance), if any. Spells are
+    found over the whole run, so one shows from its first night, before it has lasted 28. */
+function spellAt(i, t) { const d = Math.floor(t / 1440) - 1; return R.spellsOf?.[i]?.find((sp) => sp.from <= d && d <= sp.to) ?? null; }
+const SPELL = { hermit: "Hermit", withdrawn: "Withdrawn", brawler: "Brawler" };
+const dayShort = (d) => `${SEASONS[Math.floor(d / 28) % 4]} ${d % 28 + 1}` + (d >= 112 ? `, year ${Math.floor(d / 112) + 1}` : "");
+function spellText(sp) {
+  const nights = sp.to - sp.from + 1;
+  return `${SPELL[sp.kind] ?? sp.kind}, ${dayShort(sp.from)} to ${dayShort(sp.to)}${sp.ended ? "" : " (to the end)"}: ${nights} nights`
+    + (sp.kind === "hermit" && sp.hoursFall != null ? `, free hours out down ${Math.round(sp.hoursFall * 100)}%` : "");
+}
+const leftOutAt = (i, t) => { const L = R.leftOut?.[i]; if (!L || !L.length) return null; const d = Math.floor(t / 1440) - 1; return d < 0 ? 0 : L[Math.min(d, L.length - 1)] / 100; };
 /** Regard at time t: the end of the day before, plus every change since midnight. */
 function regardAt(i, j, t) {
   if (i === j || !R.feelings) return 0;
@@ -1955,7 +1973,7 @@ function popRow(i, t, order) {
   let feuds = 0, friends = 0;
   for (const x of R.ties) if (x.tick <= t && (x.a === i || x.b === i)) { if (x.what === "feud" || x.what === "kin-feud") feuds++; else if (x.what === "friendship") friends++; }
   return { i, order: order.get(i), placeName: placeName(R.places[q.place].name), home: R.places[q.place].name === "Home:" + R.people[i].household, asleep: q.asleep,
-    mood: R.feelings ? moodAt(i, t) : 0, power: R.feelings ? powerAt(i, t) : 0, stance: stanceAt(i, t),
+    mood: R.feelings ? moodAt(i, t) : 0, power: R.feelings ? powerAt(i, t) : 0, stance: stanceAt(i, t), spell: spellAt(i, t),
     likedBy: got / Math.max(1, n - 1), likes: given / Math.max(1, n - 1), likers, dislikers,
     kind, hostile, other, acts: kind + hostile + other, known: upperBound(R.knownAt[i], t), told: upperBound(R.toldAt[i], t), feuds, friends };
 }
@@ -2030,7 +2048,8 @@ function drawPopulation() {
       el("td", null, R.feelings ? cellBar(r.mood, 0.6, true, r.mood >= 0 ? COL.like : COL.dislike, sgn(r.mood)) : "–"),
       el("td", null, R.feelings ? cellBar(r.power, 1, false, COL["ink-2"], r.power.toFixed(2)) : "–"),
       el("td", { title: "Stance now, and by the night over the whole run (the orange line is now)" }, R.run.stance
-        ? el("span", { class: "cellbar" }, popSpark(R.run.stance[r.i], sinceNight), el("span", { text: sgn(r.stance) })) : "–"),
+        ? el("span", { class: "cellbar" }, popSpark(R.run.stance[r.i], sinceNight), el("span", { text: sgn(r.stance) }),
+          r.spell ? el("span", { class: "verify", title: spellText(r.spell), text: SPELL[r.spell.kind] }) : null) : "–"),
       el("td", { title: `Their mean regard for everyone else, and everyone's for them. ${r.likers} like them (0.3 or more), ${r.dislikers} dislike them (−0.2 or less).` },
         R.feelings ? el("div", { class: "two-line" },
           el("span", { class: "cellbar" }, el("span", { text: "by" }), ...cellBar(r.likes, 0.5, true, r.likes >= 0 ? COL.like : COL.dislike, sgn(r.likes)).childNodes),
@@ -2154,10 +2173,12 @@ const GLOSSARY = (() => {
 /** A small line of values by the day, with the whole run drawn and a mark at now (which may fall
     between two days). The readout is opts.value, the value at the clock. */
 function sparkline(values, opts) {
-  const { lo, hi, zero, colour, title, now, format, value } = opts, w = 300, h = 44, NS = "http://www.w3.org/2000/svg";
+  const { lo, hi, zero, colour, title, now, format, value, bands = [] } = opts, w = 300, h = 44, NS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("preserveAspectRatio", "none");
   const X = (k) => (k / Math.max(1, values.length - 1)) * w, Y = (v) => 3 + (1 - (v - lo) / (hi - lo)) * (h - 6);
   const add = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); svg.append(e); return e; };
+  // Spans to mark behind the line ({from, to, fill} in the values' own indexes).
+  for (const b of bands) add("rect", { x: X(b.from), y: 0, width: Math.max(1, X(b.to) - X(b.from)), height: h, fill: b.fill, "fill-opacity": 0.14 });
   add("line", { x1: 0, x2: w, y1: Y(zero), y2: Y(zero), stroke: COL.line, "stroke-width": 1, "vector-effect": "non-scaling-stroke" });
   add("polygon", { points: [`0,${Y(zero)}`, ...values.map((v, k) => `${X(k)},${Y(v)}`), `${w},${Y(zero)}`].join(" "), fill: colour, "fill-opacity": 0.1 });
   add("polyline", { points: values.map((v, k) => `${X(k)},${Y(v)}`).join(" "), fill: "none", stroke: colour, "stroke-width": 2, "vector-effect": "non-scaling-stroke", "stroke-linejoin": "round" });
@@ -2227,7 +2248,12 @@ function drawInspector() {
     kids.push(el("div", { style: "display:grid;gap:8px" },
       sparkline(dailyMood, { lo: -0.6, hi: 0.6, zero: 0, colour: COL.like, title: "Mood by the day", now: today, value: dailyMood[today], format: (v) => sgn(v) }),
       sparkline(dailyPower, { lo: 0, hi: 1, zero: 0.5, colour: COL.ink, title: "Power of acting by the day", now: today, value: dailyPower[today], format: (v) => v.toFixed(2) }),
-      ...(R.run.stance ? [sparkline(R.run.stance[i], { lo: -1, hi: 1, zero: 0, colour: COL.dislike, title: "Stance (− withdrawn, + combative)", now: sinceNight, value: stanceAt(i, t), format: (v) => sgn(v) })] : [])));
+      ...(R.run.stance ? [sparkline(R.run.stance[i], { lo: -1, hi: 1, zero: 0, colour: COL.dislike, title: "Stance (− withdrawn, + combative)", now: sinceNight, value: stanceAt(i, t), format: (v) => sgn(v),
+        bands: R.spellsOf[i].map((sp) => ({ from: sp.from, to: sp.to, fill: sp.kind === "brawler" ? COL.dislike : COL.like })) })] : []),
+      ...(R.leftOut?.[i]?.length ? [sparkline(R.leftOut[i].map((v) => v / 100), { lo: 0, hi: 1, zero: 0, colour: COL["ink-2"], title: "Left out (E) by the night", now: sinceNight, value: leftOutAt(i, t) ?? 0, format: (v) => v.toFixed(2) })] : [])));
+    if (R.spellsOf[i].length) kids.push(el("div", null, el("div", { class: "label", text: "Spells (28 nights or more)" }), el("div", { class: "list" },
+      R.spellsOf[i].map((sp) => el("div", { class: "row", tabindex: 0, onclick: () => setTime((sp.from + 1) * 1440) },
+        el("span", { class: "when", text: `d${sp.from + 1}` }), spellText(sp))))));
     const toward = [], from = [];
     for (let j = 0; j < R.n; j++) if (j !== i) { toward.push([j, regardAt(i, j, t)]); from.push([j, regardAt(j, i, t)]); }
     const top = (arr, desc) => arr.slice().sort((x, y) => (desc ? y[1] - x[1] : x[1] - y[1])).slice(0, 4).filter(([, v]) => (desc ? v > 0.05 : v < -0.05));
@@ -2265,6 +2291,9 @@ function townNow() {
       ...(R.run.constable >= 0 ? [el("dt", { text: "Constable" }), el("dd", { text: R.names[R.run.constable] })] : [])),
     el("p", { class: "note", text: "Click anyone on the map, in a list or on the ring to follow them. Dots are coloured by mood: blue in good spirits, red low, grey even; a hollow dot is asleep. Rings mark acts as they happen: blue kind, red hostile." })];
   if (today.length) kids.push(el("div", null, el("div", { class: "label", text: "Today" }), el("div", { class: "list" }, today.slice(-6).reverse().map((a) => el("div", { class: "row", onclick: () => setTime(a.tick) }, el("span", { class: "when", text: hm(a.tick) }), R.actText(a))))));
+  const inSpell = R.names.map((_, i) => [i, spellAt(i, t)]).filter(([, sp]) => sp);
+  if (inSpell.length) kids.push(el("div", null, el("div", { class: "label", text: "In a spell now" }), el("div", { class: "list" }, inSpell.map(([i, sp]) =>
+    el("div", { class: "row", tabindex: 0, onclick: () => selectPerson(i) }, el("span", { class: "when", text: SPELL[sp.kind] }), `${R.names[i]}, since ${dayShort(sp.from)}`)))));
   return kids;
 }
 

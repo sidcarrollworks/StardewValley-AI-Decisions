@@ -14,6 +14,7 @@ dotnet run --project sim/UnderGlass.Run -- --log 7 --days 3                     
 # the desire gate (0d): --desire off|observe|on, --trait <Name>=<Trait>:<value> (repeatable),
 # --tensions <depth> (0: none); a "desire" block reports the gate (DesireMetrics)
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --html run1.html   # watch a run (viewer/README.md)
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 29 --days 112 --0d6 bdefghm --html run29.html   # with 0d.6's steps: spells in the viewer
 ```
 
 Every run formats its log in the invariant culture, so a seed hashes the same on every machine (before 0c, juiciness printed as "1,5" under a German culture).

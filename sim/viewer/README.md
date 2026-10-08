@@ -16,7 +16,8 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --ou
 
 Open `sim/viewer/index.html` directly to load a `.json` run. The tool takes the runner's settings:
 `--inject` (place a scandal), `--fo <Name>=<value>`, `--desire off|observe|on`, `--tensions <depth>`,
-`--trait <Name>=<Trait>:<value>` and `--feel off|observe|on`. Two months of the town is about 2.3 MB
+`--trait <Name>=<Trait>:<value>`, `--feel off|observe|on` and `--0d6 <steps>` (hermits, brawlers, moods that spread
+and missing people: `--0d6 bdefghm`, as the runner takes it). Two months of the town is about 2.3 MB
 and takes a few seconds to record; a year is about 5 MB.
 
 ## What it shows
@@ -47,7 +48,8 @@ until one is made the page follows the host's theme, then the system's.
   per trait), mood, power of acting, stance with its line over the whole run, their mean regard for
   the town and the town's for them, their acts so far (kind, other, hostile), the stories they know
   and have told, and their feuds and friendships. Above it, who is lowest and highest on each
-  measure. Sort by any column or trait; click a row to follow that person.
+  measure. Sort by any column or trait; click a row to follow that person. Someone in a sustained spell at the
+  clock (28 nights or more withdrawn, a hermit or a brawler; see the inspector) is tagged in the stance column.
 - **Relationships:** the town as a ring, household by household, with a line for each strong tie
   (blue liking, red dislike, dashed when the two feel differently); switch to "change since the
   start" to see who has grown closer or further apart. The grid shows every person's regard for
@@ -57,7 +59,10 @@ until one is made the page follows the host's theme, then the system's.
   each person believes now (and who has the wrong name), and what the mayor and the constable did.
 - **The inspector** (right): the selected person's character at the start and the end, mood, power
   of acting and stance over the run, who they like and dislike and who likes them, their recent acts,
-  the motives they weighed, and their life record. With nobody selected, the town at this moment.
+  the motives they weighed, and their life record. While the gate runs, the stance line shades each
+  sustained spell (blue: withdrawn, or a hermit if their free hours out fell too; red: a brawler), a
+  second line shows how left out they were each night, and the spells are listed with their dates; click
+  one to go to its start. With nobody selected, the town at this moment, with anyone in a spell.
 - **The log**, synced to the clock and filterable (acts, feelings, motives, ties, the authority,
   gossip, sleep and work, money), with a search box and a switch to show only the selected person.
 - **Explanation:** what the words and numbers mean, as the simulator uses them: the seven traits,
@@ -100,6 +105,12 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`events`** are the log lines other than beliefs and tellings, which have tables of their own.
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
+- **`withdrawal`** (0d.6; null when the gate is off): `leftOut`, each person's being left out (E) at the
+  end of each day, in hundredths; `spells`, every sustained spell as `WithdrawalMetrics` finds it
+  (`person`, `from` and `to` as the nights' stance indexes, `kind` hermit, withdrawn or brawler,
+  `ended` false if it lasted to the run's end, and `hoursFall`, how far their free hours out fell);
+  `contagion`, the mood each person passed on, caught and took on balance; and `rules`, what each 0d.6
+  rule did (count and sum; with `WithdrawalWatch`, what it would have done).
 - **`settings`** are every switch and number the run used: the feelings' by name, every other
   options class's with the class in front (`GossipOptions.ChatChance`, `BodyOptions.CommuteMinutes`,
   `TownData.Wander`), and how it was set up (`Inject`, `Tensions`, `Traits`). **`defaults`** are the
