@@ -710,6 +710,11 @@ still evaluates the actual response lines. Failures remain explicit authored fal
 GPU smoke inference is roughly one second per thought, suitable for testing occasional
 inspiration; this is a measured setup, not a speed guarantee or proof of useful imagination.
 Generation seeds do not replace recorded-answer replay across runtime or hardware changes.
+The generator sees allowed act IDs/kinds and structured own/received source facts; only Laya
+sees the complete response lines. The controlled generator probe found speech copying and
+option-order sensitivity. Removing dialogue inputs reduced copying, while semantic mismatches
+and source-role confusion persisted. Hybrid remains an explicit experiment; structural JSON
+validation does not establish thought/act agreement or grounding.
 
 **Why.** Sleep can provide a distinct moment for imagining how a known relationship might go,
 without granting new knowledge or making every routine utterance depend on generation. The

@@ -324,7 +324,40 @@
       "evaluatorPasses": 410,
       "rawFileSha256": "cb6cf86810db758a7f26f983589823135cc2c3b77ea4f3d8bfb8ee503ca25c7d",
       "medianGenerationMilliseconds": 952.3297999985516
+    },
+    "hybridActTypes": {
+      "seed": 7,
+      "days": 14,
+      "hash": "569d3d45ee037fbd",
+      "thoughts": 91,
+      "backends": {
+        "local-llm+laya": 91
+      },
+      "events": {
+        "considered": 91,
+        "reshaped": 34,
+        "waiting": 60,
+        "acted": 51,
+        "outcome": 33,
+        "dreamed": 20,
+        "accepted": 26,
+        "deferred": 11,
+        "expired": 3,
+        "rejected": 20,
+        "reconsidered": 1
+      },
+      "choices": {
+        "help": 23,
+        "gift": 27,
+        "defer": 11,
+        "reject": 20,
+        "confront": 10
+      },
+      "evaluatorPasses": 439,
+      "rawFileSha256": "eedbe16782ca0cf920ca2d3aa556e601af0a78b55cebd8981030fb4287fe2841",
+      "medianGenerationMilliseconds": 960.8590999851003
     }
   },
-  "hybridTapeMatchesExceptLabel": true
+  "hybridTapeMatchesExceptLabel": true,
+  "hybridActTypesTapeMatchesExceptLabel": true
 }

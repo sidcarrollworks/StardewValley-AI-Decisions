@@ -154,7 +154,7 @@ public sealed class ReflectionMindTests
         using JsonDocument generationContext = JsonDocument.Parse(generation.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
         var choices = generationContext.RootElement.GetProperty("choices").EnumerateArray().ToArray();
         Assert.Equal(new[] { "help", "argue" }, choices.Select(c => c.GetProperty("id").GetString()));
-        Assert.Equal(Request().Choices[0].Line, choices[0].GetProperty("line").GetString());
+        Assert.All(choices, c => Assert.False(c.TryGetProperty("line", out _)));
         using JsonDocument laya = JsonDocument.Parse(bodies[1]);
         Assert.Contains(answer.Thought, laya.RootElement.GetProperty("state").GetString());
     }

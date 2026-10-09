@@ -53,7 +53,10 @@ The optional loopback generator now runs pinned `Qwen/Qwen3-0.6B`
 (`c1899de289a04d12100db370d81485cdf75e47ca`), with roughly one-second local GPU smoke inference.
 Requests carry a stable seed; full generation responses and model metadata are recorded, and
 invalid or failed generation uses an explicit authored fallback. **Still to verify:** whether
-generated ideas and these choices make the town more compelling. The wider tagged dialogue
+generated ideas and these choices make the town more compelling. A controlled probe found
+generator option-order sensitivity and copied speech. Generation now sees supported act types
+and known source roles while Laya receives full dialogue; thought/act mismatches still need
+review. The wider tagged dialogue
 catalog and player interaction remain unbuilt. The detailed plan is in
 [`docs/under-glass/design.md`](docs/under-glass/design.md); the mod's goals and history below remain
 their own track.

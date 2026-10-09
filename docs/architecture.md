@@ -115,6 +115,9 @@ The Laya prompt omits the proposed choice ID so it does not supply an answer hin
 record retains the raw Laya JSON, including routing and token-usage metadata when returned.
 Explicit server truncation causes fallback even when the probability table is otherwise valid.
 
+The generator receives allowed act IDs/kinds and copied known-source roles, without candidate
+dialogue; complete spoken lines go to Laya. This removes a direct speech-copying channel, but
+does not validate a generated thought's factual grounding or agreement with its proposed act.
 The local generator helper pins `Qwen/Qwen3-0.6B` at
 `c1899de289a04d12100db370d81485cdf75e47ca`. The adapter sends a seed derived from the request ID,
 and records both `GenerationPrompt` and the complete `GenerationResponse`, including the helper's

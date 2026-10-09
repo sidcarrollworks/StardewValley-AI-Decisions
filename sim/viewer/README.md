@@ -4,6 +4,11 @@ A page for watching one run of the town: everyone moving through the day, each p
 stance and acts, who regards whom, how each story spread, and the event log, all on one clock.
 It only reads a recorded run; it never runs the simulation or changes it.
 
+Prepared local recordings are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`.
+Run `sim/tools/start-preview.ps1 -Open` from this checkout to start or reuse its loopback preview.
+The morning page compares authored, balanced Laya and experimental local-generation recordings;
+opening them needs no running model. See [the simulator guide](../README.md) to record fresh runs.
+
 ## Make a run and open it
 
 ```bash
@@ -43,6 +48,11 @@ until one is made the page follows the host's theme, then the system's.
 - **The timeline** under it: a ruler of seasons, weeks and the run's turning points (feuds,
   friendships, reconciliations, scandals) over a fader, then the clock and the playback keys. Click
   the ruler to jump. Space plays; arrow keys step 5 minutes (Shift: an hour); `[` and `]` step a day.
+- **Happening now:** up to three active encounters, recent thoughts or waiting intentions,
+  narrowed to the person or neighbourhood being followed. Follow a thought to its inner-life
+  card. **Previous moment** and **Next moment** skip to recorded encounters, thoughts and tie
+  changes; they show no future event content before jumping there. The inspector's **At this
+  moment** describes the selected person's present act or intention.
 - **Neighbourhood**, beside the tabs, for a grown town with neighbourhoods (`--town pelican:60@7`):
   All, the centre, or one neighbourhood. One choice narrows the town's maps, the population, the
   relationships (the ring, the matrix and the ties), the stories (by who did it) and the log (by
@@ -71,6 +81,9 @@ until one is made the page follows the host's theme, then the system's.
   them, and disappear when rewinding. Buttons jump to the remembered act and subsequent acts on
   the same clock. The character selector shares the map and inspector's selection; neighbourhood
   and unfolding/settled filters narrow the list. It shows at most 24 recently changed cards.
+  **Dream on waking** marks private imagination from a real sleep interval; it is separate from
+  the remembered encounter. **Revisited** links a later thought to its earlier deferred idea.
+  Outcomes use recorded life responses and appear only after those responses were resolved.
   Expand **What informed this choice?** for the supplied context, actual candidate lines, relative
   weights, proposal, selected response, recorded backend/fallback note and exact model requests
   when present. These are recorded evidence, not explanations invented by the viewer. Model
@@ -85,6 +98,8 @@ until one is made the page follows the host's theme, then the system's.
 - **Stories:** each act, how far it spread and how fast, how each person first came to know it (saw
   it, found a trace, or heard it from someone, with how many people each went on to tell), what
   each person believes now (and who has the wrong name), and what the mayor and the constable did.
+  These details follow the clock by default. **Whole-run analysis** explicitly includes future
+  events; jumping to a remembered encounter turns that analysis off again.
 - **The inspector** (right): the selected person's character at the start and the end, mood, power
   of acting and stance over the run, who they like and dislike and who likes them, their recent acts,
   the motives they weighed, and their life record. While the gate runs, the stance line shades each
@@ -152,8 +167,10 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
 - **`reflections`** is optional, absent when reflection is disabled. Unlike the packed tables,
   its records use named camelCase fields and actor/subject names. Each contains `request` (id,
-  tick, actor, subject, sourceActId, memory, context and choices with id/kind/line), `answer`
-  (thought, suggestedChoice, weights, backend, note and optional exact request receipts), the
+  tick, actor, subject, sourceActId, memory, context and choices with id/kind/line, plus optional
+  structured source, catalog proposal, continuity links and sleep opportunity), `answer`
+  (thought, suggestedChoice, weights, backend, note, exact generation request/raw response and
+  evaluator passes with prompts, raw responses, label mappings and normalized weights/errors), the
   selected `choice`, and timestamped `events` (tick, status, text, actId). The viewer never
   infers an outcome from the end of the recording; an act without an outcome remains unresolved.
 - **`withdrawal`** (0d.6; null when the gate is off): `leftOut`, each person's being left out (E) at the

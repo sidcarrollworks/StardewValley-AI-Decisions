@@ -204,7 +204,8 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         string instructions = "Write the actor's private thought in first person, using I or my: one short, natural sentence they might think to themselves. "
             + "Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. "
             + "It is an uncertain future possibility, not an act already done or a settled decision. "
-            + "Write silent self-talk, not dialogue addressed to the subject. The supplied lines show available acts: do not copy them as the thought. "
+            + "Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. "
+            + "In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. "
             + "Use the subject's name when their pronouns are not supplied. "
             + "Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. "
             + "Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. "
@@ -212,17 +213,20 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             + "Return only a JSON object with two string fields: thought and suggestedChoice. "
             + $"thought must be 1..{_options.MaxThoughtChars} characters. suggestedChoice must be one of the provided executable choice IDs. "
             + "suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.";
-        // Context is bounded independently of the response budget; authored lines are never cut.
+        // The generator imagines an intention from known facts and allowed act types.
+        // Full authored speech is supplied only to Laya, which evaluates the response.
         var context = new
         {
             actor = request.Actor,
             subject = request.Subject,
             context = Cut(request.Context, 1000),
             memory = Cut(request.Memory, 1000),
+            knownSource = request.Source is { } source ? new
+                { kind = source.Kind, ownDeed = source.OwnDeed, valence = source.Valence, regard = source.Regard } : null,
             earlierImaginedIdea = request.Continuity?.PriorThought,
             reasonToReconsider = request.Continuity?.Reason,
             opportunity = request.Opportunity?.Kind ?? "quiet",
-            choices = request.Choices.Where(c => c.Kind.Length > 0).Select(c => new { id = c.Id, kind = c.Kind, line = c.Line }),
+            choices = request.Choices.Where(c => c.Kind.Length > 0).Select(c => new { id = c.Id, kind = c.Kind }),
         };
         return JsonSerializer.Serialize(new
         {

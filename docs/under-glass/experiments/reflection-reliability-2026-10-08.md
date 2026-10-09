@@ -26,7 +26,8 @@ Seed 7, default town, quiet chance .35, waking dream chance .15, balanced evalua
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Authored | 82 | 15 | 8 / 21 | 40 | 23 | 10 | 0 |
 | Authored + Laya | 82 | 19 | 11 / 11 | 45 | 29 | 7 | 2 |
-| Qwen + Laya | 86 | 22 | 5 / 18 | 48 | 34 | 5 | 1 |
+| Qwen + Laya, candidate dialogue supplied | 86 | 22 | 5 / 18 | 48 | 34 | 5 | 1 |
+| Qwen + Laya, act types and known source | 91 | 20 | 11 / 20 | 51 | 33 | 3 | 1 |
 
 Live Laya recorded in **9.7 s**, and hybrid in **105.2 s**. All 82 Laya answers and all 86 hybrid answers came from their configured models; no fallback in these final recordings. Hybrid made 410 evaluator passes. Its median generator service latency was **952.33 ms**, excluding adapter overhead and Laya. The authored recording took 1.3 s. These are small offline GPU runs, not real-time or CPU performance guarantees.
 
@@ -34,7 +35,9 @@ Deferred ideas return only after a distinct later known encounter with the same 
 
 The viewer now has Happening now cards, meaningful-moment navigation, a current-intention inspector, earlier-thought links and dream/source badges. Stories follow the clock unless Whole-run analysis is explicitly enabled. Manual browser checks verified dream display after waking, raw pass details, rewinding away future thoughts, and Space toggling the analysis checkbox without starting playback. The preview launcher has a reusable morning page and refuses to stop unrelated listeners.
 
-Hybrid tape replay reproduces every JSON field except the command-derived label. Log hashes: authored `16b0adc14ab3ea1b`, Laya `6319b11f62df694f`, hybrid `a9f42bfdc31a146d`. Local full recordings and tapes remain in ignored `out/reflection-morning-*.json`; the root demo HTML files are saved local outputs.
+Hybrid tape replay reproduces every JSON field except the command-derived label. Log hashes: authored `16b0adc14ab3ea1b`, Laya `6319b11f62df694f`, initial hybrid `a9f42bfdc31a146d`, final act-types hybrid `569d3d45ee037fbd`. Local full recordings and tapes remain in ignored `out/reflection-morning-*.json`; the root demo HTML files are saved local outputs.
+
+The final generator input boundary supplies allowed act types and copied known-source roles while Laya receives complete dialogue. Its [controlled before/after probe](reflection-generator-order-2026-10-08.md) removes direct speech copying but still finds semantic and perspective failures. The morning hybrid page now uses this final recording: **91 model answers, no fallback, 439 evaluator passes, 99.7 s total**, median generation **960.86 ms**, and an exact tape match apart from label. An earlier attempt overlapped another generator probe and correctly received busy rejections; that fallback-only recording stays in `out/reflection-morning-hybrid-acts-only.json` and is not the morning demo.
 
 ## Small generator: working, still limited
 

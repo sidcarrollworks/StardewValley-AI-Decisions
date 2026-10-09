@@ -25,7 +25,7 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 | `sim/UnderGlass.Minds/` | Optional local model adapter: authored or generated intentions, Raw/Canonical/Balanced Laya evaluation, per-pass receipts, deadlines and a recorded authored fallback. |
 | `sim/UnderGlass.Replay/`, `sim/viewer/` | Record and observe the town: current moments, event navigation, source memory, earlier ideas, selected lines and outcomes shown only when the replay clock reaches them. Live evaluation defaults to Balanced. |
 | `sim/UnderGlass.ReflectionTrial/` | Controlled smoke/social probes for memory, trust, inspiration, line assignments, labels and order, with exact repeats and complete evaluation receipts. Raw is the trial default; all three modes are selectable. |
-| `sim/UnderGlass.Sim.Tests/` | 604 Under Glass tests, separate from the mod solution; run `dotnet test sim/UnderGlass.sln`. |
+| `sim/UnderGlass.Sim.Tests/` | 606 Under Glass tests, separate from the mod solution; run `dotnet test sim/UnderGlass.sln`. |
 | `sim/tools/` | Optional pinned local generator and safe preview launcher; 22 offline HTTP contracts in `tests/test_reflection_generator.py`, plus `test-preview.ps1` for the preview lifecycle. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. `sidecar/eval/` holds the golden eval set + runner + results (typed-decisions 5/6 vs english 3/6). |
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |

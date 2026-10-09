@@ -43,6 +43,8 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 14 --re
 
 The service serializes inference, rejects busy requests, bounds input/output and requests cancellation at its deadline. Raw output, seed, checkpoint revision, device and timing stay in the replay. Invalid JSON, an unavailable choice or an overlong thought produces an explicit authored fallback. A seed supports repeatability on the same runtime; use a recorded tape for exact simulation replay.
 
+The generator receives remembered source roles and allowed act types; Laya receives the full spoken lines. A [controlled probe](../docs/under-glass/experiments/reflection-generator-order-2026-10-08.md) found that removing dialogue inputs reduced copying, but some ideas still contradict their suggested act or known memory. Structural validation cannot catch those semantic failures. Hybrid is an experiment; compare it with the authored and Laya recordings.
+
 Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.
 
 Run the controlled comparison separately from the town:

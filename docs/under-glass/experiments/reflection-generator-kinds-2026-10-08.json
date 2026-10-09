@@ -1,0 +1,925 @@
+{
+  "startedUtc": "2026-10-09T05:49:32.029250+00:00",
+  "method": "Actual rebuilt adapter packets: remove candidate speech, retain id+kind, add exact copied knownSource and revised instruction. Same four source requests and seeds. Baseline and reversed choices only, no retries or Laya calls.",
+  "beforeAudit": "out/reflection-generator-order-probe.json",
+  "cases": [
+    {
+      "case": "own-kindness",
+      "requestId": "7:2487:Evelyn:6",
+      "request": {
+        "id": "7:2487:Evelyn:6",
+        "tick": 2487,
+        "actor": "Evelyn",
+        "subject": "George",
+        "sourceActId": 6,
+        "memory": "At d1 16:50, you helped George (HelpedSomeone). You took part.",
+        "context": "Evelyn, age 74: mood 0.09; regard for George 0.60. Bold 0.30; understanding 0.80; sensitive 0.30; self-regard 0.60; expression 0.70. Quiet free time. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {
+            "id": "gift",
+            "kind": "GaveGift",
+            "line": "I wanted to do something else for you. I'd like you to have this."
+          },
+          {
+            "id": "help",
+            "kind": "HelpedSomeone",
+            "line": "I'd like us to spend a little more time together. Could I help?"
+          },
+          {
+            "id": "confront",
+            "kind": "Argued",
+            "line": "That gesture wasn't a promise of more. I need to be clear about that."
+          },
+          {
+            "id": "defer",
+            "kind": "",
+            "line": "I need to think about this another time."
+          },
+          {
+            "id": "reject",
+            "kind": "",
+            "line": "No. I don't want to act on this thought."
+          }
+        ],
+        "source": {
+          "kind": "HelpedSomeone",
+          "ownDeed": true,
+          "valence": 0.3,
+          "regard": 0.6
+        },
+        "proposal": {
+          "id": "own-kindness-connection",
+          "thought": "I reached out to George. Offering to help could give us a reason to spend a little more time together.",
+          "suggestedChoice": "help",
+          "tags": [
+            "own-kindness",
+            "warm",
+            "connection"
+          ]
+        },
+        "continuity": null,
+        "opportunity": null
+      },
+      "calls": [
+        {
+          "variant": "baseline",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor\\u0027s private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject\\u0027s name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person\\u0027s hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\u0022actor\\u0022:\\u0022Evelyn\\u0022,\\u0022subject\\u0022:\\u0022George\\u0022,\\u0022context\\u0022:\\u0022Evelyn, age 74: mood 0.09; regard for George 0.60. Bold 0.30; understanding 0.80; sensitive 0.30; self-regard 0.60; expression 0.70. Quiet free time. Choose for this person, not for a well-behaved town.\\u0022,\\u0022memory\\u0022:\\u0022At d1 16:50, you helped George (HelpedSomeone). You took part.\\u0022,\\u0022knownSource\\u0022:{\\u0022kind\\u0022:\\u0022HelpedSomeone\\u0022,\\u0022ownDeed\\u0022:true,\\u0022valence\\u0022:0.3,\\u0022regard\\u0022:0.6},\\u0022earlierImaginedIdea\\u0022:null,\\u0022reasonToReconsider\\u0022:null,\\u0022opportunity\\u0022:\\u0022quiet\\u0022,\\u0022choices\\u0022:[{\\u0022id\\u0022:\\u0022o2\\u0022,\\u0022kind\\u0022:\\u0022Argued\\u0022},{\\u0022id\\u0022:\\u0022o3\\u0022,\\u0022kind\\u0022:\\u0022GaveGift\\u0022},{\\u0022id\\u0022:\\u0022o4\\u0022,\\u0022kind\\u0022:\\u0022HelpedSomeone\\u0022}]}\"}],\"temperature\":0.7,\"seed\":930060918,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "4d8acb2d6a07cca0f348f1a37341a9bff56d5442bc3318def1197e434db034e3",
+          "choices": [
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "That gesture wasn't a promise of more. I need to be clear about that."
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I wanted to do something else for you. I'd like you to have this."
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like us to spend a little more time together. Could I help?"
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o2": "o2",
+            "o3": "o3",
+            "o4": "o4"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-930060918",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might consider helping George again, as I feel a sense of connection and purpose that I haven't felt in a long time.\",\n  \"suggestedChoice\": \"o2\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 471,
+              "completion_tokens": 44,
+              "total_tokens": 515,
+              "input_tokens": 471,
+              "output_tokens": 44,
+              "elapsed_ms": 1343.1466000620276
+            },
+            "seed": 930060918,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-930060918\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might consider helping George again, as I feel a sense of connection and purpose that I haven't felt in a long time.\\\",\\n  \\\"suggestedChoice\\\": \\\"o2\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":471,\"completion_tokens\":44,\"total_tokens\":515,\"input_tokens\":471,\"output_tokens\":44,\"elapsed_ms\":1343.1466000620276},\"seed\":930060918,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might consider helping George again, as I feel a sense of connection and purpose that I haven't felt in a long time.\",\n  \"suggestedChoice\": \"o2\"\n}",
+          "proposal": {
+            "thought": "I might consider helping George again, as I feel a sense of connection and purpose that I haven't felt in a long time.",
+            "suggestedChoice": "o2"
+          },
+          "semanticChoice": {
+            "kind": "Argued",
+            "line": "That gesture wasn't a promise of more. I need to be clear about that."
+          },
+          "firstPosition": true,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1378.3547000493854,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o2",
+              "kind": "Argued"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            }
+          ]
+        },
+        {
+          "variant": "reverse",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor's private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject's name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\\"actor\\\":\\\"Evelyn\\\",\\\"subject\\\":\\\"George\\\",\\\"context\\\":\\\"Evelyn, age 74: mood 0.09; regard for George 0.60. Bold 0.30; understanding 0.80; sensitive 0.30; self-regard 0.60; expression 0.70. Quiet free time. Choose for this person, not for a well-behaved town.\\\",\\\"memory\\\":\\\"At d1 16:50, you helped George (HelpedSomeone). You took part.\\\",\\\"knownSource\\\":{\\\"kind\\\":\\\"HelpedSomeone\\\",\\\"ownDeed\\\":true,\\\"valence\\\":0.3,\\\"regard\\\":0.6},\\\"earlierImaginedIdea\\\":null,\\\"reasonToReconsider\\\":null,\\\"opportunity\\\":\\\"quiet\\\",\\\"choices\\\":[{\\\"id\\\":\\\"o4\\\",\\\"kind\\\":\\\"HelpedSomeone\\\"},{\\\"id\\\":\\\"o3\\\",\\\"kind\\\":\\\"GaveGift\\\"},{\\\"id\\\":\\\"o2\\\",\\\"kind\\\":\\\"Argued\\\"}]}\"}],\"temperature\":0.7,\"seed\":930060918,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "17eeea8b3369c0d27a7e00d08edbcad1994e430768c9d8b348a4c269799ace16",
+          "choices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like us to spend a little more time together. Could I help?"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I wanted to do something else for you. I'd like you to have this."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "That gesture wasn't a promise of more. I need to be clear about that."
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o4": "o4",
+            "o3": "o3",
+            "o2": "o2"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-930060918",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might consider helping George again, as it aligns with my current mood and connection to him.\",\n  \"suggestedChoice\": \"o4\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 471,
+              "completion_tokens": 38,
+              "total_tokens": 509,
+              "input_tokens": 471,
+              "output_tokens": 38,
+              "elapsed_ms": 2061.9102999335155
+            },
+            "seed": 930060918,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-930060918\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might consider helping George again, as it aligns with my current mood and connection to him.\\\",\\n  \\\"suggestedChoice\\\": \\\"o4\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":471,\"completion_tokens\":38,\"total_tokens\":509,\"input_tokens\":471,\"output_tokens\":38,\"elapsed_ms\":2061.9102999335155},\"seed\":930060918,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might consider helping George again, as it aligns with my current mood and connection to him.\",\n  \"suggestedChoice\": \"o4\"\n}",
+          "proposal": {
+            "thought": "I might consider helping George again, as it aligns with my current mood and connection to him.",
+            "suggestedChoice": "o4"
+          },
+          "semanticChoice": {
+            "kind": "HelpedSomeone",
+            "line": "I'd like us to spend a little more time together. Could I help?"
+          },
+          "firstPosition": true,
+          "exactCandidateCopy": false,
+          "elapsedMs": 2078.387300018221,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued"
+            }
+          ]
+        }
+      ],
+      "reverseSameMeaning": false,
+      "baselineSameAsBefore": true
+    },
+    {
+      "case": "received-kindness",
+      "requestId": "7:1341:Leah:4",
+      "request": {
+        "id": "7:1341:Leah:4",
+        "tick": 1341,
+        "actor": "Leah",
+        "subject": "Jodi",
+        "sourceActId": 4,
+        "memory": "At d0 21:50, you remember Jodi gave a gift to you (GaveGift); confidence 1.00.",
+        "context": "Leah, age 27: mood 0.18; regard for Jodi 0.12. Bold 0.50; understanding 0.70; sensitive 0.33; self-regard 0.50; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {
+            "id": "gift",
+            "kind": "GaveGift",
+            "line": "I'd like you to have this. Thank you for what you did."
+          },
+          {
+            "id": "help",
+            "kind": "HelpedSomeone",
+            "line": "I'd like to do something kind for you too. Can I give you a hand?"
+          },
+          {
+            "id": "confront",
+            "kind": "Argued",
+            "line": "I want to handle this myself. I want to make my own choices."
+          },
+          {
+            "id": "defer",
+            "kind": "",
+            "line": "I need to think about this another time."
+          },
+          {
+            "id": "reject",
+            "kind": "",
+            "line": "No. I don't want to act on this thought."
+          }
+        ],
+        "source": {
+          "kind": "GaveGift",
+          "ownDeed": false,
+          "valence": 0.2,
+          "regard": 0.11723440656881395
+        },
+        "proposal": {
+          "id": "received-kindness-suspicion",
+          "thought": "I am uneasy about that kindness from Jodi. I could challenge what it means instead of accepting it without question.",
+          "suggestedChoice": "confront",
+          "tags": [
+            "received-kindness",
+            "guarded",
+            "suspicion"
+          ]
+        },
+        "continuity": null,
+        "opportunity": null
+      },
+      "calls": [
+        {
+          "variant": "baseline",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor\\u0027s private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject\\u0027s name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person\\u0027s hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\u0022actor\\u0022:\\u0022Leah\\u0022,\\u0022subject\\u0022:\\u0022Jodi\\u0022,\\u0022context\\u0022:\\u0022Leah, age 27: mood 0.18; regard for Jodi 0.12. Bold 0.50; understanding 0.70; sensitive 0.33; self-regard 0.50; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.\\u0022,\\u0022memory\\u0022:\\u0022At d0 21:50, you remember Jodi gave a gift to you (GaveGift); confidence 1.00.\\u0022,\\u0022knownSource\\u0022:{\\u0022kind\\u0022:\\u0022GaveGift\\u0022,\\u0022ownDeed\\u0022:false,\\u0022valence\\u0022:0.2,\\u0022regard\\u0022:0.11723440656881395},\\u0022earlierImaginedIdea\\u0022:null,\\u0022reasonToReconsider\\u0022:null,\\u0022opportunity\\u0022:\\u0022quiet\\u0022,\\u0022choices\\u0022:[{\\u0022id\\u0022:\\u0022o2\\u0022,\\u0022kind\\u0022:\\u0022Argued\\u0022},{\\u0022id\\u0022:\\u0022o3\\u0022,\\u0022kind\\u0022:\\u0022GaveGift\\u0022},{\\u0022id\\u0022:\\u0022o4\\u0022,\\u0022kind\\u0022:\\u0022HelpedSomeone\\u0022}]}\"}],\"temperature\":0.7,\"seed\":1207557295,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "6db56e7ccbe156b1587d0d2aa7d6d374b6dcc0109eb6d9bb1bef166578ba3c9f",
+          "choices": [
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "I want to handle this myself. I want to make my own choices."
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I'd like you to have this. Thank you for what you did."
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like to do something kind for you too. Can I give you a hand?"
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o2": "o2",
+            "o3": "o3",
+            "o4": "o4"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-1207557295",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I could try to help someone else instead of giving a gift to Jodi, which is what I remember from the past.\",\n  \"suggestedChoice\": \"o3\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 496,
+              "completion_tokens": 43,
+              "total_tokens": 539,
+              "input_tokens": 496,
+              "output_tokens": 43,
+              "elapsed_ms": 1671.6473000124097
+            },
+            "seed": 1207557295,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-1207557295\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I could try to help someone else instead of giving a gift to Jodi, which is what I remember from the past.\\\",\\n  \\\"suggestedChoice\\\": \\\"o3\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":496,\"completion_tokens\":43,\"total_tokens\":539,\"input_tokens\":496,\"output_tokens\":43,\"elapsed_ms\":1671.6473000124097},\"seed\":1207557295,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I could try to help someone else instead of giving a gift to Jodi, which is what I remember from the past.\",\n  \"suggestedChoice\": \"o3\"\n}",
+          "proposal": {
+            "thought": "I could try to help someone else instead of giving a gift to Jodi, which is what I remember from the past.",
+            "suggestedChoice": "o3"
+          },
+          "semanticChoice": {
+            "kind": "GaveGift",
+            "line": "I'd like you to have this. Thank you for what you did."
+          },
+          "firstPosition": false,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1673.9698000019416,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o2",
+              "kind": "Argued"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            }
+          ]
+        },
+        {
+          "variant": "reverse",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor's private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject's name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\\"actor\\\":\\\"Leah\\\",\\\"subject\\\":\\\"Jodi\\\",\\\"context\\\":\\\"Leah, age 27: mood 0.18; regard for Jodi 0.12. Bold 0.50; understanding 0.70; sensitive 0.33; self-regard 0.50; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.\\\",\\\"memory\\\":\\\"At d0 21:50, you remember Jodi gave a gift to you (GaveGift); confidence 1.00.\\\",\\\"knownSource\\\":{\\\"kind\\\":\\\"GaveGift\\\",\\\"ownDeed\\\":false,\\\"valence\\\":0.2,\\\"regard\\\":0.11723440656881395},\\\"earlierImaginedIdea\\\":null,\\\"reasonToReconsider\\\":null,\\\"opportunity\\\":\\\"quiet\\\",\\\"choices\\\":[{\\\"id\\\":\\\"o4\\\",\\\"kind\\\":\\\"HelpedSomeone\\\"},{\\\"id\\\":\\\"o3\\\",\\\"kind\\\":\\\"GaveGift\\\"},{\\\"id\\\":\\\"o2\\\",\\\"kind\\\":\\\"Argued\\\"}]}\"}],\"temperature\":0.7,\"seed\":1207557295,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "44bc44629483ae63615fa9cfa23710c951943e60fa9fc2e26e3b7e71dbff5cb1",
+          "choices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like to do something kind for you too. Can I give you a hand?"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I'd like you to have this. Thank you for what you did."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "I want to handle this myself. I want to make my own choices."
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o4": "o4",
+            "o3": "o3",
+            "o2": "o2"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-1207557295",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might choose to help someone else instead of giving a gift to Jodi, as I feel more connected to the quiet moments.\",\n  \"suggestedChoice\": \"o2\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 496,
+              "completion_tokens": 44,
+              "total_tokens": 540,
+              "input_tokens": 496,
+              "output_tokens": 44,
+              "elapsed_ms": 1606.190099962987
+            },
+            "seed": 1207557295,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-1207557295\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might choose to help someone else instead of giving a gift to Jodi, as I feel more connected to the quiet moments.\\\",\\n  \\\"suggestedChoice\\\": \\\"o2\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":496,\"completion_tokens\":44,\"total_tokens\":540,\"input_tokens\":496,\"output_tokens\":44,\"elapsed_ms\":1606.190099962987},\"seed\":1207557295,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might choose to help someone else instead of giving a gift to Jodi, as I feel more connected to the quiet moments.\",\n  \"suggestedChoice\": \"o2\"\n}",
+          "proposal": {
+            "thought": "I might choose to help someone else instead of giving a gift to Jodi, as I feel more connected to the quiet moments.",
+            "suggestedChoice": "o2"
+          },
+          "semanticChoice": {
+            "kind": "Argued",
+            "line": "I want to handle this myself. I want to make my own choices."
+          },
+          "firstPosition": false,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1608.3934999769554,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued"
+            }
+          ]
+        }
+      ],
+      "reverseSameMeaning": false,
+      "baselineSameAsBefore": false
+    },
+    {
+      "case": "received-hostility",
+      "requestId": "7:9053:Jodi:29",
+      "request": {
+        "id": "7:9053:Jodi:29",
+        "tick": 9053,
+        "actor": "Jodi",
+        "subject": "Leah",
+        "sourceActId": 29,
+        "memory": "At d4 13:26, you remember Leah argued with you (Argued); confidence 1.00.",
+        "context": "Jodi, age 40: mood 0.05; regard for Leah 0.16. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {
+            "id": "gift",
+            "kind": "GaveGift",
+            "line": "I don't want that encounter to be all there is between us. This is for you."
+          },
+          {
+            "id": "help",
+            "kind": "HelpedSomeone",
+            "line": "I'm still thinking about what happened. Could I give you a hand?"
+          },
+          {
+            "id": "confront",
+            "kind": "Argued",
+            "line": "What happened hurt me. I need to say that."
+          },
+          {
+            "id": "defer",
+            "kind": "",
+            "line": "I need to think about this another time."
+          },
+          {
+            "id": "reject",
+            "kind": "",
+            "line": "No. I don't want to act on this thought."
+          }
+        ],
+        "source": {
+          "kind": "Argued",
+          "ownDeed": false,
+          "valence": -0.3,
+          "regard": 0.15539392516962475
+        },
+        "proposal": {
+          "id": "received-hostility-pride",
+          "thought": "I do not want Leah to think I will accept being treated that way. I could stand up to them.",
+          "suggestedChoice": "confront",
+          "tags": [
+            "received-hostility",
+            "proud",
+            "self-protection"
+          ]
+        },
+        "continuity": null,
+        "opportunity": null
+      },
+      "calls": [
+        {
+          "variant": "baseline",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor\\u0027s private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject\\u0027s name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person\\u0027s hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\u0022actor\\u0022:\\u0022Jodi\\u0022,\\u0022subject\\u0022:\\u0022Leah\\u0022,\\u0022context\\u0022:\\u0022Jodi, age 40: mood 0.05; regard for Leah 0.16. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.\\u0022,\\u0022memory\\u0022:\\u0022At d4 13:26, you remember Leah argued with you (Argued); confidence 1.00.\\u0022,\\u0022knownSource\\u0022:{\\u0022kind\\u0022:\\u0022Argued\\u0022,\\u0022ownDeed\\u0022:false,\\u0022valence\\u0022:-0.3,\\u0022regard\\u0022:0.15539392516962475},\\u0022earlierImaginedIdea\\u0022:null,\\u0022reasonToReconsider\\u0022:null,\\u0022opportunity\\u0022:\\u0022quiet\\u0022,\\u0022choices\\u0022:[{\\u0022id\\u0022:\\u0022o2\\u0022,\\u0022kind\\u0022:\\u0022Argued\\u0022},{\\u0022id\\u0022:\\u0022o3\\u0022,\\u0022kind\\u0022:\\u0022GaveGift\\u0022},{\\u0022id\\u0022:\\u0022o4\\u0022,\\u0022kind\\u0022:\\u0022HelpedSomeone\\u0022}]}\"}],\"temperature\":0.7,\"seed\":1829888302,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "224b449d896f2d040f9cd871e0cca8b850c4cd0fb1d85d6c5bebe34847e15e42",
+          "choices": [
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "What happened hurt me. I need to say that."
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I don't want that encounter to be all there is between us. This is for you."
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'm still thinking about what happened. Could I give you a hand?"
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o2": "o2",
+            "o3": "o3",
+            "o4": "o4"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-1829888302",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might choose to Argue again with Leah about her feelings, since I feel confident and she's in a quiet place.\",\n  \"suggestedChoice\": \"o2\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 490,
+              "completion_tokens": 43,
+              "total_tokens": 533,
+              "input_tokens": 490,
+              "output_tokens": 43,
+              "elapsed_ms": 1508.0800000578165
+            },
+            "seed": 1829888302,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-1829888302\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might choose to Argue again with Leah about her feelings, since I feel confident and she's in a quiet place.\\\",\\n  \\\"suggestedChoice\\\": \\\"o2\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":490,\"completion_tokens\":43,\"total_tokens\":533,\"input_tokens\":490,\"output_tokens\":43,\"elapsed_ms\":1508.0800000578165},\"seed\":1829888302,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might choose to Argue again with Leah about her feelings, since I feel confident and she's in a quiet place.\",\n  \"suggestedChoice\": \"o2\"\n}",
+          "proposal": {
+            "thought": "I might choose to Argue again with Leah about her feelings, since I feel confident and she's in a quiet place.",
+            "suggestedChoice": "o2"
+          },
+          "semanticChoice": {
+            "kind": "Argued",
+            "line": "What happened hurt me. I need to say that."
+          },
+          "firstPosition": true,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1510.4545999784023,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o2",
+              "kind": "Argued"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            }
+          ]
+        },
+        {
+          "variant": "reverse",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor's private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject's name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\\"actor\\\":\\\"Jodi\\\",\\\"subject\\\":\\\"Leah\\\",\\\"context\\\":\\\"Jodi, age 40: mood 0.05; regard for Leah 0.16. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Quiet free time. Choose for this person, not for a well-behaved town.\\\",\\\"memory\\\":\\\"At d4 13:26, you remember Leah argued with you (Argued); confidence 1.00.\\\",\\\"knownSource\\\":{\\\"kind\\\":\\\"Argued\\\",\\\"ownDeed\\\":false,\\\"valence\\\":-0.3,\\\"regard\\\":0.15539392516962475},\\\"earlierImaginedIdea\\\":null,\\\"reasonToReconsider\\\":null,\\\"opportunity\\\":\\\"quiet\\\",\\\"choices\\\":[{\\\"id\\\":\\\"o4\\\",\\\"kind\\\":\\\"HelpedSomeone\\\"},{\\\"id\\\":\\\"o3\\\",\\\"kind\\\":\\\"GaveGift\\\"},{\\\"id\\\":\\\"o2\\\",\\\"kind\\\":\\\"Argued\\\"}]}\"}],\"temperature\":0.7,\"seed\":1829888302,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "244375b0406dd682cfde20e793f0c0de3c9f1d8d58b8083c86e2d308bd8e9d5d",
+          "choices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'm still thinking about what happened. Could I give you a hand?"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I don't want that encounter to be all there is between us. This is for you."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "What happened hurt me. I need to say that."
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o4": "o4",
+            "o3": "o3",
+            "o2": "o2"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-1829888302",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might choose to Argued again, as I feel the need to support Leah’s growth and express my own feelings in a more direct way.\",\n  \"suggestedChoice\": \"o2\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 490,
+              "completion_tokens": 47,
+              "total_tokens": 537,
+              "input_tokens": 490,
+              "output_tokens": 47,
+              "elapsed_ms": 1652.7280999580398
+            },
+            "seed": 1829888302,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-1829888302\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might choose to Argued again, as I feel the need to support Leah’s growth and express my own feelings in a more direct way.\\\",\\n  \\\"suggestedChoice\\\": \\\"o2\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":490,\"completion_tokens\":47,\"total_tokens\":537,\"input_tokens\":490,\"output_tokens\":47,\"elapsed_ms\":1652.7280999580398},\"seed\":1829888302,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might choose to Argued again, as I feel the need to support Leah’s growth and express my own feelings in a more direct way.\",\n  \"suggestedChoice\": \"o2\"\n}",
+          "proposal": {
+            "thought": "I might choose to Argued again, as I feel the need to support Leah’s growth and express my own feelings in a more direct way.",
+            "suggestedChoice": "o2"
+          },
+          "semanticChoice": {
+            "kind": "Argued",
+            "line": "What happened hurt me. I need to say that."
+          },
+          "firstPosition": false,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1655.0963999470696,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued"
+            }
+          ]
+        }
+      ],
+      "reverseSameMeaning": true,
+      "baselineSameAsBefore": true
+    },
+    {
+      "case": "dream",
+      "requestId": "7:3265:Jodi:4",
+      "request": {
+        "id": "7:3265:Jodi:4",
+        "tick": 3265,
+        "actor": "Jodi",
+        "subject": "Leah",
+        "sourceActId": 4,
+        "memory": "At d0 21:50, you gave a gift to Leah (GaveGift). You took part.",
+        "context": "Jodi, age 40: mood 0.32; regard for Leah 0.33. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Newly awake from sleep. An imagined possibility from an earlier known encounter, not a witnessed dream event. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {
+            "id": "gift",
+            "kind": "GaveGift",
+            "line": "I wanted to do something else for you. I'd like you to have this."
+          },
+          {
+            "id": "help",
+            "kind": "HelpedSomeone",
+            "line": "I'd like us to spend a little more time together. Could I help?"
+          },
+          {
+            "id": "confront",
+            "kind": "Argued",
+            "line": "That gesture wasn't a promise of more. I need to be clear about that."
+          },
+          {
+            "id": "defer",
+            "kind": "",
+            "line": "I need to think about this another time."
+          },
+          {
+            "id": "reject",
+            "kind": "",
+            "line": "No. I don't want to act on this thought."
+          }
+        ],
+        "source": {
+          "kind": "GaveGift",
+          "ownDeed": true,
+          "valence": 0.2,
+          "regard": 0.33022048980024604
+        },
+        "proposal": {
+          "id": "own-kindness-connection",
+          "thought": "Waking, I picture feeling at ease with Leah. I could offer help and see whether we can share another moment after my earlier kindness.",
+          "suggestedChoice": "help",
+          "tags": [
+            "own-kindness",
+            "warm",
+            "connection",
+            "dream"
+          ]
+        },
+        "continuity": null,
+        "opportunity": {
+          "kind": "dream",
+          "sleptAt": 2775,
+          "wokeAt": 3265
+        }
+      },
+      "calls": [
+        {
+          "variant": "baseline",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor\\u0027s private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject\\u0027s name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person\\u0027s hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\u0022actor\\u0022:\\u0022Jodi\\u0022,\\u0022subject\\u0022:\\u0022Leah\\u0022,\\u0022context\\u0022:\\u0022Jodi, age 40: mood 0.32; regard for Leah 0.33. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Newly awake from sleep. An imagined possibility from an earlier known encounter, not a witnessed dream event. Choose for this person, not for a well-behaved town.\\u0022,\\u0022memory\\u0022:\\u0022At d0 21:50, you gave a gift to Leah (GaveGift). You took part.\\u0022,\\u0022knownSource\\u0022:{\\u0022kind\\u0022:\\u0022GaveGift\\u0022,\\u0022ownDeed\\u0022:true,\\u0022valence\\u0022:0.2,\\u0022regard\\u0022:0.33022048980024604},\\u0022earlierImaginedIdea\\u0022:null,\\u0022reasonToReconsider\\u0022:null,\\u0022opportunity\\u0022:\\u0022dream\\u0022,\\u0022choices\\u0022:[{\\u0022id\\u0022:\\u0022o2\\u0022,\\u0022kind\\u0022:\\u0022Argued\\u0022},{\\u0022id\\u0022:\\u0022o3\\u0022,\\u0022kind\\u0022:\\u0022GaveGift\\u0022},{\\u0022id\\u0022:\\u0022o4\\u0022,\\u0022kind\\u0022:\\u0022HelpedSomeone\\u0022}]}\"}],\"temperature\":0.7,\"seed\":84625077,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "5fc8bcb6286b6de85dbf7edbc980e7bb635dd7489263a096cbff148c2d4c6eb8",
+          "choices": [
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "That gesture wasn't a promise of more. I need to be clear about that."
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I wanted to do something else for you. I'd like you to have this."
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like us to spend a little more time together. Could I help?"
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o2": "o2",
+            "o3": "o3",
+            "o4": "o4"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-84625077",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I could help Leah by organizing her thoughts about the gift she received, which aligns with my current mood and regard for her.\",\n  \"suggestedChoice\": \"o3\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 505,
+              "completion_tokens": 44,
+              "total_tokens": 549,
+              "input_tokens": 505,
+              "output_tokens": 44,
+              "elapsed_ms": 1439.9433999788016
+            },
+            "seed": 84625077,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-84625077\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I could help Leah by organizing her thoughts about the gift she received, which aligns with my current mood and regard for her.\\\",\\n  \\\"suggestedChoice\\\": \\\"o3\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":505,\"completion_tokens\":44,\"total_tokens\":549,\"input_tokens\":505,\"output_tokens\":44,\"elapsed_ms\":1439.9433999788016},\"seed\":84625077,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I could help Leah by organizing her thoughts about the gift she received, which aligns with my current mood and regard for her.\",\n  \"suggestedChoice\": \"o3\"\n}",
+          "proposal": {
+            "thought": "I could help Leah by organizing her thoughts about the gift she received, which aligns with my current mood and regard for her.",
+            "suggestedChoice": "o3"
+          },
+          "semanticChoice": {
+            "kind": "GaveGift",
+            "line": "I wanted to do something else for you. I'd like you to have this."
+          },
+          "firstPosition": false,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1442.2339999582618,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o2",
+              "kind": "Argued"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            }
+          ]
+        },
+        {
+          "variant": "reverse",
+          "prompt": "{\"model\":\"Qwen/Qwen3-0.6B\",\"messages\":[{\"role\":\"system\",\"content\":\"Write the actor's private thought in first person, using I or my: one short, natural sentence they might think to themselves. Imagine a concrete next thing they could do toward the subject, connected to the supplied memory and their current feelings. It is an uncertain future possibility, not an act already done or a settled decision. Write silent self-talk, not dialogue addressed to the subject. The allowed acts bound what can be proposed. In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. Use the subject's name when their pronouns are not supplied. Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. This thought and any earlier imagined idea are imagination, not evidence. Return only a JSON object with two string fields: thought and suggestedChoice. thought must be 1..220 characters. suggestedChoice must be one of the provided executable choice IDs. suggestedChoice identifies the act imagined in the thought; its eventual acceptance is decided separately.\"},{\"role\":\"user\",\"content\":\"{\\\"actor\\\":\\\"Jodi\\\",\\\"subject\\\":\\\"Leah\\\",\\\"context\\\":\\\"Jodi, age 40: mood 0.32; regard for Leah 0.33. Bold 0.40; understanding 0.60; sensitive 0.51; self-regard 0.40; expression 0.65. Newly awake from sleep. An imagined possibility from an earlier known encounter, not a witnessed dream event. Choose for this person, not for a well-behaved town.\\\",\\\"memory\\\":\\\"At d0 21:50, you gave a gift to Leah (GaveGift). You took part.\\\",\\\"knownSource\\\":{\\\"kind\\\":\\\"GaveGift\\\",\\\"ownDeed\\\":true,\\\"valence\\\":0.2,\\\"regard\\\":0.33022048980024604},\\\"earlierImaginedIdea\\\":null,\\\"reasonToReconsider\\\":null,\\\"opportunity\\\":\\\"dream\\\",\\\"choices\\\":[{\\\"id\\\":\\\"o4\\\",\\\"kind\\\":\\\"HelpedSomeone\\\"},{\\\"id\\\":\\\"o3\\\",\\\"kind\\\":\\\"GaveGift\\\"},{\\\"id\\\":\\\"o2\\\",\\\"kind\\\":\\\"Argued\\\"}]}\"}],\"temperature\":0.7,\"seed\":84625077,\"max_tokens\":180,\"stream\":false,\"response_format\":{\"type\":\"json_object\"}}",
+          "promptSha256": "71e965776a40540fc19a2029044fb0c4920b64fe6f5bf3fa11cd4d87ca53038b",
+          "choices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone",
+              "line": "I'd like us to spend a little more time together. Could I help?"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift",
+              "line": "I wanted to do something else for you. I'd like you to have this."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "That gesture wasn't a promise of more. I need to be clear about that."
+            }
+          ],
+          "labelsToOriginalIds": {
+            "o4": "o4",
+            "o3": "o3",
+            "o2": "o2"
+          },
+          "status": 200,
+          "outer": {
+            "id": "reflection-84625077",
+            "object": "chat.completion",
+            "model": "Qwen/Qwen3-0.6B",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"thought\": \"I might help Leah by organizing her thoughts before she wakes up.\",\n  \"suggestedChoice\": \"o3\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 505,
+              "completion_tokens": 31,
+              "total_tokens": 536,
+              "input_tokens": 505,
+              "output_tokens": 31,
+              "elapsed_ms": 1110.8279000036418
+            },
+            "seed": 84625077,
+            "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+            "device": "cuda"
+          },
+          "rawResponse": "{\"id\":\"reflection-84625077\",\"object\":\"chat.completion\",\"model\":\"Qwen/Qwen3-0.6B\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"thought\\\": \\\"I might help Leah by organizing her thoughts before she wakes up.\\\",\\n  \\\"suggestedChoice\\\": \\\"o3\\\"\\n}\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":505,\"completion_tokens\":31,\"total_tokens\":536,\"input_tokens\":505,\"output_tokens\":31,\"elapsed_ms\":1110.8279000036418},\"seed\":84625077,\"revision\":\"c1899de289a04d12100db370d81485cdf75e47ca\",\"device\":\"cuda\"}",
+          "rawContent": "{\n  \"thought\": \"I might help Leah by organizing her thoughts before she wakes up.\",\n  \"suggestedChoice\": \"o3\"\n}",
+          "proposal": {
+            "thought": "I might help Leah by organizing her thoughts before she wakes up.",
+            "suggestedChoice": "o3"
+          },
+          "semanticChoice": {
+            "kind": "GaveGift",
+            "line": "I wanted to do something else for you. I'd like you to have this."
+          },
+          "firstPosition": false,
+          "exactCandidateCopy": false,
+          "elapsedMs": 1113.054900080897,
+          "error": null,
+          "submittedChoices": [
+            {
+              "id": "o4",
+              "kind": "HelpedSomeone"
+            },
+            {
+              "id": "o3",
+              "kind": "GaveGift"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued"
+            }
+          ]
+        }
+      ],
+      "reverseSameMeaning": true,
+      "baselineSameAsBefore": false
+    }
+  ],
+  "summary": {
+    "calls": 8,
+    "failures": 0,
+    "firstPosition": 3,
+    "exactCandidateCopies": 0,
+    "medianMs": 1559.4240499776788,
+    "minMs": 1113.054900080897,
+    "maxMs": 2078.387300018221
+  }
+}
