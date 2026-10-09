@@ -15,7 +15,10 @@ public sealed record PromptAudit(int? TextCharacters, bool? WithinBudget, bool? 
 
 public sealed record TrialObservation(string Role, ReflectionRequest Request, ReflectionAnswer Answer,
     IReadOnlyDictionary<string, double> Probabilities, string TopChoice, string TopLine,
-    double ElapsedMilliseconds, PromptAudit Prompt, ResponseAudit Response);
+    double ElapsedMilliseconds, PromptAudit Prompt, ResponseAudit Response,
+    IReadOnlyList<TrialPassAudit>? Passes = null);
+
+public sealed record TrialPassAudit(int Pass, PromptAudit Prompt, ResponseAudit Response, string? Error = null);
 
 public sealed record ResponseAudit(string? RoutedModel, int? InputTokens, int? StateTokensDropped,
     bool? Truncated, IReadOnlyList<string> TruncatedQuestions, string? Error)
@@ -32,15 +35,22 @@ public sealed record TrialComparison(string Id, string Change, TrialObservation 
     double SemanticTotalVariation, double RepeatTotalVariation,
     IReadOnlyList<ChoiceDelta> ByIdChanges, IReadOnlyList<ChoiceDelta> SemanticChanges);
 
-public sealed record TrialResult(bool RequestedLaya, string Model, IReadOnlyList<TrialComparison> Comparisons)
+public sealed record TrialResult(bool RequestedLaya, string Model, IReadOnlyList<TrialComparison> Comparisons,
+    string EvaluationMode = "raw")
 {
     [JsonIgnore]
     public IEnumerable<TrialObservation> Observations => Comparisons.SelectMany(c => new[] { c.Baseline, c.Variant, c.Repeat });
     public int FallbackCount => Observations.Count(o => o.Answer.Backend.Contains("fallback", StringComparison.OrdinalIgnoreCase));
     public int NonLayaCount => Observations.Count(o => o.Answer.Backend != "authored+laya" || o.Answer.LayaPrompt is null);
-    public int IncompletePacketCount => Observations.Count(o => o.Answer.Backend == "authored+laya" && !o.Prompt.Complete);
-    public int TruncatedResponseCount => Observations.Count(o => o.Response.HasTruncation);
-    public int UnverifiedResponseCount => Observations.Count(o => o.Answer.Backend == "authored+laya" && !o.Response.Verified);
+    [JsonIgnore]
+    public IEnumerable<TrialPassAudit> EvaluationPasses => Observations.SelectMany(o => o.Passes is { Count: > 0 }
+        ? o.Passes : new[] { new TrialPassAudit(1, o.Prompt, o.Response) });
+    public int EvaluationCount => Observations.Sum(o => o.Answer.Evaluations?.Count ?? (o.Answer.LayaPrompt is null ? 0 : 1));
+    public int IncompletePacketCount => Observations.Count(o => o.Answer.Backend == "authored+laya"
+        && (o.Passes is { Count: > 0 } ? o.Passes.Any(p => !p.Prompt.Complete || p.Error is not null) : !o.Prompt.Complete));
+    public int TruncatedResponseCount => EvaluationPasses.Count(p => p.Response.HasTruncation);
+    public int UnverifiedResponseCount => Observations.Count(o => o.Answer.Backend == "authored+laya"
+        && (o.Passes is { Count: > 0 } ? o.Passes.Any(p => !p.Response.Verified) : !o.Response.Verified));
     public int ExitCode => RequestedLaya && NonLayaCount > 0 ? 2
         : RequestedLaya && (IncompletePacketCount > 0 || TruncatedResponseCount > 0 || UnverifiedResponseCount > 0) ? 3 : 0;
 }
@@ -48,7 +58,8 @@ public sealed record TrialResult(bool RequestedLaya, string Model, IReadOnlyList
 public static class TrialRunner
 {
     public static async Task<TrialResult> RunAsync(IReflectionMind mind, bool requestedLaya, string model,
-        IReadOnlyList<TrialPair>? pairs = null, CancellationToken cancellationToken = default)
+        IReadOnlyList<TrialPair>? pairs = null, CancellationToken cancellationToken = default,
+        string evaluationMode = "raw")
     {
         var results = new List<TrialComparison>();
         foreach (TrialPair pair in pairs ?? TrialScenes.Create())
@@ -66,7 +77,7 @@ public static class TrialRunner
                 TotalVariation(baseline.Probabilities, variant.Probabilities, pair.SemanticMap),
                 TotalVariation(baseline.Probabilities, repeat.Probabilities, identity), byId, semantic));
         }
-        return new TrialResult(requestedLaya, model, results);
+        return new TrialResult(requestedLaya, model, results, evaluationMode);
 
         async Task<TrialObservation> Observe(string role, ReflectionRequest request)
         {
@@ -77,8 +88,12 @@ public static class TrialRunner
             cancellationToken.ThrowIfCancellationRequested();
             var probabilities = Normalize(answer.Weights, request.Choices.Select(c => c.Id));
             string top = probabilities.OrderByDescending(p => p.Value).ThenBy(p => p.Key, StringComparer.Ordinal).First().Key;
+            TrialPassAudit[]? passes = answer.Evaluations?.Select(e => new TrialPassAudit(e.Pass,
+                AuditPacket(request, answer, e.Prompt, e.LabelsToChoiceIds), AuditResponseText(e.Response), e.Error)).ToArray();
             return new TrialObservation(role, request, answer, probabilities, top,
-                request.Choices.Single(c => c.Id == top).Line, timer.Elapsed.TotalMilliseconds, Audit(request, answer), AuditResponse(answer));
+                request.Choices.Single(c => c.Id == top).Line, timer.Elapsed.TotalMilliseconds,
+                passes?.FirstOrDefault()?.Prompt ?? Audit(request, answer),
+                passes?.FirstOrDefault()?.Response ?? AuditResponse(answer), passes);
         }
     }
 
@@ -112,19 +127,32 @@ public static class TrialRunner
             .Sum(id => Math.Abs(baseline.GetValueOrDefault(id) - variant.GetValueOrDefault(id)));
 
     public static PromptAudit Audit(ReflectionRequest request, ReflectionAnswer answer)
+        => answer.Evaluations is { Count: > 0 } passes
+            ? AuditPacket(request, answer, passes[0].Prompt, passes[0].LabelsToChoiceIds)
+            : AuditPacket(request, answer, answer.LayaPrompt, null);
+
+    private static PromptAudit AuditPacket(ReflectionRequest request, ReflectionAnswer answer, string? prompt,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? labels)
     {
-        if (answer.LayaPrompt is null) return new(null, null, null, null, null, null, null, null);
+        if (prompt is null) return new(null, null, null, null, null, null, null, null);
         try
         {
-            using JsonDocument document = JsonDocument.Parse(answer.LayaPrompt);
+            using JsonDocument document = JsonDocument.Parse(prompt);
             JsonElement root = document.RootElement;
             string state = root.GetProperty("state").GetString()!;
             JsonElement question = root.GetProperty("questions").GetProperty("q");
             JsonElement criteria = question.GetProperty("criteria");
             int characters = state.Length + question.GetProperty("instructions").GetString()!.Length
                 + criteria.EnumerateObject().Sum(p => p.Name.Length + p.Value.GetString()!.Length);
-            bool lines = criteria.EnumerateObject().Count() == request.Choices.Count && request.Choices.All(c =>
-                criteria.TryGetProperty(c.Id, out JsonElement text) && text.GetString() == $"{(c.Kind.Length == 0 ? "no act" : c.Kind)}: {c.Line}");
+            labels ??= request.Choices.ToDictionary(c => c.Id,
+                c => (IReadOnlyList<string>)new[] { c.Id }, StringComparer.Ordinal);
+            string[] mappedIds = labels.Values.SelectMany(ids => ids).ToArray();
+            bool lines = labels.Count == criteria.EnumerateObject().Count()
+                && mappedIds.Length == request.Choices.Count && mappedIds.Distinct(StringComparer.Ordinal).Count() == request.Choices.Count
+                && request.Choices.All(c => mappedIds.Contains(c.Id, StringComparer.Ordinal))
+                && labels.All(label => label.Value.Count > 0 && criteria.TryGetProperty(label.Key, out JsonElement text)
+                    && label.Value.All(id => request.Choices.Any(c => c.Id == id
+                        && text.GetString() == $"{(c.Kind.Length == 0 ? "no act" : c.Kind)}: {c.Line}")));
             const string contextMarker = "\nCharacter context: ";
             const string memoryMarker = "\nKnown memory: ";
             int contextStart = state.IndexOf(contextMarker, StringComparison.Ordinal);
@@ -145,11 +173,14 @@ public static class TrialRunner
     }
 
     public static ResponseAudit AuditResponse(ReflectionAnswer answer)
+        => AuditResponseText(answer.LayaResponse);
+
+    private static ResponseAudit AuditResponseText(string? response)
     {
-        if (answer.LayaResponse is null) return new(null, null, null, null, Array.Empty<string>(), null);
+        if (response is null) return new(null, null, null, null, Array.Empty<string>(), null);
         try
         {
-            using JsonDocument document = JsonDocument.Parse(answer.LayaResponse);
+            using JsonDocument document = JsonDocument.Parse(response);
             JsonElement root = document.RootElement;
             JsonElement usage = root.GetProperty("usage");
             string? model = root.TryGetProperty("routing", out JsonElement routing)

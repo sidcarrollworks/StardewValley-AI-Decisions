@@ -408,20 +408,23 @@ public sealed partial class Simulation
         System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         try
         {
-            foreach (int m in Minutes(days))
+            foreach (int m in Minutes(days, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 each?.Invoke(m, this);
+                cancellationToken.ThrowIfCancellationRequested();
                 await AnswerReflections(mind, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             return Result(days);
         }
         finally { System.Globalization.CultureInfo.CurrentCulture = culture; }
     }
 
-    private IEnumerable<int> Minutes(int days)
+    private IEnumerable<int> Minutes(int days, CancellationToken cancellationToken = default)
     {
         if (days < 0) throw new ArgumentOutOfRangeException(nameof(days));
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (Person p in _people)
         {
             bool home = _places.ContainsKey(p.V.Home);
@@ -439,6 +442,9 @@ public sealed partial class Simulation
                 _powerByDay[n] = new double[days];
         for (int m = 0; m < days * Clock.MinutesPerDay; m++)
         {
+            // An iterator advances the world before yielding to RunAsync. Check here,
+            // before any minute's state changes, rather than only after MoveNext returns.
+            cancellationToken.ThrowIfCancellationRequested();
             _now = m;
             if (m == _forkAt)
                 _seed = _forkSeed; // a fork (V7): every die from here on is drawn anew

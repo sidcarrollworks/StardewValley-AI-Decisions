@@ -146,6 +146,11 @@ public sealed class ReflectionMindTests
         Assert.Equal(bodies[1], answer.LayaPrompt);
         using JsonDocument generation = JsonDocument.Parse(bodies[0]);
         Assert.Equal("test-model", generation.RootElement.GetProperty("model").GetString());
+        string instructions = generation.RootElement.GetProperty("messages")[0].GetProperty("content").GetString()!;
+        Assert.Contains("private thought in first person", instructions);
+        Assert.Contains("uncertain future possibility", instructions);
+        Assert.Contains("silent self-talk, not dialogue", instructions);
+        Assert.Contains("imagination, not evidence", instructions);
         using JsonDocument generationContext = JsonDocument.Parse(generation.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
         var choices = generationContext.RootElement.GetProperty("choices").EnumerateArray().ToArray();
         Assert.Equal(new[] { "help", "argue" }, choices.Select(c => c.GetProperty("id").GetString()));

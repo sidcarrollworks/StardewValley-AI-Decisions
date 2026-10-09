@@ -7,6 +7,13 @@ public sealed record ReflectionOptions
     public int QuietMinutes { get; init; } = 30;
     public double DailyChance { get; init; } = 0.35;
     public int IntentionDays { get; init; } = 3;
+    /// <summary>At most two continuations of one deferred idea, each requiring new known events.
+    /// Zero keeps deferral final; it does not disable independent thoughts about new sources.</summary>
+    public int MaxReconsiderations { get; init; } = 2;
+    public int ReconsiderAfterDays { get; init; } = 1;
+    /// <summary>Optional waking inspiration from a recorded sleep; zero preserves quiet-only runs.
+    /// A missed dream leaves the daytime opportunity available, with one submitted thought per day.</summary>
+    public double DreamChance { get; init; }
 }
 
 /// <summary>An authored line with an executable act; an empty Kind means defer or reject.</summary>
@@ -20,16 +27,33 @@ public sealed record ReflectionSourceFacts(string Kind, bool OwnDeed, double Val
 /// can replace Proposal on a copied request to compare evaluations of the same scene.</summary>
 public sealed record ReflectionProposal(string Id, string Thought, string SuggestedChoice, IReadOnlyList<string> Tags);
 
+/// <summary>A link to an earlier deferred idea, not an assertion that the idea was true.
+/// PriorThought is a bounded excerpt; the full original remains in the record named by PriorId.</summary>
+public sealed record ReflectionContinuity(string RootId, string PriorId, int Revision, int PriorSourceActId,
+    string PriorThought, string Reason);
+
+/// <summary>The person's own sleep interval that prompted an imagined possibility on waking.
+/// No dream is an observed world event; a null opportunity on a request means ordinary quiet time.</summary>
+public sealed record ReflectionOpportunity(string Kind, int SleptAt, int WokeAt);
+
 /// <summary>A copy of one person's known context. Providers must never inspect the simulation.</summary>
 public sealed record ReflectionRequest(string Id, int Tick, string Actor, string Subject, int SourceActId,
     string Memory, string Context, IReadOnlyList<ReflectionChoice> Choices,
-    ReflectionSourceFacts? Source = null, ReflectionProposal? Proposal = null);
+    ReflectionSourceFacts? Source = null, ReflectionProposal? Proposal = null, ReflectionContinuity? Continuity = null,
+    ReflectionOpportunity? Opportunity = null);
+
+/// <summary>One independently inspectable evaluator pass, including its temporary-label mapping
+/// back to the engine's offered choices. Multiple passes do not mean multiple acceptance draws.</summary>
+public sealed record ReflectionEvaluation(int Pass, string Prompt, string? Response,
+    IReadOnlyDictionary<string, IReadOnlyList<string>> LabelsToChoiceIds,
+    IReadOnlyDictionary<string, double>? Weights = null, string? Error = null);
 
 /// <summary>Imagination proposes; the evaluator weights the actual lines. The engine samples once.
 /// Backend and Note identify real calls versus authored/fallback material; they are recorded.</summary>
 public sealed record ReflectionAnswer(string Thought, string SuggestedChoice,
     IReadOnlyDictionary<string, double> Weights, string Backend, string? Note = null,
-    string? LayaPrompt = null, string? GenerationPrompt = null, string? LayaResponse = null);
+    string? LayaPrompt = null, string? GenerationPrompt = null, string? LayaResponse = null,
+    IReadOnlyList<ReflectionEvaluation>? Evaluations = null, string? GenerationResponse = null);
 
 public interface IReflectionMind
 {
@@ -75,6 +99,8 @@ public sealed class RecordedReflectionMind : IReflectionMind
             || record.Request.Subject != request.Subject || record.Request.SourceActId != request.SourceActId
             || record.Request.Memory != request.Memory || record.Request.Context != request.Context
             || record.Request.Source != request.Source || !SameProposal(record.Request.Proposal, request.Proposal)
+            || record.Request.Continuity != request.Continuity
+            || record.Request.Opportunity != request.Opportunity
             || !record.Request.Choices.SequenceEqual(request.Choices))
             throw new InvalidOperationException($"Reflection tape does not match request {request.Id}. Use the same seed, town and options.");
         return Task.FromResult(record.Answer);

@@ -5,7 +5,8 @@ namespace UnderGlass.Sim;
 /// <summary>One editable imagined motive, with explicit applicability rather than inference from
 /// prose. Regard intervals overlap deliberately: people can have contradictory possibilities.</summary>
 public sealed record ReflectionCatalogEntry(string Id, string Perspective, string Tone,
-    double MinRegard, double MaxRegard, string Choice, string Thought, IReadOnlyList<string> Tags);
+    double MinRegard, double MaxRegard, string Choice, string Thought, IReadOnlyList<string> Tags,
+    string? DreamThought = null);
 
 /// <summary>The small authored catalog is embedded from reflection-catalog.json. Editing that
 /// file and rebuilding changes content, not mechanics. It only reads a request's copied facts.</summary>
@@ -40,11 +41,14 @@ public static class ReflectionCatalog
         ReflectionCatalogEntry chosen = candidates[Rng.Range(0, 0, candidates.Length - 1, "reflection-proposal", request.Id)];
         string choice = chosen.Choice == "*"
             ? acts[Rng.Range(0, 0, acts.Length - 1, "reflection-neutral-choice", request.Id)].Id : chosen.Choice;
-        string thought = chosen.Thought.Replace("{actor}", request.Actor, StringComparison.Ordinal)
+        bool dream = request.Opportunity?.Kind == "dream";
+        string template = dream ? chosen.DreamThought! : chosen.Thought;
+        string thought = template.Replace("{actor}", request.Actor, StringComparison.Ordinal)
             .Replace("{subject}", request.Subject, StringComparison.Ordinal)
             .Replace("{memory}", Clip(request.Memory, 110), StringComparison.Ordinal);
         if (thought.Length > 300) throw new ArgumentException("Rendered authored thought exceeds 300 characters.", nameof(request));
-        return new ReflectionProposal(chosen.Id, thought, choice, Array.AsReadOnly(chosen.Tags.ToArray()));
+        return new ReflectionProposal(chosen.Id, thought, choice,
+            Array.AsReadOnly((dream ? chosen.Tags.Append("dream") : chosen.Tags).ToArray()));
     }
 
     /// <summary>All alternatives fit the remembered kind of encounter, even when their motives
@@ -80,12 +84,17 @@ public static class ReflectionCatalog
             throw new InvalidDataException("Reflection catalog needs version 1 and unique thought IDs.");
         foreach (ReflectionCatalogEntry e in p.Thoughts)
         {
-            string remaining = e.Thought?.Replace("{actor}", "").Replace("{subject}", "").Replace("{memory}", "") ?? "";
+            bool ValidTemplate(string? template)
+            {
+                string remaining = template?.Replace("{actor}", "").Replace("{subject}", "").Replace("{memory}", "") ?? "";
+                return !string.IsNullOrWhiteSpace(template) && template.Length <= 220
+                    && !remaining.Contains('{') && !remaining.Contains('}');
+            }
             if (string.IsNullOrWhiteSpace(e.Id) || e.Perspective is not ("own" or "received" or "any")
                 || e.Tone is not ("kindness" or "hostility" or "neutral") || !double.IsFinite(e.MinRegard)
                 || !double.IsFinite(e.MaxRegard) || e.MinRegard < -1 || e.MaxRegard > 1 || e.MinRegard > e.MaxRegard
-                || e.Choice is not ("gift" or "help" or "confront" or "*") || string.IsNullOrWhiteSpace(e.Thought)
-                || e.Thought.Length > 220 || remaining.Contains('{') || remaining.Contains('}')
+                || e.Choice is not ("gift" or "help" or "confront" or "*") || !ValidTemplate(e.Thought)
+                || !ValidTemplate(e.DreamThought)
                 || e.Tags is null || e.Tags.Count == 0 || e.Tags.Any(string.IsNullOrWhiteSpace))
                 throw new InvalidDataException($"Invalid reflection catalog thought {e.Id}.");
         }

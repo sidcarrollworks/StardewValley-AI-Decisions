@@ -10,10 +10,10 @@ public static class TrialReport
         var text = new StringBuilder();
         text.AppendLine("# Reflection decision trial").AppendLine();
         text.AppendLine(result.RequestedLaya
-            ? $"Requested Laya model: `{result.Model}`. These are controlled hypothetical scenes, not a simulated town."
+            ? $"Requested Laya model: `{result.Model}`; evaluation: `{result.EvaluationMode}`. These are controlled hypothetical scenes, not a simulated town."
             : "**Authored/offline plumbing run. These results provide no evidence about Laya's judgment.**");
         text.AppendLine();
-        text.AppendLine($"Calls: {result.Observations.Count()}; explicit fallbacks: {result.FallbackCount}; non-Laya answers: {result.NonLayaCount}; incomplete submitted packets: {result.IncompletePacketCount}; server-truncated responses: {result.TruncatedResponseCount}; unverified server usage: {result.UnverifiedResponseCount}.");
+        text.AppendLine($"Decisions: {result.Observations.Count()}; evaluator passes: {result.EvaluationCount}; explicit fallbacks: {result.FallbackCount}; non-Laya answers: {result.NonLayaCount}; incomplete submitted packets: {result.IncompletePacketCount}; server-truncated responses: {result.TruncatedResponseCount}; unverified server usage: {result.UnverifiedResponseCount}.");
         if (result.RequestedLaya && result.NonLayaCount > 0)
             text.AppendLine("**Warning: real Laya was requested but some answers used offline material. Do not interpret those comparisons as model behavior. Exit code 2.**");
         if (result.IncompletePacketCount > 0)
@@ -23,6 +23,8 @@ public static class TrialReport
         text.AppendLine();
         text.AppendLine("Each pair ran baseline → variant → exact baseline repeat. Total variation (TV) is half the sum of absolute probability differences: 0 means unchanged, 1 means disjoint distributions. ID TV compares the same labels; semantic TV follows the same line meaning across swapped labels. Repeat TV describes observed inference variability over one repeat; it is not a statistical confidence bound. Top-choice ties use label order, independent of submitted candidate order.");
         text.AppendLine("For the label-renaming control, ID TV is mechanically 1 because all labels changed; semantic TV is the meaningful comparison.");
+        if (result.EvaluationMode != "raw")
+            text.AppendLine("Canonical and balanced modes make packets independent of incoming labels/order by construction. Zero change for those controls establishes adapter invariance, not the model's intrinsic understanding. Balanced mode averages normalized answers after each distinct response occupies every label/slot once.");
         text.AppendLine();
         text.AppendLine("| Probe | ID TV | Semantic TV | Repeat TV | Top baseline → variant → repeat |");
         text.AppendLine("|---|---:|---:|---:|---|");
@@ -34,7 +36,10 @@ public static class TrialReport
         {
             text.AppendLine().AppendLine($"## {pair.Id}").AppendLine();
             text.AppendLine(pair.Change).AppendLine();
-            text.AppendLine($"Thought held fixed: {pair.Baseline.Request.Proposal!.Thought}").AppendLine();
+            text.AppendLine($"Baseline thought: {pair.Baseline.Request.Proposal!.Thought}");
+            if (pair.Variant.Request.Proposal!.Thought != pair.Baseline.Request.Proposal.Thought)
+                text.AppendLine($"Variant thought: {pair.Variant.Request.Proposal.Thought}");
+            text.AppendLine();
             text.AppendLine($"Baseline memory: {pair.Baseline.Request.Memory}");
             if (pair.Variant.Request.Memory != pair.Baseline.Request.Memory)
                 text.AppendLine($"Variant memory: {pair.Variant.Request.Memory}");
@@ -63,6 +68,15 @@ public static class TrialReport
                     text.AppendLine().AppendLine($"{observation.Role} fallback: {observation.Answer.Note}");
                 if (observation.Response.Error is { } error)
                     text.AppendLine().AppendLine($"{observation.Role}: {error}");
+            }
+            if (new[] { pair.Baseline, pair.Variant, pair.Repeat }.Any(o => o.Passes is { Count: > 1 }))
+            {
+                text.AppendLine().AppendLine("All evaluator passes (the preceding receipt tables show the first pass):").AppendLine();
+                text.AppendLine("| Sample | Pass | Chars | Complete scene | Tokens | Truncated | Verified usage | Error |");
+                text.AppendLine("|---|---:|---:|---|---:|---|---|---|");
+                foreach (TrialObservation observation in new[] { pair.Baseline, pair.Variant, pair.Repeat })
+                    foreach (TrialPassAudit pass in observation.Passes ?? Array.Empty<TrialPassAudit>())
+                        text.AppendLine($"| {observation.Role} | {pass.Pass} | {pass.Prompt.TextCharacters} | {Yes(pass.Prompt.Complete)} | {pass.Response.InputTokens} | {Yes(pass.Response.HasTruncation)} | {Yes(pass.Response.Verified)} | {Cell(pass.Error ?? pass.Prompt.Error ?? pass.Response.Error ?? "")} |");
             }
             text.AppendLine();
             text.AppendLine("| ID | Baseline line | Variant line | P(base) | P(variant) | P(repeat) | Δ by ID |");
