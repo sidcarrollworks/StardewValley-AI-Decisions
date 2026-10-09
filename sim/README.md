@@ -2,6 +2,23 @@
 
 The headless simulator for **Under Glass**, the game designed in `docs/under-glass/design.md`. It's separate from the Stardew mod: it has its own solution, targets .NET 8, and references nothing from the game or SMAPI. The mod's `NpcSchedules.sln` doesn't include it.
 
+**Development base:** Sid designated `codex/reflection-prototype` as the ongoing Under Glass branch on 2026-10-08. Start new game feature branches from its latest remote revision and target it with PRs.
+
+**Current direction (2026-10-08):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. The immediate work makes a person's memory, thought, choice and consequences understandable; existing town-wide balance metrics are diagnostics, not a definition of interesting social lives.
+
+**New opt-in prototype: quiet reflection.** After a quiet stretch, someone can consider a remembered encounter. Authored inspiration or an optional local LLM proposes a thought; Laya can evaluate the actual authored lines. One seeded choice accepts, reshapes, defers or rejects it. An accepted intention waits for a real encounter and records its outcome. Open **Inner life** in the replay viewer to follow the chain. The server-free authored mode is a deliberately simple control; live model quality is not verified yet. Dreams, a broad tagged speech library and deferred-thought reconsideration are later work. Full status and contracts: [reflection spec](../docs/under-glass/specs/reflection-spec.md).
+
+```bash
+# Authored demo: no model server required.
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --reflection authored --out reflection.json --html reflection.html
+# Evaluate the same authored thoughts with your existing local Laya server.
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --reflection laya --html reflection-laya.html
+# Optional local imagination plus Laya; supply your server's model ID.
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --reflection hybrid --llm-url http://127.0.0.1:8080 --llm-model YOUR_MODEL_ID --out hybrid.json --html hybrid.html
+```
+
+Reflection is off by default and has its own .NET 8 adapter project, `UnderGlass.Minds`. Recorded answers can be reused with `--reflection tape --reflection-tape hybrid.json` and the same seed, days, town and simulation flags. No model is installed by these commands.
+
 ```bash
 dotnet test sim/UnderGlass.sln
 dotnet run -c Release --project sim/UnderGlass.Run -- --seeds 200 --days 28            # natural acts, 200 seasons

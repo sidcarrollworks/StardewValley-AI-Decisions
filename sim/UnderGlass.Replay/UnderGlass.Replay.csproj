@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\UnderGlass.Sim\UnderGlass.Sim.csproj" />
+    <ProjectReference Include="..\UnderGlass.Minds\UnderGlass.Minds.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The viewer page, carried inside the tool so the html option works from any folder. -->
