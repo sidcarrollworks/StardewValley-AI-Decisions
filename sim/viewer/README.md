@@ -107,6 +107,10 @@ UNDERGLASS_REPOINT=1 dotnet test sim/UnderGlass.sln --filter EverySourceLineIsNe
 
 Each checkpoint does this after merging.
 
+`ViewerPageTests` read the page as text, for what needs no browser: the whole-town map clears its
+canvas before each frame, since its plan is clear between places and a zoom or a pan would otherwise
+leave the earlier frames showing there.
+
 ## The file
 
 `UnderGlass.Sim/Replay.cs` writes it (format `under-glass-run`, version 1); `ReplayTests` check it

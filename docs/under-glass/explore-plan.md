@@ -15,7 +15,7 @@ git checkout main && git pull
 dotnet test sim/UnderGlass.sln -c Release
 ```
 
-All 407 tests should pass. CI runs the same suite on every pull request (`.github/workflows/tests.yml`).
+All 408 tests should pass. CI runs the same suite on every pull request (`.github/workflows/tests.yml`).
 
 ## 1. What the simulator is (15 minutes of reading)
 

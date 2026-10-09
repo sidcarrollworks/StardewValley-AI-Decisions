@@ -1713,7 +1713,8 @@ function drawTownMap() {
   if (!TOWN || !sizeTownMap()) return;
   if (!TOWN.back) paintTownBack();
   const t = S.t, c = $("townmap"), g = c.getContext("2d"), dpr = window.devicePixelRatio || 1, s = TOWN.scale * VIEW.k;
-  g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(TOWN.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Clear first: the plan is clear between places, so a zoom or a pan would show the last frame there.
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.drawImage(TOWN.back, 0, 0); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   // Where things have happened in the last two hours: each place glows by how much, fading as it ages.
   const heat = new Float64Array(R.places.length);
   for (let k = upperBound(R.acts, t, (a) => a.tick) - 1; k >= 0 && R.acts[k].tick > t - 120; k--) {
