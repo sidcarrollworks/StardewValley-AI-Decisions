@@ -48,6 +48,8 @@ jobs:
           node-version: '22'
       - name: Test viewer timeline behavior
         run: node --test sim/tools/test-viewer-timeline.cjs
+      - name: Test contextual encounters and rewind behavior
+        run: node --test sim/tools/test-viewer-encounters.cjs
       - name: Restore
         run: dotnet restore sim/UnderGlass.sln
       - name: Build

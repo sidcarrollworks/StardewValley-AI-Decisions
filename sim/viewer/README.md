@@ -106,6 +106,14 @@ until one is made the page follows the host's theme, then the system's.
   each person believes now (and who has the wrong name), and what the mayor and the constable did.
   These details follow the clock by default. **Whole-run analysis** explicitly includes future
   events; jumping to a remembered encounter turns that analysis off again.
+  New recordings add **Context and perspectives**: acquired identities, roles, relationship
+  snapshots, personal significance/listener interest and authored reasons. Private selected
+  causes link the real thought or motive and remain distinct from witness knowledge. Activity,
+  item, effort and amount show as unspecified until modeled. Everyday events with the same
+  pair/kind/place within 90 minutes are grouped; expanding retains each selectable member.
+  Contextual-highlight/everyday filters are separate from legacy news/scandal filters. Old files
+  show Context unavailable with their legacy tier in detail. Grouping/reasons follow the cutoff;
+  they change no gossip, affect or authority behavior.
 - **The inspector** (right): the selected person's character at the start and the end, mood, power
   of acting and stance over the run, who they like and dislike and who likes them, their recent acts,
   the motives they weighed, and their life record. While the gate runs, the stance line shades each
@@ -179,6 +187,12 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
   evaluator passes with prompts, raw responses, label mappings and normalized weights/errors), the
   selected `choice`, and timestamped `events` (tick, status, text, actId). The viewer never
   infers an outcome from the end of the recording; an act without an outcome remains unresolved.
+- **`encounterVersion: 1`**, **`appraisalRevision`**, **`encounters`**, **`encounterCauses`** and
+  **`appraisals`** add structured observer data without changing the version-1 packed tables.
+  Context holds act/time, roles, source link, location and declared duration; concrete details
+  are null until modeled. Private causes name selected motives or reflection receipt/choice IDs.
+  Appraisals carry acquired accounts, relationship snapshots, bounded personal/listener values,
+  categories and reasons/evidence IDs. Missing fields in old recordings stay unknown.
 - **`withdrawal`** (0d.6; null when the gate is off): `leftOut`, each person's being left out (E) at the
   end of each day, in hundredths; `spells`, every sustained spell as `WithdrawalMetrics` finds it
   (`person`, `from` and `to` as the nights' stance indexes, `kind` hermit, withdrawn or brawler,

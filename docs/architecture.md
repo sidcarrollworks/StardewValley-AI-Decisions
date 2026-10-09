@@ -19,9 +19,13 @@ design is in [under-glass/design.md](under-glass/design.md), current priorities 
 [under-glass/roadmap.md](under-glass/roadmap.md), and implementation/history are in
 [../sim/README.md](../sim/README.md). The sections below this one describe the Stardew mod.
 
-Next is [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md):
+The first [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md) slice is built:
 separate event facts, private cause and perceived accounts, then personal significance and
-listener-specific interest. That contract is planned. Current `ActKind.Tier` and gossip still
+listener-specific interest. Acquisition hooks snapshot believed roles, confidence, source chain,
+regard and familiarity before the current affect; private causes link real selected motives or
+reflection receipts separately. Replay adds encounter schema 1 alongside its existing version 1
+tables. Stories shows contextual labels/reasons and groups repeated everyday encounters without
+changing the simulation. Concrete activity/item/effort remain unknown. Current `ActKind.Tier` and gossip still
 use kind juiciness, and reflection still offers gift/help/confrontation plus defer/reject.
 Catalog actions exist behind switches; connecting more of them to reflection follows context.
 

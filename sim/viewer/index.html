@@ -530,10 +530,12 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <div class="controls">
           <label>Show
             <select id="storyTier">
-              <option value="news">news and scandals</option>
+              <option value="all">encounters and everyday activity</option>
+              <option value="highlights">contextual highlights</option>
+              <option value="everyday">everyday activity</option>
               <option value="talked">anything that went round (3+ people)</option>
               <option value="scandal">scandals only</option>
-              <option value="all">every act</option>
+              <option value="news">legacy news and scandals</option>
             </select>
           </label>
           <label>Order by
@@ -1092,8 +1094,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "Injected", "label": "Placed", "group": "Act fields", "definition": "An act placed by the harness or a test, such as the replay's injected scandal, rather than one that came about on its own. The viewer marks it 'placed'.", "range": "true or false", "source": "sim/UnderGlass.Sim/Model.cs:244", "at": "/// <summary>Something that happened, at a game minute.", "verify": false},
   {"key": "About", "label": "Answers (about)", "group": "Act fields", "definition": "The earlier act that a consequence or an answer is about. Examples: a warning's scandal, the argument that a later argument answers, or the gift that a gift returns. The viewer shows it as 'Answers'. It is not set with feelings off.", "range": "an act id; -1 for none", "source": "sim/UnderGlass.Sim/Model.cs:250", "at": "string? Target = null, int About = -1, string? With = null", "verify": false},
   {"key": "Pursued", "label": "From an intention (Pursued)", "group": "Act fields", "definition": "An intentional act started by the desire gate (a motive acted on, or turning away) or an accepted quiet-reflection intention when that optional feature is enabled, rather than one drawn at the town's rate. The viewer distinguishes reflection acts as 'from a thought' and desire-gate acts as 'from a motive', once they happen.", "range": "true or false", "source": "sim/UnderGlass.Sim/Simulation.cs:146", "at": "public required IReadOnlySet<int> Pursued { get; init; }", "verify": false},
-  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
-  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2616", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2616", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
   {"key": "minute", "label": "The minute (start of each line)", "group": "Log lines", "definition": "Every log line starts with the game minute, counted from midnight of day 0, with 1440 minutes in a day. The word after the minute says what the line records.", "range": "e.g. 2000 = day 1, 09:20", "source": "sim/UnderGlass.Sim/Model.cs:8", "at": "public static class Clock", "verify": false},
   {"key": "MotiveLog", "label": "The gate's lines when it only watches", "group": "Log lines", "definition": "When the gate only watches (DesireActs off), its lines are kept in a separate motive log, out of the main log and its hash. In that mode only stirred, lapsed and gave-cause lines can occur. The replay merges them back in time order, so the viewer shows them with the rest.", "range": "DesireActs default on", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:82", "at": "private void DesireLog(string line)", "verify": false},
   {"key": "act", "label": "act", "group": "Log lines", "definition": "An act began. The line gives the act's id (numbered from 0 in order), its kind, who did it, where, and, with feelings on, whom it is aimed at or done to. For OutLate, the line is written when the first person notices.", "range": "Fields: act <id> <Kind> by <actor> at <place> [to <target>]", "source": "sim/UnderGlass.Sim/Simulation.cs:963", "at": "_log.Add($\"{m} act {act.Id} {act.Kind} by {act.Actor} at", "verify": false},
@@ -1242,6 +1244,13 @@ function load(run) {
   const m = { run, n, names, days: run.days, end: run.days * 1440 - 1, tick: run.clock.tick };
   m.places = run.places.map((p, i) => ({ ...p, i, w: p.rows[0].length, h: p.rows.length, district: p.district ?? "core" }));
   m.kinds = run.kinds;
+  m.encounters = new Map((run.encounters ?? []).map((x) => [x.actId, x]));
+  m.encounterCauses = new Map((run.encounterCauses ?? []).map((x) => [x.actId, x]));
+  m.appraisalsByAct = new Map();
+  for (const x of run.appraisals ?? []) {
+    if (!m.appraisalsByAct.has(x.account.actId)) m.appraisalsByAct.set(x.account.actId, []);
+    m.appraisalsByAct.get(x.account.actId).push(x);
+  }
   m.people = run.people.map((p, i) => ({ ...p, i, district: p.district ?? "core" }));
   // Neighbourhoods of a grown town (the core first); a town without them has only the core.
   m.districts = ["core", ...[...new Set(m.people.map((p) => p.district))].filter((d) => d !== "core").sort()];
@@ -2393,6 +2402,66 @@ function drawInnerLife() {
 }
 
 // ---- stories ----------------------------------------------------------------------------------
+// Pure encounter helpers: use only records acquired by the cutoff, including within a group.
+function encounterView(appraisals, cutoff) {
+  const holders = new Map();
+  for (const x of appraisals ?? []) if (x.account.tick <= cutoff) holders.set(x.account.holder, x);
+  const views = [...holders.values()];
+  const category = views.some((x) => x.category === "public") ? "public"
+    : views.some((x) => x.category === "relationship") ? "relationship" : views.length ? "everyday" : "unknown";
+  const label = { public: "Public concern", relationship: "Relationship moment", everyday: "Everyday", unknown: "Context unavailable" }[category];
+  return { category, label, views };
+}
+function encounterGroups(acts, categoryOf, cutoff) {
+  const groups = [], recent = new Map();
+  for (const a of acts.filter((a) => a.tick <= cutoff).slice().sort((x, y) => x.tick - y.tick || x.id - y.id)) {
+    const ordinary = categoryOf(a) === "everyday";
+    const key = `${[a.actor, a.target].sort((x, y) => x - y).join(":")}|${a.kind}|${a.place}`;
+    const group = ordinary ? recent.get(key) : null;
+    if (group && a.tick - group[0].tick <= 90) group.push(a);
+    else { const next = [a]; groups.push(next); if (ordinary) recent.set(key, next); }
+  }
+  return groups;
+}
+// End pure encounter helpers.
+function appraisalOf(a, cutoff) { return encounterView(R.appraisalsByAct.get(a.id), cutoff); }
+function encounterExplanation(a, cutoff) {
+  const summary = appraisalOf(a, cutoff), context = R.encounters.get(a.id);
+  const box = el("div", { class: "list" });
+  box.append(el("p", { class: "note", text: "These are authored appraisals from each person's knowledge at acquisition. They do not change feelings or gossip selection." }));
+  if (!context || context.tick > cutoff) {
+    box.append(el("p", { class: "muted", text: "This recording has no encounter context. Its legacy tier is retained for reference; no reasons have been invented." }));
+    return box;
+  }
+  box.append(el("p", { text: `Recorded activity: ${context.activity ?? "unspecified"} · item: ${context.item ?? "unspecified"} · effort: ${context.effort ?? "not recorded"} · amount: ${context.amount ?? "not recorded"}.` }));
+  const cause = R.encounterCauses.get(a.id);
+  if (cause && cause.tick <= cutoff) {
+    const receipt = cause.reflectionId ? R.reflections.find((x) => x.request.id === cause.reflectionId) : null;
+    box.append(el("div", { class: "note" }, el("strong", { text: `${cause.actor}'s private cause: ` }),
+      cause.method === "reflection" ? "an accepted or reshaped reflection decision" : `the ${cause.motive} motive`,
+      ". This does not establish the imagined interpretation or tell witnesses the actor's intention.",
+      ...(receipt ? [el("button", { class: "small", text: "Open the thought and decision", onclick: () => {
+        if (cause.tick > S.t) setTime(cause.tick);
+        focusReflection(receipt.request.id);
+      } })] : [])));
+  }
+  for (const view of summary.views) {
+    const p = view.account;
+    const text = `${p.holder}: ${p.role} · ${p.source} · believed actor ${p.actor ?? "someone"}, target ${p.target ?? "unknown"} · confidence ${p.confidence.toFixed(2)}`;
+    const row = el("div", { class: "row", style: "display:block" }, el("strong", { text }));
+    row.append(el("div", { class: "muted", text: `Personal significance ${view.personalSignificance.toFixed(2)} · interest to this listener ${view.listenerInterest.toFixed(2)} · regard ${view.regard === null ? "not recorded" : view.regard.toFixed(2)} · ${when(p.tick)}` }));
+    for (const reason of view.reasons) {
+      const why = el("div", null, reason.text);
+      for (const id of reason.evidence) {
+        const source = R.acts[id];
+        if (id !== a.id && source && source.tick <= cutoff) why.append(el("button", { class: "small", text: `Open remembered event ${id}`, onclick: () => { S.story = id; setTime(source.tick); render(); } }));
+      }
+      row.append(why);
+    }
+    box.append(row);
+  }
+  return box;
+}
 function storyCutoff() { return $("storyWholeRun").checked ? R.end : S.t; }
 function storyActs() {
   const tier = $("storyTier").value, order = $("storyOrder").value, cutoff = storyCutoff();
@@ -2400,6 +2469,9 @@ function storyActs() {
   let acts = R.acts.filter((a) => {
     if (a.tick > cutoff || !inHood(a.actor)) return false;
     const k = R.kinds[a.kind];
+    const category = appraisalOf(a, cutoff).category;
+    if (tier === "highlights") return category === "relationship" || category === "public";
+    if (tier === "everyday") return category === "everyday";
     if (tier === "scandal") return k.tier === "Scandal" || k.tier === "Upheaval";
     if (tier === "news") return k.tier !== "Trivia";
     if (tier === "talked") return (reach.get(a.id) ?? 0) >= 3;
@@ -2411,15 +2483,24 @@ function storyActs() {
 function holdersAt(act, t) { const rows = R.beliefsByAct.get(act) ?? []; const s = new Set(); for (const b of rows) { if (b[0] > t) break; s.add(b[1]); } return s.size; }
 function drawStories() {
   const acts = storyActs(), list = $("storyList"), cutoff = storyCutoff();
-  const shown = acts.slice(0, 400);
-  list.replaceChildren(...shown.map((a) => {
+  const groups = encounterGroups(acts, (a) => appraisalOf(a, cutoff).category, cutoff);
+  if ($("storyOrder").value === "reach") groups.sort((x, y) => Math.max(...y.map((a) => holdersAt(a.id, cutoff))) - Math.max(...x.map((a) => holdersAt(a.id, cutoff))) || x[0].id - y[0].id);
+  const shown = groups.slice(0, 400);
+  const card = (a) => {
     const k = R.kinds[a.kind], reach = holdersAt(a.id, cutoff);
     const select = () => { S.story = a.id; lastStoryKey = ""; render(); };
     return el("div", { class: "story" + (a.id === S.story ? " sel" : "") + (a.tick > S.t ? " future" : ""), tabindex: 0, role: "button", onclick: select,
       onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); select(); } } },
-      el("div", { class: "what" }, el("div", null, R.actText(a)), el("div", { class: "muted data", style: "font-size:0.75rem" }, `${when(a.tick)} · `, el("span", { class: "tier " + k.tier, text: k.tier }), a.injected ? " · placed" : "")),
+      el("div", { class: "what" }, el("div", null, R.actText(a)), el("div", { class: "muted data", style: "font-size:0.75rem" }, `${when(a.tick)} · `, el("span", { class: "tier", text: appraisalOf(a, cutoff).label }), a.injected ? " · placed" : "")),
       el("div", { class: "reach" }, `${reach}`, el("div", { class: "muted", text: "know" })));
-  }), ...(acts.length > shown.length ? [el("div", { class: "muted", text: `and ${acts.length - shown.length} more` })] : []),
+  };
+  list.replaceChildren(...shown.map((group) => {
+    if (group.length === 1) return card(group[0]);
+    const first = group[0], names = [first.actor, first.target].filter((x) => x >= 0).map((x) => R.names[x]);
+    return el("details", { class: "everyday-group", open: group.some((a) => a.id === S.story) },
+      el("summary", { style: "padding:10px;cursor:pointer", text: `${names.join(" ↔ ")} · ${group.length} everyday encounters · ${R.kinds[first.kind].name} · ${when(first.tick)}–${hm(group[group.length - 1].tick)}` }),
+      ...group.map(card));
+  }), ...(groups.length > shown.length ? [el("div", { class: "muted", text: `and ${groups.length - shown.length} more groups` })] : []),
   ...(acts.length === 0 ? [el("div", { class: "muted", text: "Nothing matches." })] : []));
   drawStory();
 }
@@ -2493,10 +2574,12 @@ function drawStory() {
   track.sort((x, y) => x[0] - y[0]);
   const witnesses = new Set(rows.filter((b) => b[4] === 0 && b[1] !== a.actor).map((b) => b[1])).size;
   box.replaceChildren(el("div", { style: "display:grid;gap:10px" },
-    el("div", null, el("span", { class: "tier " + k.tier, text: k.tier }), " ", el("h2", { style: "display:inline", text: R.actText(a) })),
+    el("div", null, el("span", { class: "tier", text: appraisalOf(a, cutoff).label }), " ", el("h2", { style: "display:inline", text: R.actText(a) })),
     el("dl", { class: "facts" }, el("dt", { text: "When" }), el("dd", { text: `${dateOf(a.tick)} at ${hm(a.tick)}` }), el("dt", { text: "Where" }), el("dd", { text: placeName(R.places[a.place].name) }),
       el("dt", { text: "Seen by" }), el("dd", { text: `${witnesses} ${witnesses === 1 ? "person" : "people"}` }), el("dt", { text: "Reached" }), el("dd", { text: `${holdersAt(a.id, cutoff)} of ${R.n - 1} others ${$("storyWholeRun").checked ? "by the end" : "so far"}` }),
-      ...(a.about >= 0 && R.acts[a.about]?.tick <= cutoff ? [el("dt", { text: "Answers" }), el("dd", { text: R.actText(R.acts[a.about]) })] : []), ...(actOrigin(a, cutoff) ? [el("dt", { text: "Why" }), el("dd", { text: actOrigin(a, cutoff) })] : [])),
+      ...(a.about >= 0 && R.acts[a.about]?.tick <= cutoff ? [el("dt", { text: R.encounterCauses.has(a.id) ? "Private source" : "Answers" }), el("dd", { text: R.actText(R.acts[a.about]) })] : []), ...(actOrigin(a, cutoff) ? [el("dt", { text: "Why" }), el("dd", { text: actOrigin(a, cutoff) })] : [])),
+    el("h3", { text: "Context and perspectives" }), encounterExplanation(a, cutoff),
+    el("p", { class: "muted", text: `Legacy gossip tier: ${k.tier}. Contextual labels are observer judgments; authority and retelling rules are unchanged.` }),
     el("h3", { text: "How far it spread" }), svg,
     el("h3", { text: "Who told whom" }), el("div", { class: "tree" }, treeRows.length ? treeRows : [el("div", { class: "muted", text: "Nobody saw it or heard of it." })]),
     el("h3", { text: $("storyWholeRun").checked ? "What people believe by the end" : "What people believe now" }), el("div", { class: "believes" }, beliefs.length ? beliefs : [el("div", { class: "muted", text: "Nobody yet." })]),

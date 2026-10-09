@@ -33,10 +33,12 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   waking dreams, deferred ideas revisited after new knowledge, intentions and later outcomes.
 - Built: current-moment cards, source/consequence navigation, character timeline markers and
   hover descriptions, and playback controls that remain visible while scrolling.
+- Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
+  and authored appraisals. Stories shows contextual reasons and groups everyday repetitions.
 - Current limits: reflection offers gift, help or confrontation, plus defer/reject. Some richer
   actions already exist in `ActCatalog` behind switches, but reflection does not offer them.
-  Generic acts do not record what help or a gift concretely involved. Event tiers are still
-  fixed by action-kind juiciness; they are not contextual judgments of newsworthiness.
+  Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
+  by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
 - Current model limits: some generated ideas disagree with their suggested action or reverse
   remembered roles. The next work improves grounding and observability alongside the world;
   it does not wait for a perfect generator or start with fine-tuning.
@@ -45,6 +47,11 @@ See [reflection status](specs/reflection-spec.md), [implementation reference](..
 and the dated [reliability measurements](experiments/reflection-reliability-2026-10-08.md).
 
 ## 1. Concrete encounter context and event appraisal — next
+
+**First observer slice built (2026-10-09):** roles, existing causal links, separate private causes,
+perceived accounts, provisional personal/listener appraisals, reasons and everyday grouping.
+Review the prepared scenes before extending these rules. Concrete tasks/items/costs and
+listener-specific gossip selection remain; neither has been inferred from generic act names.
 
 Build [the contextual-events slice](specs/contextual-events-spec.md) around existing help, gift
 and argument events before multiplying generic headlines.

@@ -13,7 +13,9 @@ authored or locally generated inspiration, Laya's evaluation of actual response 
 intentions and their recorded outcomes. Its first-version goal is a social simulation watched
 from above; player gameplay comes later. The mod-specific shadow-mode and template-only
 requirements below do not describe that independent experiment.
-The next independent-game slice is [contextual events and appraisal](../under-glass/specs/contextual-events-spec.md), currently planned.
+The first observer slice of [contextual events and appraisal](../under-glass/specs/contextual-events-spec.md)
+is built: acquisition-time accounts and reasons, private cause receipts, contextual labels and
+everyday grouping. Concrete tasks and listener-specific gossip selection remain planned.
 
 - **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D28).
   **Rules:** `AGENTS.md`. This spec does not repeat them; it links to them and adds what is not

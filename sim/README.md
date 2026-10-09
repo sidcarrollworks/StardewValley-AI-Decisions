@@ -4,7 +4,20 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Development base:** Sid designated `codex/reflection-prototype` as the ongoing Under Glass branch on 2026-10-08. Start new game feature branches from its latest remote revision and target it with PRs.
 
-**Current direction (2026-10-09):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Sid reviewed all three reflection paths and finds the shift promising. The [current roadmap](../docs/under-glass/roadmap.md) defines the next work: concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The [next slice](../docs/under-glass/specs/contextual-events-spec.md) separates personal significance from listener interest. It is planned; existing kinds still have fixed juiciness tiers.
+**Current direction (2026-10-09):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Sid reviewed all three reflection paths and finds the shift promising. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers.
+
+**Contextual encounters:** `Encounters.cs` and `Simulation.Encounters.cs` capture supported act
+facts and self/received/witness/undergone roles, private selected motive/reflection receipts,
+perceived identities, confidence/source chains and relationship snapshots. The authored appraisal
+baseline separates personal significance from interest to the holder; these values change no
+simulation decisions or gossip. It uses recent known conflict, household care, strain, repetition
+and known-person involvement. Concrete activity, gift item, effort and amount remain unspecified.
+Replay adds schema `encounterVersion: 1` alongside run version 1; old files remain readable and
+show Context unavailable. Stories labels Everyday/Relationship moment/Public concern, groups
+same-pair/kind/location everyday acts within 90 minutes and retains every source event. Reasons,
+private causes and prior-event links follow the clock. The recorded hybrid tape's 91 answers
+reproduce the original hash and every old field except the CLI label. No fresh model calls are
+needed to add these observer records. New checks: 11 .NET tests and five Node viewer tests.
 
 **Reading this reference:** the phase sections below preserve implementation history and dated experiments. Their E1/E2 gates, news-volume ceilings, drift bands and war/dead-town verdicts are historical calibration criteria, not current product acceptance rules. Required mechanics checks still hold; coherent extreme outcomes are allowed. Tests for existing behavior are retained until an intentional implementation change updates them. Runtime switches remain as documented; the new roadmap does not silently enable catalog slices or alter simulation behavior.
 

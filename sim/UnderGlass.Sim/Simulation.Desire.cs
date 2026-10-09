@@ -570,7 +570,8 @@ public sealed partial class Simulation
         FondGave(d.Kind, chosen, h, m); // the act catalog: with Company on, Fond's one occasion gift a day
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
-        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
+        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null,
+            cause: new(-1, m, hn, "motive", d.Source, d.Kind.ToString()));
         return true;
     }
 
