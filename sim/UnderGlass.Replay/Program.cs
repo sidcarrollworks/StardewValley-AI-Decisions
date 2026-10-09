@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Reflection;
 using UnderGlass.Sim;
-using UnderGlass.Minds;
-using System.Text.Json;
 
 // Under Glass: record one run of the default town for the viewer (sim/viewer/index.html).
 //   dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 28 --html run1.html
@@ -20,9 +18,6 @@ long seed = 1;
 int days = 28;
 bool inject = false;
 string? outPath = null, htmlPath = null;
-string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
-string layaModel = "typed-decisions";
-double reflectionChance = 0.35;
 // --town <name>: a grown town (Towns.Named), with its own cast and feelings, in place of the shipped one.
 int townAt = Array.IndexOf(args, "--town");
 TownData? town = townAt >= 0 && townAt + 1 < args.Length ? Towns.Named(args[townAt + 1]) : null;
@@ -33,13 +28,6 @@ for (int i = 0; i < args.Length; i++)
     string Next() => i + 1 < args.Length ? args[++i] : throw new ArgumentException($"{args[i]} needs a value");
     switch (args[i])
     {
-        case "--reflection": reflectionMode = Next(); break;
-        case "--laya-url": layaUrl = Next(); break;
-        case "--laya-model": layaModel = Next(); break;
-        case "--llm-url": llmUrl = Next(); break;
-        case "--llm-model": llmModel = Next(); break;
-        case "--reflection-tape": tapePath = Next(); break;
-        case "--reflection-chance": reflectionChance = double.Parse(Next(), inv); break;
         case "--seed": seed = long.Parse(Next(), inv); break;
         case "--days": days = int.Parse(Next(), inv); break;
         case "--inject": inject = true; break;
@@ -94,39 +82,7 @@ for (int k = 0; k < args.Length; k++)
 }
 string? label = shown.Count == 0 ? null : string.Join(' ', shown);
 var clock = System.Diagnostics.Stopwatch.StartNew();
-if (reflectionMode is not (null or "authored" or "laya" or "hybrid" or "tape"))
-    throw new ArgumentException("--reflection authored|laya|hybrid|tape");
-if (reflectionMode == "hybrid" && (llmUrl is null || llmModel is null))
-    throw new ArgumentException("Hybrid reflection needs --llm-url and --llm-model for your local server.");
-if (reflectionMode == "tape" && tapePath is null)
-    throw new ArgumentException("Tape reflection needs --reflection-tape <previous run.json>.");
-if ((layaUrl is not null || llmUrl is not null || llmModel is not null || tapePath is not null)
-    && reflectionMode is null)
-    throw new ArgumentException("Model options require --reflection.");
-var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance };
-using var model = new ResilientReflectionMind(new ReflectionMindOptions
-{
-    LayaBaseUrl = reflectionMode is "laya" or "hybrid" ? layaUrl ?? "http://127.0.0.1:8000" : null,
-    LayaModel = layaModel,
-    GenerationBaseUrl = reflectionMode == "hybrid" ? llmUrl : null,
-    GenerationModel = llmModel ?? "",
-});
-IReflectionMind mind = model;
-if (reflectionMode == "tape")
-{
-    using JsonDocument tape = JsonDocument.Parse(File.ReadAllText(tapePath!));
-    mind = new RecordedReflectionMind(tape.RootElement.GetProperty("reflections")
-        .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
-}
-string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection }, mind);
-if (reflection.Enabled)
-{
-    using JsonDocument recorded = JsonDocument.Parse(json);
-    var thoughts = recorded.RootElement.GetProperty("reflections").EnumerateArray().ToArray();
-    Console.WriteLine($"reflections: {thoughts.Length}; " + string.Join(", ", thoughts.GroupBy(t => t.GetProperty("answer").GetProperty("backend").GetString())
-        .Select(g => $"{g.Key} {g.Count()}")));
-}
+string json = Replay.Json(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings, Inject = inject, Traits = traits, Label = label });
 Console.WriteLine($"recorded seed {seed}, {days} days in {clock.Elapsed.TotalSeconds:0.0} s ({json.Length / 1024.0 / 1024:0.0} MB)");
 if (outPath is not null)
 {

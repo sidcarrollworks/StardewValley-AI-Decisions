@@ -59,10 +59,6 @@ run locally. A deterministic fake is the default.
 
 - **Branches.** Never commit to `main`. Branch from the latest `main` (`claude/...`,
   `deepseek/...`) and open a PR; Sid reviews and merges on GitHub.
-  **Under Glass exception (Sid, 2026-10-08):** `codex/reflection-prototype` is the ongoing
-  development base for the independent game. New Under Glass feature branches start from its
-  latest remote revision and target it with their PRs. This supersedes the `main` starting point
-  for Under Glass work; the mod keeps its existing workflow.
 - **Other agents.** More than one may work here. Run `git status` first and don't commit changes
   you didn't make.
 - **Tests.** Every change comes with tests. Before committing:

@@ -12,9 +12,6 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --ht
 
 # Or the run alone, for the viewer's "Open a run…" button (or drop the file on the page).
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --out run1.json
-
-# Quiet reflection: thoughts, actual candidate lines and their consequences in Inner life.
-dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 7 --reflection authored --html reflection.html
 ```
 
 Open `sim/viewer/index.html` directly to load a `.json` run. The tool takes the runner's settings:
@@ -64,19 +61,6 @@ until one is made the page follows the host's theme, then the system's.
   and have told, and their feuds and friendships. Above it, who is lowest and highest on each
   measure. Sort by any column or trait; click a row to follow that person. Someone in a sustained spell at the
   clock (28 nights or more withdrawn, a hermit or a brawler; see the inspector) is tagged in the stance column.
-- **Inner life:** follow a character's remembered moment into a thought, the line they chose,
-  whether they accepted, changed, deferred or rejected the idea, and the attempt and outcome when
-  recorded. A card appears when reflection begins; its thought, selected line, weights and model
-  receipts appear only when the answer is considered. Later events appear as the clock reaches
-  them, and disappear when rewinding. Buttons jump to the remembered act and subsequent acts on
-  the same clock. The character selector shares the map and inspector's selection; neighbourhood
-  and unfolding/settled filters narrow the list. It shows at most 24 recently changed cards.
-  Expand **What informed this choice?** for the supplied context, actual candidate lines, relative
-  weights, proposal, selected response, recorded backend/fallback note and exact model requests
-  when present. These are recorded evidence, not explanations invented by the viewer. Model
-  content is displayed as plain text. `--reflection authored` uses the explicit offline baseline;
-  `--reflection laya` uses the model evaluator. Older runs need no migration and show an empty
-  Inner life view with instructions for recording it.
 - **Relationships:** the town as a ring, household by household, with a line for each strong tie
   (blue liking, red dislike, dashed when the two feel differently); switch to "change since the
   start" to see who has grown closer or further apart. The grid shows every person's regard for
@@ -126,8 +110,6 @@ Each checkpoint does this after merging.
 `ViewerPageTests` read the page as text, for what needs no browser: the whole-town map clears its
 canvas before each frame, since its plan is clear between places and a zoom or a pan would otherwise
 leave the earlier frames showing there.
-`ReflectionViewerTests` protect the optional-recording boundary, clock guards and plain-text
-rendering of model content. Browser verification checks the displayed chain and timeline jumps.
 
 ## The file
 
@@ -150,12 +132,6 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`events`** are the log lines other than beliefs and tellings, which have tables of their own.
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
-- **`reflections`** is optional, absent when reflection is disabled. Unlike the packed tables,
-  its records use named camelCase fields and actor/subject names. Each contains `request` (id,
-  tick, actor, subject, sourceActId, memory, context and choices with id/kind/line), `answer`
-  (thought, suggestedChoice, weights, backend, note and optional exact request receipts), the
-  selected `choice`, and timestamped `events` (tick, status, text, actId). The viewer never
-  infers an outcome from the end of the recording; an act without an outcome remains unresolved.
 - **`withdrawal`** (0d.6; null when the gate is off): `leftOut`, each person's being left out (E) at the
   end of each day, in hundredths; `spells`, every sustained spell as `WithdrawalMetrics` finds it
   (`person`, `from` and `to` as the nights' stance indexes, `kind` hermit, withdrawn or brawler,

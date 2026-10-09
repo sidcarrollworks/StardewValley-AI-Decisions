@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Sim.Tests", "Und
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Replay", "UnderGlass.Replay\UnderGlass.Replay.csproj", "{EC11AEA0-D8E7-4519-B9E1-150578C1FC36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderGlass.Minds", "UnderGlass.Minds\UnderGlass.Minds.csproj", "{548B63C5-654D-49C8-8F8D-3526C03C4FC5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,9 +36,5 @@ Global
 		{EC11AEA0-D8E7-4519-B9E1-150578C1FC36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC11AEA0-D8E7-4519-B9E1-150578C1FC36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC11AEA0-D8E7-4519-B9E1-150578C1FC36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{548B63C5-654D-49C8-8F8D-3526C03C4FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{548B63C5-654D-49C8-8F8D-3526C03C4FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{548B63C5-654D-49C8-8F8D-3526C03C4FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{548B63C5-654D-49C8-8F8D-3526C03C4FC5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
