@@ -720,6 +720,25 @@ validation does not establish thought/act agreement or grounding.
 without granting new knowledge or making every routine utterance depend on generation. The
 observer can inspect the real source, the imagined possibility, the decision and what followed.
 
+### D40. Keep playback in reach and make a followed person's events visible on the ruler
+
+**Decision (Sid, 2026-10-09).** The timeline and playback controls stay at the top while scrolling
+the town, inner life and other views. Keep this bar outside the map's container so its sticky
+range covers the page. Previous/Next moment lives in the bar too. Resize observation reserves
+its actual height for scrolling to a thought, including narrower layouts.
+
+A separate row highlights a selected person's performed and received encounters, their own
+considered thoughts, outcomes and expired intentions, and their relationship changes. Hover
+lists nearby events; clicking selects the nearest marker and pauses at its exact recorded minute.
+Future markers are dimmed and expose only a timestamp until the clock reaches them. Descriptions
+use recorded content as plain text, and refresh while playing or rewinding. This is observer UI;
+it changes no simulation behavior or recording schema. The existing log remains in its column.
+
+**Validation.** Six dependency-free Node tests exercise the shipped timeline helpers in CI;
+the .NET suite guards the sticky containment and navigation controls. Browser checks cover
+scrolling, selection, overlapping hover descriptions, marker clicks, playback and rewinding
+past a thought without leaking its text.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

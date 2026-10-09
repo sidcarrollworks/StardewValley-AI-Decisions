@@ -43,6 +43,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test viewer timeline behavior
+        run: node --test sim/tools/test-viewer-timeline.cjs
       - name: Restore
         run: dotnet restore sim/UnderGlass.sln
       - name: Build

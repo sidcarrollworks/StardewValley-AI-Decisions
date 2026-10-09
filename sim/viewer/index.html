@@ -140,9 +140,17 @@ button.link:active { transform: none; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
+.playback { position: sticky; top: 0; z-index: 5; align-self: start; background: var(--bg); padding: 10px 20px; border-bottom: 1px solid var(--line); box-shadow: 0 4px 12px var(--press); }
+.timeline-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--ink-2); font-size: var(--step--2); }
+.timeline-focus .following { color: var(--accent); font-weight: 600; }
+.timeline-focus .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.timeline-focus .thought { border-radius: 0; transform: rotate(45deg); }
+html { scroll-padding-top: var(--playback-height, 180px); }
+[id^="reflection-"] { scroll-margin-top: 12px; }
+@media (max-width: 650px) { .playback { padding: 8px 12px; } .playback .hint, .playback .legend { display: none; } .transport .speed { margin-inline-start: 0; } }
 .deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .deck .legend { margin-inline-start: auto; }
-.timeline canvas { width: 100%; height: 38px; display: block; cursor: pointer; }
+.timeline canvas { width: 100%; height: 54px; display: block; cursor: pointer; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
 input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
@@ -395,8 +403,10 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <button id="zoomFit" title="Show the whole town (0)">Fit</button>
       </div>
     </div>
-    <div class="timeline" role="group" aria-label="Timeline">
-      <canvas id="strip" height="34"></canvas>
+  </header>
+    <section class="timeline playback marks" id="playbackBar" role="group" aria-label="Timeline">
+      <div class="timeline-focus"><span class="following" id="timelineFocus">Town turning points · select a character to highlight their events</span><span class="key"><i class="dot"></i>encounter</span><span class="key"><i class="dot thought"></i>thought / outcome</span></div>
+      <canvas id="strip" height="54" aria-label="Event timeline. Hover a marker for details; click to jump. Previous and Next moment buttons provide keyboard navigation."></canvas>
       <input type="range" id="scrub" min="0" max="0" value="0" step="5" aria-label="Time in the run">
       <div class="deck">
         <div class="screen" aria-live="off">
@@ -416,6 +426,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
             <option value="480">8 h/s</option>
             <option value="1440">1 day/s</option>
           </select></span>
+          <button id="previousMoment" title="Previous recorded encounter, thought or relationship change">← Previous moment</button>
+          <button id="nextMoment" title="Next recorded encounter, thought or relationship change">Next moment →</button>
         </div>
         <div class="legend">
           <span class="key"><i style="background: var(--dislike)"></i>feud begins</span>
@@ -424,20 +436,17 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
           <span class="key"><b style="background: var(--ink)"></b>scandal</span>
         </div>
       </div>
-      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day · scroll on the town to zoom, drag to pan</div>
-    </div>
-    <section class="observer" aria-label="What is happening now">
+      <div class="hint">Hover markers for events · Click a marker to jump exactly · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day</div>
+    </section>
+    <section class="observer card" style="padding:16px" aria-label="What is happening now">
       <div class="observer-head">
         <div><h2>Happening now</h2><span class="observer-follow" id="observerScope">The town</span></div>
         <nav class="observer-nav" aria-label="Meaningful moments">
           <button id="observerAll" hidden>Show everyone</button>
-          <button id="previousMoment" title="Previous recorded encounter, thought or relationship change">← Previous moment</button>
-          <button id="nextMoment" title="Next recorded encounter, thought or relationship change">Next moment →</button>
         </nav>
       </div>
       <div class="observer-cards" id="observerCards"></div>
     </section>
-  </header>
 
   <main class="work">
     <section class="stage card">
@@ -1083,8 +1092,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "Injected", "label": "Placed", "group": "Act fields", "definition": "An act placed by the harness or a test, such as the replay's injected scandal, rather than one that came about on its own. The viewer marks it 'placed'.", "range": "true or false", "source": "sim/UnderGlass.Sim/Model.cs:244", "at": "/// <summary>Something that happened, at a game minute.", "verify": false},
   {"key": "About", "label": "Answers (about)", "group": "Act fields", "definition": "The earlier act that a consequence or an answer is about. Examples: a warning's scandal, the argument that a later argument answers, or the gift that a gift returns. The viewer shows it as 'Answers'. It is not set with feelings off.", "range": "an act id; -1 for none", "source": "sim/UnderGlass.Sim/Model.cs:250", "at": "string? Target = null, int About = -1, string? With = null", "verify": false},
   {"key": "Pursued", "label": "From an intention (Pursued)", "group": "Act fields", "definition": "An intentional act started by the desire gate (a motive acted on, or turning away) or an accepted quiet-reflection intention when that optional feature is enabled, rather than one drawn at the town's rate. The viewer distinguishes reflection acts as 'from a thought' and desire-gate acts as 'from a motive', once they happen.", "range": "true or false", "source": "sim/UnderGlass.Sim/Simulation.cs:146", "at": "public required IReadOnlySet<int> Pursued { get; init; }", "verify": false},
-  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2456", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
-  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2456", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
   {"key": "minute", "label": "The minute (start of each line)", "group": "Log lines", "definition": "Every log line starts with the game minute, counted from midnight of day 0, with 1440 minutes in a day. The word after the minute says what the line records.", "range": "e.g. 2000 = day 1, 09:20", "source": "sim/UnderGlass.Sim/Model.cs:8", "at": "public static class Clock", "verify": false},
   {"key": "MotiveLog", "label": "The gate's lines when it only watches", "group": "Log lines", "definition": "When the gate only watches (DesireActs off), its lines are kept in a separate motive log, out of the main log and its hash. In that mode only stirred, lapsed and gave-cause lines can occur. The replay merges them back in time order, so the viewer shows them with the rest.", "range": "DesireActs default on", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:82", "at": "private void DesireLog(string line)", "verify": false},
   {"key": "act", "label": "act", "group": "Log lines", "definition": "An act began. The line gives the act's id (numbered from 0 in order), its kind, who did it, where, and, with feelings on, whom it is aimed at or done to. For OutLate, the line is written when the first person notices.", "range": "Fields: act <id> <Kind> by <actor> at <place> [to <target>]", "source": "sim/UnderGlass.Sim/Simulation.cs:963", "at": "_log.Add($\"{m} act {act.Id} {act.Kind} by {act.Actor} at", "verify": false},
@@ -1131,7 +1140,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "trace", "label": "trace", "group": "Log lines", "definition": "An act that leaves a trace ended and left it.", "range": "Fields: trace <act id> <ScatteredBin|MissingStock> at <place>", "source": "sim/UnderGlass.Sim/Simulation.Traces.cs:23", "at": "_log.Add($\"{m} trace {act.Id} {trace.Name} at", "verify": false},
   {"key": "found", "label": "found", "group": "Log lines", "definition": "Someone noticed a trace. They learn the act happened but not who did it ('someone'), at half its juiciness.", "range": "Fields: found <who> <act id> <trace>", "source": "sim/UnderGlass.Sim/Simulation.Traces.cs:55", "at": "_log.Add($\"{m} found {who} {actId} {trace.Name}\");", "verify": false},
   {"key": "Witnesses", "label": "Seen by (witnesses)", "group": "Act fields", "definition": "How many people saw the act well enough to know what happened (clarity 0.3 or more), counted when it ends. The actor is never counted. With feelings steering, the person a chosen or kin act was aimed at counts as having seen it fully, if still there. For being out late, it is how many people noticed. The viewer shows it as 'Seen by'.", "range": "0 or more people", "source": "sim/UnderGlass.Sim/Simulation.cs:88", "at": "public required IReadOnlyDictionary<int, int> Witnesses {", "verify": false},
-  {"key": "reach", "label": "Reached (viewer)", "group": "Act fields", "definition": "In the viewer, how many people other than the actor came to hold a belief about the act by the time on the clock, by seeing it, being told or finding its trace. Whole-run analysis explicitly includes everything recorded by the end.", "range": "0 to the town's size less one", "source": "sim/viewer/index.html:1273", "at": "m.reach = new Map(); // act -> number of people who came to", "verify": false},
+  {"key": "reach", "label": "Reached (viewer)", "group": "Act fields", "definition": "In the viewer, how many people other than the actor came to hold a belief about the act by the time on the clock, by seeing it, being told or finding its trace. Whole-run analysis explicitly includes everything recorded by the end.", "range": "0 to the town's size less one", "source": "sim/viewer/index.html:1283", "at": "m.reach = new Map(); // act -> number of people who came to", "verify": false},
   {"key": "Affect", "label": "Feeling row", "group": "Act fields", "definition": "An act kind's row of feeling numbers: who feels it (patient), how much (joy), how much becomes regard (plastic), how freely its cause acted (freedom), whom it is aimed at (target), and whether the glad or the sad do it more (tilt). An act with no row, like being out late, is felt by nobody and has no target.", "range": "one per act kind; none for OutLate", "source": "sim/UnderGlass.Sim/Model.cs:180", "at": "public sealed record Affect(Patient Patient, double Joy,", "verify": false},
   {"key": "turned-back", "label": "Turned back from a crowd", "group": "Log lines", "definition": "Someone arrived at a hub with a crowd limit, saw that many awake people or more within its radius, and turned back; the hub is struck off for them for the rest of the day and they decide again. Written as: minute, who, the hub, how many they saw. Only in towns whose hubs set a Capacity (town spec E4).", "range": "one line per turning back", "source": "sim/UnderGlass.Sim/Simulation.Growth.cs (Arrive)", "verify": false}
  ]
@@ -1190,13 +1199,14 @@ function diverge(v, full = 1) {
   return v >= 0 ? mix(COL.midHex, COL.likeHex, t) : mix(COL.midHex, COL.dislikeHex, t);
 }
 const tip = $("tip");
+let timelineHover = null;
 function showTip(e, parts) {
   tip.replaceChildren(...parts.map((p) => (typeof p === "string" ? el("div", { text: p }) : p)));
   tip.hidden = false;
   const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8), y = Math.min(e.clientY + 14, window.innerHeight - tip.offsetHeight - 8);
   tip.style.left = x + "px"; tip.style.top = y + "px";
 }
-const hideTip = () => { tip.hidden = true; };
+const hideTip = () => { tip.hidden = true; timelineHover = null; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
@@ -1320,6 +1330,13 @@ function load(run) {
     ...m.ties.map((tie) => ({ tick: tie.tick, people: [tie.a, tie.b] })),
     ...m.reflections.flatMap((record) => record.events.filter((e) => ["considered", "acted", "outcome", "expired"].includes(e.status))
       .map((e) => ({ tick: e.tick, people: [names.indexOf(record.request.actor), names.indexOf(record.request.subject)].filter((i) => i >= 0) }))),
+  ].sort((a, b) => a.tick - b.tick);
+  // Timeline indexes keep references, not future prose; descriptions are resolved at the clock.
+  m.timeline = [
+    ...m.acts.map((a) => ({ type: "act", tick: a.tick, people: [a.actor, a.target].filter((i) => i >= 0), act: a.id })),
+    ...m.ties.map((tie, i) => ({ type: "tie", tick: tie.tick, people: [tie.a, tie.b], tie: i })),
+    ...m.reflections.flatMap((record, i) => record.events.flatMap((e, j) => ["considered", "outcome", "expired"].includes(e.status)
+      ? [{ type: "reflection", tick: e.tick, people: [names.indexOf(record.request.actor)], reflection: i, event: j }] : [])),
   ].sort((a, b) => a.tick - b.tick);
   m.life = run.life.map((e) => ({ tick: e[0], person: e[1], other: e[2], act: e[3], kind: e[4], role: run.roles[e[5]], severity: e[6], hostile: !!e[7], outcome: run.outcomes[e[9]], resolved: e[10] }));
   // Hermits, brawlers and being left out (0d.6), recorded while the gate runs: each person's being
@@ -1447,14 +1464,63 @@ function render() {
   drawPersonFocus();
   const feedKey = `${minute}|${[...S.feed].join()}|${S.feedSearch}|${S.onlyPerson}|${S.person}|${S.hood}`;
   if (feedKey !== lastFeedKey) { lastFeedKey = feedKey; drawFeed(); }
+  if (timelineHover) hoverTimeline(timelineHover);
 }
 
 // The ruler above the fader. A fader's handle travels inset by half its width from each end, so
 // the ruler maps the run onto the same span: the playhead sits over the handle.
 const RULER_INSET = 6;
 const rulerX = (t, w) => RULER_INSET + (t / (R.end + 1)) * (w - 2 * RULER_INSET);
+function timelineMarkers(w, person = S.person, hood = S.hood) {
+  const markers = [];
+  for (const event of R.timeline) {
+    const kind = event.type === "act" ? R.kinds[R.acts[event.act].kind] : null;
+    if (observerScope(event.people, -1, hood) && (event.type === "tie" || kind?.tier === "Scandal" || kind?.tier === "Upheaval"))
+      markers.push({ event, x: rulerX(event.tick, w), y: event.type === "tie" ? 17 : 26, focused: false });
+    if (person >= 0 && observerScope(event.people, person, hood))
+      markers.push({ event, x: rulerX(event.tick, w), y: 44, focused: true });
+  }
+  return markers;
+}
+function timelineHits(x, y, w) {
+  return timelineMarkers(w).filter((marker) => Math.abs(marker.x - x) <= 6 && Math.abs(marker.y - y) <= 9)
+    .sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x) || Math.abs(a.y - y) - Math.abs(b.y - y) || a.event.tick - b.event.tick);
+}
+function timelineDescription(event, t = S.t) {
+  if (event.tick > t) return "Upcoming recorded moment · click to jump and reveal it";
+  if (event.type === "act") return R.actText(R.acts[event.act]);
+  if (event.type === "tie") {
+    const tie = R.ties[event.tie], change = { feud: "began a feud", "kin-feud": "began a feud in the family", friendship: "became friends", reconciled: "reconciled" }[tie.what] ?? tie.what;
+    return `${R.names[tie.a]} and ${R.names[tie.b]} ${change}`;
+  }
+  const record = R.reflections[event.reflection], view = reflectionAt(record, t);
+  if (!view) return "A reflection begins";
+  const step = record.events[event.event];
+  if (step.status === "considered") return `${view.request.actor} ${isWakingDream(view) ? "woke with an idea" : "imagined"}: ${view.answer?.thought ?? "a possibility"}`;
+  return `${view.request.actor}: ${reflectionEventText(step, view.request, t)}`;
+}
+function timelinePointer(e) {
+  const rect = $("strip").getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width };
+}
+function hoverTimeline(e) {
+  if (!R) return;
+  timelineHover = e;
+  const { x, y, w } = timelinePointer(e), hits = timelineHits(x, y, w);
+  if (!hits.length) { hideTip(); return; }
+  const events = [...new Set(hits.map((hit) => hit.event))];
+  showTip(e, events.slice(0, 5).map((event) => el("div", null,
+    el("strong", { text: `${when(event.tick)} · ` }), timelineDescription(event))));
+  if (events.length > 5) tip.append(el("div", { text: `and ${events.length - 5} nearby moments` }));
+}
+function clickTimeline(e) {
+  if (!R) return;
+  const { x, y, w } = timelinePointer(e), hit = timelineHits(x, y, w)[0];
+  setPlaying(false); hideTip();
+  setTime(hit ? hit.event.tick : ((x - RULER_INSET) / (w - 2 * RULER_INSET)) * (R.end + 1));
+}
 function drawStrip() {
-  const c = $("strip"), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = 38;
+  const c = $("strip"), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = 54;
   if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = h * dpr; }
   const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   const X = (t) => rulerX(t, w);
@@ -1466,13 +1532,23 @@ function drawStrip() {
     g.fillRect(Math.round(x), season ? 8 : week ? 11 : 14, 1, season ? 18 : week ? 12 : 6);
     if (season && d < R.days) { g.fillStyle = COL["ink-2"]; g.fillText(SEASONS[(d / 28) % 4].toUpperCase(), x + 4, 0); }
   }
-  for (const a of R.acts) if (R.kinds[a.kind].tier === "Scandal" || R.kinds[a.kind].tier === "Upheaval") {
-    const x = X(a.tick); g.fillStyle = COL.ink; g.beginPath(); g.moveTo(x, 22); g.lineTo(x + 4, 26); g.lineTo(x, 30); g.lineTo(x - 4, 26); g.closePath(); g.fill();
+  $("timelineFocus").textContent = S.person < 0 ? "Town turning points · select a character to highlight their events" : `${R.names[S.person]} · encounters, thoughts and relationship changes`;
+  if (S.person >= 0) { g.fillStyle = COL["surface-2"]; g.fillRect(RULER_INSET, 43, w - 2 * RULER_INSET, 2); }
+  for (const marker of timelineMarkers(w)) {
+    const { event, x, y, focused } = marker;
+    g.globalAlpha = event.tick > S.t ? 0.3 : 1;
+    g.fillStyle = focused ? COL.accent : COL.ink;
+    if (event.type === "tie") {
+      const tie = R.ties[event.tie];
+      g.fillStyle = tie.what === "feud" || tie.what === "kin-feud" ? COL.dislike : tie.what === "friendship" ? COL.like : COL["ink-2"];
+      g.fillRect(Math.round(x) - 1, focused ? y - 4 : 10, 3, focused ? 8 : 14);
+    } else if (focused && event.type === "act") {
+      g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill();
+    } else {
+      g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill();
+    }
   }
-  for (const tie of R.ties) {
-    g.fillStyle = tie.what === "feud" || tie.what === "kin-feud" ? COL.dislike : tie.what === "friendship" ? COL.like : COL["ink-2"];
-    g.fillRect(Math.round(X(tie.tick)) - 1, 10, 3, 14);
-  }
+  g.globalAlpha = 1;
   const x = X(S.t); g.fillStyle = COL.accent; g.fillRect(Math.round(x) - 1, 0, 2, h);
   g.beginPath(); g.moveTo(x - 5, 0); g.lineTo(x + 5, 0); g.lineTo(x, 6); g.closePath(); g.fill();
 }
@@ -2870,7 +2946,13 @@ $("backHour").addEventListener("click", () => R && setTime(S.t - 60));
 $("fwdHour").addEventListener("click", () => R && setTime(S.t + 60));
 $("speed").addEventListener("change", (e) => { S.speed = +e.target.value; });
 $("scrub").addEventListener("input", (e) => R && setTime(+e.target.value, "scrub"));
-$("strip").addEventListener("click", (e) => { if (!R) return; const r = e.currentTarget.getBoundingClientRect(); setTime(((e.clientX - r.left - RULER_INSET) / (r.width - 2 * RULER_INSET)) * (R.end + 1)); });
+$("strip").addEventListener("click", clickTimeline);
+$("strip").addEventListener("mousemove", hoverTimeline);
+$("strip").addEventListener("mouseleave", hideTip);
+window.addEventListener("scroll", hideTip, { passive: true });
+new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty("--playback-height", `${Math.ceil(entry.target.getBoundingClientRect().height) + 12}px`);
+}).observe($("playbackBar"));
 for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));
 $("hoodSel").addEventListener("change", (e) => setHood(e.target.value));
 $("previousMoment").addEventListener("click", () => R && jumpMoment(-1));

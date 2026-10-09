@@ -38,6 +38,11 @@ viewer shows current moments, earlier-idea links, event navigation and plain-lan
 as the clock reaches them. Model calls pause simulation time, and recorded answers can be reused
 only with matching requests. All of this remains separate from Stardew and SMAPI.
 
+The observer controls now stay at the top while scrolling (2026-10-09). Selecting a person
+highlights their encounters, private thoughts/outcomes and relationship changes on a separate
+timeline row. Hover describes nearby events already reached; click pauses and jumps exactly.
+Future markers show only their time. The prepared local pages retain their original recordings.
+
 Scene and fake-HTTP tests verify the mechanics, context boundaries, deadline/fallback behavior and
 replay. The first live seven-day seed-7 recording made 27 successful Laya calls, without fallback,
 in about 1.5 seconds total. A separate 15-call paired trial had complete context and no truncation,

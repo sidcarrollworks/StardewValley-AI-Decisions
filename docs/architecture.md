@@ -40,6 +40,10 @@ The optional quiet-reflection prototype is specified in
 - `UnderGlass.Replay` and `sim/viewer/index.html`: recording, a current-moments strip and previous/
   next event navigation, plus Inner life chains from source memory through earlier idea, response,
   attempted act and plain-language outcome. Thoughts, outcomes and story views follow the replay clock.
+  Playback is a sticky sibling of the map, so it stays available throughout the lower views.
+  A selected-person timeline row marks performed/received encounters, their own thoughts/outcomes
+  and relationship changes. Hover resolves plain-text descriptions at the current clock; future
+  markers reveal only their time. Clicking a marker pauses and jumps to its exact recorded minute.
 - `UnderGlass.ReflectionTrial`: paired hypothetical decisions, with an exact baseline repeat,
   to separate changes in memory, trust and line meaning from choice-label and order effects.
 

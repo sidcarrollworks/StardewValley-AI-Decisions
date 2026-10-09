@@ -48,6 +48,12 @@ until one is made the page follows the host's theme, then the system's.
 - **The timeline** under it: a ruler of seasons, weeks and the run's turning points (feuds,
   friendships, reconciliations, scandals) over a fader, then the clock and the playback keys. Click
   the ruler to jump. Space plays; arrow keys step 5 minutes (Shift: an hour); `[` and `]` step a day.
+  The timeline, clock, playback and Previous/Next moment controls stick to the page top while
+  scrolling. Select a person to add a highlighted row: circles are their performed/received
+  encounters, diamonds their own thoughts/outcomes, and colored bars their relationship changes.
+  Hover lists nearby events; click pauses at the nearest marker's exact minute. Dim future
+  markers show only a time until you reach them. The clock updates open tooltips when playing
+  or rewinding. Previous/Next moment provides a keyboard-accessible way to follow these events.
 - **Happening now:** up to three active encounters, recent thoughts or waiting intentions,
   narrowed to the person or neighbourhood being followed. Follow a thought to its inner-life
   card. **Previous moment** and **Next moment** skip to recorded encounters, thoughts and tie

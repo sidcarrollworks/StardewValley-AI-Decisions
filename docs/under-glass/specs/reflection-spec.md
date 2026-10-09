@@ -8,6 +8,13 @@ Implemented: quiet-time and optional waking opportunities, nine editable daytime
 
 Not implemented: general dialogue generation, a large tagged speech library, seeking a person to fulfill an intention, long-term ambitions, or model tuning. The slice offers gifts, help and confrontation through existing act kinds. A thought cannot introduce an executable action the simulation does not support.
 
+Observer update, 2026-10-09: the timeline, clock, playback and Previous/Next moment stay visible
+while scrolling. Selecting a person adds a row for performed/received encounters, their own
+thoughts/outcomes and relationship changes. Hover lists nearby recorded events; clicking pauses
+at the nearest marker's exact minute. Future markers are dimmed and show only their time until
+reached. Tooltips follow playback and rewinding, render model content as text, and preserve the
+current-clock boundaries. Scrolling to a reflection reserves the bar's measured height.
+
 The authored catalog contains nine thoughts, their distinct dream variants, and five response profiles. Real local trials exercise raw, canonical and balanced evaluation, plus four additional personalities. The pinned Qwen3-0.6B generator has also run on the local GPU. Balanced evaluation removes incoming label/order effects by construction; this does not establish model understanding. Generated thoughts still need qualitative review. See the [first trial](../experiments/reflection-trial-2026-10-08.md) and [reliability and generator measurements](../experiments/reflection-reliability-2026-10-08.md). The 1,250-character working limit is Sid's constraint, not a universal server context specification.
 
 ## Purpose and design decision
