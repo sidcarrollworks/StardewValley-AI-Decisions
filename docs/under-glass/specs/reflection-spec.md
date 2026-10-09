@@ -99,8 +99,21 @@ dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --authored --o
 
 Five smoke pairs change remembered conduct, trust context, line-to-ID assignment, option order and option labels. `--suite social` adds four personalities, each with perspective, inspiration and order comparisons: 51 decisions, 291 passes in balanced mode. Every pair repeats its baseline afterward. Reports compare normalized distributions by ID and corresponding response meaning; total variation is half the summed absolute probability differences. Live mode exits nonzero on fallback/non-Laya answers or incomplete/truncated/unverified packets in any pass. JSON retains every request and answer. No probability quota is a quality target.
 
-## Tests and the next decision
+## Tests and next work
 
 Scene tests cover private knowledge, misidentification, source perspective, acceptance, reshaping, rejection, deferral, physical opportunity, work and wandering, expiry, causal IDs, cancellation, model latency, recorded replay and disabled-mode behavior. Catalog tests check applicability, seeded ambivalence, context-specific lines, unsupported acts and real adapter packet budgets. Adapter tests cover the text budget, complete lines, HTTP schema, malformed/truncated answers, timeouts, cancellation and fallback. Trial tests check counterfactual isolation, comparisons and audits; viewer checks cover time filtering, safe text and outcome navigation.
 
-Next, judge the complete observer scenes, including rejection, expiry, dreams and revisited ideas. Compare small generated proposals with the authored control and inspect factual grounding, voice and generator option bias. A [controlled generator probe](../experiments/reflection-generator-order-2026-10-08.md) found order sensitivity and copied speech. The generator now receives only supported act IDs/kinds and structured known-source roles; complete spoken lines go to Laya. This removes the direct copying channel, but the follow-up still found thoughts disagreeing with their proposed act and reversing the known source perspective. Hybrid remains experimental. A broader speech library and deliberate ambitions should build on that review. Do not tune toward a fixed proportion of agreeable characters or interesting-looking event counts.
+Sid's recording review supports continuing the hybrid direction. The [current roadmap](../roadmap.md)
+puts concrete encounter context and contextual appraisal next, followed by broader executable
+responses and follow-through. These are planned changes, not capabilities of this reflection
+slice. Review complete scenes, including rejection, expiry, dreams and revisited ideas, alongside
+that work rather than waiting for a perfect generator before enriching the world.
+
+Compare small generated proposals with the authored control and inspect factual grounding,
+voice and generator option bias. A [controlled generator probe](../experiments/reflection-generator-order-2026-10-08.md)
+found order sensitivity and copied speech. The generator now receives only supported act IDs/kinds
+and structured known-source roles; complete spoken lines go to Laya. This removes the direct
+copying channel, but the follow-up still found thoughts disagreeing with their proposed act and
+reversing the known source perspective. Hybrid remains experimental. Model comparisons proceed
+with prepared scenes and recorded answers; deliberate ambitions remain later work. Do not tune
+toward a fixed proportion of agreeable characters or interesting-looking event counts.

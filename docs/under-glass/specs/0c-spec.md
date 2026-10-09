@@ -1,5 +1,9 @@
 > The implementation spec as written before building (kept for reference). Where the code differs, `sim/README.md` and `docs/under-glass/design.md` ("As built") say how and why.
 
+> **Current planning:** the [roadmap](../roadmap.md) supersedes the older work order and
+> E1/E2 outcome gates. This document preserves the original mechanics and experiment criteria;
+> it is not a request to restore those outcome quotas.
+
 # Under Glass phase 0c: feelings — implementation spec
 
 All hooks below were checked against commit `b53bce8` (HEAD of `claude/affectionate-pasteur-qzdpvi`; the sim code has not changed since 0b, PR #40). Line numbers refer to that commit. Every constant is a first guess for the sweeps to settle.

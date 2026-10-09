@@ -1,4 +1,10 @@
-> Draft for Sid's review, 2026-10-08. Nothing here is built. It merges two designs ("Pelican Town, grown" and "Under Glass's own town"), the scaling experiment (the cast copied 2, 4 and 8 times), the town and act readers, and the real-town data brief (task 24). Line numbers are for `origin/main` (03c5745). Numbers marked *measured* come from those runs. Every other number is a first guess for the sweeps to settle.
+> **Current status (2026-10-09):** town loading, generation, grown maps and population controls
+> have since been built; see [the implementation reference](../../../sim/README.md). This
+> document preserves the original draft and measurements, not a current list of unbuilt work.
+> Further town scaling is later work in the [roadmap](../roadmap.md); the old outcome bands
+> and work order are historical criteria.
+
+> Draft for Sid's review, 2026-10-08, before implementation. It merges two designs ("Pelican Town, grown" and "Under Glass's own town"), the scaling experiment (the cast copied 2, 4 and 8 times), the town and act readers, and the real-town data brief (task 24). Line numbers are for `origin/main` (03c5745). Numbers marked *measured* come from those runs. Every other number is a first guess for the sweeps to settle.
 
 # Under Glass: a bigger, better-laid-out town (spec draft)
 

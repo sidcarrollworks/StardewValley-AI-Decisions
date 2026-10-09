@@ -1,3 +1,9 @@
+> **Current planning (2026-10-09):** this is a backlog specification, not the next batch to
+> implement. The [roadmap](../roadmap.md) puts encounter context, reflection responses and a
+> concrete follow-through mechanism first. Older E2/news budgets and batch order below are
+> historical. Dated code references and successive status notes are retained as implementation
+> history, not claims about current branches or open PRs.
+
 > Draft spec, 2026-10-08. **Built:** m-0, the scenario harness and the reach measures (`claude/reach-checks`; as built in 5.6); m-1, story events part 2 (`claude/story-events-2`; as built in 6.7); m-2, forked runs and V7 (`claude/forks`; as built in 6.8). Nothing else in batch 2 is built.
 >
 > It merges three designers' drafts of that day: **acts** (batch 2's kinds and their engine pieces), **reach** (festivals, the reach levers, the first new scandals, the scenario harness) and **twists** (story events, the variety measures, the deal). It builds step 2 of section 4 of `actions-and-twists.md`, with the measures of its step 0, and section 9 of `specs/acts-spec.md`, and keeps the acts spec's conventions: `ActGate`; the Light, Story and Ledger classes; a switch per slice; watch mode; E2.

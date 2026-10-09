@@ -739,6 +739,30 @@ the .NET suite guards the sticky containment and navigation controls. Browser ch
 scrolling, selection, overlapping hover descriptions, marker clicks, playback and rewinding
 past a thought without leaking its text.
 
+### D41. Prioritize concrete encounters and contextual significance in Under Glass
+
+**Decision (Sid, 2026-10-09).** Continue the observer-first social simulation and occasional
+local inspiration plus typed Laya evaluation. The [Under Glass roadmap](under-glass/roadmap.md)
+is the current work order: concrete encounter context and appraisal, broader executable responses
+with authored speech, follow-through, and controlled model comparisons alongside scene review.
+Player gameplay and larger ambition/generation systems come later.
+
+The [next slice](under-glass/specs/contextual-events-spec.md) separates recorded event facts,
+private intention, each person's perceived account, personal significance and interest to a
+particular listener. Routine reciprocal help need not be news. A meaningful exception needs
+known history or a supported cost/consequence, not a dramatic explanation invented afterward.
+Start with observer presentation; changing gossip selection is a separate verified step.
+Reuse the existing optional action catalog when expanding reflection.
+
+**Why.** Feud counts, news volume and E1/E2 thresholds do not tell us whether the observer can
+understand a relationship or wants to follow it. Keep those measurements as diagnostics and
+the older plans as dated history. Coherent quiet, hostile and socially collapsed runs are valid.
+Causal integrity, private knowledge, eligibility, resource conservation and recorded-answer
+replay remain requirements. Existing regressions are updated only with an intentional behavior
+change; this documentation reconciliation changes no runtime defaults or simulation behavior.
+Generator quality remains under review while the world gains context; fine-tuning is not a
+prerequisite for the next milestone.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

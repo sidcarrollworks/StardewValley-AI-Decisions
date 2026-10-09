@@ -15,8 +15,15 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 `sim/UnderGlass.sln` targets .NET 8 and has no Stardew or SMAPI dependencies. Its first product is
 the social simulation viewed from above: an observer should be able to follow what people
 remember, consider, attempt and experience. Player gameplay comes later. The simulator's full
-design and current build order are in [under-glass/design.md](under-glass/design.md) and
+design is in [under-glass/design.md](under-glass/design.md), current priorities are in
+[under-glass/roadmap.md](under-glass/roadmap.md), and implementation/history are in
 [../sim/README.md](../sim/README.md). The sections below this one describe the Stardew mod.
+
+Next is [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md):
+separate event facts, private cause and perceived accounts, then personal significance and
+listener-specific interest. That contract is planned. Current `ActKind.Tier` and gossip still
+use kind juiciness, and reflection still offers gift/help/confrontation plus defer/reject.
+Catalog actions exist behind switches; connecting more of them to reflection follows context.
 
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:

@@ -13,13 +13,20 @@ Working rules:
 - Prefer shadow mode (log what the mod would do, change nothing) before any behavior goes live.
 - Read `stardew-source-notes.md` before answering questions about game internals.
 
-## Under Glass: current direction (2026-10-08)
+## Under Glass: current direction (2026-10-09)
 
 The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social
 simulation viewed from above. Player gameplay comes afterward. The next milestone is a short run
 whose people and choices are worth following: observers can see what someone remembers, imagines,
 considers, intends, attempts and experiences. Feud/friendship counts and stability checks are
 diagnostics, not proof of an interesting town; coherent extreme outcomes are allowed.
+
+Sid reviewed the authored, Laya and local-generator recordings and finds the new direction
+promising. The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: concrete
+encounter context and separate personal/listener appraisal next, then broader actions and tagged
+speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
+is planned, not implemented. Earlier batch orders, news ceilings and E1/E2 thresholds remain
+historical evidence. They do not require quiet, hostile or socially collapsed runs to be tuned away.
 
 The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:
 nine editable authored thoughts cover kindness, suspicion, connection, boundaries, pride, repair,

@@ -1,5 +1,12 @@
 > Draft spec, partly built (see Status below). It merges two design proposals of 2026-10-08 (design A, "everyday life first", and design B, "story first") with two read-only reports: the act model and the town at scale. Once it is built, `sim/README.md` and `docs/under-glass/design.md` ("As built") will say where the code differs and why.
 
+> **Current planning (2026-10-09):** use the [roadmap](../roadmap.md). The optional batch 1
+> mechanics are built; reflection currently offers only gift, help and confrontation. Connecting
+> suitable catalog actions to reflection follows the contextual-encounters slice. Original
+> E1/E2, news-volume and build-order requirements below are historical experiment criteria.
+> The dated slice notes describe successive implementations; current code and `sim/README.md`
+> settle the present API and enabled defaults.
+
 # Under Glass: the act catalog, batch 1 (proposed phase 0d.7): implementation spec
 
 **Status (2026-10-08).** Batch 1 is built (acts-0 to acts-6), every slice off: acts-0's seams on `claude/local-acts-0`, its measures and baseline on `claude/local-acts-0b`, acts-1 (Returns) on `claude/local-acts-1`, acts-2 (Company) on `claude/local-acts-2`, acts-3 (Welcome) on `claude/local-acts-3`, acts-4 (Repair) on `claude/local-acts-4`, acts-5 (Sides) on `claude/local-acts-5` and acts-6 (Late) on `claude/local-acts-6`. Every switch is off, and every pin holds.

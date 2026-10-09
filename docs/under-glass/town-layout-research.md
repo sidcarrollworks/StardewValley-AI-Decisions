@@ -1,5 +1,9 @@
 # Real towns as a guide to Under Glass layouts: a data brief
 
+> Historical research input for the town generator; the [roadmap](roadmap.md) puts further
+> town expansion later. See `sim/README.md` for the generator and maps already implemented.
+> The measurements below remain research evidence, not mandatory layouts or a new work queue.
+
 This brief turns real small-town data into numbers a layout generator can use. The numbers come from eight real towns measured from open map data, plus published research. Distances are given in metres and in walking minutes, so they still hold whichever tile scale is chosen (section 0). Nothing in the repository was changed.
 
 ## How the numbers are marked

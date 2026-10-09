@@ -1,12 +1,16 @@
 # Under Glass
 
-*Design draft 2, 2026-10-05; observer-first direction updated 2026-10-08. Draft 1 was the brainstorm; this version folds in Sid's notes: layers of visibility, a world that goes on without the player, the name, Spinoza as the basis for how people act, and the engine choice.*
+*Design draft 2, 2026-10-05; current direction reconciled 2026-10-09. Draft 1 was the brainstorm; this version folds in Sid's notes: layers of visibility, a world that goes on without the player, the name, Spinoza as the basis for how people act, and the engine choice.*
+
+**Current priorities:** [roadmap.md](roadmap.md) is the build order. This design retains dated
+decisions, implemented rules and future player concepts. Older social quotas, frequency targets
+and experiment gates explain historical tuning; they do not override the observer-first roadmap.
 
 ## 1. The recommendation in brief
 
 The first version is an in-depth social simulation viewed from above: Under Glass. Villagers see what happens around them, more clearly the closer they are and the longer they watch, and remember it. They retell the juicy parts, hold a feeling toward every other person and act on motives. The observer should understand what each person believes, is considering and is trying to do, and see what follows. Player farming, trade and participation are later work; the player designs below describe that later direction.
 
-The headless town, diagnostics and replay viewer are built. The immediate priority is making individual lives understandable and worth following. The opt-in reflection slice has nine editable contextual thoughts, distinct waking variants, five response profiles, persistent intentions and actual later encounters ([reflection spec](specs/reflection-spec.md)). Deferred ideas can return after new personal knowledge, with explicit links to what changed. Optional dream opportunities come from actual sleep, and a pinned small local generator can propose private inspiration. The viewer adds current moments and navigation through thoughts, acts and outcomes. Following the [first live trial's](experiments/reflection-trial-2026-10-08.md) label sensitivity, replay evaluation now balances labels and positions across Laya calls. The [reliability trial](experiments/reflection-reliability-2026-10-08.md) verifies that control; compelling social judgment remains unresolved. A larger tagged speech library follows only after that loop proves useful. The text REPL is no longer the next product milestone.
+The headless town, diagnostics and replay viewer are built. The opt-in reflection slice has nine editable contextual thoughts, distinct waking variants, five response profiles, persistent intentions and actual later encounters ([reflection spec](specs/reflection-spec.md)). Deferred ideas can return after new personal knowledge. A pinned small local generator can supply private inspiration. The viewer exposes the chain, selected-character events and sticky playback. Replay evaluation balances labels and positions across Laya calls; [measurements](experiments/reflection-reliability-2026-10-08.md) distinguish that control from model quality. Sid reviewed the three recording paths and finds the shift promising. Next are [concrete encounter context and appraisal](specs/contextual-events-spec.md), broader actions and tagged speech, follow-through and controlled model comparisons. Continue scene review alongside these features; neither model tuning nor a text REPL is a prerequisite.
 
 **Evaluation direction (Sid, 2026-10-08).** A feud and a friendship in 60% of years cannot establish that either relationship is interesting. Quiet towns and towns at war are allowed outcomes. Numbers still help identify bugs and compare causes, but the goal is intelligible, surprising social lives rather than keeping every run within a preferred balance band.
 
@@ -197,7 +201,7 @@ Every constant here is a first guess, to be tested in phase 0.
    - When the people holding a scandal reach a quarter of those who know the actor (minimum 3), one of them confronts the actor. A seeded draw weighted by intensity x boldness picks who, preferring the person harmed.
    - Each scandal gets one confrontation, and a confrontation has base juiciness 3.
    - *As built in 0c:* hearsay moves mood by 0.5 x credence in the first teller, where credence is today's 0.5 + 0.5 x familiarity, leaning by at most 0.25 x (1 - understanding) toward tellers liked or disliked. Hearsay becomes regard at 0.25 x confidence when a second teller with no shared chain agrees, and at 0.5 when confirmed first-hand: seeing the culprit warned, taken in, set to service or rowed with at home, or, for the keeper, getting the goods paid back. Someone who saw or found it and then hears the name counts at 0.5 x clarity x confidence. Nobody confronts someone they love (0.4 or more); among the rest, hate for the culprit makes it up to three times likelier, so the person harmed is preferred without a special case.
-   - **Tiers** (decided 2026-10-05). Every act kind belongs to one tier. The tier decides what the story can do, and each tier has a target for how often it happens in a town of 12:
+   - **Legacy tiers** (decided 2026-10-05; still implemented). Every act kind currently belongs to one tier derived from its base juiciness, valence and upheaval flag. This explains present gossip/authority behavior, not whether an individual encounter is interesting. The frequency column below preserves historical expectations for 12 villagers; it is not a current acceptance target. See the planned contextual appraisal after the table.
 
      | Tier | Juiciness | Examples | Retold | Effect on listeners | How often, town-wide |
      |---|---|---|---|---|---|
@@ -206,7 +210,8 @@ Every constant here is a first guess, to be tested in phase 0.
      | Scandal | 4 and up, bad | theft, the bin | yes, and fades slowly | a motive; a confrontation once enough people know | 1-2 a year from villagers in a settled town; more under strain or from the player |
      | Upheaval | set per kind | a shop closes, someone moves out, a couple splits | to everyone, and posted on the board | a motive for everyone it touches; can become a town-meeting item | once a year or less |
 
-   - **Scandals and upheavals come from pressure, not dice.** A villager commits a scandal only when a vice is triggered (rule 15): a low purse, a run of bad days. An upheaval comes only from long pressure: weeks of losses, a feud, a failed courtship. A settled town is quiet; a strained one is not. How often they happen is a result we check against the table, not a rate we set.
+   - **Contextual appraisal (planned, 2026-10-09).** Separate personal significance from interest to a particular listener. Routine household care is usually everyday activity, while a supported response to a recent hurt or a concrete need may deserve a relationship highlight. Neither help nor an argument is automatically news. Record public facts, private cause and perceived accounts separately; cite known history and actual costs when available, never invented context. Observer labels/grouping come first, listener-specific gossip later. Reporting and crime rules stay explicit rather than following display salience. [Next slice](specs/contextual-events-spec.md).
+   - **Scandals and upheavals come from pressure.** A villager's temptation can follow a low purse or an unmet want; choices may still be sampled. Planned upheavals follow sustained circumstances such as losses, a feud or a failed courtship. Frequency is an outcome to investigate, not a quota to satisfy. A coherent quiet or strained town is allowed.
 10. **Motives and acts.** A villager acts toward a subject, villager or player, only on a motive about that subject.
     - It acts when boldness + 0.5 x familiarity + 0.5 x intensity reaches the act's cost (wave 0.2, note 0.25, chat 0.3, gift 0.4, walk up 0.5, visit 0.7, confront 0.8; hostile acts +0.3), and intensity reaches the act's minimum.
     - Code decides when the margin is more than 0.15 from the cost. Inside that band, a seeded draw with P = logistic(8 x margin), tilted by mood, decides.
@@ -353,7 +358,13 @@ Decided (Sid, 2026-10-05): the player writes free text, villagers can misread th
    - Misreadings are visible and repairable: lines can say how a villager took something ("Hana thought you were laughing at Ivo"), and the player can correct it, which supplies a cause (law 10).
 3. **Close calls:** a seeded draw breaks ties near an act's threshold, and Laya may tilt it. It is the weakest use (the mod's yes/no answers bunched between 0.47 and 0.60) and stays only if a test shows it matters.
 
-**Where Laya never goes:** perception and clarity, who knows what, money, the conatus arithmetic, the gossip rules, and the headless 1000-seed sweeps. Those stay deterministic, fast and tested.
+**Engine responsibilities:** perception and clarity, acquisition of knowledge, resource accounting,
+the numerical feeling model, action eligibility and propagation of beliefs remain tested engine
+rules. Laya evaluates meanings/choices from the person's known scene; it is not confined to close
+numerical calls. A generator supplies private possibilities, not facts. Initial event appraisal
+uses an explainable authored baseline; a model reading of an encounter is a later controlled
+experiment, not permission to fabricate knowledge or bypass propagation rules. Ordinary bulk
+sweeps keep models off; exact model-driven replay uses recorded answers.
 
 **Determinism.** Reflection records the exact request, remembered source facts, prepared proposal, evaluator passes, answer and sampled choice. A reconsideration also records its root, previous thought/source, a bounded earlier idea and why later known context reopened it. The old idea is imagination, not evidence; the new encounter stays the immediate cause of any act. Answers requested at minute *t* take effect at *t+1*; the recorder awaits inference between minutes, so wall-clock latency does not select a different simulation time. Tape replay checks and reuses recorded answers, including matching proposal tags and continuity. A seed alone cannot guarantee that a live model gives the same answer. The authored control is currently uncalibrated; ordinary headless sweeps keep reflection off.
 
@@ -368,7 +379,7 @@ Decided (Sid, 2026-10-05): the player writes free text, villagers can misread th
 **Earlier in-process investigation** (checked at github.com/NandhaKishorM/laya, v0.3.28, 2026-10-05; Hugging Face was not reachable from the cloud session). The implemented reflection adapter instead uses HTTP from .NET 8; the following is a historical alternative, not a current runtime requirement:
 - Licence: Apache 2.0 (the repo). The weights' licence on the model card still needs a look.
 - `laya-dotnet`: a C# port of the inference path on ONNX Runtime, with no Python at runtime, answers checked against golden outputs from the Python code. It supports choice, score and yes/no, batched in one forward pass. It targets .NET 10 and uses `Microsoft.ML.OnnxRuntime` 1.30 (CUDA and DirectML builds exist for the GPU). Checkpoints are exported with the repo's ONNX script; quantized models are not supported in the .NET port's v1.
-- So Under Glass can call Laya in-process from C#, with no sidecar. The simulator and the Godot project should target .NET 10 to match (VERIFY that Godot's .NET build accepts a net10.0 project).
+- That historical alternative would require matching its runtime and verifying Godot compatibility. It is not an instruction to retarget the implemented .NET 8 HTTP prototype.
 - Fine-tuning: `laya-train --data file.csv --out ./ft` trains on a plain CSV, discovering the labels. That means Laya can be trained on our own question types (how a villager reads a moment, what a note means) from labels Sid writes.
 
 **Ordinary speech and occasional imagination (updated 2026-10-08).** Most spoken lines should be authored and editable, with archetype, mood and context tags. An LLM's first role is occasional imagination during quiet time or on waking. Its proposal can influence a later typed decision and thus the simulation; it is not only decoration. The prototype embeds an editable nine-thought catalog with waking variants and five response profiles, varying voice with temperament and motives with remembered context. Bounded reconsideration after a later known encounter and optional dreams are built. A full speech library and generated spoken dialogue are not built. The local generative path runs, but its content still needs judgment in scenes.
@@ -443,7 +454,9 @@ This is a first sketch. The constants and the meeting rules are for us to work o
 
 ## 7. Farming and the economy
 
-**What stays:** seasons, crops, watering, rain, tools, animals, machines, fishing, foraging, and later the mine. Version 1 is small: plots, 4 crops, chickens and one machine.
+**Later player phase:** seasons, crops, watering, rain, tools, animals, machines, fishing,
+foraging, and later the mine. Its initial farming scope is small: plots, 4 crops, chickens and
+one machine. None of this is required for the first observer product.
 
 **What becomes systemic:**
 - **No shipping bin.** Goods go to named buyers: the general store, the chain store, the saloon kitchen, the carpenter, and a trader who visits twice a week. The trader pays the floor price from an outside account and has a weekly cap.
@@ -494,9 +507,9 @@ Each story becomes a golden scenario test before its rules are coded.
 ## 9. Ideas grafted, and ideas dropped
 
 The spine is the minimal-lab concept (Under Glass). From it we keep:
-- witnessing as the only way to learn anything;
-- the act table as the only social content;
-- kill criteria, bots and the REPL.
+- knowledge from one's own acts, witnessing, communicated accounts or recorded traces;
+- executable act contracts, with authored speech and private imagination around them;
+- mechanics checks and diagnostic probes; the text REPL remains later work.
 
 It was the only concept built around "set up rules and run a simulation". The grafts fill its gaps: nothing fuels the town, good news travels less far than bad news, and the economy is thin.
 
@@ -521,21 +534,21 @@ It was the only concept built around "set up rules and run a simulation". The gr
 
 ## 10. Risks and early experiments
 
-| Risk | Test | Pass |
+| Risk | Test | Evidence sought / required invariant |
 |---|---|---|
 | Individual lives are uninteresting or impossible to follow | Follow complete memory, thought, decision and consequence chains; use E1 for diagnosis | The observer can explain the choice from the person's perspective and wants to see what follows. Quiet and war towns are permitted; earlier numeric bands are historical experiment thresholds. |
-| Gossip saturates the town | Gossip-only harness | A scandal reaches 40-70% of the town over 3 or more days |
-| Money leaks, or the farm swamps the town | Stock-and-flow model, 4 seasons per bot | Town cash drops less than 30% a season; the player holds under 5x town cash after season 1 |
-| Regard can be pumped | MaxRegard, Sneak, Iago, CrashThenRescue and GiftSpam bots | None beats the Saint bot by more than 20% |
-| The town only mirrors the player | E3, player policies | 40%+ of stories have no player in their cause chain |
-| The player cannot follow it | Drama-density metric; the REPL | 3 or more acts seen a day; Sid wants a second text season |
+| Gossip behaves unexpectedly | Gossip-only harness and listener-specific scenes | Valid knowledge/source chains and explainable spread. The old 40-70% reach band is a diagnostic, not a universal target. |
+| Money leaks, or the farm swamps the town | Stock-and-flow model; player bots later | Cash conservation is required. Depletion and player/town wealth ratios are outcomes to inspect, not mandatory social balance bands. |
+| Regard can be pumped in later player gameplay | MaxRegard, Sneak, Iago, CrashThenRescue and GiftSpam bots | Inspect incentives and abuse cases; the original 20% comparison is a future probe, not an observer milestone gate. |
+| The town only mirrors the later player | E3, player policies | Trace independent causes; the original 40% band is diagnostic, not a required story quota. |
+| The observer cannot follow it | Complete scenes in the replay dashboard | Sources, interpretations, choices and consequences are readable, including quiet periods and failed intentions. No minimum spectacle count. |
 | The stories contradict the numbers | Golden scenarios | All pass, or the rule changes |
-| A rule adds nothing | E2, ablations | A rule stays only if removing it moves a story metric by 20% or more |
-| Logs differ between machines | Windows and Linux CI | Same hash; values stored as fixed-point numbers |
-| The model does not earn its place | E4, blind read against the calibrated Fake client | Sid prefers Laya's seasons |
+| A rule adds complexity without value | E2-style ablations and scene review | Explain its causal or observer value. A 20% aggregate change is historical evidence, not a universal retention gate. |
+| Logs differ between machines | Determinism/replay tests on Windows and Linux | Same recorded inputs and model answers produce the same simulation log. A seed alone does not fix fresh inference. |
+| Model influence is unclear or unhelpful | Prepared scenes and controlled generator/evaluator comparisons | Inspect proposals, judgments, choices, outcomes and cost separately, with authored controls. |
 
 E0 runs first and checks four things:
-- the same seed gives the same log;
+- the same world inputs, seed and recorded model answers give the same log;
 - regard stays in range;
 - the caps hold;
 - every heard story traces back to a witness, or to someone who found its trace.
@@ -555,9 +568,9 @@ E5 is Sid's blind read of 10 season journals.
   - the viewer replays runs.
 - **0e (proposed, 2026-10-07).** Character over time and generations (rule 18, 11e): traits that change with events and harden with age, inheritance with mutation, the life course (couples, births, children leaving home, deaths), and time skips of 5-10 years between runs.
 - **Observer reflection slice (built opt-in, 2026-10-08).** Quiet time or waking -> contextual private inspiration -> evaluation of actual lines -> persistent intention -> encounter -> outcome. New personal knowledge can reopen a deferred idea with bounded revisions. The viewer exposes these links, current moments and navigation. Nine thoughts with waking variants and five response profiles are editable; live Raw/Canonical/Balanced evaluation, optional local generation and smoke/social probes work. Balanced controls arbitrary presentation in replay, but model quality remains unresolved. [The spec](specs/reflection-spec.md) and [reliability trial](experiments/reflection-reliability-2026-10-08.md) separate implemented behavior from the next experiments.
-- **Exit:** E0-E3 and the golden scenarios pass.
+- **Foundation checks:** deterministic mechanics, source/privacy boundaries, resource conservation and semantic regression scenes. Historical E1-E3 outcome gates are diagnostics under the current roadmap.
 
-**Phase 1: the observable social simulation (first product).** Make a few individual relationships compelling to follow from above. Compare authored controls, Laya evaluation and generated inspiration in real scenes. Bounded continuation, optional waking inspiration and observer navigation are built; judge them in longer runs before expanding mood/context-tagged lines and ongoing plans. Keep causality visible in the viewer instead of requiring the observer to reconstruct repetitive logs. The old text-REPL-first sequence is superseded.
+**Phase 1: the observable social simulation (first product).** Follow [the current roadmap](roadmap.md): concrete encounters and separate personal/listener appraisal, broader executable responses with tagged speech, follow-through and everyday situations, and model comparisons alongside scene review. Bounded continuation, waking inspiration, event navigation and sticky playback are built. The context slice is planned. Keep causality visible rather than requiring an observer to reconstruct repetitive logs. Larger action batches, generations and a text REPL are backlog, not prerequisites.
 
 **Phase 2: player gameplay after the observer version.** Add a player and participation in the town once its social lives stand on their own. A Godot 4 C# project can render `UnderGlass.Sim`, with Stardew's art privately as placeholders, or simple shapes. Separately, Stardew stays useful as a test bed for single ideas:
 - First, a wheel spike in the current mod. It sits behind a switch that is off by default and logs each villager's reading as a `[shadow]` line. Villagers' visible reactions go live only with Sid's go-ahead (AGENTS.md rule 1).
@@ -568,7 +581,7 @@ E5 is Sid's blind read of 10 season journals.
 - **Experiments: plain C# on .NET 8.** The simulator core, replay CLI and optional `UnderGlass.Minds` HTTP adapter target .NET 8. The simulator is a class library with console runners and xUnit tests; the text REPL remains later work. An in-process .NET 10 Laya port is an alternative, not required by this prototype.
   - It is the best documented and fastest option for the experiments.
   - The cloud agents can build, test and run it with no game or editor installed.
-  - It reuses this repo's libraries directly, and it is deterministic and easy to run 1000 seeds of.
+  - It keeps an independent simulator core with no game or SMAPI references; authored bulk sweeps are deterministic and do not require inference.
 - **Visual prototype and final game: Godot 4 with C#.**
   - The renderer is a Godot project that references the same `UnderGlass.Sim` library and only reads its snapshots and events.
   - Sid can open the scenes, place art, paint maps and change the UI himself.

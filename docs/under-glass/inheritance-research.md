@@ -1,5 +1,9 @@
 # Inheritance, mutation and change of character: research for Under Glass (rule 18, 11e)
 
+> Research for later generation mechanics, not the next milestone. The [roadmap](roadmap.md)
+> puts concrete encounters, responses and follow-through first. Preserve these findings for
+> that later feature without treating its build plan as the present work queue.
+
 Scope: the six traits of law 12 (chattiness, boldness, understanding, self-regard, sensitivity, retention), each 0..1; children of two parents; 5-10 simulated years between runs, across generations. Every claim names its source. "Verify" marks anything recalled or seen only in an abstract or search summary, not checked in the paper itself.
 
 ## 1. How heritable are traits like these?
