@@ -1,0 +1,2002 @@
+{
+  "requestedLaya": true,
+  "model": "typed-decisions",
+  "comparisons": [
+    {
+      "id": "memory",
+      "change": "Only remembered kindness changes to remembered hostility.",
+      "baseline": {
+        "role": "baseline",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 94.278,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "variant": {
+        "role": "variant",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam mocked Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.24762476247624762,
+            "o2": 0.20232023202320232,
+            "o3": 0.35083508350835085,
+            "o4": 0.12921292129212922,
+            "o5": 0.07000700070007002
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam mocked Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.2476,\u0022o2\u0022:0.2023,\u0022o3\u0022:0.3508,\u0022o4\u0022:0.1292,\u0022o5\u0022:0.07},\u0022confidence\u0022:0.0761,\u0022answer_confidence\u0022:0.3508,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:198,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:76,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.24762476247624762,
+          "o2": 0.20232023202320232,
+          "o3": 0.35083508350835085,
+          "o4": 0.12921292129212922,
+          "o5": 0.07000700070007002
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 29.8429,
+        "prompt": {
+          "textCharacters": 732,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam mocked Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 198,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "repeat": {
+        "role": "baseline-repeat",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 30.0682,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "byIdTotalVariation": 0.06868312068683118,
+      "semanticTotalVariation": 0.06868312068683118,
+      "repeatTotalVariation": 0,
+      "byIdChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.24762476247624762,
+          "delta": 0.05114441051144411
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.20232023202320232,
+          "delta": 0.01753871017538708
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.35083508350835085,
+          "delta": -0.05142469051424686
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.12921292129212922,
+          "delta": -0.001374020013740207
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.07000700070007002,
+          "delta": -0.015884410158844092
+        }
+      ],
+      "semanticChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.24762476247624762,
+          "delta": 0.05114441051144411
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.20232023202320232,
+          "delta": 0.01753871017538708
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.35083508350835085,
+          "delta": -0.05142469051424686
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.12921292129212922,
+          "delta": -0.001374020013740207
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.07000700070007002,
+          "delta": -0.015884410158844092
+        }
+      ]
+    },
+    {
+      "id": "trust",
+      "change": "Only Penny\u0027s expectation of trust changes; memory, thought and lines stay fixed.",
+      "baseline": {
+        "role": "baseline",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "context": "Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.2942,
+            "o2": 0.20759999999999998,
+            "o3": 0.31859999999999994,
+            "o4": 0.10529999999999999,
+            "o5": 0.0743
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.\\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.2942,\u0022o2\u0022:0.2076,\u0022o3\u0022:0.3186,\u0022o4\u0022:0.1053,\u0022o5\u0022:0.0743},\u0022confidence\u0022:0.0799,\u0022answer_confidence\u0022:0.3186,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:198,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:76,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.2942,
+          "o2": 0.20759999999999998,
+          "o3": 0.31859999999999994,
+          "o4": 0.10529999999999999,
+          "o5": 0.0743
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 30.216,
+        "prompt": {
+          "textCharacters": 732,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 198,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "variant": {
+        "role": "variant",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "context": "Penny distrusts Pam to listen in private or keep her confidence. Penny is reserved and wants to be heard.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.26142614261426145,
+            "o2": 0.22182218221822178,
+            "o3": 0.3404340434043404,
+            "o4": 0.1071107110711071,
+            "o5": 0.0692069206920692
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny distrusts Pam to listen in private or keep her confidence. Penny is reserved and wants to be heard.\\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.2614,\u0022o2\u0022:0.2218,\u0022o3\u0022:0.3404,\u0022o4\u0022:0.1071,\u0022o5\u0022:0.0692},\u0022confidence\u0022:0.0831,\u0022answer_confidence\u0022:0.3404,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:199,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:77,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.26142614261426145,
+          "o2": 0.22182218221822178,
+          "o3": 0.3404340434043404,
+          "o4": 0.1071107110711071,
+          "o5": 0.0692069206920692
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 26.0232,
+        "prompt": {
+          "textCharacters": 734,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny distrusts Pam to listen in private or keep her confidence. Penny is reserved and wants to be heard.\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 199,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "repeat": {
+        "role": "baseline-repeat",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "context": "Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.2942,
+            "o2": 0.20759999999999998,
+            "o3": 0.31859999999999994,
+            "o4": 0.10529999999999999,
+            "o5": 0.0743
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.\\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.2942,\u0022o2\u0022:0.2076,\u0022o3\u0022:0.3186,\u0022o4\u0022:0.1053,\u0022o5\u0022:0.0743},\u0022confidence\u0022:0.0799,\u0022answer_confidence\u0022:0.3186,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:198,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:76,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.2942,
+          "o2": 0.20759999999999998,
+          "o3": 0.31859999999999994,
+          "o4": 0.10529999999999999,
+          "o5": 0.0743
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 20.2668,
+        "prompt": {
+          "textCharacters": 732,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny trusts Pam to listen in private and keep her confidence. Penny is reserved and wants to be heard.\nKnown memory: Pam spoke sharply to Penny yesterday and later asked whether they could talk.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 198,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "byIdTotalVariation": 0.03786693669366938,
+      "semanticTotalVariation": 0.03786693669366938,
+      "repeatTotalVariation": 0,
+      "byIdChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.2942,
+          "variant": 0.26142614261426145,
+          "delta": -0.03277385738573857
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.20759999999999998,
+          "variant": 0.22182218221822178,
+          "delta": 0.014222182218221802
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.31859999999999994,
+          "variant": 0.3404340434043404,
+          "delta": 0.021834043404340475
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.10529999999999999,
+          "variant": 0.1071107110711071,
+          "delta": 0.0018107110711071128
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.0743,
+          "variant": 0.0692069206920692,
+          "delta": -0.005093079307930806
+        }
+      ],
+      "semanticChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.2942,
+          "variant": 0.26142614261426145,
+          "delta": -0.03277385738573857
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.20759999999999998,
+          "variant": 0.22182218221822178,
+          "delta": 0.014222182218221802
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.31859999999999994,
+          "variant": 0.3404340434043404,
+          "delta": 0.021834043404340475
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.10529999999999999,
+          "variant": 0.1071107110711071,
+          "delta": 0.0018107110711071128
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.0743,
+          "variant": 0.0692069206920692,
+          "delta": -0.005093079307930806
+        }
+      ]
+    },
+    {
+      "id": "line-meaning",
+      "change": "Only the two confrontation lines trade places between stable IDs; both keep the same act kind.",
+      "baseline": {
+        "role": "baseline",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 20.6676,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "variant": {
+        "role": "variant",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.146,
+            "o2": 0.298,
+            "o3": 0.348,
+            "o4": 0.1205,
+            "o5": 0.0875
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o2\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.146,\u0022o2\u0022:0.298,\u0022o3\u0022:0.348,\u0022o4\u0022:0.1205,\u0022o5\u0022:0.0875},\u0022confidence\u0022:0.0822,\u0022answer_confidence\u0022:0.348,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.146,
+          "o2": 0.298,
+          "o3": 0.348,
+          "o4": 0.1205,
+          "o5": 0.0875
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 19.275,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "repeat": {
+        "role": "baseline-repeat",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 22.4815,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "byIdTotalVariation": 0.11482706729327066,
+      "semanticTotalVariation": 0.10312823717628239,
+      "repeatTotalVariation": 0,
+      "byIdChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.1964803519648035,
+          "variant": 0.146,
+          "delta": -0.05048035196480352
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.18478152184781524,
+          "variant": 0.298,
+          "delta": 0.11321847815218475
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.348,
+          "delta": -0.05425977402259774
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.1205,
+          "delta": -0.010086941305869429
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.0875,
+          "delta": 0.0016085891410858866
+        }
+      ],
+      "semanticChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o2",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.298,
+          "delta": 0.10151964803519647
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o1",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.146,
+          "delta": -0.03878152184781525
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.348,
+          "delta": -0.05425977402259774
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.1205,
+          "delta": -0.010086941305869429
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.0875,
+          "delta": 0.0016085891410858866
+        }
+      ]
+    },
+    {
+      "id": "choice-order",
+      "change": "Only candidate order reverses; IDs, lines, thought and proposed choice stay fixed.",
+      "baseline": {
+        "role": "baseline",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 21.9061,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "variant": {
+        "role": "variant",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o5": 0.06990000000000002,
+            "o4": 0.1471,
+            "o3": 0.4162,
+            "o2": 0.1678,
+            "o1": 0.199
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o5\u0022:0.0699,\u0022o4\u0022:0.1471,\u0022o3\u0022:0.4162,\u0022o2\u0022:0.1678,\u0022o1\u0022:0.199},\u0022confidence\u0022:0.0968,\u0022answer_confidence\u0022:0.4162,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o5": 0.06990000000000002,
+          "o4": 0.1471,
+          "o3": 0.4162,
+          "o2": 0.1678,
+          "o1": 0.199
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 19.1065,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "repeat": {
+        "role": "baseline-repeat",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 19.6774,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "byIdTotalVariation": 0.03297293270672935,
+      "semanticTotalVariation": 0.03297293270672935,
+      "repeatTotalVariation": 0,
+      "byIdChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.199,
+          "delta": 0.002519648035196498
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.1678,
+          "delta": -0.016981521847815234
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.4162,
+          "delta": 0.013940225977402299
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.1471,
+          "delta": 0.016513058694130583
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.06990000000000002,
+          "delta": -0.01599141085891409
+        }
+      ],
+      "semanticChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.199,
+          "delta": 0.002519648035196498
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.1678,
+          "delta": -0.016981521847815234
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.4162,
+          "delta": 0.013940225977402299
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.1471,
+          "delta": 0.016513058694130583
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.06990000000000002,
+          "delta": -0.01599141085891409
+        }
+      ]
+    },
+    {
+      "id": "choice-labels",
+      "change": "Only opaque choice labels change; actual lines, order and kinds stay fixed. The proposal reference is renamed to the same semantic option.",
+      "baseline": {
+        "role": "baseline",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 19.0189,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "variant": {
+        "role": "variant",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "r7",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "r2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "r9",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "r1",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "r4",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "r9",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "r9",
+          "weights": {
+            "r7": 0.1699,
+            "r2": 0.18530000000000002,
+            "r9": 0.3645,
+            "r1": 0.1574,
+            "r4": 0.1229
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022r7\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022r2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022r9\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022r1\u0022:\u0022no act: I need more time to think.\u0022,\u0022r4\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022r9\u0022,\u0022probabilities\u0022:{\u0022r7\u0022:0.1699,\u0022r2\u0022:0.1853,\u0022r9\u0022:0.3645,\u0022r1\u0022:0.1574,\u0022r4\u0022:0.1229},\u0022confidence\u0022:0.0493,\u0022answer_confidence\u0022:0.3645,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "r7": 0.1699,
+          "r2": 0.18530000000000002,
+          "r9": 0.3645,
+          "r1": 0.1574,
+          "r4": 0.1229
+        },
+        "topChoice": "r9",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 19.7285,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "repeat": {
+        "role": "baseline-repeat",
+        "request": {
+          "id": "controlled-scene",
+          "tick": 720,
+          "actor": "Penny",
+          "subject": "Pam",
+          "sourceActId": 7,
+          "memory": "Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "context": "Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.",
+          "choices": [
+            {
+              "id": "o1",
+              "kind": "Argued",
+              "line": "What happened still bothers me. Could we talk privately?"
+            },
+            {
+              "id": "o2",
+              "kind": "Argued",
+              "line": "Everyone should hear how you treated me. Explain yourself."
+            },
+            {
+              "id": "o3",
+              "kind": "HelpedSomeone",
+              "line": "Let me give you a hand with that."
+            },
+            {
+              "id": "o4",
+              "kind": "",
+              "line": "I need more time to think."
+            },
+            {
+              "id": "o5",
+              "kind": "",
+              "line": "No. I don\u0027t want to act on this thought."
+            }
+          ],
+          "source": null,
+          "proposal": {
+            "id": "trial-help",
+            "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+            "suggestedChoice": "o3",
+            "tags": [
+              "controlled-trial",
+              "mixed-feelings"
+            ]
+          }
+        },
+        "answer": {
+          "thought": "I could offer Pam a hand, but perhaps I should first say what is on my mind.",
+          "suggestedChoice": "o3",
+          "weights": {
+            "o1": 0.1964803519648035,
+            "o2": 0.18478152184781524,
+            "o3": 0.4022597740225977,
+            "o4": 0.13058694130586943,
+            "o5": 0.08589141085891411
+          },
+          "backend": "authored\u002Blaya",
+          "note": "Authored thought; Laya evaluated the candidate lines.",
+          "layaPrompt": "{\u0022state\u0022:\u0022Person: Penny. About: Pam.\\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\\nKnown memory: Pam praised Penny\\u0027s work yesterday, when nobody else was around.\u0022,\u0022model\u0022:\u0022typed-decisions\u0022,\u0022questions\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022instructions\u0022:\u0022Which response fits this person? Read each actual line. The thought is imagined, not evidence. Rejecting or delaying is valid.\u0022,\u0022criteria\u0022:{\u0022o1\u0022:\u0022Argued: What happened still bothers me. Could we talk privately?\u0022,\u0022o2\u0022:\u0022Argued: Everyone should hear how you treated me. Explain yourself.\u0022,\u0022o3\u0022:\u0022HelpedSomeone: Let me give you a hand with that.\u0022,\u0022o4\u0022:\u0022no act: I need more time to think.\u0022,\u0022o5\u0022:\u0022no act: No. I don\\u0027t want to act on this thought.\u0022}}}}",
+          "generationPrompt": null,
+          "layaResponse": "{\u0022model\u0022:\u0022laya-rl-agent\u0022,\u0022answers\u0022:{\u0022q\u0022:{\u0022type\u0022:\u0022choice\u0022,\u0022choice\u0022:\u0022o3\u0022,\u0022probabilities\u0022:{\u0022o1\u0022:0.1965,\u0022o2\u0022:0.1848,\u0022o3\u0022:0.4023,\u0022o4\u0022:0.1306,\u0022o5\u0022:0.0859},\u0022confidence\u0022:0.0838,\u0022answer_confidence\u0022:0.4023,\u0022action\u0022:{\u0022act_probability\u0022:1.0}}},\u0022usage\u0022:{\u0022input_tokens\u0022:197,\u0022output_tokens\u0022:0,\u0022state_tokens\u0022:75,\u0022state_tokens_dropped\u0022:0,\u0022truncated\u0022:false,\u0022truncated_questions\u0022:[]},\u0022routing\u0022:{\u0022model\u0022:\u0022typed-decisions\u0022,\u0022repo\u0022:\u0022convaiinnovations/laya/typed-decisions\u0022,\u0022reason\u0022:\u0022explicit model=\u0027typed-decisions\u0027\u0022,\u0022detection\u0022:null,\u0022workflow\u0022:null}}"
+        },
+        "probabilities": {
+          "o1": 0.1964803519648035,
+          "o2": 0.18478152184781524,
+          "o3": 0.4022597740225977,
+          "o4": 0.13058694130586943,
+          "o5": 0.08589141085891411
+        },
+        "topChoice": "o3",
+        "topLine": "Let me give you a hand with that.",
+        "elapsedMilliseconds": 20.7233,
+        "prompt": {
+          "textCharacters": 733,
+          "withinBudget": true,
+          "completeChoices": true,
+          "fullMemory": true,
+          "fullContext": true,
+          "fullThought": true,
+          "submittedState": "Person: Penny. About: Pam.\nImagined thought: I could offer Pam a hand, but perhaps I should first say what is on my mind.\nCharacter context: Penny is reserved, sensitive to public embarrassment, and wants to be heard without losing her relationship with Pam.\nKnown memory: Pam praised Penny\u0027s work yesterday, when nobody else was around.",
+          "error": null,
+          "complete": true
+        },
+        "response": {
+          "routedModel": "typed-decisions",
+          "inputTokens": 197,
+          "stateTokensDropped": 0,
+          "truncated": false,
+          "truncatedQuestions": [],
+          "error": null,
+          "hasTruncation": false,
+          "verified": true
+        }
+      },
+      "byIdTotalVariation": 1,
+      "semanticTotalVariation": 0.06434012598740124,
+      "repeatTotalVariation": 0,
+      "byIdChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "o1",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "(ID absent)",
+          "baseline": 0.1964803519648035,
+          "variant": 0,
+          "delta": -0.1964803519648035
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "o2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "(ID absent)",
+          "baseline": 0.18478152184781524,
+          "variant": 0,
+          "delta": -0.18478152184781524
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "o3",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "(ID absent)",
+          "baseline": 0.4022597740225977,
+          "variant": 0,
+          "delta": -0.4022597740225977
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "o4",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "(ID absent)",
+          "baseline": 0.13058694130586943,
+          "variant": 0,
+          "delta": -0.13058694130586943
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "o5",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "(ID absent)",
+          "baseline": 0.08589141085891411,
+          "variant": 0,
+          "delta": -0.08589141085891411
+        },
+        {
+          "baselineId": "r7",
+          "variantId": "r7",
+          "baselineLine": "(ID absent)",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0,
+          "variant": 0.1699,
+          "delta": 0.1699
+        },
+        {
+          "baselineId": "r2",
+          "variantId": "r2",
+          "baselineLine": "(ID absent)",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0,
+          "variant": 0.18530000000000002,
+          "delta": 0.18530000000000002
+        },
+        {
+          "baselineId": "r9",
+          "variantId": "r9",
+          "baselineLine": "(ID absent)",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0,
+          "variant": 0.3645,
+          "delta": 0.3645
+        },
+        {
+          "baselineId": "r1",
+          "variantId": "r1",
+          "baselineLine": "(ID absent)",
+          "variantLine": "I need more time to think.",
+          "baseline": 0,
+          "variant": 0.1574,
+          "delta": 0.1574
+        },
+        {
+          "baselineId": "r4",
+          "variantId": "r4",
+          "baselineLine": "(ID absent)",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0,
+          "variant": 0.1229,
+          "delta": 0.1229
+        }
+      ],
+      "semanticChanges": [
+        {
+          "baselineId": "o1",
+          "variantId": "r7",
+          "baselineLine": "What happened still bothers me. Could we talk privately?",
+          "variantLine": "What happened still bothers me. Could we talk privately?",
+          "baseline": 0.1964803519648035,
+          "variant": 0.1699,
+          "delta": -0.026580351964803517
+        },
+        {
+          "baselineId": "o2",
+          "variantId": "r2",
+          "baselineLine": "Everyone should hear how you treated me. Explain yourself.",
+          "variantLine": "Everyone should hear how you treated me. Explain yourself.",
+          "baseline": 0.18478152184781524,
+          "variant": 0.18530000000000002,
+          "delta": 0.0005184781521847814
+        },
+        {
+          "baselineId": "o3",
+          "variantId": "r9",
+          "baselineLine": "Let me give you a hand with that.",
+          "variantLine": "Let me give you a hand with that.",
+          "baseline": 0.4022597740225977,
+          "variant": 0.3645,
+          "delta": -0.037759774022597725
+        },
+        {
+          "baselineId": "o4",
+          "variantId": "r1",
+          "baselineLine": "I need more time to think.",
+          "variantLine": "I need more time to think.",
+          "baseline": 0.13058694130586943,
+          "variant": 0.1574,
+          "delta": 0.026813058694130587
+        },
+        {
+          "baselineId": "o5",
+          "variantId": "r4",
+          "baselineLine": "No. I don\u0027t want to act on this thought.",
+          "variantLine": "No. I don\u0027t want to act on this thought.",
+          "baseline": 0.08589141085891411,
+          "variant": 0.1229,
+          "delta": 0.03700858914108589
+        }
+      ]
+    }
+  ],
+  "fallbackCount": 0,
+  "nonLayaCount": 0,
+  "incompletePacketCount": 0,
+  "truncatedResponseCount": 0,
+  "unverifiedResponseCount": 0,
+  "exitCode": 0
+}

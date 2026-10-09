@@ -6,7 +6,7 @@
 
 The first version is an in-depth social simulation viewed from above: Under Glass. Villagers see what happens around them, more clearly the closer they are and the longer they watch, and remember it. They retell the juicy parts, hold a feeling toward every other person and act on motives. The observer should understand what each person believes, is considering and is trying to do, and see what follows. Player farming, trade and participation are later work; the player designs below describe that later direction.
 
-The headless town, diagnostics and replay viewer are built. The immediate priority is making individual lives understandable and worth following. The first opt-in slice connects quiet reflection to a private thought, an evaluated authored line, a persistent intention and an actual later encounter ([reflection spec](specs/reflection-spec.md)). Dreams and a larger tagged speech library follow only after that loop proves useful. The text REPL is no longer the next product milestone.
+The headless town, diagnostics and replay viewer are built. The immediate priority is making individual lives understandable and worth following. The opt-in reflection slice now has nine editable contextual thoughts, five response profiles, persistent intentions and actual later encounters ([reflection spec](specs/reflection-spec.md)). The [first live Laya trial](experiments/reflection-trial-2026-10-08.md) confirms working calls but finds choice-label effects comparable to a memory change; semantic judgment remains unresolved. Dreams and a larger tagged speech library follow only after that loop proves useful. The text REPL is no longer the next product milestone.
 
 **Evaluation direction (Sid, 2026-10-08).** A feud and a friendship in 60% of years cannot establish that either relationship is interesting. Quiet towns and towns at war are allowed outcomes. Numbers still help identify bugs and compare causes, but the goal is intelligible, surprising social lives rather than keeping every run within a preferred balance band.
 
@@ -26,7 +26,7 @@ The headless town, diagnostics and replay viewer are built. The immediate priori
 - **Feelings need two parts.** The elastic part comes from 3 days of diary and fades. The plastic part, regard, is saved per pair and scaled by retention. Pam forgets and Robin keeps.
 - **Gossip by juiciness works at 34 villagers.** Haley's sunflower story reached Alex, and Marnie hit the 3-listener cap. At 10 villagers the same settings saturate: in a Monte Carlo test, scandals reached everyone in 76% of seeds.
 - **Only scandals heard secondhand lead to action** (D34, Gus and Shane's fish). **Diaries forget the least important entries first** (D35, Emily's diary).
-- **A deterministic score decides, and the model only steers close calls.** Laya's yes/no answers bunched between 0.47 and 0.60, so "I saw you" beat a birthday gift (D21).
+- **The mod narrowed the model to close calls.** Laya's yes/no answers bunched between 0.47 and 0.60, so "I saw you" beat a birthday gift (D21). Under Glass now separately tests Laya choosing among actual response lines; the mod's arithmetic is not assumed to settle that use.
 - **Pacing rules that worked:** two attempt slots, asking again only when the situation changes instead of a cooldown, waves never counted as ignored, and a minimum motive strength for letters (D28).
 - **Stardew's engine blocked emergence. The core ideas held up.** These all go away in our own engine:
   - fixed schedules;
@@ -334,24 +334,19 @@ The player is one more agent under these rules and has no meters of their own.
 - Each tick, perception writes diary entries. Motives are recomputed only if the diary changed, and each motive goes through rule 10.
 - Villagers find each other by asking around and by habit.
 
-**The model.** It is optional. It answers three typed questions:
-- a close call (yes/no);
-- which of the top motives goes first (a choice of up to 5);
-- how a reader reacts to a board note or a stolen journal page (a 6-way choice).
-
-It never writes text. Headless runs use a Fake client calibrated to Laya's measured yes-rates. Answers are recorded and arrive at a fixed delay (asked at tick t, used at t+1), so machine speed never changes the story. The game is complete with the model off.
+**The model.** It is optional. The built reflection experiment asks Laya to evaluate complete authored responses in the character's own context. A separate optional generator may propose an imagined intention; Laya itself never writes text. Close calls, motive ranking and readings of player-written notes remain other possible roles. Ordinary headless sweeps keep reflection off. Authored reflection is an explicit, uncalibrated control, and live answers can be recorded and replayed. Answers take effect at the next simulation minute, so inference speed does not alter the story's clock.
 
 ## 5a. Laya: meaning in, meaning out
 
 Decided (Sid, 2026-10-05): the player writes free text, villagers can misread the player, and the readings test uses Stardew's cast. Sid: "The generated text is mostly candy. The core of the interactions is the emotion behind what's being said, not really the content."
 
-**The message is the feeling, not the words.** Every social act carries a typed payload: {emotion, intensity, target, purpose, cause eventId}. That payload is what the simulation reads. Words are only a rendering of it.
+**Consequences remain typed; the words matter to the decision.** The engine executes supported acts with a target and recorded cause. The actual candidate lines can express reciprocity, suspicion, a boundary or an attempt at repair, and Laya evaluates those meanings before an act is chosen. The simulation still owns its consequences. A later richer social payload may carry emotion, intensity and purpose explicitly; fluent wording alone does not implement a new behavior.
 
 **Updated division of work (Sid, 2026-10-08).** Rules own perception, knowledge, physical eligibility and consequences. Laya answers typed questions about what a scene means and which actual authored response fits a person. An optional generative model can supply occasional private inspiration; Laya evaluates accepting it, reshaping it, deferring it or rejecting it. This supersedes the earlier restriction that the simulation never asks Laya what to do. Laya still never writes dialogue. The generative model's thought is a possibility, never a new witnessed fact. The mod's separate rules remain unchanged.
 
-**First implemented experiment:** quiet reflection, complete candidate lines, one sampled choice, a later ordinary encounter and a visible outcome. See [status, contracts and limitations](specs/reflection-spec.md). The following player-facing roles remain future work.
+**First implemented experiment:** quiet reflection, complete candidate lines, one sampled choice, a later ordinary encounter and a visible outcome. The contextual catalog supplies distinct motives for giving or receiving kindness or hostility; proposals are tagged and may be replaced for paired probes. Overlapping context ranges permit opposing possibilities. See [status, contracts and limitations](specs/reflection-spec.md). The following player-facing roles remain future work.
 
-**Laya's roles, in order of value:**
+**Later player-facing roles to test:**
 1. **Reading what the player writes** (board notes, letters, the journal, and later talking). Laya turns the player's words into the typed payload: purpose (request, offer, thanks, apology, accusation...), who it's about, and the emotion behind it. Villagers react to the payload. With Laya off, the player builds notes from parts as before.
 2. **How each villager reads a moment.** Given the villager's card and what it actually perceived (limited by clarity), Laya picks a reading: your Amused face at Ivo's spill read as laughing with him or at him; a gift read as kindness or as a bribe. The reading sets the feeling's sign and how much blame there is (law 10).
    - **Misreading is a feature** (Sid, 2026-10-05). It comes from three places: low clarity (a far glimpse), the villager's temperament and current feeling toward you (someone who already dislikes you reads you worse, law 5), and the *understanding* trait (a high-understanding villager reads close to the rule-based truth; a low one follows its imagination).
@@ -360,7 +355,9 @@ Decided (Sid, 2026-10-05): the player writes free text, villagers can misread th
 
 **Where Laya never goes:** perception and clarity, who knows what, money, the conatus arithmetic, the gossip rules, and the headless 1000-seed sweeps. Those stay deterministic, fast and tested.
 
-**Determinism.** Reflection records the exact request, answer and sampled choice. Answers requested at minute *t* take effect at *t+1*; the recorder awaits inference between minutes, so wall-clock latency does not select a different simulation time. Tape replay checks and reuses recorded answers. A seed alone cannot guarantee that a live model gives the same answer. The authored control is currently uncalibrated; ordinary headless sweeps keep reflection off.
+**Determinism.** Reflection records the exact request, remembered source facts, prepared proposal, answer and sampled choice. Answers requested at minute *t* take effect at *t+1*; the recorder awaits inference between minutes, so wall-clock latency does not select a different simulation time. Tape replay checks and reuses recorded answers, including matching proposal tags. A seed alone cannot guarantee that a live model gives the same answer. The authored control is currently uncalibrated; ordinary headless sweeps keep reflection off.
+
+**First live result (2026-10-08).** A seven-day seed-7 recording received 27 Laya answers with no fallback in about 1.5 seconds total. The separate 15-call paired trial submitted complete context with no reported server truncation. Probability-distribution changes were 0.0687 for memory, 0.0379 for trust, 0.1031 after matching meanings across a line swap, 0.0330 for order and 0.0643 for renamed labels after matching meanings; exact repeats were unchanged. These total-variation distances describe this small trial, not realism or quality. Label effects comparable to the memory effect prevent a clean semantic conclusion. The adapter omits the proposed choice ID as an answer hint, preserves raw responses and rejects explicit server truncation. [Measurements and limitations](experiments/reflection-trial-2026-10-08.md).
 
 **Earlier in-process investigation** (checked at github.com/NandhaKishorM/laya, v0.3.28, 2026-10-05; Hugging Face was not reachable from the cloud session). The implemented reflection adapter instead uses HTTP from .NET 8; the following is a historical alternative, not a current runtime requirement:
 - Licence: Apache 2.0 (the repo). The weights' licence on the model card still needs a look.
@@ -368,9 +365,10 @@ Decided (Sid, 2026-10-05): the player writes free text, villagers can misread th
 - So Under Glass can call Laya in-process from C#, with no sidecar. The simulator and the Godot project should target .NET 10 to match (VERIFY that Godot's .NET build accepts a net10.0 project).
 - Fine-tuning: `laya-train --data file.csv --out ./ft` trains on a plain CSV, discovering the labels. That means Laya can be trained on our own question types (how a villager reads a moment, what a note means) from labels Sid writes.
 
-**Ordinary speech and occasional imagination (updated 2026-10-08).** Most spoken lines should be authored and editable, with archetype, mood and context tags. An LLM's first role is occasional imagination during quiet time and eventually dreams. Its proposal can influence a later typed decision and thus the simulation; it is not only decoration. The prototype has a small set of trait-sensitive lines and daytime reflection. A full speech library, dreams and generated spoken dialogue are not built.
+**Ordinary speech and occasional imagination (updated 2026-10-08).** Most spoken lines should be authored and editable, with archetype, mood and context tags. An LLM's first role is occasional imagination during quiet time and eventually dreams. Its proposal can influence a later typed decision and thus the simulation; it is not only decoration. The prototype embeds an editable nine-thought catalog and five response profiles, varying voice with temperament and motives with remembered context. A full speech library, dreams, old-thought reconsideration and generated spoken dialogue are not built. The live generative endpoint remains unverified.
 
 **Experiments that decide each role:**
+- **Reflection controls (first live sample recorded):** hold a proposal and the available acts fixed while changing memory, trust or line meaning; separately change label names and candidate order, and repeat the exact baseline. Separate semantic sensitivity from these controls before expanding the model's responsibility. The first sample needs further investigation; it does not establish that Laya has earned a larger role.
 - **E4a, notes:** Sid writes 50 notes the way a player would and labels purpose, subject and emotion. Laya passes at about 80% on purpose and subject. Then try a fine-tune on half and test on the other half.
 - **E4b, readings:** 30 ambiguous scenes from Stardew's cast (for example Shane seeing you laugh when Pam trips; Haley getting an egg in front of Emily). Sid says how 3-4 villagers should read each one. Compare Laya, the rules alone and a coin flip, before and after a fine-tune on Sid's labels.
 - **E4c, the blind read:** Sid reads season journals made with Laya and with the calibrated fake, without knowing which is which.
@@ -550,7 +548,7 @@ E5 is Sid's blind read of 10 season journals.
   - the event log, snapshots, metrics and the story sifter (its first part built 2026-10-08: `Variety.cs` lists each run's story events and measures how different the runs are, V1-V8 of `actions-and-twists.md`);
   - the viewer replays runs.
 - **0e (proposed, 2026-10-07).** Character over time and generations (rule 18, 11e): traits that change with events and harden with age, inheritance with mutation, the life course (couples, births, children leaving home, deaths), and time skips of 5-10 years between runs.
-- **Observer reflection slice (built opt-in, 2026-10-08).** Quiet time -> private inspiration -> evaluation of actual lines -> persistent intention -> encounter -> outcome. The viewer exposes the chain. Local-model quality remains unverified; [the spec](specs/reflection-spec.md) separates implemented behavior from the next experiments.
+- **Observer reflection slice (built opt-in, 2026-10-08).** Quiet time -> contextual private inspiration -> evaluation of actual lines -> persistent intention -> encounter -> outcome. The viewer exposes the chain. Nine thoughts and five response profiles are editable; live Laya calls and paired decision probes work. Model quality remains unresolved because label/order controls also move decisions; local generation remains unverified. [The spec](specs/reflection-spec.md) and [first live trial](experiments/reflection-trial-2026-10-08.md) separate implemented behavior from the next experiments.
 - **Exit:** E0-E3 and the golden scenarios pass.
 
 **Phase 1: the observable social simulation (first product).** Make a few individual relationships compelling to follow from above. Compare authored controls, Laya evaluation and generated inspiration in real scenes. Expand mood/context-tagged lines, dreams and continuing intentions after the first loop earns its place. Make causality visible in the viewer instead of requiring the observer to reconstruct repetitive logs. The old text-REPL-first sequence is superseded.

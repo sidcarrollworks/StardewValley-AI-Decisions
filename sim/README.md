@@ -6,7 +6,7 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Current direction (2026-10-08):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. The immediate work makes a person's memory, thought, choice and consequences understandable; existing town-wide balance metrics are diagnostics, not a definition of interesting social lives.
 
-**New opt-in prototype: quiet reflection.** After a quiet stretch, someone can consider a remembered encounter. Authored inspiration or an optional local LLM proposes a thought; Laya can evaluate the actual authored lines. One seeded choice accepts, reshapes, defers or rejects it. An accepted intention waits for a real encounter and records its outcome. Open **Inner life** in the replay viewer to follow the chain. The server-free authored mode is a deliberately simple control; live model quality is not verified yet. Dreams, a broad tagged speech library and deferred-thought reconsideration are later work. Full status and contracts: [reflection spec](../docs/under-glass/specs/reflection-spec.md).
+**Opt-in prototype: quiet reflection.** After a quiet stretch, someone can consider a remembered encounter. Nine editable authored thoughts cover reciprocity, suspicion, connection, boundaries, pride, repair, regret, doubling down and a neutral fallback. Laya evaluates complete response lines; one seeded choice accepts, reshapes, defers or rejects the thought. An accepted intention waits for a real encounter and records its outcome. Open **Inner life** to follow the chain and inspect catalog tags, candidates and model responses. The [first local trial](../docs/under-glass/experiments/reflection-trial-2026-10-08.md) verifies working GPU evaluation but finds substantial label/position sensitivity. Character judgment is still an experiment. Dreams, a broad speech library and reconsideration are later work. Full status: [reflection spec](../docs/under-glass/specs/reflection-spec.md).
 
 ```bash
 # Authored demo: no model server required.
@@ -18,6 +18,19 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --ref
 ```
 
 Reflection is off by default and has its own .NET 8 adapter project, `UnderGlass.Minds`. Recorded answers can be reused with `--reflection tape --reflection-tape hybrid.json` and the same seed, days, town and simulation flags. No model is installed by these commands.
+
+Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.
+
+Run the controlled comparison separately from the town:
+
+```bash
+# Five scene/control pairs, each with an exact baseline repeat: 15 local calls.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --laya-url http://127.0.0.1:8000 --out reflection-trial.json --report reflection-trial.md
+# Explicitly offline: checks the harness, not Laya.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --authored --out authored-trial.json --report authored-trial.md
+```
+
+Reports retain exact packets, normalized weights, changes aligned by response meaning, latency and truncation audits. Live trials fail visibly if the service falls back or a complete packet cannot be verified. The optional generator path remains unverified against a real generation service.
 
 ```bash
 dotnet test sim/UnderGlass.sln

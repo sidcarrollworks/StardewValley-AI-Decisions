@@ -23,6 +23,10 @@ The optional quiet-reflection prototype is specified in
 
 - `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer and event records,
   `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer provider.
+- `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: nine editable
+  thoughts and five response profiles. The source perspective, known kind's valence and personal
+  regard select eligible motives; overlapping regard ranges allow contradictory possibilities.
+  A seeded draw selects a proposal. Temperament varies the complete candidate lines' voice.
 - `UnderGlass.Sim/Simulation.Reflection.cs`: opportunities during sustained free time, a copy of
   the actor's known context, one seeded draw over response weights, and an intention waiting for
   an ordinary encounter. The existing act engine executes the act and records its consequences.
@@ -32,6 +36,8 @@ The optional quiet-reflection prototype is specified in
 - `UnderGlass.Replay` and `sim/viewer/index.html`: recording and an Inner life view that follows
   the source memory, thought, response, attempted act and outcome without exposing future events
   ahead of the replay clock.
+- `UnderGlass.ReflectionTrial`: paired hypothetical decisions, with an exact baseline repeat,
+  to separate changes in memory, trust and line meaning from choice-label and order effects.
 
 `ConfigureReflection` is off by default and requires feelings and desire to be acting when
 enabled. Defaults are 30 quiet minutes, a 0.35 daily opportunity chance and three days for an
@@ -47,11 +53,21 @@ of one thought every day.
 
 Requests contain a recent completed deed of the actor's own, or an identified firsthand belief
 about an act directed at them. Hearsay and unknown actors are excluded for this first experiment.
+Rows whose patient is stored as the act's actor, such as being warned or taken in, are also
+excluded until role-specific templates exist; the ordinary "I did this to them" wording would
+reverse their meaning.
 A mistaken belief retains the believed identity: the context builder never substitutes the true
 actor. Imagination is recorded separately and never enters the belief ledger as evidence. The
 offered executable acts are giving a gift, helping and confronting where those act kinds are
 available; defer and reject are explicit alternatives. The evaluator reads the actual authored
 lines, rather than deciding a close numerical threshold in the existing desire gate.
+
+`ReflectionRequest.Source` records the remembered kind, whether the actor did or received it,
+the known kind's signed affect and regard for the believed subject. `Proposal` records the
+authored entry ID, thought, proposed choice and tags. Tests and paired probes can replace that
+proposal on a copied request while holding the scene fixed. Authored weights favor the proposed
+act rather than the first offered act. Neutral or unsupported contexts quote the supplied memory
+instead of inventing a past event. Tape matching includes both structured fields and the tags.
 
 `RunAsync` awaits model answers between simulation minutes and applies them on the next minute.
 Wall-clock latency therefore cannot change the minute of acceptance or the subsequent act.
@@ -70,12 +86,20 @@ memory. A request that cannot fit, an invalid response or a failed call falls ba
 recorded authored answer. A generated thought is limited to 220 characters by default (300
 maximum). Caller cancellation propagates instead of becoming a fallback.
 
+The Laya prompt omits the proposed choice ID so it does not supply an answer hint. The response
+record retains the raw Laya JSON, including routing and token-usage metadata when returned.
+Explicit server truncation causes fallback even when the probability table is otherwise valid.
+
 Verification is through deterministic scene tests, recorded-answer replay, fake HTTP responses
-and the viewer. **Verify with live services:** this prototype has not established model quality,
-hardware latency, or a successful end-to-end run against a real Laya/generator pair. Dreams,
-reconsidering an old thought, a general dialogue-template catalog and player intervention are not
-built. This feature changes only Under Glass; the mod's template-only and shadow-mode rules
-continue to apply to its own code.
+and the viewer, plus a first live Laya run on 2026-10-08. Seed 7 over seven days produced 27
+`authored+laya` answers with no fallback in about 1.5 seconds total. A separate 15-call paired
+trial submitted complete context with no server truncation. Its label-only probability change
+was about as large as the memory change, so these calls establish working integration, not clean
+evidence of semantic judgment. See [the trial and limitations](under-glass/experiments/reflection-trial-2026-10-08.md).
+**Still unverified:** the live generative endpoint and whether model choices make a town worth
+watching. Dreams, reconsidering an old thought, a general dialogue-template catalog and player
+intervention are not built. This feature changes only Under Glass; the mod's template-only and
+shadow-mode rules continue to apply to its own code.
 
 ## What the mod does today
 

@@ -607,15 +607,42 @@ candidate lines and reserves memory/context before using the remaining space.
 **Current limit.** A thought occupies its actor's one open reflection slot until rejected,
 deferred, expired, or resolved by the life record after acting. Keeping that slot through the
 outcome is deliberate prototype pacing, not a claim that people cannot think about two things.
-Dreams, revisiting old thoughts, richer line catalogs and the quality of live model choices remain
-future work. Tests establish mechanics and HTTP contracts; **verify** behavior and latency with
-actual local services before judging the model experiment.
+Dreams, revisiting old thoughts and a general speech catalog remain future work. The first live
+Laya comparison now exists (D37); the live generative endpoint and the quality of model-driven
+social behavior remain unverified.
 
 **Why.** More rules and aggregate stability had postponed testing the intended experience.
 An inspectable causal sequence makes the model's contribution visible, including decisions an
 observer dislikes or did not expect, without explaining the character afterward in invented prose.
 See [the reflection spec](under-glass/specs/reflection-spec.md) and
 [the game design](under-glass/design.md).
+
+### D37. Contextual inspiration needs controls for labels as well as meanings
+
+**Decision (2026-10-08).** Replace the generic authored thought with nine editable possibilities:
+reciprocity or suspicion after received kindness, connection or boundaries after one's own
+kindness, pride or repair after received hostility, regret or doubling down after one's own
+hostility, and a grounded neutral fallback. Five response profiles fit those remembered scenes.
+Overlapping regard ranges let the seed supply opposing possibilities; the evaluator still
+chooses whether to accept, reshape, defer or reject. Prepared proposals carry IDs/tags and can
+be overridden for a controlled comparison. Authored weights favor that proposal, not the first
+candidate. Remembered identity and kind remain the character's own, even when mistaken.
+
+**Measurement.** The first live seven-day seed-7 recording received 27 Laya answers without a
+fallback in about 1.5 seconds total. A separate trial made 15 calls: five baseline/variant/repeat
+triples, all with complete submitted context and no server truncation. Total variation was
+0.0687 for a memory change, 0.0379 for trust, 0.1031 after matching the same line meanings across
+a line swap, 0.0330 for order, and 0.0643 for renamed labels after matching their meanings.
+Exact repeats were unchanged in this run. These are observations from a small trial, not
+confidence bounds or quality scores. Label sensitivity is comparable to memory sensitivity;
+clean evidence that the model follows social meaning has not been established.
+
+**Consequence.** Keep both the complete request and raw response, inspect model routing and
+truncation metadata, omit a proposed choice-ID answer hint, and treat explicit server truncation
+as fallback. Keep semantic changes separate from label/order controls before tuning the model or
+expanding its responsibility. Do not convert a successful HTTP run, an interesting anecdote, or
+the desired town statistics into a claim of better character judgment. The local generator still
+needs live verification. [Experiment record](under-glass/experiments/reflection-trial-2026-10-08.md).
 
 ## Open work and known issues
 

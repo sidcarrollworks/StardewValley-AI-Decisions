@@ -105,13 +105,17 @@ public class ReflectionSceneTests
         ReflectionRequest own = Assert.Single(mind.Requests, q => q.Actor == "Ann");
         Assert.Equal("Bob", own.Subject);
         Assert.Contains("You took part", own.Memory);
+        Assert.Equal(new ReflectionSourceFacts("GaveGift", true, 0.2, own.Source!.Regard), own.Source);
+        Assert.NotNull(own.Proposal);
         ReflectionRequest received = Assert.Single(mind.Requests, q => q.Actor == "Bob");
         Belief belief = r.Beliefs["Bob"][received.SourceActId];
         Assert.Equal(Source.Witnessed, belief.Source);
         Assert.Equal(belief.Actor, received.Subject);
         Assert.Contains("you remember Ann", received.Memory);
+        Assert.Equal(new ReflectionSourceFacts(belief.Kind, false, 0.2, received.Source!.Regard), received.Source);
+        Assert.NotNull(received.Proposal);
         Assert.True(received.Tick >= belief.GotTick);
-        Assert.All(mind.Requests, q => Assert.DoesNotContain("Cara", q.Memory + q.Context));
+        Assert.All(mind.Requests, q => Assert.DoesNotContain("Cara", q.Memory + q.Context + q.Proposal!.Thought));
         Assert.Empty(r.Beliefs["Cara"]);
     }
 
@@ -151,7 +155,10 @@ public class ReflectionSceneTests
         ReflectionRequest q = Assert.Single(mind.Requests, q => q.Actor == "Bob");
         Assert.Equal("Cara", q.Subject);
         Assert.Contains("you remember Cara", q.Memory);
-        Assert.DoesNotContain("Ann", q.Memory + q.Context);
+        Assert.Equal("GaveGift", q.Source!.Kind);
+        Assert.False(q.Source.OwnDeed);
+        Assert.Contains("Cara", q.Proposal!.Thought);
+        Assert.DoesNotContain("Ann", q.Memory + q.Context + q.Proposal.Thought);
     }
 
     [Fact]

@@ -70,6 +70,7 @@ public sealed class ReflectionMindTests
         ReflectionAnswer answer = await mind.ReflectAsync(request);
         Assert.Equal("authored+laya", answer.Backend);
         Assert.Equal(sent, answer.LayaPrompt);
+        Assert.Equal(ValidWeights, answer.LayaResponse);
         Assert.Contains("Authored thought", answer.Note);
         using JsonDocument prompt = JsonDocument.Parse(sent!);
         JsonElement question = prompt.RootElement.GetProperty("questions").GetProperty("q");
@@ -82,8 +83,24 @@ public sealed class ReflectionMindTests
             + criteria.EnumerateObject().Sum(p => p.Name.Length + p.Value.GetString()!.Length);
         Assert.InRange(textChars, 1, 1250);
         Assert.Contains("Known memory:", prompt.RootElement.GetProperty("state").GetString());
+        Assert.DoesNotContain("Suggested choice:", prompt.RootElement.GetProperty("state").GetString());
         Assert.Equal(1, handler.Calls);
         Assert.Equal(1, answer.Weights.Values.Sum(), 12);
+    }
+
+    [Theory]
+    [InlineData("{\"truncated\":true}")]
+    [InlineData("{\"state_tokens_dropped\":3}")]
+    [InlineData("{\"truncated_questions\":[\"q\"]}")]
+    public async Task ExplicitServerTruncationFallsBackAndRetainsTheResponse(string usage)
+    {
+        string response = ValidWeights[..^1] + ",\"usage\":" + usage + "}";
+        using var handler = new Handler((_, _) => Task.FromResult(Json(response)));
+        using var mind = new ResilientReflectionMind(handler, LocalOptions());
+        ReflectionAnswer answer = await mind.ReflectAsync(Request());
+        Assert.Equal("authored-fallback", answer.Backend);
+        Assert.Contains("truncated input", answer.Note);
+        Assert.Equal(response, answer.LayaResponse);
     }
 
     [Fact]
@@ -254,7 +271,7 @@ public sealed class ReflectionMindTests
         Assert.Equal("authored-fallback", answer.Backend);
         Assert.Contains("Laya failed:", answer.Note);
         Assert.NotNull(answer.LayaPrompt);
-        Assert.Equal(3, answer.Weights["help"]);
+        Assert.Equal(3, answer.Weights[answer.SuggestedChoice]);
     }
 
     [Theory]
@@ -380,7 +397,7 @@ public sealed class ReflectionMindTests
         Assert.NotNull(answer.GenerationPrompt);
         Assert.NotNull(answer.LayaPrompt);
         Assert.Equal(2, handler.Calls);
-        Assert.Equal(3, answer.Weights["help"]);
+        Assert.Equal(3, answer.Weights[answer.SuggestedChoice]);
     }
 
     [Fact]

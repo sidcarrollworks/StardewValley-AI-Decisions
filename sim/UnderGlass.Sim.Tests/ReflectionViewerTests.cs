@@ -61,6 +61,10 @@ public class ReflectionViewerTests
         Assert.Contains("text: c.line", code);
         Assert.Contains("text: answer.note", code);
         Assert.Contains("text: answer[field]", code);
+        Assert.Contains("[\"layaResponse\", \"Exact Laya response\"]", code);
+        Assert.Contains("text: request.proposal.id", code);
+        Assert.Contains("(request.proposal.tags ?? []).join", code);
+        Assert.DoesNotContain("request.proposal.thought", code);
         Assert.Contains("else if (k === \"text\") e.textContent = v;", Page());
     }
 

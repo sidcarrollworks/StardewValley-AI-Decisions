@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>UnderGlass.Sim</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="reflection-catalog.json" LogicalName="UnderGlass.Sim.reflection-catalog.json" />
+    <ProjectReference Include="..\UnderGlass.Sim\UnderGlass.Sim.csproj" />
+    <ProjectReference Include="..\UnderGlass.Minds\UnderGlass.Minds.csproj" />
   </ItemGroup>
 </Project>

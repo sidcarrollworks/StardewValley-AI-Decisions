@@ -54,12 +54,13 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         string suggestedChoice = baseline.SuggestedChoice;
         string? generationPrompt = null;
         string? layaPrompt = null;
+        string? layaResponse = null;
         string stage = "Laya";
         try
         {
             // Do not spend a generation call on a choice packet that cannot fit even
             // before a thought is added. A generated thought is checked again below.
-            _ = BuildLayaPrompt(request, string.Empty, suggestedChoice);
+            _ = BuildLayaPrompt(request, string.Empty);
             if (_generationEndpoint is not null)
             {
                 stage = "Local generation";
@@ -68,14 +69,16 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
                 (thought, suggestedChoice) = ParseGeneration(generated.RootElement, request);
             }
             stage = "Laya";
-            layaPrompt = BuildLayaPrompt(request, thought, suggestedChoice);
+            layaPrompt = BuildLayaPrompt(request, thought);
             using JsonDocument evaluated = await PostAsync(_layaEndpoint, layaPrompt, cancellationToken);
+            layaResponse = evaluated.RootElement.GetRawText();
+            CheckTruncation(evaluated.RootElement);
             IReadOnlyDictionary<string, double> weights = ParseWeights(evaluated.RootElement, request);
             cancellationToken.ThrowIfCancellationRequested();
             return new ReflectionAnswer(thought, suggestedChoice, weights,
                 _generationEndpoint is null ? "authored+laya" : "local-llm+laya",
                 _generationEndpoint is null ? "Authored thought; Laya evaluated the candidate lines." : "Local model imagined the thought; Laya evaluated the candidate lines.",
-                layaPrompt, generationPrompt);
+                layaPrompt, generationPrompt, layaResponse);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -90,6 +93,7 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
                 Note = $"{stage} failed: {ex.Message} Authored fallback replaced the model proposal and weights.",
                 LayaPrompt = layaPrompt,
                 GenerationPrompt = generationPrompt,
+                LayaResponse = layaResponse,
             };
         }
     }
@@ -127,14 +131,16 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         });
     }
 
-    private string BuildLayaPrompt(ReflectionRequest request, string thought, string suggestedChoice)
+    private string BuildLayaPrompt(ReflectionRequest request, string thought)
     {
         // The user's 1250-character working limit counts all semantic text: state,
         // instructions, labels and descriptions. JSON punctuation/field names are not text.
         // Preserve all candidate IDs, act kinds and actual lines. Reserve both character
         // context and known memory before allocating any remaining text space.
         var criteria = request.Choices.ToDictionary(c => c.Id, c => $"{(c.Kind.Length == 0 ? "no act" : c.Kind)}: {c.Line}", StringComparer.Ordinal);
-        string state = $"Person: {request.Actor}. About: {request.Subject}.\nImagined thought: {thought}\nSuggested choice: {suggestedChoice}.";
+        // Keep the proposed action ID for the record, not as an answer hint to the evaluator.
+        // The imagined thought itself supplies the possibility the character is considering.
+        string state = $"Person: {request.Actor}. About: {request.Subject}.\nImagined thought: {thought}";
         int fixedChars = Instructions.Length + criteria.Sum(c => c.Key.Length + c.Value.Length) + state.Length;
         // A long thought must not crowd out the actual event that prompted reflection.
         // An overlong required packet falls back rather than silently losing its grounding.
@@ -178,6 +184,18 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         if (!request.Choices.Any(c => c.Id == suggested && c.Kind.Length > 0))
             throw new InvalidDataException("Generated suggestedChoice is not a permitted executable choice.");
         return (thought, suggested);
+    }
+
+    private static void CheckTruncation(JsonElement root)
+    {
+        // Character budgeting cannot guarantee a particular server's tokenization. Refuse an
+        // explicitly truncated reading and retain the receipt instead of treating it as complete.
+        if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("usage", out var usage)
+            || usage.ValueKind != JsonValueKind.Object) return;
+        if (usage.TryGetProperty("truncated", out var truncated) && truncated.ValueKind == JsonValueKind.True
+            || usage.TryGetProperty("state_tokens_dropped", out var dropped) && dropped.ValueKind == JsonValueKind.Number && dropped.TryGetInt32(out int count) && count > 0
+            || usage.TryGetProperty("truncated_questions", out var questions) && questions.ValueKind == JsonValueKind.Array && questions.GetArrayLength() > 0)
+            throw new InvalidDataException("Laya reported truncated input; the complete scene and lines were not evaluated.");
     }
 
     private static IReadOnlyDictionary<string, double> ParseWeights(JsonElement root, ReflectionRequest request)

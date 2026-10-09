@@ -12,15 +12,24 @@ public sealed record ReflectionOptions
 /// <summary>An authored line with an executable act; an empty Kind means defer or reject.</summary>
 public sealed record ReflectionChoice(string Id, string Kind, string Line);
 
+/// <summary>The kind as the character remembers it, and their part in it. Valence is the known
+/// kind's signed affect, not access to anyone else's feelings or to an act's hidden true actor.</summary>
+public sealed record ReflectionSourceFacts(string Kind, bool OwnDeed, double Valence, double Regard);
+
+/// <summary>An authored possibility, distinct from the character's eventual response. Callers
+/// can replace Proposal on a copied request to compare evaluations of the same scene.</summary>
+public sealed record ReflectionProposal(string Id, string Thought, string SuggestedChoice, IReadOnlyList<string> Tags);
+
 /// <summary>A copy of one person's known context. Providers must never inspect the simulation.</summary>
 public sealed record ReflectionRequest(string Id, int Tick, string Actor, string Subject, int SourceActId,
-    string Memory, string Context, IReadOnlyList<ReflectionChoice> Choices);
+    string Memory, string Context, IReadOnlyList<ReflectionChoice> Choices,
+    ReflectionSourceFacts? Source = null, ReflectionProposal? Proposal = null);
 
 /// <summary>Imagination proposes; the evaluator weights the actual lines. The engine samples once.
 /// Backend and Note identify real calls versus authored/fallback material; they are recorded.</summary>
 public sealed record ReflectionAnswer(string Thought, string SuggestedChoice,
     IReadOnlyDictionary<string, double> Weights, string Backend, string? Note = null,
-    string? LayaPrompt = null, string? GenerationPrompt = null);
+    string? LayaPrompt = null, string? GenerationPrompt = null, string? LayaResponse = null);
 
 public interface IReflectionMind
 {
@@ -40,9 +49,13 @@ public sealed class AuthoredReflectionMind : IReflectionMind
     public Task<ReflectionAnswer> ReflectAsync(ReflectionRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var first = request.Choices.First(c => c.Kind.Length > 0);
-        return Task.FromResult(new ReflectionAnswer($"I keep thinking about {request.Subject}. Perhaps there is something I could do.",
-            first.Id, request.Choices.ToDictionary(c => c.Id, c => c.Id == first.Id ? 3.0 : 1.0), "authored"));
+        ReflectionProposal proposal = request.Proposal ?? ReflectionCatalog.Propose(request);
+        if (string.IsNullOrWhiteSpace(proposal.Thought) || proposal.Thought.Length > 300
+            || !request.Choices.Any(c => c.Id == proposal.SuggestedChoice && c.Kind.Length > 0))
+            throw new ArgumentException("The prepared reflection proposal must contain a short thought and an offered executable choice.", nameof(request));
+        return Task.FromResult(new ReflectionAnswer(proposal.Thought, proposal.SuggestedChoice,
+            request.Choices.ToDictionary(c => c.Id, c => c.Id == proposal.SuggestedChoice ? 3.0 : 1.0), "authored",
+            $"Authored proposal {proposal.Id}; weights favor its proposed response."));
     }
 }
 
@@ -61,8 +74,13 @@ public sealed class RecordedReflectionMind : IReflectionMind
             || record.Request.Tick != request.Tick || record.Request.Actor != request.Actor
             || record.Request.Subject != request.Subject || record.Request.SourceActId != request.SourceActId
             || record.Request.Memory != request.Memory || record.Request.Context != request.Context
+            || record.Request.Source != request.Source || !SameProposal(record.Request.Proposal, request.Proposal)
             || !record.Request.Choices.SequenceEqual(request.Choices))
             throw new InvalidOperationException($"Reflection tape does not match request {request.Id}. Use the same seed, town and options.");
         return Task.FromResult(record.Answer);
     }
+
+    private static bool SameProposal(ReflectionProposal? a, ReflectionProposal? b) => a is null || b is null
+        ? a is null && b is null
+        : a.Id == b.Id && a.Thought == b.Thought && a.SuggestedChoice == b.SuggestedChoice && a.Tags.SequenceEqual(b.Tags);
 }

@@ -22,17 +22,23 @@ considers, intends, attempts and experiences. Feud/friendship counts and stabili
 diagnostics, not proof of an interesting town; coherent extreme outcomes are allowed.
 
 The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:
-an authored thought, or a proposal from a configured local generator, is evaluated against actual
-authored response lines by Laya. An explicit authored baseline runs without any service. A seeded
+nine editable authored thoughts cover kindness, suspicion, connection, boundaries, pride, repair,
+regret and doubling down, with a memory-grounded neutral fallback. Five response profiles fit the
+remembered encounter. An authored thought, or a proposal from a configured local generator, is
+evaluated against actual response lines by Laya. An explicit authored baseline runs without any service. A seeded
 draw accepts, reshapes, defers or rejects the proposal; an accepted act waits for an ordinary
 encounter, can expire, and retains its original memory as its cause. The replay viewer shows the
 decision and outcome as they become known. Model calls pause simulation time, and recorded answers
 can be reused only with matching requests. All of this remains separate from Stardew and SMAPI.
 
 Scene and fake-HTTP tests verify the mechanics, context boundaries, deadline/fallback behavior and
-replay. **Verify with real local services:** model quality and end-to-end Laya/generator behavior
-have not been established by these tests. Dreams, old-thought reconsideration, the wider tagged
-dialogue catalog and player interaction remain unbuilt. The detailed plan is in
+replay. The first live seven-day seed-7 recording made 27 successful Laya calls, without fallback,
+in about 1.5 seconds total. A separate 15-call paired trial had complete context and no truncation,
+but renaming choices moved probabilities about as much as changing a memory. Working integration
+is established; better social judgment is not. See the
+[trial record](docs/under-glass/experiments/reflection-trial-2026-10-08.md). **Still to verify:**
+live local generation and whether these choices make the town more compelling. Dreams,
+old-thought reconsideration, the wider tagged dialogue catalog and player interaction remain unbuilt. The detailed plan is in
 [`docs/under-glass/design.md`](docs/under-glass/design.md); the mod's goals and history below remain
 their own track.
 

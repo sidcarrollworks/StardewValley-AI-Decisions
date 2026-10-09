@@ -65,31 +65,41 @@ public sealed partial class Simulation
             int pick = Math.Min(memories.Length - 1, (int)(Rng.Unit(_seed, "reflect-memory", actor,
                 Clock.Day(m).ToString(CultureInfo.InvariantCulture)) * memories.Length));
             var memory = memories[pick];
-            var choices = ReflectionChoices(actor, memory.Subject);
+            // The row is looked up by the remembered kind, never via the source act's true
+            // actor or hidden details. Unrecognized kinds stay neutral rather than guessed.
+            double valence = _kindByName.TryGetValue(memory.Kind, out ActKind? knownKind)
+                ? knownKind.Affect?.Joy ?? knownKind.Valence : 0;
+            var source = new ReflectionSourceFacts(memory.Kind, memory.OwnDeed, valence, St(actor, memory.Subject));
+            var choices = ReflectionChoices(actor, source);
             if (!choices.Any(c => c.Kind.Length > 0)) continue;
             _reflectedMemories.Add((actor, memory.Source));
             int h = _index[actor];
             Temperament c = CharacterOf(h);
             string context = FormattableString.Invariant($"{actor}, age {p.V.Age}: mood {MoodOf(h):0.00}; regard for {memory.Subject} {St(actor, memory.Subject):0.00}. Bold {c.Boldness:0.00}; understanding {c.Understanding:0.00}; sensitive {c.Sensitivity:0.00}; self-regard {c.SelfRegard:0.00}; expression {c.Expression:0.00}. Quiet free time. Choose for this person, not for a well-behaved town.");
-            _reflectionRequests.Add(new ReflectionRequest($"{_seed}:{m}:{actor}:{memory.Source}", m, actor,
-                memory.Subject, memory.Source, memory.Text, context, choices.AsReadOnly()));
+            var request = new ReflectionRequest($"{_seed}:{m}:{actor}:{memory.Source}", m, actor,
+                memory.Subject, memory.Source, memory.Text, context, choices.AsReadOnly(), source);
+            _reflectionRequests.Add(request with { Proposal = ReflectionCatalog.Propose(request) });
         }
     }
 
-    private IEnumerable<(int Source, int Tick, string Subject, string Text)> ReflectionMemories(string actor, int m)
+    private IEnumerable<(int Source, int Tick, string Subject, string Text, string Kind, bool OwnDeed)> ReflectionMemories(string actor, int m)
     {
         int earliest = m - 7 * Clock.MinutesPerDay;
         // The person's own deeds, and only deeds completed already: no truth about other minds.
+        // Patient.Actor rows reverse the usual roles (the person warned is Act.Actor,
+        // the official is Target). Exclude these on both paths until they have explicit
+        // perspective templates; otherwise the recipient falsely remembers doing the harm.
         foreach (Act a in _acts.Where(a => a.Actor == actor && a.Target is not null && a.Target != actor
-                     && a.Tick >= earliest && !_watching.ContainsKey(a.Id)))
-            yield return (a.Id, a.Tick, a.Target!, $"At {Clock.Format(a.Tick)}, you {MemoryVerb(a.Kind)} {a.Target} ({a.Kind}). You took part.");
+                     && a.Tick >= earliest && !_watching.ContainsKey(a.Id) && KindOf(a).Affect?.Patient != Patient.Actor))
+            yield return (a.Id, a.Tick, a.Target!, $"At {Clock.Format(a.Tick)}, you {MemoryVerb(a.Kind)} {a.Target} ({a.Kind}). You took part.", a.Kind, true);
         // Use the believed actor and target, never substitute the world's true identity.
         foreach (Belief b in _beliefs[actor].Values.OrderBy(b => b.ActId))
         {
             if (b.Source != Source.Witnessed || b.Actor is null || b.Actor == actor || b.Target != actor
-                || b.GotTick < earliest || !_index.ContainsKey(b.Actor)) continue;
+                || b.GotTick < earliest || !_index.ContainsKey(b.Actor)
+                || !_kindByName.TryGetValue(b.Kind, out ActKind? kind) || kind.Affect?.Patient == Patient.Actor) continue;
             yield return (b.ActId, b.GotTick, b.Actor,
-                $"At {Clock.Format(b.GotTick)}, you remember {b.Actor} {MemoryVerb(b.Kind)} you ({b.Kind}); confidence {b.Confidence.ToString("0.00", CultureInfo.InvariantCulture)}.");
+                $"At {Clock.Format(b.GotTick)}, you remember {b.Actor} {MemoryVerb(b.Kind)} you ({b.Kind}); confidence {b.Confidence.ToString("0.00", CultureInfo.InvariantCulture)}.", b.Kind, false);
         }
     }
 
@@ -101,21 +111,18 @@ public sealed partial class Simulation
         _ => "interacted with",
     };
 
-    private List<ReflectionChoice> ReflectionChoices(string actor, string subject)
+    private List<ReflectionChoice> ReflectionChoices(string actor, ReflectionSourceFacts source)
     {
         var list = new List<ReflectionChoice>();
         int h = _index[actor];
-        // Authored alternatives are read by the evaluator, not selected by cost ordering.
-        string gift = CharacterOf(h).Expression < 0.5 ? "I brought you something. You don't have to say anything."
-            : "I thought of you when I found this. I'd like you to have it.";
-        string help = CharacterOf(h).Chattiness < 0.5 ? "Let me give you a hand." : "We could do this together. Want a hand?";
-        string argue = CharacterOf(h).Boldness < 0.5 ? "What happened still bothers me. I need to say that."
-            : "I'm still upset about what happened. We need to talk about it.";
-        foreach (var (id, kind, line) in new[] { ("gift", "GaveGift", gift), ("help", "HelpedSomeone", help), ("confront", "Argued", argue) })
+        // Source-aware authored alternatives are read by the evaluator, never chosen by
+        // ordinary gate cost ordering. A kindness does not assume a preceding argument.
+        IReadOnlyDictionary<string, string> lines = ReflectionCatalog.Lines(source, CharacterOf(h));
+        foreach (var (id, kind) in new[] { ("gift", "GaveGift"), ("help", "HelpedSomeone"), ("confront", "Argued") })
             if (_kindByName.TryGetValue(kind, out ActKind? k) && k.FitsAge(_cast[h].Age) && k.Affect?.Target == TargetIs.Chosen)
-                list.Add(new ReflectionChoice(id, kind, line));
-        list.Add(new ReflectionChoice("defer", "", "I need to think about this another time."));
-        list.Add(new ReflectionChoice("reject", "", "No. I don't want to act on this thought."));
+                list.Add(new ReflectionChoice(id, kind, lines[id]));
+        list.Add(new ReflectionChoice("defer", "", lines["defer"]));
+        list.Add(new ReflectionChoice("reject", "", lines["reject"]));
         return list;
     }
 

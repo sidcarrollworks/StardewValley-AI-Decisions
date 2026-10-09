@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "thoughts": [
+    {
+      "id": "received-kindness-reciprocity",
+      "perspective": "received", "tone": "kindness", "minRegard": -0.2, "maxRegard": 1,
+      "choice": "gift",
+      "thought": "That kindness from {subject} matters to me. I could bring them something to show that it reached me.",
+      "tags": ["received-kindness", "warm", "reciprocity"]
+    },
+    {
+      "id": "received-kindness-suspicion",
+      "perspective": "received", "tone": "kindness", "minRegard": -1, "maxRegard": 0.2,
+      "choice": "confront",
+      "thought": "I am uneasy about that kindness from {subject}. I could challenge what it means instead of accepting it without question.",
+      "tags": ["received-kindness", "guarded", "suspicion"]
+    },
+    {
+      "id": "own-kindness-connection",
+      "perspective": "own", "tone": "kindness", "minRegard": -0.2, "maxRegard": 1,
+      "choice": "help",
+      "thought": "I reached out to {subject}. Offering to help could give us a reason to spend a little more time together.",
+      "tags": ["own-kindness", "warm", "connection"]
+    },
+    {
+      "id": "own-kindness-boundary",
+      "perspective": "own", "tone": "kindness", "minRegard": -1, "maxRegard": 0.2,
+      "choice": "confront",
+      "thought": "Being kind to {subject} does not mean I trust them. I could make that boundary clear instead of leaving my gesture to speak for me.",
+      "tags": ["own-kindness", "guarded", "boundary"]
+    },
+    {
+      "id": "received-hostility-pride",
+      "perspective": "received", "tone": "hostility", "minRegard": -1, "maxRegard": 0.2,
+      "choice": "confront",
+      "thought": "I do not want {subject} to think I will accept being treated that way. I could stand up to them.",
+      "tags": ["received-hostility", "proud", "self-protection"]
+    },
+    {
+      "id": "received-hostility-repair",
+      "perspective": "received", "tone": "hostility", "minRegard": -0.2, "maxRegard": 1,
+      "choice": "gift",
+      "thought": "What happened with {subject} hurt. A small gift might leave us a way back toward each other without pretending nothing happened.",
+      "tags": ["received-hostility", "hopeful", "repair"]
+    },
+    {
+      "id": "own-hostility-regret",
+      "perspective": "own", "tone": "hostility", "minRegard": -0.2, "maxRegard": 1,
+      "choice": "help",
+      "thought": "I do not like how I treated {subject}. Offering help might be a start toward making things less difficult between us.",
+      "tags": ["own-hostility", "regret", "repair"]
+    },
+    {
+      "id": "own-hostility-double-down",
+      "perspective": "own", "tone": "hostility", "minRegard": -1, "maxRegard": 0.2,
+      "choice": "confront",
+      "thought": "I am not ready to back down over what happened with {subject}. I could press the issue instead of letting it rest.",
+      "tags": ["own-hostility", "proud", "double-down"]
+    },
+    {
+      "id": "neutral-known-encounter",
+      "perspective": "any", "tone": "neutral", "minRegard": -1, "maxRegard": 1,
+      "choice": "*",
+      "thought": "I keep returning to this memory: {memory} Perhaps I could find a different way to approach {subject}.",
+      "tags": ["known-encounter", "uncertain", "contact"]
+    }
+  ],
+  "responses": [
+    {
+      "id": "received-kindness",
+      "gift": "I'd like you to have this. Thank you for what you did.",
+      "quietGift": "This is for you. Your kindness stayed with me.",
+      "help": "I'd like to do something kind for you too. Can I give you a hand?",
+      "quietHelp": "You were kind to me. Let me give you a hand.",
+      "confront": "I want to handle this myself. I want to make my own choices.",
+      "quietConfront": "That gesture made me uncomfortable. I need to say so."
+    },
+    {
+      "id": "own-kindness",
+      "gift": "I wanted to do something else for you. I'd like you to have this.",
+      "quietGift": "I brought you something. No need to make a fuss.",
+      "help": "I'd like us to spend a little more time together. Could I help?",
+      "quietHelp": "I'd like to give you a hand, if you'd like that.",
+      "confront": "I chose to do that for you. Please don't mistake it for a promise of more.",
+      "quietConfront": "That gesture wasn't a promise of more. I need to be clear about that."
+    },
+    {
+      "id": "received-hostility",
+      "gift": "I don't want that encounter to be all there is between us. This is for you.",
+      "quietGift": "What happened still hurts. I brought you something anyway.",
+      "help": "I'm still thinking about what happened. Could I give you a hand?",
+      "quietHelp": "Could I help? I don't want to leave things where they were.",
+      "confront": "The way you treated me wasn't all right. I need you to hear that.",
+      "quietConfront": "What happened hurt me. I need to say that."
+    },
+    {
+      "id": "own-hostility",
+      "gift": "I regret how I treated you. I'd like you to have this.",
+      "quietGift": "I don't like how I handled that. I brought you something.",
+      "help": "I regret how I treated you. I'd like to help, if you'll let me.",
+      "quietHelp": "Could I help? I'd like to make a start toward putting things right.",
+      "confront": "I haven't changed my mind about what happened. We need to address it.",
+      "quietConfront": "I still think I had a point. I'm not ready to drop this."
+    },
+    {
+      "id": "neutral",
+      "gift": "I thought about our encounter. I'd like you to have this.",
+      "quietGift": "I've been thinking about our encounter. This is for you.",
+      "help": "I've been thinking about our encounter. Could I give you a hand?",
+      "quietHelp": "Could I give you a hand? That encounter has stayed with me.",
+      "confront": "Something about that encounter doesn't sit right with me. We need to talk.",
+      "quietConfront": "Something about that encounter bothers me. I need to say so."
+    }
+  ]
+}

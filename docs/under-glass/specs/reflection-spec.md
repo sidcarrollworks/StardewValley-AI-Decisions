@@ -8,7 +8,7 @@ Implemented: a quiet-time opportunity, a private thought about a known encounter
 
 Not implemented: dreams, general dialogue generation, a large tagged speech library, reconsidering a deferred thought, seeking a person to fulfill an intention, long-term ambitions, or model tuning. The first slice offers gifts, help and confrontation through existing act kinds. A thought cannot introduce an executable action the simulation does not support.
 
-Verify: the live Laya and local generation servers were not running during this implementation. Their protocols, failure paths and timing are tested with controlled HTTP responses; live compatibility, latency and quality still need an actual server. The 1,250-character working limit and earlier timings are Sid's observations, not measurements from this prototype.
+The authored catalog now contains nine thoughts and five response profiles. A real local Laya trial completed 15 paired-scene evaluations without fallback or input truncation on 2026-10-08; a seven-day replay also completed with live evaluation. Context changes affect its weights, but arbitrary label and position changes also have substantial effects. This establishes working integration, not convincing character judgment. See the [measurements and limitations](../experiments/reflection-trial-2026-10-08.md). A real generative service remains unverified. The 1,250-character working limit is Sid's constraint, not a universal server context specification.
 
 ## Purpose and design decision
 
@@ -22,8 +22,8 @@ Conflict, withdrawal, failed reconciliation and unusually quiet or hostile towns
 
 1. An awake, free person spends 30 quiet minutes at their current destination, outside work hours. Small idle wandering counts toward quiet time; travel and encounters interrupt it. A thought is requested only while stationary.
 2. At most once per eligible day, a seeded roll with default chance 0.35 opens an opportunity. A person with an unresolved thought waits until its outcome is recorded; this can take the existing outcome window (normally seven days). The daily chance is therefore an opportunity probability, not a daily production rate.
-3. Choose among up to six recent, unreflected memories from the past seven days. Eligible sources are their own completed targeted deeds or firsthand beliefs about something done to them. Hearsay and unknown actors are excluded in this slice. A mistaken identity stays mistaken in the request; world truth never corrects it behind the character's back.
-4. Copy the memory, subject, mood, regard and temperament into a request. Offer complete authored lines for supported gift/help/confront acts, plus defer and reject. The small initial vocabulary varies with expression, chattiness and boldness; richer context tags are later work.
+3. Choose among up to six recent, unreflected memories from the past seven days. Eligible sources are their own completed targeted deeds or firsthand beliefs about something done to them. Hearsay, unknown actors and `Patient.Actor` authority/family events are excluded in this slice; those events need explicit reversed-role templates. A mistaken identity stays mistaken in the request; world truth never corrects it behind the character's back.
+4. Copy the memory, subject, mood, regard and temperament into a request. Structured source facts distinguish doing from receiving kindness or hostility. Choose a tagged authored proposal from the applicable catalog entries using a separate seeded stream. Offer complete response lines for supported gift/help/confront acts, plus defer and reject. Lines fit the source perspective and vary with expression, chattiness and boldness.
 5. Obtain a thought and weights between simulation minutes. Apply the answer at the next minute regardless of wall-clock latency. Waiting for inference pauses simulation advancement; this is an offline recorder, not a claim of real-time background inference.
 6. Rejection and deferral are visible terminal records. Deferral currently means no action and no automatic reconsideration of that source. Acceptance or reshaping retains an intention for up to three days.
 7. An intention can act only at a natural encounter. Both people must be free, stationary, outside work and in reach; age, location, scene eligibility, pair slots and hostile cooldown still apply. This route does not require the ordinary desire score to approve the same decision again.
@@ -35,20 +35,22 @@ Existing constraints may still suppress interesting possibilities; this slice ma
 
 | Mode | Thought | Evaluation |
 |---|---|---|
-| `authored` | One generic authored proposal | Fixed baseline weights, sampled with the seed |
-| `laya` | The same authored proposal | Laya evaluates the full candidate lines |
+| `authored` | Contextual authored proposal from the catalog | Fixed baseline weights, sampled with the seed |
+| `laya` | The same contextual authored proposal | Laya evaluates the full candidate lines |
 | `hybrid` | Configured local generative model | Laya evaluates the full candidate lines |
 | `tape` | Previously recorded answer | Previously recorded weights; no model call |
 
-The authored baseline deliberately favors the first available act and is only a control for the causal plumbing. Its generic prose is not evidence that the model concept produces interesting characters. Fallback is labelled `authored-fallback`, with a reason, rather than presented as model judgment.
+The authored baseline gives the proposal's suggested act weight 3 and every alternative weight 1. It is an uncalibrated control, not evidence of model judgment. Fallback is labelled `authored-fallback`, with a reason.
+
+Edit `sim/UnderGlass.Sim/reflection-catalog.json` and rebuild to change the authored content. Each thought declares an ID, own/received perspective, kindness/hostility/neutral tone, regard interval, required choice and descriptive tags. Overlapping regard intervals intentionally permit contradictory motives: reciprocity or suspicion, connection or boundaries, pride or repair, regret or doubling down. Applicability uses copied known facts; it never consults hidden world truth. Tags describe provenance rather than acting as an additional scoring system. The catalog falls back to a neutral memory-based possibility when an applicable act is unavailable. This is a small reflection catalog, not the general speech library.
 
 The .NET 8 adapter has no Stardew or SMAPI dependency. It uses the existing source-verified Laya `/v1/systemone` protocol and an OpenAI-compatible `/v1/chat/completions` interface for a separately configured local generator. It installs nothing. Endpoints must be loopback HTTP(S); authentication is not implemented in this slice.
 
-Each HTTP call has a five-second deadline including the response body, a bounded response size, and no retries. Generation proposes a short thought and an allowed choice ID. Laya must return finite, nonnegative weights for every supplied choice, with a positive total. Failure replaces both proposal and weights with the authored control. Cancellation stops the run rather than becoming fallback.
+Each HTTP call has a five-second deadline including the response body, a bounded response size, and no retries. Generation proposes a short thought and an allowed choice ID. Laya must return finite, nonnegative weights for every supplied choice, with a positive total. The evaluator receives the thought but no explicit suggested-choice hint. A server response that reports truncation is rejected. Failure replaces both proposal and weights with the authored control. Cancellation stops the run rather than becoming fallback.
 
-The Laya packet caps semantic text at 1,250 characters: state, question instructions, choice IDs and full descriptions. JSON punctuation and field names are not included. Complete lines, the thought and minimum memory/context are reserved first; an oversized packet falls back rather than silently truncating lines. The exact JSON requests, source labels and returned weights are retained for inspection. Verify this conservative accounting against the installed server before relying on it for a live model comparison.
+The Laya packet caps semantic text at 1,250 characters: state, question instructions, choice IDs and full descriptions. JSON punctuation and field names are not included. Complete lines, the thought and minimum memory/context are reserved first; an oversized packet falls back rather than silently truncating lines. Long memory/context can be clipped by the adapter; the paired-scene trial explicitly fails its completeness audit if this happens. Exact JSON requests and raw server responses are retained, including usage and routing when supplied. The installed server reported no truncation in the recorded trial; that is not a guarantee for other packets or checkpoints.
 
-Seeded simulation is reproducible with the same recorded answers. A live model can return a different answer for an identical request, so a seed alone does not promise identical hybrid runs. Tape mode checks the full request, including context and candidate lines, before applying each recorded answer. Reuse the same seed, duration, town and simulation flags. A mismatch fails visibly.
+Seeded simulation is reproducible with the same recorded answers. A live model can return a different answer for an identical request, so a seed alone does not promise identical hybrid runs. Tape mode checks the full request, including context, candidate lines, structured source and authored proposal/tags, before applying each recorded answer. Reuse the same seed, duration, town, catalog and simulation flags. A mismatch fails visibly; tapes from the old generic catalog cannot silently substitute for this one.
 
 ## Run and inspect
 
@@ -68,10 +70,20 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --ref
 
 `--reflection-chance` changes the daily opportunity probability for an experiment. `--laya-model` defaults to the existing adapter's `typed-decisions`. Reflection requires feelings and desire to act; observe/off settings are rejected rather than silently bypassed. The batch sweep runner has no reflection flags.
 
-In **Inner life**, follow one person, open the source encounter, inspect their imagined thought and chosen line, and jump to the later act or outcome. The card distinguishes private imagination from evidence and identifies authored, model and fallback sources. Debug details expose context, every candidate, weights and exact requests. Rewinding hides later answers and events; model text is rendered as text, never HTML.
+In **Inner life**, follow one person, open the source encounter, inspect their imagined thought and chosen line, and jump to the later act or outcome. The card distinguishes private imagination from evidence and identifies authored, model and fallback sources. Debug details expose context, catalog ID/tags, every candidate, weights, exact requests and raw responses. Rewinding hides later answers and events; model text is rendered as text, never HTML.
+
+The controlled trial uses the same adapter and makes no generation calls:
+
+```bash
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --laya-url http://127.0.0.1:8000 --out reflection-trial.json --report reflection-trial.md
+# Offline check of the harness only; explicitly labelled as authored.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --authored --out authored-trial.json --report authored-trial.md
+```
+
+Five pairs change remembered conduct, trust context, line-to-ID assignment, option order and option labels. Every pair repeats its baseline afterward. Reports compare normalized distributions both by ID and by the corresponding response meaning; total variation is half the summed absolute probability differences. The line swap is an invariance test: the same line should not acquire a different weight merely because it moved to another ID/position. Live mode exits nonzero on fallback/non-Laya answers or incomplete/truncated/unverified packets. JSON retains every request and answer for inspection. No probability quota is treated as a quality target.
 
 ## Tests and the next decision
 
-Scene tests cover private knowledge, misidentification, acceptance, reshaping, rejection, deferral, physical opportunity, work and wandering, expiry, causal IDs, cancellation, model latency, recorded replay and disabled-mode behavior. Adapter tests cover the text budget, complete lines, HTTP schema, malformed answers, timeouts, cancellation and fallback. Viewer checks cover time filtering, safe text and outcome navigation.
+Scene tests cover private knowledge, misidentification, source perspective, acceptance, reshaping, rejection, deferral, physical opportunity, work and wandering, expiry, causal IDs, cancellation, model latency, recorded replay and disabled-mode behavior. Catalog tests check applicability, seeded ambivalence, context-specific lines, unsupported acts and real adapter packet budgets. Adapter tests cover the text budget, complete lines, HTTP schema, malformed/truncated answers, timeouts, cancellation and fallback. Trial tests check counterfactual isolation, comparisons and audits; viewer checks cover time filtering, safe text and outcome navigation.
 
-Next, run a small paired comparison: authored control, authored thoughts plus Laya, and generated thoughts plus Laya. Follow a few people through complete scenes. Record whether the choice fits their perspective, whether a surprising choice has an understandable cause, whether the thought changes a later encounter, and whether watching the result raises another question worth following. Review rejected and expired thoughts too. Only then expand the vocabulary and add dreams or persistent reconsideration. Do not tune toward a fixed proportion of agreeable characters or interesting-looking event counts.
+Next, address the measured sensitivity to labels and placement before treating model weights as dependable characterization. Expand the trial across personalities and proposed motives, including ideas that start from anger or withdrawal. Follow complete replay scenes and review rejected/expired thoughts too. Then compare a configured generator plus Laya against these authored proposals. Dreams, a wider speech library and persistent reconsideration follow only when this loop is worth watching. Do not tune toward a fixed proportion of agreeable characters or interesting-looking event counts.
