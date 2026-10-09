@@ -8,6 +8,7 @@ namespace UnderGlass.Sim;
 /// before the run.</summary>
 public sealed record ReplayOptions
 {
+    public ReflectionOptions Reflection { get; init; } = new();
     public long Seed { get; init; } = 1;
     public int Days { get; init; } = 28;
     /// <summary>The town to run; the default town when null.</summary>
@@ -44,6 +45,13 @@ public static class Replay
     public static string Json(ReplayOptions o) => JsonSerializer.Serialize(Record(o), Options);
 
     public static Dictionary<string, object?> Record(ReplayOptions o)
+        => RecordAsync(o, new AuthoredReflectionMind()).GetAwaiter().GetResult();
+
+    public static async Task<string> JsonAsync(ReplayOptions o, IReflectionMind mind, CancellationToken cancellationToken = default)
+        => JsonSerializer.Serialize(await RecordAsync(o, mind, cancellationToken).ConfigureAwait(false), Options);
+
+    public static async Task<Dictionary<string, object?>> RecordAsync(ReplayOptions o, IReflectionMind mind,
+        CancellationToken cancellationToken = default)
     {
         TownData given = o.Town ?? TownData.Default();
         FeelingOptions feelings = o.Feelings ?? given.Feelings;
@@ -60,6 +68,7 @@ public static class Replay
         var placeDistricts = TownMetrics.PlaceDistricts(town);
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
+        sim.ConfigureReflection(o.Reflection);
         foreach (var (who, trait, value) in o.Traits)
             sim.SetTrait(who, trait, value);
 
@@ -80,7 +89,7 @@ public static class Replay
         var power = new List<int[]>();
         var regard = new List<int[]>();
         int n = names.Length;
-        SimResult r = sim.Run(o.Days, (m, s) =>
+        Action<int, Simulation> sample = (m, s) =>
         {
             if (m % Clock.TickMinutes == 0)
                 for (int i = 0; i < n; i++)
@@ -106,7 +115,8 @@ public static class Replay
                         flat[i * n + j] = i == j ? 0 : (int)Math.Round(s.PersonalRegard(names[i], names[j]) * 1000);
                 regard.Add(flat);
             }
-        });
+        };
+        SimResult r = await sim.RunAsync(o.Days, mind, sample, cancellationToken).ConfigureAwait(false);
 
         // The log: beliefs and tellings become tables of their own; every other line is kept. A
         // tie is logged as it is made, in the order of r.Ties, which holds only its day: the line
@@ -158,7 +168,7 @@ public static class Replay
         int K(string? toward) => toward is not null && toward.StartsWith(KindMark, StringComparison.Ordinal)
             && personKind.TryGetValue(toward[KindMark.Length..], out int i) ? i : -1;
 
-        return new Dictionary<string, object?>
+        var recording = new Dictionary<string, object?>
         {
             ["format"] = "under-glass-run",
             ["version"] = Version,
@@ -255,6 +265,13 @@ public static class Replay
             ["townCash"] = r.TownCash.Select(x => Math.Round(x, 2)).ToArray(),
             ["events"] = events,
         };
+        if (o.Reflection.Enabled)
+        {
+            recording["reflectionOptions"] = o.Reflection;
+            recording["reflections"] = JsonSerializer.SerializeToElement(r.Reflections,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        }
+        return recording;
     }
 
     private static int P2(Dictionary<string, int> place, string name) => place.TryGetValue(name, out int i) ? i : -1;

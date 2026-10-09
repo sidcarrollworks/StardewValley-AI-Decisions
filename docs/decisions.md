@@ -567,6 +567,56 @@ first, and Emily's filled with sightings of Haley.
 **Why.** Regard is applied when an entry is written, so forgetting an entry never changes a
 feeling. What's lost is what a villager could still bring up.
 
+## Under Glass (the independent game)
+
+### D36. Observe a person's thought and its consequences before expanding the social catalog
+
+**Decision (Sid, 2026-10-08).** Under Glass's first version is an in-depth social simulation
+viewed from above. Player gameplay follows later. The next experiment follows a character from a
+remembered encounter through inspiration, consideration, intention, action and outcome. Its
+success is whether an observer can understand and wants to follow those choices. Counts of feuds
+or friendships remain diagnostic; they do not establish that a relationship is interesting.
+An unusually hostile or quiet town may be a valid outcome when its causes hold together. It is
+not automatically a balance failure to tune away.
+
+**Model roles.** Routine speech can be authored in voices and tagged for context. A local
+generator may occasionally propose an imagined intention, and Laya evaluates the character's
+response using their own context and the actual candidate lines. Laya is not limited to breaking
+close numerical ties in this experiment. The engine samples once from its weights and supplies
+all executable consequences. Accepting a thought, reshaping it, deferring it and rejecting it are
+distinct outcomes. A thought does not become evidence merely because a model imagined it.
+
+**First implementation.** Quiet reflection is opt-in, with an authored baseline for offline
+comparison, authored inspiration plus Laya, or local generation plus Laya. Only a person's own
+completed deed or an identified firsthand belief about them supplies a source; even a mistaken
+identity stays as they remember it. The initial choices are an available gift, help or
+confrontation, plus defer and reject. An accepted intention waits for an eligible encounter and
+can expire. No path creates an unsupported act, teleports the subject or writes a fabricated
+witnessed memory. This is a separate .NET 8 adapter and simulator change, not a change to the
+Stardew mod's dialogue policy.
+
+**Reproducibility and cost.** Each actor gets at most one opportunity a day, and a source memory
+is considered once. Model calls occur between simulation minutes, with bounded requests and
+deadlines; processing speed cannot choose when an answer takes effect. Every proposal, weight
+table, selected line and fallback is recorded for inspection. Replaying recorded answers
+requires an exact request match. Determinism means the same seed plus the same recorded model
+answers and world inputs reproduces the run, not that two fresh model calls must agree. The
+1,250-character Laya budget is Sid's working constraint; prompt construction preserves the
+candidate lines and reserves memory/context before using the remaining space.
+
+**Current limit.** A thought occupies its actor's one open reflection slot until rejected,
+deferred, expired, or resolved by the life record after acting. Keeping that slot through the
+outcome is deliberate prototype pacing, not a claim that people cannot think about two things.
+Dreams, revisiting old thoughts, richer line catalogs and the quality of live model choices remain
+future work. Tests establish mechanics and HTTP contracts; **verify** behavior and latency with
+actual local services before judging the model experiment.
+
+**Why.** More rules and aggregate stability had postponed testing the intended experience.
+An inspectable causal sequence makes the model's contribution visible, including decisions an
+observer dislikes or did not expect, without explaining the character afterward in invented prose.
+See [the reflection spec](under-glass/specs/reflection-spec.md) and
+[the game design](under-glass/design.md).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

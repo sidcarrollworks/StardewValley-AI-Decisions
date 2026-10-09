@@ -13,6 +13,29 @@ Working rules:
 - Prefer shadow mode (log what the mod would do, change nothing) before any behavior goes live.
 - Read `stardew-source-notes.md` before answering questions about game internals.
 
+## Under Glass: current direction (2026-10-08)
+
+The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social
+simulation viewed from above. Player gameplay comes afterward. The next milestone is a short run
+whose people and choices are worth following: observers can see what someone remembers, imagines,
+considers, intends, attempts and experiences. Feud/friendship counts and stability checks are
+diagnostics, not proof of an interesting town; coherent extreme outcomes are allowed.
+
+The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:
+an authored thought, or a proposal from a configured local generator, is evaluated against actual
+authored response lines by Laya. An explicit authored baseline runs without any service. A seeded
+draw accepts, reshapes, defers or rejects the proposal; an accepted act waits for an ordinary
+encounter, can expire, and retains its original memory as its cause. The replay viewer shows the
+decision and outcome as they become known. Model calls pause simulation time, and recorded answers
+can be reused only with matching requests. All of this remains separate from Stardew and SMAPI.
+
+Scene and fake-HTTP tests verify the mechanics, context boundaries, deadline/fallback behavior and
+replay. **Verify with real local services:** model quality and end-to-end Laya/generator behavior
+have not been established by these tests. Dreams, old-thought reconsideration, the wider tagged
+dialogue catalog and player interaction remain unbuilt. The detailed plan is in
+[`docs/under-glass/design.md`](docs/under-glass/design.md); the mod's goals and history below remain
+their own track.
+
 ## Goal
 
 NPCs that:

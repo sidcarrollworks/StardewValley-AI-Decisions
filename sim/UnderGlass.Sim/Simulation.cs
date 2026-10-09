@@ -142,7 +142,7 @@ public sealed class SimResult
     /// <summary>Every weighing of an act for a motive.</summary>
     public required IReadOnlyList<Pursuit> Pursuits { get; init; }
     public required IReadOnlyList<Stirring> Stirred { get; init; }
-    /// <summary>The acts the gate started (motives acted on, and turning away).</summary>
+    /// <summary>Deliberate acts: the desire gate's choices and optional accepted reflection intentions.</summary>
     public required IReadOnlySet<int> Pursued { get; init; }
     public required IReadOnlyList<(int Tick, string Holder, string Subject, int Source, int Until)> Avoids { get; init; }
     public required int Withdrawals { get; init; }
@@ -191,6 +191,7 @@ public sealed class SimResult
     /// <summary>Each person's stage of life (design rule 17), for the measures: a child is never
     /// counted a hermit (Sid's answer A9, 2026-10-08).</summary>
     public IReadOnlyDictionary<string, Stage> Stages { get; init; } = new Dictionary<string, Stage>();
+    public IReadOnlyList<ReflectionRecord> Reflections { get; init; } = Array.Empty<ReflectionRecord>();
 }
 
 /// <summary>
@@ -387,6 +388,40 @@ public sealed partial class Simulation
 
     private SimResult RunDays(int days, Action<int, Simulation>? each)
     {
+        var mind = new AuthoredReflectionMind();
+        foreach (int m in Minutes(days))
+        {
+            each?.Invoke(m, this);
+            // The synchronous path only uses the completed authored baseline, never HTTP.
+            AnswerReflections(mind, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        return Result(days);
+    }
+
+    /// <summary>Await immutable reflection decisions between minutes. Time resumes only once every
+    /// answer is recorded, so a slow model cannot change which simulated minute receives it.</summary>
+    public async Task<SimResult> RunAsync(int days, IReflectionMind mind,
+        Action<int, Simulation>? each = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mind);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        try
+        {
+            foreach (int m in Minutes(days))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                each?.Invoke(m, this);
+                await AnswerReflections(mind, cancellationToken).ConfigureAwait(false);
+            }
+            return Result(days);
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = culture; }
+    }
+
+    private IEnumerable<int> Minutes(int days)
+    {
+        if (days < 0) throw new ArgumentOutOfRangeException(nameof(days));
         foreach (Person p in _people)
         {
             bool home = _places.ContainsKey(p.V.Home);
@@ -418,9 +453,11 @@ public sealed partial class Simulation
             Step(m);
             if (Clock.OfDay(m) == Clock.MinutesPerDay - 1)
                 CloseDay(Clock.Day(m), days);
-            each?.Invoke(m, this);
+            yield return m;
         }
-        return new SimResult
+    }
+
+    private SimResult Result(int days) => new SimResult
         {
             Acts = _acts,
             Beliefs = _beliefs.ToDictionary(p => p.Key, p => (IReadOnlyDictionary<int, Belief>)p.Value),
@@ -480,8 +517,8 @@ public sealed partial class Simulation
             Circles = _circles,
             Scenarios = _scenarioActs,
             Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
+            Reflections = ReflectionRecords(),
         };
-    }
 
     private Dictionary<(string, string), double> Pairs(double[,] values)
     {
@@ -502,6 +539,7 @@ public sealed partial class Simulation
         bool tick = m % Clock.TickMinutes == 0;
         foreach (Person p in _people)
             Live(p, m, tick);
+        ReflectAct(m);
         if (tick)
         {
             StartActs(m);
@@ -531,6 +569,7 @@ public sealed partial class Simulation
         }
         CheckLate(m, t);
         Arrivals(m); // the act catalog: coming in late (Late)
+        Reflect(m);
     }
 
     // ---- bodies: energy, sleep, alarms (design rule 1) -------------------------------------
@@ -901,7 +940,8 @@ public sealed partial class Simulation
     /// the parent); else found from the act's feeling row. Only while feelings are on.</param>
     /// <param name="about">The act a consequence answers.</param>
     /// <param name="with">A third person the act is for (the act catalog); only while feelings are on.</param>
-    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null)
+    private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null,
+        bool fromReflection = false)
     {
         if (!_fo.Enabled)
             (target, about, with) = (null, -1, null);
@@ -928,7 +968,7 @@ public sealed partial class Simulation
         // S1: the other party takes part, for as long as the act lasts.
         Person other = _people[_index[target]];
         other.BusyUntil = Math.Max(other.BusyUntil, actor.BusyUntil);
-        if (aimed.Target == TargetIs.Chosen)
+        if (aimed.Target == TargetIs.Chosen && !fromReflection)
             Why(m, actor.V.Name, kind.Name, target);
     }
 

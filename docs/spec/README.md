@@ -4,6 +4,15 @@ This folder specifies every feature of the mod: what exists, what is planned, an
 planned parts should work. It is written for whoever builds the next piece, including cheaper
 models, so each file can be read on its own.
 
+**Under Glass has its own specifications.** Start at
+[the independent game design](../under-glass/design.md) and
+[simulator status](../../sim/README.md). The optional
+[quiet-reflection prototype](../under-glass/specs/reflection-spec.md) connects private memories,
+authored or locally generated inspiration, Laya's evaluation of actual response lines, executable
+intentions and their recorded outcomes. Its first-version goal is a social simulation watched
+from above; player gameplay comes later. The mod-specific shadow-mode and template-only
+requirements below do not describe that independent experiment.
+
 - **How the code works today:** `docs/architecture.md`. **Why:** `docs/decisions.md` (D1..D28).
   **Rules:** `AGENTS.md`. This spec does not repeat them; it links to them and adds what is not
   built yet. When the spec and the code disagree about something marked **done**, the code wins:
