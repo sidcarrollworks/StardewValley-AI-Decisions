@@ -77,6 +77,9 @@ public sealed class BodyOptions
 /// <summary>What a run produced.</summary>
 public sealed class SimResult
 {
+    public IReadOnlyList<EncounterContext> Encounters { get; init; } = Array.Empty<EncounterContext>();
+    public IReadOnlyList<EncounterCause> EncounterCauses { get; init; } = Array.Empty<EncounterCause>();
+    public IReadOnlyList<EncounterAppraisal> Appraisals { get; init; } = Array.Empty<EncounterAppraisal>();
     public required IReadOnlyList<Act> Acts { get; init; }
     public required IReadOnlyDictionary<string, IReadOnlyDictionary<int, Belief>> Beliefs { get; init; }
     public required IReadOnlyList<Confrontation> Confrontations { get; init; }
@@ -524,6 +527,9 @@ public sealed partial class Simulation
             Scenarios = _scenarioActs,
             Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
             Reflections = ReflectionRecords(),
+            Encounters = _encounters,
+            EncounterCauses = _encounterCauses,
+            Appraisals = _appraisals,
         };
 
     private Dictionary<(string, string), double> Pairs(double[,] values)
@@ -947,7 +953,7 @@ public sealed partial class Simulation
     /// <param name="about">The act a consequence answers.</param>
     /// <param name="with">A third person the act is for (the act catalog); only while feelings are on.</param>
     private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null,
-        bool fromReflection = false)
+        bool fromReflection = false, EncounterCause? cause = null)
     {
         if (!_fo.Enabled)
             (target, about, with) = (null, -1, null);
@@ -955,6 +961,7 @@ public sealed partial class Simulation
             target = TargetFor(kind, row, actor, m);
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
+        RecordEncounter(act, kind, cause);
         RecordCircle(act, kind); // batch 2's reach checks: a scandal's circle
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);
@@ -1099,6 +1106,7 @@ public sealed partial class Simulation
     /// <param name="teller">Who told it, when it came in a telling.</param>
     private void Add(string who, Belief b, int m, string? teller = null)
     {
+        RecordPerceivedEncounter(who, b, m);
         _beliefs[who].TryGetValue(b.ActId, out Belief? prior);
         _beliefs[who][b.ActId] = b;
         _tellable[who].Add(b.ActId);

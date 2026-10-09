@@ -25,7 +25,9 @@ Sid reviewed the authored, Laya and local-generator recordings and finds the new
 promising. The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: concrete
 encounter context and separate personal/listener appraisal next, then broader actions and tagged
 speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
-is planned, not implemented. Earlier batch orders, news ceilings and E1/E2 thresholds remain
+now has its first observer slice: supported roles/source links, private causes, acquisition-time
+appraisals and grouped everyday activity with inspectable reasons. Concrete tasks and contextual
+gossip selection remain planned. Earlier batch orders, news ceilings and E1/E2 thresholds remain
 historical evidence. They do not require quiet, hostile or socially collapsed runs to be tuned away.
 
 The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:

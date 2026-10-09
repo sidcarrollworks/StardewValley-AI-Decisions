@@ -21,7 +21,7 @@ git status
 dotnet test sim/UnderGlass.sln -c Release
 ```
 
-The current suite has 607 tests; this guide originally described 408. CI runs the same suite on
+The current suite has 618 tests; this guide originally described 408. CI runs the same suite on
 every pull request (`.github/workflows/tests.yml`). Under Glass now uses `codex/reflection-prototype`
 as its development base, with feature PRs targeting it; follow `AGENTS.md` rather than switching
 an existing checkout to `main` to follow this tour.

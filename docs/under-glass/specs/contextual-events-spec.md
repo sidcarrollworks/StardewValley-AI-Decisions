@@ -2,10 +2,16 @@
 
 ## Status
 
-Planned, 2026-10-09; the next slice in [the current roadmap](../roadmap.md). No simulator,
-gossip or viewer classification behavior is changed by this specification. Existing recordings
-still label kinds using `ActKind.Tier`, derived from juiciness, valence and upheaval.
-`HelpedSomeone` is currently News at juiciness 2 regardless of relationship or occasion.
+Built first observer slice, 2026-10-09, on `codex/contextual-events`: supported encounter facts,
+explicit roles, private motive/reflection causes, perceived accounts, acquisition-time authored
+appraisals and clock-aware dashboard grouping. Simulation decisions, feelings, gossip selection
+and authority behavior are unchanged. `ActKind.Tier` remains the legacy gossip classification;
+`HelpedSomeone` is still News at juiciness 2 there. Stories now distinguishes Everyday,
+Relationship moment, Public concern and Context unavailable.
+
+Still planned: concrete tasks/items/effort, use of the new context in model requests, and
+listener-specific gossip selection. The first interest score is an observer baseline for the
+holder who learned this account, not a teller's prediction of every possible listener.
 
 Sid's example is Evelyn and George helping each other at home. Three recorded events on d1
 at 16:50, 17:28 and 17:33 were all News despite no retellings in the prepared hybrid run.
@@ -25,8 +31,12 @@ options follow in step 2. This slice supplies the shared contracts those feature
 
 ## Record contracts
 
-The final C# types and replay field layout are to be settled in the first implementation PR;
-the following responsibilities are required, not already available APIs.
+Implemented types are in `sim/UnderGlass.Sim/Encounters.cs`; acquisition hooks are in
+`Simulation.Encounters.cs`. The contracts below are implemented to the extent stated here.
+`EncounterContext` records act ID/time, roles, location, declared duration and existing causal
+link. Activity, item, effort and amount remain null because these acts have no concrete mechanic
+for them. `EncounterCause` records the actual selected desire motive or reflection receipt and
+choice; it is a separate private observer record and is never copied into a perceived account.
 
 | Record | What it holds | Who may read it |
 |---|---|---|
@@ -54,11 +64,31 @@ unknown context; they must not acquire invented reasons. If persisted simulation
 provide an explicit version/migration and tests. Record/request changes invalidate incompatible
 model tapes visibly rather than silently accepting them.
 
+**As built:** the run remains format version 1 with additive `encounterVersion: 1`,
+`appraisalRevision: authored-context-1`, `encounters`, `encounterCauses` and `appraisals` fields.
+Old files need no rewrite and display Context unavailable. No persistent simulation save format
+or model request changed. Replaying the existing 91-answer hybrid tape reproduces every old
+recording field except the command label, including hash `569d3d45ee037fbd`.
+
+Accounts snapshot holder, believed actor/target, role, source, confidence and teller chain when
+self-knowledge or `Add` acquires an event. Updates replace that act within the holder's seven-day
+appraisal history, so corroboration is not counted as repetition. Appraisal captures regard and
+familiarity before the current belief's affect is applied. A warned/collapsed person is recorded
+as undergoing an event, not voluntarily performing it. Source links in the observer truth view
+do not grant those links or private intentions to witnesses.
+
 ## Appraisal rules
 
 Personal significance and shareability are separate values with bounded, inspectable inputs.
 The first baseline uses authored rules; model appraisal is a later controlled experiment.
 These values are not affect magnitude, morality, legal reportability or a new kindness quota.
+
+The first rules identify household care, recent known conflict followed by kindness, kindness
+while regard is strained, direct adverse encounters, known-person relevance and repeated similar
+valence. Scandal/upheaval kinds retain an explicitly labelled public-concern reason. Each reason
+cites event IDs or the captured relationship input. Scores are provisional rule outputs, not
+measured feelings or an established measure of interestingness. Cost, concrete needs, norms and
+fulfilled obligations have no appraisal rule until their supporting mechanics exist.
 
 - Familiar household care is normally everyday activity. Same-household status alone cannot
   suppress a supported exception such as a recent hurt, costly help or a consequential refusal.
@@ -90,6 +120,14 @@ All grouping, reasons, knowledge and outcomes follow the replay clock. Rewinding
 members of a group and later interpretations. Model text stays plain text. Debug views expose the
 inputs/rules and distinguish authored appraisal, model interpretation and observed consequence.
 
+**As built:** Stories defaults to all encounters, with separate contextual-highlight and
+everyday filters; the legacy-news filter remains available. Everyday events with the same
+unordered participant pair, kind and location within 90 minutes of the group's first event are
+grouped. Each member retains its time and selectable detail view. The 90-minute window is a
+presentation choice, not memory deletion or a simulation cooldown. Reasons, private cause links
+and per-holder accounts appear in Context and perspectives; earlier evidence opens at its own
+recorded minute. All accounts/group members follow the cutoff, including Whole-run analysis.
+
 ## Verification scenes
 
 - Evelyn/George routine reciprocal help: everyday presentation, retained participant effects,
@@ -106,3 +144,8 @@ inputs/rules and distinguish authored appraisal, model interpretation and observ
 
 Complete the first observer scenes before expanding the contextual rules. Review their readability
 with Sid while keeping deterministic mechanics and privacy tests as required checks.
+
+Validation: 11 new .NET encounter tests and five Node viewer tests cover these first contracts;
+existing pinned hashes, replay, reflection and authority tests remain. The fresh authored demo
+shows grouped Evelyn/George care and private decision navigation; the hybrid tape demo preserves
+the original model decisions. Gossip-integration scenes apply to the later selection change.

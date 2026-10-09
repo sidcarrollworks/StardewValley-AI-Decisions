@@ -763,6 +763,33 @@ change; this documentation reconciliation changes no runtime defaults or simulat
 Generator quality remains under review while the world gains context; fine-tuning is not a
 prerequisite for the next milestone.
 
+### D42. Capture encounter appraisals from acquired knowledge and preserve every source event
+
+**Decision (Sid, 2026-10-09).** Build the first observer slice of D41 without changing gossip,
+feelings or act selection. `Simulation.Encounters.cs` records act facts and self-knowledge at
+beginning, then perceived accounts when a belief is acquired. It snapshots believed identities,
+source/chain/confidence and the holder's own relationship inputs before the current affect.
+Private selected motive/reflection causes live separately; witnesses do not inherit them.
+Imagination and a selected line are not proof of a feeling, intent attributed to another person,
+or successful reconciliation. Unsupported task/item/effort/cost remain unknown.
+
+An authored baseline separately explains personal significance and interest to the holder who
+learned the account. Household care, recent known hurt, strain, repetition and relevance supply
+inspectable reasons. These provisional outputs are neither a realism score nor a replacement
+for gossip selection. The legacy kind tier and reporting rules remain intact.
+
+Stories defaults to encounters and groups everyday acts by unordered pair/kind/place within
+90 minutes of the first member. Every act is selectable. Appraisals, reasons, private causes,
+evidence and group members follow the clock; old files show Context unavailable. Additive
+encounter schema 1 preserves run version 1 and model requests. Replaying the existing 91-answer
+hybrid tape gives the same hash and all previous fields except the command label.
+
+**Validation.** Eleven new .NET tests cover roles, knowledge, repeated/corroborated events,
+snapshots, private receipt links and deterministic recording. Five Node tests cover old files,
+future appraisals, reciprocal grouping and rewind. Browser checks cover household care,
+individual members, per-person reasons, private thought navigation and clock filtering.
+Concrete task context and listener-specific gossip selection remain later slices.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

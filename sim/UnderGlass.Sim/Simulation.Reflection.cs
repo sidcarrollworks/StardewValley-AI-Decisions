@@ -265,7 +265,9 @@ public sealed partial class Simulation
             _pursuedActs.Add(t.ActId);
             // The recorded thought explains this choice. Don't retrofit the strongest
             // sentiment as its cause; that can contradict the actual model decision.
-            Begin(m, kind, p, false, subject, t.Request.SourceActId, fromReflection: true);
+            Begin(m, kind, p, false, subject, t.Request.SourceActId, fromReflection: true,
+                cause: new(-1, m, actor, "reflection", t.Request.SourceActId,
+                    ReflectionId: t.Request.Id, ChoiceId: t.Choice.Id));
             t.Events.Add(new(m, "acted", $"{actor} to {subject}: “{t.Choice.Line}” ({kind.Name})", t.ActId));
             _log.Add($"{m} reflection {actor} acted {kind.Name} toward {subject} act {t.ActId} source {t.Request.SourceActId}");
         }
