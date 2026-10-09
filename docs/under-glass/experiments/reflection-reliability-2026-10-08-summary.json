@@ -1,0 +1,363 @@
+{
+  "localDate": "2026-10-08",
+  "device": "NVIDIA GeForce RTX 4070 Ti",
+  "trials": {
+    "raw-next": {
+      "requestedLaya": true,
+      "model": "typed-decisions",
+      "evaluationMode": "raw",
+      "fallbackCount": 0,
+      "nonLayaCount": 0,
+      "evaluationCount": 15,
+      "incompletePacketCount": 0,
+      "truncatedResponseCount": 0,
+      "unverifiedResponseCount": 0,
+      "exitCode": 0,
+      "decisions": 15,
+      "medianMilliseconds": 19.139,
+      "comparisons": [
+        {
+          "id": "memory",
+          "semanticTotalVariation": 0.06868312068683118,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "trust",
+          "semanticTotalVariation": 0.03786693669366938,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "line-meaning",
+          "semanticTotalVariation": 0.10312823717628239,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-order",
+          "semanticTotalVariation": 0.03297293270672935,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-labels",
+          "semanticTotalVariation": 0.06434012598740124,
+          "repeatTotalVariation": 0
+        }
+      ],
+      "rawFileSha256": "bc295b708a8e6e31c15690c5c50c05cd036781d3a43da857904be276b5b9e21a"
+    },
+    "canonical-next": {
+      "requestedLaya": true,
+      "model": "typed-decisions",
+      "evaluationMode": "canonical",
+      "fallbackCount": 0,
+      "nonLayaCount": 0,
+      "evaluationCount": 15,
+      "incompletePacketCount": 0,
+      "truncatedResponseCount": 0,
+      "unverifiedResponseCount": 0,
+      "exitCode": 0,
+      "decisions": 15,
+      "medianMilliseconds": 23.4086,
+      "comparisons": [
+        {
+          "id": "memory",
+          "semanticTotalVariation": 0.04916051605160513,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "trust",
+          "semanticTotalVariation": 0.053200000000000025,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "line-meaning",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-order",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-labels",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        }
+      ],
+      "rawFileSha256": "3d95e509133dbd698a5ad210d5732336c193a92249413e82286f4b9a01ce8eab"
+    },
+    "balanced-next": {
+      "requestedLaya": true,
+      "model": "typed-decisions",
+      "evaluationMode": "balanced",
+      "fallbackCount": 0,
+      "nonLayaCount": 0,
+      "evaluationCount": 75,
+      "incompletePacketCount": 0,
+      "truncatedResponseCount": 0,
+      "unverifiedResponseCount": 0,
+      "exitCode": 0,
+      "decisions": 15,
+      "medianMilliseconds": 127.283,
+      "comparisons": [
+        {
+          "id": "memory",
+          "semanticTotalVariation": 0.03767472308974721,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "trust",
+          "semanticTotalVariation": 0.042132075497720765,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "line-meaning",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-order",
+          "semanticTotalVariation": 6.938893903907228e-18,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-labels",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        }
+      ],
+      "rawFileSha256": "33f0463f52ac31aa0760f8c22ea3da2f371c0b1098b9c2bda6517ef2c661aac5"
+    },
+    "social-balanced": {
+      "requestedLaya": true,
+      "model": "typed-decisions",
+      "evaluationMode": "balanced",
+      "fallbackCount": 0,
+      "nonLayaCount": 0,
+      "evaluationCount": 291,
+      "incompletePacketCount": 0,
+      "truncatedResponseCount": 0,
+      "unverifiedResponseCount": 0,
+      "exitCode": 0,
+      "decisions": 51,
+      "medianMilliseconds": 115.7554,
+      "comparisons": [
+        {
+          "id": "memory",
+          "semanticTotalVariation": 0.03767472308974721,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "trust",
+          "semanticTotalVariation": 0.042132075497720765,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "line-meaning",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-order",
+          "semanticTotalVariation": 6.938893903907228e-18,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "choice-labels",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "guarded-perspective",
+          "semanticTotalVariation": 0.01736496845064964,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "guarded-inspiration",
+          "semanticTotalVariation": 0.1583909934735766,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "guarded-order",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "proud-perspective",
+          "semanticTotalVariation": 0.03638775957937761,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "proud-inspiration",
+          "semanticTotalVariation": 0.06698191485815254,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "proud-order",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "remorse-perspective",
+          "semanticTotalVariation": 0.040055619180389496,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "remorse-inspiration",
+          "semanticTotalVariation": 0.072430296499303,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "remorse-order",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "kindness-perspective",
+          "semanticTotalVariation": 0.04810377108470437,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "kindness-inspiration",
+          "semanticTotalVariation": 0.022316715953080834,
+          "repeatTotalVariation": 0
+        },
+        {
+          "id": "kindness-order",
+          "semanticTotalVariation": 0,
+          "repeatTotalVariation": 0
+        }
+      ],
+      "rawFileSha256": "2d8e9dbeff4e5a7213e74b860ac7e6fecaaf751542a690fb9e14bea91816fc9d"
+    }
+  },
+  "replays": {
+    "authored": {
+      "seed": 7,
+      "days": 14,
+      "hash": "16b0adc14ab3ea1b",
+      "thoughts": 82,
+      "backends": {
+        "authored": 82
+      },
+      "events": {
+        "considered": 82,
+        "accepted": 40,
+        "waiting": 53,
+        "acted": 40,
+        "outcome": 23,
+        "dreamed": 15,
+        "reshaped": 13,
+        "expired": 10,
+        "deferred": 8,
+        "rejected": 21
+      },
+      "choices": {
+        "confront": 13,
+        "help": 20,
+        "gift": 20,
+        "defer": 8,
+        "reject": 21
+      },
+      "evaluatorPasses": 0,
+      "rawFileSha256": "550ef69ae8c950ce968578a7bdacb77afe8853e73a1df5876704607c86fefa9f"
+    },
+    "laya": {
+      "seed": 7,
+      "days": 14,
+      "hash": "6319b11f62df694f",
+      "thoughts": 82,
+      "backends": {
+        "authored+laya": 82
+      },
+      "events": {
+        "considered": 82,
+        "reshaped": 28,
+        "waiting": 60,
+        "acted": 45,
+        "outcome": 29,
+        "accepted": 32,
+        "dreamed": 19,
+        "deferred": 11,
+        "expired": 7,
+        "rejected": 11,
+        "reconsidered": 2
+      },
+      "choices": {
+        "help": 22,
+        "gift": 27,
+        "defer": 11,
+        "reject": 11,
+        "confront": 11
+      },
+      "evaluatorPasses": 394,
+      "rawFileSha256": "f5b2b08e258e52d90d86f507e30e6f487b2645b0184cf2097f460edc113b0238"
+    },
+    "hybrid": {
+      "seed": 7,
+      "days": 14,
+      "hash": "a9f42bfdc31a146d",
+      "thoughts": 86,
+      "backends": {
+        "local-llm+laya": 86
+      },
+      "events": {
+        "considered": 86,
+        "reshaped": 31,
+        "waiting": 63,
+        "acted": 48,
+        "outcome": 34,
+        "accepted": 32,
+        "dreamed": 22,
+        "deferred": 5,
+        "expired": 5,
+        "rejected": 18,
+        "reconsidered": 1
+      },
+      "choices": {
+        "help": 13,
+        "confront": 28,
+        "gift": 22,
+        "defer": 5,
+        "reject": 18
+      },
+      "evaluatorPasses": 410,
+      "rawFileSha256": "cb6cf86810db758a7f26f983589823135cc2c3b77ea4f3d8bfb8ee503ca25c7d",
+      "medianGenerationMilliseconds": 952.3297999985516
+    },
+    "hybridActTypes": {
+      "seed": 7,
+      "days": 14,
+      "hash": "569d3d45ee037fbd",
+      "thoughts": 91,
+      "backends": {
+        "local-llm+laya": 91
+      },
+      "events": {
+        "considered": 91,
+        "reshaped": 34,
+        "waiting": 60,
+        "acted": 51,
+        "outcome": 33,
+        "dreamed": 20,
+        "accepted": 26,
+        "deferred": 11,
+        "expired": 3,
+        "rejected": 20,
+        "reconsidered": 1
+      },
+      "choices": {
+        "help": 23,
+        "gift": 27,
+        "defer": 11,
+        "reject": 20,
+        "confront": 10
+      },
+      "evaluatorPasses": 439,
+      "rawFileSha256": "eedbe16782ca0cf920ca2d3aa556e601af0a78b55cebd8981030fb4287fe2841",
+      "medianGenerationMilliseconds": 960.8590999851003
+    }
+  },
+  "hybridTapeMatchesExceptLabel": true,
+  "hybridActTypesTapeMatchesExceptLabel": true
+}

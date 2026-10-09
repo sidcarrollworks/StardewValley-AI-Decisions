@@ -15,43 +15,92 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 `sim/UnderGlass.sln` targets .NET 8 and has no Stardew or SMAPI dependencies. Its first product is
 the social simulation viewed from above: an observer should be able to follow what people
 remember, consider, attempt and experience. Player gameplay comes later. The simulator's full
-design and current build order are in [under-glass/design.md](under-glass/design.md) and
+design is in [under-glass/design.md](under-glass/design.md), current priorities are in
+[under-glass/roadmap.md](under-glass/roadmap.md), and implementation/history are in
 [../sim/README.md](../sim/README.md). The sections below this one describe the Stardew mod.
+
+Next is [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md):
+separate event facts, private cause and perceived accounts, then personal significance and
+listener-specific interest. That contract is planned. Current `ActKind.Tier` and gossip still
+use kind juiciness, and reflection still offers gift/help/confrontation plus defer/reject.
+Catalog actions exist behind switches; connecting more of them to reflection follows context.
 
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
 
-- `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer and event records,
+- `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer, continuity and event records,
   `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer provider.
-- `UnderGlass.Sim/Simulation.Reflection.cs`: opportunities during sustained free time, a copy of
+- `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: nine editable
+  thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
+  regard select eligible motives; overlapping regard ranges allow contradictory possibilities.
+  A seeded draw selects a proposal. Temperament varies the complete candidate lines' voice.
+- `UnderGlass.Sim/Simulation.Reflection.cs`: opportunities during sustained free time or optional
+  inspiration on waking, a copy of
   the actor's known context, one seeded draw over response weights, and an intention waiting for
   an ordinary encounter. The existing act engine executes the act and records its consequences.
 - `UnderGlass.Minds`: an independent optional HTTP adapter. Authored thoughts can be evaluated by
   Laya, or a configured local generator can propose a thought before Laya evaluates the response.
   The services are supplied by the user; the adapter neither installs nor starts models.
-- `UnderGlass.Replay` and `sim/viewer/index.html`: recording and an Inner life view that follows
-  the source memory, thought, response, attempted act and outcome without exposing future events
-  ahead of the replay clock.
+- `sim/tools/reflection_generator.py`: an explicitly started local generation service using
+  pinned `Qwen/Qwen3-0.6B` weights, with request limits and raw response receipts. The helper uses
+  the existing Python runtime; it is independent of the .NET simulation.
+- `UnderGlass.Replay` and `sim/viewer/index.html`: recording, a current-moments strip and previous/
+  next event navigation, plus Inner life chains from source memory through earlier idea, response,
+  attempted act and plain-language outcome. Thoughts, outcomes and story views follow the replay clock.
+  Playback is a sticky sibling of the map, so it stays available throughout the lower views.
+  A selected-person timeline row marks performed/received encounters, their own thoughts/outcomes
+  and relationship changes. Hover resolves plain-text descriptions at the current clock; future
+  markers reveal only their time. Clicking a marker pauses and jumps to its exact recorded minute.
+- `UnderGlass.ReflectionTrial`: paired hypothetical decisions, with an exact baseline repeat,
+  to separate changes in memory, trust and line meaning from choice-label and order effects.
 
 `ConfigureReflection` is off by default and requires feelings and desire to be acting when
 enabled. Defaults are 30 quiet minutes, a 0.35 daily opportunity chance and three days for an
 unperformed intention to expire. Working, travel to another location and encounters interrupt
 the quiet stretch; small idle wandering around a haunt is allowed. There is at most one
-opportunity per actor per day, and the same actor never reconsiders a source memory in this
-prototype. Delaying or rejecting ends that thought without an act. An accepted or reshaped
-intention waits for physical reach, free time, act eligibility and the existing slot/cooldown
-limits. Once performed, it stays open until the existing life record resolves its outcome.
-That intentionally blocks another reflection for this actor meanwhile, potentially for the
-ordinary seven-day outcome window; the daily chance is an upper opportunity rate, not a promise
-of one thought every day.
+submitted reflection per actor per day, and each source memory is evaluated once. Delaying or rejecting
+ends that decision without an act. A deferred idea may have a linked continuation after a
+distinct own deed or firsthand encounter involving the same believed subject becomes known
+after the earlier decision, and at least one full day has elapsed. Mood/regard drift alone does
+not reopen it. Defaults allow at most two continuations per root; `MaxReconsiderations = 0`
+disables these links while leaving independent thoughts about distinct sources available.
+Rejection stays terminal, and expiration does not trigger a retry.
+
+An accepted or reshaped intention waits for physical reach, free time, act eligibility and the
+existing slot/cooldown limits. It blocks another pending intention until performed or expired.
+Once performed, its life record continues to supply the outcome while new thoughts are allowed.
+The daily chance is an upper opportunity rate, not a promise of one thought every day.
+
+Dream inspiration is separately opt-in: `DreamChance = 0` preserves existing runs; replay's
+`--dreams` enables a 0.15 chance, overridable with `--dream-chance`. A recorded sleep-to-wake
+transition gets one independent seeded draw, using only eligible memories known before that
+sleep began. The initial sleep has no invented past to draw on. A failed dream roll leaves the
+ordinary daytime opportunity available; a submitted dream uses the same daily slot and source
+deduplication as quiet reflection. A pending unperformed intention suppresses both routes.
+`Opportunity` records the dream kind and the person's own sleep/wake minutes; null means quiet.
+The waking idea is private imagination, never an observed event or a new belief. It is evaluated
+while awake and applied at the next simulation minute, with ordinary action eligibility intact.
 
 Requests contain a recent completed deed of the actor's own, or an identified firsthand belief
 about an act directed at them. Hearsay and unknown actors are excluded for this first experiment.
+Rows whose patient is stored as the act's actor, such as being warned or taken in, are also
+excluded until role-specific templates exist; the ordinary "I did this to them" wording would
+reverse their meaning.
 A mistaken belief retains the believed identity: the context builder never substitutes the true
 actor. Imagination is recorded separately and never enters the belief ledger as evidence. The
 offered executable acts are giving a gift, helping and confronting where those act kinds are
 available; defer and reject are explicit alternatives. The evaluator reads the actual authored
 lines, rather than deciding a close numerical threshold in the existing desire gate.
+
+`ReflectionRequest.Source` records the remembered kind, whether the actor did or received it,
+the known kind's signed affect and regard for the believed subject. `Proposal` records the
+authored entry ID, thought, proposed choice and tags. Tests and paired probes can replace that
+proposal on a copied request while holding the scene fixed. Authored weights favor the proposed
+act rather than the first offered act. Neutral or unsupported contexts quote the supplied memory
+instead of inventing a past event. `Continuity` names the root and previous thought, revision,
+previous source, a bounded 120-character earlier idea and the reason to revisit it. The earlier
+idea is explicitly imagination, not evidence; the new source stays the attempted act's immediate
+cause. Tape matching includes all these fields, proposal tags and any sleep opportunity.
 
 `RunAsync` awaits model answers between simulation minutes and applies them on the next minute.
 Wall-clock latency therefore cannot change the minute of acceptance or the subsequent act.
@@ -62,20 +111,58 @@ is not assumed to be reproducible from the simulation seed alone.
 
 The local adapter calls Laya's `/v1/systemone` and, when configured, an OpenAI-compatible
 `/v1/chat/completions` generation endpoint. Both endpoints must be loopback addresses. Each HTTP
-call has a five-second default deadline, including its response body. The 1,250-character
+call has a five-second default deadline, including its response body; all evaluator passes also
+share one five-second default deadline, starting after optional generation. The 1,250-character
 **working budget supplied by Sid** covers Laya's semantic text (state, instructions, choice IDs
 and descriptions); it is not asserted to be a universal model context specification. All
-candidate lines are preserved, and space is reserved for both the character context and known
-memory. A request that cannot fit, an invalid response or a failed call falls back to a clearly
+candidate lines, a required dream marker when applicable, and any earlier imagined idea/
+reconsideration reason are preserved, and space
+is reserved for both the character context and known memory. A request that cannot fit, an
+invalid response or a failed call falls back to a clearly
 recorded authored answer. A generated thought is limited to 220 characters by default (300
 maximum). Caller cancellation propagates instead of becoming a fallback.
 
+The Laya prompt omits the proposed choice ID so it does not supply an answer hint. The response
+record retains the raw Laya JSON, including routing and token-usage metadata when returned.
+Explicit server truncation causes fallback even when the probability table is otherwise valid.
+
+The generator receives allowed act IDs/kinds and copied known-source roles, without candidate
+dialogue; complete spoken lines go to Laya. This removes a direct speech-copying channel, but
+does not validate a generated thought's factual grounding or agreement with its proposed act.
+The local generator helper pins `Qwen/Qwen3-0.6B` at
+`c1899de289a04d12100db370d81485cdf75e47ca`. The adapter sends a seed derived from the request ID,
+and records both `GenerationPrompt` and the complete `GenerationResponse`, including the helper's
+seed, model revision and usage. Model output is validated as a bounded thought and an offered
+executable choice; failure uses the recorded authored fallback. A fixed seed supports controlled
+same-runtime comparisons, while exact replay still uses recorded answers rather than assuming
+bit-identical inference across hardware/runtime changes. Local GPU smoke inference has run at
+roughly one second per thought; quality and longer-run behavior remain to be judged.
+
+The adapter offers three evaluator modes. `Raw` preserves incoming labels and order and remains
+the options API default. `Canonical` groups identical kind/line alternatives, sorts them and
+uses temporary labels. `Balanced` rotates that canonical list through every position, maps
+each normalized result back and averages before the simulation samples once. Duplicate entries
+share their group's mass. Every pass has a prompt, response, label-to-choice map and weights or
+error in `ReflectionAnswer.Evaluations`; an incomplete evaluation uses authored fallback rather
+than a partial average. The replay CLI defaults to Balanced. The trial CLI defaults to Raw and
+supports `--evaluation raw|canonical|balanced` with `--suite smoke|social`.
+
 Verification is through deterministic scene tests, recorded-answer replay, fake HTTP responses
-and the viewer. **Verify with live services:** this prototype has not established model quality,
-hardware latency, or a successful end-to-end run against a real Laya/generator pair. Dreams,
-reconsidering an old thought, a general dialogue-template catalog and player intervention are not
-built. This feature changes only Under Glass; the mod's template-only and shadow-mode rules
-continue to apply to its own code.
+and the viewer, plus a first live Laya run on 2026-10-08. Seed 7 over seven days produced 27
+`authored+laya` answers with no fallback in about 1.5 seconds total. A separate 15-call paired
+trial submitted complete context with no server truncation. Its label-only probability change
+was about as large as the memory change, so these calls establish working integration, not clean
+evidence of semantic judgment. See [the first trial](under-glass/experiments/reflection-trial-2026-10-08.md).
+Follow-up live probes exercised Raw, Canonical and Balanced modes plus additional social
+scenes, without fallback or incomplete/truncated packets. Canonical/Balanced eliminate the
+tested arbitrary label/order changes by construction; that is adapter reliability, not proof
+of intrinsic model reasoning. The five-choice smoke probes had median evaluation times of
+19.14 ms Raw, 23.41 ms Canonical and 127.28 ms Balanced (five calls). See
+[the reliability trial](under-glass/experiments/reflection-reliability-2026-10-08.md).
+**Still unverified:** whether generated ideas and model choices make a town worth watching.
+A general dialogue-template catalog and player
+intervention are not built. This feature changes only Under Glass; the mod's template-only and
+shadow-mode rules continue to apply to its own code.
 
 ## What the mod does today
 

@@ -140,9 +140,17 @@ button.link:active { transform: none; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
+.playback { position: sticky; top: 0; z-index: 5; align-self: start; background: var(--bg); padding: 10px 20px; border-bottom: 1px solid var(--line); box-shadow: 0 4px 12px var(--press); }
+.timeline-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--ink-2); font-size: var(--step--2); }
+.timeline-focus .following { color: var(--accent); font-weight: 600; }
+.timeline-focus .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.timeline-focus .thought { border-radius: 0; transform: rotate(45deg); }
+html { scroll-padding-top: var(--playback-height, 180px); }
+[id^="reflection-"] { scroll-margin-top: 12px; }
+@media (max-width: 650px) { .playback { padding: 8px 12px; } .playback .hint, .playback .legend { display: none; } .transport .speed { margin-inline-start: 0; } }
 .deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .deck .legend { margin-inline-start: auto; }
-.timeline canvas { width: 100%; height: 38px; display: block; cursor: pointer; }
+.timeline canvas { width: 100%; height: 54px; display: block; cursor: pointer; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 22px; margin: 0; width: 100%; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
 input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
@@ -191,6 +199,25 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .inner-details .chosen { color: var(--accent); }
 .inner-empty { padding: 25px 16px; border: 1px dashed var(--line); border-radius: 10px; display: grid; gap: 9px; }
 .inner-empty p { margin: 0; max-width: 64ch; }
+.observer { display: grid; gap: 9px; border-top: 1px solid var(--line); padding-top: 12px; }
+.observer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.observer-head > div, .observer-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.observer-head h2 { font-size: var(--step-0); }
+.observer-nav button { font-size: var(--step--2); padding: 4px 8px; }
+.observer-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.observer-card { min-width: 0; display: grid; align-content: start; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-hi); }
+.observer-card p { margin: 0; font-size: var(--step--1); overflow-wrap: anywhere; }
+.observer-card .observer-quote { border-left: 2px solid var(--accent); padding-left: 8px; color: var(--ink); }
+.observer-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.observer-actions button { font-size: var(--step--2); padding: 3px 7px; }
+.observer-empty { margin: 0; color: var(--muted); font-size: var(--step--1); }
+.observer-follow { color: var(--accent); font-size: var(--step--1); }
+.inspector-focus { display: grid; gap: 7px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.inspector-focus p { margin: 0; font-size: var(--step--1); }
+.inner-card.focused { border-color: var(--accent); }
+.inner-pass { padding: 8px 0; border-top: 1px solid var(--line); }
+.inner-pass > summary { font-family: var(--font-data); font-size: var(--step--2); }
+@media (max-width: 760px) { .observer-cards { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .inner-chain li { grid-template-columns: 1fr; gap: 3px; } }
 
 /* The town: one plate per place, grouped, largest first. A plate is a heading, the map and who is
@@ -376,8 +403,10 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <button id="zoomFit" title="Show the whole town (0)">Fit</button>
       </div>
     </div>
-    <div class="timeline" role="group" aria-label="Timeline">
-      <canvas id="strip" height="34"></canvas>
+  </header>
+    <section class="timeline playback marks" id="playbackBar" role="group" aria-label="Timeline">
+      <div class="timeline-focus"><span class="following" id="timelineFocus">Town turning points · select a character to highlight their events</span><span class="key"><i class="dot"></i>encounter</span><span class="key"><i class="dot thought"></i>thought / outcome</span></div>
+      <canvas id="strip" height="54" aria-label="Event timeline. Hover a marker for details; click to jump. Previous and Next moment buttons provide keyboard navigation."></canvas>
       <input type="range" id="scrub" min="0" max="0" value="0" step="5" aria-label="Time in the run">
       <div class="deck">
         <div class="screen" aria-live="off">
@@ -397,6 +426,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
             <option value="480">8 h/s</option>
             <option value="1440">1 day/s</option>
           </select></span>
+          <button id="previousMoment" title="Previous recorded encounter, thought or relationship change">← Previous moment</button>
+          <button id="nextMoment" title="Next recorded encounter, thought or relationship change">Next moment →</button>
         </div>
         <div class="legend">
           <span class="key"><i style="background: var(--dislike)"></i>feud begins</span>
@@ -405,9 +436,17 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
           <span class="key"><b style="background: var(--ink)"></b>scandal</span>
         </div>
       </div>
-      <div class="hint">Click the ruler to jump · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day · scroll on the town to zoom, drag to pan</div>
-    </div>
-  </header>
+      <div class="hint">Hover markers for events · Click a marker to jump exactly · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day</div>
+    </section>
+    <section class="observer card" style="padding:16px" aria-label="What is happening now">
+      <div class="observer-head">
+        <div><h2>Happening now</h2><span class="observer-follow" id="observerScope">The town</span></div>
+        <nav class="observer-nav" aria-label="Meaningful moments">
+          <button id="observerAll" hidden>Show everyone</button>
+        </nav>
+      </div>
+      <div class="observer-cards" id="observerCards"></div>
+    </section>
 
   <main class="work">
     <section class="stage card">
@@ -503,6 +542,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
               <option value="time">when it happened</option>
             </select>
           </label>
+          <label><input type="checkbox" id="storyWholeRun"> Whole-run analysis (includes future events)</label>
         </div>
         <div class="stories">
           <div class="storylist" id="storyList"></div>
@@ -842,7 +882,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
  ],
  "terms": [
   {"key": "Temperament", "label": "Character", "group": "Character: the seven traits", "definition": "A person's seven traits, each a number from 0 to 1, which set how strongly each rule acts on them. Every rule reads them from the person's current character, which starts as the cast card's values; nothing in a run changes them yet (phase 0e will), but tests and the runner (--trait) can set one before a run starts.", "range": "each 0 to 1; Sensitivity and Retention default 0.5, Expression 0.75; Chattiness, Boldness, Understanding and Self-regard have no default", "source": "sim/UnderGlass.Sim/Model.cs:55", "at": "public sealed record Temperament(double Chattiness, double", "verify": false},
-  {"key": "Chattiness", "label": "Chattiness", "group": "Character: the seven traits", "definition": "How talkative someone is. Two people together chat with a chance of 0.3 x (0.5 + their average chattiness) per 10 minutes, and each chat lifts mood by 0.005 x (0.5 + chattiness), or lowers it as much with someone held at -0.2 or below. In 0d.6 it also marks content loners and adds to proneness to missing people, and with the dials a withdrawn stance lowers it in use; it does not choose what gets told.", "range": "0 to 1, no default; the cast runs from 0.3 (Shane, Kent, Sebastian, the newcomer) to 0.9 (Vincent)", "source": "sim/UnderGlass.Sim/Simulation.cs:1138", "at": "double chattiness = (ChatInUse(i) + ChatInUse(j)) / 2; //", "verify": false},
+  {"key": "Chattiness", "label": "Chattiness", "group": "Character: the seven traits", "definition": "How talkative someone is. Two people together chat with a chance of 0.3 x (0.5 + their average chattiness) per 10 minutes, and each chat lifts mood by 0.005 x (0.5 + chattiness), or lowers it as much with someone held at -0.2 or below. In 0d.6 it also marks content loners and adds to proneness to missing people, and with the dials a withdrawn stance lowers it in use; it does not choose what gets told.", "range": "0 to 1, no default; the cast runs from 0.3 (Shane, Kent, Sebastian, the newcomer) to 0.9 (Vincent)", "source": "sim/UnderGlass.Sim/Simulation.cs:1144", "at": "double chattiness = (ChatInUse(i) + ChatInUse(j)) / 2; //", "verify": false},
   {"key": "Boldness", "label": "Boldness", "group": "Character: the seven traits", "definition": "Daring: the base of daring at the gate, and the side a hurt moves stance (above 0.5 toward combative, below toward withdrawn, at 0.5 not at all). It also raises the chance to report a scandal (0.2 + 0.6 x boldness), lets adults stand for constable (0.5 or more), ranks who confronts, adds a thrill (0.15 x boldness) to temptation and, at 0.7 or more with low self-regard, makes confident guesses; it lowers the chance to confess (0.25 + 0.5 x (1 - boldness)) and the risk a would-be thief feels (x (1.2 - boldness)). The 0d.6 rules call 1 - boldness 'shyness'.", "range": "0 to 1, no default; the cast runs from 0.2 (Penny) to 0.8 (Alex, Abigail)", "source": "sim/UnderGlass.Sim/Feelings.cs:497", "at": "public static double Effective(double boldness, double", "verify": false},
   {"key": "Understanding", "label": "Understanding", "group": "Character: the seven traits", "definition": "How much someone acts from understanding rather than passion (the design's Spinoza 'free person'). The more understanding feel less for strangers by imitation, blame a kind of person or a culprit's kin less, excuse a housemate's known hardship more, heal grudges faster on days together, lean less toward tellers they like or dislike, and blame an official less when they know they gave cause; with the tone on they read fewer greetings as curt, and in 0d.6 they have more patience.", "range": "0 to 1, no default; the cast runs from 0.2 (Haley) to 0.8 (Evelyn, Harvey, Demetrius, Maru)", "source": "sim/UnderGlass.Sim/Feelings.cs:387", "at": "return (o.ImitateShare * (0.5 + 0.5 * likeness) * joy * (1", "verify": false},
   {"key": "SelfRegard", "label": "Self-regard", "group": "Character: the seven traits", "definition": "Self-esteem. Self-regard of 0.35 or less with boldness 0.7 or more makes someone name a guess as fact when they couldn't tell who did something (Alex, Haley and Pam in the cast). Lower self-regard also means more shame, x (1.5 - self-regard), for the guilty and for a culprit's kin, and in 0d.6 a harder push from being left out and more proneness to missing people.", "range": "0 to 1, no default; the cast runs from 0.2 (Shane) to 0.7 (Emily, Demetrius)", "source": "sim/UnderGlass.Sim/Perception.cs:84", "at": "public static bool GuessesConfidently(Temperament t) =>", "verify": false},
@@ -871,15 +911,15 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "Reconciled", "label": "Reconciled (sentiment)", "group": "States: how someone is now", "definition": "Sentiment left when a kindness from someone the holder had hated carries regard back past 0; its strength is the reconciliation bonus.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:428", "at": "AddSentiment(_names[h], toward, \"Reconciled\", actId, bonus,", "verify": false},
   {"key": "route", "label": "Route (why regard moved)", "group": "States: how someone is now", "definition": "The reason for a regard change, the last word of each 'regard' line in the log and in brackets in the pair panel: direct (done to them), undergone (an act they underwent), sympathy or antipathy (felt for someone they love or hate), imitation (for anyone else, more for people like them), onlooker (a scene that upsets those watching, a drunken scene), kind and spill (toward a kind of person), association (a culprit's kin), accused, confronted, shame, and with their rules on tone and mark. Reattributed is a change taken back exactly because the holder now blames someone else or no one; note the code's comment also lists a 'Reconciled' route, but no change carries it (the bonus has its own 'reconciled' log line).", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:422", "at": "_log.Add($\"{m} regard {_names[h]} {toward}", "verify": false},
   {"key": "read cold", "label": "Read cold", "group": "States: how someone is now", "definition": "A warm act (a compliment, a joke) from someone the one it's done to holds below the row's ReadWarmAt (-0.2 for a compliment, 0.1 for a joke) is taken badly, at -ColdShare x its joy: flattery, or a jab. It has its own route, Cold, in the feeling log; it hurts the one's stance and stirs no motive in them, and a cold joke can stir the joker's Remorse.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:221", "at": "rec.Route = \"Cold\"; // read cold: its own route, so the", "verify": false},
-  {"key": "Witnessed", "label": "Saw it", "group": "Beliefs and gossip", "definition": "The holder watched it happen: clarity must reach 0.3 to know what happened, and 0.9 - 0.7 x familiarity with the doer (at least 0.05) to know who did it. The one an act is aimed at (a gift, help, an argument, a squabble) takes it in at clarity 1 if still there, but a robbed keeper does not; only what someone saw or took part in can stir a motive (a robbed keeper excepted).", "range": "clarity 0 to 1; 0.3 to know what happened", "source": "sim/UnderGlass.Sim/Simulation.cs:1058", "at": "Add(observer, new Belief(act.Id, act.Kind, actor,", "verify": false},
-  {"key": "Told", "label": "Was told", "group": "Beliefs and gossip", "definition": "The holder heard it in a chat; the belief keeps the chain of tellers, nearest first. Hearsay moves mood only, not regard, until a second teller with no teller in common names the same person (then regard at 0.25 x confidence) or a public consequence confirms it (0.5 x confidence), and it never stirs a motive except in the keeper of the robbed place.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:1208", "at": "var told = new Belief(best.ActId, best.Kind, best.Actor,", "verify": false},
+  {"key": "Witnessed", "label": "Saw it", "group": "Beliefs and gossip", "definition": "The holder watched it happen: clarity must reach 0.3 to know what happened, and 0.9 - 0.7 x familiarity with the doer (at least 0.05) to know who did it. The one an act is aimed at (a gift, help, an argument, a squabble) takes it in at clarity 1 if still there, but a robbed keeper does not; only what someone saw or took part in can stir a motive (a robbed keeper excepted).", "range": "clarity 0 to 1; 0.3 to know what happened", "source": "sim/UnderGlass.Sim/Simulation.cs:1064", "at": "Add(observer, new Belief(act.Id, act.Kind, actor,", "verify": false},
+  {"key": "Told", "label": "Was told", "group": "Beliefs and gossip", "definition": "The holder heard it in a chat; the belief keeps the chain of tellers, nearest first. Hearsay moves mood only, not regard, until a second teller with no teller in common names the same person (then regard at 0.25 x confidence) or a public consequence confirms it (0.5 x confidence), and it never stirs a motive except in the keeper of the robbed place.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:1214", "at": "var told = new Belief(best.ActId, best.Kind, best.Actor,", "verify": false},
   {"key": "Found", "label": "Found a trace", "group": "Beliefs and gossip", "definition": "The holder found what an act left behind: missing stock (only the keeper notices, by counting, 0.15 an hour for 3 days) or a scattered bin (anyone awake there with the spot in sight, 0.6 an hour x clarity, for 12 hours). A finder learns that it happened but never who did it, at half the act's juiciness.", "range": "juiciness 0.5 x the act's base", "source": "sim/UnderGlass.Sim/Simulation.Traces.cs:28", "at": "private void CheckTraces(int m)", "verify": false},
   {"key": "someone", "label": "Someone", "group": "Beliefs and gossip", "definition": "A belief with no name in it: the witness couldn't tell who did it, or it was found from a trace. A witness also keeps the kind of person they saw ('someone, a young man') and blames that kind; a later telling with a name fills it in, suspects can be pieced together, and the mayor counts 'someone' for nobody.", "range": "", "source": "sim/UnderGlass.Sim/Model.cs:256", "at": "/// What one villager believes about one act. Actor is who", "verify": false},
-  {"key": "wrong name", "label": "A wrong name", "group": "Beliefs and gossip", "definition": "A belief naming someone other than the real doer, marked '(wrong)' in the Stories tab. Every wrong name starts as a confident guess: a witness who couldn't tell who it was, with boldness 0.7 or more and self-regard 0.35 or less (Alex, Haley and Pam), names someone awake in the same place instead, more likely someone they know or dislike, at confidence 0.8 (it can land on the real doer by chance); the name then spreads by telling like any other.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:1045", "at": "actor = Guess(observer, act);", "verify": false},
-  {"key": "Confidence", "label": "Confidence", "group": "Beliefs and gossip", "definition": "How sure a holder is of the name, 0 to 1: for a witness who recognised the doer, their clarity over the clarity needed (at most 1); 0.8 for a confident guess; 0 for 'someone'; for a told story, the teller's confidence x (0.5 + 0.5 x the listener's familiarity with the teller), so it shrinks down the chain. Note: design rule 9 bases the told part on regard for the teller; the code uses familiarity.", "range": "0 to 1", "source": "sim/UnderGlass.Sim/Simulation.cs:1041", "at": "confidence = Math.Min(1, clarity /", "verify": false},
-  {"key": "told", "label": "Telling", "group": "Beliefs and gossip", "definition": "Two awake people within 8 tiles for 15 minutes may chat (0.3 x (0.5 + their average chattiness) per 10 minutes, once a span and again every 2 hours), and each offers their juiciest story at 2 or more, counting 0.5 extra if the listener knows the person named well (familiarity 0.4 or more) or holds them at 0.4 or more. Nobody tells people about themselves or what they're suspected of, tells it back to whoever told them, tells a story naming their own kin as the doer, or tells the same person twice, and one story goes to at most 2 listeners a day in this town (1 under 20 people, 3 from 30).", "range": "volunteered at juiciness 2; 2 listeners a story a day", "source": "sim/UnderGlass.Sim/Simulation.cs:1162", "at": "private void TryTell(string teller, string listener, int m)", "verify": false},
-  {"key": "listening", "label": "Listening", "group": "Beliefs and gossip", "definition": "The listener keeps the story at 0.35 x the teller's current juiciness, with the teller added to the chain; if they already knew it, a name can fill in their 'someone' or replace a less sure name, but it never gains juiciness. It moves their mood by 0.5 x how much they believe the teller (0.5 + 0.5 x familiarity, leaning by up to 0.25 x (1 - understanding) toward tellers they like), and a culprit told about their own act learns nothing.", "range": "retold at 0.35 x the teller's juiciness", "source": "sim/UnderGlass.Sim/Simulation.cs:1209", "at": "_go.RetellFactor * Current(best, m), m, new[] { teller", "verify": false},
-  {"key": "juiciness", "label": "Juiciness", "group": "Beliefs and gossip", "definition": "How worth telling a story is. Each act kind has a base (a theft 4.5, rummaging a bin 4, being taken in 3.5, an argument, a drunken scene, a warning, service or a family row 3, being questioned or a collapse 2.5, help 2, a gift or a squabble 1.5, a stumble 1); each holder's copy loses 0.5 for every whole day since they got it (0.8 for kinds at 4 or more, so a witness tells a scandal for about three days), and a story is volunteered only at 2 or more.", "range": "base 0.5 to 4.5; volunteered at 2", "source": "sim/UnderGlass.Sim/Simulation.cs:1154", "at": "public double Current(Belief b, int m)", "verify": false},
+  {"key": "wrong name", "label": "A wrong name", "group": "Beliefs and gossip", "definition": "A belief naming someone other than the real doer, marked '(wrong)' in the Stories tab. Every wrong name starts as a confident guess: a witness who couldn't tell who it was, with boldness 0.7 or more and self-regard 0.35 or less (Alex, Haley and Pam), names someone awake in the same place instead, more likely someone they know or dislike, at confidence 0.8 (it can land on the real doer by chance); the name then spreads by telling like any other.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:1051", "at": "actor = Guess(observer, act);", "verify": false},
+  {"key": "Confidence", "label": "Confidence", "group": "Beliefs and gossip", "definition": "How sure a holder is of the name, 0 to 1: for a witness who recognised the doer, their clarity over the clarity needed (at most 1); 0.8 for a confident guess; 0 for 'someone'; for a told story, the teller's confidence x (0.5 + 0.5 x the listener's familiarity with the teller), so it shrinks down the chain. Note: design rule 9 bases the told part on regard for the teller; the code uses familiarity.", "range": "0 to 1", "source": "sim/UnderGlass.Sim/Simulation.cs:1047", "at": "confidence = Math.Min(1, clarity /", "verify": false},
+  {"key": "told", "label": "Telling", "group": "Beliefs and gossip", "definition": "Two awake people within 8 tiles for 15 minutes may chat (0.3 x (0.5 + their average chattiness) per 10 minutes, once a span and again every 2 hours), and each offers their juiciest story at 2 or more, counting 0.5 extra if the listener knows the person named well (familiarity 0.4 or more) or holds them at 0.4 or more. Nobody tells people about themselves or what they're suspected of, tells it back to whoever told them, tells a story naming their own kin as the doer, or tells the same person twice, and one story goes to at most 2 listeners a day in this town (1 under 20 people, 3 from 30).", "range": "volunteered at juiciness 2; 2 listeners a story a day", "source": "sim/UnderGlass.Sim/Simulation.cs:1168", "at": "private void TryTell(string teller, string listener, int m)", "verify": false},
+  {"key": "listening", "label": "Listening", "group": "Beliefs and gossip", "definition": "The listener keeps the story at 0.35 x the teller's current juiciness, with the teller added to the chain; if they already knew it, a name can fill in their 'someone' or replace a less sure name, but it never gains juiciness. It moves their mood by 0.5 x how much they believe the teller (0.5 + 0.5 x familiarity, leaning by up to 0.25 x (1 - understanding) toward tellers they like), and a culprit told about their own act learns nothing.", "range": "retold at 0.35 x the teller's juiciness", "source": "sim/UnderGlass.Sim/Simulation.cs:1215", "at": "_go.RetellFactor * Current(best, m), m, new[] { teller", "verify": false},
+  {"key": "juiciness", "label": "Juiciness", "group": "Beliefs and gossip", "definition": "How worth telling a story is. Each act kind has a base (a theft 4.5, rummaging a bin 4, being taken in 3.5, an argument, a drunken scene, a warning, service or a family row 3, being questioned or a collapse 2.5, help 2, a gift or a squabble 1.5, a stumble 1); each holder's copy loses 0.5 for every whole day since they got it (0.8 for kinds at 4 or more, so a witness tells a scandal for about three days), and a story is volunteered only at 2 or more.", "range": "base 0.5 to 4.5; volunteered at 2", "source": "sim/UnderGlass.Sim/Simulation.cs:1160", "at": "public double Current(Belief b, int m)", "verify": false},
   {"key": "Tier", "label": "Tier", "group": "Beliefs and gossip", "definition": "The class of an act kind, from its base juiciness: Trivia under 2, News 2 to under 4 (or a good act at 4 or more), Scandal a bad act at 4 or more (a theft, rummaging a bin), and Upheaval, set per kind (none exist yet). Only scandals are reported to the mayor, pieced together into suspects, shame the culprit's kin and can lead to a confrontation; note the design's tier table says scandals fade slowly, but in code they lose 0.8 a day against 0.5 for other stories and last a little longer only because they start higher.", "range": "Trivia < 2 <= News < 4 <= Scandal (bad acts)", "source": "sim/UnderGlass.Sim/Model.cs:241", "at": "public Tier Tier => Upheaval ? Tier.Upheaval : IsScandal ?", "verify": false},
   {"key": "Injected", "label": "Placed", "group": "Beliefs and gossip", "definition": "A scandal the harness put into the run (--inject) to measure how stories spread, rather than one temptation started: one a run, on day 1 at a seeded time between 8:00 and 21:00, by someone able picked by a seeded draw (never a keeper in their own shop), dropped if nobody is able within 3 days. The Stories tab marks it 'placed'.", "range": "", "source": "sim/UnderGlass.Sim/Model.cs:244", "at": "/// <summary>Something that happened, at a game minute.", "verify": false},
   {"key": "feud", "label": "Feud", "group": "Ties", "definition": "Two people who are not kin both hold each other (personal regard) at -0.3 or below at the night's check, and didn't start that way (their baselines were not both -0.3 or below). It is recorded once per pair per run, on the first night it holds, and is never ended.", "range": "-0.3 or below, both ways", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:684", "at": "if (_regard[i, j] <= _fo.FeudAt && _regard[j, i] <=", "verify": false},
@@ -927,7 +967,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "Service", "label": "Service", "group": "The authority", "definition": "The third step, and what an unpaid fine turns into: three hours of unpaid work in the square in public view, set by the mayor or the constable, an act others see (juiciness 3); the person is held there the whole time and misses work.", "range": "180 minutes", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:341", "at": "if (step is Consequence.Detained or Consequence.Service)", "verify": false},
   {"key": "Watched", "label": "Watched", "group": "The authority", "definition": "People keeping a closer eye on a repeat offender. It is in the list for later; no rule gives it yet.", "range": "not used", "source": "sim/UnderGlass.Sim/Model.cs:292", "at": "public enum Consequence { Warning, RestitutionAndFine, Ban,", "verify": false},
   {"key": "Detained", "label": "Detained", "group": "The authority", "definition": "From the fourth verdict: taken in by the mayor or the constable (an act others see, juiciness 3.5) and held at the manor for 24 hours, sleeping there and missing work.", "range": "24 hours", "source": "sim/UnderGlass.Sim/Authority.cs:71", "at": "public static Consequence StepFor(int priorVerdicts) =>", "verify": false},
-  {"key": "confront", "label": "Confrontation", "group": "The authority", "definition": "When the people who name the same person for a scandal (that person's kin left out) reach a quarter of those who know that person at all (familiarity 0.2 or more), and at least 3, one of them has it out with them, once per scandal: whoever scores highest on boldness x how juicy the story still is to them x (1 + 2 x their dislike), among those who hold them below 0.4 and haven't had a hostile act with them in 3 days. It can hit the wrong person, and an innocent confronted resents the confronter; notes: the design says a seeded draw picks who, but the code takes the top score, and the design gives a confrontation juiciness 3, but the code makes no act of it, so nobody sees or retells it.", "range": "at least 3, or a quarter of those who know the person", "source": "sim/UnderGlass.Sim/Simulation.cs:1254", "at": "int needed = Math.Max(_go.ConfrontMin,", "verify": false},
+  {"key": "confront", "label": "Confrontation", "group": "The authority", "definition": "When the people who name the same person for a scandal (that person's kin left out) reach a quarter of those who know that person at all (familiarity 0.2 or more), and at least 3, one of them has it out with them, once per scandal: whoever scores highest on boldness x how juicy the story still is to them x (1 + 2 x their dislike), among those who hold them below 0.4 and haven't had a hostile act with them in 3 days. It can hit the wrong person, and an innocent confronted resents the confronter; notes: the design says a seeded draw picks who, but the code takes the top score, and the design gives a confrontation juiciness 3, but the code makes no act of it, so nobody sees or retells it.", "range": "at least 3, or a quarter of those who know the person", "source": "sim/UnderGlass.Sim/Simulation.cs:1260", "at": "int needed = Math.Max(_go.ConfrontMin,", "verify": false},
   {"key": "kept-in-family", "label": "Kept in the family", "group": "The authority", "definition": "A keeper who learns their own kin took from them doesn't report it: at the moment they would have (with the mayor or the constable) they keep it in the family instead. When the keeper and the culprit are next together and free, they have a family row, a news act (juiciness 3) others can overhear and gossip about, which hurts the culprit.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Family.cs:26", "at": "private void KeepItInTheFamily(int actId, string keeper,", "verify": false},
   {"key": "paid", "label": "Paying back", "group": "The authority", "definition": "The restitution part of the second step. When goods go back to a keeper in town (not the chain store), it confirms the culprit to them if they already believed it was this person, so their regard moves at 0.5 x confidence (as for any first-hand confirmation, not as if they had seen it); the log's 'paid X of Y' line shows how much of the goods plus the fine was paid.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:370", "at": "_log.Add($\"{m} paid {accused} {paid:0} of {owed:0} for", "verify": false},
   {"key": "LifeEvent", "label": "Life record", "group": "The life record", "definition": "Every event in each person's life while the gate runs (what they did, had done to them, or chose not to do), with how severe it was, whether hostile or light, and how it turned out, written from the truth and kept for phase 0e's character changes. Note: the code comment says no rule of 0d reads it, but 0d.6's being-left-out measure counts its outcomes (kindness left unanswered).", "range": "", "source": "sim/UnderGlass.Sim/Model.cs:349", "at": "public sealed record LifeEvent(int Tick, string Person,", "verify": false},
@@ -988,7 +1028,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "corroborated", "label": "Corroborated", "group": "Beliefs and gossip", "definition": "Hearsay agreed: someone who was told a name hears the same name from a second teller with no teller in common. Their regard toward that person then moves at 0.25 x confidence of the full amount.", "range": "0.25 x confidence", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:598", "at": "private void Corroborate(string h, int actId, int m)", "verify": false},
   {"key": "confirmed", "label": "Confirmed", "group": "Beliefs and gossip", "definition": "A believed name seen to be true in public: seeing the person warned, taken in, set to service or in a family row over the act, or, for a keeper, getting the goods paid back. Regard toward them then moves at least 0.5 x confidence of the full amount.", "range": "0.5 x confidence", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:608", "at": "private void Confirm(string h, int actId, string subject,", "verify": false},
   {"key": "families cover", "label": "Families cover (kin and housemates)", "group": "Ties", "definition": "Kin are people with a family tie either way (parent, child, spouse, sibling, grandparent, guardian, stepparent and their reverses); housemates share a home. Kin never report each other, retell a story naming kin as the doer, suspect, confront or name each other when questioned, and they vouch for each other; the gate never acts between kin or housemates (unless households argue), and a keeper robbed by kin has a family row instead. Housemates who aren't kin, like Shane at the ranch, are covered only by the gate.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Family.cs:3", "at": "/// <summary>", "verify": false},
-  {"key": "free", "label": "Free", "group": "Motives and the gate", "definition": "Awake, not about to collapse, not in the middle of an act (or taking part in someone else's), and not held (detained or doing service). Only the free act at the gate, are acted toward, or are chosen for everyday acts.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:870", "at": "private bool Free(Person p, int m) => !p.Asleep &&", "verify": false},
+  {"key": "free", "label": "Free", "group": "Motives and the gate", "definition": "Awake, not about to collapse, not in the middle of an act (or taking part in someone else's), and not held (detained or doing service). Only the free act at the gate, are acted toward, or are chosen for everyday acts.", "range": "", "source": "sim/UnderGlass.Sim/Simulation.cs:876", "at": "private bool Free(Person p, int m) => !p.Asleep &&", "verify": false},
   {"key": "in reach", "label": "In reach", "group": "Motives and the gate", "definition": "Who a motive can be acted on toward right now: someone free, in the same place, within 5 tiles and in sight (no wall between). Everyday aimed acts pick their target from the same circle, weighted by regard.", "range": "within 5 tiles", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:123", "at": "private bool InReach(Person p, Person o, int m)", "verify": false},
   {"key": "trust", "label": "The mayor's trust", "group": "The authority", "definition": "How much Lewis believes a teller: 0.5 + 0.5 x his familiarity with them, leaning by up to 0.25 x (1 - his understanding) x his regard for them, kept between 0.25 and 1; his own account counts 1. It weighs every account and nearby name in a verdict.", "range": "0.25 to 1; Lewis leans by at most 0.1", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:274", "at": "private double Trust(string from) => from == _ao.Mayor ? 1", "verify": false},
   {"key": "alibi", "label": "Alibi", "group": "The authority", "definition": "Someone questioned vouches for any of their kin named as seen nearby. Each vouching takes back 0.125 (half a 'nearby' 0.25) x trust from that kin's weight in the case, and never offsets a sighting or a confession.", "range": "0.125 x trust", "source": "sim/UnderGlass.Sim/Authority.cs:107", "at": "foreach (string n in a.Alibi ?? Array.Empty<string>())", "verify": false},
@@ -1052,11 +1092,11 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "Injected", "label": "Placed", "group": "Act fields", "definition": "An act placed by the harness or a test, such as the replay's injected scandal, rather than one that came about on its own. The viewer marks it 'placed'.", "range": "true or false", "source": "sim/UnderGlass.Sim/Model.cs:244", "at": "/// <summary>Something that happened, at a game minute.", "verify": false},
   {"key": "About", "label": "Answers (about)", "group": "Act fields", "definition": "The earlier act that a consequence or an answer is about. Examples: a warning's scandal, the argument that a later argument answers, or the gift that a gift returns. The viewer shows it as 'Answers'. It is not set with feelings off.", "range": "an act id; -1 for none", "source": "sim/UnderGlass.Sim/Model.cs:250", "at": "string? Target = null, int About = -1, string? With = null", "verify": false},
   {"key": "Pursued", "label": "From an intention (Pursued)", "group": "Act fields", "definition": "An intentional act started by the desire gate (a motive acted on, or turning away) or an accepted quiet-reflection intention when that optional feature is enabled, rather than one drawn at the town's rate. The viewer distinguishes reflection acts as 'from a thought' and desire-gate acts as 'from a motive', once they happen.", "range": "true or false", "source": "sim/UnderGlass.Sim/Simulation.cs:146", "at": "public required IReadOnlySet<int> Pursued { get; init; }", "verify": false},
-  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2236", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
-  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2236", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "kind", "label": "Kind act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy is above 0: it lifts the one it is aimed at. In the town that means a gift or help. The map's blue rings and the Population tab's 'kind' count use it. This 'kind' is not the act kind (the type of act), nor a person's kind ('young man').", "range": "joy > 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
+  {"key": "hostile", "label": "Hostile act (viewer)", "group": "Act fields", "definition": "In the viewer, an act whose joy or valence is below 0. It drives the map's red rings and the Population tab's 'hostile' count, which counts acts by their actor. Note: that rule counts a stumble or a collapse as hostile. It also counts being warned, taken in, questioned, set to service or rowed with as a hostile act by the person it happens to, though the simulator itself calls such acts 'no deed of theirs'. Every act with valence below 0 also has joy below 0, so the valence half adds nothing in this town.", "range": "joy < 0 or valence < 0", "source": "sim/viewer/index.html:2533", "at": "for (const a of R.actsBy[i]) { if (a.tick > t) break; const", "verify": false},
   {"key": "minute", "label": "The minute (start of each line)", "group": "Log lines", "definition": "Every log line starts with the game minute, counted from midnight of day 0, with 1440 minutes in a day. The word after the minute says what the line records.", "range": "e.g. 2000 = day 1, 09:20", "source": "sim/UnderGlass.Sim/Model.cs:8", "at": "public static class Clock", "verify": false},
   {"key": "MotiveLog", "label": "The gate's lines when it only watches", "group": "Log lines", "definition": "When the gate only watches (DesireActs off), its lines are kept in a separate motive log, out of the main log and its hash. In that mode only stirred, lapsed and gave-cause lines can occur. The replay merges them back in time order, so the viewer shows them with the rest.", "range": "DesireActs default on", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:82", "at": "private void DesireLog(string line)", "verify": false},
-  {"key": "act", "label": "act", "group": "Log lines", "definition": "An act began. The line gives the act's id (numbered from 0 in order), its kind, who did it, where, and, with feelings on, whom it is aimed at or done to. For OutLate, the line is written when the first person notices.", "range": "Fields: act <id> <Kind> by <actor> at <place> [to <target>]", "source": "sim/UnderGlass.Sim/Simulation.cs:957", "at": "_log.Add($\"{m} act {act.Id} {act.Kind} by {act.Actor} at", "verify": false},
+  {"key": "act", "label": "act", "group": "Log lines", "definition": "An act began. The line gives the act's id (numbered from 0 in order), its kind, who did it, where, and, with feelings on, whom it is aimed at or done to. For OutLate, the line is written when the first person notices.", "range": "Fields: act <id> <Kind> by <actor> at <place> [to <target>]", "source": "sim/UnderGlass.Sim/Simulation.cs:963", "at": "_log.Add($\"{m} act {act.Id} {act.Kind} by {act.Actor} at", "verify": false},
   {"key": "regard", "label": "regard", "group": "Log lines", "definition": "One person's regard for another person, or for a kind of person, moved because of an act. The line gives how much it moved, where it now stands, and the route by which it moved. A move the way regard already leans is damped by 1 - |regard|, so love and hate are harder to deepen than to start. The line is written only for moves of 0.005 or more. The act id is negative for a greeting's tone. 'Reattributed' means an earlier change was taken back exactly, because what the holder believes changed: the blame moved to someone else, or the feeling turned the other way.", "range": "Fields: regard <holder> <toward> <change> -> <after> act <id> <route>. Regard runs -1 to 1, and one act moves one person's regard for one subject by at most 0.5. 'toward' is a name or kind:<kind of person>. Routes: Direct, Onlooker, Sympathy, Antipathy, Imitation, Kind, Spill, Association, Undergone, Accused, Confronted, Shame, Mark, Tone, Reattributed", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:422", "at": "_log.Add($\"{m} regard {_names[h]} {toward}", "verify": false},
   {"key": "reconciled", "label": "reconciled", "group": "Log lines", "definition": "Love after conquered hate. The holder once held someone at -0.2 or below, and that person did them good until the regard climbed back to 0 or above. The holder gains a bonus, up to the depth of the old hate and never more than the good done since. It also adds a Reconciled sentiment and a 'reconciled' entry to the ties list.", "range": "Fields: reconciled <holder> <toward> bonus <amount> act <id>", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:427", "at": "_log.Add($\"{m} reconciled {_names[h]} {toward} bonus", "verify": false},
   {"key": "sentiment", "label": "sentiment", "group": "Log lines", "definition": "A named lasting feeling with its cause, such as Grateful, Hurt or Wronged, was made or renewed. A regard move of 0.02 or more makes one, as strong as the move. A renewal adds to its strength (up to 1) and moves its date and act to the latest. No rule reads sentiments; they explain 'why' lines. They fade by 0.975 a night (about a 28-day half-life) and are dropped below 0.01. Each pair keeps its strongest 3.", "range": "Fields: sentiment <holder> <toward> <name> <strength 0-1> act <id>. Names: Grateful, Hurt, Approving, Indignant, Pleased, Envious, Wary, Wronged, Ashamed (can be toward oneself), Reconciled", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:479", "at": "_log.Add($\"{m} sentiment {holder} {toward} {name}", "verify": false},
@@ -1069,7 +1109,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "withdraws", "label": "withdraws", "group": "Log lines", "definition": "Someone keeping away from a person met them in reach during free time at a haunt or a gathering, and went home to the sofa. With light acts on, the bold who could answer stay instead.", "range": "Fields: withdraws <name> home from <subject>", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:643", "at": "DesireLog($\"{m} withdraws {p.V.Name} home from", "verify": false},
   {"key": "lapsed", "label": "lapsed", "group": "Log lines", "definition": "A motive faded to nothing without being acted on, and was dropped. A motive fades evenly to nothing over 7 days from when it was last stirred, or over 60 minutes for pity.", "range": "Fields: lapsed <holder> <Motive> <subject> act <id>", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:431", "at": "DesireLog($\"{m} lapsed {_names[gone.Holder]} {gone.Kind}", "verify": false},
   {"key": "gave-cause", "label": "gave-cause", "group": "Log lines", "definition": "Someone was argued with (or snubbed) over a scandal they did themselves. They feel the hurt but stir no motive to answer: shame, not a grudge. With 0d.6's step b on, this can also happen between kin or housemates.", "range": "Fields: gave-cause <the one argued with> <arguer> act <id>", "source": "sim/UnderGlass.Sim/Simulation.Desire.cs:201", "at": "DesireLog($\"{m} gave-cause {who} {s} act {act.Id}\");", "verify": false},
-  {"key": "dropped", "label": "dropped", "group": "Log lines", "definition": "A placed act (one scheduled by the harness or a test, such as the replay's injected scandal) found nobody able to do it within 3 days, and was dropped. '*' means anyone. Note: the viewer files this line with the gate's, but the gate never writes it. A motive the gate drops goes only into the life record.", "range": "Fields: dropped <Kind> by <who|*>", "source": "sim/UnderGlass.Sim/Simulation.cs:934", "at": "_log.Add($\"{m} dropped {kindName} by {who}\");", "verify": false},
+  {"key": "dropped", "label": "dropped", "group": "Log lines", "definition": "A placed act (one scheduled by the harness or a test, such as the replay's injected scandal) found nobody able to do it within 3 days, and was dropped. '*' means anyone. Note: the viewer files this line with the gate's, but the gate never writes it. A motive the gate drops goes only into the life record.", "range": "Fields: dropped <Kind> by <who|*>", "source": "sim/UnderGlass.Sim/Simulation.cs:940", "at": "_log.Add($\"{m} dropped {kindName} by {who}\");", "verify": false},
   {"key": "tie", "label": "tie", "group": "Log lines", "definition": "At 23:59 each night, a pair became a new feud, a feud within a family, or a new friendship. Each is written once per pair. A feud is regard of -0.3 or below both ways, when the pair did not start that way. A friendship is 0.4 or above both ways, between people who are not kin or housemates and did not start that way.", "range": "Fields: tie <A> <B> <feud|kin-feud|friendship>, names in name order", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:709", "at": "_log.Add($\"{_now} tie {_names[i]} {_names[j]} {what}\");", "verify": false},
   {"key": "report", "label": "report", "group": "Log lines", "definition": "Someone within 8 tiles of the mayor or the constable, both awake, told them about a scandal. The constable carries what they hear to the mayor. The robbed keeper always reports, even from hearsay, and the constable always reports what they saw or found. Others report only what they saw or found, and only if willing: 0.2 + 0.6 x boldness, less for a culprit they love and more for one they dislike, decided once per scandal. Nobody reports their own kin, and the mayor's own knowledge counts without a report. Each thing known is reported once to each authority, and again when 'someone' becomes suspects or a name.", "range": "Fields: report <reporter> <the mayor's or constable's name> <act id> <name|someone> [nearby <a,b,c>]", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:151", "at": "_log.Add($\"{m} report {who} {to} {act.Id} {b.Actor ??", "verify": false},
   {"key": "handed-on", "label": "handed-on", "group": "Log lines", "definition": "The constable, meeting the mayor (within 8 tiles, both awake), handed on the accounts they had gathered.", "range": "Fields: handed-on <constable> <mayor> <count>", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:127", "at": "_log.Add($\"{m} handed-on {who} {to} {_carried.Count}\");", "verify": false},
@@ -1080,27 +1120,27 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
   {"key": "service", "label": "service", "group": "Log lines", "definition": "After a third verdict, or a fine not paid in full, the accused was set to 3 hours of community service in the square. A Service act begins.", "range": "Fields: service <accused> by <official> for <act id>", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:348", "at": "_log.Add($\"{m} {step switch { Consequence.Detained =>", "verify": false},
   {"key": "paid", "label": "paid", "group": "Log lines", "definition": "At a second verdict, the accused paid back the goods plus a fine at once, first from their pocket and then from their household's purse. The goods go back to the keeper (or to the chain's head office), and the fine goes to the town. If they could not pay it all, community service follows.", "range": "Fields: paid <accused> <paid g> of <owed g> for <act id>; owed = goods (20-80g, 0 for the bin) + 100g fine", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:370", "at": "_log.Add($\"{m} paid {accused} {paid:0} of {owed:0} for", "verify": false},
   {"key": "elected", "label": "elected", "group": "Log lines", "definition": "At noon on day 0, at the opening town meeting, the town voted in a constable. The bold adults stand: boldness 0.5 or more, aged 20 or over, not the mayor or the newcomer. Everyone 16 or over except the newcomer votes. Candidates vote for themselves, and the rest vote for whoever appeals most: someone they know, understanding and bold, with a seeded share of whim. A tie is broken by a seeded draw.", "range": "Fields: elected constable <winner> <votes> of <votes cast>; appeal = familiarity + 0.4 x understanding + 0.3 x boldness + up to 0.6 of whim", "source": "sim/UnderGlass.Sim/Simulation.Authority.cs:83", "at": "_log.Add($\"{m} elected constable {winner} {votes[winner]}", "verify": false},
-  {"key": "confront", "label": "confront", "group": "Log lines", "definition": "Someone confronted the person named in a scandal, and the line says whether that person was the real culprit. It happens once enough people hold the same name: at least 3, or a quarter of everyone who knows that person (familiarity 0.2 or more) if that is more. Holders who are that person's kin don't count. The one who goes is the boldest who still finds the story juicy, more so if they dislike the person. Nobody confronts someone they love (0.4 or more), their own kin, or someone they argued with in the last 3 days. No meeting is needed. Each scandal is confronted once, and the one confronted feels named. Note: the design gives a confrontation juiciness 3 and a seeded draw for who goes. In code a confrontation is not an act, so nobody sees or retells it, and the top score goes.", "range": "Fields: confront <by> <target> <act id> <right|wrong>", "source": "sim/UnderGlass.Sim/Simulation.cs:1275", "at": "_log.Add($\"{m} confront {by} {target} {act.Id} {(c.Correct", "verify": false},
+  {"key": "confront", "label": "confront", "group": "Log lines", "definition": "Someone confronted the person named in a scandal, and the line says whether that person was the real culprit. It happens once enough people hold the same name: at least 3, or a quarter of everyone who knows that person (familiarity 0.2 or more) if that is more. Holders who are that person's kin don't count. The one who goes is the boldest who still finds the story juicy, more so if they dislike the person. Nobody confronts someone they love (0.4 or more), their own kin, or someone they argued with in the last 3 days. No meeting is needed. Each scandal is confronted once, and the one confronted feels named. Note: the design gives a confrontation juiciness 3 and a seeded draw for who goes. In code a confrontation is not an act, so nobody sees or retells it, and the top score goes.", "range": "Fields: confront <by> <target> <act id> <right|wrong>", "source": "sim/UnderGlass.Sim/Simulation.cs:1281", "at": "_log.Add($\"{m} confront {by} {target} {act.Id} {(c.Correct", "verify": false},
   {"key": "apology", "label": "apology", "group": "Log lines", "definition": "An apology's answer (acts-4): who apologised to whom, the act it was for, accepted or refused, and the margin. In the motive log (the log itself when the gate acts).", "range": "", "source": "sim/UnderGlass.Sim/Simulation.Acts.cs:368", "at": "DesireLog($\"{m} apology {_names[a]} {_names[t]} act", "verify": false},
   {"key": "suspects", "label": "suspects", "group": "Log lines", "definition": "Someone who saw or found a scandal by 'someone' pieced together who was around. A witness counts people they saw there from 30 minutes before the act began to 30 minutes after it ended. A finder counts people they saw there in the 8 hours before the find. The place's keeper and the person's own kin are left out, and strangers and the disliked come first. Sightings are kept for 3 days.", "range": "Fields: suspects <who> <act id> <a,b,c>; at most 3", "source": "sim/UnderGlass.Sim/Simulation.Suspicion.cs:88", "at": "_log.Add($\"{m} suspects {who} {b.ActId} {string.Join(\",\",", "verify": false},
   {"key": "kept-in-family", "label": "kept-in-family", "group": "Log lines", "definition": "Trouble stays inside the family. A keeper whose belief names their own kin for a theft or rummage at their place does not report it. When they would have (next with the mayor or the constable), a family row is set instead. A parent, guardian or stepparent who learns their child living with them was out past curfew does the same. It is written once per act.", "range": "Fields: kept-in-family <keeper or parent> <culprit> <act id>", "source": "sim/UnderGlass.Sim/Simulation.Family.cs:31", "at": "_log.Add($\"{m} kept-in-family {keeper} {culprit} {actId}\");", "verify": false},
   {"key": "row", "label": "row", "group": "Log lines", "definition": "The family row took place once the two were together (the same place, within 8 tiles) and free. A FamilyRow act begins just before this line.", "range": "Fields: row <keeper or parent> <culprit> for <act id>", "source": "sim/UnderGlass.Sim/Simulation.Family.cs:48", "at": "_log.Add($\"{m} row {keeper} {culprit} for {actId}\");", "verify": false},
-  {"key": "wake", "label": "wake", "group": "Log lines", "definition": "Someone woke up. 'rested' means their energy bar filled, and 'alarm' means their alarm rang and woke them. An alarm wakes someone with chance 0.35 + 0.6 x how full their bar is. The line gives their energy.", "range": "Fields: wake <name> <rested|alarm> <energy>; bars are 80 to 125", "source": "sim/UnderGlass.Sim/Simulation.cs:656", "at": "_log.Add($\"{m} wake {p.V.Name} {why} {p.Energy:0.#}\");", "verify": false},
-  {"key": "sleep", "label": "sleep", "group": "Log lines", "definition": "Someone went to sleep. The line gives their energy then and, if they have a job, the minute their alarm is set for: an hour before their next workday starts. It is also written when someone who collapsed is put to bed.", "range": "Fields: sleep <name> <energy> [alarm <minute>]", "source": "sim/UnderGlass.Sim/Simulation.cs:646", "at": "_log.Add($\"{m} sleep {p.V.Name} {p.Energy:0.#}{(p.Alarm is", "verify": false},
-  {"key": "slept-through", "label": "slept-through", "group": "Log lines", "definition": "Someone's alarm rang and they slept on until rested. The fuller their energy bar, the likelier the alarm is to wake them (0.35 + 0.6 x how full it is).", "range": "Fields: slept-through <name>", "source": "sim/UnderGlass.Sim/Simulation.cs:593", "at": "_log.Add($\"{m} slept-through {p.V.Name}\");", "verify": false},
-  {"key": "late", "label": "late", "group": "Log lines", "definition": "A worker was not at their place of work 15 minutes after it started on a workday.", "range": "Fields: late <name>", "source": "sim/UnderGlass.Sim/Simulation.cs:684", "at": "_log.Add($\"{m} late {p.V.Name}\");", "verify": false},
-  {"key": "collapse", "label": "collapse", "group": "Log lines", "definition": "Someone's energy ran out where they were. A Collapsed act begins, and the next minute they are put to bed at home.", "range": "Fields: collapse <name> at <place>", "source": "sim/UnderGlass.Sim/Simulation.cs:617", "at": "_log.Add($\"{m} collapse {p.V.Name} at {p.Place}\");", "verify": false},
+  {"key": "wake", "label": "wake", "group": "Log lines", "definition": "Someone woke up. 'rested' means their energy bar filled, and 'alarm' means their alarm rang and woke them. An alarm wakes someone with chance 0.35 + 0.6 x how full their bar is. The line gives their energy.", "range": "Fields: wake <name> <rested|alarm> <energy>; bars are 80 to 125", "source": "sim/UnderGlass.Sim/Simulation.cs:662", "at": "_log.Add($\"{m} wake {p.V.Name} {why} {p.Energy:0.#}\");", "verify": false},
+  {"key": "sleep", "label": "sleep", "group": "Log lines", "definition": "Someone went to sleep. The line gives their energy then and, if they have a job, the minute their alarm is set for: an hour before their next workday starts. It is also written when someone who collapsed is put to bed.", "range": "Fields: sleep <name> <energy> [alarm <minute>]", "source": "sim/UnderGlass.Sim/Simulation.cs:652", "at": "_log.Add($\"{m} sleep {p.V.Name} {p.Energy:0.#}{(p.Alarm is", "verify": false},
+  {"key": "slept-through", "label": "slept-through", "group": "Log lines", "definition": "Someone's alarm rang and they slept on until rested. The fuller their energy bar, the likelier the alarm is to wake them (0.35 + 0.6 x how full it is).", "range": "Fields: slept-through <name>", "source": "sim/UnderGlass.Sim/Simulation.cs:599", "at": "_log.Add($\"{m} slept-through {p.V.Name}\");", "verify": false},
+  {"key": "late", "label": "late", "group": "Log lines", "definition": "A worker was not at their place of work 15 minutes after it started on a workday.", "range": "Fields: late <name>", "source": "sim/UnderGlass.Sim/Simulation.cs:690", "at": "_log.Add($\"{m} late {p.V.Name}\");", "verify": false},
+  {"key": "collapse", "label": "collapse", "group": "Log lines", "definition": "Someone's energy ran out where they were. A Collapsed act begins, and the next minute they are put to bed at home.", "range": "Fields: collapse <name> at <place>", "source": "sim/UnderGlass.Sim/Simulation.cs:623", "at": "_log.Add($\"{m} collapse {p.V.Name} at {p.Place}\");", "verify": false},
   {"key": "payday", "label": "payday", "group": "Log lines", "definition": "Every Monday at 00:00, day 0 included, money moves. The town's stipend, wages and pensions are paid, and each earner keeps 15% of their wage as pocket money. Allowances are paid, and groceries, restocking and spending go out. With feelings steering, households first choose their shop. The line gives all the money in town afterwards: every household's purse, the town's purse and every pocket.", "range": "Fields: payday town <total g>", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:165", "at": "_log.Add($\"{m} payday town {TownCash():0}\");", "verify": false},
   {"key": "wants", "label": "wants", "group": "Log lines", "definition": "At midnight, someone who had no want came to want something. The chance is 1 in 14 a day, and the price is drawn from their range. The mayor never wants anything.", "range": "Fields: wants <name> <price g>; children 20-80g, most others 50-300g, Haley and the newcomer 100-400g, Alex 150-500g, Sam 200-600g, Sebastian 200-800g, Abigail 300-900g", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:257", "at": "_log.Add($\"{m} wants {n} {price:0}\");", "verify": false},
   {"key": "bought", "label": "bought", "group": "Log lines", "definition": "At midnight, someone whose pocket held their want's price bought it at Pierre's store. The price goes to his household's purse.", "range": "Fields: bought <name> <price g>", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:249", "at": "_log.Add($\"{m} bought {n} {w.Price:0}\");", "verify": false},
   {"key": "shop", "label": "shop", "group": "Log lines", "definition": "On payday, with feelings steering, a household switched where it buys groceries, between Pierre's store and the chain mart. The store's pull is the household's adults' mean regard for Pierre. The chain's pull is 0.2 x (1 + how short the household is of a week's groceries). A switch needs a margin of 0.3, and a choice holds for at least 28 days, the first one included. Pierre's own household never switches.", "range": "Fields: shop <household> <from> <to> (store <s>, chain <c>)", "source": "sim/UnderGlass.Sim/Simulation.Feelings.cs:804", "at": "_log.Add($\"{m} shop {h} {shop} {to} (store {store:0.00},", "verify": false},
   {"key": "motive", "label": "motive", "group": "Log lines", "definition": "Someone gave in to temptation and stole or rummaged, and the line gives the reason that weighed most: a want they can't afford, the household's need, the thrill, or a grudge against the keeper. Motive is the sum of those pressures. Risk grows with the number of people in sight (within 8 tiles), how bad their next verdict would be, and how timid they are. Each 5-minute tick, the chance of acting is 0.002 x (motive - risk), when motive is the larger.", "range": "Fields: motive <name> <Stole|RummagedInBin> <want Ng|need|thrill|grievance> (motive <m>, risk <r>, <n> in sight). Motive = want (theft only, up to 1) + 1.2 x need + 0.15 x boldness + 0.5 x (dislike of the keeper - 0.2); risk = (in sight + 0.5) x next step (1, 2, 4 or 6) x (1.2 - boldness) x 0.5", "source": "sim/UnderGlass.Sim/Simulation.Money.cs:314", "at": "_log.Add($\"{m} motive {v.Name} {kindName} {why} (motive", "verify": false},
-  {"key": "belief", "label": "belief", "group": "Log lines", "definition": "Someone came to hold a belief about an act, or changed one. The line gives whom they think did it ('someone' if they don't know), how they know, and how juicy the story was to them when they got it. The viewer turns these lines into its table of who knew what, not its log list.", "range": "Fields: belief <who> <act id> <actor|someone> <Witnessed|Told|Found> <juiciness>", "source": "sim/UnderGlass.Sim/Simulation.cs:1101", "at": "_log.Add($\"{m} belief {who} {b.ActId} {b.Actor ??", "verify": false},
-  {"key": "told", "label": "told", "group": "Log lines", "definition": "In a chat, someone told a story to someone else. Two people awake in the same place within 8 tiles may chat once they have been together 15 minutes, at most once every 2 hours together. In a chat, each tells the other the juiciest story they still can. They never tell people about themselves, tell a story back to whoever told it, or tell about their own kin's doings. Each teller tells a given story to at most 2 people a day. The viewer turns these lines into its table of tellings and shows them in the log as gossip.", "range": "Fields: told <teller> <listener> <act id>; chat chance 0.3 per 10 minutes x (0.5 + the pair's mean chattiness)", "source": "sim/UnderGlass.Sim/Simulation.cs:1211", "at": "_log.Add($\"{m} told {teller} {listener} {best.ActId}\");", "verify": false},
+  {"key": "belief", "label": "belief", "group": "Log lines", "definition": "Someone came to hold a belief about an act, or changed one. The line gives whom they think did it ('someone' if they don't know), how they know, and how juicy the story was to them when they got it. The viewer turns these lines into its table of who knew what, not its log list.", "range": "Fields: belief <who> <act id> <actor|someone> <Witnessed|Told|Found> <juiciness>", "source": "sim/UnderGlass.Sim/Simulation.cs:1107", "at": "_log.Add($\"{m} belief {who} {b.ActId} {b.Actor ??", "verify": false},
+  {"key": "told", "label": "told", "group": "Log lines", "definition": "In a chat, someone told a story to someone else. Two people awake in the same place within 8 tiles may chat once they have been together 15 minutes, at most once every 2 hours together. In a chat, each tells the other the juiciest story they still can. They never tell people about themselves, tell a story back to whoever told it, or tell about their own kin's doings. Each teller tells a given story to at most 2 people a day. The viewer turns these lines into its table of tellings and shows them in the log as gossip.", "range": "Fields: told <teller> <listener> <act id>; chat chance 0.3 per 10 minutes x (0.5 + the pair's mean chattiness)", "source": "sim/UnderGlass.Sim/Simulation.cs:1217", "at": "_log.Add($\"{m} told {teller} {listener} {best.ActId}\");", "verify": false},
   {"key": "trace", "label": "trace", "group": "Log lines", "definition": "An act that leaves a trace ended and left it.", "range": "Fields: trace <act id> <ScatteredBin|MissingStock> at <place>", "source": "sim/UnderGlass.Sim/Simulation.Traces.cs:23", "at": "_log.Add($\"{m} trace {act.Id} {trace.Name} at", "verify": false},
   {"key": "found", "label": "found", "group": "Log lines", "definition": "Someone noticed a trace. They learn the act happened but not who did it ('someone'), at half its juiciness.", "range": "Fields: found <who> <act id> <trace>", "source": "sim/UnderGlass.Sim/Simulation.Traces.cs:55", "at": "_log.Add($\"{m} found {who} {actId} {trace.Name}\");", "verify": false},
   {"key": "Witnesses", "label": "Seen by (witnesses)", "group": "Act fields", "definition": "How many people saw the act well enough to know what happened (clarity 0.3 or more), counted when it ends. The actor is never counted. With feelings steering, the person a chosen or kin act was aimed at counts as having seen it fully, if still there. For being out late, it is how many people noticed. The viewer shows it as 'Seen by'.", "range": "0 or more people", "source": "sim/UnderGlass.Sim/Simulation.cs:88", "at": "public required IReadOnlyDictionary<int, int> Witnesses {", "verify": false},
-  {"key": "reach", "label": "Reached (viewer)", "group": "Act fields", "definition": "In the viewer, how many people other than the actor came to hold a belief about the act by the end of the run, by seeing it, being told or finding its trace. It also shows how many held it at the time on the clock.", "range": "0 to the town's size less one", "source": "sim/viewer/index.html:1242", "at": "m.reach = new Map(); // act -> number of people who came to", "verify": false},
+  {"key": "reach", "label": "Reached (viewer)", "group": "Act fields", "definition": "In the viewer, how many people other than the actor came to hold a belief about the act by the time on the clock, by seeing it, being told or finding its trace. Whole-run analysis explicitly includes everything recorded by the end.", "range": "0 to the town's size less one", "source": "sim/viewer/index.html:1283", "at": "m.reach = new Map(); // act -> number of people who came to", "verify": false},
   {"key": "Affect", "label": "Feeling row", "group": "Act fields", "definition": "An act kind's row of feeling numbers: who feels it (patient), how much (joy), how much becomes regard (plastic), how freely its cause acted (freedom), whom it is aimed at (target), and whether the glad or the sad do it more (tilt). An act with no row, like being out late, is felt by nobody and has no target.", "range": "one per act kind; none for OutLate", "source": "sim/UnderGlass.Sim/Model.cs:180", "at": "public sealed record Affect(Patient Patient, double Joy,", "verify": false},
   {"key": "turned-back", "label": "Turned back from a crowd", "group": "Log lines", "definition": "Someone arrived at a hub with a crowd limit, saw that many awake people or more within its radius, and turned back; the hub is struck off for them for the rest of the day and they decide again. Written as: minute, who, the hub, how many they saw. Only in towns whose hubs set a Capacity (town spec E4).", "range": "one line per turning back", "source": "sim/UnderGlass.Sim/Simulation.Growth.cs (Arrive)", "verify": false}
  ]
@@ -1159,17 +1199,18 @@ function diverge(v, full = 1) {
   return v >= 0 ? mix(COL.midHex, COL.likeHex, t) : mix(COL.midHex, COL.dislikeHex, t);
 }
 const tip = $("tip");
+let timelineHover = null;
 function showTip(e, parts) {
   tip.replaceChildren(...parts.map((p) => (typeof p === "string" ? el("div", { text: p }) : p)));
   tip.hidden = false;
   const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8), y = Math.min(e.clientY + 14, window.innerHeight - tip.offsetHeight - 8);
   tip.style.left = x + "px"; tip.style.top = y + "px";
 }
-const hideTip = () => { tip.hidden = true; };
+const hideTip = () => { tip.hidden = true; timelineHover = null; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
-const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, popSort: "household", popHigh: false, hood: "all",
+const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, innerFocus: null, popSort: "household", popHigh: false, hood: "all",
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
 const VERB = {
@@ -1281,6 +1322,22 @@ function load(run) {
   m.reflections = run.reflections ?? [];
   m.reflectionActs = new Set(m.reflections.flatMap((record) => record.events
     .filter((event) => event.status === "acted" && event.actId >= 0).map((event) => event.actId)));
+  m.reflectionByAct = new Map(m.reflections.flatMap((record) => record.events
+    .filter((event) => event.status === "acted" && event.actId >= 0).map((event) => [event.actId, record])));
+  // Navigation indexes contain timestamps and participants only, never future thought text.
+  m.moments = [
+    ...m.acts.map((a) => ({ tick: a.tick, people: [a.actor, a.target].filter((i) => i >= 0) })),
+    ...m.ties.map((tie) => ({ tick: tie.tick, people: [tie.a, tie.b] })),
+    ...m.reflections.flatMap((record) => record.events.filter((e) => ["considered", "acted", "outcome", "expired"].includes(e.status))
+      .map((e) => ({ tick: e.tick, people: [names.indexOf(record.request.actor), names.indexOf(record.request.subject)].filter((i) => i >= 0) }))),
+  ].sort((a, b) => a.tick - b.tick);
+  // Timeline indexes keep references, not future prose; descriptions are resolved at the clock.
+  m.timeline = [
+    ...m.acts.map((a) => ({ type: "act", tick: a.tick, people: [a.actor, a.target].filter((i) => i >= 0), act: a.id })),
+    ...m.ties.map((tie, i) => ({ type: "tie", tick: tie.tick, people: [tie.a, tie.b], tie: i })),
+    ...m.reflections.flatMap((record, i) => record.events.flatMap((e, j) => ["considered", "outcome", "expired"].includes(e.status)
+      ? [{ type: "reflection", tick: e.tick, people: [names.indexOf(record.request.actor)], reflection: i, event: j }] : [])),
+  ].sort((a, b) => a.tick - b.tick);
   m.life = run.life.map((e) => ({ tick: e[0], person: e[1], other: e[2], act: e[3], kind: e[4], role: run.roles[e[5]], severity: e[6], hostile: !!e[7], outcome: run.outcomes[e[9]], resolved: e[10] }));
   // Hermits, brawlers and being left out (0d.6), recorded while the gate runs: each person's being
   // left out by the day (hundredths) and their sustained spells (days are the nights' stance indexes).
@@ -1379,7 +1436,7 @@ function setPlaying(on) {
 }
 
 // ---- rendering ------------------------------------------------------------------------------
-let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "", lastPopKey = "", lastInnerKey = "";
+let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "", lastPopKey = "", lastInnerKey = "", lastObserverKey = "";
 function render() {
   if (!R) return;
   const t = S.t;
@@ -1395,23 +1452,75 @@ function render() {
   if (S.tab === "rel" && relKey !== lastRelKey) { lastRelKey = relKey; drawRelationships(); }
   const popKey = `${S.tab}|${slow}|${S.person}|${S.popSort}|${S.popHigh}|${S.hood}`;
   if (S.tab === "people" && popKey !== lastPopKey) { lastPopKey = popKey; drawPopulation(); }
-  const storyKey = `${S.tab}|${slow}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}|${S.hood}`;
+  const storyKey = `${S.tab}|${Math.floor(t)}|${S.story}|${$("storyTier").value}|${$("storyOrder").value}|${$("storyWholeRun").checked}|${S.hood}`;
   if (S.tab === "stories" && storyKey !== lastStoryKey) { lastStoryKey = storyKey; drawStories(); }
   // Exact minute boundaries matter here: a response must never appear before its considered event.
-  const innerKey = `${Math.floor(t)}|${S.person}|${S.hood}|${$("innerFilter").value}`;
+  const innerKey = `${Math.floor(t)}|${S.person}|${S.hood}|${S.innerFocus}|${$("innerFilter").value}`;
   if (S.tab === "inner" && innerKey !== lastInnerKey) { lastInnerKey = innerKey; drawInnerLife(); }
   const sideKey = `${S.person}|${slow}`;
   if (sideKey !== lastSideKey) { lastSideKey = sideKey; drawInspector(); }
+  const observerKey = `${Math.floor(t)}|${S.person}|${S.hood}`;
+  if (observerKey !== lastObserverKey) { lastObserverKey = observerKey; drawObserver(); }
+  drawPersonFocus();
   const feedKey = `${minute}|${[...S.feed].join()}|${S.feedSearch}|${S.onlyPerson}|${S.person}|${S.hood}`;
   if (feedKey !== lastFeedKey) { lastFeedKey = feedKey; drawFeed(); }
+  if (timelineHover) hoverTimeline(timelineHover);
 }
 
 // The ruler above the fader. A fader's handle travels inset by half its width from each end, so
 // the ruler maps the run onto the same span: the playhead sits over the handle.
 const RULER_INSET = 6;
 const rulerX = (t, w) => RULER_INSET + (t / (R.end + 1)) * (w - 2 * RULER_INSET);
+function timelineMarkers(w, person = S.person, hood = S.hood) {
+  const markers = [];
+  for (const event of R.timeline) {
+    const kind = event.type === "act" ? R.kinds[R.acts[event.act].kind] : null;
+    if (observerScope(event.people, -1, hood) && (event.type === "tie" || kind?.tier === "Scandal" || kind?.tier === "Upheaval"))
+      markers.push({ event, x: rulerX(event.tick, w), y: event.type === "tie" ? 17 : 26, focused: false });
+    if (person >= 0 && observerScope(event.people, person, hood))
+      markers.push({ event, x: rulerX(event.tick, w), y: 44, focused: true });
+  }
+  return markers;
+}
+function timelineHits(x, y, w) {
+  return timelineMarkers(w).filter((marker) => Math.abs(marker.x - x) <= 6 && Math.abs(marker.y - y) <= 9)
+    .sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x) || Math.abs(a.y - y) - Math.abs(b.y - y) || a.event.tick - b.event.tick);
+}
+function timelineDescription(event, t = S.t) {
+  if (event.tick > t) return "Upcoming recorded moment · click to jump and reveal it";
+  if (event.type === "act") return R.actText(R.acts[event.act]);
+  if (event.type === "tie") {
+    const tie = R.ties[event.tie], change = { feud: "began a feud", "kin-feud": "began a feud in the family", friendship: "became friends", reconciled: "reconciled" }[tie.what] ?? tie.what;
+    return `${R.names[tie.a]} and ${R.names[tie.b]} ${change}`;
+  }
+  const record = R.reflections[event.reflection], view = reflectionAt(record, t);
+  if (!view) return "A reflection begins";
+  const step = record.events[event.event];
+  if (step.status === "considered") return `${view.request.actor} ${isWakingDream(view) ? "woke with an idea" : "imagined"}: ${view.answer?.thought ?? "a possibility"}`;
+  return `${view.request.actor}: ${reflectionEventText(step, view.request, t)}`;
+}
+function timelinePointer(e) {
+  const rect = $("strip").getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top, w: rect.width };
+}
+function hoverTimeline(e) {
+  if (!R) return;
+  timelineHover = e;
+  const { x, y, w } = timelinePointer(e), hits = timelineHits(x, y, w);
+  if (!hits.length) { hideTip(); return; }
+  const events = [...new Set(hits.map((hit) => hit.event))];
+  showTip(e, events.slice(0, 5).map((event) => el("div", null,
+    el("strong", { text: `${when(event.tick)} · ` }), timelineDescription(event))));
+  if (events.length > 5) tip.append(el("div", { text: `and ${events.length - 5} nearby moments` }));
+}
+function clickTimeline(e) {
+  if (!R) return;
+  const { x, y, w } = timelinePointer(e), hit = timelineHits(x, y, w)[0];
+  setPlaying(false); hideTip();
+  setTime(hit ? hit.event.tick : ((x - RULER_INSET) / (w - 2 * RULER_INSET)) * (R.end + 1));
+}
 function drawStrip() {
-  const c = $("strip"), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = 38;
+  const c = $("strip"), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = 54;
   if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = h * dpr; }
   const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   const X = (t) => rulerX(t, w);
@@ -1423,13 +1532,23 @@ function drawStrip() {
     g.fillRect(Math.round(x), season ? 8 : week ? 11 : 14, 1, season ? 18 : week ? 12 : 6);
     if (season && d < R.days) { g.fillStyle = COL["ink-2"]; g.fillText(SEASONS[(d / 28) % 4].toUpperCase(), x + 4, 0); }
   }
-  for (const a of R.acts) if (R.kinds[a.kind].tier === "Scandal" || R.kinds[a.kind].tier === "Upheaval") {
-    const x = X(a.tick); g.fillStyle = COL.ink; g.beginPath(); g.moveTo(x, 22); g.lineTo(x + 4, 26); g.lineTo(x, 30); g.lineTo(x - 4, 26); g.closePath(); g.fill();
+  $("timelineFocus").textContent = S.person < 0 ? "Town turning points · select a character to highlight their events" : `${R.names[S.person]} · encounters, thoughts and relationship changes`;
+  if (S.person >= 0) { g.fillStyle = COL["surface-2"]; g.fillRect(RULER_INSET, 43, w - 2 * RULER_INSET, 2); }
+  for (const marker of timelineMarkers(w)) {
+    const { event, x, y, focused } = marker;
+    g.globalAlpha = event.tick > S.t ? 0.3 : 1;
+    g.fillStyle = focused ? COL.accent : COL.ink;
+    if (event.type === "tie") {
+      const tie = R.ties[event.tie];
+      g.fillStyle = tie.what === "feud" || tie.what === "kin-feud" ? COL.dislike : tie.what === "friendship" ? COL.like : COL["ink-2"];
+      g.fillRect(Math.round(x) - 1, focused ? y - 4 : 10, 3, focused ? 8 : 14);
+    } else if (focused && event.type === "act") {
+      g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill();
+    } else {
+      g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill();
+    }
   }
-  for (const tie of R.ties) {
-    g.fillStyle = tie.what === "feud" || tie.what === "kin-feud" ? COL.dislike : tie.what === "friendship" ? COL.like : COL["ink-2"];
-    g.fillRect(Math.round(X(tie.tick)) - 1, 10, 3, 14);
-  }
+  g.globalAlpha = 1;
   const x = X(S.t); g.fillStyle = COL.accent; g.fillRect(Math.round(x) - 1, 0, 2, h);
   g.beginPath(); g.moveTo(x - 5, 0); g.lineTo(x + 5, 0); g.lineTo(x, 6); g.closePath(); g.fill();
 }
@@ -1996,6 +2115,131 @@ function drawPair() {
     svg, el("h3", { text: "What moved it, latest first" }), el("div", { class: "list" }, list.length ? list : [el("div", { class: "muted", text: "Nothing has moved it yet." })]));
 }
 
+// ---- observer focus ---------------------------------------------------------------------------
+function observerScope(people, person = S.person, hood = S.hood) {
+  return (person < 0 || people.includes(person)) && (hood === "all" || people.some((i) => R.people[i]?.district === hood));
+}
+function momentTick(t, direction, person = S.person, hood = S.hood) {
+  const moments = R.moments.filter((moment) => observerScope(moment.people, person, hood));
+  if (direction > 0) return moments.find((moment) => moment.tick > t)?.tick ?? null;
+  for (let i = moments.length - 1; i >= 0; i--) if (moments[i].tick < t) return moments[i].tick;
+  return null;
+}
+function jumpMoment(direction) {
+  const tick = momentTick(S.t, direction);
+  if (tick == null) return;
+  setPlaying(false); setTime(tick);
+}
+function followPerson(person) {
+  S.person = person; lastSideKey = lastRelKey = lastFeedKey = lastObserverKey = lastInnerKey = ""; render();
+}
+function focusReflection(id, tick = S.t) {
+  const record = R.reflections.find((r) => r.request.id === id && r.request.tick <= S.t);
+  if (!record || tick > S.t) return;
+  S.person = R.names.indexOf(record.request.actor); S.innerFocus = id;
+  $("innerFilter").value = "all";
+  setPlaying(false); setTime(tick); showTab("inner");
+  document.getElementById("reflection-" + id)?.scrollIntoView({ block: "nearest" });
+}
+function reflectionSummary(view, t) {
+  const actor = view.request.actor, subject = view.request.subject;
+  const chosen = view.request.choices.find((choice) => choice.id === view.choice);
+  if (!view.answer) return { title: `${actor} is reflecting on ${subject}`, text: "A quiet moment; no thought has been considered yet.", line: "" };
+  const action = { GaveGift: "give a gift to", HelpedSomeone: "help", Argued: "confront" }[chosen?.kind];
+  const titles = {
+    accepted: isWakingDream(view) ? `${actor} woke with an idea about ${subject}` : `${actor} has made a decision about ${subject}`,
+    reshaped: `${actor} has changed the idea`,
+    waiting: action ? `${actor} wants to ${action} ${subject}` : `${actor} is waiting for a chance`,
+    deferred: `${actor} has put the thought aside`, rejected: `${actor} has rejected the thought`,
+    expired: `${actor}'s intention has lapsed`, acted: `${actor} has acted on the thought`, outcome: `What followed for ${actor} and ${subject}`,
+  };
+  const latest = view.events[view.events.length - 1];
+  return { title: titles[view.status] ?? `${actor} is thinking about ${subject}`,
+    text: view.status === "outcome" ? reflectionEventText(latest, view.request, t) : view.request.memory,
+    line: ["accepted", "reshaped", "waiting", "acted"].includes(view.status) ? chosen?.line ?? "" : view.answer.thought };
+}
+function observerItemsAt(t, person = S.person, hood = S.hood) {
+  const items = [], shownActs = new Set();
+  for (const act of R.acts) {
+    if (act.tick > t) break;
+    if (!observerScope([act.actor, act.target], person, hood) || t - act.tick > 60 && act.end <= t) continue;
+    const record = R.reflectionByAct.get(act.id), view = record ? reflectionAt(record, t) : null;
+    const choice = view?.answer ? view.request.choices.find((c) => c.id === view.choice) : null;
+    items.push({ type: "act", tick: act.tick, priority: act.end > t ? 0 : 2, actor: act.actor, act,
+      recordId: view?.request.id, label: act.end > t ? "In progress" : "Recent encounter", title: R.actText(act),
+      text: view ? view.request.memory : `At ${placeName(R.places[act.place].name)}.`, line: choice?.line ?? "" });
+    shownActs.add(act.id);
+  }
+  for (const record of R.reflections) {
+    const view = reflectionAt(record, t);
+    if (!view) continue;
+    const actor = R.names.indexOf(view.request.actor), subject = R.names.indexOf(view.request.subject);
+    if (!observerScope([actor, subject], person, hood) || view.settled && t - view.changed > 60
+      || view.status !== "outcome" && view.events.some((e) => e.status === "acted" && shownActs.has(e.actId))) continue;
+    const summary = reflectionSummary(view, t);
+    items.push({ type: "thought", tick: view.changed, priority: t - view.changed <= 30 ? 1 : 3,
+      actor, recordId: view.request.id, label: view.settled ? "A thought settled"
+        : isWakingDream(view) && t - view.request.tick <= 30 ? "Woke with an idea" : "On their mind", ...summary });
+  }
+  for (const tie of R.ties) {
+    if (tie.tick > t || t - tie.tick > 60 || !observerScope([tie.a, tie.b], person, hood)) continue;
+    const phrase = { feud: "have begun feuding", "kin-feud": "have begun a family feud", friendship: "have become friends", reconciled: "have reconciled" }[tie.what];
+    if (phrase) items.push({ type: "tie", tick: tie.tick, priority: 2, actor: tie.a, pair: [tie.a, tie.b], label: "A relationship changed",
+      title: `${R.names[tie.a]} and ${R.names[tie.b]} ${phrase}`, text: "Recorded by the relationship system.", line: "" });
+  }
+  return items.sort((a, b) => a.priority - b.priority || b.tick - a.tick || a.actor - b.actor);
+}
+function observerCard(item) {
+  const actions = [];
+  if (item.actor >= 0 && item.actor !== S.person) actions.push(el("button", { text: `Follow ${R.names[item.actor]}`, onclick: () => followPerson(item.actor) }));
+  if (item.recordId) actions.push(el("button", { text: "Follow this thought", onclick: () => focusReflection(item.recordId) }));
+  if (item.act) actions.push(el("button", { text: "See the encounter", onclick: () => {
+    S.story = item.act.id; $("storyTier").value = "all"; $("storyWholeRun").checked = false; showTab("stories");
+  } }));
+  if (item.pair) actions.push(el("button", { text: "See their relationship", onclick: () => selectPair(...item.pair) }));
+  return el("article", { class: "observer-card" }, el("div", { class: "label", text: `${item.label} · ${hm(item.tick)}` }),
+    el("h3", { text: item.title }), el("p", { class: "muted", text: item.text }),
+    item.line ? el("p", { class: "observer-quote", text: item.line }) : null,
+    el("div", { class: "observer-actions" }, actions));
+}
+function drawObserver() {
+  $("observerScope").textContent = S.person >= 0 ? `Following ${R.names[S.person]}` : S.hood === "all" ? "The town" : hoodLabel(S.hood);
+  $("observerAll").hidden = S.person < 0;
+  // No future names, thought text or timestamps appear on the navigation controls.
+  $("previousMoment").disabled = momentTick(S.t, -1) == null;
+  $("nextMoment").disabled = momentTick(S.t, 1) == null;
+  const items = observerItemsAt(S.t), selected = [], actors = new Set();
+  for (const item of items) {
+    if (actors.has(item.actor)) continue;
+    selected.push(item); actors.add(item.actor);
+    if (selected.length === 3) break;
+  }
+  $("observerCards").replaceChildren(...(selected.length ? selected.map(observerCard) : [el("p", { class: "observer-empty",
+    text: S.person >= 0 ? "No recent encounter or unfolding thought is recorded for this person. Use Next moment to keep following."
+      : "The town is between encounters. Use Next moment to skip to a recorded encounter, thought or relationship change." })]));
+}
+function drawPersonFocus() {
+  const box = $("inspectorFocus");
+  if (!box || S.person < 0) return;
+  const key = `${S.person}|${Math.floor(S.t)}`;
+  if (box.dataset.clockKey === key) return;
+  box.dataset.clockKey = key;
+  const own = R.reflections.map((record) => reflectionAt(record, S.t))
+    .filter((view) => view && view.request.actor === R.names[S.person] && (!view.settled || S.t - view.changed <= 60))
+    .sort((a, b) => b.changed - a.changed)[0];
+  const act = R.actsOf[S.person].find((a) => a.tick <= S.t && a.end > S.t);
+  const nodes = [el("div", { class: "label", text: "At this moment" })];
+  if (act) nodes.push(el("p", { text: R.actText(act) }));
+  if (own) {
+    const summary = reflectionSummary(own, S.t);
+    nodes.push(el("p", null, el("strong", { text: summary.title })),
+      el("p", { class: "muted", text: summary.line || summary.text }),
+      el("div", { class: "observer-actions" }, el("button", { text: "Follow this thought", onclick: () => focusReflection(own.request.id) })));
+  }
+  if (!act && !own) nodes.push(el("p", { class: "muted", text: "No encounter or private intention is recorded at this time." }));
+  box.replaceChildren(...nodes);
+}
+
 // ---- inner life -------------------------------------------------------------------------------
 function actOrigin(act, t) {
   if (act.tick > t) return "";
@@ -2014,8 +2258,9 @@ function reflectionAt(record, t) {
     settled: ["deferred", "rejected", "expired", "outcome"].includes(status),
     changed: latest?.tick ?? record.request.tick };
 }
-const INNER_STATUS = { reflecting: "Reflecting", considered: "Considering", accepted: "Accepted the thought", reshaped: "Changed the idea",
+const INNER_STATUS = { reflecting: "Reflecting", dreamed: "Woke with an idea", reconsidered: "Reconsidered", considered: "Considering", accepted: "Accepted the thought", reshaped: "Changed the idea",
   deferred: "Put it aside", rejected: "Rejected the thought", waiting: "Waiting for a chance", acted: "Acted on it", expired: "Let it lapse", outcome: "Outcome recorded" };
+function isWakingDream(view) { return !!view.answer && view.request.opportunity?.kind === "dream"; }
 function reflectionJump(actId, t, label) {
   const act = R.acts.find((a) => a.id === actId && a.tick <= t);
   return act ? el("button", { class: "inner-jump", text: label, title: `${R.actText(act)} · ${dateOf(act.tick)} ${hm(act.tick)}`,
@@ -2027,21 +2272,46 @@ function reflectionEventJump(event, t) {
   return el("button", { class: "inner-jump", text: event.status === "outcome" ? "Go to the outcome" : "Go to the act",
     title: `${dateOf(event.tick)} ${hm(event.tick)}`, onclick: () => { setPlaying(false); setTime(event.tick); } });
 }
+function reflectionEventText(event, request, t) {
+  if (event.tick > t) return "";
+  if (event.status === "reconsidered") return request.continuity?.reason || "A later encounter brought the earlier idea back.";
+  if (event.status !== "outcome") return event.text;
+  const person = R.names.indexOf(request.actor);
+  const life = (R.life ?? []).find((e) => e.act === event.actId && e.person === person && e.role === "Did"
+    && e.tick <= t && e.resolved >= 0 && e.resolved <= t);
+  // Older records carry the enum in the event sentence. Never use a future life-record outcome.
+  const recorded = /^The encounter's recorded outcome: ([A-Za-z]+)\.$/.exec(event.text)?.[1];
+  const outcome = life?.outcome ?? recorded, subject = request.subject;
+  return {
+    Returned: `${subject} responded with kindness.`, Answered: `${subject} answered the hostility with hostility.`,
+    Rebuffed: `${subject} met the kind gesture with hostility.`, Avoided: `${subject} kept their distance or turned away.`,
+    Ignored: "No matching response was recorded before the response window closed.",
+    None: "This encounter has no tracked response.", Accepted: `${subject} accepted the apology.`, Refused: `${subject} refused the apology.`,
+  }[outcome] ?? event.text;
+}
 function reflectionCard(view, openDetails) {
   const { request, answer, events, status } = view;
   const actor = R.names.indexOf(request.actor), chosen = request.choices.find((c) => c.id === view.choice);
   const stage = (label, tick, text, link) => el("li", null,
     el("div", null, el("span", { class: "label", text: label }), el("span", { class: "inner-time data", text: when(tick) })),
     el("div", null, el("p", { text }), link));
-  const chain = [stage("Remembered", request.tick, request.memory, reflectionJump(request.sourceActId, S.t, "Go to the remembered event"))];
+  const chain = [];
+  if (request.continuity) {
+    const prior = R.reflections.find((r) => r.request.id === request.continuity.priorId && r.request.tick <= S.t);
+    const priorView = prior ? reflectionAt(prior, S.t) : null;
+    const previousTick = priorView?.events.find((e) => e.status === "considered")?.tick;
+    chain.push(stage("Revisited", request.tick, request.continuity.reason,
+      previousTick != null ? el("button", { class: "inner-jump", text: "Read the earlier thought", onclick: () => focusReflection(prior.request.id, previousTick) }) : null));
+  }
+  chain.push(stage("Remembered", request.tick, request.memory, reflectionJump(request.sourceActId, S.t, "Go to the remembered event")));
   if (answer) {
     const considered = events.find((e) => e.status === "considered");
-    chain.push(el("li", null, el("div", null, el("span", { class: "label", text: "Imagined" }),
+    chain.push(el("li", null, el("div", null, el("span", { class: "label", text: isWakingDream(view) ? "Dream on waking" : "Imagined" }),
       el("span", { class: "inner-time data", text: when(considered.tick) })), el("blockquote", { class: "inner-thought", text: answer.thought })));
     const decision = events.find((e) => ["accepted", "reshaped", "deferred", "rejected"].includes(e.status));
     if (chosen && decision?.text !== chosen.line) chain.push(stage("Chose", considered.tick, chosen.line));
     for (const event of events.filter((e) => e.status !== "considered")) {
-      chain.push(stage(INNER_STATUS[event.status] ?? event.status, event.tick, event.text,
+      chain.push(stage(INNER_STATUS[event.status] ?? event.status, event.tick, reflectionEventText(event, request, S.t),
         reflectionEventJump(event, S.t)));
     }
   } else {
@@ -2059,14 +2329,32 @@ function reflectionCard(view, openDetails) {
           c.id === view.choice ? "selected" : "", c.id === answer?.suggestedChoice ? "proposed" : ""].filter(Boolean).join(" · ") }));
     })));
   if (answer) {
+    if (isWakingDream(view)) detail.append(el("p", { class: "label", text: "Dream on waking" }),
+      el("p", { class: "note", text: "An imagined possibility recorded on waking; it is not a remembered encounter." }),
+      el("p", { class: "data", text: `Asleep from ${when(request.opportunity.sleptAt)} · woke ${when(request.opportunity.wokeAt)}` }));
+    if (request.proposal) detail.append(el("p", { class: "label", text: "Authored starting proposal" }),
+      el("p", { class: "data", text: request.proposal.id }),
+      el("p", { class: "note", text: `Context tags: ${(request.proposal.tags ?? []).join(" · ")}` }));
     detail.append(el("p", { text: "Weights guide a seeded choice; they are not measured probabilities of human behavior." }),
       el("p", { class: "data", text: `Recorded backend: ${answer.backend}` }));
     if (answer.note) detail.append(el("p", { class: "note", text: answer.note }));
-    for (const [field, label] of [["layaPrompt", "Exact Laya request"], ["generationPrompt", "Exact imagination request"]]) {
+    for (const [field, label] of [["layaPrompt", "Exact Laya request"], ["layaResponse", "Exact Laya response"],
+      ["generationPrompt", "Exact imagination request"], ["generationResponse", "Exact imagination response and server metadata"]]) {
       if (answer[field]) detail.append(el("p", { class: "label", text: label }), el("pre", { text: answer[field] }));
     }
+    if (answer.evaluations?.length) {
+      detail.append(el("p", { class: "label", text: `${answer.evaluations.length} Laya evaluation passes recorded` }),
+        el("p", { class: "note", text: "Each pass is a separate request. The tables map displayed labels back to the actual candidate lines; final weights are shown above." }));
+      for (const pass of answer.evaluations) detail.append(el("details", { class: "inner-pass" },
+        el("summary", { text: `Pass ${pass.pass}${pass.error ? " · failed" : ""}` }),
+        el("p", { class: "label", text: "Displayed labels → candidate IDs" }), el("pre", { text: JSON.stringify(pass.labelsToChoiceIds, null, 2) }),
+        pass.weights ? el("pre", { text: JSON.stringify(pass.weights, null, 2) }) : null,
+        pass.error ? el("p", { class: "note", text: pass.error }) : null,
+        el("p", { class: "label", text: "Exact request" }), el("pre", { text: pass.prompt }),
+        pass.response ? el("p", { class: "label", text: "Exact response" }) : null, pass.response ? el("pre", { text: pass.response }) : null));
+    }
   }
-  return el("article", { class: "inner-card" }, el("header", null,
+  return el("article", { id: "reflection-" + request.id, class: "inner-card" + (S.innerFocus === request.id ? " focused" : "") }, el("header", null,
     el("div", null, actor >= 0 ? el("button", { class: "inner-person", text: request.actor,
       title: `Follow ${request.actor}`, onclick: () => selectPerson(actor) }) : el("h3", { text: request.actor }),
       el("span", { class: "muted", text: `Thinking about ${request.subject} · ${dateOf(request.tick)}` })),
@@ -2076,7 +2364,7 @@ function reflectionCard(view, openDetails) {
 }
 function drawInnerLife() {
   const picker = $("innerPerson"), list = $("innerList"), filter = $("innerFilter").value;
-  const openDetails = new Set([...list.querySelectorAll("details[open]")].map((e) => e.dataset.reflection));
+  const openDetails = new Set([...list.querySelectorAll("details[data-reflection][open]")].map((e) => e.dataset.reflection));
   picker.replaceChildren(el("option", { value: -1, text: "Everyone" }), ...R.names.map((name, i) => ({ name, i }))
     .filter(({ i }) => inHood(i) || i === S.person).map(({ name, i }) => el("option", { value: i, text: name })));
   picker.value = S.person;
@@ -2086,7 +2374,8 @@ function drawInnerLife() {
     return (S.person < 0 || actor === S.person) && (actor < 0 ? S.hood === "all" : inHood(actor));
   });
   const matching = visible.filter((view) => filter === "all" || view.settled === (filter === "settled"))
-    .sort((a, b) => b.changed - a.changed || b.request.tick - a.request.tick || a.request.actor.localeCompare(b.request.actor));
+    .sort((a, b) => Number(b.request.id === S.innerFocus) - Number(a.request.id === S.innerFocus)
+      || b.changed - a.changed || b.request.tick - a.request.tick || a.request.actor.localeCompare(b.request.actor));
   const unfolding = visible.filter((view) => !view.settled).length;
   $("innerCount").textContent = visible.length ? `${unfolding} still unfolding · ${visible.length - unfolding} settled for now`
     + (matching.length > 24 ? " · showing the 24 most recently changed" : "") : "";
@@ -2104,28 +2393,32 @@ function drawInnerLife() {
 }
 
 // ---- stories ----------------------------------------------------------------------------------
+function storyCutoff() { return $("storyWholeRun").checked ? R.end : S.t; }
 function storyActs() {
-  const tier = $("storyTier").value, order = $("storyOrder").value;
+  const tier = $("storyTier").value, order = $("storyOrder").value, cutoff = storyCutoff();
+  const reach = new Map(R.acts.filter((a) => a.tick <= cutoff).map((a) => [a.id, holdersAt(a.id, cutoff)]));
   let acts = R.acts.filter((a) => {
-    if (!inHood(a.actor)) return false;
+    if (a.tick > cutoff || !inHood(a.actor)) return false;
     const k = R.kinds[a.kind];
     if (tier === "scandal") return k.tier === "Scandal" || k.tier === "Upheaval";
     if (tier === "news") return k.tier !== "Trivia";
-    if (tier === "talked") return (R.reach.get(a.id) ?? 0) >= 3;
+    if (tier === "talked") return (reach.get(a.id) ?? 0) >= 3;
     return true;
   });
-  if (order === "reach") acts = acts.slice().sort((x, y) => (R.reach.get(y.id) ?? 0) - (R.reach.get(x.id) ?? 0) || x.id - y.id);
+  if (order === "reach") acts = acts.slice().sort((x, y) => (reach.get(y.id) ?? 0) - (reach.get(x.id) ?? 0) || x.id - y.id);
   return acts;
 }
 function holdersAt(act, t) { const rows = R.beliefsByAct.get(act) ?? []; const s = new Set(); for (const b of rows) { if (b[0] > t) break; s.add(b[1]); } return s.size; }
 function drawStories() {
-  const acts = storyActs(), list = $("storyList");
+  const acts = storyActs(), list = $("storyList"), cutoff = storyCutoff();
   const shown = acts.slice(0, 400);
   list.replaceChildren(...shown.map((a) => {
-    const k = R.kinds[a.kind], reach = R.reach.get(a.id) ?? 0, now = holdersAt(a.id, S.t);
-    return el("div", { class: "story" + (a.id === S.story ? " sel" : "") + (a.tick > S.t ? " future" : ""), tabindex: 0, onclick: () => { S.story = a.id; lastStoryKey = ""; render(); } },
+    const k = R.kinds[a.kind], reach = holdersAt(a.id, cutoff);
+    const select = () => { S.story = a.id; lastStoryKey = ""; render(); };
+    return el("div", { class: "story" + (a.id === S.story ? " sel" : "") + (a.tick > S.t ? " future" : ""), tabindex: 0, role: "button", onclick: select,
+      onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); select(); } } },
       el("div", { class: "what" }, el("div", null, R.actText(a)), el("div", { class: "muted data", style: "font-size:0.75rem" }, `${when(a.tick)} · `, el("span", { class: "tier " + k.tier, text: k.tier }), a.injected ? " · placed" : "")),
-      el("div", { class: "reach" }, `${now}/${reach}`, el("div", { class: "muted", text: "know" })));
+      el("div", { class: "reach" }, `${reach}`, el("div", { class: "muted", text: "know" })));
   }), ...(acts.length > shown.length ? [el("div", { class: "muted", text: `and ${acts.length - shown.length} more` })] : []),
   ...(acts.length === 0 ? [el("div", { class: "muted", text: "Nothing matches." })] : []));
   drawStory();
@@ -2133,11 +2426,14 @@ function drawStories() {
 function drawStory() {
   const box = $("storyDetail");
   if (S.story < 0 || !R.acts[S.story]) { box.replaceChildren(el("p", { class: "note", text: "Pick a story to see how it spread: who saw it, who told whom, what each person believes now, and what the mayor and the constable did about it." })); return; }
-  const a = R.acts[S.story], k = R.kinds[a.kind], rows = R.beliefsByAct.get(a.id) ?? [], tells = R.tellsByAct.get(a.id) ?? [];
-  // Spread over time: how many people hold it, by the hour, from the act to the end of the run or a week after the last change.
-  const lastTick = rows.length ? rows[rows.length - 1][0] : a.tick, until = Math.min(R.end, Math.max(lastTick + 720, a.tick + 1440));
+  const a = R.acts[S.story], k = R.kinds[a.kind], cutoff = storyCutoff();
+  if (a.tick > cutoff) { box.replaceChildren(el("p", { class: "note", text: "This encounter has not happened at the current clock." })); return; }
+  const rows = (R.beliefsByAct.get(a.id) ?? []).filter((b) => b[0] <= cutoff);
+  const tells = (R.tellsByAct.get(a.id) ?? []).filter((telling) => telling[0] <= cutoff);
+  // The observer sees only the spread so far; whole-run analysis explicitly unlocks later records.
+  const lastTick = rows.length ? rows[rows.length - 1][0] : a.tick, until = Math.min(cutoff, Math.max(lastTick + 720, a.tick + 1440));
   const w = 520, h = 120, padL = 28, padB = 18, padT = 8, total = R.n - 1;
-  const X = (t) => padL + ((t - a.tick) / (until - a.tick)) * (w - padL - 8), Y = (v) => padT + (1 - v / total) * (h - padT - padB);
+  const X = (t) => padL + ((t - a.tick) / Math.max(1, until - a.tick)) * (w - padL - 8), Y = (v) => padT + (1 - v / Math.max(1, total)) * (h - padT - padB);
   const pts = []; let count = 0; const seen = new Set();
   pts.push([a.tick, 0]);
   for (const b of rows) if (!seen.has(b[1])) { seen.add(b[1]); pts.push([b[0], count]); count++; pts.push([b[0], count]); }
@@ -2184,25 +2480,26 @@ function drawStory() {
   };
   for (const who of [...first.keys()].filter((x) => !parent.has(x)).sort(byFirst)) node(who, 0);
   // What each holder believes now.
-  const latest = new Map(); for (const b of rows) if (b[0] <= S.t) latest.set(b[1], b);
+  const latest = new Map(); for (const b of rows) latest.set(b[1], b);
   const beliefs = [...latest.values()].sort((x, y) => R.names[x[1]].localeCompare(R.names[y[1]])).map((b) => {
     const named = b[3] < 0 ? "someone" : R.names[b[3]], wrong = b[3] >= 0 && b[3] !== a.actor;
     return el("div", null, el("strong", { text: R.names[b[1]] }), `: ${named}`, wrong ? el("span", { style: `color:${COL.dislike}`, text: " (wrong)" }) : "", el("span", { class: "muted", text: ` · ${SOURCE[b[4]]}` }));
   });
   // The authority's track.
   const track = [];
-  for (const e of R.authorityByAct.get(a.id) ?? []) track.push([e.tick, plain(e)]);
-  for (const v of R.run.verdicts) if (v[1] === a.id) track.push([v[0], `Verdict: ${R.names[v[3]]}, ${v[4] ? "rightly" : "wrongly"}, ${v[6] ? "let off" : v[5].toLowerCase()}`]);
-  for (const c of R.run.confrontations) if (c[1] === a.id) track.push([c[0], `${R.names[c[2]]} confronted ${R.names[c[3]]}${c[4] ? "" : " (the wrong person)"}`]);
+  for (const e of R.authorityByAct.get(a.id) ?? []) if (e.tick <= cutoff) track.push([e.tick, plain(e)]);
+  for (const v of R.run.verdicts) if (v[0] <= cutoff && v[1] === a.id) track.push([v[0], `Verdict: ${R.names[v[3]]}, ${v[4] ? "rightly" : "wrongly"}, ${v[6] ? "let off" : v[5].toLowerCase()}`]);
+  for (const c of R.run.confrontations) if (c[0] <= cutoff && c[1] === a.id) track.push([c[0], `${R.names[c[2]]} confronted ${R.names[c[3]]}${c[4] ? "" : " (the wrong person)"}`]);
   track.sort((x, y) => x[0] - y[0]);
+  const witnesses = new Set(rows.filter((b) => b[4] === 0 && b[1] !== a.actor).map((b) => b[1])).size;
   box.replaceChildren(el("div", { style: "display:grid;gap:10px" },
     el("div", null, el("span", { class: "tier " + k.tier, text: k.tier }), " ", el("h2", { style: "display:inline", text: R.actText(a) })),
     el("dl", { class: "facts" }, el("dt", { text: "When" }), el("dd", { text: `${dateOf(a.tick)} at ${hm(a.tick)}` }), el("dt", { text: "Where" }), el("dd", { text: placeName(R.places[a.place].name) }),
-      el("dt", { text: "Seen by" }), el("dd", { text: `${a.witnesses} ${a.witnesses === 1 ? "person" : "people"}` }), el("dt", { text: "Reached" }), el("dd", { text: `${R.reach.get(a.id) ?? 0} of ${R.n - 1} others by the end; ${holdersAt(a.id, S.t)} now` }),
-      ...(a.about >= 0 && R.acts[a.about] ? [el("dt", { text: "Answers" }), el("dd", { text: R.actText(R.acts[a.about]) })] : []), ...(actOrigin(a, S.t) ? [el("dt", { text: "Why" }), el("dd", { text: actOrigin(a, S.t) })] : [])),
+      el("dt", { text: "Seen by" }), el("dd", { text: `${witnesses} ${witnesses === 1 ? "person" : "people"}` }), el("dt", { text: "Reached" }), el("dd", { text: `${holdersAt(a.id, cutoff)} of ${R.n - 1} others ${$("storyWholeRun").checked ? "by the end" : "so far"}` }),
+      ...(a.about >= 0 && R.acts[a.about]?.tick <= cutoff ? [el("dt", { text: "Answers" }), el("dd", { text: R.actText(R.acts[a.about]) })] : []), ...(actOrigin(a, cutoff) ? [el("dt", { text: "Why" }), el("dd", { text: actOrigin(a, cutoff) })] : [])),
     el("h3", { text: "How far it spread" }), svg,
     el("h3", { text: "Who told whom" }), el("div", { class: "tree" }, treeRows.length ? treeRows : [el("div", { class: "muted", text: "Nobody saw it or heard of it." })]),
-    el("h3", { text: "What people believe now" }), el("div", { class: "believes" }, beliefs.length ? beliefs : [el("div", { class: "muted", text: "Nobody yet." })]),
+    el("h3", { text: $("storyWholeRun").checked ? "What people believe by the end" : "What people believe now" }), el("div", { class: "believes" }, beliefs.length ? beliefs : [el("div", { class: "muted", text: "Nobody yet." })]),
     ...(track.length ? [el("h3", { text: "The mayor and the constable" }), el("div", { class: "list" }, track.map(([t, text]) => el("div", { class: "row", onclick: () => setTime(t) }, el("span", { class: "when", text: when(t) }), text)))] : [])));
 }
 
@@ -2488,6 +2785,7 @@ function drawInspector() {
   });
   const kids = [
     el("div", { class: "who" }, el("h2", { text: p.name }), el("button", { onclick: () => selectPerson(i), text: "Close" })),
+    el("div", { class: "inspector-focus", id: "inspectorFocus" }),
     el("dl", { class: "facts" },
       el("dt", { text: "Now" }), el("dd", null, el("strong", { text: q.asleep ? "asleep" : "awake" }), ` at ${placeName(place.name)}`),
       el("dt", { text: "Home" }), el("dd", { text: `${p.household}, ${p.kind}, ${p.age}` }),
@@ -2633,8 +2931,9 @@ function start(run, source) {
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
   buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls(); buildHoodPicker();
-  S.person = -1; S.pair = null; S.story = -1;
-  lastInnerKey = "";
+  S.person = -1; S.pair = null; S.story = -1; S.innerFocus = null;
+  $("storyWholeRun").checked = false;
+  lastInnerKey = lastObserverKey = "";
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
   setTime(meeting ? meeting.from + 30 : 9 * 60);
@@ -2647,22 +2946,32 @@ $("backHour").addEventListener("click", () => R && setTime(S.t - 60));
 $("fwdHour").addEventListener("click", () => R && setTime(S.t + 60));
 $("speed").addEventListener("change", (e) => { S.speed = +e.target.value; });
 $("scrub").addEventListener("input", (e) => R && setTime(+e.target.value, "scrub"));
-$("strip").addEventListener("click", (e) => { if (!R) return; const r = e.currentTarget.getBoundingClientRect(); setTime(((e.clientX - r.left - RULER_INSET) / (r.width - 2 * RULER_INSET)) * (R.end + 1)); });
+$("strip").addEventListener("click", clickTimeline);
+$("strip").addEventListener("mousemove", hoverTimeline);
+$("strip").addEventListener("mouseleave", hideTip);
+window.addEventListener("scroll", hideTip, { passive: true });
+new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty("--playback-height", `${Math.ceil(entry.target.getBoundingClientRect().height) + 12}px`);
+}).observe($("playbackBar"));
 for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));
 $("hoodSel").addEventListener("change", (e) => setHood(e.target.value));
+$("previousMoment").addEventListener("click", () => R && jumpMoment(-1));
+$("nextMoment").addEventListener("click", () => R && jumpMoment(1));
+$("observerAll").addEventListener("click", () => R && followPerson(-1));
 $("innerPerson").addEventListener("change", (e) => { S.person = +e.target.value; lastSideKey = lastRelKey = lastFeedKey = lastInnerKey = ""; render(); });
 $("innerFilter").addEventListener("change", () => R && render());
 $("relMode").addEventListener("change", (e) => { S.relMode = e.target.value; if (S.relMode === "change" && S.relMin > 0.2) { S.relMin = 0.1; $("relMin").value = 0.1; } $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relMin").addEventListener("input", (e) => { S.relMin = +e.target.value; $("relMinOut").textContent = S.relMin.toFixed(2); render(); });
 $("relHome").addEventListener("change", (e) => { S.relHome = e.target.checked; render(); });
 $("storyTier").addEventListener("change", () => render());
+$("storyWholeRun").addEventListener("change", () => render());
 $("explainSearch").addEventListener("input", () => R && drawExplanation());
 $("popSort").addEventListener("change", (e) => { S.popSort = e.target.value; S.popHigh = !TEXT_SORTS.includes(S.popSort); syncPopControls(); render(); });
 $("popDir").addEventListener("click", () => { S.popHigh = !S.popHigh; syncPopControls(); render(); });
 $("storyOrder").addEventListener("change", () => render());
 $("feedSearch").addEventListener("input", (e) => { S.feedSearch = e.target.value; render(); });
 document.addEventListener("keydown", (e) => {
-  if (!R || e.target.matches("input[type=search], select")) return;
+  if (!R || e.target.matches("input[type=search], input[type=checkbox], select")) return;
   if (e.key === " " && !e.target.matches("button")) { e.preventDefault(); setPlaying(!S.playing); }
   else if (e.key === "ArrowRight" && !e.target.matches("input[type=range]")) { e.preventDefault(); setTime(S.t + (e.shiftKey ? 60 : 5)); }
   else if (e.key === "ArrowLeft" && !e.target.matches("input[type=range]")) { e.preventDefault(); setTime(S.t - (e.shiftKey ? 60 : 5)); }

@@ -17,6 +17,13 @@ run locally. A deterministic fake is the default.
 
 ## Read in this order
 
+For **Under Glass work in `sim/`**, start with `docs/under-glass/roadmap.md` for current
+priorities, then `sim/README.md`, the relevant `docs/under-glass/specs/` file, architecture and
+Under Glass decisions. Older build orders, E1/E2 quotas and event-volume ceilings are historical
+experiment criteria, not gates for new observer work. Current implementation facts still come
+from source; planned contracts must not be described as already built. The list below is the
+Stardew mod's reading order.
+
 1. `AGENTS.md` (this file): rules and workflow.
 2. `docs/architecture.md`: how the pieces work and fit together.
 3. `docs/decisions.md`: why they work that way. Read the entry before you change what it covers.
@@ -47,8 +54,10 @@ run locally. A deterministic fake is the default.
 5. **No model calls on the game thread**, including during the save. Use `IntentPlanJob` or
    `BackgroundMotives`, always through `ResilientDecisionClient` (timeout plus fallback). Never
    touch `Game1` from a background thread.
-6. **The model never writes text.** It answers typed questions (choice, score, yes/no). Lines are
+6. **In the Stardew mod, the model never writes text.** It answers typed questions (choice, score, yes/no). Lines are
    templated and must pass `LineSanitizer.Sanitize`, which strips `#`, `$`, `%`, `{` and `[`.
+   Under Glass separately permits occasional generated private inspiration; routine spoken lines
+   remain authored and Laya evaluates typed choices. Imagination never becomes witnessed evidence.
 7. **Mark what you haven't verified.** Anything recalled rather than confirmed in source, docs or
    in-game gets a `VERIFY` comment in code or a "verify" note in docs. Don't invent APIs; if unsure,
    say so. How to settle one: `docs/spec/README.md`, "Verifying game facts".

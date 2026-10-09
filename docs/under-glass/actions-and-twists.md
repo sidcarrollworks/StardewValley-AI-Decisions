@@ -1,8 +1,13 @@
 # Actions and twists: what life sims teach Under Glass
 
+> **Current direction (2026-10-09):** this is a research inventory and historical batch plan.
+> Use the [current roadmap](roadmap.md) for priorities and acceptance criteria. Concrete
+> encounters and contextual appraisal come next; the old news ceiling and E1/E2 quotas below
+> describe earlier experiments, not requirements for new work.
+
 *Research, 2026-10-08 (task C9 in issue #46). It draws on five research reports (Sims, Sims mods, simulation games, cozy and research games, variety across runs) and on the repo's specs (`acts-spec.md`, `town-spec.md`, `design.md`, `sim/README.md`). The shared web-search budget ran out before this pass, and direct page fetches failed at the proxy. So the facts here come from the reports' search-result text. Anything recalled but not confirmed there is marked (verify).*
 
-*What became of it: `Variety.cs` builds section 3's story events and variety measures (step 0 of section 4; `sim/README.md`, "Variety"), and the batch 2 spec (`specs/acts-batch2-spec.md`) builds step 2; everything else stays a catalog to draw on.*
+*What became of it: `Variety.cs` builds section 3's story events and variety measures (step 0 of section 4; `sim/README.md`, "Variety"). The batch 2 spec (`specs/acts-batch2-spec.md`) specifies the former step 2; its scenario harness, story measures and forks are built, but its remaining actions are planned. Other entries remain a catalog to draw on. See `sim/README.md` for current implementation status.*
 
 **Sid's answers this builds on (2026-10-08):**
 - Grow Pelican Town, starting at 60 people.
@@ -25,7 +30,8 @@
 - **Fit** gives the motive, the class and tier with base juiciness (J), and who would do it.
 - J under 1.5 is never retold. J 1.5-1.9 is told on the day to people who know the person. J 2-3.9 is news. A bad act at 4 or more is a scandal.
 - **Status** is one of: shipped, batch 1, batch 2, backlog (acts spec section 10), or new.
-- **Next** marks the 18 I would build after batch 1.
+- **Earlier shortlist** marks the 18 originally recommended after batch 1; they are backlog
+  candidates, not the current next milestone.
 - New motives used below:
   - **Smitten:** attraction above a threshold, from a seeded chemistry per pair.
   - **Jealous:** design 11a, III P35.
@@ -37,7 +43,7 @@ Already in the town: LateForWork (batch 1); Stumbled and Collapsed (shipped).
 
 | # | Act | Source | What it makes happen between people | Fit | Status |
 |---|---|---|---|---|---|
-| 1 | Visited, JoinedThem | Sims home visits; LittleMsSam Social Activities | A walk to someone's door, or over to someone sitting alone. Finding nobody home teaches the visitor the host's hours. | Fond, Pity, Curious, Seek; Light; anyone | batch 2, **Next** |
+| 1 | Visited, JoinedThem | Sims home visits; LittleMsSam Social Activities | A walk to someone's door, or over to someone sitting alone. Finding nobody home teaches the visitor the host's hours. | Fond, Pity, Curious, Seek; Light; anyone | batch 2, **Earlier shortlist** |
 | 2 | AteTogether | Sims family meals; LittleMsSam Call to Meal | Supper as a fixed time when the household meets, and so a time for rows | Fond; Light 0.5; households | backlog |
 | 3 | BroughtFood | Animal Crossing sick villagers; Sims 4 Life & Death support (verify) | Care after an illness, a birth or a death | Pity; Story 1.5; the kind and understanding | new |
 | 4 | RanErrand (go-between) | Stardew: Clint's gifts for Emily; Animal Crossing delivery errands | A third person carries a gift or note, and can be late with it or open it (row 61) | Fond (sender), Return; 1.0; the shy send, the chatty carry | backlog |
@@ -48,7 +54,7 @@ Already in the town: LateForWork (batch 1); Stumbled and Collapsed (shipped).
 | 9 | Binged | RimWorld binge; CK3 coping trait (Drunkard) | A run of saloon nights after a bad stretch. More drunk scenes follow. | low power; feeds DrunkScene; the sad who drink | new |
 | 10 | FakedSick | Cozy report: "called in sick", then seen at the beach | A lie that sightings undo | want, low power; news 2.0 once found; night owls | new (a lie: built last) |
 | 11 | StoppedComing | acts spec | A keeper notices that a regular has gone | derived from the keeper's ledger; 1.5 | backlog |
-| 12 | BoughtFromRival, Bought, FoundItClosed | design rule 12; Stardew's Joja coupons scene | Pierre against the chain, in public | errands; Ledger and Light | batch 2, **Next** |
+| 12 | BoughtFromRival, Bought, FoundItClosed | design rule 12; Stardew's Joja coupons scene | Pierre against the chain, in public | errands; Ledger and Light | batch 2, **Earlier shortlist** |
 
 ### 1.2 Friendly
 
@@ -60,16 +66,16 @@ Already in the town: HelpedSomeone and GaveGift (shipped).
 | 14 | Complimented | Sims friendly socials | A small return, and the shy's answer | Return, MakeUp, Fond, Remorse; Light 1.0 | batch 1 |
 | 15 | Welcomed | Sims Welcome Wagon (verify) | How newcomers and new neighbourhoods meet | Curious; 1.5 | batch 1 |
 | 16 | Comforted | Sims 4 consoling | A bad day becomes the start of a friendship | Pity, Remorse; 1.5 | batch 1 |
-| 17 | DeepTalk, Confided | RimWorld deep talk (+15 opinion for 20 days); Stardew: Shane opens up at 2 hearts; CK3 confidants; design rule 14 | A long private talk. Past a trust tier, the listener is handed a secret, and the secret is now theirs to keep or spend. | Fond; needs familiarity 0.5 and nobody within 8 tiles; 1.5 (the secret is the payload); the chatty and trusting | backlog (Confided), **Next** |
+| 17 | DeepTalk, Confided | RimWorld deep talk (+15 opinion for 20 days); Stardew: Shane opens up at 2 hearts; CK3 confidants; design rule 14 | A long private talk. Past a trust tier, the listener is handed a secret, and the secret is now theirs to keep or spend. | Fond; needs familiarity 0.5 and nobody within 8 tiles; 1.5 (the secret is the payload); the chatty and trusting | backlog (Confided), **Earlier shortlist** |
 | 18 | AskedAbout | Sims 4 "Ask About Another Sim": the answer follows how the person asked feels | A question that comes back with an opinion of a third person | Curious; Light 0.5; the chatty | new (needs answer 5b) |
 | 19 | GaveAdvice | Sims 4 "Friendly Advice"; Neighborhood Stories (friends phone before a decision) | The adviser's own regard colours the advice, so advice can steer | Pity, Fond; 1.0; the understanding | new |
-| 20 | SpokeWellOf | Sims 4 Talk Up; design law 7 | Praise reaches a third person | Fond; 1.0; the warm | backlog, **Next** (with row 50) |
+| 20 | SpokeWellOf | Sims 4 Talk Up; design law 7 | Praise reaches a third person | Fond; 1.0; the warm | backlog, **Earlier shortlist** (with row 50) |
 | 21 | Reminisced | CK3 memories; Sims 2 memories talked about | Old friends recall a past read from the life record | Fond; Light 0.5; elders and old friends | new |
 | 22 | Mediated | Animal Crossing villager fights; Tomodachi Life (a mutual friend settles a fight) | A friend of both sides brings a feud to the table | Pity or Fond toward both; news 2.0; the understanding and bold | new |
-| 23 | OfferedPeace, MadePeace | acts spec batch 2; design law 8 | A way out of a long feud | MakeUp, Remorse; Story | batch 2, **Next** |
-| 24 | LentMoney, then Repaid, ForgaveDebt or CalledInDebt | design rule 13; LittleMsSam ATM Cards (loans) | A Promise with a due date. An unpaid debt becomes a hook, and later a scandal (BrokePromise, base 4). | Pity, Fond; 1.0-1.5; the hard-up ask | backlog, **Next** |
-| 25 | Hosted (and LeftOffTheList) | Sims parties; NPC Party Invites mod; CK3 feasts with intents | A guest list. Being left off it is a snub. Feuding guests end up in one room. | Fond, Strive, an inspiration; news 2.0; the warm and bold | new, **Next** |
-| 26 | Invited, then MetUp, StoodUp or Refused | Sims dates; design rule 13 | The first Promise. StoodUp is base 3. | Fond, MakeUp, Return; Story | batch 2, **Next** |
+| 23 | OfferedPeace, MadePeace | acts spec batch 2; design law 8 | A way out of a long feud | MakeUp, Remorse; Story | batch 2, **Earlier shortlist** |
+| 24 | LentMoney, then Repaid, ForgaveDebt or CalledInDebt | design rule 13; LittleMsSam ATM Cards (loans) | A Promise with a due date. An unpaid debt becomes a hook, and later a scandal (BrokePromise, base 4). | Pity, Fond; 1.0-1.5; the hard-up ask | backlog, **Earlier shortlist** |
+| 25 | Hosted (and LeftOffTheList) | Sims parties; NPC Party Invites mod; CK3 feasts with intents | A guest list. Being left off it is a snub. Feuding guests end up in one room. | Fond, Strive, an inspiration; news 2.0; the warm and bold | new, **Earlier shortlist** |
+| 26 | Invited, then MetUp, StoodUp or Refused | Sims dates; design rule 13 | The first Promise. StoodUp is base 3. | Fond, MakeUp, Return; Story | batch 2, **Earlier shortlist** |
 
 ### 1.3 Funny
 
@@ -89,11 +95,11 @@ All of these use design 11a: the same rules for everyone, and the same rules for
 
 | # | Act | Source | What it makes happen | Fit | Status |
 |---|---|---|---|---|---|
-| 34 | Flirted | Sims Romance socials; Sims 4 Lovestruck attraction | A visible sign of interest that onlookers and partners read | Smitten; Light 0.5; the bold and warm | new, **Next** |
-| 35 | ConfessedFeelings, then Courting or TurnedDown | Tomodachi Life (rejection brings a slump; a second try can get a different answer); Sims 3 Confess Attraction; Prom Week (the responder accepts or refuses) | The Ask. Acceptance starts courting, a life choice held for a minimum time. Refusal hurts, and can push the shy toward withdrawal. | Smitten above a threshold; news 2.5; anyone free | backlog (Confessed), **Next** |
+| 34 | Flirted | Sims Romance socials; Sims 4 Lovestruck attraction | A visible sign of interest that onlookers and partners read | Smitten; Light 0.5; the bold and warm | new, **Earlier shortlist** |
+| 35 | ConfessedFeelings, then Courting or TurnedDown | Tomodachi Life (rejection brings a slump; a second try can get a different answer); Sims 3 Confess Attraction; Prom Week (the responder accepts or refuses) | The Ask. Acceptance starts courting, a life choice held for a minimum time. Refusal hurts, and can push the shy toward withdrawal. | Smitten above a threshold; news 2.5; anyone free | backlog (Confessed), **Earlier shortlist** |
 | 36 | Courted (in stages) | CK3 romance scheme; Harvest Moon rival heart events | Steps over weeks (a gift, a dance, a date) that the town watches | Fond and Smitten; 1.5 a step | backlog (courting) |
 | 37 | KissedInPublic | Sims | Makes a couple news. It is a scandal when one of them is spoken for. | Fond; news 2.5; couples | new |
-| 38 | JealousScene | Sims 2 Nightlife; Portia's jealousy devlog; Tomodachi jealousy fights; Lumpinou (jealousy graded by what was seen) | A partner confronts someone after seeing a flirt. Graded: seen chatting, flirting, kissing. Whoever turned an advance down is not blamed. | Jealous; news 2.5; the sensitive and the retentive | new, **Next** |
+| 38 | JealousScene | Sims 2 Nightlife; Portia's jealousy devlog; Tomodachi jealousy fights; Lumpinou (jealousy graded by what was seen) | A partner confronts someone after seeing a flirt. Graded: seen chatting, flirting, kissing. Whoever turned an advance down is not blamed. | Jealous; news 2.5; the sensitive and the retentive | new, **Earlier shortlist** |
 | 39 | Proposed, then Engaged or RefusedProposal | Sims; RimWorld (a refused proposal hurts for about two seasons, forum report); Harvest Moon | Done at a festival, a refusal is a public humiliation | Fond in a steady courtship; news 3.0 | new |
 | 40 | BrokeUp | Sims; RimWorld; Tomodachi (after a split, a lasting state from "enemies" to "would try again") | Friends take sides | low regard; upheaval | backlog (upheavals) |
 | 41 | SecretAdmirer | Lumpinou hand-written love letters | An unsigned gift starts a "someone" mystery | Smitten plus shyness; 1.5; the shy | new |
@@ -109,13 +115,13 @@ Already in the town: Argued, Snubbed and TurnedAway (shipped); Mocked and StoodU
 
 | # | Act | Source | What it makes happen | Fit | Status |
 |---|---|---|---|---|---|
-| 45 | MadeScene (including a thrown drink) | Sims Throw Drink; Nightlife fury | Loud: heard through walls without knowing who | Answer at intensity 0.6 or more | batch 2, **Next** |
-| 46 | Banned, ShowedTheDoor | design rule 16; Sims 3 (rude visitors are thrown out) | The keeper's answer. The home version is new. | the keeper's Retaliate | batch 2, **Next** |
+| 45 | MadeScene (including a thrown drink) | Sims Throw Drink; Nightlife fury | Loud: heard through walls without knowing who | Answer at intensity 0.6 or more | batch 2, **Earlier shortlist** |
+| 46 | Banned, ShowedTheDoor | design rule 16; Sims 3 (rude visitors are thrown out) | The keeper's answer. The home version is new. | the keeper's Retaliate | batch 2, **Earlier shortlist** |
 | 47 | Mocked, StoodUpFor | Sims Mean socials | A target, a defender and someone who comforts | Answer, Defend | batch 1 |
 | 48 | Gloated | Sims 3 Evil trait (taunting others in misfortune); law 5 (glad at a hated person's sadness) | Spite made visible | Retaliate after the other's misfortune; Light hostile; the bold who are low in understanding | new |
 | 49 | FrozeOut | Stardew group 10-heart event (about a week of cold shoulders); Royalty & Legacy shunning | Several people with a shared grievance turn someone away together | a shared grievance found in talk; news 3.0 | new |
-| 50 | BadMouthed | Sims 4 trash talk (verify); BitLife rumours | A true story told with malice. Under answer 5b, the target may hear of it. | Retaliate, Answer; J by content; the chatty and retentive | backlog, **Next** |
-| 51 | Complained to the mayor, then HadAWord | Animal Crossing "Discuss a resident" (reports conflict on whether it pushes a villager out) | Slow collective pressure, and a way for a story to reach the authority | Retaliate; news when the mayor acts | backlog, **Next** |
+| 50 | BadMouthed | Sims 4 trash talk (verify); BitLife rumours | A true story told with malice. Under answer 5b, the target may hear of it. | Retaliate, Answer; J by content; the chatty and retentive | backlog, **Earlier shortlist** |
+| 51 | Complained to the mayor, then HadAWord | Animal Crossing "Discuss a resident" (reports conflict on whether it pushes a villager out) | Slow collective pressure, and a way for a story to reach the authority | Retaliate; news when the mayor acts | backlog, **Earlier shortlist** |
 | 52 | AskedToTakeSides | Façade affinity games | Forces a mutual friend to choose | Answer aimed at a third person; news 2.0 | new |
 | 53 | TargetedInsults | RimWorld major break (an insulting spree aimed at one pawn) | A combative break aimed at the believed cause | combative stance plus low power; news 3.0 | new |
 
@@ -127,8 +133,8 @@ Already in the town: Argued, Snubbed and TurnedAway (shipped); Mocked and StoodU
 |---|---|---|---|---|---|
 | 54 | Snooped, Eavesdropped | Sims 4 For Rent (eavesdropping, snooping); Royalty & Legacy (trash rummaged to find secrets) | Learns a secret. A scandal if caught. | Curious, envy; news 2.5 if caught; a "nosy" hook | new (needs rule 14; build last) |
 | 55 | OpenedTheirParcel | Animal Crossing (a present you were asked to deliver, opened, irritates the sender) | A small breach of trust that may reveal a secret | Curious; 1.5, news if found | new |
-| 56 | KeptFoundItem, ReturnedLostItem | Animal Crossing lost items; rule 15 already lists lost items as an occasion | A moral choice that leaves a trace: the item is seen in their home later | want, or a wish to return it; 1.5, or a scandal at 4 if found | new, **Next** |
-| 57 | RanUpTab, then PaidOffTab | design story 4 (Joel's tab); Pam in Stardew (verify) | A Promise at the saloon. The keeper tells someone. It gives Pam a way out besides the bin. | need; 1.5, then BrokePromise at 4 | new, **Next** |
+| 56 | KeptFoundItem, ReturnedLostItem | Animal Crossing lost items; rule 15 already lists lost items as an occasion | A moral choice that leaves a trace: the item is seen in their home later | want, or a wish to return it; 1.5, or a scandal at 4 if found | new, **Earlier shortlist** |
+| 57 | RanUpTab, then PaidOffTab | design story 4 (Joel's tab); Pam in Stardew (verify) | A Promise at the saloon. The keeper tells someone. It gives Pam a way out besides the bin. | need; 1.5, then BrokePromise at 4 | new, **Earlier shortlist** |
 | 58 | Vandalised | Royalty & Legacy (defacing a monument); Nightlife fury vandalism | Damage to property only, which leaves a trace | Retaliate at a keeper or an official; scandal 4.0 | backlog (answer 7: last, off) |
 | 59 | LiedAboutWhereabouts | Drama Mod (MizoreYukii) "Lie About Where You've Been" | Sightings undo the lie, since everyone remembers who they saw where | covering another act; news | new (7: last, off) |
 | 60 | Slandered, ShiftedBlame | Sims 3 Late Night (shifting the blame); Dwarf Fortress false reports; Talk of the Town lies | Blame moves to someone else, until a listener checks | Retaliate; as retold | backlog (7: last, off) |
@@ -146,7 +152,7 @@ Already in the town: RummagedInBin and Stole (shipped). Section 2 gives each kin
 | 65 | RiggedContest | Rune Factory contests; Stardew Grange (Lewis judges, verify) | A judge or an entrant cheats at a festival | pride, a rival; 4.0 | new |
 | 66 | SpoiledThePot | Stardew Luau soup, tasted by the Governor | One act judged by everyone at once. Sabotage and carelessness look alike. | spite or carelessness; news or scandal | new |
 | 67 | Blackmailed | Royalty & Legacy extortion; For Rent blackmail; CK3 (refused blackmail is exposed); Law & Disorder (Lumpinou: blackmail is reportable) | Silence traded for money or a favour | want, Retaliate; 4.5 when exposed | new (last, off) |
-| 68 | RevealedSecret | design rule 14 (Betrayed 0.8); CK3 Expose | The confidence is broken and blame moves along the tellers | Retaliate, the gossip vice; 4.0 | backlog, **Next** |
+| 68 | RevealedSecret | design rule 14 (Betrayed 0.8); CK3 Expose | The confidence is broken and blame moves along the tellers | Retaliate, the gossip vice; 4.0 | backlog, **Earlier shortlist** |
 | 69 | BrokePromise | design rule 13 | An unpaid debt or a missed order | derived; 4.0 | backlog (with row 24) |
 | 70 | TwoTimed | Stardew group 10-heart event; Sims 2 and 3 cheating; Tomodachi love triangles | Courting two people at once, found out when they compare notes | Smitten for both; 4.0 | new |
 
@@ -158,7 +164,7 @@ Already in the town: RummagedInBin and Stole (shipped). Section 2 gives each kin
 | 72 | ProposedRule, Petitioned | Sims 4 Eco Lifestyle Neighbourhood Action Plans (votes by influence; 5 signatures repeal a plan) | The town changes its own rules, and sides form | Strive, grievance; news; the bold | new (design 6a) |
 | 73 | Protested | Life's Drama protests; Sims 3 University rebels (verify) | A public stand against the chain, a ban or a verdict | Retaliate at an institution; news 3.0 | new |
 | 74 | Donated, Volunteered | Sims 4 Get Famous (donating raises reputation); Animal Crossing public works | Public kindness; standing rises | Fond for the town, Strive; 1.5 | new |
-| 75 | EnteredContest, then WonContest or SoreLoser | Rune Factory contests; Stardew Grange; Sims 4 Cottage Living fair (verify) | Status at a festival, and envy | Strive, pride; news 2.0-2.5; the competitive | new, **Next** |
+| 75 | EnteredContest, then WonContest or SoreLoser | Rune Factory contests; Stardew Grange; Sims 4 Cottage Living fair (verify) | Status at a festival, and envy | Strive, pride; news 2.0-2.5; the competitive | new, **Earlier shortlist** |
 | 76 | FilledRequest | Stardew Help Wanted (+150 friendship, 3× price); design section 7 board | Someone answers a posted need | Pity, Return; 1.5 | new |
 | 77 | ClubMeeting | Sims 4 Get Together (club rules apply only while the club meets) | A group's norms bend behaviour while it meets | Fond; Light; members | new (design 11c) |
 | 78 | Vouched | Dwarf Fortress witnesses (verify); The Guild trials (verify) | Speaks up for a suspect who is not kin | Defend, Fond; news 2.0 | new |
@@ -292,9 +298,9 @@ So the lever is situations, not traits. **The rule throughout: dice make situati
 
 ---
 
-## 4. Recommended order
+## 4. Historical recommended order (2026-10-08)
 
-0. **Now, alongside acts-0.**
+0. **At the time, alongside acts-0.**
    - Build the story events and the variety baseline (V1-V8).
    - Build the scenario harness and run C3, C4, C10, C11 and C13 on today's town.
    - Nothing changes behaviour.
@@ -318,12 +324,13 @@ So the lever is situations, not traits. **The rule throughout: dice make situati
 6. **Phase 0e:** arrivals, departures, births, deaths and time skips.
 7. **Last, each off by default (answer 7b):** lies (rows 10, 59 and 60), Vandalised, Blackmailed, PostedAnonymously and Snooped, each with a way to be found out.
 
-**Budget.**
-- News may rise only 10% (answer 9a). New news kinds should replace argument volume, as Mocked does, or Sid should raise the ceiling.
-- Every slice still passes E1, three-year drift, money conservation and the C checks.
-- Every slice still passes E2: turning it off must move a story metric by 20%.
+**Earlier experiment budgets, superseded as product gates.** The 10% news ceiling, E1 bands,
+three-year drift targets and E2's 20% threshold were the criteria for this batch plan. Keep the
+measurements and explain changes; they do not establish whether an encounter is interesting.
+New slices use the roadmap's scene review and required causal, privacy, resource and replay
+checks. Existing regression tests remain until an intentional implementation change updates them.
 
-**Questions for Sid:**
+**Historical open questions for the relevant backlog features:**
 1. Is a non-lethal scuffle allowed?
 2. May the storyteller react to measured town tension, or only follow a schedule drawn at setup?
 3. How far may the deal move a core villager?

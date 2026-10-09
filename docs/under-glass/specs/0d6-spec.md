@@ -1,5 +1,9 @@
 > The implementation spec as written before building (kept for reference). Where the code differs, `sim/README.md` and `docs/under-glass/design.md` ("As built") say how and why; the departures are listed at the end of `sim/README.md`'s 0d.6 section, and the tuned constants are in `DefaultTown.Feelings()`.
 
+> **Current planning:** the [roadmap](../roadmap.md) supersedes the older work order and
+> E1/E2, drift and war/dead-town outcome gates. Keep the measured results and mechanical
+> regression checks; coherent extreme outcomes are not automatically simulation failures.
+
 # Under Glass phase 0d.6: hermits, brawlers, moods that spread, and missing people: implementation spec
 
 **Code base.** The hooks below were checked against `c469801` (main after PR #42). Line numbers refer to that commit.

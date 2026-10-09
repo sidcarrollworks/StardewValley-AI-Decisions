@@ -1,21 +1,30 @@
 # Under Glass: a plan to explore the simulator
 
+> **Historical exploration guide.** This tour records the simulator and questions of
+> 2026-10-08. Use the [current roadmap](roadmap.md) for what to build next and the
+> [reflection spec](specs/reflection-spec.md) for the newer observer experiments. Earlier
+> outcome limits and the queue below are not current acceptance criteria or work order.
+
 Written 2026-10-08 for Sid, after #47-#77 were merged into main. It walks through the simulator in
 the order it was built, with commands to run and what to look for in each, and ends with the decisions
-that wait on you. The whole plan takes about three hours, and each part stands alone.
+that were open then. The whole plan takes about three hours, and each part stands alone.
 
 Run everything from the repo root in Git Bash. You need the .NET 8 SDK. Build in Release (`-c Release`):
-a long run in Debug is several times slower. Every run is seeded, so the same command gives the same
-output on every machine, down to its hash.
+a long run in Debug is several times slower. The authored simulations in this tour are seeded.
+Hybrid runs also need the same recorded model answers and inputs for exact replay; a seed alone
+does not make fresh model responses reproducible.
 
-## 0. Get main and check it (10 minutes)
+## 0. Check the working branch (10 minutes)
 
 ```bash
-git checkout main && git pull
+git status
 dotnet test sim/UnderGlass.sln -c Release
 ```
 
-All 408 tests should pass. CI runs the same suite on every pull request (`.github/workflows/tests.yml`).
+The current suite has 607 tests; this guide originally described 408. CI runs the same suite on
+every pull request (`.github/workflows/tests.yml`). Under Glass now uses `codex/reflection-prototype`
+as its development base, with feature PRs targeting it; follow `AGENTS.md` rather than switching
+an existing checkout to `main` to follow this tour.
 
 ## 1. What the simulator is (15 minutes of reading)
 
@@ -245,14 +254,14 @@ tell the commonest named story (target 30% or less). `--forks 3` reruns each see
 a new seed, and V7 says how much of the rest changed: 92-93%, above its 25-60% target. Day 28 settles
 little of the detail that follows, while the year's headline changes in about a third of forks. `--town-seeds` builds a new 60-person town for each run.
 
-## 10. Decisions that wait on you
+## 10. Historical decisions and queue (2026-10-08)
 
 1. **C2 and C4 (thanks against gifts and treats):** local's plan is that Thanked stays the light reply,
    and each person's traits pick a gift or a treat for a bigger return. Yes, or change it?
 2. **Sides:** friendships rise 38% with it on the review's set, past the 30% limit. Keep it as it
    is, or cut it back?
 
-Queued for the next session, with your answers already in the specs:
+Earlier queue, with the answers recorded in the specs; the current roadmap supersedes this order:
 - **Shipping 0d.6** (A1, A2, A6): every step on, including i and j; Pam and Penny argue; tone 0.003.
   It changes the shipped town and moves P3 and every pin built on it, so it gets its own PR.
 - **The act-slice answers:** C1, C2, C4, C5, C7, C8, C10, C12, and C3 as a relative trivia budget.
@@ -271,4 +280,5 @@ The full list of questions and your answers is on issue #46.
 | The game's design | `docs/under-glass/design.md` |
 | The specs: 0c, the desire gate, 0d.6, the town, the act catalog, batch 2 | `docs/under-glass/specs/` |
 | Research | `docs/under-glass/*-research.md`, `actions-and-twists.md` |
-| The work queue and every question | issue #46 |
+| Current work order | `docs/under-glass/roadmap.md` |
+| Historical work queue and questions | issue #46 |

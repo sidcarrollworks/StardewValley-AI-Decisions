@@ -595,7 +595,7 @@ can expire. No path creates an unsupported act, teleports the subject or writes 
 witnessed memory. This is a separate .NET 8 adapter and simulator change, not a change to the
 Stardew mod's dialogue policy.
 
-**Reproducibility and cost.** Each actor gets at most one opportunity a day, and a source memory
+**Reproducibility and cost.** Each actor submits at most one reflection a day, and a source memory
 is considered once. Model calls occur between simulation minutes, with bounded requests and
 deadlines; processing speed cannot choose when an answer takes effect. Every proposal, weight
 table, selected line and fallback is recorded for inspection. Replaying recorded answers
@@ -604,18 +604,164 @@ answers and world inputs reproduces the run, not that two fresh model calls must
 1,250-character Laya budget is Sid's working constraint; prompt construction preserves the
 candidate lines and reserves memory/context before using the remaining space.
 
-**Current limit.** A thought occupies its actor's one open reflection slot until rejected,
-deferred, expired, or resolved by the life record after acting. Keeping that slot through the
-outcome is deliberate prototype pacing, not a claim that people cannot think about two things.
-Dreams, revisiting old thoughts, richer line catalogs and the quality of live model choices remain
-future work. Tests establish mechanics and HTTP contracts; **verify** behavior and latency with
-actual local services before judging the model experiment.
+**Current limit (updated by D38).** One unperformed accepted intention occupies the actor's
+pending slot. Once acted, outcome tracking continues without blocking new thoughts. A deferred
+idea can return only after distinct later personal knowledge and a full-day cooldown, with at
+most two linked continuations. Optional waking inspiration and a pinned local generator are
+now built (D39); a general speech catalog remains future work. Live Laya and generator calls
+work, while the quality of model-driven social behavior remains unverified.
 
 **Why.** More rules and aggregate stability had postponed testing the intended experience.
 An inspectable causal sequence makes the model's contribution visible, including decisions an
 observer dislikes or did not expect, without explaining the character afterward in invented prose.
 See [the reflection spec](under-glass/specs/reflection-spec.md) and
 [the game design](under-glass/design.md).
+
+### D37. Contextual inspiration needs controls for labels as well as meanings
+
+**Decision (2026-10-08).** Replace the generic authored thought with nine editable possibilities:
+reciprocity or suspicion after received kindness, connection or boundaries after one's own
+kindness, pride or repair after received hostility, regret or doubling down after one's own
+hostility, and a grounded neutral fallback. Five response profiles fit those remembered scenes.
+Overlapping regard ranges let the seed supply opposing possibilities; the evaluator still
+chooses whether to accept, reshape, defer or reject. Prepared proposals carry IDs/tags and can
+be overridden for a controlled comparison. Authored weights favor that proposal, not the first
+candidate. Remembered identity and kind remain the character's own, even when mistaken.
+
+**Measurement.** The first live seven-day seed-7 recording received 27 Laya answers without a
+fallback in about 1.5 seconds total. A separate trial made 15 calls: five baseline/variant/repeat
+triples, all with complete submitted context and no server truncation. Total variation was
+0.0687 for a memory change, 0.0379 for trust, 0.1031 after matching the same line meanings across
+a line swap, 0.0330 for order, and 0.0643 for renamed labels after matching their meanings.
+Exact repeats were unchanged in this run. These are observations from a small trial, not
+confidence bounds or quality scores. Label sensitivity is comparable to memory sensitivity;
+clean evidence that the model follows social meaning has not been established.
+
+**Consequence.** Keep both the complete request and raw response, inspect model routing and
+truncation metadata, omit a proposed choice-ID answer hint, and treat explicit server truncation
+as fallback. Keep semantic changes separate from label/order controls before tuning the model or
+expanding its responsibility. Do not convert a successful HTTP run, an interesting anecdote, or
+the desired town statistics into a claim of better character judgment. Local generation was
+unverified at this trial; D39 records the later implementation.
+[Experiment record](under-glass/experiments/reflection-trial-2026-10-08.md).
+
+### D38. Control evaluator presentation and require new knowledge before reconsideration
+
+**Decision (2026-10-08, within Sid's authorized observer-first development).** Keep `Raw` evaluation
+for comparison and API compatibility. `Canonical` groups identical kind/line alternatives,
+sorts them and supplies temporary labels. `Balanced` gives each distinct alternative every
+position once, averages the mapped normalized probabilities, and then makes the same single
+seeded draw. Equivalent original choices split their group's probability. The replay CLI uses
+Balanced by default; the trial CLI retains Raw and can compare all three modes. This reduces
+arbitrary presentation effects without forcing a socially preferred answer.
+
+Every evaluator pass retains its prompt, raw response, temporary-label map and result. All
+passes share a deadline; a failed or truncated pass causes a recorded authored fallback, never
+a partial average. The earlier choice-ID answer hint remains absent. Live smoke probes reported
+median evaluation times of 19.14 ms Raw, 23.41 ms Canonical and 127.28 ms Balanced for five
+alternatives. Canonical/Balanced label/order controls reached zero or rounding noise because
+the adapter presents the same semantic alternatives in the same evaluated arrangements.
+That result verifies the control, not the model's intrinsic reasoning. Separate social probes
+change perspective and inspiration while preserving the choices; judging those responses and
+the resulting lives remains an experiment. [Reliability measurements](under-glass/experiments/reflection-reliability-2026-10-08.md).
+
+**Continuity.** Deferring settles the current decision. A different own deed or identified
+firsthand encounter with the same believed subject can reopen that idea only when it became
+known after the previous decision and at least a full day has passed. Each root allows at most
+two linked continuations. A number changing in the mood/regard tables is insufficient; rejection
+remains terminal and expiration does not force a retry. Distinct new sources can still start
+independent thoughts. An acted intention releases the pending slot while its outcome continues
+to be recorded, so the ordinary outcome window no longer freezes someone's inner life.
+
+The continuation names its previous thought and source, carries at most 120 characters of the
+earlier imagined idea, and explains the later known encounter. The fresh memory stays the new
+act's immediate cause. Neither idea becomes evidence, and mistaken identities remain mistaken.
+Exact tape matching includes these links. The viewer shows the earlier thought, the changed
+context and the later consequence at their own replay times, alongside a current-moments strip
+and event navigation. Optional dreams follow in D39; automatic revival of expired intentions
+remains outside this slice.
+
+**Why.** A second random draw over unchanged information would manufacture agreement rather
+than a change of mind. New personal knowledge gives a traceable reason to reconsider, while the
+observer can follow ongoing lives without reconstructing them from repeated log lines.
+
+### D39. Waking inspiration draws on earlier knowledge, with optional local generation
+
+**Decision (2026-10-08, following Sid's dream/daydream proposal).** Dream inspiration is an
+optional opportunity on an actual recorded wake transition, not a periodic thought relabeled
+as a dream. `DreamChance` defaults to zero; replay's `--dreams` uses 0.15 unless explicitly
+overridden. An independent seeded draw occurs at most once for a sleep interval. A failed roll
+leaves quiet reflection available; a submitted idea shares the one-reflection-per-day limit
+and the rule that a source is evaluated once. An unperformed accepted intention still blocks
+new ideas. There is no new action kind or automatic retry of an expired intention.
+
+Only a recent own deed or identified firsthand encounter known before sleep can ground the
+dream. Waking-minute encounters, hearsay and unknown identities cannot supply missing facts.
+The request records its own sleep interval, and the catalog supplies nine distinct editable
+waking possibilities with dream tags. The prior encounter remains evidence; what the sleeper
+imagines is not. The decision is evaluated after waking, applied at the next simulation minute,
+and any act waits for ordinary eligibility. Exact tape matching includes the sleep opportunity.
+
+**Local generation.** The optional helper pins `Qwen/Qwen3-0.6B` to revision
+`c1899de289a04d12100db370d81485cdf75e47ca` and runs separately on loopback. The adapter derives a
+seed from the request ID and records the full generation request and response, including usage
+and revision metadata. It accepts only a short thought and a supported suggested act; Laya
+still evaluates the actual response lines. Failures remain explicit authored fallbacks. Local
+GPU smoke inference is roughly one second per thought, suitable for testing occasional
+inspiration; this is a measured setup, not a speed guarantee or proof of useful imagination.
+Generation seeds do not replace recorded-answer replay across runtime or hardware changes.
+The generator sees allowed act IDs/kinds and structured own/received source facts; only Laya
+sees the complete response lines. The controlled generator probe found speech copying and
+option-order sensitivity. Removing dialogue inputs reduced copying, while semantic mismatches
+and source-role confusion persisted. Hybrid remains an explicit experiment; structural JSON
+validation does not establish thought/act agreement or grounding.
+
+**Why.** Sleep can provide a distinct moment for imagining how a known relationship might go,
+without granting new knowledge or making every routine utterance depend on generation. The
+observer can inspect the real source, the imagined possibility, the decision and what followed.
+
+### D40. Keep playback in reach and make a followed person's events visible on the ruler
+
+**Decision (Sid, 2026-10-09).** The timeline and playback controls stay at the top while scrolling
+the town, inner life and other views. Keep this bar outside the map's container so its sticky
+range covers the page. Previous/Next moment lives in the bar too. Resize observation reserves
+its actual height for scrolling to a thought, including narrower layouts.
+
+A separate row highlights a selected person's performed and received encounters, their own
+considered thoughts, outcomes and expired intentions, and their relationship changes. Hover
+lists nearby events; clicking selects the nearest marker and pauses at its exact recorded minute.
+Future markers are dimmed and expose only a timestamp until the clock reaches them. Descriptions
+use recorded content as plain text, and refresh while playing or rewinding. This is observer UI;
+it changes no simulation behavior or recording schema. The existing log remains in its column.
+
+**Validation.** Six dependency-free Node tests exercise the shipped timeline helpers in CI;
+the .NET suite guards the sticky containment and navigation controls. Browser checks cover
+scrolling, selection, overlapping hover descriptions, marker clicks, playback and rewinding
+past a thought without leaking its text.
+
+### D41. Prioritize concrete encounters and contextual significance in Under Glass
+
+**Decision (Sid, 2026-10-09).** Continue the observer-first social simulation and occasional
+local inspiration plus typed Laya evaluation. The [Under Glass roadmap](under-glass/roadmap.md)
+is the current work order: concrete encounter context and appraisal, broader executable responses
+with authored speech, follow-through, and controlled model comparisons alongside scene review.
+Player gameplay and larger ambition/generation systems come later.
+
+The [next slice](under-glass/specs/contextual-events-spec.md) separates recorded event facts,
+private intention, each person's perceived account, personal significance and interest to a
+particular listener. Routine reciprocal help need not be news. A meaningful exception needs
+known history or a supported cost/consequence, not a dramatic explanation invented afterward.
+Start with observer presentation; changing gossip selection is a separate verified step.
+Reuse the existing optional action catalog when expanding reflection.
+
+**Why.** Feud counts, news volume and E1/E2 thresholds do not tell us whether the observer can
+understand a relationship or wants to follow it. Keep those measurements as diagnostics and
+the older plans as dated history. Coherent quiet, hostile and socially collapsed runs are valid.
+Causal integrity, private knowledge, eligibility, resource conservation and recorded-answer
+replay remain requirements. Existing regressions are updated only with an intentional behavior
+change; this documentation reconciliation changes no runtime defaults or simulation behavior.
+Generator quality remains under review while the world gains context; fine-tuning is not a
+prerequisite for the next milestone.
 
 ## Open work and known issues
 

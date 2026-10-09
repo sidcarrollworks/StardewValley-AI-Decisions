@@ -1,5 +1,9 @@
 # Masking, expression and harsh households: research notes for an "expression" trait
 
+> Research history, not the current work queue. The [roadmap](roadmap.md) sets priorities;
+> `sim/README.md` describes implemented mechanics. Older build orders and social-outcome
+> thresholds do not override the observer-first direction.
+
 For Under Glass. Written 2026-10-07. The companion to `withdrawal-research.md` (hermits, brawlers
 and moods that spread), for Sid's "nature factor" (design section 12, question 7).
 

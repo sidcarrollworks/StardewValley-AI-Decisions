@@ -4,9 +4,11 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Development base:** Sid designated `codex/reflection-prototype` as the ongoing Under Glass branch on 2026-10-08. Start new game feature branches from its latest remote revision and target it with PRs.
 
-**Current direction (2026-10-08):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. The immediate work makes a person's memory, thought, choice and consequences understandable; existing town-wide balance metrics are diagnostics, not a definition of interesting social lives.
+**Current direction (2026-10-09):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Sid reviewed all three reflection paths and finds the shift promising. The [current roadmap](../docs/under-glass/roadmap.md) defines the next work: concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The [next slice](../docs/under-glass/specs/contextual-events-spec.md) separates personal significance from listener interest. It is planned; existing kinds still have fixed juiciness tiers.
 
-**New opt-in prototype: quiet reflection.** After a quiet stretch, someone can consider a remembered encounter. Authored inspiration or an optional local LLM proposes a thought; Laya can evaluate the actual authored lines. One seeded choice accepts, reshapes, defers or rejects it. An accepted intention waits for a real encounter and records its outcome. Open **Inner life** in the replay viewer to follow the chain. The server-free authored mode is a deliberately simple control; live model quality is not verified yet. Dreams, a broad tagged speech library and deferred-thought reconsideration are later work. Full status and contracts: [reflection spec](../docs/under-glass/specs/reflection-spec.md).
+**Reading this reference:** the phase sections below preserve implementation history and dated experiments. Their E1/E2 gates, news-volume ceilings, drift bands and war/dead-town verdicts are historical calibration criteria, not current product acceptance rules. Required mechanics checks still hold; coherent extreme outcomes are allowed. Tests for existing behavior are retained until an intentional implementation change updates them. Runtime switches remain as documented; the new roadmap does not silently enable catalog slices or alter simulation behavior.
+
+**Opt-in prototype: reflection and waking dreams.** Nine editable authored thoughts cover reciprocity, suspicion, connection, boundaries, pride, repair, regret, doubling down and a neutral fallback, with separate waking variants. Laya evaluates complete response lines; one seeded choice accepts, reshapes, defers or rejects the thought. An accepted intention waits for a real encounter and records its outcome. A deferred idea can return after a later known encounter with that person, at most twice. Open **Inner life**, use **Next moment**, and watch **Happening now** to follow the cause and consequence. A local small generator can supply occasional private inspiration. Character judgment and prose quality remain experiments: [reliability measurements](../docs/under-glass/experiments/reflection-reliability-2026-10-08.md), [full reflection spec](../docs/under-glass/specs/reflection-spec.md).
 
 ```bash
 # Authored demo: no model server required.
@@ -17,7 +19,48 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --ref
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --reflection hybrid --llm-url http://127.0.0.1:8080 --llm-model YOUR_MODEL_ID --out hybrid.json --html hybrid.html
 ```
 
-Reflection is off by default and has its own .NET 8 adapter project, `UnderGlass.Minds`. Recorded answers can be reused with `--reflection tape --reflection-tape hybrid.json` and the same seed, days, town and simulation flags. No model is installed by these commands.
+Reflection is off by default and has its own .NET 8 adapter project, `UnderGlass.Minds`. Add `--dreams` for a 0.15 waking chance or `--dream-chance <0..1>` for an experiment. Dreams use a real recorded sleep and only memory known before falling asleep; they never become evidence. Dream and quiet opportunities share one submitted thought per person per day. Recorded answers can be reused with `--reflection tape --reflection-tape hybrid.json` and the same seed, days, town, dream and simulation flags. No model is installed by these replay commands.
+
+Replay evaluation defaults to `--evaluation balanced`: distinct response lines rotate through every neutral label/slot, their normalized weights are averaged, and the simulation samples once. This removes incoming label/order dependence by construction and costs one call per distinct line. `canonical` uses one sorted neutral-label packet; `raw` preserves the original packet for comparison. Balanced evaluation is not proof of model understanding. All passes share a five-second deadline; partial results are discarded on failure.
+
+### Morning preview and optional generator
+
+The prepared local demos are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`. Restart the preview with:
+
+```powershell
+.\sim\tools\start-preview.ps1 -Open
+```
+
+The optional generator uses the existing `sidecar/.venv`, a pinned [Qwen3-0.6B checkpoint](https://huggingface.co/Qwen/Qwen3-0.6B), and non-thinking inference. Its launcher defaults to cached files; it never silently downloads a model or switches devices.
+
+```powershell
+# One-time explicit cache download, only if missing.
+.\sim\run-generator.ps1 -DownloadOnly
+# Leave this running in a terminal; CUDA requires a supported local GPU.
+.\sim\run-generator.ps1 -Device cuda -Warmup
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 14 --reflection hybrid --dreams --llm-url http://127.0.0.1:8080 --llm-model Qwen/Qwen3-0.6B --out out/hybrid.json --html hybrid.html
+# HTTP contracts need no weights or GPU.
+.\sidecar\.venv\Scripts\python.exe -m unittest discover -s tests -p test_reflection_generator.py
+```
+
+The service serializes inference, rejects busy requests, bounds input/output and requests cancellation at its deadline. Raw output, seed, checkpoint revision, device and timing stay in the replay. Invalid JSON, an unavailable choice or an overlong thought produces an explicit authored fallback. A seed supports repeatability on the same runtime; use a recorded tape for exact simulation replay.
+
+The generator receives remembered source roles and allowed act types; Laya receives the full spoken lines. A [controlled probe](../docs/under-glass/experiments/reflection-generator-order-2026-10-08.md) found that removing dialogue inputs reduced copying, but some ideas still contradict their suggested act or known memory. Structural validation cannot catch those semantic failures. Hybrid is an experiment; compare it with the authored and Laya recordings.
+
+Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.
+
+Run the controlled comparison separately from the town:
+
+```bash
+# Five scene/control pairs; balanced uses 75 evaluator passes for 15 decisions.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --evaluation balanced --laya-url http://127.0.0.1:8000 --out reflection-trial.json --report reflection-trial.md
+# Four additional personalities and ideas, with order controls: 51 decisions.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --suite social --evaluation balanced --out out/social-trial.json --report out/social-trial.md
+# Explicitly offline: checks the harness, not Laya.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --authored --out authored-trial.json --report authored-trial.md
+```
+
+The trial CLI defaults to raw evaluation; these commands explicitly select balanced. Reports retain every pass, its label mapping, exact packet, normalized weights, latency and truncation audit. Live trials fail visibly if the service falls back or a complete packet cannot be verified. Both evaluator and generator have now run locally; the experimental note distinguishes working integration from convincing social behavior.
 
 ```bash
 dotnet test sim/UnderGlass.sln

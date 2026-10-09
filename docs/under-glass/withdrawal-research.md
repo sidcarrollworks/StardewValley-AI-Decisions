@@ -1,5 +1,9 @@
 # Hermits, brawlers and moods that spread: research for Under Glass (0d.6)
 
+> Historical research and the original 0d.6 build plan. See `sim/README.md` for what was built
+> and the [current roadmap](roadmap.md) for priorities and acceptance criteria. Earlier outcome
+> bands, war/dead-town judgments and E2 thresholds are diagnostics, not new product gates.
+
 Scope: Sid's request of 2026-10-07 (design 11e; section 12, question 7). In his words: "Very negative people should bring down other people just like good people bring others up. Maybe we can find some other research on how hermits and extreme personalities are born to help guide us. Shyness plus being left out should push to a hermit. Shy plus repeated negative events. It really depends on the person."
 
 Where the town stands (phase 0d, `sim/README.md`):

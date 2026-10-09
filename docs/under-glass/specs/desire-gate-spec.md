@@ -1,5 +1,9 @@
 > The implementation spec as written before building (kept for reference). Where the code differs, `sim/README.md` and `docs/under-glass/design.md` ("As built") say how and why.
 
+> **Current planning:** the [roadmap](../roadmap.md) supersedes the older work order and
+> E1/E2 outcome gates. This document preserves the original mechanics and experiment criteria;
+> it is not a request to restore those outcome quotas.
+
 # Under Glass phase 0d.1: the desire gate (rule 10): implementation spec
 
 **Code base.** All hooks below were checked against `1d7d124`, the HEAD of `claude/affectionate-pasteur-qzdpvi`. `git diff 2ce627b 1d7d124 -- sim/UnderGlass.Sim sim/UnderGlass.Run` is empty, so the library is 0c's as merged. Line numbers refer to that commit.

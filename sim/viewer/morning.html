@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Under Glass — Morning test</title>
+  <style>
+    :root { color-scheme: light; --bg:#e8e3d9; --panel:#f2eee6; --ink:#1d1a17; --muted:#655e53; --line:#bab2a4; --accent:#bd4206; --screen:#1d1a17; --light:#f2eee6; --signal:#ff8a4c; }
+    @media (prefers-color-scheme:dark) { :root { color-scheme:dark; --bg:#1c1a17; --panel:#262320; --ink:#ece6dc; --muted:#b6ac9d; --line:#514a40; --accent:#ff995f; --screen:#0e0d0b; --light:#ece6dc; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 "Geist","Helvetica Neue",Arial,sans-serif; }
+    main { max-width:1120px; margin:auto; padding:36px 24px 30px; }
+    .mast { display:flex; justify-content:space-between; gap:16px; align-items:center; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .brand { font-weight:700; font-size:15px; letter-spacing:.16em; text-transform:uppercase; }
+    .label, .number, kbd { font-family:"Geist Mono",Consolas,monospace; }
+    .label { font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
+    .hero { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(230px,.8fr); gap:36px; padding:44px 0 34px; align-items:end; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:clamp(34px,5vw,58px); line-height:1.07; letter-spacing:-.04em; max-width:13ch; font-weight:600; }
+    .hero p { margin-top:18px; max-width:52ch; color:var(--muted); }
+    .chain { padding:22px 24px; background:var(--screen); color:var(--light); border-radius:10px; }
+    .chain .label { color:var(--signal); }
+    .chain ol { list-style:none; padding:14px 0 0; margin:0; display:grid; gap:10px; }
+    .chain li { display:flex; align-items:center; gap:12px; font-size:15px; }
+    .chain li::before { content:""; width:6px; height:6px; border:1px solid var(--signal); border-radius:50%; }
+    .chain li:last-child::before { background:var(--signal); }
+    .section-head { display:flex; gap:16px; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+    h2 { font-size:20px; font-weight:600; letter-spacing:-.02em; }
+    .recordings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .recording { border:1px solid var(--line); border-radius:10px; padding:22px; background:var(--panel); display:flex; flex-direction:column; align-items:start; gap:14px; }
+    .number { color:var(--accent); font-size:13px; }
+    h3 { font-size:21px; line-height:1.2; font-weight:600; }
+    .recording p { font-size:14px; color:var(--muted); }
+    .recording a { margin-top:auto; padding-top:5px; }
+    a { color:var(--accent); text-underline-offset:4px; text-decoration-thickness:1px; }
+    a:hover { text-decoration-thickness:2px; }
+    a:focus-visible { outline:2px solid var(--accent); outline-offset:5px; border-radius:2px; }
+    .guide { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(230px,.8fr); gap:36px; margin-top:36px; padding-top:26px; border-top:1px solid var(--line); }
+    .steps { padding-left:22px; margin:16px 0 0; display:grid; gap:12px; }
+    .steps li { padding-left:4px; font-size:14px; }
+    .steps strong { font-weight:600; }
+    .note { border-left:2px solid var(--accent); padding-left:20px; }
+    .note h2 { font-size:18px; }
+    .note p { color:var(--muted); font-size:14px; margin-top:12px; }
+    .keys { margin-top:20px; font-size:12px; color:var(--muted); line-height:2; }
+    kbd { border:1px solid var(--line); border-radius:4px; padding:2px 5px; background:var(--panel); color:var(--ink); font-size:11px; white-space:nowrap; }
+    footer { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-top:34px; padding-top:17px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    @media (max-width:760px) { main { padding:22px 18px; } .hero,.guide { grid-template-columns:1fr; gap:24px; } .hero { padding:30px 0; } h1 { max-width:16ch; } .recordings { grid-template-columns:1fr; } .recording { gap:10px; } .section-head { flex-wrap:wrap; gap:5px; } .mast .label { max-width:12ch; text-align:right; } }
+  </style>
+</head>
+<body>
+  <main id="under-glass-morning">
+    <header class="mast"><span class="brand">Under Glass</span><span class="label">Morning test · saved recordings</span></header>
+    <section class="hero" aria-labelledby="welcome">
+      <div><h1 id="welcome">Follow a thought through the town.</h1><p>Choose a recording, follow someone, and watch a remembered encounter become an idea, a decision, and perhaps an action.</p></div>
+      <aside class="chain" aria-label="What to follow"><div class="label">One thread to watch</div><ol><li>What they remember</li><li>What they imagine</li><li>What they choose</li><li>What happens next</li></ol></aside>
+    </section>
+    <section aria-labelledby="recordings-title">
+      <div class="section-head"><h2 id="recordings-title">Choose a recording</h2><span class="label">Start with authored for the baseline</span></div>
+      <div class="recordings">
+        <article class="recording"><span class="number">01 / Authored</span><h3>Ideas from the catalog</h3><p>Context selects an authored thought. Fixed weights guide the character’s seeded choice. A baseline for seeing how thoughts reach the town.</p><a href="/reflection-demo.html">Open authored recording →</a></article>
+        <article class="recording"><span class="number">02 / Balanced Laya</span><h3>The evaluator reads the scene</h3><p>Authored thoughts meet Laya’s evaluation of the actual candidate lines. Several option orders are evaluated, then their weights are averaged.</p><a href="/reflection-laya-demo.html">Open Laya recording →</a></article>
+        <article class="recording"><span class="number">03 / Local generator + Laya</span><h3>A generated possibility</h3><p>A local language model proposes a thought; Laya evaluates the available responses. Each thought records its backend and any fallback used.</p><p><strong>Experimental:</strong> voice and grounding still need review.</p><a href="/reflection-hybrid-demo.html">Open hybrid recording →</a></article>
+      </div>
+    </section>
+    <section class="guide" aria-label="Viewing guide">
+      <div><h2>Try one person, one thought</h2><ol class="steps"><li><strong>Follow someone.</strong> Choose a person on the map or use a Follow button in <strong>Happening now</strong>.</li><li><strong>Move to the next moment.</strong> Use <strong>Next moment</strong> to skip quiet stretches while following that person.</li><li><strong>Open their inner life.</strong> Use <strong>Follow this thought</strong> to trace its memory, choice, action and recorded outcome. Some intentions may remain unresolved.</li><li><strong>Inspect the evidence.</strong> Expand <strong>What informed this choice?</strong> for candidate lines, weights and exact model receipts. The clock hides later events; Stories offers a separate whole-run analysis switch.</li></ol><p class="keys"><kbd>Space</kbd> play / pause &nbsp; <kbd>←</kbd> <kbd>→</kbd> five minutes &nbsp; <kbd>Shift + ←/→</kbd> one hour<br>Drag the timeline to rewind. Click the ruler to jump.</p></div>
+      <aside class="note"><h2>A dream is an imagined possibility</h2><p>When a recording includes waking dreams, look for <strong>Dream on waking</strong>. Its images and ideas belong to that person’s private imagination.</p><p>They do not establish that an encounter happened or that someone witnessed it. The remembered source and the later recorded action remain separate.</p><p>Opening these pages replays saved records. It makes no model requests.</p></aside>
+    </section>
+    <footer><span>Observe first. Receipts and analysis are there when you want them.</span><a href="/sim/viewer/index.html">Open a different run JSON</a></footer>
+  </main>
+</body>
+</html>

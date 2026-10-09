@@ -13,7 +13,7 @@ Working rules:
 - Prefer shadow mode (log what the mod would do, change nothing) before any behavior goes live.
 - Read `stardew-source-notes.md` before answering questions about game internals.
 
-## Under Glass: current direction (2026-10-08)
+## Under Glass: current direction (2026-10-09)
 
 The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social
 simulation viewed from above. Player gameplay comes afterward. The next milestone is a short run
@@ -21,18 +21,55 @@ whose people and choices are worth following: observers can see what someone rem
 considers, intends, attempts and experiences. Feud/friendship counts and stability checks are
 diagnostics, not proof of an interesting town; coherent extreme outcomes are allowed.
 
+Sid reviewed the authored, Laya and local-generator recordings and finds the new direction
+promising. The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: concrete
+encounter context and separate personal/listener appraisal next, then broader actions and tagged
+speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
+is planned, not implemented. Earlier batch orders, news ceilings and E1/E2 thresholds remain
+historical evidence. They do not require quiet, hostile or socially collapsed runs to be tuned away.
+
 The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:
-an authored thought, or a proposal from a configured local generator, is evaluated against actual
-authored response lines by Laya. An explicit authored baseline runs without any service. A seeded
+nine editable authored thoughts cover kindness, suspicion, connection, boundaries, pride, repair,
+regret and doubling down, with a memory-grounded neutral fallback. Five response profiles fit the
+remembered encounter. Each thought also has a distinct waking variant: opt-in dreams use a real
+sleep/wake transition and knowledge from before sleep. Dreams default off, share the daily/source
+limits with daytime reflection, and never enter the belief ledger as events. An authored thought,
+or a proposal from a configured local generator, is
+evaluated against actual response lines by Laya. An explicit authored baseline runs without any service. A seeded
 draw accepts, reshapes, defers or rejects the proposal; an accepted act waits for an ordinary
-encounter, can expire, and retains its original memory as its cause. The replay viewer shows the
-decision and outcome as they become known. Model calls pause simulation time, and recorded answers
-can be reused only with matching requests. All of this remains separate from Stardew and SMAPI.
+encounter, can expire, and retains its source memory as its cause. Deferred ideas can return after
+distinct later personal knowledge and a full-day cooldown, at most twice per root. Rejection
+stays terminal; drift in mood/regard or expiration alone does not trigger another try. Once an
+intention acts, new thoughts can occur while the original outcome remains tracked. The replay
+viewer shows current moments, earlier-idea links, event navigation and plain-language outcomes
+as the clock reaches them. Model calls pause simulation time, and recorded answers can be reused
+only with matching requests. All of this remains separate from Stardew and SMAPI.
+
+The observer controls now stay at the top while scrolling (2026-10-09). Selecting a person
+highlights their encounters, private thoughts/outcomes and relationship changes on a separate
+timeline row. Hover describes nearby events already reached; click pauses and jumps exactly.
+Future markers show only their time. The prepared local pages retain their original recordings.
 
 Scene and fake-HTTP tests verify the mechanics, context boundaries, deadline/fallback behavior and
-replay. **Verify with real local services:** model quality and end-to-end Laya/generator behavior
-have not been established by these tests. Dreams, old-thought reconsideration, the wider tagged
-dialogue catalog and player interaction remain unbuilt. The detailed plan is in
+replay. The first live seven-day seed-7 recording made 27 successful Laya calls, without fallback,
+in about 1.5 seconds total. A separate 15-call paired trial had complete context and no truncation,
+but renaming choices moved probabilities about as much as changing a memory. Working integration
+is established; better social judgment is not. The follow-up adapter adds Canonical and Balanced
+evaluation: temporary labels, identical-choice grouping, and in Balanced mode a rotation through
+each position before averaging and sampling once. Replay defaults to Balanced; the API and trial
+retain Raw for compatibility/comparison. Five-choice smoke evaluations had medians of 19.14 ms
+Raw, 23.41 ms Canonical and 127.28 ms Balanced. Presentation controls now hold by construction;
+this does not prove model understanding. See the [first trial](docs/under-glass/experiments/reflection-trial-2026-10-08.md)
+and [reliability/social probes](docs/under-glass/experiments/reflection-reliability-2026-10-08.md).
+The optional loopback generator now runs pinned `Qwen/Qwen3-0.6B`
+(`c1899de289a04d12100db370d81485cdf75e47ca`), with roughly one-second local GPU smoke inference.
+Requests carry a stable seed; full generation responses and model metadata are recorded, and
+invalid or failed generation uses an explicit authored fallback. **Still to verify:** whether
+generated ideas and these choices make the town more compelling. A controlled probe found
+generator option-order sensitivity and copied speech. Generation now sees supported act types
+and known source roles while Laya receives full dialogue; thought/act mismatches still need
+review. The wider tagged dialogue
+catalog and player interaction remain unbuilt. The detailed plan is in
 [`docs/under-glass/design.md`](docs/under-glass/design.md); the mod's goals and history below remain
 their own track.
 

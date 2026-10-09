@@ -1,5 +1,9 @@
 # Roadmap
 
+This is the **Stardew mod roadmap**. Under Glass's current priorities and next contextual-event
+slice are in [its own roadmap](../under-glass/roadmap.md); the mod sequence below does not govern
+the observer game.
+
 What to build next, in order, and what Sid has decided. Each step is one or more PRs off `main`,
 with tests and doc updates (`AGENTS.md`, "Workflow"). Sizes: **S** is one small PR, **M** a few days
 of agent work, **L** several PRs.

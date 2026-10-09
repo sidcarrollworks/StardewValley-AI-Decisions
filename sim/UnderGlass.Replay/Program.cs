@@ -22,7 +22,9 @@ bool inject = false;
 string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
 string layaModel = "typed-decisions";
+string evaluationMode = "balanced";
 double reflectionChance = 0.35;
+double dreamChance = 0;
 // --town <name>: a grown town (Towns.Named), with its own cast and feelings, in place of the shipped one.
 int townAt = Array.IndexOf(args, "--town");
 TownData? town = townAt >= 0 && townAt + 1 < args.Length ? Towns.Named(args[townAt + 1]) : null;
@@ -36,10 +38,13 @@ for (int i = 0; i < args.Length; i++)
         case "--reflection": reflectionMode = Next(); break;
         case "--laya-url": layaUrl = Next(); break;
         case "--laya-model": layaModel = Next(); break;
+        case "--evaluation": evaluationMode = Next(); break;
         case "--llm-url": llmUrl = Next(); break;
         case "--llm-model": llmModel = Next(); break;
         case "--reflection-tape": tapePath = Next(); break;
         case "--reflection-chance": reflectionChance = double.Parse(Next(), inv); break;
+        case "--dreams": dreamChance = 0.15; break;
+        case "--dream-chance": dreamChance = double.Parse(Next(), inv); break;
         case "--seed": seed = long.Parse(Next(), inv); break;
         case "--days": days = int.Parse(Next(), inv); break;
         case "--inject": inject = true; break;
@@ -96,6 +101,8 @@ string? label = shown.Count == 0 ? null : string.Join(' ', shown);
 var clock = System.Diagnostics.Stopwatch.StartNew();
 if (reflectionMode is not (null or "authored" or "laya" or "hybrid" or "tape"))
     throw new ArgumentException("--reflection authored|laya|hybrid|tape");
+if (evaluationMode is not ("raw" or "canonical" or "balanced"))
+    throw new ArgumentException("--evaluation raw|canonical|balanced");
 if (reflectionMode == "hybrid" && (llmUrl is null || llmModel is null))
     throw new ArgumentException("Hybrid reflection needs --llm-url and --llm-model for your local server.");
 if (reflectionMode == "tape" && tapePath is null)
@@ -103,11 +110,14 @@ if (reflectionMode == "tape" && tapePath is null)
 if ((layaUrl is not null || llmUrl is not null || llmModel is not null || tapePath is not null)
     && reflectionMode is null)
     throw new ArgumentException("Model options require --reflection.");
-var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance };
+if (dreamChance > 0 && reflectionMode is null)
+    throw new ArgumentException("Dreams require --reflection authored|laya|hybrid|tape.");
+var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
 {
     LayaBaseUrl = reflectionMode is "laya" or "hybrid" ? layaUrl ?? "http://127.0.0.1:8000" : null,
     LayaModel = layaModel,
+    EvaluationMode = Enum.Parse<ReflectionEvaluationMode>(evaluationMode, ignoreCase: true),
     GenerationBaseUrl = reflectionMode == "hybrid" ? llmUrl : null,
     GenerationModel = llmModel ?? "",
 });
