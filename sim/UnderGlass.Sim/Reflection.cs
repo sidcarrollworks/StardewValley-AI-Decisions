@@ -36,13 +36,82 @@ public sealed record ReflectionContinuity(string RootId, string PriorId, int Rev
 /// No dream is an observed world event; a null opportunity on a request means ordinary quiet time.</summary>
 public sealed record ReflectionOpportunity(string Kind, int SleptAt, int WokeAt);
 
+/// <summary>What the actor knows about where and when (contextual-events spec, "use of the new
+/// context in model requests"): the remembered encounter's place and age, the actor's own place and
+/// time of day now, their relationship as they know it, the pair's record this week and the actor's
+/// own account of why the encounter mattered. Every field is copied from the actor's records at
+/// request time, never from hidden world truth, so a mistaken identity stays mistaken. Reasons are
+/// short phrases from the actor's appraisal codes; Summary is the one line the evaluator gets.</summary>
+public sealed record ReflectionScene(string SourcePlace, int DaysAgo, string Place, string TimeOfDay,
+    string Relationship, int KindThisWeek, int UnkindThisWeek, string? LastBetween, IReadOnlyList<string> Reasons)
+{
+    public string Summary => $"{ReflectionText.Age(DaysAgo)} at {SourcePlace}; now {Place}, {TimeOfDay}; {Relationship}; "
+        + $"this week {KindThisWeek} kind/{UnkindThisWeek} unkind" + (LastBetween is null ? "" : $", last {LastBetween}")
+        + (Reasons.Count == 0 ? "" : "; " + string.Join(", ", Reasons));
+}
+
+/// <summary>The words a request uses for what the actor knows. Pure and public so the vocabulary is
+/// testable: every catalog kind an actor can do to someone has a verb, so the generator never sees
+/// a bare kind name to guess from ("StoodUpFor" was once read as "stood me up").</summary>
+public static class ReflectionText
+{
+    public static string MemoryVerb(string kind) => kind switch
+    {
+        "GaveGift" => "gave a gift to", "HelpedSomeone" => "helped", "Argued" => "argued with",
+        "Squabbled" => "squabbled with", "Stole" => "stole from",
+        "Thanked" => "thanked", "Complimented" => "complimented", "Joked" => "joked with",
+        "PlayedGame" => "played a game with", "TreatedToDrink" => "bought a drink for",
+        "Welcomed" => "welcomed", "Apologised" => "apologised to",
+        "Mocked" => "mocked", "StoodUpFor" => "stood up for", "Comforted" => "comforted",
+        "Snubbed" => "snubbed", "TurnedAway" => "turned away from",
+        _ => "interacted with",
+    };
+
+    public static string TimeOfDay(int minute) => Clock.OfDay(minute) switch
+    {
+        < 6 * 60 => "night", < 12 * 60 => "morning", < 17 * 60 => "afternoon", < 21 * 60 => "evening", _ => "night",
+    };
+
+    /// <summary>How the actor knows the subject, from their own familiarity and household; the
+    /// bands are presentation, not a mechanic.</summary>
+    public static string Relationship(double familiarity, bool sameHousehold, double newAt)
+        => sameHousehold ? "household" : familiarity < newAt ? "stranger" : familiarity < 0.4 ? "acquaintance"
+            : familiarity < 0.7 ? "familiar" : "close";
+
+    public static string Age(int daysAgo) => daysAgo <= 0 ? "today" : daysAgo == 1 ? "yesterday" : $"{daysAgo} days ago";
+
+    /// <summary>A place key as the actor would say it. Homes are keyed "Home:{household}": the
+    /// actor's own is "home", the subject's is theirs, any other is named as a home so the model
+    /// knows it is private ground. Public places keep their key.</summary>
+    public static string PlaceWords(string key, string ownHousehold, string subject, string? subjectHousehold)
+    {
+        if (!key.StartsWith("Home:", StringComparison.Ordinal)) return key;
+        string household = key["Home:".Length..];
+        return household == ownHousehold ? "home" : household == subjectHousehold ? $"{subject}'s home" : $"the {household} home";
+    }
+
+    /// <summary>An appraisal reason code as the actor would put it. Codes that mean "nothing
+    /// exceptional" are left out; an unknown code is passed through rather than dressed up.</summary>
+    public static string? ReasonPhrase(string code) => code switch
+    {
+        "household-care" => "ordinary care at home", "repeated" => "not the first such act lately",
+        "kindness-after-hurt" => "after a recent hurt between you", "kindness-with-strain" => "while on bad terms",
+        "direct-conflict" => "a direct clash", "public-consequence" => "the sort of thing the town talks about",
+        "uncertain-account" => "unsure who it was",
+        "direct-involvement" or "ordinary-observation" or "known-person" => null,
+        _ => code,
+    };
+}
+
 /// <summary>A copy of one person's known context. Providers must never inspect the simulation.</summary>
 public sealed record ReflectionRequest(string Id, int Tick, string Actor, string Subject, int SourceActId,
     string Memory, string Context, IReadOnlyList<ReflectionChoice> Choices,
     ReflectionSourceFacts? Source = null, ReflectionProposal? Proposal = null, ReflectionContinuity? Continuity = null,
     ReflectionOpportunity? Opportunity = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    CharacterInspiration? Character = null);
+    CharacterInspiration? Character = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    ReflectionScene? Scene = null);
 
 /// <summary>One independently inspectable evaluator pass, including its temporary-label mapping
 /// back to the engine's offered choices. Multiple passes do not mean multiple acceptance draws.</summary>
@@ -104,6 +173,7 @@ public sealed class RecordedReflectionMind : IReflectionMind
             || record.Request.Continuity != request.Continuity
             || record.Request.Opportunity != request.Opportunity
             || !CharacterInspirationPack.Same(record.Request.Character, request.Character)
+            || !SameScene(record.Request.Scene, request.Scene)
             || !record.Request.Choices.SequenceEqual(request.Choices))
             throw new InvalidOperationException($"Reflection tape does not match request {request.Id}. Use the same seed, town and options.");
         return Task.FromResult(record.Answer);
@@ -112,4 +182,12 @@ public sealed class RecordedReflectionMind : IReflectionMind
     private static bool SameProposal(ReflectionProposal? a, ReflectionProposal? b) => a is null || b is null
         ? a is null && b is null
         : a.Id == b.Id && a.Thought == b.Thought && a.SuggestedChoice == b.SuggestedChoice && a.Tags.SequenceEqual(b.Tags);
+
+    // A recording made before scenes were supplied (Scene null) cannot answer a request that
+    // carries one: the model would have seen less than the request says it saw.
+    private static bool SameScene(ReflectionScene? a, ReflectionScene? b) => a is null || b is null
+        ? a is null && b is null
+        : a.SourcePlace == b.SourcePlace && a.DaysAgo == b.DaysAgo && a.Place == b.Place && a.TimeOfDay == b.TimeOfDay
+            && a.Relationship == b.Relationship && a.KindThisWeek == b.KindThisWeek && a.UnkindThisWeek == b.UnkindThisWeek
+            && a.LastBetween == b.LastBetween && a.Reasons.SequenceEqual(b.Reasons);
 }

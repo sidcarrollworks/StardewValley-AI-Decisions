@@ -220,6 +220,53 @@ add the missing memory verbs when the tape contract next changes; keep imagined 
 what the scene and the observer could see; and repeat this probe with a second cloud tier only if
 a specific failure above needs it, since Haiku already clears the mechanical bar.
 
+## Addendum, the same day: the scene reaches both models
+
+The first step of Sid's agreed order (roadmap, "The agreed order") gives each reflection request
+a `ReflectionScene`: where the remembered encounter happened and how long ago, where the actor
+is now and the time of day, how they know the subject, the pair's kind and unkind acts this week
+and the actor's own appraisal reasons, all from the actor's records. The generator gets it as
+fields; Laya gets one line when the budget allows. The same seven-day seed-7 week was recorded
+twice more with Haiku, thinking off and profiles on, once with raw place keys and once with
+homes worded as "home", "Jas's home" or "the Saloon home". The weeks diverge after their first
+decisions, so these are three towns, not one town measured three ways.
+
+| Measure | No scene (above) | Scene, raw place keys | Scene, worded places (final) |
+| --- | --- | --- | --- |
+| Reflections / real generator answers / fallbacks | 64 / 64 / 0 | 63 / 62 / 1 (one 5-second timeout) | 59 / 59 / 0 |
+| Thoughts naming a place, a time or the week | 0 | 56 of 62 | 52 of 59 |
+| Thoughts reciting mood/regard/opportunity words | 2 | 0 | 0 |
+| Scene line present in the Laya packet | n/a | 60 of 62 | 59 of 59 |
+| Thought names the suggested act / a different act / unclear (keyword reading) | 48 / 0 / 16 | 43 / 0 / 19 | 35 / 2 / 22 |
+| Thoughts naming an item the scene lacks | 6 | 8 | 6 |
+| Thoughts hedged with "maybe" | 47 | 41 | 40 |
+| Accepted / reshaped / deferred / rejected | 23 / 25 / 8 / 8 | 21 / 26 / 9 / 6 | 18 / 24 / 7 / 10 |
+
+The scene is used: "Newcomer said hello in the Square earlier, and I didn't really answer";
+"Emily left that gift for me at the saloon yesterday, so I should find a way to give something
+back to her before the week gets busy"; "Newcomer's been kind to me twice this week, so maybe I
+owe them something back, even if I'm a bit prickly today"; George at home, "Evelyn helped me when
+I didn't ask, and I hate how much that stung." The number-recital tic is gone. Invented items did
+not go up and now fit the place: Marnie's "a bit of bread or a jar of jam, the way I'd welcome
+anyone new", Vincent's "like my marble", Abigail's "something small from the stall" in the Square.
+"StoodUpFor" no longer reaches the generator as a bare kind name.
+
+The keyword agreement count fell with the scene (75% → 69% → 59%) while plain contradictions
+stayed at two or fewer, and both of those are hedged compound sentences ("maybe I could return
+one, or at least say thanks"). The thoughts got longer and more conditional, which the keyword
+heuristic reads as "unclear"; whether the suggested act still matches is a question for the blind
+judging method above, not for a regex, and it is left open here. "Maybe" still opens most
+thoughts.
+
+The two omitted Laya lines in the raw-key week were packets with a long thought and five lines
+where the required context and memory would not have fit beside it; the recorded packets show
+the omission. Older tapes, including the verified October 12 pack, no longer replay against this
+request shape; the final week replays from its own tape. Files:
+`out/scene-context-2026-10-12/hybrid-haiku-scene2-seed7-7d.json` (log hash `f98991c612d1eab8`,
+SHA256 `6d3b6e24b3a23d4b7b476e3c4487f066300e40ad9aa3503bc35202b494aa8921`) and the first pass
+`hybrid-haiku-scene-seed7-7d.json` (`ddaf3058fa13cb09`,
+`c98bd2ba94056d6a0293e04d4567fadf5810885b4468ff587d4b45de0e2c1c13`).
+
 ## Reproduce
 
 The SDK goes into the existing sidecar environment explicitly; no launcher installs it:

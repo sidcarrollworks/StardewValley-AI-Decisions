@@ -115,7 +115,8 @@ public sealed partial class Simulation
             : "Newly awake from sleep. An imagined possibility from an earlier known encounter, not a witnessed dream event.";
         string context = FormattableString.Invariant($"{actor}, age {p.V.Age}: mood {MoodOf(h):0.00}; regard for {memory.Subject} {St(actor, memory.Subject):0.00}. Bold {c.Boldness:0.00}; understanding {c.Understanding:0.00}; sensitive {c.Sensitivity:0.00}; self-regard {c.SelfRegard:0.00}; expression {c.Expression:0.00}. {phase} Choose for this person, not for a well-behaved town.");
         var request = new ReflectionRequest($"{_seed}:{m}:{actor}:{memory.Source}", m, actor,
-            memory.Subject, memory.Source, memory.Text, context, choices.AsReadOnly(), source, Opportunity: opportunity);
+            memory.Subject, memory.Source, memory.Text, context, choices.AsReadOnly(), source, Opportunity: opportunity,
+            Scene: SceneOf(actor, memory.Subject, memory.Source, memory.Tick, p, m));
         if (_inspirationPack is not null)
             request = request with { Character = _inspirationPack.Resolve(actor, memory.Subject, _seed, request.Id, _inspirationHash!) };
         if (memories[pick].Continuation.Parent is { } prior)
@@ -170,13 +171,39 @@ public sealed partial class Simulation
         }
     }
 
-    private static string MemoryVerb(string kind) => kind switch
+    private static string MemoryVerb(string kind) => ReflectionText.MemoryVerb(kind);
+
+    /// <summary>The actor's own knowledge of where and when, for the request (contextual-events
+    /// spec): the source act's place (they took part, so they know it), its age, where they are now,
+    /// how they know the subject, the pair's week from their own encounter history, and their own
+    /// appraisal of the source. Nothing here reads the subject's records or the world's truth; the
+    /// believed subject is used throughout, so a mistaken identity stays mistaken.</summary>
+    private ReflectionScene SceneOf(string actor, string subject, int sourceId, int knownAt, Person p, int m)
     {
-        "GaveGift" => "gave a gift to", "HelpedSomeone" => "helped", "Argued" => "argued with",
-        "Thanked" => "thanked", "Complimented" => "complimented", "Apologised" => "apologised to",
-        "Mocked" => "mocked", "Comforted" => "comforted", "TreatedToDrink" => "bought a drink for",
-        _ => "interacted with",
-    };
+        Act sourceAct = _acts[sourceId];
+        int week = 7 * Clock.MinutesPerDay;
+        var pair = (_encounterHistory.TryGetValue(actor, out var history) ? history : new List<EncounterHistory>())
+            .Where(h => h.ActId != sourceId && h.Tick <= m && m - h.Tick <= week
+                && (h.Actor == actor && h.Target == subject || h.Actor == subject && h.Target == actor))
+            .OrderBy(h => h.Tick).ThenBy(h => h.ActId).ToArray();
+        // Ages are calendar days, as a person counts them: an act last evening is "yesterday"
+        // at breakfast, not "today".
+        EncounterHistory? last = pair.LastOrDefault();
+        string? lastBetween = last is null ? null
+            : $"{(last.Valence > 0 ? "kind" : last.Valence < 0 ? "unkind" : "neutral")} {ReflectionText.Age(Clock.Day(m) - Clock.Day(last.Tick))}";
+        // The actor's latest account of the source: own or witnessed, at the confidence they had.
+        EncounterAppraisal? appraisal = null;
+        for (int i = _appraisals.Count - 1; i >= 0; i--)
+            if (_appraisals[i].Account.Holder == actor && _appraisals[i].Account.ActId == sourceId) { appraisal = _appraisals[i]; break; }
+        var reasons = (appraisal?.Reasons ?? Array.Empty<AppraisalReason>())
+            .Select(r => ReflectionText.ReasonPhrase(r.Code)).Where(r => r is not null).Select(r => r!).Distinct().ToArray();
+        string? subjectHousehold = _index.ContainsKey(subject) ? HouseholdOf(subject) : null;
+        bool household = subjectHousehold is not null && HouseholdOf(actor) == subjectHousehold;
+        string Words(string key) => ReflectionText.PlaceWords(key, HouseholdOf(actor), subject, subjectHousehold);
+        return new ReflectionScene(Words(sourceAct.Location), Clock.Day(m) - Clock.Day(knownAt), Words(p.Place), ReflectionText.TimeOfDay(m),
+            ReflectionText.Relationship(Familiarity(actor, subject), household, _fo.Acts.NewAt),
+            pair.Count(h => h.Valence > 0), pair.Count(h => h.Valence < 0), lastBetween, Array.AsReadOnly(reasons));
+    }
 
     private List<ReflectionChoice> ReflectionChoices(string actor, string subject, ReflectionSourceFacts source, int sourceId, int m)
     {

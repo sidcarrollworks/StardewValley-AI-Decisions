@@ -885,6 +885,32 @@ private thought (a bit of bread, a shiny stone) may stay: the thought is imagina
 The open concern is an imagined detail that does not correlate with the context or with what a
 player would see; that is deferred, not dismissed.
 
+### D47. A reflection request says where and when, from the actor's own records
+
+**Decision (2026-10-12, the first step of Sid's agreed order: expanded actions and abilities
+before any player).** Until now the generator and the evaluator saw one sentence about the
+remembered encounter and a line of numbers. Each request now carries a `ReflectionScene`: the
+encounter's place and age in calendar days, the actor's place and time of day now, how they know
+the subject, the pair's kind and unkind acts this week with the last one, and the actor's own
+appraisal reasons as phrases. It is built from the actor's encounter history and appraisals, so
+it is what they know, including a mistaken identity; nothing is read from the subject's records or
+the world's truth. Every catalog kind an actor can do to someone has a memory verb; "interacted
+with (StoodUpFor)" had been read by a generator as being stood up.
+
+**Packets.** The generator gets the scene as structured fields and a rule that a small imagined
+detail must fit that place and the actor's life and never add a person, an event or an act. The
+evaluator gets one line inside the 1,250-character budget only when the required context, memory,
+anchor and full candidate lines still fit; otherwise the line is omitted whole, which the recorded
+packet shows. The viewer shows the scene under "What informed this choice?".
+
+**Tapes.** The scene is part of the exact-match request, so recordings from before this change
+no longer replay; they stay viewable. The verified October 12 pack is the last one on the old
+request shape.
+
+**Why.** Scene-specific knowledge was the cheapest of the four agreed steps and every later step
+reads better for it; it also answers Sid's deferred concern about imagined details by telling
+the model what the scene contains instead of forbidding items.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

@@ -2332,6 +2332,7 @@ function reflectionCard(view, openDetails) {
   const detail = el("details", { class: "inner-details", "data-reflection": request.id, open: openDetails.has(request.id) },
     el("summary", { text: "What informed this choice?" }),
     el("p", { class: "label", text: "Context supplied to the evaluator" }), el("pre", { text: request.context }),
+    ...(request.scene ? [el("p", { class: "label", text: "Scene the person knew" }), el("pre", { text: request.scene.summary })] : []),
     el("p", { class: "label", text: "Available lines and relative weights" }),
     el("ul", { class: "inner-candidates" }, request.choices.map((c) => {
       const weight = answer?.weights?.[c.id];
