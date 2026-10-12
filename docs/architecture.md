@@ -58,6 +58,11 @@ The optional quiet-reflection prototype is specified in
 - `UnderGlass.Minds`: an independent optional HTTP adapter. Authored thoughts can be evaluated by
   Laya, or a configured local generator can propose a thought before Laya evaluates the response.
   The services are supplied by the user; the adapter neither installs nor starts models.
+- `sim/tools/claude_generator.py`: the same chat-completions contract answered from the Anthropic
+  API through the official SDK (default `claude-haiku-5-5`), launched per experiment with an
+  explicit contract that selects the structured-output schema. Loopback only, credentials from
+  the environment or a key file and never logged, sampling and seed accepted but not forwarded
+  and declared so in every receipt. Opt-in; the local service stays the default.
 - `sim/tools/reflection_generator.py`: an explicitly started local generation service using
   pinned `Qwen/Qwen3-0.6B` weights, with request limits and raw response receipts. The helper uses
   the existing Python runtime; it is independent of the .NET simulation.

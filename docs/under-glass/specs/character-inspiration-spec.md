@@ -16,6 +16,9 @@ profile integration and unresolved generated voice quality.
 The [fixed-intention wording experiment](../experiments/voice-wording-2026-10-12.md) separately
 compares profiles alone with actual source dialogue references, starting with Vincent.
 Its held-out authored controls are not model input, and the suite has no evaluator or simulation.
+The [Claude Haiku 5.5 run](../experiments/voice-wording-haiku-2026-10-12.md) repeats that probe and
+one hybrid week with a cloud generator behind the same loopback contract; it is an opt-in
+comparison, not a change to the pack, the prompts or any default.
 
 ## Content and evidence
 
