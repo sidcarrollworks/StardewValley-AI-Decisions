@@ -1,0 +1,4 @@
+# The Claude generator service needs the official SDK in the sidecar environment. Install it
+# explicitly (sidecar/.venv/Scripts/python.exe -m pip install -r this file); no launcher does.
+# The offline contract tests in tests/test_claude_generator.py do not need it.
+anthropic==1.13.0
