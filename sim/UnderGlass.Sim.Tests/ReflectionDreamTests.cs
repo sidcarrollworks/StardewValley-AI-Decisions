@@ -307,7 +307,10 @@ public class ReflectionDreamTests
             var source = new ReflectionSourceFacts(entry.Tone == "hostility" ? "Argued" : entry.Tone == "kindness" ? "GaveGift" : "Met",
                 entry.Perspective == "own", valence, 0);
             var lines = ReflectionCatalog.Lines(source, new Temperament(0.5, 0.5, 0.5, 0.5));
-            ReflectionChoice[] choices = new[] { ("gift", "GaveGift"), ("help", "HelpedSomeone"), ("confront", "Argued"), ("defer", ""), ("reject", "") }
+            var offered = new List<(string, string)> { ("gift", "GaveGift"), ("help", "HelpedSomeone"), ("confront", "Argued"), ("defer", ""), ("reject", "") };
+            if (entry.Choice == "thank") offered.Insert(3, ("thank", "Thanked"));
+            if (entry.Choice == "apologise") offered.Insert(3, ("apologise", "Apologised"));
+            ReflectionChoice[] choices = offered
                 .Select(c => new ReflectionChoice(c.Item1, c.Item2, lines[c.Item1])).ToArray();
             ReflectionRequest quiet = Enumerable.Range(0, 100).Select(i => new ReflectionRequest($"catalog-{i}", 1_700, "Ann", "Bob", 0,
                 "You remember your encounter with Bob.", "Ann is newly awake, guarded but open to reconsidering what the remembered encounter means.", choices, source))

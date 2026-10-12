@@ -35,8 +35,9 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   hover descriptions, and playback controls that remain visible while scrolling.
 - Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
   and authored appraisals. Stories shows contextual reasons and groups everyday repetitions.
-- Current limits: reflection offers gift, help or confrontation, plus defer/reject. Some richer
-  actions already exist in `ActCatalog` behind switches, but reflection does not offer them.
+- Built: reflection also offers source-specific thanks (Returns) and apologies (Repair), with
+  source/eligibility checks and actual catalog consequences. Company/comfort reflection remains planned.
+- Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
 - Current model limits: some generated ideas disagree with their suggested action or reverse
@@ -76,6 +77,11 @@ knowledge, including mistaken identities. Unsupported details are visibly absent
 those boundaries, repeated events, causal links and older recordings.
 
 ## 2. Broader actions and context-tagged speech
+
+**First response slice built (2026-10-09):** source-specific thanking and apologizing, two new
+authored daytime/dream proposals, execution rechecks and recipient outcomes. A four-run 28-day
+test pack enables the existing action catalog and records backend/settings receipts. Company,
+comfort and concrete requests remain next; the generic help/gift still has no task/item detail.
 
 Connect existing catalog actions to reflection before duplicating their mechanics. Start with
 thanking and apologizing, then company and comfort where eligibility and source facts support

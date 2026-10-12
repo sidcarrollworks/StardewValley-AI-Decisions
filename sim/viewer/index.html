@@ -2154,7 +2154,7 @@ function reflectionSummary(view, t) {
   const actor = view.request.actor, subject = view.request.subject;
   const chosen = view.request.choices.find((choice) => choice.id === view.choice);
   if (!view.answer) return { title: `${actor} is reflecting on ${subject}`, text: "A quiet moment; no thought has been considered yet.", line: "" };
-  const action = { GaveGift: "give a gift to", HelpedSomeone: "help", Argued: "confront" }[chosen?.kind];
+  const action = { GaveGift: "give a gift to", HelpedSomeone: "help", Argued: "confront", Thanked: "thank", Apologised: "apologise to" }[chosen?.kind];
   const titles = {
     accepted: isWakingDream(view) ? `${actor} woke with an idea about ${subject}` : `${actor} has made a decision about ${subject}`,
     reshaped: `${actor} has changed the idea`,
@@ -2291,11 +2291,14 @@ function reflectionEventText(event, request, t) {
   // Older records carry the enum in the event sentence. Never use a future life-record outcome.
   const recorded = /^The encounter's recorded outcome: ([A-Za-z]+)\.$/.exec(event.text)?.[1];
   const outcome = life?.outcome ?? recorded, subject = request.subject;
+  const act = R.acts.find((a) => a.id === event.actId && a.tick <= t);
   return {
     Returned: `${subject} responded with kindness.`, Answered: `${subject} answered the hostility with hostility.`,
     Rebuffed: `${subject} met the kind gesture with hostility.`, Avoided: `${subject} kept their distance or turned away.`,
     Ignored: "No matching response was recorded before the response window closed.",
-    None: "This encounter has no tracked response.", Accepted: `${subject} accepted the apology.`, Refused: `${subject} refused the apology.`,
+    None: R.kinds[act?.kind]?.name === "Thanked"
+      ? "The thank-you finished; no further response is tracked for a thank-you." : "This encounter has no tracked response.",
+    Accepted: `${subject} accepted the apology.`, Refused: `${subject} refused the apology.`,
   }[outcome] ?? event.text;
 }
 function reflectionCard(view, openDetails) {

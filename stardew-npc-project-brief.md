@@ -31,8 +31,10 @@ gossip selection remain planned. Earlier batch orders, news ceilings and E1/E2 t
 historical evidence. They do not require quiet, hostile or socially collapsed runs to be tuned away.
 
 The optional [quiet-reflection prototype](docs/under-glass/specs/reflection-spec.md) is built:
-nine editable authored thoughts cover kindness, suspicion, connection, boundaries, pride, repair,
-regret and doubling down, with a memory-grounded neutral fallback. Five response profiles fit the
+eleven editable authored thoughts cover kindness, suspicion, connection, boundaries, pride, repair,
+regret, gratitude, apology and doubling down, with a memory-grounded neutral fallback. Source-specific
+thanks and apologies reuse the Returns/Repair catalog, with execution checks and real recipient
+outcomes. Five response profiles fit the
 remembered encounter. Each thought also has a distinct waking variant: opt-in dreams use a real
 sleep/wake transition and knowledge from before sleep. Dreams default off, share the daily/source
 limits with daytime reflection, and never enter the belief ledger as events. An authored thought,

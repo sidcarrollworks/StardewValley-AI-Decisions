@@ -1,7 +1,8 @@
 > Draft spec, partly built (see Status below). It merges two design proposals of 2026-10-08 (design A, "everyday life first", and design B, "story first") with two read-only reports: the act model and the town at scale. Once it is built, `sim/README.md` and `docs/under-glass/design.md` ("As built") will say where the code differs and why.
 
 > **Current planning (2026-10-09):** use the [roadmap](../roadmap.md). The optional batch 1
-> mechanics are built; reflection currently offers only gift, help and confrontation. Connecting
+> mechanics are built; reflection connects thanks (Returns) and apologies (Repair) to valid sources,
+> alongside gift, help and confrontation. Connecting
 > suitable catalog actions to reflection follows the contextual-encounters slice. Original
 > E1/E2, news-volume and build-order requirements below are historical experiment criteria.
 > The dated slice notes describe successive implementations; current code and `sim/README.md`
@@ -10,6 +11,14 @@
 # Under Glass: the act catalog, batch 1 (proposed phase 0d.7): implementation spec
 
 **Status (2026-10-08).** Batch 1 is built (acts-0 to acts-6), every slice off: acts-0's seams on `claude/local-acts-0`, its measures and baseline on `claude/local-acts-0b`, acts-1 (Returns) on `claude/local-acts-1`, acts-2 (Company) on `claude/local-acts-2`, acts-3 (Welcome) on `claude/local-acts-3`, acts-4 (Repair) on `claude/local-acts-4`, acts-5 (Sides) on `claude/local-acts-5` and acts-6 (Late) on `claude/local-acts-6`. Every switch is off, and every pin holds.
+
+**Response update (2026-10-12).** Reflection can now offer thanks for known received non-light
+kindness with Returns enabled, or an apology for its own eligible hurt with Repair enabled.
+The existing catalog executes them and supplies recipient consequences. A sourced thank-you
+settles only the exact source and matching pair; an apology leaves unrelated reverse-pair
+kindness open. Reflection waits until completion for the final apology answer. Three regression
+scenes cover older versus newer gifts, mistaken giver and unrelated reverse-kindness accounting;
+source/eligibility/cap/duplicate and adapter packet tests accompany the broader response slice.
 - **Built:** `Acts.cs` (`ActGate`, `ActOptions` with its seven switches, all off, and the constants of 2.3); the appended fields and enum values of 2.1; `FeelingOptions.Acts` as its last property; `GateOf` with the legacy table for the shipped rows, and `Form`, `Min`, `ActsFor`, `IsLight` and `IsKindAimed` reading it (2.2), with return in kind or less and the pride term; `Fits` with the hours and the gate's limits (3.1), in `Simulation.Acts.cs`; `Begin`'s `with`; `ActCatalog.cs` with `Batch1`, `Kinds` and `Cards` (2.4), with no rows and no cards yet; the runner's `--catalog`; the replay records the switches; and `CatalogTests.cs` with tests 1 and 2, test 3 without `CatalogWatch`, and a determinism check (section 6).
 - **Done differently:** `ReplayOptions` gets no `Kinds` or `Cast`: it already takes a whole `TownData` (`ReplayOptions.Town`), which carries both. For Return, a kindness whose row has no gate of its own is capped as the old code capped it (a help at a help's form, anything else at a gift's), so the shipped lists hold even for kinds outside the legacy table. The old code gave any motive it didn't name a gift; with the rows, Remorse, Defend and Curious have no act until their slices add rows. A row with no gate of its own (every shipped row) is ranked and capped by its shipped form, the value a new `FeelingOptions` has, not by a swept one, so a sweep of `GiftCost`, `HelpCost`, `SnubForm` or `ArgueForm` changes only what the gate charges, never which acts are offered or their order, as before the rows; a row with a gate of its own is placed by its own form. The replay adds the catalog's rows and cards as the runner does, and the viewer's Explanation tab defines all 21 `ActOptions` settings (each number names the slice that first reads it).
 - **Built in acts-0's second part (`claude/local-acts-0b`):** `StoryMetrics.cs` (7.2 and 7.3) and the baseline on the shipped town and the 0d.6 review's set, in `sim/README.md`. Feuds and friendships come from the variety measures' story events (`Variety.Of`). The engine records each spell a pair spends in a feud (`SimResult.FeudSpells`, written at each night's close; nothing reads it and nothing reaches the log), for the median feud length.

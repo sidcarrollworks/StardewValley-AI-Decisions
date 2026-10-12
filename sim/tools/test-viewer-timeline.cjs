@@ -93,3 +93,43 @@ test('clicking a marker pauses and jumps exactly; empty ruler space retains scru
   c.clickTimeline({ clientX: 510, clientY: 22 });
   assert.deepEqual(calls, [['playing', false], ['time', 500]]);
 });
+
+function reflectionScene() {
+  const context = createContext({ R: {
+    names: ['Penny', 'Pierre'],
+    kinds: [{ name: 'Thanked' }, { name: 'Apologised' }],
+    acts: [{ id: 3, kind: 0, tick: 200 }, { id: 4, kind: 1, tick: 300 }],
+    life: [{ person: 0, act: 4, role: 'Did', tick: 300, resolved: 310, outcome: 'Refused' }],
+  } });
+  const summary = script.slice(script.indexOf('function reflectionSummary('), script.indexOf('function observerItemsAt('));
+  const inner = script.slice(script.indexOf('function reflectionAt('), script.indexOf('function reflectionJump('));
+  const text = script.slice(script.indexOf('function reflectionEventText('), script.indexOf('function reflectionCard('));
+  new Script(summary + inner + text).runInContext(context);
+  return context;
+}
+
+test('new reflection actions describe thanks and apologies after the decision becomes known', () => {
+  const c = reflectionScene();
+  const record = { request: { tick: 100, actor: 'Penny', subject: 'Pierre', choices: [
+    { id: 'thank', kind: 'Thanked', line: 'Thank you.' }, { id: 'apologise', kind: 'Apologised', line: 'I am sorry.' }],
+  }, answer: { thought: 'I could thank him.' }, choice: 'thank', events: [
+    { tick: 101, status: 'considered' }, { tick: 101, status: 'waiting' },
+  ] };
+  assert.equal(c.reflectionAt(record, 99), null);
+  assert.match(c.reflectionSummary(c.reflectionAt(record, 100), 100).title, /reflecting/);
+  assert.equal(c.reflectionSummary(c.reflectionAt(record, 101), 101).title, 'Penny wants to thank Pierre');
+  record.choice = 'apologise';
+  assert.equal(c.reflectionSummary(c.reflectionAt(record, 101), 101).title, 'Penny wants to apologise to Pierre');
+  assert.equal(c.reflectionAt(record, 100).choice, null);
+});
+
+test('thanks completion and apology outcomes use the recorded act and cannot leak later answers', () => {
+  const c = reflectionScene(), request = { actor: 'Penny', subject: 'Pierre' };
+  assert.match(c.reflectionEventText({ tick: 203, status: 'outcome', actId: 3,
+    text: "The encounter's recorded outcome: None." }, request, 203), /thank-you finished/);
+  const event = { tick: 310, status: 'outcome', actId: 4, text: "The encounter's recorded outcome: Refused." };
+  assert.equal(c.reflectionEventText(event, request, 309), '');
+  assert.equal(c.reflectionEventText(event, request, 310), 'Pierre refused the apology.');
+  assert.equal(c.reflectionEventText({ tick: 300, status: 'outcome', actId: 4,
+    text: "The encounter's recorded outcome: None." }, request, 300), 'This encounter has no tracked response.');
+});

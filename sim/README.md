@@ -19,9 +19,18 @@ private causes and prior-event links follow the clock. The recorded hybrid tape'
 reproduce the original hash and every old field except the CLI label. No fresh model calls are
 needed to add these observer records. New checks: 11 .NET tests and five Node viewer tests.
 
+**Broader reflection responses:** Returns enables source-specific thanks for received substantial
+kindness; Repair enables an apology for the actor's own eligible hurt. These add two authored
+daytime/dream proposals. Candidates and execution preserve catalog switches, age/place/source
+requirements, daily caps and duplicate guards. An apology still receives the ordinary accepted/
+refused answer, and reflection waits for completion before recording that outcome. Thanks settles
+the exact named kindness; apology does not silently resolve unrelated reverse-pair events.
+Use the [28-day observer test guide](../docs/under-glass/experiments/observer-test-2026-10-09.md)
+and `sim/tools/record-observer-pack.ps1` for larger recordings and inspectable settings/receipts.
+
 **Reading this reference:** the phase sections below preserve implementation history and dated experiments. Their E1/E2 gates, news-volume ceilings, drift bands and war/dead-town verdicts are historical calibration criteria, not current product acceptance rules. Required mechanics checks still hold; coherent extreme outcomes are allowed. Tests for existing behavior are retained until an intentional implementation change updates them. Runtime switches remain as documented; the new roadmap does not silently enable catalog slices or alter simulation behavior.
 
-**Opt-in prototype: reflection and waking dreams.** Nine editable authored thoughts cover reciprocity, suspicion, connection, boundaries, pride, repair, regret, doubling down and a neutral fallback, with separate waking variants. Laya evaluates complete response lines; one seeded choice accepts, reshapes, defers or rejects the thought. An accepted intention waits for a real encounter and records its outcome. A deferred idea can return after a later known encounter with that person, at most twice. Open **Inner life**, use **Next moment**, and watch **Happening now** to follow the cause and consequence. A local small generator can supply occasional private inspiration. Character judgment and prose quality remain experiments: [reliability measurements](../docs/under-glass/experiments/reflection-reliability-2026-10-08.md), [full reflection spec](../docs/under-glass/specs/reflection-spec.md).
+**Opt-in prototype: reflection and waking dreams.** Eleven editable authored thoughts cover reciprocity, suspicion, connection, boundaries, pride, repair, regret, doubling down and a neutral fallback, with separate waking variants. Laya evaluates complete response lines; one seeded choice accepts, reshapes, defers or rejects the thought. An accepted intention waits for a real encounter and records its outcome. A deferred idea can return after a later known encounter with that person, at most twice. Open **Inner life**, use **Next moment**, and watch **Happening now** to follow the cause and consequence. A local small generator can supply occasional private inspiration. Character judgment and prose quality remain experiments: [reliability measurements](../docs/under-glass/experiments/reflection-reliability-2026-10-08.md), [full reflection spec](../docs/under-glass/specs/reflection-spec.md).
 
 ```bash
 # Authored demo: no model server required.

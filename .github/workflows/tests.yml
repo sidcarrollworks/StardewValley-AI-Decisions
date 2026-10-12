@@ -50,6 +50,9 @@ jobs:
         run: node --test sim/tools/test-viewer-timeline.cjs
       - name: Test contextual encounters and rewind behavior
         run: node --test sim/tools/test-viewer-encounters.cjs
+      - name: Test observer pack provenance without model calls
+        shell: pwsh
+        run: ./sim/tools/test-observer-pack.ps1
       - name: Restore
         run: dotnet restore sim/UnderGlass.sln
       - name: Build
