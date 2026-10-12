@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Under Glass — Character voices</title>
+  <style>
+    :root { color-scheme:light dark; --bg:#e8e3d9; --panel:#f5f0e7; --ink:#211b16; --muted:#6b6054; --line:#c4b7a7; --accent:#a94015; }
+    @media(prefers-color-scheme:dark) { :root { --bg:#1c1a17; --panel:#29241f; --ink:#eee7de; --muted:#b8aa9a; --line:#51473c; --accent:#ff9b63; } }
+    * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,sans-serif; }
+    main { max-width:1120px; padding:30px 24px 60px; margin:auto; } h1 { font-size:clamp(28px,4vw,44px); letter-spacing:-.035em; line-height:1.15; margin:12px 0; }
+    h2 { font-size:21px; margin:0 0 8px; } h3 { font-size:14px; font-weight:600; margin:0; color:var(--muted); }
+    p { margin:8px 0; } header>p { max-width:75ch; color:var(--muted); } a { color:var(--accent); text-underline-offset:4px; }
+    .label { font:11px/1.5 Consolas,monospace; letter-spacing:.07em; text-transform:uppercase; color:var(--accent); }
+    .controls { display:flex; flex-wrap:wrap; align-items:center; gap:18px; position:sticky; top:0; z-index:1; background:var(--bg); border-block:1px solid var(--line); padding:14px 0; margin:24px 0; }
+    select,button,input[type=file] { font:inherit; max-width:100%; } select,button { padding:6px 10px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:5px; }
+    label { font-size:14px; display:flex; align-items:center; gap:7px; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+    article { padding:22px; border:1px solid var(--line); border-radius:9px; margin:20px 0; background:var(--panel); }
+    .scene { font-size:14px; color:var(--muted); } .pair { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin:20px 0 10px; }
+    .arm+ .arm { padding-left:24px; border-left:1px solid var(--line); } blockquote { margin:12px 0; font-size:19px; line-height:1.45; overflow-wrap:anywhere; }
+    .meta { color:var(--muted); font-size:12px; } summary { cursor:pointer; } details { font-size:14px; border-top:1px solid var(--line); padding-top:12px; margin-top:16px; }
+    details>p { white-space:pre-wrap; overflow-wrap:anywhere; } pre { white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.6 Consolas,monospace; max-height:380px; overflow:auto; }
+    .notice { border-left:3px solid var(--accent); padding-left:15px; color:var(--muted); font-size:14px; }
+    .error { color:var(--accent); } [hidden] { display:none!important; }
+    @media(max-width:700px) { main { padding:22px 16px 40px; } article { padding:18px; } .pair { grid-template-columns:1fr; gap:18px; } .arm+.arm { padding:18px 0 0; border-left:0; border-top:1px solid var(--line); } }
+  </style>
+</head>
+<body>
+<main>
+  <header><span class="label">Under Glass · Paired voice scenes</span><h1>Does this sound like the person?</h1>
+    <p>Each pair uses the same remembered encounter, current state, available actions, model and generator seed. The second version adds reviewed voice and personal background with additional generation instructions and compact evaluator framing. This compares both prompting paths, rather than isolating biography alone. These are prepared decision scenes; no town actions are performed.</p>
+    <p class="notice">Look for cadence, vocabulary and conflicting impulses. A distinctive line still needs to fit what happened. Proposed actions and evaluator weights do not establish that a character accepted or acted on the idea.</p>
+    <p id="receipt" class="meta"></p>
+  </header>
+  <div class="controls">
+    <label>Follow <select id="person" aria-label="Filter character"><option value="">Everyone</option></select></label>
+    <label><input id="hide-names" type="checkbox">Hide names in the ideas</label>
+    <label>Open another trial <input id="open-trial" type="file" accept="application/json,.json"></label>
+  </div>
+  <p id="error" class="error" role="alert" hidden></p>
+  <div id="pairs"></div>
+  <p class="meta">Starting history is reviewed private self-knowledge from before the farmer arrives. It is not a witnessed event in this simulation or knowledge shared with the other person. The pack is a compact starting interpretation, not a complete canonical life story.</p>
+</main>
+<script id="voice-data" type="application/json"></script>
+<script>
+"use strict";
+let trial = null;
+const $ = (id) => document.getElementById(id);
+function node(tag, text, className) {
+  const result = document.createElement(tag);
+  if (text != null) result.textContent = String(text);
+  if (className) result.className = className;
+  return result;
+}
+function shown(text, actor) { return $("hide-names").checked ? String(text ?? "").split(actor).join("[person]") : text; }
+function detail(label, value) { const result = node("details"); result.append(node("summary", label), node("pre", value)); return result; }
+function armCard(arm, title) {
+  const request = arm.request, answer = arm.answer, result = node("div", null, "arm");
+  result.append(node("h3", title), node("blockquote", shown(answer.thought, request.actor)));
+  const proposed = request.choices.find((choice) => choice.id === answer.suggestedChoice);
+  const top = request.choices.find((choice) => choice.id === arm.topChoice);
+  result.append(node("p", `Proposed: ${proposed?.kind || proposed?.id || answer.suggestedChoice}`, "meta"),
+    node("p", `Highest evaluator weight: ${top?.kind || top?.id || "unavailable"}`, "meta"),
+    node("p", `${answer.backend} · ${Math.round(arm.elapsedMilliseconds)} ms`, "meta"));
+  if (answer.backend !== "local-llm+laya") result.append(node("p", answer.note, "error"));
+  const context = node("details"); context.append(node("summary", "Supplied context and evaluator responses"),
+    node("p", shown(request.context, request.actor)));
+  if (request.character) {
+    const character = request.character;
+    context.append(node("p", `Archetype: ${character.archetypeId}`, "meta"), node("p", shown(character.voice, request.actor)));
+    if (character.background) context.append(node("p", "Initial own history", "label"), node("p", shown(character.background.text, request.actor)),
+      node("p", `Sources: ${character.background.sources.join(" · ")}`, "meta"));
+    context.append(node("p", `Disposition: ${character.evaluatorCue}`), node("p", `Pack: ${character.packHash}`, "meta"));
+  }
+  const lines = node("ul");
+  for (const choice of request.choices) {
+    const weight = answer.weights?.[choice.id];
+    lines.append(node("li", `${choice.line} · ${Number.isFinite(weight) ? weight.toFixed(3) : "unavailable"}`));
+  }
+  context.append(lines); result.append(context);
+  const receipts = node("details"); receipts.append(node("summary", "Exact model receipts"));
+  for (const [key, label] of [["generationPrompt", "Generator request"], ["generationResponse", "Generator response"], ["layaPrompt", "Last Laya request"], ["layaResponse", "Last Laya response"]])
+    if (answer[key]) receipts.append(detail(label, answer[key]));
+  receipts.append(detail("Every evaluator pass and routing receipt", JSON.stringify({ evaluations: answer.evaluations, receipts: arm.receipts }, null, 2)));
+  result.append(receipts); return result;
+}
+function render() {
+  $("pairs").replaceChildren();
+  if (!trial) return;
+  $("receipt").textContent = `${trial.comparisons.length} pairs · generator ${trial.generationModel} · Laya ${trial.layaModel} (${trial.evaluationMode}) · ${trial.hybridCount}/${trial.answerCount} hybrid answers · ${trial.fallbackCount} fallbacks · ${trial.incompleteReceiptCount} incomplete receipts`;
+  for (const comparison of trial.comparisons) {
+    const request = comparison.baseline.request;
+    if ($("person").value && request.actor !== $("person").value) continue;
+    const card = node("article"); card.append(node("h2", $("hide-names").checked ? `Scene ${trial.comparisons.indexOf(comparison) + 1}` : `${request.actor} thinking about ${request.subject}`),
+      node("p", shown(request.memory, request.actor), "scene"));
+    const pair = node("div", null, "pair"); pair.append(armCard(comparison.baseline, "Previous context"), armCard(comparison.withCharacter, "With character voice and history"));
+    card.append(pair); $("pairs").append(card);
+  }
+}
+function load(value) {
+  if (value?.suite !== "voices" || !Array.isArray(value.comparisons) || !value.comparisons.length ||
+      value.comparisons.some((pair) => !pair.baseline?.request?.choices || !pair.baseline?.answer || !pair.withCharacter?.request?.choices || !pair.withCharacter?.answer))
+    throw new Error("Choose a character voice trial JSON file.");
+  trial = value; $("person").replaceChildren(node("option", "Everyone")); $("person").firstChild.value = "";
+  for (const actor of [...new Set(trial.comparisons.map((pair) => pair.baseline.request.actor))].sort()) {
+    const option = node("option", actor); option.value = actor; $("person").append(option);
+  }
+  $("error").hidden = true; render();
+}
+$("person").addEventListener("change", render); $("hide-names").addEventListener("change", render);
+$("open-trial").addEventListener("change", async (event) => {
+  try { const file = event.target.files[0]; if (file) load(JSON.parse(await file.text())); }
+  catch (error) { $("error").textContent = error.message; $("error").hidden = false; }
+});
+try { const content = $("voice-data").textContent.trim(); if (content) load(JSON.parse(content)); }
+catch (error) { $("error").textContent = error.message; $("error").hidden = false; }
+</script>
+</body>
+</html>

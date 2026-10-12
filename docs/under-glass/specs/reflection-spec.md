@@ -8,6 +8,12 @@ Implemented: quiet-time and optional waking opportunities, eleven editable dayti
 
 Not implemented: general dialogue generation, a large tagged speech library, seeking a person to fulfill an intention, long-term ambitions, or model tuning. Gifts, help and confrontation remain available. With Returns enabled, received substantial kindness can offer a thank-you; with Repair enabled, the actor's own substantial hostility can offer an apology. These alternatives reuse existing catalog mechanics. A thought cannot introduce an executable action the simulation does not support.
 
+Character context update, 2026-10-12: the optional [character inspiration pack](character-inspiration-spec.md)
+adds source-derived reusable archetypes, personal voice accents and reviewed pre-farmer history.
+Only the actor's selected relevant/general anchor reaches the generator and evaluator. It is
+private self-knowledge, creates no witnessed act/belief or opportunity, and is retained in exact
+tape receipts. The initial anchors are partial; general spoken templates remain unchanged.
+
 Broader-response update, 2026-10-09: eleven authored daytime/dream proposals and five response profiles. At most one thanks/apology option joins the three generic actions and defer/reject. Eligibility is checked at proposal time and again at execution: slice/watch switches, age, place, Fits, light caps, valid known source, source window and duplicate response. Thanks follows the believed giver, including mistaken identity. An apology identifies the actor's own completed hurt, respects Remorse eligibility and keeps the existing recipient Ask and accepted/refused consequences. Acting consumes only the matching Return/Remorse source. Reflection outcomes wait for act completion so the final apology answer is recorded.
 
 The [observer test pack](../experiments/observer-test-2026-10-09.md) prepares four 28-day recordings with optional catalog slices, settings/manifests, actual backend counts and exact tape commands. Equal seeds align starting conditions; histories diverge after different choices. Old recordings remain viewable. Tapes with enabled richer slices must match the new options/catalog; incompatible requests fail visibly.

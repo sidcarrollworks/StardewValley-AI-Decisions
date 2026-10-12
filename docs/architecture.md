@@ -34,6 +34,17 @@ recording the final outcome. The recipient's existing apology Ask still determin
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
 
+- `UnderGlass.Sim/CharacterInspiration.cs` and optional `sim/character-inspiration.json`:
+  validated reusable archetypes, named voice accents and source-keyed initial self-knowledge.
+  Configure explicitly before a run; each reflection copies only the actor's selected relevant
+  or general anchor. The generator gets voice/history; Laya gets the same history and compact
+  disposition within its text budget. Full pack hashes and immutable request snapshots protect
+  tape replay. Background is not a belief, act, social prior or source of gossip.
+- `sim/tools/export-stardew-dialogue.ps1` and `stardew_dialogue_corpus.py`: local XNB export and
+  conservative attributed corpus parsing. Runtime assemblies have no game reference. Raw assets,
+  markup, conditions and coverage stay in ignored output; committed content is derived text and
+  source references. See the [character context contract](under-glass/specs/character-inspiration-spec.md).
+
 - `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer, continuity and event records,
   `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer provider.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable

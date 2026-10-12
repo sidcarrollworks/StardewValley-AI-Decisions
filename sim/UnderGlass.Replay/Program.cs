@@ -21,6 +21,7 @@ int days = 28;
 bool inject = false;
 string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
+string? inspirationPath = null;
 string layaModel = "typed-decisions";
 string evaluationMode = "balanced";
 double reflectionChance = 0.35;
@@ -36,6 +37,7 @@ for (int i = 0; i < args.Length; i++)
     switch (args[i])
     {
         case "--reflection": reflectionMode = Next(); break;
+        case "--character-inspiration": inspirationPath = Next(); break;
         case "--laya-url": layaUrl = Next(); break;
         case "--laya-model": layaModel = Next(); break;
         case "--evaluation": evaluationMode = Next(); break;
@@ -112,6 +114,10 @@ if ((layaUrl is not null || llmUrl is not null || llmModel is not null || tapePa
     throw new ArgumentException("Model options require --reflection.");
 if (dreamChance > 0 && reflectionMode is null)
     throw new ArgumentException("Dreams require --reflection authored|laya|hybrid|tape.");
+if (inspirationPath is not null && reflectionMode is null)
+    throw new ArgumentException("Character inspiration requires --reflection authored|laya|hybrid|tape.");
+CharacterInspirationPack? inspiration = inspirationPath is null ? null
+    : CharacterInspirationPack.Read(File.ReadAllText(inspirationPath));
 var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
 {
@@ -129,7 +135,7 @@ if (reflectionMode == "tape")
         .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection }, mind);
+    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration }, mind);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);
