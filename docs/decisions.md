@@ -830,6 +830,22 @@ recorded time. This is a partial initial history and an editorial archetype inte
 not a claim of automatic canon reconstruction or established model quality. Ordinary spoken
 templates and thought/action semantic agreement need separate work.
 
+### D45. Test private wording with the intention already fixed
+
+**Decision (2026-10-12, Sid).** Distinct voice cannot be established by longer personality
+paragraphs or valid generated JSON. Compare actual character dialogue and withheld authored
+alternatives on a fixed scene, target, motive and stance. Start with Vincent, with Maru and
+George as contrasts, using two prepared gratitude plans per character.
+
+The isolated wording suite compares profile-only and dialogue-reference prompts with matching
+seeds and budgets. References select an attributed NPC node, retaining raw source, conditions,
+variant and hashes; they supply style evidence, never scene history. Authored controls stay
+outside the request. No evaluator chooses an action and no world state changes. Retain failed
+candidate prose and full receipts; report format, meaning, register and source copying separately.
+One retry may address a clearly observed prompt failure, preserving the original run. A curated
+six-case probe does not establish general model quality or justify shipping its wording into
+the simulation. See the [experiment](under-glass/experiments/voice-wording-2026-10-12.md).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

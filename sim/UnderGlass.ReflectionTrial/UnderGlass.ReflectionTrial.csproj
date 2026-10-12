@@ -9,5 +9,6 @@
     <ProjectReference Include="..\UnderGlass.Sim\UnderGlass.Sim.csproj" />
     <ProjectReference Include="..\UnderGlass.Minds\UnderGlass.Minds.csproj" />
     <EmbeddedResource Include="..\viewer\voices.html" LogicalName="voices.html" />
+    <EmbeddedResource Include="..\viewer\wording.html" LogicalName="wording.html" />
   </ItemGroup>
 </Project>

@@ -22,6 +22,9 @@ starting history, not all canonical memories or a large spoken-template library.
 pwsh -File sim/tools/export-stardew-dialogue.ps1 -OutputDirectory out/stardew-dialogue-review
 # Compare eight matched private-thought scenes; both existing local services must be running.
 dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --suite voices --character-inspiration sim/character-inspiration.json --laya-url http://127.0.0.1:8000 --llm-url http://127.0.0.1:8080 --llm-model Qwen/Qwen3-0.6B --out voices.json --report voices.md --html voices.html
+# Isolate private wording: fixed intentions, actual dialogue references, withheld authored controls.
+# Only the generator must be running. Use the corpus/manifest from your local extraction.
+dotnet run -c Release --project sim/UnderGlass.ReflectionTrial -- --suite wording --character-inspiration sim/character-inspiration.json --voice-cases sim/voice-wording-cases.json --dialogue-corpus out/stardew-dialogue-review/corpus.json --dialogue-manifest out/stardew-dialogue-review/raw-assets.json --llm-url http://127.0.0.1:8080 --llm-model Qwen/Qwen3-0.6B --out wording.json --report wording.md --html wording.html
 ```
 
 The extractor preserves an existing raw export and requires a fresh ignored output directory.
@@ -29,6 +32,10 @@ Its corpus keeps raw markup, conditions, attribution, source asset hashes and un
 Extraction is a source index, not an automatic history initializer. The voice trial samples no
 world action; its purpose is to compare private wording and inspect evaluator responses on the
 same scene. Its raw receipts still matter when a sentence sounds good.
+The wording suite is a separate generator-only experiment: it asks both arms to realize an
+already fixed plan, so a narrator summary or changed intention is a semantic failure even when
+the JSON is valid. Read the [Vincent-first probe](../docs/under-glass/experiments/voice-wording-2026-10-12.md)
+for source selection, controls, results and limitations. No runtime behavior is changed by it.
 
 **Contextual encounters:** `Encounters.cs` and `Simulation.Encounters.cs` capture supported act
 facts and self/received/witness/undergone roles, private selected motive/reflection receipts,

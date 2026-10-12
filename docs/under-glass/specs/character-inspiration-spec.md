@@ -13,6 +13,9 @@ source coverage and excluded histories. Full extracted game text stays in ignore
 The extraction tools require an installed game; the simulator and parser tests do not.
 The [live character-voice trial](../experiments/character-voice-trial-2026-10-12.md) records working
 profile integration and unresolved generated voice quality.
+The [fixed-intention wording experiment](../experiments/voice-wording-2026-10-12.md) separately
+compares profiles alone with actual source dialogue references, starting with Vincent.
+Its held-out authored controls are not model input, and the suite has no evaluator or simulation.
 
 ## Content and evidence
 
@@ -92,3 +95,15 @@ someone else. No quota of hostility or kindness establishes success. Source-deri
 are editorial hypotheses, not an objective personality extraction or proof the model uses them.
 Thought/action semantic agreement remains a separate known limitation; adding voice context does
 not fix it. Larger tagged spoken templates and deeper initial histories remain later work.
+
+`--suite wording` takes a reviewed case pack and the extracted global corpus. Each reference
+selects an exact case-sensitive record ID and NPC text node; ambiguous attribution, player/control
+nodes, parse warnings, unresolved placeholders and inconsistent sources are rejected before any
+model calls. Optional `--dialogue-manifest` checks raw text/asset hashes against the exported
+manifest, without claiming an independent audit of parser-derived wording or installed XNB files.
+All frames and prompts are frozen and validated before the first call. Both arms share the scene,
+intention, life stage, profile, seed and generation settings; only source dialogue differs.
+Background anchors and authored alternatives never enter these prompts. Failed candidate text
+remains inspectable, with no substitution. Format checks and overlap flags are technical aids;
+meaning, private form, age register and voice require human review. The comparison viewer starts
+with Vincent and shows sources, authored controls, both arms and exact requests/responses.

@@ -70,6 +70,14 @@ The optional quiet-reflection prototype is specified in
   markers reveal only their time. Clicking a marker pauses and jumps to its exact recorded minute.
 - `UnderGlass.ReflectionTrial`: paired hypothetical decisions, with an exact baseline repeat,
   to separate changes in memory, trust and line meaning from choice-label and order effects.
+  Its separate `--suite wording` fixes scene, target, intention and paired seeds, comparing
+  private wording with profiles alone or with explicitly selected actual dialogue nodes.
+  Authored controls are withheld from prompts. This suite calls only the configured loopback
+  generator; no Laya evaluation, action selection, simulation or fallback occurs. JSON retains
+  input hashes, source conditions, failed candidate prose and complete generator receipts;
+  `--html` embeds the static comparison viewer. Source-manifest checks cover exported raw
+  values and hashes; selected text remains parser-derived. Format success is separate from
+  human review of meaning and voice.
 
 `ConfigureReflection` is off by default and requires feelings and desire to be acting when
 enabled. Defaults are 30 quiet minutes, a 0.35 daily opportunity chance and three days for an

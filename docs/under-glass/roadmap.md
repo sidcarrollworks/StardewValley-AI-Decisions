@@ -60,6 +60,9 @@ starting set, not every canonical memory.
 
 The [live character-voice trial](experiments/character-voice-trial-2026-10-12.md) shows that distinct
 generated voices remain unresolved with the current small generator.
+Use the [fixed-intention wording probe](experiments/voice-wording-2026-10-12.md) to judge Vincent
+against actual dialogue and authored alternatives before changing runtime prompts or histories.
+It isolates wording from Laya decisions and preserves failed outputs.
 Review cadence, vocabulary, conflicting impulses and failures against the source. Avoid replacing
 one generic voice with a catchphrase for each character. Profiles must preserve grounded meaning
 and the Laya budget. Then fix thought/action disagreement as a separate contract, using observed

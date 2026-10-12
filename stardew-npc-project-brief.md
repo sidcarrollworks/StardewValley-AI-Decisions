@@ -26,6 +26,9 @@ The optional [character context](docs/under-glass/specs/character-inspiration-sp
 reusable archetypes, personal speech accents and reviewed pre-farmer historical anchors. These
 anchors are private self-knowledge, never fabricated witnessed events or inherited donor biography.
 They are a compact starting set; ordinary speech and complete canonical histories remain later work.
+The [fixed-intention wording probe](docs/under-glass/experiments/voice-wording-2026-10-12.md)
+compares Vincent, Maru and George against actual dialogue and withheld authored alternatives,
+separating wording from decision-making. Its results do not alter live simulation prompts.
 The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: character voice review, concrete
 encounter context and separate personal/listener appraisal next, then broader actions and tagged
 speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
