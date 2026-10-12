@@ -271,6 +271,14 @@ public static class Replay
             recording["reflections"] = JsonSerializer.SerializeToElement(r.Reflections,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
+        // Additive observer schema: v1 readers can ignore these fields. Old recordings have
+        // no appraisals and remain explicitly unclassified, never backfilled from final regard.
+        recording["encounterVersion"] = 1;
+        recording["appraisalRevision"] = EncounterAppraiser.Revision;
+        var encounterJson = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        recording["encounters"] = JsonSerializer.SerializeToElement(r.Encounters, encounterJson);
+        recording["encounterCauses"] = JsonSerializer.SerializeToElement(r.EncounterCauses, encounterJson);
+        recording["appraisals"] = JsonSerializer.SerializeToElement(r.Appraisals, encounterJson);
         return recording;
     }
 

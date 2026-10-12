@@ -570,7 +570,8 @@ public sealed partial class Simulation
         FondGave(d.Kind, chosen, h, m); // the act catalog: with Company on, Fond's one occasion gift a day
         _pursuedActs.Add(_acts.Count);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
-        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null);
+        Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null,
+            cause: new(-1, m, hn, "motive", d.Source, d.Kind.ToString()));
         return true;
     }
 
@@ -664,11 +665,17 @@ public sealed partial class Simulation
         if (kind.Affect is not { } row || row.Patient == Patient.Actor)
             return; // an act the actor undergoes (warned, taken in) is no deed of theirs
         bool hostile = row.Joy < 0, light = IsLight(kind);
-        if (kind.Affect.Target == TargetIs.Chosen)
+        // An apology answers the actor's own hurt through AnswerApology, not an
+        // unrelated deed in the opposite direction.
+        if (kind.Affect.Target == TargetIs.Chosen && kind.Name != "Apologised")
         {
             // How the target's earlier act toward the actor turned out, from both sides.
+            // A sourced thank-you settles only that encounter. Matching the pair as
+            // well as the source preserves mistaken identity without crediting a
+            // different gift or silently redirecting thanks to the true giver.
+            int? responseTo = kind.Name == "Thanked" && act.About >= 0 ? act.About : null;
             Outcome? outcome = null;
-            if (FindOpen(ti, a, LifeRole.Did, m) is { } prev)
+            if (FindOpen(ti, a, LifeRole.Did, m, responseTo) is { } prev)
             {
                 bool prevHostile = _life[prev].Hostile;
                 outcome = prevHostile && kind.Name == TurnedAway ? Outcome.Avoided
@@ -678,7 +685,7 @@ public sealed partial class Simulation
                 if (outcome is { } o)
                 {
                     SetOutcome(prev, o, m);
-                    if (FindOpen(a, ti, LifeRole.Undergone, m) is { } got)
+                    if (FindOpen(a, ti, LifeRole.Undergone, m, responseTo) is { } got)
                         SetOutcome(got, o, m);
                 }
             }
@@ -755,14 +762,15 @@ public sealed partial class Simulation
         TallyKindIn(person, other, kind, m);
     }
 
-    private int? FindOpen(int person, int other, LifeRole role, int m)
+    private int? FindOpen(int person, int other, LifeRole role, int m, int? actId = null)
     {
         if (!_openLife.TryGetValue((person, other, role), out var list))
             return null;
         for (int k = list.Count - 1; k >= 0; k--)
         {
             int idx = list[k];
-            if (_life[idx].Outcome == Outcome.Open && m - _life[idx].Tick <= _fo.OutcomeDays * Clock.MinutesPerDay)
+            if (_life[idx].Outcome == Outcome.Open && (actId is null || _life[idx].ActId == actId)
+                && m - _life[idx].Tick <= _fo.OutcomeDays * Clock.MinutesPerDay)
                 return idx;
         }
         return null;

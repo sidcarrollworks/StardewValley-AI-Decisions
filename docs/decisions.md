@@ -763,6 +763,55 @@ change; this documentation reconciliation changes no runtime defaults or simulat
 Generator quality remains under review while the world gains context; fine-tuning is not a
 prerequisite for the next milestone.
 
+### D42. Capture encounter appraisals from acquired knowledge and preserve every source event
+
+**Decision (Sid, 2026-10-09).** Build the first observer slice of D41 without changing gossip,
+feelings or act selection. `Simulation.Encounters.cs` records act facts and self-knowledge at
+beginning, then perceived accounts when a belief is acquired. It snapshots believed identities,
+source/chain/confidence and the holder's own relationship inputs before the current affect.
+Private selected motive/reflection causes live separately; witnesses do not inherit them.
+Imagination and a selected line are not proof of a feeling, intent attributed to another person,
+or successful reconciliation. Unsupported task/item/effort/cost remain unknown.
+
+An authored baseline separately explains personal significance and interest to the holder who
+learned the account. Household care, recent known hurt, strain, repetition and relevance supply
+inspectable reasons. These provisional outputs are neither a realism score nor a replacement
+for gossip selection. The legacy kind tier and reporting rules remain intact.
+
+Stories defaults to encounters and groups everyday acts by unordered pair/kind/place within
+90 minutes of the first member. Every act is selectable. Appraisals, reasons, private causes,
+evidence and group members follow the clock; old files show Context unavailable. Additive
+encounter schema 1 preserves run version 1 and model requests. Replaying the existing 91-answer
+hybrid tape gives the same hash and all previous fields except the command label.
+
+**Validation.** Eleven new .NET tests cover roles, knowledge, repeated/corroborated events,
+snapshots, private receipt links and deterministic recording. Five Node tests cover old files,
+future appraisals, reciprocal grouping and rewind. Browser checks cover household care,
+individual members, per-person reasons, private thought navigation and clock filtering.
+Concrete task context and listener-specific gossip selection remain later slices.
+
+### D43. Broader reflection responses keep their source and actual recipient answer
+
+**Decision (2026-10-09; verified 2026-10-12).** Connect thanks and apologies to the existing
+Returns/Repair catalog rather than adding parallel mechanics. Offer at most one extra response
+for a suitable source, with complete voice lines and defer/reject preserved. Eleven authored
+daytime/dream proposals cover the expanded set. Recheck switches, watch mode, age/place/Fits,
+daily light caps, source roles/windows and duplicate responses when acting. A thought cannot
+grant an ineligible act or invent a source hurt. Only the matching Return/Remorse is consumed.
+
+An apology uses the existing recipient Ask and accepted/refused consequences; reflection waits
+for the act to finish before settling. A sourced thank-you resolves only the named kindness
+and matching participants, preserving mistaken belief without redirecting settlement to a true
+giver. Apology does not resolve an unrelated reverse-pair encounter as generic returned kindness.
+Default catalog-off runs are unchanged. Enabled-slice tapes must match the expanded requests;
+older recordings remain viewable.
+
+**Validation.** Source, eligibility, cap, duplicate and outcome regressions; six-choice real
+adapter packets in raw/balanced modes fit the 1,250-character semantic budget with full lines.
+Viewer checks cover new intention labels and completion/outcome clock boundaries. The bounded
+28-day pack records settings, actual backend/fallback counts, source hashes and tape commands.
+Model grounding and private thought quality still require scene review.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

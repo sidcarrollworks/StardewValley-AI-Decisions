@@ -2,6 +2,22 @@
   "version": 1,
   "thoughts": [
     {
+      "id": "received-kindness-gratitude",
+      "perspective": "received", "tone": "kindness", "minRegard": -1, "maxRegard": 1,
+      "choice": "thank",
+      "thought": "I could tell {subject} that I noticed their kindness. Saying thank you need not promise anything more.",
+      "dreamThought": "Waking, I picture thanking {subject} for that kindness. I could put the feeling into words.",
+      "tags": ["received-kindness", "gratitude", "acknowledgment"]
+    },
+    {
+      "id": "own-hostility-apology",
+      "perspective": "own", "tone": "hostility", "minRegard": 0, "maxRegard": 1,
+      "choice": "apologise",
+      "thought": "I could apologise to {subject} for how I treated them. They may not be ready to forgive me.",
+      "dreamThought": "Waking, I picture admitting to {subject} that I regret how I treated them. I could try an apology.",
+      "tags": ["own-hostility", "regret", "apology"]
+    },
+    {
       "id": "received-kindness-reciprocity",
       "perspective": "received", "tone": "kindness", "minRegard": -0.2, "maxRegard": 1,
       "choice": "gift",
@@ -77,6 +93,8 @@
   "responses": [
     {
       "id": "received-kindness",
+      "thank": "Thank you for what you did. I wanted you to know I noticed.",
+      "quietThank": "Thank you. That mattered to me.",
       "gift": "I'd like you to have this. Thank you for what you did.",
       "quietGift": "This is for you. Your kindness stayed with me.",
       "help": "I'd like to do something kind for you too. Can I give you a hand?",
@@ -104,6 +122,8 @@
     },
     {
       "id": "own-hostility",
+      "apologise": "I'm sorry for how I treated you. You don't have to forgive me.",
+      "quietApologise": "I'm sorry for how I treated you.",
       "gift": "I regret how I treated you. I'd like you to have this.",
       "quietGift": "I don't like how I handled that. I brought you something.",
       "help": "I regret how I treated you. I'd like to help, if you'll let me.",

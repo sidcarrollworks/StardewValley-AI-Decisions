@@ -33,10 +33,13 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   waking dreams, deferred ideas revisited after new knowledge, intentions and later outcomes.
 - Built: current-moment cards, source/consequence navigation, character timeline markers and
   hover descriptions, and playback controls that remain visible while scrolling.
-- Current limits: reflection offers gift, help or confrontation, plus defer/reject. Some richer
-  actions already exist in `ActCatalog` behind switches, but reflection does not offer them.
-  Generic acts do not record what help or a gift concretely involved. Event tiers are still
-  fixed by action-kind juiciness; they are not contextual judgments of newsworthiness.
+- Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
+  and authored appraisals. Stories shows contextual reasons and groups everyday repetitions.
+- Built: reflection also offers source-specific thanks (Returns) and apologies (Repair), with
+  source/eligibility checks and actual catalog consequences. Company/comfort reflection remains planned.
+- Current limits: other richer actions exist in `ActCatalog` behind switches.
+  Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
+  by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
 - Current model limits: some generated ideas disagree with their suggested action or reverse
   remembered roles. The next work improves grounding and observability alongside the world;
   it does not wait for a perfect generator or start with fine-tuning.
@@ -45,6 +48,11 @@ See [reflection status](specs/reflection-spec.md), [implementation reference](..
 and the dated [reliability measurements](experiments/reflection-reliability-2026-10-08.md).
 
 ## 1. Concrete encounter context and event appraisal — next
+
+**First observer slice built (2026-10-09):** roles, existing causal links, separate private causes,
+perceived accounts, provisional personal/listener appraisals, reasons and everyday grouping.
+Review the prepared scenes before extending these rules. Concrete tasks/items/costs and
+listener-specific gossip selection remain; neither has been inferred from generic act names.
 
 Build [the contextual-events slice](specs/contextual-events-spec.md) around existing help, gift
 and argument events before multiplying generic headlines.
@@ -69,6 +77,11 @@ knowledge, including mistaken identities. Unsupported details are visibly absent
 those boundaries, repeated events, causal links and older recordings.
 
 ## 2. Broader actions and context-tagged speech
+
+**First response slice built (2026-10-09):** source-specific thanking and apologizing, two new
+authored daytime/dream proposals, execution rechecks and recipient outcomes. A four-run 28-day
+test pack enables the existing action catalog and records backend/settings receipts. Company,
+comfort and concrete requests remain next; the generic help/gift still has no task/item detail.
 
 Connect existing catalog actions to reflection before duplicating their mechanics. Start with
 thanking and apologizing, then company and comfort where eligibility and source facts support

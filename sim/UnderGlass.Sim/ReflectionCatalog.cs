@@ -13,7 +13,8 @@ public sealed record ReflectionCatalogEntry(string Id, string Perspective, strin
 public static class ReflectionCatalog
 {
     private sealed record Responses(string Id, string Gift, string QuietGift, string Help,
-        string QuietHelp, string Confront, string QuietConfront);
+        string QuietHelp, string Confront, string QuietConfront,
+        string? Thank = null, string? QuietThank = null, string? Apologise = null, string? QuietApologise = null);
     private sealed record Pack(int Version, IReadOnlyList<ReflectionCatalogEntry> Thoughts,
         IReadOnlyList<Responses> Responses);
     private static readonly Lazy<Pack> Content = new(Read);
@@ -58,7 +59,7 @@ public static class ReflectionCatalog
         string tone = Tone(source);
         string id = tone == "neutral" ? "neutral" : $"{(source!.OwnDeed ? "own" : "received")}-{tone}";
         Responses r = Content.Value.Responses.Single(r => r.Id == id);
-        return new Dictionary<string, string>(StringComparer.Ordinal)
+        var lines = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["gift"] = character.Expression < 0.5 ? r.QuietGift : r.Gift,
             ["help"] = character.Chattiness < 0.5 ? r.QuietHelp : r.Help,
@@ -66,6 +67,9 @@ public static class ReflectionCatalog
             ["defer"] = "I need to think about this another time.",
             ["reject"] = "No. I don't want to act on this thought.",
         };
+        if (r.Thank is not null) lines["thank"] = character.Expression < 0.5 ? r.QuietThank! : r.Thank;
+        if (r.Apologise is not null) lines["apologise"] = character.Expression < 0.5 ? r.QuietApologise! : r.Apologise;
+        return lines;
     }
 
     private static string Tone(ReflectionSourceFacts? source) => source is { Valence: > 0 } ? "kindness"
@@ -93,7 +97,7 @@ public static class ReflectionCatalog
             if (string.IsNullOrWhiteSpace(e.Id) || e.Perspective is not ("own" or "received" or "any")
                 || e.Tone is not ("kindness" or "hostility" or "neutral") || !double.IsFinite(e.MinRegard)
                 || !double.IsFinite(e.MaxRegard) || e.MinRegard < -1 || e.MaxRegard > 1 || e.MinRegard > e.MaxRegard
-                || e.Choice is not ("gift" or "help" or "confront" or "*") || !ValidTemplate(e.Thought)
+                || e.Choice is not ("gift" or "help" or "confront" or "thank" or "apologise" or "*") || !ValidTemplate(e.Thought)
                 || !ValidTemplate(e.DreamThought)
                 || e.Tags is null || e.Tags.Count == 0 || e.Tags.Any(string.IsNullOrWhiteSpace))
                 throw new InvalidDataException($"Invalid reflection catalog thought {e.Id}.");
@@ -105,6 +109,14 @@ public static class ReflectionCatalog
             || p.Responses.Any(r => new[] { r.Gift, r.QuietGift, r.Help, r.QuietHelp, r.Confront, r.QuietConfront }
                 .Any(s => string.IsNullOrWhiteSpace(s) || s.Length > 120 || s.Contains('{') || s.Contains('}'))))
             throw new InvalidDataException("Reflection catalog needs five complete, compact response profiles.");
+        foreach (Responses r in p.Responses)
+        {
+            bool Valid(string? s) => !string.IsNullOrWhiteSpace(s) && s.Length <= 100 && !s.Contains('{') && !s.Contains('}');
+            if (r.Id == "received-kindness" ? !Valid(r.Thank) || !Valid(r.QuietThank) : r.Thank is not null || r.QuietThank is not null)
+                throw new InvalidDataException("Thanks lines belong only to received kindness.");
+            if (r.Id == "own-hostility" ? !Valid(r.Apologise) || !Valid(r.QuietApologise) : r.Apologise is not null || r.QuietApologise is not null)
+                throw new InvalidDataException("Apology lines belong only to one's own hostility.");
+        }
         return p with { Thoughts = Array.AsReadOnly(p.Thoughts.Select(e => e with { Tags = Array.AsReadOnly(e.Tags.ToArray()) }).ToArray()),
             Responses = Array.AsReadOnly(p.Responses.ToArray()) };
     }

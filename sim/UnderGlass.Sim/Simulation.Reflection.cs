@@ -93,7 +93,7 @@ public sealed partial class Simulation
         double valence = _kindByName.TryGetValue(memory.Kind, out ActKind? knownKind)
             ? knownKind.Affect?.Joy ?? knownKind.Valence : 0;
         var source = new ReflectionSourceFacts(memory.Kind, memory.OwnDeed, valence, St(actor, memory.Subject));
-        var choices = ReflectionChoices(actor, source);
+        var choices = ReflectionChoices(actor, memory.Subject, source, memory.Source, m);
         if (!choices.Any(c => c.Kind.Length > 0)) return;
         _reflectedMemories.Add((actor, memory.Source));
         int h = _index[actor];
@@ -163,7 +163,7 @@ public sealed partial class Simulation
         _ => "interacted with",
     };
 
-    private List<ReflectionChoice> ReflectionChoices(string actor, ReflectionSourceFacts source)
+    private List<ReflectionChoice> ReflectionChoices(string actor, string subject, ReflectionSourceFacts source, int sourceId, int m)
     {
         var list = new List<ReflectionChoice>();
         int h = _index[actor];
@@ -173,9 +173,54 @@ public sealed partial class Simulation
         foreach (var (id, kind) in new[] { ("gift", "GaveGift"), ("help", "HelpedSomeone"), ("confront", "Argued") })
             if (_kindByName.TryGetValue(kind, out ActKind? k) && k.FitsAge(_cast[h].Age) && k.Affect?.Target == TargetIs.Chosen)
                 list.Add(new ReflectionChoice(id, kind, lines[id]));
+        foreach (var (id, kind) in new[] { ("thank", "Thanked"), ("apologise", "Apologised") })
+            if (lines.TryGetValue(id, out string? line) && _kindByName.TryGetValue(kind, out ActKind? k)
+                && ReflectionResponseFits(k, actor, subject, source, sourceId, m))
+                list.Add(new ReflectionChoice(id, kind, line));
         list.Add(new ReflectionChoice("defer", "", lines["defer"]));
         list.Add(new ReflectionChoice("reject", "", lines["reject"]));
         return list;
+    }
+
+    // These are responses to a specific known encounter, not free-standing generic kindness.
+    // Recheck at execution: a waiting plan cannot outlive its source window or repeat an
+    // apology/return the ordinary act system has already made for that same encounter.
+    private bool ReflectionResponseFits(ActKind kind, string actor, string subject,
+        ReflectionSourceFacts? source, int sourceId, int m)
+    {
+        if (kind.Name is not ("Thanked" or "Apologised")) return true;
+        if (source is null || !_kindByName.TryGetValue(source.Kind, out ActKind? known)
+            || sourceId < 0 || sourceId >= _acts.Count) return false;
+        int h = _index[actor], s = _index[subject];
+        Person p = _people[h];
+        if (!kind.FitsAge(p.V.Age) || kind.Allowed.Count > 0 && !kind.Allowed.Contains(p.Place)
+            || !Fits(kind, h, s, m) || kind.Affect?.Target != TargetIs.Chosen
+            || IsLight(kind) && LightCapReached(kind, h, m)) return false;
+        DesireKind motive;
+        if (kind.Name == "Thanked")
+        {
+            // Read the person's copied belief, including a mistaken identity. Never
+            // correct it from the true source actor when deciding whom to thank.
+            if (source.OwnDeed || source.Valence <= 0 || IsLight(known)
+                || !_beliefs[actor].TryGetValue(sourceId, out Belief? belief)
+                || belief.Source != Source.Witnessed || belief.Actor != subject || belief.Target != actor
+                || m - belief.GotTick > 7 * Clock.MinutesPerDay) return false;
+            motive = DesireKind.Return;
+        }
+        else
+        {
+            // Own deeds are known directly; a recipient cannot apologise as if they
+            // caused the remembered harm, and an apology must identify a real hurt.
+            Act hurt = _acts[sourceId];
+            if (!source.OwnDeed || source.Valence >= 0 || !IsHeavyHostile(known)
+                || hurt.Actor != actor || hurt.Target != subject || _watching.ContainsKey(sourceId)
+                || (long)m - hurt.Tick > (long)_fo.Acts.RemorseDays * Clock.MinutesPerDay
+                || St(actor, subject) < _fo.Acts.RemorseAt
+                || hurt.About >= 0 && Did(subject, hurt.About) && KindOf(_acts[hurt.About]).IsScandal) return false;
+            motive = DesireKind.Remorse;
+        }
+        return Served(_kinds, _fo, motive, source.Kind).Any(k => k.Name == kind.Name)
+            && !_acts.Any(a => a.Actor == actor && a.Target == subject && a.About == sourceId && a.Kind == kind.Name);
     }
 
     private async Task AnswerReflections(IReflectionMind mind, CancellationToken cancellationToken)
@@ -238,7 +283,7 @@ public sealed partial class Simulation
             if (t.ActId >= 0)
             {
                 LifeEvent? life = _life.LastOrDefault(l => l.Person == actor && l.ActId == t.ActId && l.Role == LifeRole.Did);
-                if (life is not null && life.Outcome != Outcome.Open)
+                if (life is not null && life.Outcome != Outcome.Open && !_watching.ContainsKey(t.ActId))
                 {
                     t.Events.Add(new(m, "outcome", $"The encounter's recorded outcome: {life.Outcome}.", t.ActId));
                     t.Finished = true;
@@ -258,6 +303,8 @@ public sealed partial class Simulation
                 || !InReach(p, other, m) || !kind.FitsAge(p.V.Age)
                 || kind.Allowed.Count > 0 && !kind.Allowed.Contains(p.Place)
                 || !Fits(kind, h, s, m) || _slotsUsed.GetValueOrDefault((h, s, Clock.Day(m))) >= _fo.SlotsPerDay
+                || IsLight(kind) && LightCapReached(kind, h, m)
+                || !ReflectionResponseFits(kind, actor, subject, t.Request.Source, t.Request.SourceActId, m)
                 || IsHeavyHostile(kind) && _lastHostile.TryGetValue((h, s), out int last)
                     && m - last < _fo.HostileCooldownDays * Clock.MinutesPerDay) continue;
             t.ActId = _acts.Count;
@@ -265,14 +312,23 @@ public sealed partial class Simulation
             _pursuedActs.Add(t.ActId);
             // The recorded thought explains this choice. Don't retrofit the strongest
             // sentiment as its cause; that can contradict the actual model decision.
-            Begin(m, kind, p, false, subject, t.Request.SourceActId, fromReflection: true);
+            Begin(m, kind, p, false, subject, t.Request.SourceActId, fromReflection: true,
+                cause: new(-1, m, actor, "reflection", t.Request.SourceActId,
+                    ReflectionId: t.Request.Id, ChoiceId: t.Choice.Id));
+            if (kind.Name is "Thanked" or "Apologised")
+            {
+                var key = (h, s, (int)(kind.Name == "Thanked" ? DesireKind.Return : DesireKind.Remorse));
+                if (_desires.TryGetValue(key, out Motive? response) && response.Source == t.Request.SourceActId)
+                    _desires.Remove(key); // settle this response's source, not a different later encounter
+            }
             t.Events.Add(new(m, "acted", $"{actor} to {subject}: “{t.Choice.Line}” ({kind.Name})", t.ActId));
             _log.Add($"{m} reflection {actor} acted {kind.Name} toward {subject} act {t.ActId} source {t.Request.SourceActId}");
         }
     }
 
     private static string PlanVerb(string kind) => kind switch
-        { "GaveGift" => "give a gift to", "HelpedSomeone" => "help", _ => "confront" };
+        { "GaveGift" => "give a gift to", "HelpedSomeone" => "help", "Thanked" => "thank",
+            "Apologised" => "apologise to", _ => "confront" };
 
     private static bool Working(Person p, int m) => p.V.Job is { } job && job.WorksOn(Clock.Weekday(m))
         && Clock.OfDay(m) >= job.Start && Clock.OfDay(m) < job.End;

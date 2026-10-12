@@ -19,18 +19,24 @@ design is in [under-glass/design.md](under-glass/design.md), current priorities 
 [under-glass/roadmap.md](under-glass/roadmap.md), and implementation/history are in
 [../sim/README.md](../sim/README.md). The sections below this one describe the Stardew mod.
 
-Next is [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md):
+The first [contextual encounter data and appraisal](under-glass/specs/contextual-events-spec.md) slice is built:
 separate event facts, private cause and perceived accounts, then personal significance and
-listener-specific interest. That contract is planned. Current `ActKind.Tier` and gossip still
-use kind juiciness, and reflection still offers gift/help/confrontation plus defer/reject.
-Catalog actions exist behind switches; connecting more of them to reflection follows context.
+listener-specific interest. Acquisition hooks snapshot believed roles, confidence, source chain,
+regard and familiarity before the current affect; private causes link real selected motives or
+reflection receipts separately. Replay adds encounter schema 1 alongside its existing version 1
+tables. Stories shows contextual labels/reasons and groups repeated everyday encounters without
+changing the simulation. Concrete activity/item/effort remain unknown. Current `ActKind.Tier` and gossip still
+use kind juiciness. Reflection offers gift/help/confrontation plus defer/reject, with source-specific
+thanks under Returns and apologies under Repair. Execution rechecks catalog/source eligibility,
+light caps and duplicate responses, consumes matching motives, and waits for act completion before
+recording the final outcome. The recipient's existing apology Ask still determines acceptance/refusal.
 
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
 
 - `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer, continuity and event records,
   `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer provider.
-- `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: nine editable
+- `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.
   A seeded draw selects a proposal. Temperament varies the complete candidate lines' voice.
@@ -89,7 +95,8 @@ reverse their meaning.
 A mistaken belief retains the believed identity: the context builder never substitutes the true
 actor. Imagination is recorded separately and never enters the belief ledger as evidence. The
 offered executable acts are giving a gift, helping and confronting where those act kinds are
-available; defer and reject are explicit alternatives. The evaluator reads the actual authored
+available, plus source-specific thanks (Returns) or apology (Repair) when eligible. Defer and reject
+are explicit alternatives. The evaluator reads the actual authored
 lines, rather than deciding a close numerical threshold in the existing desire gate.
 
 `ReflectionRequest.Source` records the remembered kind, whether the actor did or received it,
