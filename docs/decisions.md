@@ -878,6 +878,13 @@ curated cases rank the sets; they do not establish voice quality. See
 model IDs, prompts, outputs and costs. Keeping the contract and moving only the service makes the
 comparison controlled and keeps every existing test, tape rule and privacy boundary in force.
 
+**Sid's decision on the result (2026-10-12).** Haiku 5.5 with thinking off is the generator for
+hybrid recordings from here; its cost is acceptable. The pinned local service stays as the offline
+control and the shipped default, so a recording still names its generator. Imagined specifics in a
+private thought (a bit of bread, a shiny stone) may stay: the thought is imagination, not evidence.
+The open concern is an imagined detail that does not correlate with the context or with what a
+player would see; that is deferred, not dismissed.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

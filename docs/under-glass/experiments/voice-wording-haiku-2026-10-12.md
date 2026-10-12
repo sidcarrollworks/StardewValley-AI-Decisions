@@ -209,11 +209,16 @@ long run of a town. The review was model-assisted; Sid's own reading under the
 [observer protocol](observer-test-2026-10-09.md) still decides. Twenty-four replies per condition
 are too few for rates; replicates 3 and beyond are deterministic seeds if a larger run is wanted.
 
+Sid's reading of this (2026-10-12): Haiku with thinking off is the generator for hybrid recordings
+from here, at a cost he accepts; the local service stays as the offline control. Imagined items may
+stay in private thoughts; the concern he keeps for later is an imagined detail that does not fit
+the context or what a player would see.
+
 Open follow-ups, in order: give the generator a seeded order of acts and stop labelling a decision
 "reshaped" when the thought already names the chosen act (both carried from the PR #82 review);
-add the missing memory verbs when the tape contract next changes; decide whether imagined items
-belong in private thoughts; and repeat this probe with a second cloud tier only if a specific
-failure above needs it, since Haiku already clears the mechanical bar.
+add the missing memory verbs when the tape contract next changes; keep imagined details within
+what the scene and the observer could see; and repeat this probe with a second cloud tier only if
+a specific failure above needs it, since Haiku already clears the mechanical bar.
 
 ## Reproduce
 

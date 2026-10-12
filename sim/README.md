@@ -98,7 +98,7 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 14 --re
 
 The service serializes inference, rejects busy requests, bounds input/output and requests cancellation at its deadline. Raw output, seed, checkpoint revision, device and timing stay in the replay. Invalid JSON, an unavailable choice or an overlong thought produces an explicit authored fallback. A seed supports repeatability on the same runtime; use a recorded tape for exact simulation replay.
 
-The optional Claude service answers the same contract from the Anthropic API (default `claude-haiku-5-5`). It is launched per experiment, never implied, and the request text leaves the machine. Install the SDK into the sidecar environment yourself; the launcher checks for it and installs nothing. Keep the key in a file outside the checkout or in `ANTHROPIC_API_KEY`; neither is logged.
+The optional Claude service answers the same contract from the Anthropic API (default `claude-haiku-5-5`). Sid selected it, thinking off, for hybrid recordings (2026-10-12); it is still launched explicitly, never implied, and the request text leaves the machine. The local service remains the offline control: `record-observer-pack.ps1 -GeneratorUrl http://127.0.0.1:8083 -GeneratorModel claude-haiku-5-5` records a pack against it. Install the SDK into the sidecar environment yourself; the launcher checks for it and installs nothing. Keep the key in a file outside the checkout or in `ANTHROPIC_API_KEY`; neither is logged.
 
 ```powershell
 .\sidecar\.venv\Scripts\python.exe -m pip install -r sim/tools/claude-generator-requirements.txt
