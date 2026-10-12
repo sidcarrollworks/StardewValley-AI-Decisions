@@ -13,6 +13,19 @@ public sealed partial class Simulation
     private readonly HashSet<(string Actor, int Day)> _reflectionDays = new();
     private readonly HashSet<(string Actor, int Source)> _reflectedMemories = new();
     private readonly HashSet<int> _dreamSleeps = new();
+    private CharacterInspirationPack? _inspirationPack;
+    private string? _inspirationHash;
+
+    /// <summary>Configure reviewed initial self-knowledge before the run, with no changes to
+    /// acts, beliefs or social state. The caller's mutable lists are copied and frozen.</summary>
+    public void ConfigureCharacterInspiration(CharacterInspirationPack pack)
+    {
+        ArgumentNullException.ThrowIfNull(pack);
+        if (_sleeps.Count > 0) throw new InvalidOperationException("Configure character inspiration before running the simulation.");
+        CharacterInspirationPack copy = pack.CopyValidated();
+        _inspirationPack = copy;
+        _inspirationHash = copy.HashValidated();
+    }
 
     private sealed class InnerThought
     {
@@ -103,6 +116,8 @@ public sealed partial class Simulation
         string context = FormattableString.Invariant($"{actor}, age {p.V.Age}: mood {MoodOf(h):0.00}; regard for {memory.Subject} {St(actor, memory.Subject):0.00}. Bold {c.Boldness:0.00}; understanding {c.Understanding:0.00}; sensitive {c.Sensitivity:0.00}; self-regard {c.SelfRegard:0.00}; expression {c.Expression:0.00}. {phase} Choose for this person, not for a well-behaved town.");
         var request = new ReflectionRequest($"{_seed}:{m}:{actor}:{memory.Source}", m, actor,
             memory.Subject, memory.Source, memory.Text, context, choices.AsReadOnly(), source, Opportunity: opportunity);
+        if (_inspirationPack is not null)
+            request = request with { Character = _inspirationPack.Resolve(actor, memory.Subject, _seed, request.Id, _inspirationHash!) };
         if (memories[pick].Continuation.Parent is { } prior)
         {
             ReflectionContinuity? earlier = prior.Request.Continuity;

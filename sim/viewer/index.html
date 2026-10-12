@@ -2341,6 +2341,19 @@ function reflectionCard(view, openDetails) {
           c.id === view.choice ? "selected" : "", c.id === answer?.suggestedChoice ? "proposed" : ""].filter(Boolean).join(" · ") }));
     })));
   if (answer) {
+    if (request.character) {
+      const character = request.character, background = character.background;
+      detail.append(el("p", { class: "label", text: "Private voice and starting history" }),
+        el("p", { class: "data", text: `Archetype: ${character.archetypeId}` }),
+        el("p", { text: character.voice }),
+        el("p", { class: "note", text: `Evaluator disposition: ${character.evaluatorCue}` }));
+      if (background) detail.append(el("p", { text: background.text }),
+        el("p", { class: "note", text: "Reviewed initial self-knowledge. This is not a witnessed event in this run or evidence shared with another character." }),
+        el("p", { class: "data", text: `History sources: ${(background.sources ?? []).join(" · ")}` }));
+      detail.append(el("p", { class: "data", text: `Voice sources: ${(character.sources ?? []).join(" · ")}` }),
+        el("p", { class: "data", text: `Content pack: ${character.packHash}` }));
+      if (character.provenance) detail.append(el("p", { class: "note", text: character.provenance }));
+    }
     if (isWakingDream(view)) detail.append(el("p", { class: "label", text: "Dream on waking" }),
       el("p", { class: "note", text: "An imagined possibility recorded on waking; it is not a remembered encounter." }),
       el("p", { class: "data", text: `Asleep from ${when(request.opportunity.sleptAt)} · woke ${when(request.opportunity.wokeAt)}` }));

@@ -1,0 +1,264 @@
+{
+  "schema": 1,
+  "provenance": "Prepared private-wording experiment, 2026-10-12. Six hypothetical cases keep a gratitude plan fixed; nothing executes in the simulation. Life-stage categories come from installed Stardew Valley 1.6.15.24356 Data/Characters and its verified NpcAge enum, not invented canonical ages. Exact ordinary-dialogue record/node references resolve in the ignored local corpus; source text stays outside Git. Authored controls are new writing and never model input. Source care and hashes: docs/under-glass/experiments/voice-wording-2026-10-12.md.",
+  "cases": [
+    {
+      "id": "vincent-help-thanks",
+      "actor": "Vincent",
+      "lifeStage": "Child",
+      "lifeStageSource": "Data/Characters:Vincent Age=2; installed StardewValley.GameData.Characters.NpcAge.Child. A general game category, not an exact canonical age.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer helped Vincent. The help was useful and welcome. They meet again now. The task and location are unspecified. No gift, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for the useful, welcome help.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "They helped me! I wanna tell them thanks.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "That was nice of them. I'll say thank you!",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/Vincent:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Wed",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Sat",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Thu2",
+          "nodeIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "vincent-gift-thanks",
+      "actor": "Vincent",
+      "lifeStage": "Child",
+      "lifeStageSource": "Data/Characters:Vincent Age=2; installed StardewValley.GameData.Characters.NpcAge.Child. A general game category, not an exact canonical age.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer gave Vincent a gift, and Vincent liked it. They meet again now. The item and location are unspecified. No earlier help, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for a gift the character liked.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "Ooh, I like my gift! I wanna thank them.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "They gave me something nice. I'll tell them thanks!",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/Vincent:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Wed",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Sat",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Vincent:Thu2",
+          "nodeIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "maru-help-thanks",
+      "actor": "Maru",
+      "lifeStage": "Teen",
+      "lifeStageSource": "Data/Characters:Maru Age=1; installed StardewValley.GameData.Characters.NpcAge.Teen. This game category is distinct from the Under Glass prototype age; no exact canonical age is inferred.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer helped Maru. The help was useful and welcome. They meet again now. The task and location are unspecified. No gift, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for the useful, welcome help.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "I appreciated that help. I should let them know.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "It was good to have their help. I'll thank them for it.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/Maru:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:Sat2",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:fall_Wed",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:fall_Tue",
+          "nodeIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "maru-gift-thanks",
+      "actor": "Maru",
+      "lifeStage": "Teen",
+      "lifeStageSource": "Data/Characters:Maru Age=1; installed StardewValley.GameData.Characters.NpcAge.Teen. This game category is distinct from the Under Glass prototype age; no exact canonical age is inferred.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer gave Maru a gift, and Maru liked it. They meet again now. The item and location are unspecified. No earlier help, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for a gift the character liked.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "That was a nice gift. I should thank them for it.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "I like what they gave me. I'd like to say thank you.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/Maru:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:Sat2",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:fall_Wed",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/Maru:fall_Tue",
+          "nodeIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "george-help-thanks",
+      "actor": "George",
+      "lifeStage": "Adult",
+      "lifeStageSource": "Data/Characters:George Age=0; installed StardewValley.GameData.Characters.NpcAge.Adult. Characters/Dialogue/George:Sat and Fri4 establish retirement and older adulthood, without an exact age.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer helped George. The help was useful and welcome. They meet again now. The task and location are unspecified. No gift, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for the useful, welcome help.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "Well, I appreciated the help. Ought to thank them.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "They helped me. Fair enough, I'll thank them for it.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/George:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Fri",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Sat",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Mon6",
+          "nodeIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "george-gift-thanks",
+      "actor": "George",
+      "lifeStage": "Adult",
+      "lifeStageSource": "Data/Characters:George Age=0; installed StardewValley.GameData.Characters.NpcAge.Adult. Characters/Dialogue/George:Sat and Fri4 establish retirement and older adulthood, without an exact age.",
+      "subject": "Newcomer",
+      "relationship": "A familiar adult acquaintance; neither family nor an authority figure. No romance, debt, feud, or special closeness is established.",
+      "scene": "Earlier today, Newcomer gave George a gift, and George liked it. They meet again now. The item and location are unspecified. No earlier help, argument, promise, or further favor is part of this scene.",
+      "intention": {
+        "kind": "Thanked",
+        "target": "Newcomer",
+        "motive": "Gratitude for a gift the character liked.",
+        "stance": "Sincere gratitude only: no request, repayment, criticism, promise beyond expressing thanks, or change of relationship."
+      },
+      "authoredExamples": [
+        {
+          "text": "Hm. A good gift. I ought to thank them.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        },
+        {
+          "text": "I like it. I'll tell them that and give them my thanks.",
+          "note": "Freshly authored private-thought comparison, held out of model prompts. Plans to thank the same person; adds no task, item, motive, or completed thanks."
+        }
+      ],
+      "references": [
+        {
+          "recordId": "Characters/Dialogue/George:Mon",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Fri",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Sat",
+          "nodeIndex": 0
+        },
+        {
+          "recordId": "Characters/Dialogue/George:Mon6",
+          "nodeIndex": 0
+        }
+      ]
+    }
+  ]
+}

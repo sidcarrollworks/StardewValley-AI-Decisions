@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Under Glass — Fixed intention, different voices</title>
+<style>
+:root{color-scheme:dark;--bg:#191815;--panel:#25221e;--ink:#eee7dc;--muted:#bbb0a0;--line:#51483c;--accent:#f7a467;--error:#ffad9d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",Arial,sans-serif}main{max-width:1200px;margin:auto;padding:32px 24px}h1{font-size:34px;line-height:1.15;margin:12px 0}h2{font-size:24px;margin:0 0 12px}h3{font-size:17px;margin:0 0 12px}p{margin:8px 0}a{color:var(--accent)}.intro{max-width:85ch;color:var(--muted)}.meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.bar{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 18px;background:var(--panel);border:1px solid var(--line);margin:24px 0}.bar label{display:flex;gap:8px;align-items:center}select,input{font:inherit;color:var(--ink);background:var(--bg)}input[type=file]{max-width:250px;font-size:13px}select{padding:5px}.case{margin:24px 0 36px;padding-top:20px;border-top:1px solid var(--line)}.frame{padding:14px 18px;border-left:3px solid var(--accent);background:var(--panel)}.controls{padding:14px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.arm{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--panel)}.sample+.sample{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}blockquote{margin:8px 0 12px;font-size:19px;line-height:1.5}details{margin:12px 0}summary{cursor:pointer;color:var(--accent)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 Consolas,monospace;padding:12px;background:var(--bg)}.error{color:var(--error)}.reference{padding:12px 0;border-bottom:1px solid var(--line)}.reference blockquote{font-size:16px}.guide{font-size:14px;color:var(--muted);max-width:90ch}ul{padding-left:22px}button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}@media(max-width:760px){main{padding:20px 14px}.grid{grid-template-columns:1fr}h1{font-size:28px}.bar{gap:12px}}
+</style>
+</head>
+<body><main>
+<a href="../../sim/viewer/morning.html">Under Glass recordings</a>
+<h1>Fixed intention, different voices</h1>
+<p class="intro">The scene and intended action stay fixed. The same generator writes private thoughts with a character profile, then with actual character dialogue added as wording references. Authored alternatives give us something to judge against.</p>
+<p class="guide">Read for meaning first: does the thought still plan the same act, for the same person and reason? Then compare rhythm, vocabulary and attitude with the source. Valid JSON is a format check. It says nothing about whether this sounds like Vincent, Maru or George.</p>
+<div class="bar"><label>Character <select id="person"><option value="">Everyone</option></select></label><label><input id="hide-names" type="checkbox"> Hide names in thoughts</label><label>Open trial JSON <input id="open-trial" type="file" accept=".json,application/json"></label></div>
+<p id="receipt" class="meta">Open a wording trial JSON file, or use a prepared comparison.</p>
+<p id="error" class="error" role="alert" hidden></p>
+<div id="cases"></div>
+<p class="guide">These are hypothetical wording exercises. Dialogue conditions remain attached to the references; their events are not character memories or facts in the prepared scene. No Laya judgment, sampled action or world change occurs. Authored alternatives are kept out of generator requests. Failed replies remain visible and are never replaced with authored text.</p>
+</main>
+<script id="wording-data" type="application/json"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let trial = null;
+function node(tag, text, className) { const n = document.createElement(tag); if(text !== undefined && text !== null)n.textContent=text;if(className)n.className=className;return n; }
+function detail(title, value) { const d=node("details");d.append(node("summary",title),node("pre",typeof value==="string"?value:JSON.stringify(value,null,2)));return d; }
+function shown(text, actor) { return $("hide-names").checked ? String(text).split(actor).join("[character]") : text; }
+function exactSeed(o) { return typeof o.seed==="string" ? o.seed : o.prompt?.match(/"seed"\s*:\s*(\d+)(?=\s*[,}])/)?.[1] ?? (Number.isSafeInteger(o.seed)?String(o.seed):"exact seed unavailable"); }
+function referenceCard(ref) {
+ const card=node("div",null,"reference");card.append(node("blockquote",ref.text),node("p",`${ref.source.asset} · ${ref.source.key} · node ${ref.nodeIndex}`,"meta"));
+ card.append(detail("Source conditions and attribution",{speaker:ref.speaker,attribution:ref.attribution,conditions:ref.conditions,nodeConditions:ref.nodeConditions,variant:ref.variant,gameVersion:ref.source.gameVersion,assetSha256:ref.source.sha256,rawSourceManifestVerified:ref.rawSourceManifestVerified,textDerivation:ref.textDerivation,nodeRaw:ref.nodeRaw,raw:ref.raw}));return card;
+}
+function armCard(c, role, title) {
+ const card=node("section",null,"arm");card.append(node("h3",title));
+ for(const o of c.observations.filter(o=>o.role===role)) {
+  const sample=node("div",null,"sample");sample.append(node("p",`Sample ${o.replicate} · matching seed ${exactSeed(o)}`,"meta"));
+  const candidate=o.thought??o.candidateThought;
+  if(candidate)sample.append(node("blockquote",shown(candidate,c.definition.actor)));
+  if(o.error)sample.append(node("p",`Failed reply: ${o.error}`,"error"));
+  sample.append(node("p",`${o.formatValid?"Format valid; meaning and voice require review":"Format failed"} · ${(o.elapsedMilliseconds/1000).toFixed(2)} s`,"meta"));
+  if(o.copyFlags?.length)sample.append(node("p",`Source overlap flag: ${o.copyFlags.map(flag=>`${flag.match} (${flag.referenceId})`).join("; ")}`,"error"));
+  const receipt=o.receipt?{...o.receipt,seed:exactSeed({seed:o.receipt.seed,prompt:o.rawResponse})}:null;
+  sample.append(detail("Exact generator request",o.prompt),detail("Raw response and service receipt",{rawResponse:o.rawResponse,receipt}));card.append(sample);
+ }return card;
+}
+function render() {
+ $("cases").replaceChildren();if(!trial)return;
+ $("receipt").textContent=`${trial.cases.length} scenes · ${trial.answerCount} requests · ${trial.failureCount} failed replies · ${trial.copyFlagCount} source-overlap flags · ${trial.model} · ${trial.promptVersion??"json-frame-v1"} · corpus ${trial.gameVersion}`;
+ for(const c of trial.cases) {
+  const f=c.definition;if($("person").value&&f.actor!==$("person").value)continue;
+  const card=node("article",null,"case");card.append(node("h2",$("hide-names").checked?f.id:`${f.actor} · ${f.id}`));
+  const frame=node("div",null,"frame");frame.append(node("p",shown(f.scene,f.actor)),node("p",`Fixed intention: ${f.intention.kind} → ${f.intention.target}. ${f.intention.motive}. ${f.intention.stance}.`),node("p",`${f.lifeStage} · ${f.relationship}`,"meta"));card.append(frame);
+  const controls=node("div",null,"controls");controls.append(node("h3","Authored alternatives · never sent to the model"));
+  for(const example of f.authoredExamples)controls.append(node("blockquote",shown(example.text,f.actor)),node("p",example.note,"meta"));card.append(controls);
+  const refs=node("details");refs.append(node("summary",`${f.actor}’s actual dialogue · ${c.references.length} references`));
+  c.references.forEach(ref=>refs.append(referenceCard(ref)));card.append(refs);
+  const arms=node("div",null,"grid");arms.append(armCard(c,"profile-only","Profile only"),armCard(c,"dialogue-reference","Profile + actual dialogue"));card.append(arms);
+  card.append(detail("Fixed context and input hashes",{definition:f,voice:c.voice,voiceSources:c.voiceSources,packHash:trial.packHash,profilePackHash:trial.profilePackHash,corpusHash:trial.corpusHash,gameAssemblySha256:trial.gameAssemblySha256}));$("cases").append(card);
+ }
+}
+function load(value) {
+ if(value?.suite!=="wording"||!Array.isArray(value.cases)||!value.cases.length||value.cases.some(c=>!c.definition?.actor||!c.definition?.intention||!Array.isArray(c.definition.authoredExamples)||!Array.isArray(c.references)||!Array.isArray(c.observations)))throw new Error("Choose a fixed-intention wording trial JSON file.");
+ trial=value;$("person").replaceChildren(node("option","Everyone"));$("person").firstChild.value="";
+ for(const actor of [...new Set(trial.cases.map(c=>c.definition.actor))].sort((a,b)=>a==="Vincent"?-1:b==="Vincent"?1:a.localeCompare(b))) { const option=node("option",actor);option.value=actor;$("person").append(option); }
+ $("person").value=trial.cases.some(c=>c.definition.actor==="Vincent")?"Vincent":"";$("error").hidden=true;render();
+}
+$("person").addEventListener("change",render);$("hide-names").addEventListener("change",render);
+$("open-trial").addEventListener("change",async event=>{try{const file=event.target.files[0];if(file)load(JSON.parse(await file.text()));}catch(error){$("error").textContent=error.message;$("error").hidden=false;}});
+try{const data=$("wording-data").textContent.trim();if(data)load(JSON.parse(data));}catch(error){$("error").textContent=error.message;$("error").hidden=false;}
+</script></body></html>

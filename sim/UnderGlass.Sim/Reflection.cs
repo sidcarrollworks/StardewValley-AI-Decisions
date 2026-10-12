@@ -40,7 +40,9 @@ public sealed record ReflectionOpportunity(string Kind, int SleptAt, int WokeAt)
 public sealed record ReflectionRequest(string Id, int Tick, string Actor, string Subject, int SourceActId,
     string Memory, string Context, IReadOnlyList<ReflectionChoice> Choices,
     ReflectionSourceFacts? Source = null, ReflectionProposal? Proposal = null, ReflectionContinuity? Continuity = null,
-    ReflectionOpportunity? Opportunity = null);
+    ReflectionOpportunity? Opportunity = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    CharacterInspiration? Character = null);
 
 /// <summary>One independently inspectable evaluator pass, including its temporary-label mapping
 /// back to the engine's offered choices. Multiple passes do not mean multiple acceptance draws.</summary>
@@ -101,6 +103,7 @@ public sealed class RecordedReflectionMind : IReflectionMind
             || record.Request.Source != request.Source || !SameProposal(record.Request.Proposal, request.Proposal)
             || record.Request.Continuity != request.Continuity
             || record.Request.Opportunity != request.Opportunity
+            || !CharacterInspirationPack.Same(record.Request.Character, request.Character)
             || !record.Request.Choices.SequenceEqual(request.Choices))
             throw new InvalidOperationException($"Reflection tape does not match request {request.Id}. Use the same seed, town and options.");
         return Task.FromResult(record.Answer);

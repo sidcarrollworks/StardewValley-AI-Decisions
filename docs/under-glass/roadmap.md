@@ -1,6 +1,6 @@
 # Under Glass: current development roadmap
 
-Updated 2026-10-09 after Sid reviewed the authored, Laya and local-generator recordings.
+Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices.
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -10,8 +10,8 @@ The Stardew mod has its own [roadmap](../spec/roadmap.md) and policies.
 
 The first product is an in-depth social simulation watched from above. An observer can follow
 what a person knows, imagines, chooses, attempts and experiences. Player gameplay comes later.
-Sid finds the reflection recordings promising, including local inspiration plus Laya. Continue
-that direction while making encounters more specific and expanding what people can actually do.
+Sid selected local inspiration plus Laya as the development direction. Continue
+that direction while making people distinct, encounters more specific and expanding what people can actually do.
 Working integration and positive scene review do not settle every model-quality question.
 
 Ordinary language is authored, editable and tagged for archetype, mood, purpose and context.
@@ -31,6 +31,8 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   optional act-catalog slices, recorded runs and an observer dashboard.
 - Built, opt-in: contextual authored inspiration, a local generative provider, Laya evaluation,
   waking dreams, deferred ideas revisited after new knowledge, intentions and later outcomes.
+- Built, opt-in: reviewed initial self-knowledge and source-derived private voice context,
+  separate from witnessed memories; reusable archetypes carry no donor biography.
 - Built: current-moment cards, source/consequence navigation, character timeline markers and
   hover descriptions, and playback controls that remain visible while scrolling.
 - Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
@@ -47,7 +49,26 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
 See [reflection status](specs/reflection-spec.md), [implementation reference](../../sim/README.md)
 and the dated [reliability measurements](experiments/reflection-reliability-2026-10-08.md).
 
-## 1. Concrete encounter context and event appraisal — next
+## Immediate: distinct private voices and reliable interpretation
+
+Use the [character inspiration slice](specs/character-inspiration-spec.md) to review the same
+known scenes with profiles disabled/enabled. The baseline is each person's established history
+before the farmer arrives. Read the full extracted dialogue as voice evidence, retain source
+coverage/conditions, and seed only individually reviewed historical anchors. Generic descendants
+reuse tendencies and voice; named histories are not inherited. Current anchors are a compact
+starting set, not every canonical memory.
+
+The [live character-voice trial](experiments/character-voice-trial-2026-10-12.md) shows that distinct
+generated voices remain unresolved with the current small generator.
+Use the [fixed-intention wording probe](experiments/voice-wording-2026-10-12.md) to judge Vincent
+against actual dialogue and authored alternatives before changing runtime prompts or histories.
+It isolates wording from Laya decisions and preserves failed outputs.
+Review cadence, vocabulary, conflicting impulses and failures against the source. Avoid replacing
+one generic voice with a catchphrase for each character. Profiles must preserve grounded meaning
+and the Laya budget. Then fix thought/action disagreement as a separate contract, using observed
+failure scenes. This does not postpone concrete encounters or broader actions until models are perfect.
+
+## 1. Concrete encounter context and event appraisal
 
 **First observer slice built (2026-10-09):** roles, existing causal links, separate private causes,
 perceived accounts, provisional personal/listener appraisals, reasons and everyday grouping.

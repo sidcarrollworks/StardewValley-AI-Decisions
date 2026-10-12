@@ -812,6 +812,40 @@ Viewer checks cover new intention labels and completion/outcome clock boundaries
 28-day pack records settings, actual backend/fallback counts, source hashes and tape commands.
 Model grounding and private thought quality still require scene review.
 
+### D44. Reusable voices and personal starting histories are separate private context
+
+**Decision (2026-10-12).** Sid selected hybrid and the pre-farmer backstory baseline. Read the
+installed game's dialogue corpus to derive generic drives, coping and cadence; named profiles
+add personal accents and individually reviewed source-keyed historical anchors. Conditional
+dialogue is voice evidence, never automatic proof its event occurred. Do not copy named donor
+biographies into future people or invent dates/episodes to make them feel experienced.
+
+The explicit optional pack freezes content and hashes all source references/history. Reflection
+copies one owner-only relevant/general anchor; no anchor creates an act, belief, feeling, gossip,
+regard prior or opportunity. The generator and evaluator share the selected anchor, with compact
+voice cues for Laya. Required facts and complete candidate lines are preserved or the adapter
+falls back visibly. Profile-off requests/prompts preserve compatibility. Exact tapes reject
+changed profile content. Observer details expose supplied context/provenance at the thought's
+recorded time. This is a partial initial history and an editorial archetype interpretation,
+not a claim of automatic canon reconstruction or established model quality. Ordinary spoken
+templates and thought/action semantic agreement need separate work.
+
+### D45. Test private wording with the intention already fixed
+
+**Decision (2026-10-12, Sid).** Distinct voice cannot be established by longer personality
+paragraphs or valid generated JSON. Compare actual character dialogue and withheld authored
+alternatives on a fixed scene, target, motive and stance. Start with Vincent, with Maru and
+George as contrasts, using two prepared gratitude plans per character.
+
+The isolated wording suite compares profile-only and dialogue-reference prompts with matching
+seeds and budgets. References select an attributed NPC node, retaining raw source, conditions,
+variant and hashes; they supply style evidence, never scene history. Authored controls stay
+outside the request. No evaluator chooses an action and no world state changes. Retain failed
+candidate prose and full receipts; report format, meaning, register and source copying separately.
+One retry may address a clearly observed prompt failure, preserving the original run. A curated
+six-case probe does not establish general model quality or justify shipping its wording into
+the simulation. See the [experiment](under-glass/experiments/voice-wording-2026-10-12.md).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

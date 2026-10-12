@@ -228,13 +228,26 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             opportunity = request.Opportunity?.Kind ?? "quiet",
             choices = request.Choices.Where(c => c.Kind.Length > 0).Select(c => new { id = c.Id, kind = c.Kind }),
         };
+        string contextJson = JsonSerializer.Serialize(context);
+        if (request.Character is { } character)
+        {
+            instructions += " The supplied voice describes this actor's private cadence and conflicting tendencies, not a script to repeat. "
+                + "Use ordinary words they would use; avoid generic counseling language, trait summaries and forced catchphrases. "
+                + "Initial self-knowledge is this actor's reviewed background, not a new encounter or knowledge shared by the subject. "
+                + "Let it matter only when relevant to this scene; do not recite it or turn it into a new event.";
+            var enriched = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(contextJson)!;
+            enriched["privateVoice"] = JsonSerializer.SerializeToElement(character.Voice);
+            if (character.Background is { } background)
+                enriched["initialSelfKnowledge"] = JsonSerializer.SerializeToElement(background.Text);
+            contextJson = JsonSerializer.Serialize(enriched);
+        }
         return JsonSerializer.Serialize(new
         {
             model = _options.GenerationModel,
             messages = new[]
             {
                 new { role = "system", content = instructions },
-                new { role = "user", content = JsonSerializer.Serialize(context) },
+                new { role = "user", content = contextJson },
             },
             temperature = 0.7,
             seed = BinaryPrimitives.ReadInt32LittleEndian(SHA256.HashData(Encoding.UTF8.GetBytes(request.Id))) & int.MaxValue,
@@ -246,6 +259,7 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
 
     private string BuildLayaPrompt(ReflectionRequest request, string thought)
     {
+        if (request.Character is not null) return BuildCharacterLayaPrompt(request, thought);
         // The user's 1250-character working limit counts all semantic text: state,
         // instructions, labels and descriptions. JSON punctuation/field names are not text.
         // Preserve all candidate IDs, act kinds and actual lines. Reserve both character
@@ -277,6 +291,42 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             state,
             model = _options.LayaModel,
             questions = new Dictionary<string, object> { ["q"] = question },
+        });
+    }
+
+    private string BuildCharacterLayaPrompt(ReflectionRequest request, string thought)
+    {
+        // A compact framing leaves room for the SAME personal anchor used by the generator.
+        // Never truncate an anchor, candidate line, current idea or prior idea to make it fit.
+        const string instructions = "Choose for this person. Read every line. Ideas aren't evidence. Reject or delay is valid.";
+        CharacterInspiration character = request.Character!;
+        var criteria = request.Choices.ToDictionary(c => c.Id,
+            c => $"{(c.Kind.Length == 0 ? "no act" : c.Kind)}: {c.Line}", StringComparer.Ordinal);
+        string state = $"{request.Actor} about {request.Subject}.\nPrivate idea: {thought}\nDisposition: {character.EvaluatorCue}";
+        if (character.Background is { } background) state += "\nInitial own history: " + background.Text;
+        if (request.Opportunity is { Kind: "dream" }) state += "\nWaking dream idea; not an event.";
+        if (request.Continuity is { } continuity)
+            state += $"\nPrior idea: {continuity.PriorThought}\nNew knowledge: {continuity.Reason}";
+        const string contextLabel = "\nNow: ", memoryLabel = "\nKnown encounter: ";
+        string compactContext = request.Context
+            .Replace($"{request.Actor}, ", "", StringComparison.Ordinal)
+            .Replace($"regard for {request.Subject}", "regard", StringComparison.Ordinal)
+            .Replace("Newly awake from sleep. An imagined possibility from an earlier known encounter, not a witnessed dream event.", "", StringComparison.Ordinal)
+            .Replace("Quiet free time.", "", StringComparison.Ordinal)
+            .Replace("Choose for this person, not for a well-behaved town.", "", StringComparison.Ordinal).Trim();
+        int fixedChars = instructions.Length + criteria.Sum(c => c.Key.Length + c.Value.Length) + state.Length
+            + contextLabel.Length + memoryLabel.Length;
+        int requiredContext = Math.Min(compactContext.Length, 100), requiredMemory = Math.Min(request.Memory.Length, 100);
+        int available = LayaTextLimit - fixedChars;
+        if (available < requiredContext + requiredMemory)
+            throw new InvalidDataException($"Required personal history, disposition, context, memory, ideas and complete candidate lines exceed Laya's {LayaTextLimit}-character limit.");
+        string context = Cut(compactContext, Math.Min(260, available - requiredMemory));
+        state += contextLabel + context + memoryLabel + Cut(request.Memory, available - context.Length);
+        return JsonSerializer.Serialize(new
+        {
+            state,
+            model = _options.LayaModel,
+            questions = new Dictionary<string, object> { ["q"] = new { type = "choice", instructions, criteria } },
         });
     }
 

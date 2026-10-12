@@ -9,6 +9,8 @@ namespace UnderGlass.Sim;
 public sealed record ReplayOptions
 {
     public ReflectionOptions Reflection { get; init; } = new();
+    /// <summary>Optional reviewed private voice and background. Never loaded implicitly.</summary>
+    public CharacterInspirationPack? CharacterInspiration { get; init; }
     public long Seed { get; init; } = 1;
     public int Days { get; init; } = 28;
     /// <summary>The town to run; the default town when null.</summary>
@@ -53,6 +55,7 @@ public static class Replay
     public static async Task<Dictionary<string, object?>> RecordAsync(ReplayOptions o, IReflectionMind mind,
         CancellationToken cancellationToken = default)
     {
+        CharacterInspirationPack? inspirationPack = o.CharacterInspiration?.CopyValidated();
         TownData given = o.Town ?? TownData.Default();
         FeelingOptions feelings = o.Feelings ?? given.Feelings;
         // The act catalog's rows and cards for the slices that are on, added as the runner adds them
@@ -69,6 +72,11 @@ public static class Replay
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         sim.ConfigureReflection(o.Reflection);
+        if (inspirationPack is not null)
+        {
+            if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
+            sim.ConfigureCharacterInspiration(inspirationPack);
+        }
         foreach (var (who, trait, value) in o.Traits)
             sim.SetTrait(who, trait, value);
 
@@ -271,6 +279,9 @@ public static class Replay
             recording["reflections"] = JsonSerializer.SerializeToElement(r.Reflections,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
+        if (inspirationPack is { } inspiration)
+            recording["characterInspiration"] = new { schema = inspiration.Schema,
+                hash = inspiration.ContentHash, provenance = inspiration.Provenance };
         // Additive observer schema: v1 readers can ignore these fields. Old recordings have
         // no appraisals and remain explicitly unclassified, never backfilled from final regard.
         recording["encounterVersion"] = 1;
