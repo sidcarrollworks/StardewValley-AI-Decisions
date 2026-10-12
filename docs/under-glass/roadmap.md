@@ -59,7 +59,11 @@ reuse tendencies and voice; named histories are not inherited. Current anchors a
 starting set, not every canonical memory.
 
 The [live character-voice trial](experiments/character-voice-trial-2026-10-12.md) shows that distinct
-generated voices remain unresolved with the current small generator.
+generated voices remain unresolved with the current small generator. A [first run with Claude
+Haiku 5.5](experiments/voice-wording-haiku-2026-10-12.md) behind the same loopback contract kept
+plan, private form and register on the wording probe and agreed with its own suggested act in a
+hybrid week; it also showed pet phrases and invented small details. It is an opt-in comparison
+point, not a new default, and Sid's own scene review still decides.
 Use the [fixed-intention wording probe](experiments/voice-wording-2026-10-12.md) to judge Vincent
 against actual dialogue and authored alternatives before changing runtime prompts or histories.
 It isolates wording from Laya decisions and preserves failed outputs.

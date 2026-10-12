@@ -98,6 +98,19 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 14 --re
 
 The service serializes inference, rejects busy requests, bounds input/output and requests cancellation at its deadline. Raw output, seed, checkpoint revision, device and timing stay in the replay. Invalid JSON, an unavailable choice or an overlong thought produces an explicit authored fallback. A seed supports repeatability on the same runtime; use a recorded tape for exact simulation replay.
 
+The optional Claude service answers the same contract from the Anthropic API (default `claude-haiku-5-5`). It is launched per experiment, never implied, and the request text leaves the machine. Install the SDK into the sidecar environment yourself; the launcher checks for it and installs nothing. Keep the key in a file outside the checkout or in `ANTHROPIC_API_KEY`; neither is logged.
+
+```powershell
+.\sidecar\.venv\Scripts\python.exe -m pip install -r sim/tools/claude-generator-requirements.txt
+# --contract reflection for replay/voices (thought + suggestedChoice); wording for the wording suite (thought only).
+.\sim\run-claude-generator.ps1 -Contract reflection -Port 8083 -ApiKeyFile $env:USERPROFILE\.anthropic\api-key.txt -Verify
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --reflection hybrid --dreams --llm-url http://127.0.0.1:8083 --llm-model claude-haiku-5-5 --character-inspiration sim/character-inspiration.json --out out/hybrid-haiku.json --html hybrid-haiku.html
+# Offline contracts: no SDK, key or network.
+.\sidecar\.venv\Scripts\python.exe -m unittest discover -s tests -p test_claude_generator.py
+```
+
+Haiku 5.5 takes no temperature, top_p or seed; the service records what was requested, echoes the seed for the receipt and marks it unhonoured, so only a tape reproduces a run. Thinking is off by default to match the Qwen setup; `-Thinking adaptive -Effort medium` is the second recorded condition. The [recorded comparison](../docs/under-glass/experiments/voice-wording-haiku-2026-10-12.md) keeps plan and private form far better than the 0.6B model on the wording probe and agrees with its own suggested act in the loop, with its own faults (pet phrases per character, addressed speech when thinking is on, invented small details) written down beside the numbers.
+
 The generator receives remembered source roles and allowed act types; Laya receives the full spoken lines. A [controlled probe](../docs/under-glass/experiments/reflection-generator-order-2026-10-08.md) found that removing dialogue inputs reduced copying, but some ideas still contradict their suggested act or known memory. Structural validation cannot catch those semantic failures. Hybrid is an experiment; compare it with the authored and Laya recordings.
 
 Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.

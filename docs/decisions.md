@@ -846,6 +846,38 @@ One retry may address a clearly observed prompt failure, preserving the original
 six-case probe does not establish general model quality or justify shipping its wording into
 the simulation. See the [experiment](under-glass/experiments/voice-wording-2026-10-12.md).
 
+### D46. A cloud generator is an opt-in behind the same loopback contract, never a default
+
+**Decision (2026-10-12, Sid asked to try Claude Haiku 5.5 as the inspiration generator).** Add a
+second generator service, `sim/tools/claude_generator.py`, that answers the Qwen service's
+chat-completions contract from the Anthropic API through the official SDK. The .NET adapter,
+the trial suites, the prompts and the loopback rule are unchanged: the adapter still talks only
+to `127.0.0.1`, carries no credentials, and tells the services apart through the receipt. The
+launched `--contract` selects a structured-output schema so a reply has exactly the fields the
+caller checks. Sampling parameters and the seed are accepted for compatibility, not forwarded,
+echoed for the receipt and declared unhonoured in every reply; exact replay is tape-only.
+Credentials come from the environment or a key file outside the checkout and are never logged.
+
+**Boundary.** This is the first path by which scene text leaves the machine: the generator
+request (context, memory, known-source facts, act kinds, composed voice, one anchor, and in the
+wording suite's reference arm the selected dialogue excerpts). Candidate lines, the evaluator cue,
+hashes and request IDs do not go. The service runs only when launched for an experiment; the
+pinned local service remains the default and the runtime defaults are untouched. A declined
+request arrives with its real stop reason rather than as a thought.
+
+**First measurements.** On the fixed-intention probe Haiku with thinking off passed 18 of 24 under
+a blind three-judge review that passed all 12 authored controls and none of Qwen's 24; it copied
+no source dialogue and its three voices were told apart 22 of 24 times. In a seven-day hybrid
+week it agreed with its own suggested act in 48 of 64 thoughts and contradicted it in none, where
+the profile-matched Qwen week was 19 and 31 of 62. It also showed pet phrases per character,
+addressed speech with thinking on, and invented small details. Model-assisted review and six
+curated cases rank the sets; they do not establish voice quality. See
+[the experiment](under-glass/experiments/voice-wording-haiku-2026-10-12.md).
+
+**Why.** The roadmap asks for generator comparisons with the evaluator held fixed and records of
+model IDs, prompts, outputs and costs. Keeping the contract and moving only the service makes the
+comparison controlled and keeps every existing test, tape rule and privacy boundary in force.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
