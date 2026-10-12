@@ -165,17 +165,29 @@ public sealed class RecordedReflectionMind : IReflectionMind
     public Task<ReflectionAnswer> ReflectAsync(ReflectionRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!_records.TryGetValue(request.Id, out ReflectionRecord? record)
-            || record.Request.Tick != request.Tick || record.Request.Actor != request.Actor
-            || record.Request.Subject != request.Subject || record.Request.SourceActId != request.SourceActId
-            || record.Request.Memory != request.Memory || record.Request.Context != request.Context
-            || record.Request.Source != request.Source || !SameProposal(record.Request.Proposal, request.Proposal)
-            || record.Request.Continuity != request.Continuity
-            || record.Request.Opportunity != request.Opportunity
-            || !CharacterInspirationPack.Same(record.Request.Character, request.Character)
-            || !SameScene(record.Request.Scene, request.Scene)
-            || !record.Request.Choices.SequenceEqual(request.Choices))
-            throw new InvalidOperationException($"Reflection tape does not match request {request.Id}. Use the same seed, town and options.");
+        if (!_records.TryGetValue(request.Id, out ReflectionRecord? record))
+            throw new InvalidOperationException($"Reflection tape does not match request {request.Id}: no recorded answer. Use the same seed, town and options.");
+        // Name what differs: a tape from before a request-shape change should say so, not
+        // send its reader hunting for a seed or a town that are in fact the same.
+        ReflectionRequest r = record.Request;
+        var differs = new List<string>();
+        if (r.Tick != request.Tick) differs.Add("tick");
+        if (r.Actor != request.Actor) differs.Add("actor");
+        if (r.Subject != request.Subject) differs.Add("subject");
+        if (r.SourceActId != request.SourceActId) differs.Add("source act");
+        if (r.Memory != request.Memory) differs.Add("memory text");
+        if (r.Context != request.Context) differs.Add("context");
+        if (r.Source != request.Source) differs.Add("source facts");
+        if (!SameProposal(r.Proposal, request.Proposal)) differs.Add("authored proposal");
+        if (r.Continuity != request.Continuity) differs.Add("continuity");
+        if (r.Opportunity != request.Opportunity) differs.Add("opportunity");
+        if (!CharacterInspirationPack.Same(r.Character, request.Character)) differs.Add("character context");
+        if (!SameScene(r.Scene, request.Scene))
+            differs.Add(r.Scene is null ? "scene (the recording predates scene context)"
+                : request.Scene is null ? "scene (the request carries none)" : "scene");
+        if (!r.Choices.SequenceEqual(request.Choices)) differs.Add("candidate lines");
+        if (differs.Count > 0)
+            throw new InvalidOperationException($"Reflection tape does not match request {request.Id}: {string.Join(", ", differs)} differ. Use the same seed, town, options and source version.");
         return Task.FromResult(record.Answer);
     }
 

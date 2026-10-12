@@ -124,7 +124,55 @@ public class ReflectionSceneContextTests
         Assert.Equal("Cara", q.Subject);
         // Bob and Cara share a household in this town; Ann, the true giver, is a stranger to Bob.
         Assert.Equal("household", q.Scene!.Relationship);
-        Assert.DoesNotContain("Ann", q.Scene.Summary);
+    }
+
+    [Fact]
+    public async Task SceneRelationshipFollowsTheBelievedSubjectNotTheTrueActor()
+    {
+        // Bob knows Ann well and Cara not at all, yet believes Cara gave the gift: the scene must
+        // say "stranger". Reading the true actor would say "close".
+        Villager bob = Person("Bob", 5) with { Temperament = new Temperament(1, 0.9, 0.5, 0.2) };
+        TownData town = Town(Person("Ann", 3), bob, Person("Cara", 30)) with
+        {
+            Perception = new PerceptionOptions { KnowWhoStranger = 2, KnowWhoPerFamiliarity = 0 },
+            Familiarity = new[] { ("Bob", "Ann", 0.9), ("Bob", "Cara", 0.1) },
+        };
+        town.Feelings.Start = new Dictionary<(string, string), double> { [("Bob", "Cara")] = -1 };
+        town.Feelings.GuessPerHate = 100_000;
+        var sim = new Simulation(1, town);
+        sim.Place(new[] { new Scenario("misidentified", "GaveGift", "Ann", "Bob", Day: 0, From: Clock.At(10), To: Clock.At(10) + 1) });
+        sim.ConfigureReflection(Enabled());
+        var mind = new Mind();
+        SimResult r = await sim.RunAsync(1, mind);
+
+        Assert.Equal("Cara", r.Beliefs["Bob"][0].Actor);
+        ReflectionRequest q = Assert.Single(mind.Requests, q => q.Actor == "Bob");
+        Assert.Equal("Cara", q.Subject);
+        Assert.Equal("stranger", q.Scene!.Relationship);
+        Assert.Contains("; stranger;", q.Scene.Summary);
+    }
+
+    [Fact]
+    public async Task HomesAreWordedFromTheActorsSide()
+    {
+        // The one room is Ann's home. Ann is "home"; Bob, from another household, is at "Ann's home".
+        TownData town = Town() with
+        {
+            Cast = new[] { Person("Ann", 3) with { Haunts = new[] { new Haunt("Home:Ann", new Tile(3, 2), 0, Day, 1) } },
+                           Person("Bob", 5) with { Haunts = new[] { new Haunt("Home:Ann", new Tile(5, 2), 0, Day, 1) } } },
+            Places = new[] { new Location("Home:Ann", false, Enumerable.Repeat(new string('.', 40), 6).ToList()) },
+        };
+        var sim = new Simulation(1, town);
+        sim.Place(new[] { new Scenario("gift", "GaveGift", "Ann", "Bob", Day: 0, From: Clock.At(10), To: Clock.At(10) + 1) });
+        sim.ConfigureReflection(Enabled());
+        var mind = new Mind();
+        await sim.RunAsync(1, mind);
+
+        ReflectionRequest ann = Assert.Single(mind.Requests, q => q.Actor == "Ann");
+        ReflectionRequest bob = Assert.Single(mind.Requests, q => q.Actor == "Bob");
+        Assert.Equal(("home", "home"), (ann.Scene!.SourcePlace, ann.Scene.Place));
+        Assert.Equal(("Ann's home", "Ann's home"), (bob.Scene!.SourcePlace, bob.Scene.Place));
+        Assert.Contains("today at Ann's home; now Ann's home", bob.Scene.Summary);
     }
 
     [Fact]
@@ -181,10 +229,12 @@ public class ReflectionSceneContextTests
         var answer = new ReflectionAnswer("Hm.", "gift", recorded.Choices.ToDictionary(c => c.Id, _ => 1.0), "authored");
         var tape = new RecordedReflectionMind(new[] { new ReflectionRecord(recorded, answer, "gift", Array.Empty<ReflectionEvent>()) });
         Assert.Same(answer, tape.ReflectAsync(recorded with { Scene = Scene() }).Result);
-        Assert.Throws<InvalidOperationException>(() => tape.ReflectAsync(recorded with { Scene = Scene() with { DaysAgo = 3 } }).Result);
-        Assert.Throws<InvalidOperationException>(() => tape.ReflectAsync(recorded with { Scene = null }).Result);
+        Assert.Contains("scene differ", Assert.Throws<InvalidOperationException>(() => tape.ReflectAsync(recorded with { Scene = Scene() with { DaysAgo = 3 } }).Result).Message);
+        Assert.Contains("the request carries none", Assert.Throws<InvalidOperationException>(() => tape.ReflectAsync(recorded with { Scene = null }).Result).Message);
+        // A tape from before scenes were supplied says so, rather than blaming the seed or town.
         var older = new RecordedReflectionMind(new[] { new ReflectionRecord(recorded with { Scene = null }, answer, "gift", Array.Empty<ReflectionEvent>()) });
-        Assert.Throws<InvalidOperationException>(() => older.ReflectAsync(recorded).Result);
+        Assert.Contains("the recording predates scene context", Assert.Throws<InvalidOperationException>(() => older.ReflectAsync(recorded).Result).Message);
+        Assert.Contains("memory text", Assert.Throws<InvalidOperationException>(() => tape.ReflectAsync(recorded with { Memory = "changed" }).Result).Message);
         // A scene survives the recording's JSON round trip, summary included, and an old file without one still reads.
         var json = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         ReflectionRequest back = JsonSerializer.Deserialize<ReflectionRequest>(JsonSerializer.Serialize(recorded, json), json)!;
