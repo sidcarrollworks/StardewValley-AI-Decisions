@@ -113,6 +113,12 @@ Haiku 5.5 takes no temperature, top_p or seed; the service records what was requ
 
 Both models also get the actor's scene (2026-10-12): where the remembered encounter happened and how long ago, where the actor is now and the time of day, how they know the subject, the pair's week and the actor's own reasons for why it mattered, all from the actor's records. The generator receives remembered source roles and allowed act types; Laya receives the full spoken lines. A [controlled probe](../docs/under-glass/experiments/reflection-generator-order-2026-10-08.md) found that removing dialogue inputs reduced copying, but some ideas still contradict their suggested act or known memory. Structural validation cannot catch those semantic failures. Hybrid is an experiment; compare it with the authored and Laya recordings.
 
+**Spoken lines (2026-10-12, off by default):** add `--speech` to a replay and every act toward a person gets one authored line from [`UnderGlass.Sim/speech-catalog.json`](UnderGlass.Sim/speech-catalog.json), chosen by kind, the speaker's archetype (with `--character-inspiration`), relationship band and mood band, and shown under the act in Stories, the act detail, the timeline hover and Happening now. Speech changes nothing: the same seed gives the same world and log hash with it on or off. The first library was drafted per archetype, copy-checked and judged blind ([speech spec](../docs/under-glass/specs/speech-spec.md)); edit the file and rebuild to change what people say.
+
+```powershell
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --feel on --desire on --catalog returns,company,welcome,repair,sides,late --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/speech.json --html out/speech.html
+```
+
 Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.
 
 Run the controlled comparison separately from the town:

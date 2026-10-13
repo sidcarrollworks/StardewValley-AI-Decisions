@@ -32,6 +32,9 @@ separating wording from decision-making. Its results do not alter live simulatio
 A [first run with Claude Haiku 5.5](docs/under-glass/experiments/voice-wording-haiku-2026-10-12.md)
 behind the same loopback contract, judged blind beside the authored controls, kept the fixed plan
 and private form where the small local model did not; it is an opt-in comparison, not a new default.
+Sid then set the order of work: scene-specific knowledge into the model requests (built), a tagged
+[speech library](docs/under-glass/specs/speech-spec.md) so acts have authored lines (first library
+built, opt-in, awaiting his curation), broader actions, then follow-through; a player comes later.
 The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: character voice review, concrete
 encounter context and separate personal/listener appraisal next, then broader actions and tagged
 speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)

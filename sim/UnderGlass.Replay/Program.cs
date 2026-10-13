@@ -13,12 +13,13 @@ using System.Text.Json;
 // --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on, --0d6 <steps> (hermits,
 // brawlers, moods that spread, missing people: b-h, t, m, as the runner's), --catalog <slices> (the
 // act catalog's slices, as the runner's: returns,company,welcome,repair,sides,late), and --town <name>
-// for a grown town (pelican31).
+// for a grown town (pelican31). --speech records an authored line beside every act to a person
+// (the speech library; presentation only, off by default).
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
 int days = 28;
-bool inject = false;
+bool inject = false, speech = false;
 string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
 string? inspirationPath = null;
@@ -50,6 +51,7 @@ for (int i = 0; i < args.Length; i++)
         case "--seed": seed = long.Parse(Next(), inv); break;
         case "--days": days = int.Parse(Next(), inv); break;
         case "--inject": inject = true; break;
+        case "--speech": speech = true; break;
         case "--out": outPath = Next(); break;
         case "--html": htmlPath = Next(); break;
         case "--town": Next(); break; // read above
@@ -135,7 +137,7 @@ if (reflectionMode == "tape")
         .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration }, mind);
+    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech } }, mind);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);

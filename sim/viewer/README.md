@@ -179,6 +179,11 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`events`** are the log lines other than beliefs and tellings, which have tables of their own.
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
+- **`speech`** is optional, present only when a run was recorded with `--speech`. Each row is
+  camelCase `{ actId, tick, speaker, line, lineId, archetype, relationship, mood }`: the line as
+  spoken, its library id, and the speaker-side bands the choice was made under. `speechOptions`
+  and `speechCatalog` (schema, line count, provenance) say which library spoke. The viewer shows a
+  line only once the clock reaches its tick and never invents one for an older recording.
 - **`reflections`** is optional, absent when reflection is disabled. Unlike the packed tables,
   its records use named camelCase fields and actor/subject names. Each contains `request` (id,
   tick, actor, subject, sourceActId, memory, context and choices with id/kind/line, plus optional

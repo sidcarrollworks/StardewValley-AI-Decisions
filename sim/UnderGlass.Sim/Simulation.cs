@@ -195,6 +195,8 @@ public sealed class SimResult
     /// counted a hermit (Sid's answer A9, 2026-10-08).</summary>
     public IReadOnlyDictionary<string, Stage> Stages { get; init; } = new Dictionary<string, Stage>();
     public IReadOnlyList<ReflectionRecord> Reflections { get; init; } = Array.Empty<ReflectionRecord>();
+    /// <summary>What was said with each act, when the speech library is on; otherwise empty.</summary>
+    public IReadOnlyList<Speech> Speech { get; init; } = Array.Empty<Speech>();
 }
 
 /// <summary>
@@ -527,6 +529,7 @@ public sealed partial class Simulation
             Scenarios = _scenarioActs,
             Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
             Reflections = ReflectionRecords(),
+            Speech = _speechLines,
             Encounters = _encounters,
             EncounterCauses = _encounterCauses,
             Appraisals = _appraisals,
@@ -962,6 +965,7 @@ public sealed partial class Simulation
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
         RecordEncounter(act, kind, cause);
+        Say(act, kind, actor); // the speech library (off by default): presentation only
         RecordCircle(act, kind); // batch 2's reach checks: a scandal's circle
         _scenes[act.Id] = SceneOf(act, actor);
         Gains(act, actor);

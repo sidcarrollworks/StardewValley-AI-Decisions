@@ -208,6 +208,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .observer-card { min-width: 0; display: grid; align-content: start; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-hi); }
 .observer-card p { margin: 0; font-size: var(--step--1); overflow-wrap: anywhere; }
 .observer-card .observer-quote { border-left: 2px solid var(--accent); padding-left: 8px; color: var(--ink); }
+.spoken { border-left: 2px solid var(--accent); padding-left: 8px; font-size: var(--step--1); overflow-wrap: anywhere; }
 .observer-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .observer-actions button { font-size: var(--step--2); padding: 3px 7px; }
 .observer-empty { margin: 0; color: var(--muted); font-size: var(--step--1); }
@@ -1246,6 +1247,9 @@ function load(run) {
   m.kinds = run.kinds;
   m.encounters = new Map((run.encounters ?? []).map((x) => [x.actId, x]));
   m.encounterCauses = new Map((run.encounterCauses ?? []).map((x) => [x.actId, x]));
+  // Optional: what was said with an act (the speech library). Older recordings have no table,
+  // and the viewer never invents a line.
+  m.speechByAct = new Map((run.speech ?? []).map((x) => [x.actId, x]));
   m.appraisalsByAct = new Map();
   for (const x of run.appraisals ?? []) {
     if (!m.appraisalsByAct.has(x.account.actId)) m.appraisalsByAct.set(x.account.actId, []);
@@ -1495,9 +1499,14 @@ function timelineHits(x, y, w) {
   return timelineMarkers(w).filter((marker) => Math.abs(marker.x - x) <= 6 && Math.abs(marker.y - y) <= 9)
     .sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x) || Math.abs(a.y - y) - Math.abs(b.y - y) || a.event.tick - b.event.tick);
 }
+/** What was said during an act, once the clock has reached it; "" for older recordings or before it was said. */
+function speechOf(actId, t) {
+  const s = R.speechByAct?.get(actId);
+  return s && s.tick <= t ? String(s.line ?? "") : "";
+}
 function timelineDescription(event, t = S.t) {
   if (event.tick > t) return "Upcoming recorded moment · click to jump and reveal it";
-  if (event.type === "act") return R.actText(R.acts[event.act]);
+  if (event.type === "act") { const said = speechOf(event.act, t); return R.actText(R.acts[event.act]) + (said ? ` · “${said}”` : ""); }
   if (event.type === "tie") {
     const tie = R.ties[event.tie], change = { feud: "began a feud", "kin-feud": "began a feud in the family", friendship: "became friends", reconciled: "reconciled" }[tie.what] ?? tie.what;
     return `${R.names[tie.a]} and ${R.names[tie.b]} ${change}`;
@@ -2176,7 +2185,7 @@ function observerItemsAt(t, person = S.person, hood = S.hood) {
     const choice = view?.answer ? view.request.choices.find((c) => c.id === view.choice) : null;
     items.push({ type: "act", tick: act.tick, priority: act.end > t ? 0 : 2, actor: act.actor, act,
       recordId: view?.request.id, label: act.end > t ? "In progress" : "Recent encounter", title: R.actText(act),
-      text: view ? view.request.memory : `At ${placeName(R.places[act.place].name)}.`, line: choice?.line ?? "" });
+      text: view ? view.request.memory : `At ${placeName(R.places[act.place].name)}.`, line: choice?.line ?? speechOf(act.id, t) });
     shownActs.add(act.id);
   }
   for (const record of R.reflections) {
@@ -2238,7 +2247,7 @@ function drawPersonFocus() {
     .sort((a, b) => b.changed - a.changed)[0];
   const act = R.actsOf[S.person].find((a) => a.tick <= S.t && a.end > S.t);
   const nodes = [el("div", { class: "label", text: "At this moment" })];
-  if (act) nodes.push(el("p", { text: R.actText(act) }));
+  if (act) nodes.push(el("p", { text: R.actText(act) }), speechOf(act.id, S.t) ? el("p", { class: "spoken", text: speechOf(act.id, S.t) }) : null);
   if (own) {
     const summary = reflectionSummary(own, S.t);
     nodes.push(el("p", null, el("strong", { text: summary.title })),
@@ -2508,7 +2517,9 @@ function drawStories() {
     const select = () => { S.story = a.id; lastStoryKey = ""; render(); };
     return el("div", { class: "story" + (a.id === S.story ? " sel" : "") + (a.tick > S.t ? " future" : ""), tabindex: 0, role: "button", onclick: select,
       onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); select(); } } },
-      el("div", { class: "what" }, el("div", null, R.actText(a)), el("div", { class: "muted data", style: "font-size:0.75rem" }, `${when(a.tick)} · `, el("span", { class: "tier", text: appraisalOf(a, cutoff).label }), a.injected ? " · placed" : "")),
+      el("div", { class: "what" }, el("div", null, R.actText(a)),
+        speechOf(a.id, cutoff) ? el("div", { class: "spoken", text: speechOf(a.id, cutoff) }) : null,
+        el("div", { class: "muted data", style: "font-size:0.75rem" }, `${when(a.tick)} · `, el("span", { class: "tier", text: appraisalOf(a, cutoff).label }), a.injected ? " · placed" : "")),
       el("div", { class: "reach" }, `${reach}`, el("div", { class: "muted", text: "know" })));
   };
   list.replaceChildren(...shown.map((group) => {
@@ -2593,6 +2604,7 @@ function drawStory() {
   box.replaceChildren(el("div", { style: "display:grid;gap:10px" },
     el("div", null, el("span", { class: "tier", text: appraisalOf(a, cutoff).label }), " ", el("h2", { style: "display:inline", text: R.actText(a) })),
     el("dl", { class: "facts" }, el("dt", { text: "When" }), el("dd", { text: `${dateOf(a.tick)} at ${hm(a.tick)}` }), el("dt", { text: "Where" }), el("dd", { text: placeName(R.places[a.place].name) }),
+        ...(speechOf(a.id, cutoff) ? [el("dt", { text: "Said" }), el("dd", { class: "spoken", text: speechOf(a.id, cutoff) })] : []),
       el("dt", { text: "Seen by" }), el("dd", { text: `${witnesses} ${witnesses === 1 ? "person" : "people"}` }), el("dt", { text: "Reached" }), el("dd", { text: `${holdersAt(a.id, cutoff)} of ${R.n - 1} others ${$("storyWholeRun").checked ? "by the end" : "so far"}` }),
       ...(a.about >= 0 && R.acts[a.about]?.tick <= cutoff ? [el("dt", { text: R.encounterCauses.has(a.id) ? "Private source" : "Answers" }), el("dd", { text: R.actText(R.acts[a.about]) })] : []), ...(actOrigin(a, cutoff) ? [el("dt", { text: "Why" }), el("dd", { text: actOrigin(a, cutoff) })] : [])),
     el("h3", { text: "Context and perspectives" }), encounterExplanation(a, cutoff),

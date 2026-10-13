@@ -1,0 +1,5764 @@
+{
+ "schema": 1,
+ "provenance": "Drafted 2026-10-12 by Claude subagents, one per archetype, from the local Stardew 1.6.15.24356 dialogue export as style evidence only (new wording, copy-checked against the whole corpus), plus a generic author; then judged blind by three readers per line for archetype distinctness and rule breaks. Lines the judges could not place lost their archetype tag; lines heard as another voice or breaking a rule were dropped. Awaiting Sid's curation; nothing here is game text.",
+ "lines": [
+  {
+   "id": "gavegift-guarded-independent-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here. Saw it and thought of you, so now it's your problem.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Warmth handed over as a dry joke, no ceremony."
+  },
+  {
+   "id": "gavegift-guarded-independent-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "No, you can't give it back. Take it before I change my mind.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Pleased, but covers it with mock reluctance."
+  },
+  {
+   "id": "helpedsomeone-guarded-independent-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Move over, I've got this part.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Acts instead of offering; clipped, no fuss."
+  },
+  {
+   "id": "helpedsomeone-guarded-independent-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm not doing this because I like people. Just hold that steady.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Honest irritation while still helping."
+  },
+  {
+   "id": "argued-guarded-independent-00",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Stop talking over me. You've been wrong this whole time and you know it.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Listener finally snaps at being talked over."
+  },
+  {
+   "id": "argued-guarded-independent-01",
+   "kind": "Argued",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd rather be wrong on my own than right your way. So drop it.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Autonomy over being managed, flat and final."
+  },
+  {
+   "id": "squabbled-guarded-independent-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Quit following me around. Go bother someone else.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Child wanting space, plain and blunt."
+  },
+  {
+   "id": "squabbled-guarded-independent-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You always get your way. Not this time.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Sullen sibling grievance, short sentences."
+  },
+  {
+   "id": "thanked-guarded-independent-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You didn't have to do that. Thanks.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Understated thanks, surprise at being helped."
+  },
+  {
+   "id": "thanked-guarded-independent-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd have managed, but... thanks for not making me.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Admits need slowly, on own terms."
+  },
+  {
+   "id": "complimented-guarded-independent-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Okay, that was actually impressive. Don't let it go to your head.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Grudging admiration with a dry brake on it."
+  },
+  {
+   "id": "joked-guarded-independent-00",
+   "kind": "Joked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "If you talk any faster I'll need subtitles.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Listener teasing a talker, deadpan."
+  },
+  {
+   "id": "joked-guarded-independent-01",
+   "kind": "Joked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Careful, you almost got me to smile. That stays between us.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Guards even his own amusement."
+  },
+  {
+   "id": "playedgame-guarded-independent-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "One game. Then I'm going back to what I was doing.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Agrees on a limit; private work comes first."
+  },
+  {
+   "id": "playedgame-guarded-independent-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Sit down, you're losing to me tonight and I'm not sorry.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Competitive warmth with a chosen friend."
+  },
+  {
+   "id": "treatedtodrink-guarded-independent-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Next one's mine. No speeches.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Generosity with the talking cut out."
+  },
+  {
+   "id": "treatedtodrink-guarded-independent-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Get whatever, I'm paying. You look like you've had a day.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Notices quietly, offers without probing."
+  },
+  {
+   "id": "welcomed-guarded-independent-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "So you're the new one. It's quiet here, which suits me fine.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Welcome framed around his own need for quiet."
+  },
+  {
+   "id": "welcomed-guarded-independent-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Welcome, I guess. People will swarm you for a week, then it settles down.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Dry warning about crowds, half-hearted welcome."
+  },
+  {
+   "id": "apologised-guarded-independent-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was out of line earlier. That's on me.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Owns it plainly, no elaboration."
+  },
+  {
+   "id": "apologised-guarded-independent-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I snapped at you and you didn't deserve it. Sorry.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Admits temper at home, spare and honest."
+  },
+  {
+   "id": "comforted-guarded-independent-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "No need to talk. I'll just sit here a while.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Comfort by presence, not words."
+  },
+  {
+   "id": "comforted-guarded-independent-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Nobody's watching, so you can drop the brave face with me.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Offers privacy as the kindness."
+  },
+  {
+   "id": "mocked-guarded-independent-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Do you ever stop talking, or is it a medical thing?",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Deadpan cruelty aimed at noise."
+  },
+  {
+   "id": "mocked-guarded-independent-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Wow. Everything you touch gets a little bit worse.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Flat, morbid contempt without heat."
+  },
+  {
+   "id": "stoodupfor-guarded-independent-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Back off. You've said enough to {subject} for one day.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "Few words, firm, steps in reluctantly."
+  },
+  {
+   "id": "gavegift-generic-00",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "We haven't really met, but this is for you. Go on, take it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "gavegift-generic-01",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Got you a little something. Don't make a fuss about it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "gavegift-generic-02",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "It's not much. I just wanted you to have it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "gavegift-generic-03",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "I've been waiting all day to give you this. Here!",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "gavegift-generic-04",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "This is for you, {subject}. I hope it's the right sort of thing.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "helpedsomeone-generic-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Here, let me get that for you. No trouble at all.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "helpedsomeone-generic-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Shove over, I've got it. You've been at this long enough.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "helpedsomeone-generic-02",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Give it here. I'm not doing anything else anyway.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "helpedsomeone-generic-03",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Two of us will have this done in no time. What goes first?",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "helpedsomeone-generic-04",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Hang on, {subject}, let me give you a hand with that.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "argued-generic-00",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Who asked you? Keep your opinions to yourself.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "argued-generic-01",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "I am sick to death of this, and you know exactly what I mean.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "argued-generic-02",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Don't start with me. You're wrong, and you were wrong last time too.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "argued-generic-03",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, that's rich coming from you. Go on, say it again, I dare you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "argued-generic-04",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "That's not what happened, {subject}, and you know it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "squabbled-generic-00",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "That's mine. Put it down right now.",
+   "tags": [
+    "plain"
+   ],
+   "note": "Stranger tag given only to satisfy the tag spread; a sibling is never a stranger, so this line will rarely be picked."
+  },
+  {
+   "id": "squabbled-generic-01",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [
+    "household"
+   ],
+   "mood": [],
+   "text": "You always get to go first. It's not fair.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "squabbled-generic-02",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Just leave me alone. I don't want to play with you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "squabbled-generic-03",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "I was here first, so you have to wait!",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "squabbled-generic-04",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Stop copying me, {subject}. It's really annoying.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "thanked-generic-00",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "You didn't have to do that for someone you don't even know. Thank you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "thanked-generic-01",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Thanks for the other day. I won't forget it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "thanked-generic-02",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Thank you. I should have said so at the time.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "thanked-generic-03",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Thanks for that, {subject}. It was good of you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "complimented-generic-00",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "We haven't met, but I have to say, that looks very good on you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "complimented-generic-01",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "You're better at this than you let on, you know.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "complimented-generic-02",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "You did well there. Better than I would have.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "complimented-generic-03",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Look at you! You make it look easy.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "complimented-generic-04",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "That was nicely done, {subject}.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "joked-generic-00",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Don't tell anyone, but I've no idea what I'm doing either.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "joked-generic-01",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "If you frown any harder your face will stick that way.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "joked-generic-02",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Well, at least one of us is having a good day. Not me, mind.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "joked-generic-03",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "I was going to be sensible today, then I saw you coming.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "joked-generic-04",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Careful, {subject}, if you work any slower you'll start going backwards.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "playedgame-generic-00",
+   "kind": "PlayedGame",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Fancy a game? I'll explain the rules as we go.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "playedgame-generic-01",
+   "kind": "PlayedGame",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Best of three. And no, you can't go first again.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "playedgame-generic-02",
+   "kind": "PlayedGame",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Alright, one game. Might take my mind off things.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "playedgame-generic-03",
+   "kind": "PlayedGame",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Your move! Hurry up, I've got a plan this time.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "playedgame-generic-04",
+   "kind": "PlayedGame",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Want to play something, {subject}? I've got time.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "treatedtodrink-generic-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Let me get this one. You look like you've had a long day.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "treatedtodrink-generic-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Put your money away, this round's on me.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "treatedtodrink-generic-02",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Sit down, I'll get you something. I could do with the company.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "treatedtodrink-generic-03",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Drinks are on me tonight! Don't argue.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "treatedtodrink-generic-04",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "What are you having, {subject}? My treat.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "welcomed-generic-00",
+   "kind": "Welcomed",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "You must be the new one. Welcome, it's a good place once you get used to it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "welcomed-generic-01",
+   "kind": "Welcomed",
+   "archetypes": [],
+   "relationship": [
+    "household"
+   ],
+   "mood": [],
+   "text": "Glad you're finally here. It's good to have you about the place.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "welcomed-generic-02",
+   "kind": "Welcomed",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "So you're the newcomer. Well, welcome, I suppose.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "welcomed-generic-03",
+   "kind": "Welcomed",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Welcome to town, {subject}. You'll settle in soon enough.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "apologised-generic-00",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "I was out of line before. I'm sorry, I don't usually speak to people like that.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "apologised-generic-01",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "I shouldn't have said what I said. I'm sorry.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "apologised-generic-02",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm sorry. I know that doesn't fix it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "apologised-generic-03",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Hey, I owe you an apology. I got that badly wrong and I'm sorry.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "apologised-generic-04",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "I'm sorry about before, {subject}. That was my fault.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "comforted-generic-00",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Rough day? Sit a minute, nobody's going anywhere.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "comforted-generic-01",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Come here, it's alright. You don't have to say anything.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "comforted-generic-02",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "I know, it's not fair. I'm sorry it happened.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "comforted-generic-03",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Chin up, it'll pass. These things always do.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "comforted-generic-04",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "That was a rotten thing to happen, {subject}. Anyone would be upset.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "mocked-generic-00",
+   "kind": "Mocked",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "Did you dress in the dark, or is that on purpose?",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "mocked-generic-01",
+   "kind": "Mocked",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "That's a classic you. Wrong again and twice as loud about it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "mocked-generic-02",
+   "kind": "Mocked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Still going on about that? Nobody cares, nobody ever did.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "mocked-generic-03",
+   "kind": "Mocked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "Ha, look at you trying. It's almost sad.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "mocked-generic-04",
+   "kind": "Mocked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "Honestly, {subject}, do you hear yourself? Embarrassing.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "stoodupfor-generic-00",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "I don't know you, but that was uncalled for. Let {subject} be.",
+   "tags": [
+    "plain"
+   ],
+   "note": "In this kind 'you' is the person who did the hurting; {subject} is the one being defended."
+  },
+  {
+   "id": "stoodupfor-generic-01",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "You don't talk to {subject} like that. Not while I'm standing here.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "stoodupfor-generic-02",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Just stop. {subject} doesn't deserve that, and you know it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "stoodupfor-generic-03",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "high"
+   ],
+   "text": "No, we're not doing that. Back off, {subject} hasn't done anything to you.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "stoodupfor-generic-04",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "That's enough. Leave {subject} out of it.",
+   "tags": [
+    "plain"
+   ]
+  },
+  {
+   "id": "gavegift-steadfast-carer-00",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here. It isn't much, but I thought of you when I saw it, so take it.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Modest, practical giving; care without fuss."
+  },
+  {
+   "id": "gavegift-steadfast-carer-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I kept putting this aside for you and then forgetting. Here, before I forget again.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Duty done late by a worn-down carer."
+  },
+  {
+   "id": "helpedsomeone-steadfast-carer-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Hold on, let me take some of that. Two of us will manage it faster.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Steps in without being asked; practical."
+  },
+  {
+   "id": "helpedsomeone-steadfast-carer-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Give it here. I'm tired too, but I'd rather be tired and useful.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Neglects own fatigue to be useful."
+  },
+  {
+   "id": "argued-steadfast-carer-00",
+   "kind": "Argued",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "No, you listen for once. I've held my tongue about this for long enough.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Considerate voice finally turning firm."
+  },
+  {
+   "id": "argued-steadfast-carer-01",
+   "kind": "Argued",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I carry everything for you and you can't manage one thing I ask. I'm finished being quiet.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Strained carer; resentment of unshared duty."
+  },
+  {
+   "id": "squabbled-steadfast-carer-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You never pick up after yourself and I always have to. It's not fair.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Responsible child resenting the tidying burden."
+  },
+  {
+   "id": "squabbled-steadfast-carer-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You always get to play and I get all the jobs. Do it yourself this time.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Dutiful child's wishes finally pushing back."
+  },
+  {
+   "id": "thanked-steadfast-carer-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Thank you for that. I didn't ask, and you did it anyway, which is rarer than it should be.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Careful, measured thanks; values quiet duty."
+  },
+  {
+   "id": "thanked-steadfast-carer-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "It's strange, having someone fuss over me for a change. Thank you.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Carer unused to being cared for."
+  },
+  {
+   "id": "complimented-steadfast-carer-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You handle things so steadily. People notice that more than you think.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Praises steadiness, the trait she prizes."
+  },
+  {
+   "id": "complimented-steadfast-carer-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You've got colour back in your face. Whatever you've been doing, keep at it.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Compliment framed as a health observation."
+  },
+  {
+   "id": "joked-steadfast-carer-00",
+   "kind": "Joked",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "If you keep working like that I'll have to start charging you for the worrying I do.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Teases with her own habit of worrying."
+  },
+  {
+   "id": "playedgame-steadfast-carer-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sit down a minute and play a round with me. Everything else will keep.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Gives permission to set duty down."
+  },
+  {
+   "id": "playedgame-steadfast-carer-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "One game, then it's bed, and I mean one. All right, maybe two.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Parent's rule softening; care wins over firmness."
+  },
+  {
+   "id": "treatedtodrink-steadfast-carer-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Let me get this one. You've had a long week by the look of you.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Treat justified by noticing the other's strain."
+  },
+  {
+   "id": "treatedtodrink-steadfast-carer-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I don't do this often, but tonight I think we both need one. My round.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Weary carer allowing herself a small wish."
+  },
+  {
+   "id": "welcomed-steadfast-carer-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Welcome. It's a small place, but folk look out for one another, mostly.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Reassures with stability, honest hedge at the end."
+  },
+  {
+   "id": "welcomed-steadfast-carer-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You're the new one, aren't you? Don't let the first week run you ragged.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Gentle question, then a caution; mothering a stranger."
+  },
+  {
+   "id": "apologised-steadfast-carer-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was short with you and you didn't deserve it. I'm sorry.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Plain, considerate; owns the lapse."
+  },
+  {
+   "id": "apologised-steadfast-carer-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I've been so tired I took it out on you. That isn't fair, and I know it.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Fatigue from duty admitted as the cause."
+  },
+  {
+   "id": "comforted-steadfast-carer-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sit with me a moment. You don't have to say anything until you're ready.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Steady presence; no pressure, no fixing."
+  },
+  {
+   "id": "comforted-steadfast-carer-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That would knock anyone down. Breathe slowly, I'm right here.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Practical instruction as comfort."
+  },
+  {
+   "id": "mocked-steadfast-carer-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Of course you forgot. Why would today be any different from every other day?",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Weariness curdled into contempt."
+  },
+  {
+   "id": "stoodupfor-steadfast-carer-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That's enough. You don't speak to {subject} like that while I'm standing here.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Quiet voice going firm to protect someone."
+  },
+  {
+   "id": "stoodupfor-steadfast-carer-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [],
+   "text": "Say that again and you'll say it to me. {subject} has done nothing to earn it.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "Defends the vulnerable; takes the blow herself."
+  },
+  {
+   "id": "gavegift-wary-outsider-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here. This is for you. I don't want anything back for it.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "expects a trade and heads it off; plain hand-over"
+  },
+  {
+   "id": "gavegift-wary-outsider-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "Take this. Is that how it's done here, or was I meant to wrap it first?",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "literal curiosity about local custom while giving"
+  },
+  {
+   "id": "helpedsomeone-wary-outsider-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Let me take that side. I've done this more times than you'd guess.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "hidden history, competence offered without fuss"
+  },
+  {
+   "id": "argued-wary-outsider-00",
+   "kind": "Argued",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You don't get to decide how I live. Say it again and we're done talking.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "chosen way of living defended, flat and final"
+  },
+  {
+   "id": "argued-wary-outsider-01",
+   "kind": "Argued",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You talk to me like I'm something you found under a rock. I've had enough of it.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "dignity bruised by being looked down on"
+  },
+  {
+   "id": "squabbled-wary-outsider-00",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "That's mine and you know it. Keep your hands off my things.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "a child guarding its own ground, plain words"
+  },
+  {
+   "id": "squabbled-wary-outsider-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Stop following me around. I didn't ask you to come.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "wants distance even from a sibling"
+  },
+  {
+   "id": "thanked-wary-outsider-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That was decent of you. I don't forget things like that.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "trust logged quietly, not gushed over"
+  },
+  {
+   "id": "thanked-wary-outsider-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [],
+   "text": "Thank you. I'd have managed on my own, but it was good not to have to.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "gratitude with self-reliance kept intact"
+  },
+  {
+   "id": "complimented-wary-outsider-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You do that well. I notice things like that, even if I don't say so.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "watchful; admits to noticing more than it says"
+  },
+  {
+   "id": "complimented-wary-outsider-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You've got a steady way about you. It's rarer than you'd think.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "values steadiness; praise measured against most people"
+  },
+  {
+   "id": "joked-wary-outsider-00",
+   "kind": "Joked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Careful, if you keep standing that close people will think we're friends.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "dry tease built on its own standoffishness"
+  },
+  {
+   "id": "joked-wary-outsider-01",
+   "kind": "Joked",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You walk louder than anyone I know. I heard you coming before I saw you.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "watchfulness turned into a tease"
+  },
+  {
+   "id": "playedgame-wary-outsider-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "I'll play one round. Show me how it works first, I like to know what I'm agreeing to.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "tests the rules before committing"
+  },
+  {
+   "id": "playedgame-wary-outsider-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Come on, your turn. And don't let me win, I'll know.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "suspicion survives even at play"
+  },
+  {
+   "id": "treatedtodrink-wary-outsider-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This one's on me. Sit down, I don't bite, whatever you've heard.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "aware of its reputation, disarms it bluntly"
+  },
+  {
+   "id": "welcomed-wary-outsider-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "So you're the new one. I keep to myself, mostly, but I won't judge you before I know you.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "an outsider's fair hearing for another newcomer"
+  },
+  {
+   "id": "welcomed-wary-outsider-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Don't expect much from me, but if this place gives you a hard time, I know how that feels.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "shared outsider footing offered carefully"
+  },
+  {
+   "id": "apologised-wary-outsider-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I judged you too fast. That's on me, not you. I'm sorry.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "owns the mistrust it leads with"
+  },
+  {
+   "id": "apologised-wary-outsider-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I pushed you off when you'd done nothing wrong. I'm sorry for that.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "keeping distance named as the hurt"
+  },
+  {
+   "id": "comforted-wary-outsider-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Sit here a minute. You don't have to tell me about it, I'll just sit with you.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "comfort without prying or rescuing"
+  },
+  {
+   "id": "comforted-wary-outsider-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That wasn't fair to you. It'll sit heavy for a while. I know how that goes.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "speaks from its own mistreatment, plainly"
+  },
+  {
+   "id": "mocked-wary-outsider-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You smile at everyone and nobody means it back. I'd find that embarrassing.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "bitter outsider sneers at easy belonging"
+  },
+  {
+   "id": "stoodupfor-wary-outsider-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [],
+   "text": "{subject} is with me. You have a problem with that, you have it with me too.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "loyalty claimed openly once trust is earned"
+  },
+  {
+   "id": "gavegift-young-observer-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Here. I picked this one because it looked like something you'd keep.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Concrete reason for the choice; reads what the other person keeps."
+  },
+  {
+   "id": "gavegift-young-observer-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Close your eyes and hold out your hands. No peeking, I can tell when you peek.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Turns the handover into a game with a child's rule."
+  },
+  {
+   "id": "helpedsomeone-young-observer-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I can hold that end if you show me where it goes.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Offers the part a child can do; asks to be shown."
+  },
+  {
+   "id": "helpedsomeone-young-observer-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Let me do that part, {subject}, I'm good at it. You can check after.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Eager, imitates a grown-up, still expects to be checked."
+  },
+  {
+   "id": "argued-young-observer-00",
+   "kind": "Argued",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I saw you do it. Don't stand there and tell me I didn't.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Argues from what was watched, not from feelings."
+  },
+  {
+   "id": "squabbled-young-observer-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "That's mine. You had yours and lost it, so give it back.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Sibling ledger logic; short, literal, unfair-sounding on purpose."
+  },
+  {
+   "id": "squabbled-young-observer-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You're not the boss of me, you're just older and louder.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Child's concrete reading of why the sibling wins."
+  },
+  {
+   "id": "thanked-young-observer-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Thanks. I didn't think you'd remember, but you did.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Candid about low expectations; notices being remembered."
+  },
+  {
+   "id": "thanked-young-observer-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "You didn't have to do that for a kid you've never met. Thank you.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Wary of strangers, says the thanks plainly anyway."
+  },
+  {
+   "id": "complimented-young-observer-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're good at explaining things. I understood you the first time.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Praises what helps a child make sense of adults."
+  },
+  {
+   "id": "complimented-young-observer-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I like your laugh. It's loud, but in a good way.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Blunt observation first, kindness as an afterthought."
+  },
+  {
+   "id": "joked-young-observer-00",
+   "kind": "Joked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "If you stand that still, a bird's going to land on you.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Concrete animal comparison, Leo-style, gentle tease."
+  },
+  {
+   "id": "joked-young-observer-01",
+   "kind": "Joked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Did you comb your hair with a rake today, {subject}?",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Literal childish image; a question, not a punchline."
+  },
+  {
+   "id": "playedgame-young-observer-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Do you know any games? I'll teach you mine if you teach me yours.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Play drive; asks first, admits knowledge has limits."
+  },
+  {
+   "id": "playedgame-young-observer-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You count to twenty and I'll hide. Count slow, and no looking through your fingers.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Invented rules and cheat-spotting; a child's hide-and-seek."
+  },
+  {
+   "id": "welcomed-young-observer-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're the new one, right? I know everybody here, so I'd have seen you.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Child's deduction; small-town knowledge stated as fact."
+  },
+  {
+   "id": "welcomed-young-observer-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Hello. Nobody told me you were coming, but I'm glad somebody new did.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Admits not being told things; curiosity wins over shyness."
+  },
+  {
+   "id": "apologised-young-observer-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was wrong about that. I thought it would be funny and it wasn't.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Concrete, no excuses; a child's play misjudged."
+  },
+  {
+   "id": "comforted-young-observer-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I don't know what to say to make it better, so I'll just sit here with you.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Admits not knowing; offers presence, the security a child gives."
+  },
+  {
+   "id": "comforted-young-observer-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "It's okay to cry. I do it too, I just do it where nobody sees.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Candid secret shared only with someone at home."
+  },
+  {
+   "id": "mocked-young-observer-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You call that trying? I've seen babies do it better, and they can't even talk.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Playground cruelty by comparison; literal and mean."
+  },
+  {
+   "id": "mocked-young-observer-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Do it again, {subject}, but this time try not to look like a scared chicken.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Farm-animal insult; a child's unkind imitation of teasing."
+  },
+  {
+   "id": "stoodupfor-young-observer-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Leave {subject} alone. You started it, and we all watched you do it.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "Defends with witnessed facts, not a lecture."
+  },
+  {
+   "id": "gavegift-weary-defender-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This is for you. Go on, before I think better of it.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Gives, then cuts off any fuss about it."
+  },
+  {
+   "id": "gavegift-weary-defender-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "It's not much. I'm not hauling it back, so it's yours now.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Dry grumble covers the thought behind it."
+  },
+  {
+   "id": "helpedsomeone-weary-defender-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Give it here. I've got two hands and nothing better to do.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Help offered as idle gruffness, not kindness."
+  },
+  {
+   "id": "helpedsomeone-weary-defender-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Fine, I'll do it. Just keep it to yourself that I helped.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Resents being seen as soft; dignity guarded."
+  },
+  {
+   "id": "argued-weary-defender-00",
+   "kind": "Argued",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Say that again, slower, so you can hear how stupid it sounds.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Rhetorical challenge; contempt kept short."
+  },
+  {
+   "id": "argued-weary-defender-01",
+   "kind": "Argued",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Who asked you? I've managed this long without your opinion.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Pushes back on intrusion; autonomy over politeness."
+  },
+  {
+   "id": "squabbled-weary-defender-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Go bother someone else. I was here first.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Retreat and push back in one breath."
+  },
+  {
+   "id": "thanked-weary-defender-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That was decent of you. I don't say that often, so take it.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Thanks rationed; dignity in the giving."
+  },
+  {
+   "id": "thanked-weary-defender-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd have managed, but... thanks. You didn't have to bother.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Resists pity first, thanks second."
+  },
+  {
+   "id": "complimented-weary-defender-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You did that right. Most people around here wouldn't have.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Praise by comparison to the disappointing rest."
+  },
+  {
+   "id": "complimented-weary-defender-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Look at you. More sense than I ever gave you credit for.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Backhanded warmth; admits misjudging, gruffly."
+  },
+  {
+   "id": "joked-weary-defender-00",
+   "kind": "Joked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Careful, you'll wear yourself out being that cheerful.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Dry tease at cheerfulness; weary humor."
+  },
+  {
+   "id": "joked-weary-defender-01",
+   "kind": "Joked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "If you're waiting for me to get interesting, pull up a chair.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Self-mocking, low-expectation humor."
+  },
+  {
+   "id": "playedgame-weary-defender-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sit down, I'll show you how it's played. No crying when you lose.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Invitation as a challenge; control through the game."
+  },
+  {
+   "id": "playedgame-weary-defender-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Alright, one game. I don't go easy on anyone, so save your breath.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Grudging yes with a blunt rule attached."
+  },
+  {
+   "id": "treatedtodrink-weary-defender-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This one's on me. It's happened before, whatever you've heard.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Generosity delivered with a defensive jab."
+  },
+  {
+   "id": "treatedtodrink-weary-defender-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Drink that. You look like you've had the kind of day I usually have.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Commiseration through weariness, not comfort."
+  },
+  {
+   "id": "welcomed-weary-defender-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Welcome, I suppose. Folks will talk your ear off; I won't.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Welcome rationed; promises only not to fuss."
+  },
+  {
+   "id": "welcomed-weary-defender-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "New here, huh? Expect little and you won't be let down.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Low expectations offered as advice."
+  },
+  {
+   "id": "apologised-weary-defender-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was out of line earlier. That's on me, not you.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Owns it in two short, flat sentences."
+  },
+  {
+   "id": "apologised-weary-defender-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I was wrong, and I hate admitting it, so you're hearing it once.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Apology given once, with pride intact."
+  },
+  {
+   "id": "comforted-weary-defender-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Stay put a minute. You can say nothing at all, that's allowed.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Comfort as room to breathe, no prying."
+  },
+  {
+   "id": "comforted-weary-defender-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "It'll pass. Not quick, I won't lie to you, but it'll pass.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Honest, unsentimental reassurance from experience."
+  },
+  {
+   "id": "mocked-weary-defender-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Easy with all that thinking. You haven't got much to spare.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Contempt in one dry cut."
+  },
+  {
+   "id": "mocked-weary-defender-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That's your best? No wonder people stopped expecting anything of you.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Bitter, deliberate; expectations turned against the target."
+  },
+  {
+   "id": "stoodupfor-weary-defender-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Lay off {subject}. Pick on someone who'll push back; I'm right here.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Defender steps in, blunt and weary of bullies."
+  },
+  {
+   "id": "stoodupfor-weary-defender-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [],
+   "text": "That's enough. {subject} never did a thing to you, and I'm done watching.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "Attachment outweighs resentment; backs their own."
+  },
+  {
+   "id": "gavegift-convivial-keeper-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I kept this back for you. It would only gather dust with me.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Set-aside hospitality; the keeper frames giving as practical, not grand."
+  },
+  {
+   "id": "gavegift-convivial-keeper-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Open it now, I want to see your face. No, I won't tell you what it cost.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Warm bossiness with a definite preference, close-range familiarity."
+  },
+  {
+   "id": "helpedsomeone-convivial-keeper-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Shift over and let me take that end. Two pairs of hands make quick work of it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Practical comfort offered as a plain imperative, no fuss."
+  },
+  {
+   "id": "helpedsomeone-convivial-keeper-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "You'll do yourself an injury that way. Hand it over and watch how it's done.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Guards the proper way of doing things; firm but caring."
+  },
+  {
+   "id": "argued-convivial-keeper-00",
+   "kind": "Argued",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I've held my tongue about you long enough. You treat people like furniture and I'm sick of watching it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Patience finally spent; the offence is how others are treated."
+  },
+  {
+   "id": "argued-convivial-keeper-01",
+   "kind": "Argued",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Don't you dare walk off while I'm talking. You take and take and never once think of the rest of us.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Household keeper counts who gives and who takes."
+  },
+  {
+   "id": "squabbled-convivial-keeper-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You did it wrong again and now it's all spoiled. Why can't you ever do it the proper way?",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "A child already guarding routines and the proper way."
+  },
+  {
+   "id": "squabbled-convivial-keeper-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "That's my spot and everybody knows it. Get up, you've had your turn.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Places and turns matter; fairness enforced by appeal to everyone."
+  },
+  {
+   "id": "thanked-convivial-keeper-00",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You didn't have to do that, and you did it anyway. Thank you.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Plain, attentive thanks that notes the kindness was unasked."
+  },
+  {
+   "id": "thanked-convivial-keeper-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd have been in a real fix without you. The least I can do is feed you.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Gratitude turns straight into hospitality, food as repayment."
+  },
+  {
+   "id": "complimented-convivial-keeper-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You've a good way with people. Folks relax the minute you walk in.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Praises what the keeper values most: putting others at ease."
+  },
+  {
+   "id": "joked-convivial-keeper-00",
+   "kind": "Joked",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Careful, {subject}, if you keep standing there looking useful I'll find you a job.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Host humour; everyone nearby risks being put to work."
+  },
+  {
+   "id": "joked-convivial-keeper-01",
+   "kind": "Joked",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "close",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I'd offer you the comfortable chair, but then you'd never leave.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Teasing built on hospitality itself, fond and a little sharp."
+  },
+  {
+   "id": "playedgame-convivial-keeper-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Come on, one game before bed. I'm not ready to call it a night just yet.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Keeps the evening going; company staves off a low mood."
+  },
+  {
+   "id": "treatedtodrink-convivial-keeper-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Put your money away, {subject}, this round is mine.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Brisk, settled generosity; the host decides who pays."
+  },
+  {
+   "id": "treatedtodrink-convivial-keeper-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Let me get this one, {subject}. It's been a long week and you've earned it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Attentive to someone's tiredness; comfort given in practical form."
+  },
+  {
+   "id": "welcomed-convivial-keeper-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're the newcomer, then. We take care of our own here, and that includes you now.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Belonging extended at once; the newcomer is folded in."
+  },
+  {
+   "id": "welcomed-convivial-keeper-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Well, hello! We don't get many new faces, so you'll have to forgive the staring.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Small-town warmth, candid about the community's habits."
+  },
+  {
+   "id": "apologised-convivial-keeper-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I spoke out of turn, {subject}, and I'm sorry for it. You didn't deserve that.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Owns the slip plainly; reputation for fairness is at stake."
+  },
+  {
+   "id": "apologised-convivial-keeper-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I was sharp with you and there was no call for it. I'm sorry.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Short, domestic apology; tiredness admitted without excuses."
+  },
+  {
+   "id": "comforted-convivial-keeper-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Come and sit by me. You don't have to say a word until you're ready.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Comfort is a seat and patience, not advice."
+  },
+  {
+   "id": "comforted-convivial-keeper-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That was a rotten thing to happen. Stay as long as you like, there's no hurry here.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Names the hurt bluntly, then offers shelter and time."
+  },
+  {
+   "id": "mocked-convivial-keeper-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Look at you, {subject}, putting on airs. Everyone remembers where you came from.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Mockery wielded through reputation and shared memory."
+  },
+  {
+   "id": "stoodupfor-convivial-keeper-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That's enough. {subject} has done nothing to you, so say it to me instead.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Steps between; protecting one of their own is reflex."
+  },
+  {
+   "id": "stoodupfor-convivial-keeper-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [],
+   "text": "You'll not speak to {subject} like that, not while I'm standing here.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "Quietly firm guardianship over household and close ties."
+  },
+  {
+   "id": "gavegift-restless-explorer-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here, this is for you. I almost kept it, so say thanks fast.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Wry dare in place of sentiment; quick, casual, slightly defiant."
+  },
+  {
+   "id": "gavegift-restless-explorer-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Okay, hold out your hands and close your eyes. No peeking, I mean it.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Turns a handover into a game; playful bossiness with a friend."
+  },
+  {
+   "id": "helpedsomeone-restless-explorer-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Move over, I've got this side. Two of us and it's done in half the time.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Jumps in without asking; concrete, brisk, impatient to be moving."
+  },
+  {
+   "id": "helpedsomeone-restless-explorer-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Fine, I'll help. It beats standing around doing nothing.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Helps mainly to escape standing still; gruff, restless."
+  },
+  {
+   "id": "argued-restless-explorer-00",
+   "kind": "Argued",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "No. You don't get to decide that for me, so stop acting like you do.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Defies someone deciding for them; freedom over politeness."
+  },
+  {
+   "id": "argued-restless-explorer-01",
+   "kind": "Argued",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Stop talking to me like I'm twelve. I'm done asking nicely.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Refuses to be treated as a child; excitement turned to defiance."
+  },
+  {
+   "id": "squabbled-restless-explorer-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You always get to go first. It's my turn and you know it.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "A child insisting on fair turns; wants to be taken seriously."
+  },
+  {
+   "id": "squabbled-restless-explorer-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I'm not staying inside just because you said so. You're not the boss.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Child pushing against a sibling's limit; plain defiance, outdoors-minded."
+  },
+  {
+   "id": "thanked-restless-explorer-00",
+   "kind": "Thanked",
+   "archetypes": [],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You didn't have to do that, you know. But thanks, it helped.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Shy gratitude; admits the help mattered while keeping it light."
+  },
+  {
+   "id": "complimented-restless-explorer-00",
+   "kind": "Complimented",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're a lot tougher than people give you credit for.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Praises toughness, the thing this archetype most wants recognised."
+  },
+  {
+   "id": "complimented-restless-explorer-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Not bad. Actually, forget not bad, that was great and you know it.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Corrects own understatement mid-sentence; quick, bouncy enthusiasm."
+  },
+  {
+   "id": "joked-restless-explorer-00",
+   "kind": "Joked",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "If you get any slower, moss is going to start growing on you.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Concrete tease about slowness; restlessness aimed at a friend."
+  },
+  {
+   "id": "joked-restless-explorer-01",
+   "kind": "Joked",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Careful, if you keep being this sensible I'll have to find a new friend.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Teases caution itself; deflects limits with play."
+  },
+  {
+   "id": "playedgame-restless-explorer-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Come on, one round. Loser has to admit the other one is better.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Turns play into a small contest; quick dare, stakes only pride."
+  },
+  {
+   "id": "playedgame-restless-explorer-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm going to climb the walls if I sit here any longer. Play something with me.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Boredom as a physical itch; play is the escape."
+  },
+  {
+   "id": "treatedtodrink-restless-explorer-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I don't know you yet, so this one's mine. Tell me something I haven't heard.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Buys a drink to get a new story; novelty-hungry."
+  },
+  {
+   "id": "welcomed-restless-explorer-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "So you're the new one. Good, this place could use somebody who isn't bored of it yet.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Welcomes a newcomer as relief from boredom; wry about home."
+  },
+  {
+   "id": "welcomed-restless-explorer-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Finally, a new face. Don't let anyone here tell you it's boring; they just stopped looking.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Defends the town against 'boring' by blaming the incurious."
+  },
+  {
+   "id": "apologised-restless-explorer-00",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [],
+   "text": "I went too far with that. I'm sorry, I should have stopped sooner.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Admits going too far, plainly; no therapy words."
+  },
+  {
+   "id": "apologised-restless-explorer-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That was a rotten thing to say to you, and I knew it when I said it. Sorry.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Blunt ownership of a cruel line to a close friend."
+  },
+  {
+   "id": "comforted-restless-explorer-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That stinks. Anyone who says you're overreacting can take it up with me.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Comfort as protection; ready to confront whoever dismisses the hurt."
+  },
+  {
+   "id": "comforted-restless-explorer-01",
+   "kind": "Comforted",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You don't have to talk about it. I'll just sit here with you a while.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Stays rather than talks; loyalty interrupts her own restlessness."
+  },
+  {
+   "id": "mocked-restless-explorer-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Scared of your own shadow again? Go home, it's safer there.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Scorns timidity, the trait this archetype least respects."
+  },
+  {
+   "id": "stoodupfor-restless-explorer-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Leave {subject} alone. If you've got a problem, say it to me instead.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Redirects the attack onto herself; protects a chosen friend."
+  },
+  {
+   "id": "stoodupfor-restless-explorer-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Say that again about {subject}, louder, so everyone hears how petty you sound.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "Dares the bully to repeat it publicly; defiance as defence."
+  },
+  {
+   "id": "gavegift-craft-devotee-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here. I made this one myself, so if it's crooked, that's on me.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Handmade offering; pride hedged with self-doubt."
+  },
+  {
+   "id": "gavegift-craft-devotee-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "This caught my eye and I thought of you before I'd even picked it up.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Observant eye; personal, unguarded with someone close."
+  },
+  {
+   "id": "helpedsomeone-craft-devotee-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Move over, this is the kind of thing my hands actually know how to do.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Craft confidence outruns social grace."
+  },
+  {
+   "id": "helpedsomeone-craft-devotee-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "You looked like you could use some help. Say so if I'm in the way.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Offers skill, braces for rejection; socially hesitant."
+  },
+  {
+   "id": "argued-craft-devotee-00",
+   "kind": "Argued",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "No, you don't get to tell me how to do my own work. You've never once done it yourself.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Guards independence of the craft; resents the unskilled critic."
+  },
+  {
+   "id": "squabbled-craft-devotee-00",
+   "kind": "Squabbled",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You broke it, so you fix it. I'm not touching it again.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Child maker: the broken thing matters more than the fight."
+  },
+  {
+   "id": "squabbled-craft-devotee-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Don't touch what I'm making. Go find your own thing to do.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Protects the thing being made; retreats into it."
+  },
+  {
+   "id": "thanked-craft-devotee-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd been about ready to give up on that before you stepped in. Thank you.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Admits doubt; help landed when pride had run out."
+  },
+  {
+   "id": "complimented-craft-devotee-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You've got a good eye. Most people wouldn't have noticed that.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Praises noticing, the maker's highest compliment."
+  },
+  {
+   "id": "complimented-craft-devotee-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "It's rare someone listens to the whole answer. You did, and I noticed.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Values being understood; observant and personal."
+  },
+  {
+   "id": "joked-craft-devotee-00",
+   "kind": "Joked",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Stand still a second, I want to remember what you look like not talking.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Dry tease from someone who prefers quiet to chatter."
+  },
+  {
+   "id": "joked-craft-devotee-01",
+   "kind": "Joked",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Admit it, {subject}, you only come round to see what I've ruined this week.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Self-deprecating about the work, only with someone close."
+  },
+  {
+   "id": "playedgame-craft-devotee-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Fine, one round. But I warn you, I don't play anything halfway.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Takes even play seriously; skill is the point."
+  },
+  {
+   "id": "playedgame-craft-devotee-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Set it up, {subject}. I've been working all day and my head needs something else to chew on.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Comes up for air from the work."
+  },
+  {
+   "id": "treatedtodrink-craft-devotee-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Let me get this one. I've talked to nobody but myself all week.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Loneliness of retreating into making, half-admitted."
+  },
+  {
+   "id": "welcomed-craft-devotee-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're the new one, then. It's quieter here than it looks, give it time.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Observant and plain; reads the place, promises nothing."
+  },
+  {
+   "id": "apologised-craft-devotee-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was out of line earlier. You didn't deserve that, and I knew it even while I said it.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Weighs doubt against pride and lets pride lose."
+  },
+  {
+   "id": "apologised-craft-devotee-01",
+   "kind": "Apologised",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I took a bad day out on you, and that's not your fault. I'm sorry, {subject}.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "A bad day in the work spilled onto someone close."
+  },
+  {
+   "id": "mocked-craft-devotee-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You call that finished? I've seen children do neater work with their eyes shut.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Craft snobbery turned cruel."
+  },
+  {
+   "id": "stoodupfor-craft-devotee-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Leave it. {subject} did that properly, which is more than I can say for you.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "Defends on grounds of good work, not sentiment."
+  },
+  {
+   "id": "stoodupfor-craft-devotee-01",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You don't get to talk to {subject} like that, not while I'm standing here.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Protective; social courage borrowed from conviction."
+  },
+  {
+   "id": "gavegift-recognition-seeker-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Just take it, okay? Don't look at me like that, I wanted you to have it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Embarrassed by the gesture; wants it taken, not fussed over."
+  },
+  {
+   "id": "helpedsomeone-recognition-seeker-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Move over and let me do it. This sort of thing is easy for me.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Help doubles as a display of competence."
+  },
+  {
+   "id": "helpedsomeone-recognition-seeker-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Watch this, {subject}. When I'm done you'll be telling people about it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Wants the help talked about; recognition is the payment."
+  },
+  {
+   "id": "argued-recognition-seeker-00",
+   "kind": "Argued",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You listen for once. Not one time have you admitted I did something right.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "The grievance is never being acknowledged."
+  },
+  {
+   "id": "argued-recognition-seeker-01",
+   "kind": "Argued",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Go ahead, say it to my face. You think you're better than me, don't you?",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Status threatened; dares the insult to be said aloud."
+  },
+  {
+   "id": "squabbled-recognition-seeker-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I won fair and square, {subject}. You're just mad because I'm better.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Winning must be acknowledged; the sulk is taken as proof."
+  },
+  {
+   "id": "thanked-recognition-seeker-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Thanks for that. I'd have managed, but it was quicker with you.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Grudging thanks; pride insists it could have managed alone."
+  },
+  {
+   "id": "thanked-recognition-seeker-01",
+   "kind": "Thanked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That thing you did... it meant more than I let on. Thank you.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Admits the help landed; the polish gives way."
+  },
+  {
+   "id": "complimented-recognition-seeker-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Credit where it's due, {subject}. Hardly anyone around here could pull that off.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Praise framed as a ranking against everyone else."
+  },
+  {
+   "id": "complimented-recognition-seeker-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "That look suits you. I notice these things, and I'm rarely wrong.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Praises while asserting the speaker's own judgement as authority."
+  },
+  {
+   "id": "joked-recognition-seeker-00",
+   "kind": "Joked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Careful, {subject}, if you keep improving people might start comparing you to me.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Tease that keeps the speaker on top."
+  },
+  {
+   "id": "joked-recognition-seeker-01",
+   "kind": "Joked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Stand next to me a while, some of this might rub off on you.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "The jest is self-promotion with a wink."
+  },
+  {
+   "id": "playedgame-recognition-seeker-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "One game, you and me. And the loser says so out loud, no excuses.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "The stake is a spoken acknowledgement of who won."
+  },
+  {
+   "id": "playedgame-recognition-seeker-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Come on, sit down and play. Everyone else here is afraid to take me on.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "A boast draws the invitation; wants an audience."
+  },
+  {
+   "id": "treatedtodrink-recognition-seeker-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This one's on me, {subject}. I had a good week and I feel like showing it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Generosity as a display of success."
+  },
+  {
+   "id": "treatedtodrink-recognition-seeker-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Put your money away, I'm getting this. You're about the only one who still listens to me.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Low mood: buying company, admitting loneliness."
+  },
+  {
+   "id": "welcomed-recognition-seeker-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "New in town, then. Stick with me and you'll meet the people worth knowing.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "The welcome doubles as a claim to local standing."
+  },
+  {
+   "id": "welcomed-recognition-seeker-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Hey, new face. You picked a good town, and you've already met the best part of it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Self-promotion wrapped in a greeting."
+  },
+  {
+   "id": "apologised-recognition-seeker-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was out of line earlier. There, I said it. I'm sorry.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Apology costs pride; the speaker marks that it was paid."
+  },
+  {
+   "id": "apologised-recognition-seeker-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I shouldn't have said that to you. I hate that I'm the one who made you look like that.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Polish breaks; the hurt caused outweighs saving face."
+  },
+  {
+   "id": "comforted-recognition-seeker-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Chin up. Whatever that was, it was beneath you. Let it roll off.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Comfort by appraisal: the hurt is ranked beneath them."
+  },
+  {
+   "id": "mocked-recognition-seeker-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Is that really the best you can do? I've seen kids do it in their sleep.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Ranks the other below children to stand above them."
+  },
+  {
+   "id": "mocked-recognition-seeker-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Look at you, {subject}, trying so hard. It's almost sweet how nobody notices.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Cruelty aimed at the speaker's own fear: going unnoticed."
+  },
+  {
+   "id": "stoodupfor-recognition-seeker-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That's enough. Nobody talks to {subject} like that while I'm standing right here.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Defends by making the speaker's own presence the deterrent."
+  },
+  {
+   "id": "stoodupfor-recognition-seeker-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Ignore that, {subject}. Anyone with eyes can see you're worth ten of them.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "Vouches with a ranking in front of the aggressor."
+  },
+  {
+   "id": "gavegift-practical-builder-00",
+   "kind": "GaveGift",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This is for you. You'll get more use out of it than I ever would.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Gift justified by usefulness, not sentiment."
+  },
+  {
+   "id": "gavegift-practical-builder-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Open it now, I want to see whether I guessed right.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Wants to check the result, like testing a fix."
+  },
+  {
+   "id": "helpedsomeone-practical-builder-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Wait, there's an easier way to do that. Give it here a second.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Spots the better method and takes over."
+  },
+  {
+   "id": "helpedsomeone-practical-builder-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm no good at sitting around. Hand me part of this.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Flat mood, still reaches for useful work."
+  },
+  {
+   "id": "argued-practical-builder-00",
+   "kind": "Argued",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Don't wave me off. I've checked this twice and you haven't checked once.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Impatience at dismissal, argued from checking."
+  },
+  {
+   "id": "argued-practical-builder-01",
+   "kind": "Argued",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You don't listen, you just wait for me to stop talking. I'm done explaining.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Explaining is the gift withdrawn when ignored."
+  },
+  {
+   "id": "squabbled-practical-builder-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That's mine and you put it back wrong. Everything's bent now.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "A child who inspects damage and assigns blame."
+  },
+  {
+   "id": "squabbled-practical-builder-01",
+   "kind": "Squabbled",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Mine actually works. Yours falls over if you breathe on it.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Competence is the scoreboard, even between siblings."
+  },
+  {
+   "id": "thanked-practical-builder-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That saved me an afternoon of fiddling. Thanks.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Thanks measured in time saved."
+  },
+  {
+   "id": "complimented-practical-builder-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You think things through before you touch them. Not many do.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Compliments method, not appearance."
+  },
+  {
+   "id": "complimented-practical-builder-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "That was a sharp question. Nobody else thought to ask it.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "A pointed question is the highest praise."
+  },
+  {
+   "id": "joked-practical-builder-00",
+   "kind": "Joked",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Careful asking me how that works; you'd better have an hour spare.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Self-aware tease about lecturing."
+  },
+  {
+   "id": "joked-practical-builder-01",
+   "kind": "Joked",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You've got that look again, the one right before something breaks.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Teases by predicting outcomes like a mechanism."
+  },
+  {
+   "id": "playedgame-practical-builder-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sit down, I'll teach you the rules. It's quicker than it looks.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Eager to explain a system, briskly."
+  },
+  {
+   "id": "playedgame-practical-builder-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Best of three, and no, you can't change the rules halfway.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Rules are rules; competitive and literal."
+  },
+  {
+   "id": "treatedtodrink-practical-builder-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Next one's on me, and no arguing about it.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Direct offer that brooks no fuss."
+  },
+  {
+   "id": "treatedtodrink-practical-builder-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Let me get this round. I need to sit and not think for an hour.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Rest framed as switching the mind off."
+  },
+  {
+   "id": "welcomed-practical-builder-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "New here? Good. Ask me anything practical, I'd rather that than small talk.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Offers useful knowledge over pleasantries."
+  },
+  {
+   "id": "welcomed-practical-builder-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Someone new, at last. What do you do, and how well do you do it?",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Welcome arrives as a blunt pointed question."
+  },
+  {
+   "id": "apologised-practical-builder-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sorry. I was wrong, and I was rude about it, which is worse.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Names the error and the manner, precisely."
+  },
+  {
+   "id": "apologised-practical-builder-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I was certain, and that's no excuse for how I spoke to you. I'm sorry.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Technical certainty named as the failing."
+  },
+  {
+   "id": "comforted-practical-builder-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Come here. We'll pull this apart one piece at a time until it makes sense.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Comfort as diagnosis: take it apart together."
+  },
+  {
+   "id": "mocked-practical-builder-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Did you even look at it before you opened your mouth? Clearly not.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Contempt for opinions formed without looking."
+  },
+  {
+   "id": "mocked-practical-builder-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Wrong again, that's three. Shall I write it down for you?",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Mocks by keeping count of mistakes."
+  },
+  {
+   "id": "stoodupfor-practical-builder-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Leave {subject} alone. If there's a problem, say exactly what it is.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "Defends by demanding the concrete complaint."
+  },
+  {
+   "id": "gavegift-social-trader-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Go on, take it. Call it a free sample from a very generous businessperson.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Gift framed as a sales sample; self-mocking trader generosity."
+  },
+  {
+   "id": "gavegift-social-trader-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Don't look so surprised, I do give things away now and then. Bad for business, but there it is.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Generosity admitted as bad business; livelihood never far off."
+  },
+  {
+   "id": "helpedsomeone-social-trader-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Here, let me. I've done this more times than I've had hot dinners.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Practiced skill offered plainly, with a homely boast."
+  },
+  {
+   "id": "helpedsomeone-social-trader-01",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "You're doing that the hard way. Step aside and watch, the lesson's on the house.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Help given as a free service; teaching the trick, on the house."
+  },
+  {
+   "id": "argued-social-trader-00",
+   "kind": "Argued",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I've been more than fair with you, and this is how you pay it back? We're having this out, now.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Fairness as a ledger; hostility in terms of debt and payback."
+  },
+  {
+   "id": "argued-social-trader-01",
+   "kind": "Argued",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You only turn up when you want something. Say it, since we both know it anyway.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Loneliness turned to accusation: only visited when useful."
+  },
+  {
+   "id": "thanked-social-trader-00",
+   "kind": "Thanked",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That was decent of you. Don't think it went unnoticed, I keep careful accounts.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Thanks kept like a ledger; practical, lightly teasing."
+  },
+  {
+   "id": "complimented-social-trader-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You've got a good eye. People would pay for that kind of judgment, and I'd know.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Praise priced in market terms, by someone who trades."
+  },
+  {
+   "id": "complimented-social-trader-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Well now! If I could bottle whatever you're doing, I'd never have a slow day again.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Expansive sales warmth; compliment tied to slow business days."
+  },
+  {
+   "id": "joked-social-trader-00",
+   "kind": "Joked",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "Careful, keep standing there and I'll start charging you rent.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Tease through a trader's lens: charging rent for company."
+  },
+  {
+   "id": "joked-social-trader-01",
+   "kind": "Joked",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "You look like someone who could be talked into anything. Lucky for you I'm off duty.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Self-aware salesman humour; off duty, no pitch."
+  },
+  {
+   "id": "treatedtodrink-social-trader-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Put your money away, the round's mine. I've had a strong week and it wants spending.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "A good week's takings turned into companionship."
+  },
+  {
+   "id": "treatedtodrink-social-trader-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Sit, I'm buying. It's no fun drinking across the room from somebody.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Buying a drink to not drink alone; loneliness, practical fix."
+  },
+  {
+   "id": "welcomed-social-trader-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "A new face, and about time, this place could use one. Ask me anything, half of it I'll even answer.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Inviting, teasing about half-honesty; wants the company."
+  },
+  {
+   "id": "welcomed-social-trader-01",
+   "kind": "Welcomed",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "So you're the new arrival. Well, you picked a good spot, and I'm not just saying that to sell you something.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Welcome with the sales pitch openly disclaimed."
+  },
+  {
+   "id": "apologised-social-trader-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I was out of line, and I knew it as I said it. I'm sorry, no excuses, no haggling.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "No haggling over blame; practical apology."
+  },
+  {
+   "id": "apologised-social-trader-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "close",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm sorry. You're about the only one who still comes around, and I went and did that.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Fear of losing scarce company admitted plainly."
+  },
+  {
+   "id": "comforted-social-trader-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I've had days like that. You get through them one at a time, and a bit of company doesn't hurt.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Hard days as routine; company offered as the remedy."
+  },
+  {
+   "id": "mocked-social-trader-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You couldn't sell water to a man on fire. Honestly, who lets you handle money?",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Cruelty via trade failure: can't sell, can't handle money."
+  },
+  {
+   "id": "mocked-social-trader-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "That face of yours. No wonder nobody stops to talk to you, you'd scare off paying trade.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Mocks them as bad for trade; nobody stops to talk."
+  },
+  {
+   "id": "stoodupfor-social-trader-00",
+   "kind": "StoodUpFor",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "That'll do. {subject} has done nothing to earn that, and I'm not standing here listening to it.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "Blunt, practical refusal to let it stand."
+  },
+  {
+   "id": "stoodupfor-social-trader-01",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "close",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Don't you answer that, {subject}. I'm in your corner, and I don't give ground cheap.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "Defends like a bargainer: won't give ground cheap."
+  },
+  {
+   "id": "gavegift-intuitive-seeker-00",
+   "kind": "GaveGift",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "I can't tell you why, but this feels like it belongs in your hands, not mine.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Trusts the feel of a thing over any reason for it."
+  },
+  {
+   "id": "gavegift-intuitive-seeker-01",
+   "kind": "GaveGift",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I saw this and thought of you before I'd even finished looking at it.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Instant association; the thing and the friend already linked."
+  },
+  {
+   "id": "helpedsomeone-intuitive-seeker-00",
+   "kind": "HelpedSomeone",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "Stand aside a moment. I can see where this is going wrong, even if you can't yet.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Imperative; sure of own perception others don't share yet."
+  },
+  {
+   "id": "argued-intuitive-seeker-00",
+   "kind": "Argued",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "You've decided I'm a fool because you can't see what I see. Say it to my face, then.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Protects the work from dismissal; dares the doubter outright."
+  },
+  {
+   "id": "argued-intuitive-seeker-01",
+   "kind": "Argued",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Every time I open my mouth about it, you smirk. You're small, {subject}, and you know it.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Years of being smirked at; turns cold on the dismisser."
+  },
+  {
+   "id": "squabbled-intuitive-seeker-00",
+   "kind": "Squabbled",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "It's not pretend, {subject}, it's real to me. Go bother someone else.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Child insists the inner world is real; shoos sibling off."
+  },
+  {
+   "id": "complimented-intuitive-seeker-00",
+   "kind": "Complimented",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "There's a steadiness in you that most people never grow into. I noticed it straight away.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Praises what is sensed beneath, not the surface."
+  },
+  {
+   "id": "complimented-intuitive-seeker-01",
+   "kind": "Complimented",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "{subject}, whatever you're carrying today suits you. You look like good weather.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Evocative, sensory praise that stays a little opaque."
+  },
+  {
+   "id": "joked-intuitive-seeker-00",
+   "kind": "Joked",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "You're going to say I'm wrong before I've even finished. There, you just did.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Teases with the seer's trick of predicting the other."
+  },
+  {
+   "id": "joked-intuitive-seeker-01",
+   "kind": "Joked",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Careful, {subject}. Keep frowning like that and the crows will start taking you seriously.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Whimsy that treats the natural world as in on the joke."
+  },
+  {
+   "id": "playedgame-intuitive-seeker-00",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Play a round with me? I want to see how you choose when nothing is at stake.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Plays to read a person; small choices reveal hidden things."
+  },
+  {
+   "id": "playedgame-intuitive-seeker-01",
+   "kind": "PlayedGame",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Your turn. And don't bother pretending you're losing, I can tell when you're about to win.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Claims to read intent before it shows; assured, playful."
+  },
+  {
+   "id": "treatedtodrink-intuitive-seeker-00",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "This one's on me. You walked in looking like you'd been carrying the whole day on your back.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Reads the other's weight at a glance; evocative image."
+  },
+  {
+   "id": "treatedtodrink-intuitive-seeker-01",
+   "kind": "TreatedToDrink",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'll pay for this. Drink, and spare me the small talk; the company is enough.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Reserved, imperative; wants company without chatter."
+  },
+  {
+   "id": "welcomed-intuitive-seeker-00",
+   "kind": "Welcomed",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "So you're the new face. Give the place time; it shows itself slowly to people it likes.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Treats the town as alive and choosing whom it shows itself."
+  },
+  {
+   "id": "apologised-intuitive-seeker-00",
+   "kind": "Apologised",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [],
+   "text": "I'm sorry. I was so busy listening to myself that I didn't hear you at all.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Owns that listening inward drowned the other person out."
+  },
+  {
+   "id": "apologised-intuitive-seeker-01",
+   "kind": "Apologised",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, I hurt you, and no amount of being right makes that smaller. I'm sorry.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Still half-sure of being right, but puts the hurt first."
+  },
+  {
+   "id": "comforted-intuitive-seeker-00",
+   "kind": "Comforted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sit with me a while. You don't have to make sense of it yet; some things ripen slowly.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Patience with mysteries; meaning comes in its own time."
+  },
+  {
+   "id": "comforted-intuitive-seeker-01",
+   "kind": "Comforted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Whatever this is, {subject}, it isn't the whole story. I'd stake my own bones on that.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Comforts by conviction, not evidence; certain of unseen more."
+  },
+  {
+   "id": "mocked-intuitive-seeker-00",
+   "kind": "Mocked",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Look at you, so proud of what you can count. Have you ever had a thought you didn't borrow?",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Contempt for the mundane mind; the seeker's own cruelty."
+  },
+  {
+   "id": "mocked-intuitive-seeker-01",
+   "kind": "Mocked",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, {subject}, don't strain yourself. Deep water would only frighten you anyway.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Evocative put-down; sneers at shallowness, pleased with itself."
+  },
+  {
+   "id": "stoodupfor-intuitive-seeker-00",
+   "kind": "StoodUpFor",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Let {subject} alone. There's more in them than you've bothered to look for, and I've seen it.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "Defends worth in the other that only the speaker has seen."
+  }
+ ]
+}

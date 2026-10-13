@@ -51,6 +51,12 @@ The optional quiet-reflection prototype is specified in
   own place and time of day, relationship band, the pair's week, own appraisal reasons), built in
   `Simulation.SceneOf` from the actor's encounter history and appraisals; `ReflectionText` holds
   the memory verbs and bands so they are testable.
+- `UnderGlass.Sim/Speech.cs`, `Simulation.Speech.cs` and embedded `speech-catalog.json`: the
+  opt-in speech library ([spec](under-glass/specs/speech-spec.md)). When an act toward a person
+  begins, `Say` chooses one authored line by kind, the speaker's archetype, relationship band and
+  mood band, weighted and seeded on its own stream, and records `Speech` beside the act; nothing
+  reads it back. Replay writes `speech`, `speechOptions` and `speechCatalog` only with `--speech`;
+  the viewer shows a line under the act once the clock reaches it.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

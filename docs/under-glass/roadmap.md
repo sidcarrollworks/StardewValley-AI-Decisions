@@ -89,10 +89,12 @@ The order is:
    whole otherwise and visibly so in the recorded packet. Every catalog kind an actor can do to
    someone now has a memory verb. Nothing is read from the subject's records or the world's
    truth; a changed request invalidates older tapes, as the tape rule requires.
-2. **A tagged speech library** for routine lines: authored, tagged by kind, perspective, tone,
-   archetype, mood and scene, chosen deterministically. The code is small; the authoring is the
-   long pole. Haiku may draft candidates offline for the same blind judging used in the
-   generator comparison, and Sid curates what enters; runtime stays authored.
+2. **A tagged speech library** for routine lines — first library built 2026-10-12, opt-in with
+   `--speech` ([speech spec](specs/speech-spec.md)). Every act to a person gets one authored line
+   chosen deterministically from `speech-catalog.json` by kind, the speaker's archetype,
+   relationship band and mood band, recorded beside the act and shown by the viewer under the
+   same clock. The lines were drafted per archetype from the local dialogue evidence,
+   copy-checked and judged blind; they await Sid's curation. Reply lines and scene tags are next.
 3. **Broader actions where reflection already reaches**: company (a game, a drink), comfort, and
    the general Ask that b2-0 seamed (invitations, favour requests, loans), with accept and
    decline as real outcomes. Distinct consequences, not different wording.

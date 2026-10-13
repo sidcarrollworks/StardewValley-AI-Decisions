@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="reflection-catalog.json" LogicalName="UnderGlass.Sim.reflection-catalog.json" />
+    <EmbeddedResource Include="speech-catalog.json" LogicalName="UnderGlass.Sim.speech-catalog.json" />
   </ItemGroup>
 </Project>
