@@ -67,13 +67,18 @@ The answer is the general `Ask` with `AskKind.Errand`:
   + 0.2 if fond of the asker, + `ErrandKinBond` (0.2) for family or a shared home;
 - cost = 0.2 + dislike × (0.5 + retention) + 0.3 × withdrawal + the asked person's own state as for
   an invitation (tired, due at work, low; shrunk by eagerness to please times the bond:
-  `AskMath.StateCost`, Sid's answer of 2026-10-13) + `ErrandReluctance` (0.5) if it is something they
-  won't fetch (`WontFetch`: Penny, beer) + 1 if they are already on an errand + 1 if their
+  `AskMath.StateCost`, Sid's answer of 2026-10-13) + 1 if they are already on an errand + 1 if their
   household can't pay for it.
 
 Everything in the cost is the asked person's own knowledge: their body, their hours, what they
-won't touch, what they promised, what their household has. A margin beyond the close-call band
-decides; inside it, a draw keyed by `ask`, `Errand`, the act and the asked person.
+promised, what their household has. A margin beyond the close-call band decides; inside it, a draw
+keyed by `ask`, `Errand`, the act and the asked person.
+
+**What someone won't fetch** (the book's `WontFetch`: Penny, beer) is a no whatever the margin. Sid
+(2026-10-13): "she is ashamed of her mom's alcoholism so she despises it. I think Penny is a case
+where she would do anything for her mom besides give her alcohol. She tries to minimize her moms
+drinking." So it is not a cost that love for the one asking can outweigh: the obligation is still
+worked out and recorded (the viewer can say she'd have done anything else), and the answer is no.
 
 - **No:** the one asked begins `Refused` toward the asker, as an invitation's no does (they take
   part, know who said no and feel it), and the asker waits before asking them again.
@@ -122,28 +127,40 @@ errands:
 
 | | |
 |---|---|
-| needs | 284, every one promised in the end (none lapsed unasked) |
-| askings | 424; yes 283 (67%) |
-| within a home | 161 asked, 153 yes (95%) |
-| across homes | 263 asked, 130 yes (49%) |
-| promises | 261 kept in time, 3 late, 13 broken (4.6%), 6 still open at the end |
-| time to keep | median 2.2 hours, 90% within 22 hours |
+| needs | 282, every one promised in the end (none lapsed unasked) |
+| askings | 442; yes 282 (64%) |
+| within a home | 163 asked, 148 yes (91%) |
+| across homes | 279 asked, 134 yes (48%) |
+| promises | 260 kept in time, 3 late, 13 broken (4.6%), 6 still open at the end |
+| time to keep | median 2.2 hours, 90% within 23 hours |
 
-What the noes record (several can hold at once): barely knows the asker 64, no special reason
-(regard alone) 49, tired 25, already on an errand 16, can't pay 7, won't fetch it 2, due at work 1.
+What the noes record (several can hold at once): barely knows the asker 68, no special reason
+(regard alone) 47, tired 35, already on an errand 16, won't fetch it 9, can't pay 7, due at work 3.
+Penny's nine noes to beer were eight to her mother, at margins of 0.80 to 0.91 (a clear yes for
+anything else), and one to Shane. Pam then asks someone else.
 
 All 13 broken promises have the same cause: the one who promised works through the counter's hours
-(Robin and Demetrius work 9 to 5 at home, Lewis by day in the square, as Pierre's and the chain's
-signs are open), so never reaches it; none was bought and then not handed over. The due window decides how often that happens: across three seeds of 56 days, one day
+(Robin 6, Lewis 4 and Demetrius 3: Robin and Demetrius work 9 to 5 at home, Lewis by day in the
+square, while Pierre's and the chain's signs are open), so never reaches it; none was bought and then
+not handed over. The due window decides how often that happens: across three seeds of 56 days, one day
 gives 8% broken and 4% late; two days (the default) 5% and 2%; three days 2.5% and 1.4%.
 
 ## For Sid
 
-- **Penny and beer.** Across the six seeds Pam asked Penny for beer six times and Penny said yes
-  five times, at margins of 0.3 to 0.4: a mother's ask (family, a shared home, Penny's eagerness to
-  please) outweighs the reluctance (0.5). That may be the story, she does it and hates it, or it
-  may be a line she doesn't cross; `ErrandReluctance` 1 or more makes it a no almost always. Your
-  call.
+- **Penny and beer: answered** (2026-10-13, above). Before Sid's answer, beer was a cost of 0.5
+  against saying yes, and Penny fetched it for her mother five times of six. Now it is a no.
+- **The rest of Penny's concern: proposed, not decided.** Sid also said she tries to minimize her
+  mother's drinking, and was unsure how to model it. What the town already does: Penny never spreads
+  a story that hurts Pam (families cover), but she feels Pam's drunk scenes as any onlooker does,
+  so her regard for her mother falls, which is the wrong shape; and kin shame only follows a
+  scandal (juiciness 4 or more), and a drunk scene is news (3), so she feels no shame from it. The
+  proposal is a concern, a small piece of character data (`Penny` about `Pam`: drinking) with three
+  effects, each on machinery that exists: she won't enable it (no beer errands, built; never a drink
+  with her or for her); seeing or hearing of it lands as shame on Penny, not coldness toward Pam; and
+  she tries to keep Pam from it, either by asking her to something at home on evenings she believes
+  Pam would go to the saloon (her own memory of Pam's habit, through an invitation), or, more
+  cheaply, by Pam drinking less with her daughter there. To decide with the needs bars revisit
+  (roadmap step 4), where Pam's drinking would be a pressure and Penny's concern the push against it.
 - **Promising what your hours won't allow.** The broken promises all come from working people
   saying yes to a shop that is only open while they work. Should someone who knows their own
   hours and the shop's sign count that as "busy" when asked (a cost, as being due at work is for an
@@ -176,8 +193,8 @@ rest.
 
 - `needs`, `favours` and `promises` in the recording, only with the switch on. A favour records the
   asker, the asked, the thing, the answer and its margin, the act that followed, and why: tired,
-  busy, low, bond, eagerness, and whether they won't fetch it, are already on an errand or can't
-  pay. A promise records who, for whom, the thing, the counter, when it was due, the act that
+  busy, low, bond, eagerness, and whether it was something they won't fetch (`wontFetch`), they were
+  already on an errand or couldn't pay. A promise records who, for whom, the thing, the counter, when it was due, the act that
   bought it and the act that settled it, kept, late or broken.
 - The viewer words the acts with the thing ("asked Sam to fetch beer", "bought beer from Gus",
   "brought Pam the beer they asked for", "never brought Pam the beer they asked for", and a refusal
@@ -200,13 +217,16 @@ the shop; nobody sleeps, chats or wanders) unless a bullet says the shipped town
 - with the shop shut the day it was due, it is bought the next day and handed over late;
 - with the shop never open, the promise breaks a day after it was due: `LetDown`, unseen, which Ann
   knows and feels; the need lapses and no money moves;
-- with Bob unwilling to fetch tea, his margin falls by exactly the reluctance, and the answer turns;
+- with Bob unwilling to fetch tea, the answer is no although the same asking is a clear yes when he
+  is willing, with the same margin recorded, a refusal and no promise;
 - after a no, Ann waits `ErrandAskAgainDays` before asking Bob again, and every no is a refusal;
 - in the shipped town for a month (seed 7): every favour's act matches its answer, nobody is asked
   for something they are too young to buy, every promise's acts and need agree with its state, a
   bought thing was bought while the sign said open, the counts of promises, hand-overs and
   let-downs agree, money is conserved, and no gate begins an errand act;
-- Penny's favours for beer, and only those, are recorded as reluctant;
+- across six seeds, Penny's favours for beer, and only those, are recorded as things she won't
+  fetch; her mother asks, every one is a no, at least one would otherwise have been a clear yes, and
+  she says yes to other favours;
 - with speech on, each favour carries the request and the answer, each hand-over the bringer's line
   and the thanks, the thing is named as the book says it, and no brace is left in any line; only
   errand lines may name `{item}`, and each errand kind has plain lines;

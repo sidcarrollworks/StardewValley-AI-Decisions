@@ -1055,12 +1055,18 @@ real obstacle (working hours), and the promise record batch 2 seamed holds it al
 the item and the window; The Sims gives needs from one's own life, chores in the family, the trip,
 the hand-over in person, and a broken promise that is felt, unlike a lapsed want.
 
-**First measurements.** Six seeds of 28 days: 284 needs, 424 askings, 67% yes (95% within a home,
-49% across homes); of 283 promises, 261 kept in time, 3 late, 13 broken. Every broken promise was
-someone who works through the counter's hours. Penny fetched beer for her mother five times of six,
-the family's obligation outweighing her reluctance; whether she should is Sid's call, with the
-question of whether people should count their own hours when asked. See the
-[needs spec](under-glass/specs/needs-spec.md).
+**Sid's answer on Penny (2026-10-13).** "She is ashamed of her mom's alcoholism so she despises it.
+I think Penny is a case where she would do anything for her mom besides give her alcohol." With
+reluctance as a cost (0.5), Penny had fetched beer for her mother five times of six; now what someone
+won't fetch (the book's `WontFetch`) is a no whatever the margin, and the margin is still recorded.
+Her trying to minimize her mother's drinking is proposed as a concern (won't enable it, shame rather
+than coldness, keeping Pam from the saloon), to decide with the needs bars revisit.
+
+**First measurements.** Six seeds of 28 days: 282 needs, 442 askings, 64% yes (91% within a home,
+48% across homes); of 282 promises, 260 kept in time, 3 late, 13 broken. Every broken promise was
+someone who works through the counter's hours; whether people should count their own hours when
+asked is open. Penny said no to beer nine times, eight of them to her mother at margins that would
+otherwise have been clear yeses. See the [needs spec](under-glass/specs/needs-spec.md).
 
 ## Open work and known issues
 

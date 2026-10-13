@@ -123,6 +123,9 @@ The order is:
    sees them as a source of motive, hidden from the player if need be. The proposed shape (hidden
    bars as pressure on existing motives, only hunger, social and fun) is in the
    [design](design.md), section 11c. Hunger could make the errands' needs come from an empty pantry.
+   Decide with it Penny's concern for her mother's drinking (Sid, 2026-10-13: she "would do anything
+   for her mom besides give her alcohol" and "tries to minimize her moms drinking"); the refusal is
+   built, the rest is proposed in the [needs spec](specs/needs-spec.md), "For Sid".
 
 5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
    The Newcomer is the player's character and gets the player's voice: the player types, Laya

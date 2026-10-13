@@ -329,7 +329,9 @@ public static class DefaultTown
     /// the Saloon from noon, as in the game, to midnight; the chain as its staff work here (9 to 5,
     /// shut at weekends; the game's JojaMart keeps longer hours, VERIFY if it matters). Uses come from
     /// each life and Stardew's gift tastes: Pam and Shane love beer, Harvey coffee, Evelyn bakes, Gus
-    /// cooks. Penny hates beer and won't fetch it, even for her mother.
+    /// cooks. Penny won't fetch beer for anyone, her mother least of all (Sid, 2026-10-13: "she is
+    /// ashamed of her mom's alcoholism so she despises it ... she would do anything for her mom besides
+    /// give her alcohol").
     /// </summary>
     public static ErrandBook Errands()
     {

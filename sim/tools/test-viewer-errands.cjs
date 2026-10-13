@@ -15,8 +15,8 @@ const helpers = script.slice(script.indexOf('const RULER_INSET'), script.indexOf
 
 // Pam needs beer: Penny says no (act 0); Sam says yes (act 1), buys it (act 2) and brings it late (act 3).
 const favours = [
-  { actId: 0, tick: 600, asker: 'Pam', asked: 'Penny', item: 'beer', accepted: false, tired: 0, busy: 0, low: 0, bond: 1, eager: 0.75, reluctant: true, short: false, running: false },
-  { actId: 1, tick: 700, asker: 'Pam', asked: 'Sam', item: 'beer', accepted: true, tired: 0.7, busy: 0, low: 0, bond: 0.3, eager: 0.4, reluctant: false, short: false, running: false },
+  { actId: 0, tick: 600, asker: 'Pam', asked: 'Penny', item: 'beer', accepted: false, tired: 0, busy: 0, low: 0, bond: 1, eager: 0.75, wontFetch: true, short: false, running: false },
+  { actId: 1, tick: 700, asker: 'Pam', asked: 'Sam', item: 'beer', accepted: true, tired: 0.7, busy: 0, low: 0, bond: 0.3, eager: 0.4, wontFetch: false, short: false, running: false },
 ];
 const promise = { id: 0, kind: 'Errand', by: 'Sam', to: 'Pam', made: 700, madeAct: 1, dueTo: 4320, state: 'Kept', settled: 4400, settledAct: 3, late: true, item: 'beer', fetchedAct: 2 };
 

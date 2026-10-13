@@ -15,8 +15,8 @@ public sealed record Counter(string Place, Tile Spot, int From, int To, IReadOnl
 }
 
 /// <summary>The town's errands book (needs spec): what is sold where, each counter's sign, the things
-/// each person comes to need in their own life, and what someone will not fetch for anyone (Penny
-/// will not buy beer, even for her mother).</summary>
+/// each person comes to need in their own life, and what someone will not fetch for anyone, however
+/// obliged (Penny will not buy beer, even for her mother).</summary>
 public sealed record ErrandBook(IReadOnlyList<Good> Goods, IReadOnlyList<Counter> Counters,
     IReadOnlyDictionary<string, IReadOnlyList<string>> Uses, IReadOnlyDictionary<string, IReadOnlyList<string>> WontFetch)
 {

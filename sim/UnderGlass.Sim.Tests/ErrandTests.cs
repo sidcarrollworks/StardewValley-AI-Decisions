@@ -158,22 +158,27 @@ public class ErrandTests
     }
 
     [Fact]
-    public void SomeoneWhoWontFetchItIsLessWillingByTheReluctance()
+    public void WhatSomeoneWontFetchIsANoHoweverObligedTheyAre()
     {
-        Favour With(double reluctance) => new Simulation(1, Shop(o => o.ErrandReluctance = reluctance, bobWont: new[] { "tea" })).Run(1).Favours[0];
-        Favour unwilling = With(1), plain = With(0);
-        Assert.True(unwilling.Reluctant && plain.Reluctant);
-        Assert.Equal(plain.Margin - 1, unwilling.Margin, 3);
-        Assert.False(unwilling.Accepted);
-        Assert.True(plain.Accepted);
-        Assert.Equal(Math.Round(AskMath.Eagerness(new Temperament(0.5, 0.5, 0.5, 0.5)), 4), unwilling.Eager);
+        // Bob likes Ann well enough that asking is a clear yes; told he won't fetch tea, it is a no all
+        // the same, and the record keeps how obliged he was (Sid, 2026-10-13: Penny and her mother).
+        SimResult willing = new Simulation(1, Shop()).Run(1), unwilling = new Simulation(1, Shop(bobWont: new[] { "tea" })).Run(1);
+        Favour yes = willing.Favours[0], no = unwilling.Favours[0];
+        Assert.Equal((true, false), (yes.Accepted, yes.WontFetch));
+        Assert.Equal((false, true), (no.Accepted, no.WontFetch));
+        Assert.Equal(yes.Margin, no.Margin);
+        Assert.True(no.Margin > new FeelingOptions().ClearBand, $"margin {no.Margin}");
+        Assert.Equal(("Refused", "Bob", "Ann"), (unwilling.Acts[no.ActId].Kind, unwilling.Acts[no.ActId].Actor, unwilling.Acts[no.ActId].Target!));
+        Assert.Contains(unwilling.Log, l => l.Contains($" ask Bob Errand Ann act {no.ActId} no ", StringComparison.Ordinal));
+        Assert.Empty(unwilling.Promises);
+        Assert.Equal(Math.Round(AskMath.Eagerness(new Temperament(0.5, 0.5, 0.5, 0.5)), 4), no.Eager);
     }
 
     [Fact]
     public void AfterANoTheAskerWaitsAndThenAsksAgain()
     {
-        // Bob won't fetch tea at any price, so every asking is a no; Ann waits ErrandAskAgainDays.
-        SimResult r = new Simulation(1, Shop(o => (o.ErrandReluctance, o.NeedDays, o.ErrandAskAgainDays) = (5, 9, 3), bobWont: new[] { "tea" })).Run(9);
+        // Bob won't fetch tea, so every asking is a no; Ann waits ErrandAskAgainDays.
+        SimResult r = new Simulation(1, Shop(o => (o.NeedDays, o.ErrandAskAgainDays) = (9, 3), bobWont: new[] { "tea" })).Run(9);
         int[] days = r.Favours.Select(f => Clock.Day(f.Tick)).ToArray();
         Assert.True(days.Length >= 2, $"asked {days.Length} times");
         Assert.All(r.Favours, f => Assert.False(f.Accepted));
@@ -238,10 +243,16 @@ public class ErrandTests
     }
 
     [Fact]
-    public void PennyWontFetchBeerAndTheRecordSaysSo()
+    public void PennyNeverFetchesBeerNotEvenForHerMother()
     {
-        foreach (Favour f in Month.Value.Favours)
-            Assert.Equal(f.Asked == "Penny" && f.Item == "beer", f.Reluctant);
+        Favour[] all = new long[] { 1, 2, 3, 5, 6, 7 }.SelectMany(seed => Run(seed, errands: true, speech: false, days: 28).Favours).ToArray();
+        foreach (Favour f in all)
+            Assert.Equal(f.Asked == "Penny" && f.Item == "beer", f.WontFetch);
+        Favour[] beer = all.Where(f => f.WontFetch).ToArray();
+        Assert.Contains(beer, f => f.Asker == "Pam"); // her mother does ask
+        Assert.All(beer, f => Assert.False(f.Accepted));
+        Assert.Contains(beer, f => f.Margin > new FeelingOptions().ClearBand); // and would have had a yes for anything else
+        Assert.Contains(all, f => f.Asked == "Penny" && f.Accepted); // anything else, she does (Pam's only need is beer)
         Assert.Equal(new[] { "beer" }, DefaultTown.Errands().WontFetch["Penny"]);
     }
 
@@ -302,7 +313,7 @@ public class ErrandTests
         System.Text.Json.JsonElement with = Record(true), without = Record(false);
         foreach (string table in new[] { "needs", "favours", "promises" })
             Assert.False(without.TryGetProperty(table, out _), table);
-        Assert.Equal(new[] { "accepted", "actId", "asked", "asker", "bond", "busy", "eager", "item", "low", "margin", "reluctant", "running", "short", "tick", "tired" },
+        Assert.Equal(new[] { "accepted", "actId", "asked", "asker", "bond", "busy", "eager", "item", "low", "margin", "running", "short", "tick", "tired", "wontFetch" },
             with.GetProperty("favours")[0].EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal));
         Assert.Equal("Errand", with.GetProperty("promises")[0].GetProperty("kind").GetString());
         Assert.Contains(with.GetProperty("needs").EnumerateArray(), n => n.GetProperty("state").GetString() is "Met" or "Promised" or "Open" or "Lapsed");

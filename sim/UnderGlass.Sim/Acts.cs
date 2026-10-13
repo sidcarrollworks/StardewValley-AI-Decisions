@@ -144,8 +144,6 @@ public sealed class ActOptions
     public int ErrandAskAgainDays { get; set; } = 3;
     /// <summary>The least time between two askings by the same person, in minutes.</summary>
     public int ErrandAskMinutes { get; set; } = 60;
-    /// <summary>What fetching something one won't touch weighs against saying yes (Penny and beer).</summary>
-    public double ErrandReluctance { get; set; } = 0.5;
     /// <summary>What family or a shared home adds to the obligation to fetch something.</summary>
     public double ErrandKinBond { get; set; } = 0.2;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding

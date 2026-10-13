@@ -2,12 +2,12 @@ namespace UnderGlass.Sim;
 
 /// <summary>One favour asked (needs spec): at a minute, who asked whom to fetch what, the answer and
 /// its margin, and the act that followed (the asking on a yes, the refusal on a no). Tired, Busy,
-/// Low, Bond, Eager as for an invitation; Reluctant: the asked won't fetch that thing; Short: their
-/// household couldn't pay for it; Running: they were already on an errand. Recorded so an observer
-/// can see why.</summary>
+/// Low, Bond, Eager as for an invitation; WontFetch: the asked won't fetch that thing for anyone, so
+/// the answer was no whatever the margin; Short: their household couldn't pay for it; Running: they
+/// were already on an errand. Recorded so an observer can see why.</summary>
 public sealed record Favour(int Tick, string Asker, string Asked, string Item, bool Accepted, double Margin, int ActId,
     double Tired = 0, double Busy = 0, double Low = 0, double Bond = 0, double Eager = 0,
-    bool Reluctant = false, bool Short = false, bool Running = false);
+    bool WontFetch = false, bool Short = false, bool Running = false);
 
 /// <summary>
 /// Errands (agreed order step 4; needs spec): one need for one named thing, asked of someone, agreed
@@ -190,16 +190,19 @@ public sealed partial class Simulation
     }
 
     /// <summary>What weighs against fetching it, besides the asked person's state (the Ask's Errand
-    /// cost): a thing they won't fetch (ErrandReluctance); one errand already running, or a household
-    /// that can't pay for it (each 1, nearly always a no). Their own knowledge: what they won't touch,
-    /// what they promised, what their household has.</summary>
+    /// cost): one errand already running, or a household that can't pay for it (each 1, nearly always
+    /// a no). Their own knowledge: what they promised, what their household has.</summary>
     private double ErrandCost(int asked)
     {
         if (_askingFor is not { } item)
             return 0;
         Good good = Book.Good(item);
-        return (WontFetch(asked, good) ? _fo.Acts.ErrandReluctance : 0) + (Running(asked) ? 1 : 0) + (Short(asked, good) ? 1 : 0);
+        return (Running(asked) ? 1 : 0) + (Short(asked, good) ? 1 : 0);
     }
+
+    /// <summary>The thing being asked for is one the asked person won't fetch for anyone (the book's
+    /// WontFetch: Penny and beer). The Ask answers no to it whatever the margin.</summary>
+    private bool WontFetchAsked(int asked) => _askingFor is { } item && WontFetch(asked, Book.Good(item));
 
     private bool WontFetch(int asked, Good good)
         => Book.WontFetch.TryGetValue(_names[asked], out IReadOnlyList<string>? wont) && wont.Contains(good.Name);
