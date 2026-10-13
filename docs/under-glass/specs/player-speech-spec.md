@@ -102,7 +102,10 @@ Misreading stays possible, as the design wants, but mostly where the line really
 
 The reading's act still has to happen through the engine: if the listener has walked off or the
 act is no longer allowed, nothing happens and the line is recorded as said to no effect. A small
-talk reading starts no act. Nothing is sampled from Laya's weights: a reading above the
+talk reading starts no act, but it counts as time spent together (Sid, 2026-10-13), through the same
+rules as a chat between villagers: company's small lift to both moods (a small sadness with someone
+disliked, `Company` in `Simulation.Feelings.cs`) and the minutes together toward a day's contact
+(`ContactMinutes`). Nothing is sampled from Laya's weights: a reading above the
 confidence line (below) is taken as it is, and below it the player picks. In a scripted run there is
 no one to ask, so the top reading is taken and recorded as unconfirmed. The player's text, every
 reading and every pick go on the tape, and replay checks the whole request (text, listener, offered
@@ -160,6 +163,23 @@ betrayal. In code today, trust in a speaker exists only as credence (`Feelings.C
 hearsay's effect on mood, and it weighs each teller's account when the mayor judges (`Trust` in
 `Simulation.Authority.cs`, used by `Authority.Weigh`). The claims slice builds rule 14 as its own
 record; the numbers are the design's and need tuning in scenes (VERIFY).
+
+## How the town comes to know the Newcomer
+
+Sid (2026-10-13): what the player types shapes how villagers come to describe the Newcomer. The town
+does not read the player's text; it reads Laya's readings of it, and only where a villager heard
+them:
+
+- each listener keeps their own impression of the Newcomer from the readings of the lines said to
+  them or in their hearing: how often the Newcomer joked, complimented, mocked, apologised, made
+  small talk, made claims that held or failed, most recent first;
+- a misreading counts as what the listener took it to be (a joke read as mockery is remembered as
+  mockery), which is how the design wants misreading to matter;
+- the impression enters that villager's own reflection context ("the newcomer jokes a lot, and
+  once mocked you") and how they speak of the Newcomer when they tell others, where it travels as
+  hearsay under rule 9, never as the hearer's own;
+- nobody's impression is built from lines they did not hear, and no impression is built from the
+  player's words directly.
 
 ## What the town and the observer see
 
@@ -227,13 +247,20 @@ above, offering only possible acts, and keeping `typed-decisions`. Details, tabl
 - Laya off: the act is picked from parts, no claim is read, the run still replays.
 - A packet over budget falls back with a recorded reason rather than being cut.
 
-## Open questions for Sid
+## Decided, and still open
 
-- Should the probe's numbers gate the next step, or only inform it? (Proposed: inform. The design's
-  E4a "about 80%" is a reference point, not a quota.)
-- What should small talk do: nothing, or count as time spent together the way chatting does?
-- Should what the player types shape how villagers come to describe the Newcomer, or does the town
-  only ever know the Newcomer by acts?
+Decided by Sid, 2026-10-13: small talk counts as time spent together (above); what the player types
+shapes how villagers describe the Newcomer, through the readings they heard (above).
+
+Still open:
+
+- **Should the probe gate the next step?** Sid asked what a gate would look like. Proposed: none
+  before scripted lines (step 4 above), which change nothing for a player; one before live typing
+  (step 6), measured on Sid's own lines rather than authored ones (the design's E4a: 50 lines typed
+  the way he would, labelled by him). It would pass when, at the 0.7 confidence line, the readings
+  taken are right at least 90% of the time and the top three hold the right act for at least 80% of
+  the rest; if not, fine-tune `typed-decisions` on half of his lines and test on the other half
+  before live typing. Awaiting Sid.
 - When does the emotion wheel's reading (design 6) join the typed payload: with the first scripted
   lines, or with live typing?
 
