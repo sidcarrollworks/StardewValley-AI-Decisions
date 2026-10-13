@@ -119,6 +119,11 @@ The order is:
    seeds, 5% of promises broke, all by people who work through the shop's hours. Still to come:
    needs beyond shop goods, asking through reflection, and the player as the one asked.
 
+   **Then, revisit needs bars** (Sid, 2026-10-13: after errands). Not taken on 2026-10-06; Sid now
+   sees them as a source of motive, hidden from the player if need be. The proposed shape (hidden
+   bars as pressure on existing motives, only hunger, social and fun) is in the
+   [design](design.md), section 11c. Hunger could make the errands' needs come from an empty pantry.
+
 5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
    The Newcomer is the player's character and gets the player's voice: the player types, Laya
    reads the line into one of the acts the engine offers (and, for a claim, into one of the things
