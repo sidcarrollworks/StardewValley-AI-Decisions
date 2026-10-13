@@ -982,6 +982,11 @@ honest (at 0.7 or above, 94% right), `english`'s was not. Hence: offer only poss
 confident reading, let the player pick from the top three otherwise, guard claim matches, keep
 `typed-decisions`.
 
+**The gate (Sid, 2026-10-13).** Nothing gates scripted lines. Before live typing, the reading is
+measured on Sid's own 50 lines (design E4a): at the 0.7 confidence line, readings taken right at
+least 90% of the time and the top three holding the right act for at least 80% of the rest; failing
+that, `typed-decisions` is fine-tuned on half his lines and tested on the other half first.
+
 **Not changed.** Laya writes nothing; every villager's reply is authored (D48); nothing in the
 simulation reads the player's words except through Laya's typed reading of offered options.
 
