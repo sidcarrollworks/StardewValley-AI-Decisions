@@ -22,7 +22,8 @@ public sealed record Favour(int Tick, string Asker, string Asked, string Item, b
 /// </summary>
 public sealed partial class Simulation
 {
-    /// <summary>A counter is worth setting out for only if it stays open this much longer.</summary>
+    /// <summary>A counter is worth setting out for only if it stays open this much longer; someone
+    /// already on the way goes on while it is open.</summary>
     private const int ErrandLeadMinutes = 30;
     /// <summary>How long someone looks for the person they're bringing something to, at one place.</summary>
     private const int SeekMinutes = 60;
@@ -120,8 +121,9 @@ public sealed partial class Simulation
             _needs[i] = _needs[i] with { State = state, Settled = m };
     }
 
-    /// <summary>Each open need's holder, free and not just turned down, asks someone in reach: never
-    /// someone they dislike, too young to buy it, or who sells it; a person is drawn by the bond.</summary>
+    /// <summary>Each open need's holder, free and not just turned down, asks someone in reach (free,
+    /// the same place, within NearTiles, in sight: InReach): never someone they dislike, too young to
+    /// buy it, or who sells it; a person is drawn by the bond.</summary>
     private void AskFavours(int m)
     {
         int day = Clock.Day(m);
@@ -137,7 +139,7 @@ public sealed partial class Simulation
             {
                 int i = _index[o.V.Name];
                 double regard = St(need.Holder, o.V.Name);
-                if (i == h || !Free(o, m) || o.Place != p.Place || o.At.Chebyshev(p.At) > _po.NearTiles || regard < 0
+                if (i == h || !InReach(p, o, m) || regard < 0
                     || o.V.Age < good.MinAge || o.V.Job?.Place == good.Place
                     || _favourAgain.TryGetValue((h, i), out int again) && day < again)
                     continue;
@@ -257,8 +259,8 @@ public sealed partial class Simulation
         ToOutside(shop, price * (place == "Saloon" ? _mo.SaloonRestock : _mo.StoreRestock));
     }
 
-    /// <summary>A runner with the thing and the one it's for, both free and in reach: handed over,
-    /// late if past due, and paid back unless they share a home.</summary>
+    /// <summary>A runner with the thing and the one it's for, both free, in the same place, within
+    /// FarTiles and in sight: handed over, late if past due, and paid back unless they share a home.</summary>
     private void HandOver(int m)
     {
         foreach (int id in _openErrands.ToList())
@@ -267,7 +269,8 @@ public sealed partial class Simulation
             if (pr.FetchedAct < 0)
                 continue;
             Person r = _people[_index[pr.By]], n = _people[_index[pr.To]];
-            if (!Free(r, m) || !Free(n, m) || r.Place != n.Place || r.At.Chebyshev(n.At) > _po.FarTiles)
+            if (!Free(r, m) || !Free(n, m) || r.Place != n.Place || r.At.Chebyshev(n.At) > _po.FarTiles
+                || Perception.LineOfSight(_places[r.Place], r.At, n.At, _po) <= 0)
                 continue;
             bool late = m >= pr.DueTo;
             Good good = Book.Good(pr.Item!);
@@ -289,8 +292,9 @@ public sealed partial class Simulation
     /// Where someone on an errand goes, in Decide after work and patrol: to the counter while its sign
     /// says open (unless it turned them away today); then, carrying it, to the one it's for, unless
     /// they share a home (they meet there). Looking reads memory and public knowledge only: where the
-    /// person works, in working hours (anyone knows where the doctor works), then where this runner
-    /// last saw them out of doors; each place once a day, for an hour.
+    /// person works, in working hours, even when that is their home (anyone knows the doctor is at the
+    /// clinic, Marnie at the ranch, Robin at the carpenter's), then where this runner last saw them out
+    /// of doors, never in a home; each place once a day, for an hour.
     /// </summary>
     private bool ErrandGoal(Person p, int m)
     {
@@ -311,7 +315,8 @@ public sealed partial class Simulation
         if (buy is not null && !_shutToday.Contains((r, day)))
         {
             Counter c = Book.CounterFor(buy.Place);
-            if (c.OpenAt(m) && c.OpenAt(m + ErrandLeadMinutes))
+            // Worth setting out only with the lead to spare; once on the way, go on while it is open.
+            if (c.OpenAt(m) && (p.Why == "errand" || c.OpenAt(m + ErrandLeadMinutes)))
             {
                 Goal(p, c.Place, c.Spot, m - Clock.OfDay(m) + c.To, "errand", null);
                 return true;
@@ -325,6 +330,7 @@ public sealed partial class Simulation
             return false;
         _sought.Add((r, day, look.Place));
         Goal(p, look.Place, look.Spot, m + SeekMinutes, "deliver", null);
+        _log.Add($"{m} errand-seek {p.V.Name} {bring.To} at {look.Place}");
         return true;
     }
 

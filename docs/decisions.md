@@ -1044,7 +1044,10 @@ aimed at the asker that answers the asking; the asker pays it back unless they s
 Late if after it was due; not by a day after that, the promise breaks: `LetDown`, begun unseen,
 known and felt by the one let down. A need nobody promises lapses quietly, as Stardew's request
 expires. Looking for the person reads only memory and public knowledge: where they work, in working
-hours, then where the runner last saw them out of doors, never into someone else's home. The errands
+hours (even a home that is a workplace: the clinic, the ranch), then where the runner last saw them
+out of doors; never into a home otherwise. Asking and handing over need the two in sight of each
+other, as every act toward someone in reach does. A town file's errands book is checked when it is
+read (`TownCheck`). The errands
 book (`ErrandBook`: goods, counters' signs, who uses what, who won't fetch what) is appended to
 `Economy`; the shipped town has one, grown towns not yet.
 
@@ -1062,10 +1065,10 @@ won't fetch (the book's `WontFetch`) is a no whatever the margin, and the margin
 Her trying to minimize her mother's drinking is proposed as a concern (won't enable it, shame rather
 than coldness, keeping Pam from the saloon), to decide with the needs bars revisit.
 
-**First measurements.** Six seeds of 28 days: 282 needs, 442 askings, 64% yes (91% within a home,
-48% across homes); of 282 promises, 260 kept in time, 3 late, 13 broken. Every broken promise was
+**First measurements.** Six seeds of 28 days: 281 needs, 462 askings, 61% yes (92% within a home,
+44% across homes); of 281 promises, 261 kept in time, 3 late, 12 broken. Every broken promise was
 someone who works through the counter's hours; whether people should count their own hours when
-asked is open. Penny said no to beer nine times, eight of them to her mother at margins that would
+asked is open. Penny said no to beer eight times, all to her mother, most at margins that would
 otherwise have been clear yeses. See the [needs spec](under-glass/specs/needs-spec.md).
 
 ## Open work and known issues

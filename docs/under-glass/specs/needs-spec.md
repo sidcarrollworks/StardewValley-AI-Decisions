@@ -50,13 +50,14 @@ someone to promise it, then lapses quietly, as Stardew's request does.
 Who uses what (the shipped book; Stardew's gift tastes and each life): Pam and Shane beer; Harvey,
 Kent and Maru coffee; Sebastian coffee and cola; George bread and coffee; Lewis bread; Evelyn and
 Marnie flour and sugar; Gus flour and vinegar (he cooks); Jodi flour, rice and vinegar; Leah
-vinegar; Haley sugar; Penny and Robin flour; Demetrius rice and sugar. Shopkeepers' families, the
-children and the Newcomer need nothing here.
+vinegar; Haley sugar; Penny and Robin flour; Demetrius rice and sugar. Pierre's family (whose shop
+sells most of it), the children and the Newcomer need nothing here.
 
 ### Asking
 
 While the need is open, its holder, free and not asked in the last `ErrandAskMinutes` (60), asks
-someone in reach (the same place, within 5 tiles, free): never someone they dislike, someone too
+someone in reach (free, the same place, within 5 tiles and in sight, as every act toward someone
+in reach needs): never someone they dislike, someone too
 young to buy it (beer: 18), someone who works where it is sold, or someone who said no to them in the
 last `ErrandAskAgainDays` (3). Among those, one is drawn on the bond (0.1 + `AskMath.Bond`), so
 family and friends are asked first but not only.
@@ -91,8 +92,10 @@ worked out and recorded (the viewer can say she'd have done anything else), and 
 
 Someone with a promise goes to the counter while its sign says open (`Counter`: the Store 9 to 5,
 shut Wednesdays; the Saloon noon to midnight; the chain 9 to 5, shut at weekends), unless it turned
-them away today, in `Decide` after work and patrol. A sign is public, so deciding to go reads no
-one's true position. Work, bed and patrol come first, so a promise can wait on a working day.
+them away today, in `Decide` after work and patrol. They set out only with half an hour to spare
+before it shuts; once on the way, they go on while it is open. A sign is public, so deciding to go
+reads no one's true position. Work, bed and patrol come first, so a promise can wait on a working
+day.
 
 At the counter they buy it from whoever is serving (someone at work there): `Fetched`, toward the
 one serving. The money moves as groceries' does: the chain's takings leave town; the store's and
@@ -103,15 +106,16 @@ can't pay, they try again tomorrow (`errand-shut` in the log).
 ### The hand-over
 
 Carrying it, they hand it over when the two are together and free (the same place, within 8
-tiles): `HandedOver`, a kindness aimed at the one who asked (+0.2, plastic 0.25), so it can stir a
+tiles, in sight of each other): `HandedOver`, a kindness aimed at the one who asked (+0.2, plastic 0.25), so it can stir a
 wish to return it; it answers the asking. The asker pays it back unless they share a home. Kept; late
 if after it was due. The need is met.
 
 Housemates meet at home. Otherwise the one carrying it goes looking, with what they know: where the
-person works, during working hours (anyone knows where the doctor works), then the places they last
-saw them out of doors (their own sightings, three days' worth), each place once a day for an hour.
-They never go into someone else's home. This is the roadmap's "seeking someone must use believed
-whereabouts".
+person works, during working hours, even when the workplace is a home (anyone knows the doctor is at
+the clinic, Marnie at the ranch, Robin at the carpenter's), then the places they last saw them out of
+doors (their own sightings, three days' worth), each place once a day for an hour. They never go
+into a home to look for someone except where that person works. Each place they try is logged
+(`errand-seek`). This is the roadmap's "seeking someone must use believed whereabouts".
 
 ### Broken
 
@@ -127,20 +131,20 @@ errands:
 
 | | |
 |---|---|
-| needs | 282, every one promised in the end (none lapsed unasked) |
-| askings | 442; yes 282 (64%) |
-| within a home | 163 asked, 148 yes (91%) |
-| across homes | 279 asked, 134 yes (48%) |
-| promises | 260 kept in time, 3 late, 13 broken (4.6%), 6 still open at the end |
-| time to keep | median 2.2 hours, 90% within 23 hours |
+| needs | 281, every one promised in the end (none lapsed unasked) |
+| askings | 462; yes 281 (61%) |
+| within a home | 165 asked, 151 yes (92%) |
+| across homes | 297 asked, 130 yes (44%) |
+| promises | 261 kept in time, 3 late, 12 broken (4.3%), 5 still open at the end |
+| time to keep | median 2.7 hours, 90% within 22 hours |
 
-What the noes record (several can hold at once): barely knows the asker 68, no special reason
-(regard alone) 47, tired 35, already on an errand 16, won't fetch it 9, can't pay 7, due at work 3.
-Penny's nine noes to beer were eight to her mother, at margins of 0.80 to 0.91 (a clear yes for
-anything else), and one to Shane. Pam then asks someone else.
+What the noes record (several can hold at once): barely knows the asker 82, no special reason
+(regard alone) 55, tired 39, already on an errand 21, won't fetch it 8, can't pay 6, due at work 2.
+Penny's eight noes to beer were all to her mother, six of them at margins of 0.80 to 0.91 (a clear
+yes for anything else). Pam then asks someone else.
 
-All 13 broken promises have the same cause: the one who promised works through the counter's hours
-(Robin 6, Lewis 4 and Demetrius 3: Robin and Demetrius work 9 to 5 at home, Lewis by day in the
+All 12 broken promises have the same cause: the one who promised works through the counter's hours
+(Robin 7, Lewis 3 and Demetrius 2: Robin and Demetrius work 9 to 5 at home, Lewis by day in the
 square, while Pierre's and the chain's signs are open), so never reaches it; none was bought and then
 not handed over. The due window decides how often that happens: across three seeds of 56 days, one day
 gives 8% broken and 4% late; two days (the default) 5% and 2%; three days 2.5% and 1.4%.
@@ -178,8 +182,9 @@ With `--speech`, both sides speak on each errand act:
   (`HandedOver.Thanks`), marked `Reply`.
 
 Lines name the thing with `{item}`, said as the book says it ("some flour", "a bottle of beer", "a
-coffee"), so a line never puts its own article in front of it. `SpeechCatalog.Read` and the
-curation page refuse `{item}` in any other kind. `Fetched` and `LetDown` say nothing.
+coffee"), so a line never puts its own article in front of it, and never starts a sentence with it
+(it is lower case). `SpeechCatalog.Read` and the curation page refuse `{item}` in any other kind, or
+at the start of a sentence. `Fetched` and `LetDown` say nothing.
 
 The 128 errand lines were drafted the speech library's way: one author per archetype and a plain
 author, 174 lines, copy-checked against the dialogue corpus, then judged blind by three readers per
@@ -205,36 +210,69 @@ rest.
 
 ## Tests
 
-`ErrandTests`, in a three-person shop world (Ann needs tea, Bob is the only one to ask, Cal keeps
-the shop; nobody sleeps, chats or wanders) unless a bullet says the shipped town:
+`ErrandTests`, in a small shop world unless a bullet says the shipped town. Ann needs tea; Bob, who
+likes her well, stands near her and is the only one to ask; Cal keeps the shop, open and at work all
+day. Nobody sleeps, chats or wanders, and without a road whoever sets out arrives at once. Each case
+changes one thing: a wall, a road, a young Bob, a housemate, a short purse, Cal's hours, Ann leaving
+for a park Bob never sees her in, Ann working at the clinic, or a fourth person, Dee.
 
 - the switch adds four rows and the refusal's, none with a rate, and needs its rows;
 - off, in watch mode or without a book, nothing runs (the shipped town for seven days, and the
   shop world);
 - a need is noticed in waking hours, asked, promised, bought from Cal at the shop and handed over
-  in time, with the acts in order and pointing at each other; Bob ends even, Ann is down the price,
-  and the town's money changes only by what left it; Ann feels the kindness;
+  in time, with the acts in order and pointing at each other; against the same day with no need,
+  Bob ends even, Ann is down the price and Cal up by it less the restocking share, and the town's
+  money changes only by what left it; Ann feels the kindness;
+- at the chain, the keeper's household gets nothing (the takings leave town); from the keeper's own
+  shelf, nothing is paid at the counter and the asker's paying back is the shop's gain;
 - with the shop shut the day it was due, it is bought the next day and handed over late;
 - with the shop never open, the promise breaks a day after it was due: `LetDown`, unseen, which Ann
   knows and feels; the need lapses and no money moves;
+- with Cal serving only from midnight to one, Bob is turned away once (nobody serving), doesn't go
+  back that day, and buys it from Cal the next night;
+- with a road, a runner who set out with the half hour to spare goes on and buys it before the sign
+  shuts, though it shuts within the half hour;
 - with Bob unwilling to fetch tea, the answer is no although the same asking is a clear yes when he
   is willing, with the same margin recorded, a refusal and no promise;
+- the Ask weighs what the record says: a household that can't pay costs exactly 1 (and is recorded
+  short); a shared home adds exactly `ErrandKinBond`; when Ann and Dee both ask Bob and the first
+  promise stays open, the second asking costs exactly 1 more than the same asking alone, and is
+  recorded as running;
+- nobody is asked behind a wall (within five tiles), too young to buy it, while they work where it is
+  sold, or while disliked;
 - after a no, Ann waits `ErrandAskAgainDays` before asking Bob again, and every no is a refusal;
-- in the shipped town for a month (seed 7): every favour's act matches its answer, nobody is asked
-  for something they are too young to buy, every promise's acts and need agree with its state, a
-  bought thing was bought while the sign said open, the counts of promises, hand-overs and
-  let-downs agree, money is conserved, and no gate begins an errand act;
+- a need nobody takes on lapses at its time, is never asked for after, and makes room for the next;
+- looking reads what the runner knows: with Ann gone to the park just after asking, Bob looks where
+  he last saw her and never sets foot in the park, and hands it over in the room when she comes back;
+  housemates never go looking; with Ann working at the clinic, Bob looks in the room first, then at
+  the clinic once her hours start, and hands it over there;
+- in the shipped town for a month (seed 7), with where everyone stood at each tick: every favour's
+  act matches its answer and its asked person was awake, in the asker's place, within five tiles and
+  in sight; every hand-over was face to face (eight tiles, in sight); nobody is asked for something
+  they are too young to buy; every promise's acts and need agree with its state; a bought thing was
+  bought while the sign said open; nobody looks inside a home but where its person works; the counts
+  of promises, hand-overs and let-downs agree; money is conserved; and no gate begins an errand act;
 - across six seeds, Penny's favours for beer, and only those, are recorded as things she won't
   fetch; her mother asks, every one is a no, at least one would otherwise have been a clear yes, and
   she says yes to other favours;
 - with speech on, each favour carries the request and the answer, each hand-over the bringer's line
   and the thanks, the thing is named as the book says it, and no brace is left in any line; only
-  errand lines may name `{item}`, and each errand kind has plain lines;
+  errand lines may name `{item}`, never to start a sentence, and each errand kind has plain lines;
 - the same seed gives the same needs, favours and lines twice, and speech on or off the same log;
-- a recording carries `needs`, `favours` and `promises` only with the switch on.
+- a recording carries `needs`, `favours` and `promises` only with the switch on, with the fields the
+  viewer reads;
+- a town file whose book names a thing nobody sells, a good with no counter, a counter on a wall or
+  hours that don't fit a day is refused, and the shipped book has no problems.
+
+Each of these was checked by planting the defect it guards against (a runner turning back in the
+last half hour, looking where someone truly is, a hand-over across town or out of sight, housemates
+looking, asking out of sight or across town, the age, seller and dislike rules dropped, needs never
+lapsing, the money routed wrongly, the turned-away path, the running and short costs, the kin bond,
+reluctance as a cost, `{item}` opening a sentence, the book unchecked): a test fails for each.
 
 `test-viewer-errands.cjs` holds the viewer's wording and the errand note under the clock;
-`test-speech-page.cjs` that the curation page allows `{item}` only in errand lines.
+`test-speech-page.cjs` that the curation page allows `{item}` only in errand lines, never to start
+a sentence.
 
 ## Next
 

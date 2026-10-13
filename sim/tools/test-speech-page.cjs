@@ -44,6 +44,10 @@ test('the page rejects what SpeechCatalog.Read rejects', () => {
   assert.deepEqual(plain(api.lineProblems(line('Could you bring me {item}, {subject}?', { kind: 'AskedFavour' }), ids)), []);
   assert.deepEqual(plain(api.lineProblems(line('Here is {item}, a bit late.', { kind: 'HandedOver.Late' }), ids)), []);
   assert.ok(api.lineProblems(line('Here is {item} for you.', { kind: 'GaveGift' }), ids).some((p) => /errand/.test(p)));
+  // {item} is said in lower case ("some flour"), so it never starts a sentence.
+  for (const text of ['{item}, as you asked. Enjoy.', 'There. {item}, as you asked.', 'Done! {item} for you.'])
+    assert.ok(api.lineProblems(line(text, { kind: 'HandedOver' }), ids).some((p) => /start a sentence/.test(p)), text);
+  assert.deepEqual(plain(api.lineProblems(line('There you go: {item}, as you asked.', { kind: 'HandedOver' }), ids)), []);
   assert.deepEqual(plain(api.catalogProblems([line('Only archetype line here.', { archetypes: ['weary-defender'] })], ['GaveGift']).map((p) => p.problem)),
     ['every kind needs at least one line with no archetype']);
 });

@@ -161,6 +161,7 @@ function lineProblems(line, idCounts) {
   if (text !== text.trim()) problems.push("starts or ends with a space");
   if (/[{}$#%@]/.test(text.split("{subject}").join("").split("{item}").join(""))) problems.push("only {subject} and {item} may use braces, and no $ # % @");
   if (text.includes("{item}") && !ITEM_KINDS.includes(String(line.kind || "").split(".")[0])) problems.push("only errand lines may name {item}");
+  if (/(^|[.!?])\s*\{item\}/.test(text)) problems.push("{item} is said in lower case, so it can't start a sentence");
   if (/[\u0000-\u001f\u007f-\u009f]/.test(text)) problems.push("contains a control character such as a line break");
   for (const [field, allowed] of [["relationship", RELATIONSHIPS], ["mood", MOODS]])
     if (!Array.isArray(line[field]) || line[field].some((band) => !allowed.includes(band))) problems.push(`unknown ${field} band`);

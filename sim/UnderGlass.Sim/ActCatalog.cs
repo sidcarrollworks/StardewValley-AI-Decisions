@@ -189,6 +189,7 @@ public static class ActCatalog
     /// trivia (1.0, -1), one minute, wherever the asking happened; the asker, given by the caller,
     /// takes part (FinishActs) and feels it (-0.1, plastic 0.15). It has no rate and no gate, so it is
     /// not light: only the asking begins it, and as a given deed it answers nothing and stirs no motive.
+    /// Errands use the same row for a favour's no ("Penny turned down Pam's request for beer").
     /// </summary>
     public static readonly IReadOnlyList<ActKind> Invitations = new[]
     {

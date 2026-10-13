@@ -8096,7 +8096,7 @@
    "mood": [
     "high"
    ],
-   "text": "There. {item}, like you asked. Don't say I never do anything for you.",
+   "text": "There you go: {item}, like you asked. Don't say I never do anything for you.",
    "tags": [
     "weary-defender"
    ],

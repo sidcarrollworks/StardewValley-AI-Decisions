@@ -116,7 +116,8 @@ The order is:
    named thing (flour, a coffee, a bottle of beer), asks someone in reach, and a yes is a promise
    the other keeps by walking to the counter while its sign says open, buying it and handing it
    over, late, or never (a let-down the asker feels). A need nobody takes on lapses. Across six
-   seeds, 5% of promises broke, all by people who work through the shop's hours. Still to come:
+   seeds, 4% of promises broke, all by people who work through the shop's hours. Penny won't fetch
+   beer, even for her mother (Sid). Still to come:
    needs beyond shop goods, asking through reflection, and the player as the one asked.
 
    **Then, revisit needs bars** (Sid, 2026-10-13: after errands). Not taken on 2026-10-06; Sid now

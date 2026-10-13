@@ -68,7 +68,8 @@ The optional quiet-reflection prototype is specified in
   counter (`Fetched`, money through `Sell`); hand-overs (`HandedOver`) and broken promises (`LetDown`,
   through `BeginUnseen`). `Decide` calls `ErrandGoal` after patrol: to the counter while its sign says
   open, then, carrying it, to where the runner believes the person is (their job in working hours,
-  then the runner's own sightings). Promises (`PromiseKind.Errand`), needs and favours fill
+  then the runner's own sightings; `errand-seek` in the log). `TownCheck` checks a town file's book
+  (every thing used is sold, one counter a place, counters reachable). Promises (`PromiseKind.Errand`), needs and favours fill
   `SimResult.Promises`, `Needs` and `Favours`; Replay writes `needs`, `favours` and `promises` only with
   the switch on. Speech names the thing through `{item}` (`SpeechCatalog.ItemKinds`).
 - `UnderGlass.Sim/Speech.cs`, `Simulation.Speech.cs` and embedded `speech-catalog.json`: the

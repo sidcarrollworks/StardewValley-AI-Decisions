@@ -38,6 +38,19 @@ public static class SpeechCatalog
     /// <summary>Acts that are not spoken: turning away from someone says nothing.</summary>
     public static readonly IReadOnlySet<string> Silent = new HashSet<string>(StringComparer.Ordinal) { "Snubbed", "TurnedAway" };
     public const int MinChars = 12, MaxChars = 110;
+    /// <summary>A placeholder at the start of the text or straight after a full stop, question or
+    /// exclamation mark: {item} is said in lower case ("some flour"), so it can't begin a sentence.</summary>
+    public static bool StartsASentence(string text, string placeholder)
+    {
+        for (int i = text.IndexOf(placeholder, StringComparison.Ordinal); i >= 0; i = text.IndexOf(placeholder, i + 1, StringComparison.Ordinal))
+        {
+            string before = text[..i].TrimEnd();
+            if (before.Length == 0 || before[^1] is '.' or '!' or '?')
+                return true;
+        }
+        return false;
+    }
+
     /// <summary>The kinds whose lines may name the thing an errand is for, {item} (needs spec).</summary>
     public static readonly IReadOnlySet<string> ItemKinds = new HashSet<string>(StringComparer.Ordinal) { "AskedFavour", "HandedOver" };
     /// <summary>Weights: a line in the speaker's own archetype, a tag that names the band exactly,
@@ -86,7 +99,7 @@ public static class SpeechCatalog
                 || line.Archetypes is null || line.Relationship is null || line.Mood is null || line.Tags is null
                 || line.Archetypes.Any(string.IsNullOrWhiteSpace) || line.Tags.Any(string.IsNullOrWhiteSpace)
                 || line.Relationship.Any(r => !Relationships.Contains(r)) || line.Mood.Any(m => !Moods.Contains(m))
-                || line.Text.Contains("{item}", StringComparison.Ordinal) && !ItemKinds.Contains(line.Kind.Split('.')[0]))
+                || line.Text.Contains("{item}", StringComparison.Ordinal) && (!ItemKinds.Contains(line.Kind.Split('.')[0]) || StartsASentence(line.Text, "{item}")))
                 throw new InvalidDataException($"Invalid speech line {line.Id}.");
         }
         return pack with { Lines = Array.AsReadOnly(pack.Lines.OrderBy(l => l.Id, StringComparer.Ordinal)
