@@ -126,6 +126,8 @@ const ARCHETYPE_WEIGHT = 3, EXACT_WEIGHT = 2, NEIGHBOUR_WEIGHT = 0.5;
 const NEAR_RELATIONSHIP = { household: ["close"], stranger: ["acquaintance"], acquaintance: ["stranger", "familiar"], familiar: ["acquaintance", "close"], close: ["familiar"] };
 const NEAR_MOOD = { low: ["even"], even: ["low", "high"], high: ["even"] };
 const MIN_CHARS = 12, MAX_CHARS = 110;
+/** The kinds whose lines may name the thing an errand is for, {item} (SpeechCatalog.ItemKinds). */
+const ITEM_KINDS = ["AskedFavour", "HandedOver"];
 
 function fit(tags, band, near) {
   if (!tags.length) return 1;
@@ -157,7 +159,8 @@ function lineProblems(line, idCounts) {
   if (text.trim().length < MIN_CHARS) problems.push(`shorter than ${MIN_CHARS} characters`);
   if (text.length > MAX_CHARS) problems.push(`longer than ${MAX_CHARS} characters (${text.length})`);
   if (text !== text.trim()) problems.push("starts or ends with a space");
-  if (/[{}$#%@]/.test(text.split("{subject}").join(""))) problems.push("only {subject} may use braces, and no $ # % @");
+  if (/[{}$#%@]/.test(text.split("{subject}").join("").split("{item}").join(""))) problems.push("only {subject} and {item} may use braces, and no $ # % @");
+  if (text.includes("{item}") && !ITEM_KINDS.includes(String(line.kind || "").split(".")[0])) problems.push("only errand lines may name {item}");
   if (/[\u0000-\u001f\u007f-\u009f]/.test(text)) problems.push("contains a control character such as a line break");
   for (const [field, allowed] of [["relationship", RELATIONSHIPS], ["mood", MOODS]])
     if (!Array.isArray(line[field]) || line[field].some((band) => !allowed.includes(band))) problems.push(`unknown ${field} band`);
@@ -584,7 +587,9 @@ function lineRow(line, info, contexts) {
   if (!original.pack.lines.some((l) => l.id === line.id)) top.append(node("span", "new", "badge"));
   if (top.childNodes.length) row.append(top);
   const text = node("textarea");
-  text.value = line.text; text.rows = 1; text.setAttribute("aria-label", `Text of ${line.id}`); text.placeholder = "Write the line. Use {subject} for the other person's name.";
+  text.value = line.text; text.rows = 1; text.setAttribute("aria-label", `Text of ${line.id}`); text.placeholder = ITEM_KINDS.includes(String(line.kind || "").split(".")[0])
+    ? "Write the line. Use {subject} for the other person's name and {item} for the thing, as said (some flour)."
+    : "Write the line. Use {subject} for the other person's name.";
   const problems = node("p", null, "error");
   const showProblems = () => {
     const ids = new Map(); for (const l of pack.lines) ids.set(l.id, (ids.get(l.id) || 0) + 1);

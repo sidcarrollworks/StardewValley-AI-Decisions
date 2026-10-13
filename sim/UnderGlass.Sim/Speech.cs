@@ -38,6 +38,8 @@ public static class SpeechCatalog
     /// <summary>Acts that are not spoken: turning away from someone says nothing.</summary>
     public static readonly IReadOnlySet<string> Silent = new HashSet<string>(StringComparer.Ordinal) { "Snubbed", "TurnedAway" };
     public const int MinChars = 12, MaxChars = 110;
+    /// <summary>The kinds whose lines may name the thing an errand is for, {item} (needs spec).</summary>
+    public static readonly IReadOnlySet<string> ItemKinds = new HashSet<string>(StringComparer.Ordinal) { "AskedFavour", "HandedOver" };
     /// <summary>Weights: a line in the speaker's own archetype, a tag that names the band exactly,
     /// a tag that names a neighbouring band. An untagged field counts 1.</summary>
     public const double ArchetypeWeight = 3.0, ExactWeight = 2.0, NeighbourWeight = 0.5;
@@ -77,13 +79,14 @@ public static class SpeechCatalog
             throw new InvalidDataException("Speech catalog line ids must be unique.");
         foreach (SpeechLine line in pack.Lines)
         {
-            string remaining = (line.Text ?? "").Replace("{subject}", "", StringComparison.Ordinal);
+            string remaining = (line.Text ?? "").Replace("{subject}", "", StringComparison.Ordinal).Replace("{item}", "", StringComparison.Ordinal);
             if (string.IsNullOrWhiteSpace(line.Id) || string.IsNullOrWhiteSpace(line.Kind) || line.Text is null
                 || line.Text.Trim().Length < MinChars || line.Text.Length > MaxChars || line.Text != line.Text.Trim()
                 || remaining.IndexOfAny(new[] { '{', '}', '$', '#', '%', '@' }) >= 0 || line.Text.Any(char.IsControl)
                 || line.Archetypes is null || line.Relationship is null || line.Mood is null || line.Tags is null
                 || line.Archetypes.Any(string.IsNullOrWhiteSpace) || line.Tags.Any(string.IsNullOrWhiteSpace)
-                || line.Relationship.Any(r => !Relationships.Contains(r)) || line.Mood.Any(m => !Moods.Contains(m)))
+                || line.Relationship.Any(r => !Relationships.Contains(r)) || line.Mood.Any(m => !Moods.Contains(m))
+                || line.Text.Contains("{item}", StringComparison.Ordinal) && !ItemKinds.Contains(line.Kind.Split('.')[0]))
                 throw new InvalidDataException($"Invalid speech line {line.Id}.");
         }
         return pack with { Lines = Array.AsReadOnly(pack.Lines.OrderBy(l => l.Id, StringComparer.Ordinal)
@@ -138,5 +141,11 @@ public static class SpeechCatalog
         return fits[^1].Line;
     }
 
-    public static string Render(SpeechLine line, string subject) => line.Text.Replace("{subject}", subject, StringComparison.Ordinal);
+    /// <summary>The line as said: {subject} is the person spoken to; {item} the thing an errand is
+    /// for, as said ("some flour"), and only errand lines carry it.</summary>
+    public static string Render(SpeechLine line, string subject, string? item = null)
+    {
+        string text = line.Text.Replace("{subject}", subject, StringComparison.Ordinal);
+        return item is null ? text : text.Replace("{item}", item, StringComparison.Ordinal);
+    }
 }

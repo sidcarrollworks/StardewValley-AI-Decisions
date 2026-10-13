@@ -28,6 +28,8 @@ public static class ActCatalog
             rows.AddRange(Late);
         if (o.Invitations)
             rows.AddRange(Invitations);
+        if (o.Errands)
+            rows.AddRange(o.Invitations ? Errands : Errands.Concat(Invitations)); // a refusal needs its row once
         return rows;
     }
 
@@ -194,6 +196,30 @@ public static class ActCatalog
             Affect: new Affect(Patient.Target, -0.1, 0.15, 1, TargetIs.Given)),
     };
 
+    /// <summary>
+    /// Errands (agreed order step 4; needs spec), all begun only by the errand's own rules (no rate,
+    /// no gate):
+    /// <list type="bullet">
+    /// <item>AskedFavour, "Pam asked Penny to bring her some vinegar": the asking, felt by nobody;
+    /// trivia, one minute. A no is followed by Refused from the one asked, as an invitation's is.</item>
+    /// <item>Fetched, "Penny bought vinegar from Pierre": the errand-runner at the counter, toward the
+    /// one serving; felt by nobody; trivia, two minutes.</item>
+    /// <item>HandedOver, "Penny brought Pam the vinegar she asked for": a kindness toward the one who
+    /// asked (+0.2, plastic 0.25), aimed like a gift, so it stirs Return; its About is the asking.</item>
+    /// <item>LetDown, "Penny never brought what Pam asked for": begun unseen when a promise breaks;
+    /// the one let down knows (-0.2, plastic 0.25); a given deed, so it stirs no grudge.</item>
+    /// </list>
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Errands = new[]
+    {
+        new ActKind("AskedFavour", 1.0, 0, 1, 1, 0, Array.Empty<string>()),
+        new ActKind("Fetched", 0.5, 0, 1, 2, 0, Array.Empty<string>()),
+        new ActKind("HandedOver", 1.5, 1, 1, 2, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, 0.2, 0.25, 1, TargetIs.Chosen)),
+        new ActKind("LetDown", 1.5, -1, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, -0.2, 0.25, 1, TargetIs.Given)),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
@@ -205,6 +231,7 @@ public static class ActCatalog
         "Comforted" or "Mocked" or "StoodUpFor" => nameof(ActOptions.Sides),
         "LateForWork" => nameof(ActOptions.Late),
         "Refused" => nameof(ActOptions.Invitations),
+        "AskedFavour" or "Fetched" or "HandedOver" or "LetDown" => nameof(ActOptions.Errands),
         _ => null,
     };
 

@@ -54,6 +54,10 @@ public sealed class ActOptions
     /// <summary>Invitations (agreed order step 3; invitation spec): a game or a drink is asked for first,
     /// through the general Ask; a no is a Refused act the asker feels. Needs Company.</summary>
     public bool Invitations { get; set; }
+    /// <summary>Errands (agreed order step 4; needs spec): people come to need one named thing, ask
+    /// someone to fetch it, and the promise is kept, kept late or broken. Needs money and a town with
+    /// an errands book.</summary>
+    public bool Errands { get; set; }
 
     // Batch 2's switches (acts-batch2 spec 2.10), each with its slice; b2-0 builds the seams only,
     // so none has rows or rules yet.
@@ -126,6 +130,24 @@ public sealed class ActOptions
     public int InviteBusyMinutes { get; set; } = 60;
     /// <summary>What family or a shared home adds to the obligation to say yes.</summary>
     public double InviteKinBond { get; set; } = 0.2;
+    /// <summary>The chance each day that someone with things they use, and no need already, comes to
+    /// need one of them.</summary>
+    public double NeedChancePerDay { get; set; } = 0.1;
+    /// <summary>How many days a need waits for someone to promise it before it lapses.</summary>
+    public int NeedDays { get; set; } = 4;
+    /// <summary>A promised errand is due at the end of the day this many days after the promise:
+    /// Stardew's item delivery quests give two days.</summary>
+    public int ErrandDays { get; set; } = 2;
+    /// <summary>Handed over within this many days after it was due, an errand is late; after, broken.</summary>
+    public int ErrandGraceDays { get; set; } = 1;
+    /// <summary>After a no, the days before the same person is asked for a favour by the same asker.</summary>
+    public int ErrandAskAgainDays { get; set; } = 3;
+    /// <summary>The least time between two askings by the same person, in minutes.</summary>
+    public int ErrandAskMinutes { get; set; } = 60;
+    /// <summary>What fetching something one won't touch weighs against saying yes (Penny and beer).</summary>
+    public double ErrandReluctance { get; set; } = 0.5;
+    /// <summary>What family or a shared home adds to the obligation to fetch something.</summary>
+    public double ErrandKinBond { get; set; } = 0.2;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
     /// (acts spec 4.8: the understanding comfort).</summary>
     public double HurtPity { get; set; } = 0.5;
@@ -142,7 +164,7 @@ public sealed class ActOptions
         "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late",
         "Visits", "Dates", "Peace", "Festivals", "PublicConfront", "ReadVerdicts", "Settled", "Amends", "MadeScenes",
         "Bans", "Counter", "Hosting", "Debts", "Loans", "Items", "Blunders", "Contests", "Partiality", "Board",
-        "Invitations",
+        "Invitations", "Errands",
     };
 
     /// <summary>Whether the slice with this switch name is on.</summary>
@@ -174,6 +196,7 @@ public sealed class ActOptions
         nameof(Partiality) => Partiality,
         nameof(Board) => Board,
         nameof(Invitations) => Invitations,
+        nameof(Errands) => Errands,
         _ => false,
     };
 

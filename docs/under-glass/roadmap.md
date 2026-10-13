@@ -111,7 +111,13 @@ The order is:
    those they like, so noes are rare (2 of 22 in a seed-7 month). Still to come in this step:
    company and comfort through reflection, favours and loans.
 4. **Follow-through**: one concrete need → request → agreement → attempt → outcome thread, so
-   help has an object and a next day. After 3, so there are things to ask for.
+   help has an object and a next day. After 3, so there are things to ask for. First thread built
+   2026-10-13, opt-in (`--catalog errands`; [needs spec](specs/needs-spec.md)): someone needs one
+   named thing (flour, a coffee, a bottle of beer), asks someone in reach, and a yes is a promise
+   the other keeps by walking to the counter while its sign says open, buying it and handing it
+   over, late, or never (a let-down the asker feels). A need nobody takes on lapses. Across six
+   seeds, 5% of promises broke, all by people who work through the shop's hours. Still to come:
+   needs beyond shop goods, asking through reflection, and the player as the one asked.
 
 5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
    The Newcomer is the player's character and gets the player's voice: the player types, Laya

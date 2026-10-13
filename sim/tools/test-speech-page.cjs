@@ -40,6 +40,10 @@ test('the page rejects what SpeechCatalog.Read rejects', () => {
     line('A line without a kind here.', { kind: '' }), line('Two lines\nin one string.')])
     assert.ok(api.lineProblems(bad, ids).length > 0, JSON.stringify(bad));
   assert.ok(api.lineProblems(line('One line here now.'), new Map([['x', 2]])).some((p) => /twice/.test(p)));
+  // {item} names an errand's thing, and only errand lines may carry it (SpeechCatalog.ItemKinds).
+  assert.deepEqual(plain(api.lineProblems(line('Could you bring me {item}, {subject}?', { kind: 'AskedFavour' }), ids)), []);
+  assert.deepEqual(plain(api.lineProblems(line('Here is {item}, a bit late.', { kind: 'HandedOver.Late' }), ids)), []);
+  assert.ok(api.lineProblems(line('Here is {item} for you.', { kind: 'GaveGift' }), ids).some((p) => /errand/.test(p)));
   assert.deepEqual(plain(api.catalogProblems([line('Only archetype line here.', { archetypes: ['weary-defender'] })], ['GaveGift']).map((p) => p.problem)),
     ['every kind needs at least one line with no archetype']);
 });

@@ -1029,6 +1029,39 @@ seeds of 28 days, noes went from 9% to 30% (49% at 0.5); tiredness carries nearl
 company is in the evening and the town's moods rarely fall below even. Each invitation records the
 state behind its answer. See the [invitation spec](under-glass/specs/invitation-spec.md).
 
+### D52. A need names one thing, and a promise to fetch it is kept, kept late or broken
+
+**Decision (2026-10-13, the agreed order's step 4, follow-through; Sid: "start on the need with a
+real item").** With the opt-in switch `Errands`, people come to need one named thing from their own
+life (flour, a coffee, a bottle of beer: Stardew's goods, sold where Stardew sells them) and ask
+someone in reach to fetch it, through the general `Ask` (`AskKind.Errand`). A no is a `Refused`, as
+an invitation's is. A yes is an `AskedFavour` act and a `Promise` (kind `Errand`, appended, with the
+thing and the act that bought it appended to the record): due at the end of the day two days on
+(Stardew's item request gives two). The one who promised walks to the counter while its sign says
+open (`Decide`, after work and patrol: `ErrandGoal`), buys it from whoever is serving (`Fetched`; the
+money moves as groceries' does), and hands it over when the two meet (`HandedOver`, a kindness
+aimed at the asker that answers the asking; the asker pays it back unless they share a home).
+Late if after it was due; not by a day after that, the promise breaks: `LetDown`, begun unseen,
+known and felt by the one let down. A need nobody promises lapses quietly, as Stardew's request
+expires. Looking for the person reads only memory and public knowledge: where they work, in working
+hours, then where the runner last saw them out of doors, never into someone else's home. The errands
+book (`ErrandBook`: goods, counters' signs, who uses what, who won't fetch what) is appended to
+`Economy`; the shipped town has one, grown towns not yet.
+
+**Why.** The roadmap's follow-through asks for one concrete thread, need to outcome, that an observer
+can follow across days, including refusal, failure and expiry, with consequences that cite actual
+events. A shop good gives the need an object and a price, the counter's sign gives the attempt a
+real obstacle (working hours), and the promise record batch 2 seamed holds it all. Stardew gives
+the item and the window; The Sims gives needs from one's own life, chores in the family, the trip,
+the hand-over in person, and a broken promise that is felt, unlike a lapsed want.
+
+**First measurements.** Six seeds of 28 days: 284 needs, 424 askings, 67% yes (95% within a home,
+49% across homes); of 283 promises, 261 kept in time, 3 late, 13 broken. Every broken promise was
+someone who works through the counter's hours. Penny fetched beer for her mother five times of six,
+the family's obligation outweighing her reluctance; whether she should is Sid's call, with the
+question of whether people should count their own hours when asked. See the
+[needs spec](under-glass/specs/needs-spec.md).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

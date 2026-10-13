@@ -21,7 +21,10 @@ public sealed record Economy(
     /// <summary>The county's weekly stipend to the town purse.</summary>
     double TownStipend,
     /// <summary>The town purse at the start.</summary>
-    double TownStart);
+    double TownStart,
+    /// <summary>What is sold where, what people come to need, and what some won't fetch (needs spec);
+    /// null: no errands in this town.</summary>
+    ErrandBook? Errands = null);
 
 /// <summary>Knobs for money and temptation (phase 0b). First guesses, from Stardew's prices
 /// where it has them.</summary>
