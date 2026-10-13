@@ -121,7 +121,8 @@ The order is:
    memory and trust in the speaker, a check is an event others can witness, and a lie taken on
    trust comes out only through perception. Built so far: a probe of whether Laya can read typed
    lines at all ([write-up](experiments/laya-categorize-2026-10-13.md)). It needs 3 (asks with
-   answers) and 4 (needs with real items) first; scripted player lines come before live typing.
+   answers) and 4 (needs with real items) first; scripted player lines come before live typing, and
+   live typing waits for a gate on Sid's own lines (the spec's "The gate before live typing").
 
 Then batch 2's visits, dates, peace and festivals as the backlog, each behind its own switch.
 The text REPL in which Sid is the Newcomer is now the end of this order (step 5, amended
