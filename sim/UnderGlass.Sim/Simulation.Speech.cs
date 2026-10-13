@@ -23,15 +23,30 @@ public sealed partial class Simulation
     private void Say(Act act, ActKind kind, Person actor)
     {
         if (!_speech.Enabled || act.Target is null || !_index.ContainsKey(act.Target) || SpeechCatalog.Silent.Contains(kind.Name)) return;
-        string speaker = actor.V.Name, subject = act.Target;
+        if (_answered.TryGetValue(act.Id, out var invitation))
+        {
+            // An invitation (invitation spec): the asker's offer, then the answer. On a yes the act is
+            // the game or drink, begun by the asker; on a no it is the refusal, begun by the one asked.
+            string asker = invitation.Accepted ? act.Actor : act.Target, asked = invitation.Accepted ? act.Target : act.Actor;
+            Speak(act, asker, asked, invitation.Kind, reply: false);
+            Speak(act, asked, asker, invitation.Kind + (invitation.Accepted ? ".Accepted" : ".Refused"), reply: true);
+            return;
+        }
+        Speak(act, actor.V.Name, act.Target, kind.Name, reply: false);
+    }
+
+    /// <summary>One line from the library, chosen from the speaker's side and recorded on the act.</summary>
+    private void Speak(Act act, string speaker, string subject, string kind, bool reply)
+    {
         string? archetype = _inspirationPack?.Characters.FirstOrDefault(c => c.Name == speaker)?.ArchetypeId;
         string relationship = ReflectionText.Relationship(Familiarity(speaker, subject), HouseholdOf(speaker) == HouseholdOf(subject), _fo.Acts.NewAt);
         string mood = SpeechCatalog.MoodBand(MoodOf(_index[speaker]));
-        if (!_lastSaid.TryGetValue((speaker, kind.Name), out List<string>? recent)) _lastSaid[(speaker, kind.Name)] = recent = new();
-        SpeechLine? line = SpeechCatalog.Choose(SpeechCatalog.Default, kind.Name, archetype, relationship, mood, _seed, act.Id, recent);
+        if (!_lastSaid.TryGetValue((speaker, kind), out List<string>? recent)) _lastSaid[(speaker, kind)] = recent = new();
+        SpeechLine? line = SpeechCatalog.Choose(SpeechCatalog.Default, kind, archetype, relationship, mood, _seed, act.Id, recent,
+            reply ? "reply" : null);
         if (line is null) return;
         recent.Add(line.Id);
         if (recent.Count > Remembered) recent.RemoveAt(0);
-        _speechLines.Add(new Speech(act.Id, act.Tick, speaker, SpeechCatalog.Render(line, subject), line.Id, archetype, relationship, mood));
+        _speechLines.Add(new Speech(act.Id, act.Tick, speaker, SpeechCatalog.Render(line, subject), line.Id, archetype, relationship, mood, reply));
     }
 }

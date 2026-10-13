@@ -170,7 +170,10 @@ equally likely lines the weights amount to) or lines in the speaker's own voice,
 relationship or mood. Open a recording made with `--speech` (or add `?run=` and its path) to colour
 by what was actually said and how often the same person repeated a line.
 
-Click a cell to read its lines. Each line carries its own fifteen squares, its chance of being
+A browser draft made against an earlier version of the catalog is not swapped in whole: its edits
+are replayed onto the current version, an edit whose line the new version also changed or removed is
+skipped and listed (kept in the browser until dismissed), and a line the draft added under an id the
+new version also uses is kept under a fresh id. Click a cell to read its lines. Each line carries its own fifteen squares, its chance of being
 picked in every situation for that speaker (hover one for the number), and its average chance across
 the chosen bands. The voice's own lines
 first, then the lines any speaker may use under a divider that folds away, then folded lists of
@@ -201,9 +204,16 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - **`events`** are the log lines other than beliefs and tellings, which have tables of their own.
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
+- **`invitations`** is optional, present only when a run was recorded with `--catalog …,invitations`.
+  Each row is camelCase `{ tick, asker, asked, kind, accepted, margin, actId, tired, busy, low, bond,
+  eager }`: who asked whom to a game or a drink, the answer and its margin, the act that followed
+  (the game or drink on a yes, the `Refused` act on a no), and why: the asked person's state, their
+  bond with the asker and their eagerness to please. The act detail says it in words.
 - **`speech`** is optional, present only when a run was recorded with `--speech`. Each row is
-  camelCase `{ actId, tick, speaker, line, lineId, archetype, relationship, mood }`: the line as
-  spoken, its library id, and the speaker-side bands the choice was made under. `speechOptions`
+  camelCase `{ actId, tick, speaker, line, lineId, archetype, relationship, mood, reply }`: the line
+  as spoken, its library id, and the speaker-side bands the choice was made under. `reply` marks the
+  other person's answer on the same act (an invitation's yes or no); the viewer shows it after the
+  line, as "Answered" in the act detail. `speechOptions`
   and `speechCatalog` (schema, line count, provenance) say which library spoke. The viewer shows a
   line only once the clock reaches its tick and never invents one for an older recording.
 - **`reflections`** is optional, absent when reflection is disabled. Unlike the packed tables,

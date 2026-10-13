@@ -104,7 +104,12 @@ The order is:
    [player speech spec](specs/player-speech-spec.md). Reply lines and scene tags are next.
 3. **Broader actions where reflection already reaches**: company (a game, a drink), comfort, and
    the general Ask that b2-0 seamed (invitations, favour requests, loans), with accept and
-   decline as real outcomes. Distinct consequences, not different wording.
+   decline as real outcomes. Distinct consequences, not different wording. First part built
+   2026-10-13, opt-in (`--catalog invitations`; [invitation spec](specs/invitation-spec.md)): a game
+   or a drink is asked for through the Ask; a yes begins it, a no is a `Refused` act the asker feels
+   and others see, and the asked person answers in an authored reply line. People mostly invite
+   those they like, so noes are rare (2 of 22 in a seed-7 month). Still to come in this step:
+   company and comfort through reflection, favours and loans.
 4. **Follow-through**: one concrete need → request → agreement → attempt → outcome thread, so
    help has an object and a next day. After 3, so there are things to ask for.
 
@@ -116,7 +121,8 @@ The order is:
    memory and trust in the speaker, a check is an event others can witness, and a lie taken on
    trust comes out only through perception. Built so far: a probe of whether Laya can read typed
    lines at all ([write-up](experiments/laya-categorize-2026-10-13.md)). It needs 3 (asks with
-   answers) and 4 (needs with real items) first; scripted player lines come before live typing.
+   answers) and 4 (needs with real items) first; scripted player lines come before live typing, and
+   live typing waits for a gate on Sid's own lines (the spec's "The gate before live typing").
 
 Then batch 2's visits, dates, peace and festivals as the backlog, each behind its own switch.
 The text REPL in which Sid is the Newcomer is now the end of this order (step 5, amended

@@ -45,7 +45,8 @@ claims, verification, per-pair trust, lie exposure, and the viewer for any of it
 0. **The probe** (built). Can Laya tell what a line is doing, and which known thing a claim refers
    to? Measured on the speech catalog's labelled lines, player-style lines, small talk and claim
    cases, each judged blind first. This is a variant of the design's E4a; it is a diagnostic, not
-   a pass quota (roadmap, "What must hold, and what we measure").
+   a pass quota (roadmap, "What must hold, and what we measure"). The gate is later, before live
+   typing, on Sid's own lines (below).
 1. **The invitation** (agreed order step 3). Asking for company is an `Ask` (`AskKind.Invitation`,
    already scored in `Simulation.Ask.cs`) that the asked person answers. Yes starts the game or the
    drink; no is a refusal the asker feels. The asked person's reply line is authored and keyed to
@@ -250,17 +251,19 @@ above, offering only possible acts, and keeping `typed-decisions`. Details, tabl
 ## Decided, and still open
 
 Decided by Sid, 2026-10-13: small talk counts as time spent together (above); what the player types
-shapes how villagers describe the Newcomer, through the readings they heard (above).
+shapes how villagers describe the Newcomer, through the readings they heard (above); and the gate
+below.
+
+**The gate before live typing** (Sid took the recommendation, 2026-10-13). There is none before
+scripted lines (step 4 above), which change nothing for a player. Before live typing (step 6), the
+reading is measured on Sid's own lines rather than authored ones: the design's E4a, 50 lines typed
+the way he would, labelled by him. It passes when, at the 0.7 confidence line, the readings taken
+are right at least 90% of the time and the top three hold the right act for at least 80% of the
+rest. If it does not, `typed-decisions` is fine-tuned on half of his lines and tested on the other
+half before live typing. Until then the probe's numbers inform the design and gate nothing.
 
 Still open:
 
-- **Should the probe gate the next step?** Sid asked what a gate would look like. Proposed: none
-  before scripted lines (step 4 above), which change nothing for a player; one before live typing
-  (step 6), measured on Sid's own lines rather than authored ones (the design's E4a: 50 lines typed
-  the way he would, labelled by him). It would pass when, at the 0.7 confidence line, the readings
-  taken are right at least 90% of the time and the top three hold the right act for at least 80% of
-  the rest; if not, fine-tune `typed-decisions` on half of his lines and test on the other half
-  before live typing. Awaiting Sid.
 - When does the emotion wheel's reading (design 6) join the typed payload: with the first scripted
   lines, or with live typing?
 

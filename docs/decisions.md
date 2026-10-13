@@ -982,8 +982,52 @@ honest (at 0.7 or above, 94% right), `english`'s was not. Hence: offer only poss
 confident reading, let the player pick from the top three otherwise, guard claim matches, keep
 `typed-decisions`.
 
+**The gate (Sid, 2026-10-13).** Nothing gates scripted lines. Before live typing, the reading is
+measured on Sid's own 50 lines (design E4a): at the 0.7 confidence line, readings taken right at
+least 90% of the time and the top three holding the right act for at least 80% of the rest; failing
+that, `typed-decisions` is fine-tuned on half his lines and tested on the other half first.
+
 **Not changed.** Laya writes nothing; every villager's reply is authored (D48); nothing in the
 simulation reads the player's words except through Laya's typed reading of offered options.
+
+### D51. Company is asked for, and the answer is real
+
+**Decision (2026-10-13, the first part of the agreed order's step 3, which Sid confirmed as next).**
+With the opt-in switch `Invitations` (needs `Company`), a game or a drink is asked for before it
+begins: batch 2's general `Ask` with `AskKind.Invitation`, whose obliged-against-cost formula was
+already written and unused. A yes begins the game or drink exactly as before; a no begins batch 2's
+`Refused` row instead (the asked person's one-minute act toward the asker: the asker takes part,
+so knows who said no and feels it, and anyone in sight can see it), and the asker waits
+`InviteAgainDays` (7) before inviting that person again. For that, a given deed done to someone face to
+face (`TargetIs.Given` with the target as patient, within reach) now makes its target a participant
+as a chosen one does; one done about someone out of reach does not, and `Refused` is the town's only
+such row. A refusal is not the asker's gate act: the gate's pursuit is
+recorded as not acted, and the invitations table links the asking to the refusal. Acts a fixture injects are not asked. With speech on, the asker's offer and the asked
+person's authored reply are both recorded on the act, the reply marked `Reply`.
+
+**Why.** Before this, company was one-sided: the one who began a game simply made the other busy.
+The roadmap asks for accept and decline as real outcomes with distinct consequences, and the Ask
+was the seam built for it. Doing it at the moment the act would begin keeps every route (motives,
+per-head draws) and every eligibility rule as they were.
+
+**Differences from batch 2's plan.** It is company now, not a date later (no promise, no
+`Invited`, `MetUp` or `StoodUp`); the asker feels the `Refused` row's affect rather than
+`RefusedSting`; the row has no gate, so it is not light; there is no asking act to resolve. At
+trivia 1.0 a refusal is seen and remembered but never volunteered in gossip. The acts-batch2 spec notes this beside the row.
+
+**First measurements.** Seed 7 with the observer pack's flags: in 28 days, 22 invitations among
+16 pairs, 20 accepted; both noes were close calls involving the barely known Newcomer. With the
+switch off the week's log hash is unchanged.
+
+**Sid's answer (2026-10-13).** Refusals should come more readily when someone is tired, busy or
+low, and depend on the two people's relationship: someone eager to please will still do it when
+low, as Penny does things for her mother. So the cost of saying yes now includes the asked person's
+own state (tired, due at work, low; 0.3 each at full), shrunk by their eagerness to please (low
+self-regard and low boldness) times their bond with the asker (whole for family or a shared home,
+otherwise liking and familiarity), and family adds 0.2 to the obligation (`AskMath`). Across six
+seeds of 28 days, noes went from 9% to 30% (49% at 0.5); tiredness carries nearly all of it, since
+company is in the evening and the town's moods rarely fall below even. Each invitation records the
+state behind its answer. See the [invitation spec](under-glass/specs/invitation-spec.md).
 
 ## Open work and known issues
 

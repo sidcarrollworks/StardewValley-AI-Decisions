@@ -51,6 +51,15 @@ The optional quiet-reflection prototype is specified in
   own place and time of day, relationship band, the pair's week, own appraisal reasons), built in
   `Simulation.SceneOf` from the actor's encounter history and appraisals; `ReflectionText` holds
   the memory verbs and bands so they are testable.
+- `UnderGlass.Sim/Simulation.Invitations.cs`: invitations ([spec](under-glass/specs/invitation-spec.md),
+  D51), opt-in with `Invitations`. `Begin` asks before a game or a drink (`Asked`, through the general
+  `Ask`); a no begins the `Refused` row (`ActCatalog.Invitations`) by the asked person instead, and
+  `KindFits` keeps the asker from inviting that person again for `InviteAgainDays`. The answer also
+  weighs the asked person's own state (tired, due at work, low) shrunk by their eagerness to please
+  times their bond with the asker (`AskMath`, `AskState`, in `Simulation.Ask.cs`). The asker takes
+  part in the refusal (`FinishActs` treats a given deed's patient target within reach as a
+  participant), and the
+  gate records the asking as not acted. Replay writes `invitations` only with the switch on.
 - `UnderGlass.Sim/Speech.cs`, `Simulation.Speech.cs` and embedded `speech-catalog.json`: the
   opt-in speech library ([spec](under-glass/specs/speech-spec.md)). When an act toward a person
   begins, `Say` chooses one authored line by kind, the speaker's archetype, relationship band and

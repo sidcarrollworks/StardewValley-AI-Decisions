@@ -568,11 +568,25 @@ public sealed partial class Simulation
             _occasionGiven.Add((h, day)); // 0d.6 (X12): one occasion gift a day (a joke is no gift)
         FondWarmed(d.Kind, chosen, h, s, m); // the act catalog: a small act, then a few days' wait
         FondGave(d.Kind, chosen, h, m); // the act catalog: with Company on, Fond's one occasion gift a day
-        _pursuedActs.Add(_acts.Count);
+        int id = _acts.Count;
+        _pursuedActs.Add(id);
         DesireLog($"{m} desire {hn} {d.Kind} {sn} act {(d.Source >= 0 ? d.Source.ToString() : "regard")}: {chosen.Name} intensity {I:0.00} eff {eff:0.00} cost {chosenCost:0.00} {call}{(call == "close yes" ? $" p {chance:0.00}" : "")}");
         Begin(m, chosen, p, injected: false, target: sn, about: d.Source >= 0 ? d.Source : -1, with: d.With >= 0 ? _names[d.With] : null,
             cause: new(-1, m, hn, "motive", d.Source, d.Kind.ToString()));
+        if (_acts.Count > id && _acts[id].Actor != hn)
+            Refused(id, hn, m);
         return true;
+    }
+
+    /// <summary>The holder asked for company and was turned down (invitation spec): the act at the id
+    /// the gate reserved is the other person's refusal, not the holder's own, so it is no gate act and
+    /// the weighing did not act. The invitations table links the asking to the refusal.</summary>
+    private void Refused(int id, string hn, int m)
+    {
+        _pursuedActs.Remove(id);
+        for (int i = _pursuits.Count - 1; i >= 0 && _pursuits[i].Tick == m; i--)
+            if (_pursuits[i].ActId == id && _pursuits[i].Holder == hn)
+                _pursuits[i] = _pursuits[i] with { Acted = false, ActId = -1 };
     }
 
     private void Record(int m, string hn, string sn, Motive d, string kind, double I, double eff, double cost, double margin, string call, double p, bool acted)

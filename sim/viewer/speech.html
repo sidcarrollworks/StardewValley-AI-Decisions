@@ -179,13 +179,49 @@ function catalogProblems(lines, kinds) {
 
 /** The catalog as stored in the repository: one-space JSON, so an export diffs line by line. */
 function serialize(pack) { return JSON.stringify(pack, null, 1); }
+
+/** A browser draft's edits as {id, before, after} (before null: the draft added the line; after null:
+ * it removed it): recorded with the draft, or, for an older draft that kept only its lines, every line
+ * that differs from these lines or is new to them (never a removal). */
+function draftEdits(draft, lines) {
+  if (Array.isArray(draft.edits)) return draft.edits;
+  const now = new Map(lines.map((l) => [l.id, l]));
+  return draft.lines.filter((l) => !now.has(l.id) || JSON.stringify(now.get(l.id)) !== JSON.stringify(l))
+    .map((l) => ({ id: l.id, before: now.get(l.id) ?? null, after: l }));
+}
+
+/** Replays a draft's edits onto another version's lines and returns {lines, skipped, renamed}. With
+ * recorded befores (checked), an edit whose line this version changed or removed is skipped, never
+ * forced; a line the draft added under an id this version also uses is kept under a fresh id. No line
+ * is removed unless the draft removed that very line. */
+function mergeDraft(lines, plan, checked) {
+  const copy = (v) => JSON.parse(JSON.stringify(v)), same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const out = copy(lines), skipped = [], renamed = [];
+  for (const e of plan) {
+    const at = out.findIndex((l) => l.id === e.id);
+    if (e.before === null) {
+      if (e.after === null || at >= 0 && same(out[at], e.after)) continue;
+      if (at < 0) { out.push(copy(e.after)); continue; }
+      let n = 1, id = `${e.id}-draft${n}`;
+      while (out.some((l) => l.id === id)) id = `${e.id}-draft${++n}`;
+      out.push({ ...copy(e.after), id });
+      renamed.push({ from: e.id, to: id });
+      continue;
+    }
+    if (checked && (at < 0 || !same(out[at], e.before))) { skipped.push(copy(e)); continue; }
+    if (e.after === null) { if (at >= 0) out.splice(at, 1); }
+    else if (at >= 0) out[at] = copy(e.after);
+    else out.push(copy(e.after));
+  }
+  return { lines: out, skipped, renamed };
+}
 // rules:end
 
 const $ = (id) => document.getElementById(id);
 const KIND_ORDER = ["Welcomed", "Complimented", "Thanked", "GaveGift", "HelpedSomeone", "TreatedToDrink", "PlayedGame", "Joked",
   "Comforted", "StoodUpFor", "Apologised", "Squabbled", "Argued", "Mocked"];
 const NONE = "";
-const DRAFT_KEY = "under-glass-speech-draft";
+const DRAFT_KEY = "under-glass-speech-draft", SKIPPED_KEY = "under-glass-speech-skipped";
 /** Situations an act can never be spoken in, from the simulation's own gates. Their squares are faint
  * and they are left out of every count. */
 const ONLY = {
@@ -206,7 +242,8 @@ function fnv(text) { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const voiceLabel = (arch) => (arch === NONE ? "no archetype" : arch.replace(/-/g, " "));
 /** "TreatedToDrink" reads as "Treated to drink"; the code name stays in titles. */
-const kindLabel = (kind) => kind.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (m, c) => " " + c.toLowerCase());
+const kindLabel = (kind) => kind.split(".").map((part) => part.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (m, c) => " " + c.toLowerCase()))
+  .map((part, i) => (i ? part.toLowerCase() : part)).join(" · "); // a reply kind: "Played game · accepted"
 let opener = null, sectionsOpen = new Set(["any"]);
 const median = (values) => { const s = [...values].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
 function showError(message) { $("error").textContent = message || ""; $("error").hidden = !message; }
@@ -241,22 +278,57 @@ function loadRecording(text, source) {
 function restoreDraft() {
   let draft = null;
   try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch { draft = null; }
-  if (!draft || !Array.isArray(draft.lines)) return;
+  if (!draft || !Array.isArray(draft.lines)) { showSkipped(); return; }
   if (draft.base === original.hash) {
     pack.lines = draft.lines;
     showNotice(`Restored ${changes().length} unsaved changes from this browser. Download the catalog to keep them.`);
-  } else {
-    pendingDraft = draft;
-    const restore = node("button", "Restore them anyway"), discard = node("button", "Discard them");
-    restore.onclick = () => { pack.lines = pendingDraft.lines; pendingDraft = null; showNotice(null); touched(); };
-    discard.onclick = () => { pendingDraft = null; try { localStorage.removeItem(DRAFT_KEY); } catch { /* storage unavailable */ } showNotice(null); };
-    showNotice([node("span", "This browser holds edits made against a different version of the catalog. "), restore, " ", discard]);
+    return;
   }
+  // Edits made against another version of the catalog are replayed onto this one, never swapped in
+  // whole: a line this version added (or that the edits never touched) stays as it is.
+  pendingDraft = draft;
+  const plan = draftEdits(draft, pack.lines);
+  const restore = node("button", `Apply ${plan.length} edit${plan.length === 1 ? "" : "s"} to this version`), discard = node("button", "Discard them");
+  restore.onclick = () => {
+    const merged = mergeDraft(pack.lines, plan, Array.isArray(pendingDraft.edits));
+    pack.lines = merged.lines;
+    keepSkipped(merged.skipped);
+    pendingDraft = null; touched();
+    showSkipped(merged.renamed.map((r) => `${r.from} was added here too, so the draft's line is kept as ${r.to}`));
+  };
+  discard.onclick = () => { pendingDraft = null; try { localStorage.removeItem(DRAFT_KEY); } catch { /* storage unavailable */ } showNotice(null); };
+  showNotice([node("span", `This browser holds ${plan.length} edit${plan.length === 1 ? "" : "s"} made against a different version of the catalog (${plan.map((e) => e.id).slice(0, 4).join(", ")}${plan.length > 4 ? "…" : ""}). `), restore, " ", discard]);
+}
+/** Edits that could not be replayed are kept in this browser, with their wording, until dismissed. */
+function keepSkipped(edits) {
+  if (!edits.length) return;
+  try {
+    const kept = JSON.parse(localStorage.getItem(SKIPPED_KEY) || "[]");
+    localStorage.setItem(SKIPPED_KEY, JSON.stringify([...kept, ...edits]));
+  } catch { /* storage unavailable: the notice below still shows them once */ showSkippedList(edits, []); }
+}
+function showSkipped(extra = []) {
+  let kept = [];
+  try { kept = JSON.parse(localStorage.getItem(SKIPPED_KEY) || "[]"); } catch { kept = []; }
+  showSkippedList(kept, extra);
+}
+function showSkippedList(edits, extra) {
+  if (!edits.length && !extra.length) { showNotice(null); return; }
+  const parts = extra.map((t) => node("div", t));
+  if (edits.length) {
+    parts.push(node("div", `Not applied, because this version changed or removed the line too (redo by hand if still wanted):`));
+    for (const e of edits) parts.push(node("div", `${e.id}: ${e.after ? `“${e.after.text}”` : "removed"}`, "meta"));
+    const forget = node("button", "Forget these");
+    forget.onclick = () => { try { localStorage.removeItem(SKIPPED_KEY); } catch { /* storage unavailable */ } showNotice(null); };
+    parts.push(forget);
+  }
+  showNotice(parts);
 }
 function saveDraft() {
   try {
     if (!changes().length) localStorage.removeItem(DRAFT_KEY);
-    else localStorage.setItem(DRAFT_KEY, JSON.stringify({ base: original.hash, lines: pack.lines }));
+    else localStorage.setItem(DRAFT_KEY, JSON.stringify({ base: original.hash, lines: pack.lines,
+      edits: changes().map((c) => ({ id: (c.line || c.old).id, before: c.old ?? null, after: c.line ?? null })) }));
   } catch { /* the page still works without storage */ }
 }
 

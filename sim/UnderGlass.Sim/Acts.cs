@@ -51,6 +51,9 @@ public sealed class ActOptions
     public bool Sides { get; set; }
     /// <summary>acts-6: LateForWork. It can happen with feelings off, so it is off in every pinned run.</summary>
     public bool Late { get; set; }
+    /// <summary>Invitations (agreed order step 3; invitation spec): a game or a drink is asked for first,
+    /// through the general Ask; a no is a Refused act the asker feels. Needs Company.</summary>
+    public bool Invitations { get; set; }
 
     // Batch 2's switches (acts-batch2 spec 2.10), each with its slice; b2-0 builds the seams only,
     // so none has rows or rules yet.
@@ -107,6 +110,22 @@ public sealed class ActOptions
     public double ApologyCost { get; set; } = 0.4;
     /// <summary>Mood lost by an apologiser who is refused, x (0.5 + sensitivity).</summary>
     public double RefusedSting { get; set; } = 0.08;
+    /// <summary>After a refused invitation, the days before the asker invites that person again
+    /// (acts-batch2 spec 2.3's AskAgainDays for invitations).</summary>
+    public int InviteAgainDays { get; set; } = 7;
+    /// <summary>What being tired weighs against saying yes to an invitation, at full tiredness (Sid,
+    /// 2026-10-13: refusals come more readily when tired, busy or low). Eagerness to please, in
+    /// proportion to the bond with the one asking, shrinks this and the next two.</summary>
+    public double InviteTiredCost { get; set; } = 0.3;
+    /// <summary>What an invitation weighs when the asked person is due to leave for work within
+    /// InviteBusyMinutes.</summary>
+    public double InviteBusyCost { get; set; } = 0.3;
+    /// <summary>What a low mood weighs against saying yes, at the lowest mood.</summary>
+    public double InviteLowCost { get; set; } = 0.3;
+    /// <summary>How soon before leaving for work an invitation counts as badly timed.</summary>
+    public int InviteBusyMinutes { get; set; } = 60;
+    /// <summary>What family or a shared home adds to the obligation to say yes.</summary>
+    public double InviteKinBond { get; set; } = 0.2;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
     /// (acts spec 4.8: the understanding comfort).</summary>
     public double HurtPity { get; set; } = 0.5;
@@ -123,6 +142,7 @@ public sealed class ActOptions
         "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late",
         "Visits", "Dates", "Peace", "Festivals", "PublicConfront", "ReadVerdicts", "Settled", "Amends", "MadeScenes",
         "Bans", "Counter", "Hosting", "Debts", "Loans", "Items", "Blunders", "Contests", "Partiality", "Board",
+        "Invitations",
     };
 
     /// <summary>Whether the slice with this switch name is on.</summary>
@@ -153,6 +173,7 @@ public sealed class ActOptions
         nameof(Contests) => Contests,
         nameof(Partiality) => Partiality,
         nameof(Board) => Board,
+        nameof(Invitations) => Invitations,
         _ => false,
     };
 

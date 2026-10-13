@@ -61,7 +61,7 @@ public static class ReflectionText
         "Squabbled" => "squabbled with", "Stole" => "stole from",
         "Thanked" => "thanked", "Complimented" => "complimented", "Joked" => "joked with",
         "PlayedGame" => "played a game with", "TreatedToDrink" => "bought a drink for",
-        "Welcomed" => "welcomed", "Apologised" => "apologised to",
+        "Welcomed" => "welcomed", "Apologised" => "apologised to", "Refused" => "turned down",
         "Mocked" => "mocked", "StoodUpFor" => "stood up for", "Comforted" => "comforted",
         "Snubbed" => "snubbed", "TurnedAway" => "turned away from",
         _ => "interacted with",
