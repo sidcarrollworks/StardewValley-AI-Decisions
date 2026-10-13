@@ -65,7 +65,10 @@
     .row textarea:hover { border-color:var(--hair); } .row textarea:focus { border-color:var(--line); background:var(--raised); outline:none; }
     .row.bad textarea { border-color:var(--accent); }
     .share { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); margin:2px 0 6px; font-variant-numeric:tabular-nums; }
-    .bar { flex:0 0 64px; height:5px; background:var(--empty); border-radius:3px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--c4); border-radius:3px; }
+    .linegrid { display:grid; grid-template-columns:repeat(5,14px); gap:2px; flex:none; }
+    .linegrid i { display:block; width:14px; height:10px; border-radius:2px; background:var(--empty); } .linegrid i.x { opacity:.3; }
+    .linegrid i.chosen { outline:1.5px solid var(--ink); outline-offset:0; } .share .said { color:var(--muted); }
+    .panelkey { display:flex; gap:12px; align-items:center; margin:14px 0 0; font-size:12px; color:var(--muted); }
     .badge { font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); border-radius:4px; padding:0 5px; }
     .tagrow { display:grid; grid-template-columns:auto 1fr; gap:5px 10px; align-items:center; margin-top:8px; font-size:12px; }
     .tagrow>span.k { color:var(--muted); }
@@ -381,15 +384,21 @@ function renderGrid() {
   legend.replaceChildren(title);
   for (const [colour, text] of metric.legend) { const s = node("span"), sw = node("i", null, "sw"); sw.style.background = colour; s.append(sw, text); legend.append(s); }
   if (r.length > 1 || m.length > 1) {
-    const key = node("span", null, "key");
-    key.style.gridTemplateColumns = `auto repeat(${r.length}, 12px)`;
-    key.append(node("span", ""));
-    for (const rel of r) key.append(node("span", BAND_SHORT[rel]));
-    for (const mood of m) { key.append(node("span", mood + " ")); for (let i = 0; i < r.length; i++) key.append(node("i")); }
+    const key = bandKey(r, m);
     const wrap = node("span", null, "wide"); wrap.append(key, node("span", `Each square is one situation (S stranger, A acquaintance, F familiar, C close, H household); faint ones cannot happen for that act. The number is the ${metric.agg === "min" ? "worst" : "total"} across those that can.`));
     legend.append(wrap);
   }
   if (metric.explain) legend.append(node("span", metric.explain));
+}
+/** The little key that names a grid's columns (relationship bands) and rows (moods). */
+function bandKey(rels, moods) {
+  const key = node("span", null, "key");
+  key.style.gridTemplateColumns = `auto repeat(${rels.length}, 12px)`;
+  key.setAttribute("aria-hidden", "true");
+  key.append(node("span", ""));
+  for (const rel of rels) key.append(node("span", BAND_SHORT[rel]));
+  for (const mood of moods) { key.append(node("span", mood + " ")); for (let i = 0; i < rels.length; i++) key.append(node("i")); }
+  return key;
 }
 function renderControls() {
   const count = changes().length, problems = catalogProblems(pack.lines, kinds());
@@ -448,6 +457,12 @@ function renderCell(aside) {
   const contexts = every.some((s) => s.possible) ? every.filter((s) => s.possible) : every;
   const archetype = arch === NONE ? null : arch;
   const lines = byKind.get(kind) || [];
+  // Every situation, whatever the filter, so each line can show where it is likely and where it cannot be said.
+  const all = MOODS.flatMap((mood) => RELATIONSHIPS.map((rel) => situation(kind, arch, rel, mood)));
+  const totals = all.map((s) => s.fits.reduce((a, f) => a + f.w, 0));
+  const narrowed = rels.length * moods.length < all.length;
+  const shape = (line) => all.map((s, i) => ({ s, p: s.possible && totals[i] ? weight(line, archetype, s.rel, s.mood) / totals[i] : 0,
+    chosen: narrowed && rels.includes(s.rel) && moods.includes(s.mood) }));
   const info = new Map(lines.map((line) => {
     let fitsIn = 0, share = 0, said = 0;
     for (const s of contexts) {
@@ -455,7 +470,7 @@ function renderCell(aside) {
       if (w > 0) { fitsIn++; share += w / total; }
       said += s.rows.filter((row) => row.lineId === line.id).length;
     }
-    return [line, { fitsIn, share: share / contexts.length, said }];
+    return [line, { fitsIn, share: share / contexts.length, said, shape: shape(line) }];
   }));
   const byShare = (a, b) => info.get(b).share - info.get(a).share;
   const fits = (l) => info.get(l).fitsIn > 0;
@@ -468,7 +483,10 @@ function renderCell(aside) {
   aside.replaceChildren(drawerHead(`${kindLabel(kind)} · ${voiceLabel(arch)}`,
     `${where}: ${min === max ? min : `${min} to ${max}`} lines fit`
     + (recording ? `, said ${contexts.reduce((a, s) => a + s.rows.length, 0)} times in the recording` : "")
-    + `. Bars show each line's ${contexts.length > 1 ? "average " : ""}chance of being picked.`));
+    + `. The percentage is each line's ${contexts.length > 1 ? "average " : ""}chance of being picked${contexts.length > 1 ? " across them" : ""}.`));
+  const how = node("p", null, "panelkey");
+  how.append(bandKey(RELATIONSHIPS, MOODS), node("span", `Each line's squares are its chance in every situation for a ${voiceLabel(arch)} speaker: the deeper the green, the likelier; empty means it cannot be said there${narrowed ? "; outlined squares are the ones chosen above" : ""}. Hover a square for its number.`));
+  aside.append(how);
   if (ONLY[kind]) aside.append(node("p", ONLY[kind].why + (every.some((s) => s.possible) ? "" : " None of the bands chosen above can happen; the lines are shown as if they could."), "notice"));
   const row = (line) => lineRow(line, info.get(line), contexts.length);
   const addButton = (voice) => {
@@ -488,12 +506,9 @@ function renderCell(aside) {
 function lineRow(line, info, contexts) {
   const row = node("div", null, "row");
   const top = node("div", null, "share");
-  if (info && info.fitsIn) {
-    const bar = node("span", null, "bar"), fill = node("i");
-    fill.style.width = `${Math.max(2, Math.round(info.share * 100))}%`; bar.append(fill);
-    top.append(bar, node("span", `${Math.round(info.share * 100)}%` + (contexts > 1 ? ` · fits ${info.fitsIn} of ${contexts}` : "")));
-  }
-  if (recording && info) top.append(node("span", `said ${info.said}×`));
+  if (info && info.shape.some((c) => c.p > 0)) top.append(lineGrid(info.shape));
+  if (info && info.fitsIn) top.append(node("span", `${Math.round(info.share * 100)}%` + (contexts > 1 ? ` · fits ${info.fitsIn} of ${contexts}` : "")));
+  if (recording && info) top.append(node("span", `· said ${info.said}× in the recording`, "said"));
   if (!original.pack.lines.some((l) => l.id === line.id)) top.append(node("span", "new", "badge"));
   if (top.childNodes.length) row.append(top);
   const text = node("textarea");
@@ -523,6 +538,21 @@ function lineRow(line, info, contexts) {
   row.append(foot);
   showProblems();
   return row;
+}
+/** One line's chance in each of the fifteen situations, laid out like the main grid's cells. */
+function lineGrid(shape) {
+  const grid = node("span", null, "linegrid");
+  grid.setAttribute("role", "img");
+  grid.setAttribute("aria-label", "Chance in each situation: " + (shape.filter((c) => c.p > 0).map((c) => `${c.s.rel}, ${c.s.mood} ${Math.round(c.p * 100)}%`).join("; ") || "none"));
+  for (const c of shape) {
+    const square = node("i");
+    if (!c.s.possible) square.className = "x";
+    else if (c.p > 0) square.style.background = `color-mix(in srgb, var(--c4) ${Math.round(28 + 72 * Math.min(1, c.p / 0.6))}%, var(--empty))`;
+    if (c.chosen) square.classList.add("chosen");
+    square.title = `${c.s.rel}, ${c.s.mood}: ${c.s.possible ? `${Math.round(c.p * 100)}%` : "cannot happen"}`;
+    grid.append(square);
+  }
+  return grid;
 }
 function chips(line, field, values) {
   const wrap = node("span", null, "chips");

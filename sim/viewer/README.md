@@ -170,7 +170,9 @@ equally likely lines the weights amount to) or lines in the speaker's own voice,
 relationship or mood. Open a recording made with `--speech` (or add `?run=` and its path) to colour
 by what was actually said and how often the same person repeated a line.
 
-Click a cell to read its lines, each with its chance of being picked there: the voice's own lines
+Click a cell to read its lines. Each line carries its own fifteen squares, its chance of being
+picked in every situation for that speaker (hover one for the number), and its average chance across
+the chosen bands. The voice's own lines
 first, then the lines any speaker may use under a divider that folds away, then folded lists of
 lines that do not fit the chosen bands and of other voices' lines. Edit the words, the voice and the
 tags, add a line or remove one. Edits stay in that browser until you download the
