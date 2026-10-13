@@ -170,8 +170,10 @@ equally likely lines the weights amount to) or lines in the speaker's own voice,
 relationship or mood. Open a recording made with `--speech` (or add `?run=` and its path) to colour
 by what was actually said and how often the same person repeated a line.
 
-Click a cell to read its lines, each with its chance of being picked there, and edit the words, the
-voice and the tags, add a line or remove one. Edits stay in that browser until you download the
+Click a cell to read its lines, each with its chance of being picked there: the voice's own lines
+first, then the lines any speaker may use under a divider that folds away, then folded lists of
+lines that do not fit the chosen bands and of other voices' lines. Edit the words, the voice and the
+tags, add a line or remove one. Edits stay in that browser until you download the
 catalog or discard them; the Changes list shows each against the original and reverts it. The page
 will not download a catalog the loader would reject. Replace the file in the checkout with the
 download and rebuild. It never runs the simulation.
