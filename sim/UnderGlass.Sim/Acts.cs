@@ -113,6 +113,19 @@ public sealed class ActOptions
     /// <summary>After a refused invitation, the days before the asker invites that person again
     /// (acts-batch2 spec 2.3's AskAgainDays for invitations).</summary>
     public int InviteAgainDays { get; set; } = 7;
+    /// <summary>What being tired weighs against saying yes to an invitation, at full tiredness (Sid,
+    /// 2026-10-13: refusals come more readily when tired, busy or low). Eagerness to please, in
+    /// proportion to the bond with the one asking, shrinks this and the next two.</summary>
+    public double InviteTiredCost { get; set; } = 0.3;
+    /// <summary>What an invitation weighs when the asked person is due to leave for work within
+    /// InviteBusyMinutes.</summary>
+    public double InviteBusyCost { get; set; } = 0.3;
+    /// <summary>What a low mood weighs against saying yes, at the lowest mood.</summary>
+    public double InviteLowCost { get; set; } = 0.3;
+    /// <summary>How soon before leaving for work an invitation counts as badly timed.</summary>
+    public int InviteBusyMinutes { get; set; } = 60;
+    /// <summary>What family or a shared home adds to the obligation to say yes.</summary>
+    public double InviteKinBond { get; set; } = 0.2;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
     /// (acts spec 4.8: the understanding comfort).</summary>
     public double HurtPity { get; set; } = 0.5;

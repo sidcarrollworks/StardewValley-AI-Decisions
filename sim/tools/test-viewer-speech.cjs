@@ -11,12 +11,12 @@ const script = page.slice(page.indexOf('<script>') + 8, page.lastIndexOf('</scri
 const helpers = script.slice(script.indexOf('const RULER_INSET'), script.indexOf('function drawStrip()'));
 const scope = script.slice(script.indexOf('function observerScope('), script.indexOf('function momentTick('));
 
-function scene(speech, replies) {
+function scene(speech, replies, invitations) {
   const context = createContext({
     R: { end: 2000, names: ['Evelyn', 'George'], people: [{ family: [] }, { family: [] }], kinds: [{ tier: 'News', name: 'HelpedSomeone' }],
       acts: [{ id: 0, kind: 0, tick: 100 }, { id: 1, kind: 0, tick: 300 }], ties: [], reflections: [],
       timeline: [{ type: 'act', tick: 100, people: [0, 1], act: 0 }, { type: 'act', tick: 300, people: [1, 0], act: 1 }],
-      actText: (a) => (a.id === 0 ? 'Evelyn helped George' : 'George helped Evelyn'), speechByAct: speech, replyByAct: replies },
+      actText: (a) => (a.id === 0 ? 'Evelyn helped George' : 'George helped Evelyn'), speechByAct: speech, replyByAct: replies, invitationByAct: invitations },
     S: { person: -1, hood: 'all', t: 0 }, when: (t) => `d${Math.floor(t / 1440)}`,
     reflectionAt: () => null, isWakingDream: () => false, reflectionEventText: () => '',
   });
@@ -60,4 +60,14 @@ test('an answer follows its line under the same clock, and an act without one re
   assert.equal(c.timelineDescription(c.R.timeline[0], 100), 'Evelyn helped George · “Fancy a game?” “Not tonight.”');
   assert.equal(c.replyOf(1, 300), '');
   assert.equal(scene(new Map()).replyOf(0, 100), ''); // an older recording has no answers
+});
+
+test('an invitation says why it was answered so, and only once the clock reaches it', () => {
+  const no = { actId: 0, tick: 100, asker: 'Evelyn', asked: 'George', kind: 'TreatedToDrink', accepted: false, tired: 0.8, busy: 0, low: 0.3, bond: 0.1, eager: 0.4 };
+  const yes = { actId: 1, tick: 300, asker: 'George', asked: 'Evelyn', kind: 'PlayedGame', accepted: true, tired: 0.7, busy: 0, low: 0, bond: 0.9, eager: 0.75 };
+  const c = scene(new Map(), new Map(), new Map([[0, no], [1, yes]]));
+  assert.equal(c.invitationNote(0, 99), '');
+  assert.equal(c.invitationNote(0, 100), 'Evelyn asked George to a drink; George said no (tired, low, barely knows them)');
+  assert.equal(c.invitationNote(1, 300), 'George asked Evelyn to a game; Evelyn said yes (tired, but keen to please)');
+  assert.equal(scene(new Map()).invitationNote(0, 100), ''); // an older recording has no invitations
 });

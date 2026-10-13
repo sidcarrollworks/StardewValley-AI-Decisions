@@ -124,6 +124,30 @@ public class InvitationSceneTests
     }
 
     [Fact]
+    public void TiredBusyOrLowPeopleSayNoMoreOftenAndTheRecordSaysWhy()
+    {
+        static SimResult With(double weight)
+        {
+            FeelingOptions f = Options(true);
+            f.Acts.InviteTiredCost = f.Acts.InviteBusyCost = f.Acts.InviteLowCost = weight;
+            return new Simulation(3, cast: ActCatalog.Cards(DefaultTown.Cast(), f.Acts), kinds: ActCatalog.Kinds(f.Acts), feelings: f).Run(28);
+        }
+        SimResult before = With(0), after = With(0.5);
+        Assert.True(after.Invitations.Count(i => !i.Accepted) > before.Invitations.Count(i => !i.Accepted),
+            $"{after.Invitations.Count(i => !i.Accepted)} noes with the state against {before.Invitations.Count(i => !i.Accepted)} without");
+        foreach (Invitation i in after.Invitations)
+        {
+            Assert.InRange(i.Tired, 0, 1);
+            Assert.InRange(i.Low, 0, 1);
+            Assert.Contains(i.Busy, new[] { 0.0, 1.0 });
+            Assert.InRange(i.Bond, 0, 1);
+            Assert.Equal(Math.Round(AskMath.Eagerness(DefaultTown.Cast().Single(v => v.Name == i.Asked).Temperament), 4), i.Eager);
+        }
+        // The noes the state added came from people more tired than those who said yes.
+        Assert.True(after.Invitations.Where(i => !i.Accepted).Average(i => i.Tired) > after.Invitations.Where(i => i.Accepted).Average(i => i.Tired));
+    }
+
+    [Fact]
     public void TheRecordingCarriesInvitationsOnlyWhenTheyAreOn()
     {
         static System.Text.Json.JsonElement Record(bool on) => System.Text.Json.JsonDocument.Parse(Replay.Json(new ReplayOptions
@@ -132,7 +156,7 @@ public class InvitationSceneTests
         Assert.False(without.TryGetProperty("invitations", out _));
         System.Text.Json.JsonElement rows = with.GetProperty("invitations");
         Assert.True(rows.GetArrayLength() > 0);
-        Assert.Equal(new[] { "accepted", "actId", "asked", "asker", "kind", "margin", "tick" },
+        Assert.Equal(new[] { "accepted", "actId", "asked", "asker", "bond", "busy", "eager", "kind", "low", "margin", "tick", "tired" },
             rows[0].EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal));
         Assert.Contains(with.GetProperty("speech").EnumerateArray(), s => s.GetProperty("reply").GetBoolean());
         Assert.All(without.GetProperty("speech").EnumerateArray(), s => Assert.False(s.GetProperty("reply").GetBoolean()));

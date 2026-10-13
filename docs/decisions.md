@@ -1012,8 +1012,17 @@ trivia 1.0 a refusal is seen and remembered but never volunteered in gossip. The
 
 **First measurements.** Seed 7 with the observer pack's flags: in 28 days, 22 invitations among
 16 pairs, 20 accepted; both noes were close calls involving the barely known Newcomer. With the
-switch off the week's log hash is unchanged. Whether noes should be commoner (tiredness, being
-busy, a low mood in the cost) is left for Sid. See the [invitation spec](under-glass/specs/invitation-spec.md).
+switch off the week's log hash is unchanged.
+
+**Sid's answer (2026-10-13).** Refusals should come more readily when someone is tired, busy or
+low, and depend on the two people's relationship: someone eager to please will still do it when
+low, as Penny does things for her mother. So the cost of saying yes now includes the asked person's
+own state (tired, due at work, low; 0.3 each at full), shrunk by their eagerness to please (low
+self-regard and low boldness) times their bond with the asker (whole for family or a shared home,
+otherwise liking and familiarity), and family adds 0.2 to the obligation (`AskMath`). Across six
+seeds of 28 days, noes went from 9% to 30% (49% at 0.5); tiredness carries nearly all of it, since
+company is in the evening and the town's moods rarely fall below even. Each invitation records the
+state behind its answer. See the [invitation spec](under-glass/specs/invitation-spec.md).
 
 ## Open work and known issues
 

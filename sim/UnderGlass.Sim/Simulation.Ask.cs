@@ -3,6 +3,34 @@ namespace UnderGlass.Sim;
 /// <summary>What one person asks of another (acts-batch2 spec 2.3). Append only.</summary>
 public enum AskKind { Apology, Door, Invitation, Party, Peace, Loan }
 
+/// <summary>The asked person's own state when an invitation comes (Sid, 2026-10-13), each 0..1: how
+/// tired they are, whether they are due to leave for work soon, and how low their mood is.</summary>
+public readonly record struct AskState(double Tired, double Busy, double Low);
+
+/// <summary>
+/// What, besides regard, moves an answer to an invitation (Sid, 2026-10-13): "refusals should be more
+/// likely to happen when someone is tired, busy or low. This should also be affected by the 2 persons
+/// relationship with each other. Someone eager to please will more likely do something when their
+/// feeling low. Penny doing things for her mom would be a good example of this."
+/// </summary>
+public static class AskMath
+{
+    /// <summary>Eagerness to please, 0..1: low self-regard and low boldness, equally (Penny 0.75,
+    /// Pam 0.5, Abigail 0.4).</summary>
+    public static double Eagerness(Temperament t) => ((1 - t.SelfRegard) + (1 - t.Boldness)) / 2;
+
+    /// <summary>The bond with the one asking, 0..1: whole for family or a shared home, otherwise half
+    /// regard (liking only) and half familiarity.</summary>
+    public static double Bond(bool family, double liked, double familiarity)
+        => family ? 1 : Math.Clamp(0.5 * liked + 0.5 * familiarity, 0, 1);
+
+    /// <summary>What the asked person's state adds to the cost of saying yes: tiredness, work soon
+    /// and a low mood at their weights, shrunk by eagerness to please in proportion to the bond. Penny
+    /// asked by her mother keeps a quarter of it; asked by a stranger, nearly all.</summary>
+    public static double StateCost(AskState s, double eagerness, double bond, ActOptions o)
+        => (o.InviteTiredCost * s.Tired + o.InviteBusyCost * s.Busy + o.InviteLowCost * s.Low) * (1 - eagerness * bond);
+}
+
 /// <summary>
 /// Batch 2's seams (acts-batch2 spec 2.2-2.4; slice b2-0): the Ask, made general from acts-4's
 /// apology answer; unseen acts; and an act's joy sized by its amount. Nothing here runs without a
@@ -20,7 +48,9 @@ public sealed partial class Simulation
     /// <item>Door: 0.3 + 0.5 x regard + 0.3 x familiarity, against 0.2 + dislike x (0.5 + retention)
     /// + 0.3 x withdrawn.</item>
     /// <item>Invitation, Party: 0.5 x regard + 0.3 x familiarity + 0.2 x chattiness, + 0.2 if fond of
-    /// the asker, against 0.15 + dislike x (0.5 + retention) + 0.3 x withdrawn.</item>
+    /// the asker, + InviteKinBond for family or a shared home, against 0.15 + dislike x (0.5 +
+    /// retention) + 0.3 x withdrawn + the asked person's state (AskMath.StateCost: tired, work soon,
+    /// low, shrunk by eagerness to please times the bond).</item>
     /// <item>Peace: 0.5 x understanding + 0.3 x familiarity + 0.3 x the asked one's own Peace (none
     /// before b2-3), + 0.2 within 3 days of the Winter Star, against 0.2 + dislike x (0.5 +
     /// retention) + 0.3 x max(0, self-regard - 0.5).</item>
@@ -43,8 +73,10 @@ public sealed partial class Simulation
         {
             AskKind.Apology => (0.5 * liked + 0.5 * fam + 0.3 * u, _fo.Acts.ApologyCost + dislike * keep),
             AskKind.Door => (0.3 + 0.5 * liked + 0.3 * fam, 0.2 + dislike * keep + 0.3 * withdrawn),
-            AskKind.Invitation or AskKind.Party => (0.5 * liked + 0.3 * fam + 0.2 * t.Chattiness + (FondOf(asked, asker, m) > 0 ? 0.2 : 0),
-                0.15 + dislike * keep + 0.3 * withdrawn),
+            AskKind.Invitation or AskKind.Party => (0.5 * liked + 0.3 * fam + 0.2 * t.Chattiness + (FondOf(asked, asker, m) > 0 ? 0.2 : 0)
+                    + (Close(asked, asker) ? _fo.Acts.InviteKinBond : 0),
+                0.15 + dislike * keep + 0.3 * withdrawn
+                    + AskMath.StateCost(AskStateOf(asked, m), AskMath.Eagerness(t), AskMath.Bond(Close(asked, asker), liked, fam), _fo.Acts)),
             AskKind.Peace => (0.5 * u + 0.3 * fam + (NearWinterStar(Clock.Day(m)) ? 0.2 : 0),
                 0.2 + dislike * keep + 0.3 * Math.Max(0, t.SelfRegard - 0.5)),
             AskKind.Loan => (0.5 * liked + 0.3 * fam + 0.3 * u, 0.2 + 0.3 * LoanShare(asked, actId)),

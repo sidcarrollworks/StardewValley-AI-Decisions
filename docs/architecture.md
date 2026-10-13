@@ -54,7 +54,9 @@ The optional quiet-reflection prototype is specified in
 - `UnderGlass.Sim/Simulation.Invitations.cs`: invitations ([spec](under-glass/specs/invitation-spec.md),
   D51), opt-in with `Invitations`. `Begin` asks before a game or a drink (`Asked`, through the general
   `Ask`); a no begins the `Refused` row (`ActCatalog.Invitations`) by the asked person instead, and
-  `KindFits` keeps the asker from inviting that person again for `InviteAgainDays`. The asker takes
+  `KindFits` keeps the asker from inviting that person again for `InviteAgainDays`. The answer also
+  weighs the asked person's own state (tired, due at work, low) shrunk by their eagerness to please
+  times their bond with the asker (`AskMath`, `AskState`, in `Simulation.Ask.cs`). The asker takes
   part in the refusal (`FinishActs` treats a given deed's patient target within reach as a
   participant), and the
   gate records the asking as not acted. Replay writes `invitations` only with the switch on.

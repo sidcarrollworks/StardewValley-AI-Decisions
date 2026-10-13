@@ -21,9 +21,10 @@ When a game (`PlayedGame`) or a drink (`TreatedToDrink`) is about to begin towar
 route that is not injected (the gate's motives or the per-head draws), the person is asked first:
 
 - `Ask(asked, asker, Invitation)`: obliged = 0.5 x regard for the asker (if positive) + 0.3 x
-  familiarity + 0.2 x chattiness, + 0.2 if fond of the asker; against cost = 0.15 + dislike x
-  (0.5 + retention) + 0.3 x withdrawal. A margin beyond the close-call band decides; inside it, a
-  draw keyed by what was asked, the act's id and the asked person, tilted by mood. The log line is
+  familiarity + 0.2 x chattiness, + 0.2 if fond of the asker, + `InviteKinBond` (0.2) for family or
+  a shared home; against cost = 0.15 + dislike x (0.5 + retention) + 0.3 x withdrawal + the asked
+  person's state (below). A margin beyond the close-call band decides; inside it, a draw keyed by
+  what was asked, the act's id and the asked person, tilted by mood. The log line is
   `ask {asked} Invitation {asker} act {id} yes|no margin {m}`.
 - **Yes:** the game or drink begins exactly as before, with the asker as actor, and the asked
   person's acceptance is recorded beside it.
@@ -43,23 +44,59 @@ Injected acts (scenarios and tests that place a game) are not asked: they are th
 The motive or draw that led to the asking is spent either way, as the gate's slot is: asking was
 the act.
 
+## What the answer weighs besides regard
+
+Sid (2026-10-13): "refusals should be more likely to happen when someone is tired, busy or low.
+This should also be affected by the 2 persons relationship with each other. Someone eager to please
+will more likely do something when their feeling low. Penny doing things for her mom would be a
+good example of this."
+
+- **The asked person's state** (`AskState`, their own, never anyone else's): tired (the body's own
+  tiredness, the measure that sends them to bed, 0 to 1), due at work (they leave for work within
+  `InviteBusyMinutes`, 60), and low (how far their mood is below even). Each costs up to its weight
+  (`InviteTiredCost`, `InviteBusyCost`, `InviteLowCost`, 0.3 each).
+- **The bond** with the asker (`AskMath.Bond`): whole for family or a shared home, otherwise half
+  their liking and half their familiarity.
+- **Eagerness to please** (`AskMath.Eagerness`): low self-regard and low boldness, equally. Penny
+  0.75, Harvey 0.65, Shane and Sebastian 0.6, the Newcomer 0.55, Pam, Haley and Leah 0.5, Abigail and
+  Emily 0.4. It is read from existing traits, so it is an approximation to check in scenes (VERIFY):
+  low self-regard also lifts Shane and Sebastian.
+- **Together** (`AskMath.StateCost`): the state's cost is shrunk by eagerness times the bond. Penny,
+  tired and low, asked by her mother keeps a quarter of it; asked by a stranger, nearly all of it.
+  Someone not eager to please finds family no easier on a bad day, though family still adds to the
+  obligation.
+
+Across six seeds of 28 days (the shipped town with returns, company, welcome, repair, sides and
+invitations on; 65 or 66 invitations in all), the share of noes by the state's weight:
+
+| Weight | Noes |
+|---|---|
+| 0 (before) | 9% |
+| 0.3 (default) | 30% |
+| 0.5 | 49% |
+| 0.8 | 60% |
+
+Tiredness carries almost all of it. Company happens in the evening, so nobody is due at work, and
+in these runs nobody's mood fell below even by more than 0.05: the shipped town's moods sit mostly
+above even (the speech library heard no low mood in a month). Busy and low will matter more for
+asks by day (favours, step 4) and in towns where moods fall. Invitations within a family are rare
+(one in the six runs), because the gate does not aim acts at kin or housemates; the Penny-for-her-
+mother case is mostly a favour, and the rule is written in `AskMath` for that slice to use.
+
 ## First measurements
 
 Seed 7, the observer pack's flags (`--feel on --desire on --catalog
 returns,company,welcome,repair,sides,late,invitations --reflection authored --reflection-chance 0.35
 --dream-chance 0.15 --character-inspiration sim/character-inspiration.json --speech`):
 
-- seven days: 8 invitations, 6 accepted; with the switch off the same week's log hash is unchanged
+- seven days: 8 invitations, 5 accepted; with the switch off the same week's log hash is unchanged
   (`aa8959477b340cee`);
-- 28 days: 22 invitations among 16 pairs from 13 people, 20 accepted (91%), both refusals close
-  calls (margins +0.04 and +0.08) and both to or from someone barely known (the Newcomer turned
-  Abigail down; Pierre turned the Newcomer down).
+- 28 days: 22 invitations among 16 pairs from 13 people, 19 accepted (86%); before the asked
+  person's state counted, the same month had 20 accepted, and both refusals were close calls
+  involving the barely known Newcomer.
 
-People mostly invite those they already like, so a no is rare and comes from strangers and close
-calls. Batch 2's 50-80% accepted (b2-2) was written for dates, and is a diagnostic here, not a
-target. If refusals should be commoner, the place to change is the Ask's cost: today it has no term
-for being tired, busy or low, beyond the close call's tilt by mood. That is a question for Sid, not
-a tuning to make silently.
+Seed 7's month is a light one for refusals; across six seeds the default weights give 30% (above).
+Batch 2's 50-80% accepted (b2-2) was written for dates, and is a diagnostic here, not a target.
 
 ## Speech
 
@@ -81,7 +118,9 @@ and judged blind by three readers per line, with the speech library's rules
 ## Recording and the viewer
 
 - `invitations` in the recording lists every asking: tick, asker, asked, the company kind, yes or
-  no, the margin, and the act that followed (the game or drink, or the refusal).
+  no, the margin, the act that followed (the game or drink, or the refusal), and why: the asked
+  person's tired, busy and low, their bond with the asker and their eagerness to please. The
+  viewer's act detail says it in words ("George said no (tired, barely knows them)").
 - `Speech` gains `Reply` (appended, default false); the viewer shows a reply after the line it
   answers, in Stories, the act detail ("Answered"), the timeline hover, Happening now and the
   selected person's moment.
@@ -108,6 +147,10 @@ on, 28 days, unless a bullet says otherwise):
   and the asked person's `.Accepted` or `.Refused` reply, marked `Reply`; no other line is a reply;
 - seed 11 for seven days gives the same invitations and lines twice, and speech on or off gives
   the same log;
+- with the state's weights at 0.5, seed 3 for 28 days has more noes than with them at 0, the noes
+  were more tired on average than the yeses, and each invitation records its state, bond and
+  eagerness (`AskMathTests` pins the maths: Penny's eagerness, the bond, and that her mother asking
+  costs her a quarter of what a stranger asking does);
 - an injected game (a scenario, in a two-person room for one day) is not asked;
 - a seven-day recording carries `invitations` (with its camelCase fields) and `reply` on speech rows
   only with the switch on.

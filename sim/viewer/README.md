@@ -205,9 +205,10 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
   With the gate only watching (`--desire observe`), its lines are added in time order.
 - **`minutesOut`** is each person's minutes awake, away from home and not at work, by season.
 - **`invitations`** is optional, present only when a run was recorded with `--catalog …,invitations`.
-  Each row is camelCase `{ tick, asker, asked, kind, accepted, margin, actId }`: who asked whom to a
-  game or a drink, the answer and its margin, and the act that followed (the game or drink on a yes,
-  the `Refused` act on a no).
+  Each row is camelCase `{ tick, asker, asked, kind, accepted, margin, actId, tired, busy, low, bond,
+  eager }`: who asked whom to a game or a drink, the answer and its margin, the act that followed
+  (the game or drink on a yes, the `Refused` act on a no), and why: the asked person's state, their
+  bond with the asker and their eagerness to please. The act detail says it in words.
 - **`speech`** is optional, present only when a run was recorded with `--speech`. Each row is
   camelCase `{ actId, tick, speaker, line, lineId, archetype, relationship, mood, reply }`: the line
   as spoken, its library id, and the speaker-side bands the choice was made under. `reply` marks the
