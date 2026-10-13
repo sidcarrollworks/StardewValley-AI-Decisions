@@ -54,9 +54,12 @@ The optional quiet-reflection prototype is specified in
 - `UnderGlass.Sim/Speech.cs`, `Simulation.Speech.cs` and embedded `speech-catalog.json`: the
   opt-in speech library ([spec](under-glass/specs/speech-spec.md)). When an act toward a person
   begins, `Say` chooses one authored line by kind, the speaker's archetype, relationship band and
-  mood band, weighted and seeded on its own stream, and records `Speech` beside the act; nothing
-  reads it back. Replay writes `speech`, `speechOptions` and `speechCatalog` only with `--speech`;
-  the viewer shows a line under the act once the clock reaches it.
+  mood band (`SpeechCatalog.Weight`: a neighbouring band still fits, less well; D49), weighted and
+  seeded on its own stream, and records `Speech` beside the act; nothing reads it back. Replay
+  writes `speech`, `speechOptions` and `speechCatalog` only with `--speech`; the viewer shows a line
+  under the act once the clock reaches it. `sim/viewer/speech.html` is the curation page: how many
+  lines fit each kind, voice and situation, what a recording actually said, and the lines editable
+  in place; it carries a copy of the weight rule pinned to the C# one by a shared fixture.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

@@ -94,7 +94,11 @@ The order is:
    chosen deterministically from `speech-catalog.json` by kind, the speaker's archetype,
    relationship band and mood band, recorded beside the act and shown by the viewer under the
    same clock. The lines were drafted per archetype from the local dialogue evidence,
-   copy-checked and judged blind; they await Sid's curation. Reply lines and scene tags are next.
+   copy-checked and judged blind; they await Sid's curation. A tag now names where a line belongs
+   best, and a neighbouring band still fits (D49), which cut back-to-back repeats by more than half;
+   the curation page `sim/viewer/speech.html` shows which kinds and voices are still thin and edits
+   the lines in place. The welcome's side (the newcomer welcomes the town, with lines written for
+   residents) waits on Sid. Reply lines and scene tags are next.
 3. **Broader actions where reflection already reaches**: company (a game, a drink), comfort, and
    the general Ask that b2-0 seamed (invitations, favour requests, loans), with accept and
    decline as real outcomes. Distinct consequences, not different wording.

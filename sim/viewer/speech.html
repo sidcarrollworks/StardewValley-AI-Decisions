@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Under Glass — Speech coverage</title>
+  <style>
+    :root { color-scheme:light dark; --bg:#e8e3d9; --panel:#f5f0e7; --raised:#fbf8f2; --ink:#211b16; --muted:#6b6054; --line:#c4b7a7; --hair:#d6ccbe;
+      --accent:#a94015; --accent-soft:rgba(169,64,21,.1); --select:rgba(169,64,21,.22);
+      --c0:#c8412f; --c1:#e3843f; --c2:#e9c25a; --c3:#9fc266; --c4:#4f9a69; --empty:#d9d1c4; --cellink:#1c1a17; --shadow:rgba(40,28,16,.18); }
+    @media(prefers-color-scheme:dark) { :root { --bg:#1c1a17; --panel:#25211c; --raised:#2c2722; --ink:#eee7de; --muted:#b8aa9a; --line:#51473c; --hair:#3a332c;
+      --accent:#ff9b63; --accent-soft:rgba(255,155,99,.1); --select:rgba(255,155,99,.3);
+      --c0:#d0553f; --c1:#cf7740; --c2:#c4a046; --c3:#86a656; --c4:#4f9a69; --empty:#38322b; --cellink:#1c1a17; --shadow:rgba(0,0,0,.45); } }
+    * { box-sizing:border-box; }
+    html { scrollbar-color:var(--line) transparent; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,sans-serif; caret-color:var(--accent); }
+    ::selection { background:var(--select); }
+    main { max-width:1280px; padding:32px 16px 72px; margin:auto; }
+    h1 { font-size:clamp(28px,3.6vw,40px); letter-spacing:-.03em; line-height:1.12; margin:0 0 12px; text-wrap:balance; } h2 { font-size:19px; letter-spacing:-.01em; line-height:1.25; margin:0; }
+    p { margin:8px 0; } header>p { max-width:78ch; color:var(--muted); } a { color:var(--accent); text-underline-offset:3px; }
+    .headline { color:var(--ink)!important; font-size:16px; font-variant-numeric:tabular-nums; margin-top:16px!important; }
+    .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:24px 0 0; }
+    .controls .spacer { flex:1 1 0; } .controls .group { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    select,button,input,textarea { font:inherit; color:var(--ink); }
+    select,button { padding:5px 10px; background:var(--raised); border:1px solid var(--line); border-radius:6px; cursor:pointer; transition:border-color .15s, background-color .15s; }
+    select:hover,button:hover:not(:disabled) { border-color:var(--muted); } button:active:not(:disabled) { background:var(--panel); }
+    button:disabled { opacity:.45; cursor:default; } button.primary { background:var(--accent); border-color:var(--accent); color:var(--bg); font-weight:600; }
+    button.primary:hover:not(:disabled) { border-color:var(--ink); } button.quiet { background:none; border-color:transparent; color:var(--muted); padding:3px 6px; }
+    button.quiet:hover:not(:disabled) { color:var(--ink); border-color:var(--line); }
+    label { font-size:14px; display:flex; flex-direction:column; gap:3px; color:var(--muted); } label select { color:var(--ink); }
+    :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+    .notice { background:var(--accent-soft); border-radius:6px; padding:8px 12px; color:var(--ink); font-size:14px; max-width:78ch; }
+    .notice button { margin:0 4px; font-size:13px; padding:2px 8px; }
+    .error { color:var(--accent); font-size:14px; } [hidden] { display:none!important; }
+    .legend { display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center; font-size:13px; color:var(--muted); margin:14px 0 6px; }
+    .legend>span { display:inline-flex; align-items:center; gap:6px; max-width:100%; } .legend>span.wide { display:flex; flex-wrap:wrap; gap:6px 10px; }
+    .legend strong { color:var(--ink); font-weight:600; } .sw { width:14px; height:11px; border-radius:2px; display:inline-block; }
+    .key { display:inline-grid; gap:1px 2px; font:10px/1 ui-monospace,Consolas,monospace; align-items:center; }
+    .key i { width:12px; height:8px; background:var(--empty); display:block; border-radius:1.5px; }
+    .gridwrap { overflow-x:auto; padding-bottom:8px; }
+    table { border-collapse:separate; border-spacing:3px; }
+    th { font-size:12px; font-weight:600; color:var(--muted); text-align:left; vertical-align:bottom; }
+    thead th { width:70px; line-height:1.2; padding:0 2px 6px; } thead th.none { color:var(--accent); }
+    tbody th { vertical-align:middle; padding-right:10px; white-space:nowrap; font-size:13px; color:var(--ink); } tbody th small { color:var(--muted); font-weight:400; font-variant-numeric:tabular-nums; }
+    .cell { width:70px; height:50px; padding:4px; border:1px solid transparent; border-radius:6px; background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--cellink); font-variant-numeric:tabular-nums; transition:border-color .12s, transform .12s, box-shadow .12s; }
+    .cell:hover:not(:disabled) { border-color:var(--muted); transform:translateY(-1px); box-shadow:0 2px 6px var(--shadow); }
+    .cell.on { border-color:var(--ink); box-shadow:0 0 0 1px var(--ink); }
+    .cell b { font-size:13px; line-height:1; color:var(--ink); } .cell.single b { font-size:17px; color:var(--cellink); } .cell.blank b { color:var(--muted); font-weight:400; }
+    .mini { display:grid; gap:1px; } .mini i { display:block; width:9px; height:7px; border-radius:1.5px; }
+    @media(min-width:1000px) { body.panel-open main { margin-right:min(520px,100vw); max-width:none; } }
+    aside { position:fixed; top:0; right:0; height:100vh; width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; z-index:5; padding:0 20px 48px; overscroll-behavior:contain; }
+    .drawerhead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:sticky; top:0; background:var(--panel); padding:18px 0 12px; z-index:1; border-bottom:1px solid var(--line); }
+    .drawerhead h2:focus { outline:none; } .drawerhead .meta { margin:4px 0 0; max-width:52ch; }
+    .meta { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+    .section { margin-top:28px; } .section>h3, .section>summary { font-size:13px; font-weight:600; letter-spacing:.01em; margin:0 0 4px; color:var(--ink); display:flex; align-items:baseline; gap:8px; }
+    .section>h3 .meta, .section>summary .meta { font-weight:400; }
+    details.section>summary.divider { margin:30px 0 6px; color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; align-items:center; }
+    summary.divider .rule { flex:1; height:1px; background:var(--line); } summary.divider .meta { letter-spacing:0; }
+    details.section>summary { cursor:pointer; list-style:none; } details.section>summary::-webkit-details-marker { display:none; }
+    details.section>summary::before { content:""; width:7px; height:7px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted); transform:rotate(-45deg); transition:transform .15s; align-self:center; margin-right:2px; }
+    details.section[open]>summary::before { transform:rotate(45deg); }
+    .row { padding:22px 0 18px; border-top:1px solid var(--hair); } .row:first-of-type { border-top:0; }
+    .row textarea { display:block; width:100%; resize:none; field-sizing:content; min-height:2.6em; border:1px solid transparent; border-radius:6px; background:transparent; padding:5px 8px; margin:0 -8px; width:calc(100% + 16px); font-size:15.5px; line-height:1.4; transition:border-color .12s, background-color .12s; }
+    .row textarea:hover { border-color:var(--hair); } .row textarea:focus { border-color:var(--line); background:var(--raised); outline:none; }
+    .row.bad textarea { border-color:var(--accent); }
+    .share { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); margin:0 0 10px; font-variant-numeric:tabular-nums; }
+    .linegrid { display:grid; grid-template-columns:repeat(5,14px); gap:2px; flex:none; }
+    .linegrid i { display:block; width:14px; height:10px; border-radius:2px; background:var(--empty); } .linegrid i.x { opacity:.3; }
+    .linegrid i.chosen { outline:1.5px solid var(--ink); outline-offset:0; } .share .said { color:var(--muted); }
+    .panelkey { display:flex; gap:12px; align-items:center; margin:14px 0 0; font-size:12px; color:var(--muted); }
+    .badge { font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); border-radius:4px; padding:0 5px; }
+    .tagrow { display:grid; grid-template-columns:auto 1fr; gap:5px 10px; align-items:center; margin-top:12px; font-size:12px; }
+    .tagrow>span.k { color:var(--muted); }
+    .chips { display:flex; flex-wrap:wrap; gap:3px; align-items:center; } .chip { font-size:12px; padding:1px 8px; border-radius:999px; border:1px solid var(--line); background:var(--raised); cursor:pointer; }
+    .chip.on { background:var(--ink); color:var(--bg); border-color:var(--ink); } .any { color:var(--muted); font-style:italic; margin-left:3px; }
+    .tagrow select { font-size:12px; padding:2px 6px; justify-self:start; }
+    .note { width:100%; margin-top:12px; font-size:12.5px; padding:4px 8px; border:1px solid var(--hair); border-radius:5px; background:transparent; color:var(--ink); }
+    .note::placeholder { color:var(--muted); opacity:.8; } .note:focus { background:var(--raised); outline:none; border-color:var(--line); }
+    .foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; } .foot button { font-size:12px; }
+    .add { margin-top:14px; font-size:13px; }
+    .empty { color:var(--muted); font-size:14px; padding:10px 0; }
+    .change { border-top:1px solid var(--hair); padding:10px 0; font-size:14px; display:grid; gap:2px; } .change del { color:var(--muted); } .change button { justify-self:start; margin-top:4px; font-size:12px; }
+    @media(max-width:700px) { main { padding:22px 16px 48px; } .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 16px 40px; } }
+    @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>Who has enough to say?</h1>
+    <p>Each cell is a kind of act and a speaker's voice. A line can only be spoken when it fits the act, the speaker's archetype, how well they know the other person, and their mood, so what matters is how many lines fit each situation. The selector avoids a speaker's last three lines for a kind, so three or fewer means they repeat within a few acts.</p>
+    <p id="headline" class="headline">Reading the catalog…</p>
+    <p id="source" class="meta"></p>
+    <p id="notice" class="notice" hidden></p>
+  </header>
+  <div class="controls">
+    <div class="group">
+      <label>Relationship <select id="rel"><option value="">Every band</option></select></label>
+      <label>Mood <select id="mood"><option value="">Every band</option></select></label>
+      <label>Colour by <select id="metric"></select></label>
+    </div>
+    <span class="spacer"></span>
+    <div class="group">
+      <button id="pick-catalog" type="button">Open catalog…</button>
+      <button id="pick-run" type="button">Open recording…</button>
+      <input id="open-catalog" class="visually-hidden" type="file" accept=".json,application/json" tabindex="-1" aria-hidden="true">
+      <input id="open-run" class="visually-hidden" type="file" accept=".json,application/json" tabindex="-1" aria-hidden="true">
+      <button id="show-changes" type="button">Changes (0)</button>
+      <button id="export" class="primary" type="button" disabled>Download catalog</button>
+    </div>
+  </div>
+  <p id="error" class="error" role="alert" hidden></p>
+  <div class="legend" id="legend"></div>
+  <div class="gridwrap"><table id="grid"></table></div>
+</main>
+<aside id="drawer" hidden role="dialog" aria-modal="false" aria-labelledby="drawer-title"></aside>
+<script>
+"use strict";
+
+// rules:begin. Mirrors SpeechCatalog in sim/UnderGlass.Sim/Speech.cs; sim/tools/fixtures/speech-weights.json
+// pins both sides (SpeechCatalogTests and sim/tools/test-speech-page.cjs).
+const RELATIONSHIPS = ["stranger", "acquaintance", "familiar", "close", "household"];
+const MOODS = ["low", "even", "high"];
+const AVOIDED = 3;
+const ARCHETYPE_WEIGHT = 3, EXACT_WEIGHT = 2, NEIGHBOUR_WEIGHT = 0.5;
+const NEAR_RELATIONSHIP = { household: ["close"], stranger: ["acquaintance"], acquaintance: ["stranger", "familiar"], familiar: ["acquaintance", "close"], close: ["familiar"] };
+const NEAR_MOOD = { low: ["even"], even: ["low", "high"], high: ["even"] };
+const MIN_CHARS = 12, MAX_CHARS = 110;
+
+function fit(tags, band, near) {
+  if (!tags.length) return 1;
+  if (tags.includes(band)) return EXACT_WEIGHT;
+  return (near[band] || []).some((tag) => tags.includes(tag)) ? NEIGHBOUR_WEIGHT : 0;
+}
+
+/** How well a line fits a speaker; 0 when it does not. archetype is null for a speaker without one. */
+function weight(line, archetype, relationship, mood) {
+  if (line.archetypes.length && (archetype == null || !line.archetypes.includes(archetype))) return 0;
+  return (line.archetypes.length ? ARCHETYPE_WEIGHT : 1) * fit(line.relationship, relationship, NEAR_RELATIONSHIP) * fit(line.mood, mood, NEAR_MOOD);
+}
+
+/** The number of equally likely lines with the same spread as these weights (exp of the entropy). */
+function effectiveChoices(weights) {
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  if (!total) return 0;
+  let entropy = 0;
+  for (const w of weights) if (w > 0) entropy -= (w / total) * Math.log(w / total);
+  return Math.exp(entropy);
+}
+
+/** What SpeechCatalog.Read would reject in one line; idCounts counts every id in the catalog. */
+function lineProblems(line, idCounts) {
+  const problems = [], text = typeof line.text === "string" ? line.text : "";
+  if (!line.id || !String(line.id).trim()) problems.push("needs an id");
+  else if ((idCounts.get(line.id) || 0) > 1) problems.push("id is used twice");
+  if (!line.kind || !String(line.kind).trim()) problems.push("needs a kind");
+  if (text.trim().length < MIN_CHARS) problems.push(`shorter than ${MIN_CHARS} characters`);
+  if (text.length > MAX_CHARS) problems.push(`longer than ${MAX_CHARS} characters (${text.length})`);
+  if (text !== text.trim()) problems.push("starts or ends with a space");
+  if (/[{}$#%@]/.test(text.split("{subject}").join(""))) problems.push("only {subject} may use braces, and no $ # % @");
+  if (/[\u0000-\u001f\u007f-\u009f]/.test(text)) problems.push("contains a control character such as a line break");
+  for (const [field, allowed] of [["relationship", RELATIONSHIPS], ["mood", MOODS]])
+    if (!Array.isArray(line[field]) || line[field].some((band) => !allowed.includes(band))) problems.push(`unknown ${field} band`);
+  if (!Array.isArray(line.archetypes) || line.archetypes.some((a) => !a || !String(a).trim())) problems.push("blank archetype");
+  if (!Array.isArray(line.tags) || line.tags.some((t) => !t || !String(t).trim())) problems.push("blank tag");
+  return problems;
+}
+
+/** Problems for the whole catalog, including the test that every kind keeps a line for any speaker. */
+function catalogProblems(lines, kinds) {
+  const idCounts = new Map();
+  for (const line of lines) idCounts.set(line.id, (idCounts.get(line.id) || 0) + 1);
+  const problems = [];
+  for (const line of lines) for (const problem of lineProblems(line, idCounts)) problems.push({ id: line.id, problem });
+  for (const kind of kinds)
+    if (!lines.some((line) => line.kind === kind && !line.archetypes.length)) problems.push({ id: kind, problem: "every kind needs at least one line with no archetype" });
+  return problems;
+}
+
+/** The catalog as stored in the repository: one-space JSON, so an export diffs line by line. */
+function serialize(pack) { return JSON.stringify(pack, null, 1); }
+// rules:end
+
+const $ = (id) => document.getElementById(id);
+const KIND_ORDER = ["Welcomed", "Complimented", "Thanked", "GaveGift", "HelpedSomeone", "TreatedToDrink", "PlayedGame", "Joked",
+  "Comforted", "StoodUpFor", "Apologised", "Squabbled", "Argued", "Mocked"];
+const NONE = "";
+const DRAFT_KEY = "under-glass-speech-draft";
+/** Situations an act can never be spoken in, from the simulation's own gates. Their squares are faint
+ * and they are left out of every count. */
+const ONLY = {
+  Welcomed: { relationship: ["stranger"], why: "A welcome only happens between people who barely know each other and do not share a home (familiarity below NewAt, Simulation.CuriousMotives), and its line is chosen before they get to know each other, so it is always said to a stranger." },
+};
+const possible = (kind, rel, mood) => { const o = ONLY[kind]; return !o || ((!o.relationship || o.relationship.includes(rel)) && (!o.mood || o.mood.includes(mood))); };
+const BAND_SHORT = { stranger: "S", acquaintance: "A", familiar: "F", close: "C", household: "H" };
+let original = null, pack = null, recording = null, open = null, drawer = null, byKind = new Map(), runIndex = new Map();
+let pendingDraft = null, gridTimer = 0;
+
+function node(tag, text, className) {
+  const element = document.createElement(tag);
+  if (text != null) element.textContent = String(text);
+  if (className) element.className = className;
+  return element;
+}
+function fnv(text) { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16); }
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const voiceLabel = (arch) => (arch === NONE ? "no archetype" : arch.replace(/-/g, " "));
+/** "TreatedToDrink" reads as "Treated to drink"; the code name stays in titles. */
+const kindLabel = (kind) => kind.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (m, c) => " " + c.toLowerCase());
+let opener = null, sectionsOpen = new Set(["any"]);
+const median = (values) => { const s = [...values].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
+function showError(message) { $("error").textContent = message || ""; $("error").hidden = !message; }
+function showNotice(content) { const n = $("notice"); n.replaceChildren(...(content ? [].concat(content) : [])); n.hidden = !content; }
+
+function kinds() {
+  const present = new Set([...original.pack.lines, ...pack.lines].map((l) => l.kind));
+  return [...KIND_ORDER.filter((k) => present.has(k)), ...[...present].filter((k) => !KIND_ORDER.includes(k)).sort()];
+}
+function archetypes() { return [...new Set([...original.pack.lines, ...pack.lines].flatMap((l) => l.archetypes))].sort(); }
+function voices() { return [...archetypes(), NONE]; }
+function bands() { const r = $("rel").value, m = $("mood").value; return { rels: r ? [r] : RELATIONSHIPS, moods: m ? [m] : MOODS }; }
+
+// ---- loading ----
+function loadCatalog(text, source) {
+  const parsed = JSON.parse(text);
+  if (!parsed || parsed.schema !== 1 || !Array.isArray(parsed.lines)) throw new Error("This is not a schema 1 speech catalog.");
+  original = { hash: fnv(text.replace(/\r\n/g, "\n")), pack: parsed, source };
+  pack = clone(parsed);
+  open = null; closeDrawer();
+  showNotice(null);
+  restoreDraft();
+  refresh();
+}
+function loadRecording(text, source) {
+  const run = JSON.parse(text);
+  if (!Array.isArray(run.speech)) throw new Error("That recording has no speech table; record it with --speech.");
+  recording = { source, rows: run.speech, label: run.label || "", seed: run.seed };
+  for (const option of $("metric").options) option.disabled = false;
+  refresh();
+}
+function restoreDraft() {
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch { draft = null; }
+  if (!draft || !Array.isArray(draft.lines)) return;
+  if (draft.base === original.hash) {
+    pack.lines = draft.lines;
+    showNotice(`Restored ${changes().length} unsaved changes from this browser. Download the catalog to keep them.`);
+  } else {
+    pendingDraft = draft;
+    const restore = node("button", "Restore them anyway"), discard = node("button", "Discard them");
+    restore.onclick = () => { pack.lines = pendingDraft.lines; pendingDraft = null; showNotice(null); touched(); };
+    discard.onclick = () => { pendingDraft = null; try { localStorage.removeItem(DRAFT_KEY); } catch { /* storage unavailable */ } showNotice(null); };
+    showNotice([node("span", "This browser holds edits made against a different version of the catalog. "), restore, " ", discard]);
+  }
+}
+function saveDraft() {
+  try {
+    if (!changes().length) localStorage.removeItem(DRAFT_KEY);
+    else localStorage.setItem(DRAFT_KEY, JSON.stringify({ base: original.hash, lines: pack.lines }));
+  } catch { /* the page still works without storage */ }
+}
+
+// ---- derived data ----
+function index() {
+  byKind = new Map();
+  for (const line of pack.lines) { if (!byKind.has(line.kind)) byKind.set(line.kind, []); byKind.get(line.kind).push(line); }
+  runIndex = new Map();
+  if (!recording) return;
+  const kindOf = new Map([...original.pack.lines, ...pack.lines].map((l) => [l.id, l.kind]));
+  for (const row of recording.rows) {
+    const key = [kindOf.get(row.lineId) || "?", row.archetype || NONE, row.relationship, row.mood].join("|");
+    if (!runIndex.has(key)) runIndex.set(key, []);
+    runIndex.get(key).push(row);
+  }
+}
+function situation(kind, arch, rel, mood) {
+  const fits = [];
+  for (const line of byKind.get(kind) || []) { const w = weight(line, arch === NONE ? null : arch, rel, mood); if (w > 0) fits.push({ line, w }); }
+  const rows = runIndex.get([kind, arch, rel, mood].join("|")) || [];
+  return { rel, mood, possible: possible(kind, rel, mood), fits, n: fits.length, eff: effectiveChoices(fits.map((f) => f.w)), own: fits.filter((f) => f.line.archetypes.length).length, rows };
+}
+function sameSpeakerRepeats(rows) {
+  const bySpeaker = new Map();
+  for (const row of rows) { if (!bySpeaker.has(row.speaker)) bySpeaker.set(row.speaker, []); bySpeaker.get(row.speaker).push(row.lineId); }
+  let repeats = 0;
+  for (const ids of bySpeaker.values()) repeats += ids.length - new Set(ids).size;
+  return repeats;
+}
+const choiceColour = (v) => (v <= 1 ? "var(--c0)" : v <= AVOIDED ? "var(--c1)" : v <= 5 ? "var(--c2)" : v <= 8 ? "var(--c3)" : "var(--c4)");
+const METRICS = {
+  fit: { label: "lines that fit", value: (s) => s.n, colour: choiceColour, agg: "min",
+    legend: [["var(--c0)", "0–1"], ["var(--c1)", "2–3, repeats"], ["var(--c2)", "4–5"], ["var(--c3)", "6–8"], ["var(--c4)", "9+"]] },
+  eff: { label: "effective choices", value: (s) => s.eff, format: (v) => v.toFixed(1), colour: choiceColour, agg: "min",
+    legend: [["var(--c0)", "≤1"], ["var(--c1)", "≤3"], ["var(--c2)", "≤5"], ["var(--c3)", "≤8"], ["var(--c4)", "more"]],
+    explain: "Effective choices count how many equally likely lines the weights amount to: four lines where one carries most of the weight count as fewer than four." },
+  own: { label: "lines in their own voice", value: (s) => s.own, agg: "min", none: true,
+    colour: (v) => (v === 0 ? "var(--c0)" : v === 1 ? "var(--c1)" : v === 2 ? "var(--c2)" : v <= 4 ? "var(--c3)" : "var(--c4)"),
+    legend: [["var(--c0)", "none"], ["var(--c1)", "1"], ["var(--c2)", "2"], ["var(--c3)", "3–4"], ["var(--c4)", "5+"]] },
+  said: { label: "times spoken (recording)", value: (s) => s.rows.length, agg: "sum", run: true,
+    colour: (v) => (v === 0 ? "var(--empty)" : v <= 2 ? "var(--c3)" : v <= 6 ? "var(--c2)" : v <= 12 ? "var(--c1)" : "var(--c0)"),
+    legend: [["var(--empty)", "never"], ["var(--c3)", "1–2"], ["var(--c2)", "3–6"], ["var(--c1)", "7–12"], ["var(--c0)", "13+"]] },
+  repeat: { label: "same speaker, same line (recording)", value: (s) => sameSpeakerRepeats(s.rows), agg: "sum", run: true,
+    colour: (v, s) => (!s.rows.length ? "var(--empty)" : v === 0 ? "var(--c4)" : v === 1 ? "var(--c2)" : v <= 3 ? "var(--c1)" : "var(--c0)"),
+    legend: [["var(--empty)", "not spoken"], ["var(--c4)", "no repeats"], ["var(--c2)", "1"], ["var(--c1)", "2–3"], ["var(--c0)", "4+"]],
+    explain: "Counts a line said again by the same person in the same kind of situation; the same line from different people is not counted here." },
+};
+
+// ---- rendering ----
+function refresh(options = {}) {
+  index();
+  renderHeadline();
+  renderGrid();
+  renderControls();
+  if (options.panel !== false && drawer) renderDrawer();
+}
+function renderHeadline() {
+  const fits = [], plain = [];
+  let noOwn = 0;
+  for (const kind of kinds()) for (const arch of voices()) for (const rel of RELATIONSHIPS) for (const mood of MOODS) {
+    const s = situation(kind, arch, rel, mood);
+    if (!s.possible) continue;
+    if (arch === NONE) plain.push(s.n); else { fits.push(s.n); if (!s.own) noOwn++; }
+  }
+  const thin = fits.filter((n) => n <= AVOIDED).length;
+  let text = `${fits.length.toLocaleString()} speaker situations that can happen (${kinds().length} kinds × ${archetypes().length} voices × ${RELATIONSHIPS.length} relationships × ${MOODS.length} moods, less those no act can reach): `
+    + `a median of ${median(fits)} lines fit, ${thin.toLocaleString()} have ${AVOIDED} or fewer, and ${noOwn.toLocaleString()} have no line in the speaker's own voice. `
+    + `A speaker without an archetype has a median of ${median(plain)}.`;
+  if (recording) {
+    const counts = new Map();
+    for (const row of recording.rows) counts.set(row.lineId, (counts.get(row.lineId) || 0) + 1);
+    const top = [...counts].sort((a, b) => b[1] - a[1])[0];
+    const topLine = top && [...original.pack.lines, ...pack.lines].find((l) => l.id === top[0]);
+    text += ` The recording spoke ${recording.rows.length} lines, ${counts.size} of them distinct`
+      + (top ? `; the most used, “${topLine ? topLine.text : top[0]}”, ${top[1]} times.` : ".");
+  }
+  $("headline").textContent = text;
+  $("source").textContent = `Catalog: ${original.source} (${pack.lines.length} lines)` + (recording ? ` · Recording: ${recording.source}${recording.label ? ` (${recording.label})` : ""}` : " · No recording open: open one recorded with --speech to see what was actually said.");
+}
+function renderGrid() {
+  const { rels, moods } = bands(), metric = METRICS[$("metric").value];
+  const table = $("grid"), head = node("tr"), body = node("tbody");
+  head.append(node("th", "Act / voice"));
+  for (const arch of voices()) head.append(node("th", voiceLabel(arch), arch === NONE ? "none" : ""));
+  const thead = node("thead"); thead.append(head);
+  for (const kind of kinds()) {
+    const row = node("tr"), label = node("th", kindLabel(kind) + " ");
+    label.title = `${kind}: ${(byKind.get(kind) || []).length} lines in the catalog`;
+    label.scope = "row";
+    label.append(node("small", (byKind.get(kind) || []).length));
+    row.append(label);
+    for (const arch of voices()) {
+      const cell = node("td"), button = node("button", null, "cell");
+      if (metric.none && arch === NONE) { button.disabled = true; button.append(node("span", "—", "meta")); cell.append(button); row.append(cell); continue; }
+      const contexts = [];
+      for (const mood of moods) for (const rel of rels) contexts.push(situation(kind, arch, rel, mood));
+      const values = contexts.map((s) => metric.value(s)), real = values.filter((v, i) => contexts[i].possible);
+      const spoken = contexts.some((s) => s.possible && s.rows.length);
+      const total = !real.length || (metric.run && !spoken) ? null : metric.agg === "min" ? Math.min(...real) : real.reduce((a, b) => a + b, 0);
+      const shown = total == null ? "—" : metric.format ? metric.format(total) : String(total);
+      if (contexts.length > 1) {
+        const mini = node("span", null, "mini");
+        mini.style.gridTemplateColumns = `repeat(${rels.length}, 9px)`;
+        contexts.forEach((s, i) => { const sq = node("i"); sq.style.background = s.possible ? metric.colour(values[i], s) : "var(--empty)"; if (!s.possible) sq.style.opacity = ".35"; mini.append(sq); });
+        button.append(mini, node("b", shown));
+        if (total == null) button.classList.add("blank");
+      } else {
+        button.classList.add("single");
+        if (contexts[0].possible && total != null) button.style.background = metric.colour(values[0], contexts[0]); else button.classList.add("blank");
+        button.append(node("b", shown));
+      }
+      button.dataset.kind = kind; button.dataset.arch = arch;
+      button.title = `${kindLabel(kind)} · ${voiceLabel(arch)}\n` + contexts.map((s, i) => `${s.rel}, ${s.mood}: ${!s.possible ? "cannot happen" : `${metric.format ? metric.format(values[i]) : values[i]} ${metric.label}`}`).join("\n");
+      button.setAttribute("aria-label", `${kindLabel(kind)}, ${voiceLabel(arch)}: ${metric.agg === "min" ? "at least" : "in total"} ${shown} ${metric.label}`);
+      if (open && open.kind === kind && open.arch === arch) button.classList.add("on");
+      button.onclick = () => { opener = { kind, arch }; open = { kind, arch }; drawer = "cell"; renderDrawer(true); renderGrid(); };
+      cell.append(button);
+      row.append(cell);
+    }
+    body.append(row);
+  }
+  table.replaceChildren(thead, body);
+  const legend = $("legend"), { rels: r, moods: m } = bands();
+  const title = node("span"); title.append(node("strong", metric.label[0].toUpperCase() + metric.label.slice(1)));
+  legend.replaceChildren(title);
+  for (const [colour, text] of metric.legend) { const s = node("span"), sw = node("i", null, "sw"); sw.style.background = colour; s.append(sw, text); legend.append(s); }
+  if (r.length > 1 || m.length > 1) {
+    const key = bandKey(r, m);
+    const wrap = node("span", null, "wide"); wrap.append(key, node("span", `Each square is one situation (S stranger, A acquaintance, F familiar, C close, H household); faint ones cannot happen for that act. The number is the ${metric.agg === "min" ? "worst" : "total"} across those that can.`));
+    legend.append(wrap);
+  }
+  if (metric.explain) legend.append(node("span", metric.explain));
+}
+/** The little key that names a grid's columns (relationship bands) and rows (moods). */
+function bandKey(rels, moods) {
+  const key = node("span", null, "key");
+  key.style.gridTemplateColumns = `auto repeat(${rels.length}, 12px)`;
+  key.setAttribute("aria-hidden", "true");
+  key.append(node("span", ""));
+  for (const rel of rels) key.append(node("span", BAND_SHORT[rel]));
+  for (const mood of moods) { key.append(node("span", mood + " ")); for (let i = 0; i < rels.length; i++) key.append(node("i")); }
+  return key;
+}
+function renderControls() {
+  const count = changes().length, problems = catalogProblems(pack.lines, kinds());
+  $("show-changes").textContent = `Changes (${count})`;
+  $("export").disabled = !count || problems.length > 0;
+  $("export").title = problems.length ? `${problems.length} problems to fix first: ` + problems.slice(0, 5).map((p) => `${p.id} ${p.problem}`).join("; ") : "";
+  showError(problems.length && count ? `${problems.length} problem${problems.length > 1 ? "s" : ""} to fix before downloading: ` + problems.slice(0, 3).map((p) => `${p.id} ${p.problem}`).join("; ") + (problems.length > 3 ? "…" : "") : "");
+}
+
+// ---- the drawer: one cell's lines, or the change list ----
+function closeDrawer() {
+  drawer = null; $("drawer").hidden = true; document.body.classList.remove("panel-open");
+  if (!pack) return;
+  renderGrid();
+  if (opener) {
+    const back = [...document.querySelectorAll("#grid .cell")].find((b) => b.dataset.kind === opener.kind && b.dataset.arch === opener.arch);
+    if (back) back.focus();
+  }
+}
+function drawerHead(title, sub) {
+  const head = node("div", null, "drawerhead"), text = node("div"), close = node("button", "Close", "quiet");
+  const h = node("h2", title); h.id = "drawer-title"; h.tabIndex = -1;
+  text.append(h);
+  if (sub) text.append(node("p", sub, "meta"));
+  close.type = "button"; close.onclick = closeDrawer; close.setAttribute("aria-label", "Close the panel");
+  head.append(text, close);
+  return head;
+}
+function renderDrawer(fresh) {
+  const aside = $("drawer"), keep = aside.scrollTop;
+  aside.hidden = false; document.body.classList.add("panel-open");
+  if (drawer === "changes") renderChanges(aside); else renderCell(aside);
+  aside.scrollTop = fresh ? 0 : keep;
+  if (fresh) $("drawer-title").focus({ preventScroll: true });
+}
+/** One part of the panel: a heading with a count, its lines, and optionally a way to add one. When
+ * key is given it folds, and whether it is open survives the re-render that follows every edit. */
+function section(title, count, rows, options = {}) {
+  const box = node(options.key ? "details" : "div", null, "section" + (options.className ? " " + options.className : ""));
+  const head = node(options.key ? "summary" : "h3", title + " ");
+  head.append(node("span", String(count), "meta"));
+  if (options.divider) { head.classList.add("divider"); head.append(node("span", null, "rule")); }
+  box.append(head);
+  if (options.key) {
+    box.open = sectionsOpen.has(options.key);
+    box.ontoggle = () => { if (box.open) sectionsOpen.add(options.key); else sectionsOpen.delete(options.key); };
+  }
+  for (const row of rows) box.append(row);
+  if (!rows.length && options.empty) box.append(node("p", options.empty, "empty"));
+  if (options.add) box.append(options.add);
+  return box;
+}
+function renderCell(aside) {
+  const { kind, arch } = open, { rels, moods } = bands();
+  const every = moods.flatMap((mood) => rels.map((rel) => situation(kind, arch, rel, mood)));
+  const contexts = every.some((s) => s.possible) ? every.filter((s) => s.possible) : every;
+  const archetype = arch === NONE ? null : arch;
+  const lines = byKind.get(kind) || [];
+  // Every situation, whatever the filter, so each line can show where it is likely and where it cannot be said.
+  const all = MOODS.flatMap((mood) => RELATIONSHIPS.map((rel) => situation(kind, arch, rel, mood)));
+  const totals = all.map((s) => s.fits.reduce((a, f) => a + f.w, 0));
+  const narrowed = rels.length * moods.length < all.length;
+  const shape = (line) => all.map((s, i) => ({ s, p: s.possible && totals[i] ? weight(line, archetype, s.rel, s.mood) / totals[i] : 0,
+    chosen: narrowed && rels.includes(s.rel) && moods.includes(s.mood) }));
+  const info = new Map(lines.map((line) => {
+    let fitsIn = 0, share = 0, said = 0;
+    for (const s of contexts) {
+      const w = weight(line, archetype, s.rel, s.mood), total = s.fits.reduce((a, f) => a + f.w, 0);
+      if (w > 0) { fitsIn++; share += w / total; }
+      said += s.rows.filter((row) => row.lineId === line.id).length;
+    }
+    return [line, { fitsIn, share: share / contexts.length, said, shape: shape(line) }];
+  }));
+  const byShare = (a, b) => info.get(b).share - info.get(a).share;
+  const fits = (l) => info.get(l).fitsIn > 0;
+  const own = archetype ? lines.filter((l) => l.archetypes.includes(archetype) && fits(l)).sort(byShare) : [];
+  const anyone = lines.filter((l) => !l.archetypes.length && fits(l)).sort(byShare);
+  const elsewhere = lines.filter((l) => !fits(l) && (!l.archetypes.length || l.archetypes.includes(archetype)));
+  const others = lines.filter((l) => l.archetypes.length && !l.archetypes.includes(archetype));
+  const where = `${rels.length > 1 ? "every relationship" : rels[0]}, ${moods.length > 1 ? "every mood" : `${moods[0]} mood`}`;
+  const counts = contexts.map((s) => s.n), min = Math.min(...counts), max = Math.max(...counts);
+  aside.replaceChildren(drawerHead(`${kindLabel(kind)} · ${voiceLabel(arch)}`,
+    `${where}: ${min === max ? min : `${min} to ${max}`} lines fit`
+    + (recording ? `, said ${contexts.reduce((a, s) => a + s.rows.length, 0)} times in the recording` : "")
+    + `. The percentage is each line's ${contexts.length > 1 ? "average " : ""}chance of being picked${contexts.length > 1 ? " across them" : ""}.`));
+  const how = node("p", null, "panelkey");
+  how.append(bandKey(RELATIONSHIPS, MOODS), node("span", `Each line's squares are its chance in every situation for a ${voiceLabel(arch)} speaker: the deeper the green, the likelier; empty means it cannot be said there${narrowed ? "; outlined squares are the ones chosen above" : ""}. Hover a square for its number.`));
+  aside.append(how);
+  if (ONLY[kind]) aside.append(node("p", ONLY[kind].why + (every.some((s) => s.possible) ? "" : " None of the bands chosen above can happen; the lines are shown as if they could."), "notice"));
+  const row = (line) => lineRow(line, info.get(line), contexts.length);
+  const addButton = (voice) => {
+    const button = node("button", voice === NONE ? "Add a line for any speaker" : `Add a ${voiceLabel(voice)} line`, "add");
+    button.type = "button"; button.onclick = () => addLine(kind, voice, rels, moods);
+    return button;
+  };
+  if (archetype)
+    aside.append(section(`In the ${voiceLabel(arch)} voice`, own.length, own.map(row),
+      { empty: "No line in this voice fits here yet. Without one, this speaker sounds like everyone else.", add: addButton(arch) }));
+  // Plain lines come after the voice's own, under a soft divider that folds them away.
+  aside.append(section("Any speaker", anyone.length, anyone.map(row),
+    { key: archetype ? "any" : null, divider: !!archetype, empty: "No plain line fits here.", add: addButton(NONE) }));
+  if (elsewhere.length) aside.append(section("Doesn't fit these bands", elsewhere.length, elsewhere.map(row), { key: "elsewhere" }));
+  if (others.length) aside.append(section("Other voices", others.length, others.map(row), { key: "others" }));
+}
+function lineRow(line, info, contexts) {
+  const row = node("div", null, "row");
+  const top = node("div", null, "share");
+  if (info && info.shape.some((c) => c.p > 0)) top.append(lineGrid(info.shape));
+  if (info && info.fitsIn) top.append(node("span", `${Math.round(info.share * 100)}%` + (contexts > 1 ? ` · fits ${info.fitsIn} of ${contexts}` : "")));
+  if (recording && info) top.append(node("span", `· said ${info.said}× in the recording`, "said"));
+  if (!original.pack.lines.some((l) => l.id === line.id)) top.append(node("span", "new", "badge"));
+  if (top.childNodes.length) row.append(top);
+  const text = node("textarea");
+  text.value = line.text; text.rows = 1; text.setAttribute("aria-label", `Text of ${line.id}`); text.placeholder = "Write the line. Use {subject} for the other person's name.";
+  const problems = node("p", null, "error");
+  const showProblems = () => {
+    const ids = new Map(); for (const l of pack.lines) ids.set(l.id, (ids.get(l.id) || 0) + 1);
+    const list = lineProblems(line, ids); problems.textContent = list.length ? `Can't be saved: ${list.join("; ")}.` : ""; problems.hidden = !list.length; row.classList.toggle("bad", list.length > 0);
+  };
+  text.oninput = () => { line.text = text.value; showProblems(); touched({ panel: false }); };
+  row.append(text, problems);
+  const tags = node("div", null, "tagrow"), voice = node("select");
+  voice.append(new Option("Any speaker", ""));
+  for (const a of archetypes()) voice.append(new Option(voiceLabel(a), a, false, line.archetypes[0] === a));
+  voice.setAttribute("aria-label", "Voice");
+  voice.onchange = () => { line.archetypes = voice.value ? [voice.value] : []; touched(); };
+  tags.append(node("span", "Voice", "k"), voice, node("span", "Relationship", "k"), chips(line, "relationship", RELATIONSHIPS), node("span", "Mood", "k"), chips(line, "mood", MOODS));
+  row.append(tags);
+  const note = node("input", null, "note");
+  note.placeholder = "Note for whoever curates next (optional)"; note.value = line.note || ""; note.setAttribute("aria-label", `Note on ${line.id}`);
+  note.oninput = () => { if (note.value.trim()) line.note = note.value; else delete line.note; touched({ panel: false }); };
+  row.append(note);
+  const foot = node("div", null, "foot"), remove = node("button", "Remove", "quiet");
+  remove.type = "button"; remove.setAttribute("aria-label", `Remove ${line.id}`);
+  foot.append(node("span", line.id, "meta"), remove);
+  remove.onclick = () => { pack.lines = pack.lines.filter((l) => l !== line); touched(); };
+  row.append(foot);
+  showProblems();
+  return row;
+}
+/** One line's chance in each of the fifteen situations, laid out like the main grid's cells. */
+function lineGrid(shape) {
+  const grid = node("span", null, "linegrid");
+  grid.setAttribute("role", "img");
+  grid.setAttribute("aria-label", "Chance in each situation: " + (shape.filter((c) => c.p > 0).map((c) => `${c.s.rel}, ${c.s.mood} ${Math.round(c.p * 100)}%`).join("; ") || "none"));
+  for (const c of shape) {
+    const square = node("i");
+    if (!c.s.possible) square.className = "x";
+    else if (c.p > 0) square.style.background = `color-mix(in srgb, var(--c4) ${Math.round(28 + 72 * Math.min(1, c.p / 0.6))}%, var(--empty))`;
+    if (c.chosen) square.classList.add("chosen");
+    square.title = `${c.s.rel}, ${c.s.mood}: ${c.s.possible ? `${Math.round(c.p * 100)}%` : "cannot happen"}`;
+    grid.append(square);
+  }
+  return grid;
+}
+function chips(line, field, values) {
+  const wrap = node("span", null, "chips");
+  wrap.setAttribute("role", "group"); wrap.setAttribute("aria-label", field);
+  for (const value of values) {
+    const chip = node("button", value, "chip" + (line[field].includes(value) ? " on" : ""));
+    chip.type = "button"; chip.setAttribute("aria-pressed", String(line[field].includes(value)));
+    chip.onclick = () => { line[field] = line[field].includes(value) ? line[field].filter((v) => v !== value) : values.filter((v) => v === value || line[field].includes(v)); touched(); };
+    wrap.append(chip);
+  }
+  if (!line[field].length) wrap.append(node("span", "any", "any"));
+  return wrap;
+}
+function addLine(kind, arch, rels, moods) {
+  const stem = `${kind.toLowerCase()}-${arch === NONE ? "generic" : arch}-`;
+  let n = 0;
+  while ([...original.pack.lines, ...pack.lines].some((l) => l.id === stem + String(n).padStart(2, "0"))) n++;
+  pack.lines.push({ id: stem + String(n).padStart(2, "0"), kind, archetypes: arch === NONE ? [] : [arch],
+    relationship: rels.length === 1 ? [...rels] : [], mood: moods.length === 1 ? [...moods] : [], text: "", tags: [arch === NONE ? "plain" : arch] });
+  touched();
+  const areas = $("drawer").querySelectorAll(".card.new textarea");
+  if (areas.length) { areas[areas.length - 1].scrollIntoView({ block: "center" }); areas[areas.length - 1].focus(); }
+}
+function touched(options) {
+  saveDraft();
+  if (options && options.panel === false) { clearTimeout(gridTimer); gridTimer = setTimeout(() => refresh({ panel: false }), 160); }
+  else refresh();
+}
+
+// ---- changes ----
+function changes() {
+  const before = new Map(original.pack.lines.map((l) => [l.id, l])), now = new Map(pack.lines.map((l) => [l.id, l])), list = [];
+  for (const line of pack.lines) {
+    const old = before.get(line.id);
+    if (!old) list.push({ type: "added", line });
+    else if (JSON.stringify(old) !== JSON.stringify(line)) list.push({ type: "edited", line, old });
+  }
+  for (const old of original.pack.lines) if (!now.has(old.id)) list.push({ type: "removed", old });
+  return list;
+}
+function renderChanges(aside) {
+  const list = changes();
+  aside.replaceChildren(drawerHead(`Changes (${list.length})`, "Kept in this browser until you download the catalog or discard them. Download, replace sim/UnderGlass.Sim/speech-catalog.json, and rebuild."));
+  const describe = (l) => `${l.kind} · ${l.archetypes.join(", ") || "any speaker"} · ${l.relationship.join("/") || "any relationship"} · ${l.mood.join("/") || "any mood"}`;
+  for (const change of list) {
+    const row = node("div", null, "change"), revert = node("button", "Revert");
+    const line = change.line || change.old;
+    row.append(node("div", `${change.type} · ${line.id}`, "meta"));
+    if (change.type === "edited" && change.old.text !== change.line.text) { const d = node("del", change.old.text); row.append(d, node("br")); }
+    row.append(node("div", line.text || "(empty)"));
+    if (change.type === "edited" && describe(change.old) !== describe(change.line)) row.append(node("div", `${describe(change.old)} → ${describe(change.line)}`, "meta"));
+    else row.append(node("div", describe(line), "meta"));
+    revert.onclick = () => {
+      if (change.type === "added") pack.lines = pack.lines.filter((l) => l !== change.line);
+      else if (change.type === "removed") pack.lines.push(clone(change.old));
+      else pack.lines[pack.lines.indexOf(change.line)] = clone(change.old);
+      touched();
+    };
+    row.append(revert);
+    aside.append(row);
+  }
+  if (list.length) {
+    const discard = node("button", "Discard every change");
+    discard.onclick = () => { if (confirm(`Discard all ${list.length} changes?`)) { pack = clone(original.pack); showNotice(null); touched(); } };
+    aside.append(node("p"), discard);
+  } else aside.append(node("p", "No changes yet. Click a cell to read and edit its lines.", "meta"));
+}
+function exportCatalog() {
+  const text = serialize({ ...pack, lines: pack.lines });
+  const link = node("a"), url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  link.href = url; link.download = "speech-catalog.json"; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---- wiring ----
+for (const rel of RELATIONSHIPS) $("rel").append(new Option(rel[0].toUpperCase() + rel.slice(1), rel));
+for (const mood of MOODS) $("mood").append(new Option(mood[0].toUpperCase() + mood.slice(1), mood));
+for (const [key, metric] of Object.entries(METRICS)) { const option = new Option(metric.label[0].toUpperCase() + metric.label.slice(1), key); option.disabled = !!metric.run; $("metric").append(option); }
+for (const id of ["rel", "mood", "metric"]) $(id).onchange = () => { if (pack) refresh(); };
+$("show-changes").onclick = () => { if (!pack) return; drawer = "changes"; renderDrawer(true); };
+$("export").onclick = exportCatalog;
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drawer) closeDrawer(); });
+async function readFile(input, load) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try { showError(""); load(await file.text(), file.name); } catch (error) { showError(error.message); }
+  input.value = "";
+}
+$("pick-catalog").onclick = () => $("open-catalog").click();
+$("pick-run").onclick = () => $("open-run").click();
+$("open-catalog").onchange = () => readFile($("open-catalog"), loadCatalog);
+$("open-run").onchange = () => { if (!pack) { showError("Open the catalog first."); return; } readFile($("open-run"), loadRecording); };
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  try { const text = await file.text(), data = JSON.parse(text); if (Array.isArray(data.speech)) { if (!pack) throw new Error("Open the catalog first."); loadRecording(text, file.name); } else loadCatalog(text, file.name); }
+  catch (error) { showError(error.message); }
+});
+(async function boot() {
+  try {
+    const response = await fetch("../UnderGlass.Sim/speech-catalog.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(String(response.status));
+    loadCatalog(await response.text(), "sim/UnderGlass.Sim/speech-catalog.json");
+  } catch {
+    showNotice("Open speech-catalog.json with Open catalog… to begin. The page reads it from the checkout when served by sim/tools/start-preview.ps1.");
+    return;
+  }
+  const run = new URLSearchParams(location.search).get("run");
+  if (!run) return;
+  try {
+    const url = new URL(run, location.href);
+    if (url.origin !== location.origin) throw new Error("A recording must come from this preview server.");
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Could not read ${run} (${response.status}).`);
+    loadRecording(await response.text(), run.split("/").pop());
+  } catch (error) { showError(error.message); }
+})();
+</script>
+</body>
+</html>

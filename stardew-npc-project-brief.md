@@ -34,7 +34,9 @@ behind the same loopback contract, judged blind beside the authored controls, ke
 and private form where the small local model did not; it is an opt-in comparison, not a new default.
 Sid then set the order of work: scene-specific knowledge into the model requests (built), a tagged
 [speech library](docs/under-glass/specs/speech-spec.md) so acts have authored lines (first library
-built, opt-in, awaiting his curation), broader actions, then follow-through; a player comes later.
+built, opt-in, awaiting his curation; a coverage page shows where it is thin, and a neighbouring
+relationship or mood band now still fits, which halved repeats), broader actions, then
+follow-through; a player comes later.
 The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: character voice review, concrete
 encounter context and separate personal/listener appraisal next, then broader actions and tagged
 speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
