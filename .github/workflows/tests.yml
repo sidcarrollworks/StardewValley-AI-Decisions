@@ -58,6 +58,8 @@ jobs:
         run: node --test sim/tools/test-viewer-wording.cjs
       - name: Test spoken lines follow the clock in the viewer
         run: node --test sim/tools/test-viewer-speech.cjs
+      - name: Test the speech coverage page agrees with the selector
+        run: node --test sim/tools/test-speech-page.cjs
       - name: Test observer pack provenance without model calls
         shell: pwsh
         run: ./sim/tools/test-observer-pack.ps1

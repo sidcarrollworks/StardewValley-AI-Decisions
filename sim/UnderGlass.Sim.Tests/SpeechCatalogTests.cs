@@ -1,3 +1,4 @@
+using System.Text.Json;
 using UnderGlass.Sim;
 using Xunit;
 
@@ -41,7 +42,8 @@ public class SpeechCatalogTests
         Assert.Equal(first.Id, SpeechCatalog.Choose(pack, "GaveGift", "weary-defender", "stranger", "low", 7, 1)!.Id);
         var ids = Enumerable.Range(0, 60).Select(i => SpeechCatalog.Choose(pack, "GaveGift", "weary-defender", "stranger", "low", 7, i)!.Id).ToHashSet();
         Assert.Equal(new[] { "generic", "gruff", "stranger-low" }.ToHashSet(), ids);
-        // A line tagged for another archetype, relationship or mood never fits.
+        // A line tagged for another archetype, or for a relationship or mood band that is not the
+        // speaker's or its neighbour, never fits.
         Assert.All(Enumerable.Range(0, 60), i => Assert.NotEqual("gruff", SpeechCatalog.Choose(pack, "GaveGift", "young-observer", "stranger", "low", 7, i)!.Id));
         Assert.All(Enumerable.Range(0, 60), i => Assert.NotEqual("gruff", SpeechCatalog.Choose(pack, "GaveGift", null, "stranger", "low", 7, i)!.Id));
         Assert.All(Enumerable.Range(0, 60), i => Assert.NotEqual("stranger-low", SpeechCatalog.Choose(pack, "GaveGift", null, "close", "low", 7, i)!.Id));
@@ -60,6 +62,38 @@ public class SpeechCatalogTests
     }
 
     [Fact]
+    public void ANeighbouringBandStillFitsLessWellAndTheViewerAgrees()
+    {
+        // The same fixture pins the viewer's speech page (sim/tools/test-speech-page.cjs).
+        using JsonDocument fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepoRoot(), "sim", "tools", "fixtures", "speech-weights.json")));
+        SpeechPack pack = SpeechCatalog.Read(fixture.RootElement.GetProperty("pack").GetRawText());
+        foreach (JsonElement c in fixture.RootElement.GetProperty("cases").EnumerateArray())
+        {
+            string kind = c.GetProperty("kind").GetString()!, relationship = c.GetProperty("relationship").GetString()!, mood = c.GetProperty("mood").GetString()!;
+            string? archetype = c.GetProperty("archetype").ValueKind == JsonValueKind.Null ? null : c.GetProperty("archetype").GetString();
+            var expected = c.GetProperty("weights").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetDouble());
+            Assert.Equal(pack.Lines.Where(l => l.Kind == kind).Select(l => l.Id).OrderBy(i => i, StringComparer.Ordinal), expected.Keys.OrderBy(i => i, StringComparer.Ordinal));
+            foreach (SpeechLine line in pack.Lines.Where(l => l.Kind == kind))
+                Assert.True(expected[line.Id] == SpeechCatalog.Weight(line, archetype, relationship, mood),
+                    $"{line.Id} for {archetype ?? "no archetype"}, {relationship}, {mood}: expected {expected[line.Id]}, got {SpeechCatalog.Weight(line, archetype, relationship, mood)}");
+        }
+        // A neighbour line is drawn, a household line never leaves the household, a low line is
+        // never said in high spirits.
+        var drawn = Enumerable.Range(0, 200).Select(i => SpeechCatalog.Choose(pack, "GaveGift", null, "acquaintance", "even", 7, i)!.Id).ToHashSet();
+        Assert.Contains("stranger-low", drawn);
+        Assert.DoesNotContain("house", Enumerable.Range(0, 200).Select(i => SpeechCatalog.Choose(pack, "GaveGift", null, "close", "even", 7, i)!.Id));
+        Assert.DoesNotContain("stranger-low", Enumerable.Range(0, 200).Select(i => SpeechCatalog.Choose(pack, "GaveGift", null, "stranger", "high", 7, i)!.Id));
+    }
+
+    private static string RepoRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "sim", "character-inspiration.json")))
+            directory = directory.Parent;
+        return directory!.FullName;
+    }
+
+    [Fact]
     public void EmbeddedLibraryCoversEveryKindDoneToAChosenPerson()
     {
         SpeechPack pack = SpeechCatalog.Default;
@@ -70,10 +104,7 @@ public class SpeechCatalogTests
         Assert.Null(SpeechCatalog.Choose(pack, "Snubbed", null, "close", "even", 7, 1)); // turning away is silent
         Assert.Contains(pack.Lines, l => l.Kind == "Squabbled" && l.Archetypes.Count == 0);
         // Every archetype named in the library exists in the character pack.
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "sim", "character-inspiration.json")))
-            directory = directory.Parent;
-        var known = CharacterInspirationPack.Read(File.ReadAllText(Path.Combine(directory!.FullName, "sim", "character-inspiration.json")))
+        var known = CharacterInspirationPack.Read(File.ReadAllText(Path.Combine(RepoRoot(), "sim", "character-inspiration.json")))
             .Archetypes.Select(a => a.Id).ToHashSet(StringComparer.Ordinal);
         foreach (string archetype in pack.Lines.SelectMany(l => l.Archetypes).Distinct())
             Assert.Contains(archetype, known);

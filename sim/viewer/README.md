@@ -158,6 +158,24 @@ leave the earlier frames showing there.
 `ReflectionViewerTests` protect the optional-recording boundary, clock guards and plain-text
 rendering of model content. Browser verification checks the displayed chain and timeline jumps.
 
+## The speech coverage page
+
+`speech.html` is for curating the speech library, not for watching a run. Served by
+`sim/tools/start-preview.ps1`, it reads `sim/UnderGlass.Sim/speech-catalog.json` from the checkout
+(or open one with its Catalog button) and shows a grid: act kinds down the side, voices across (the
+twelve archetypes and speakers with none). Each cell's squares are the fifteen relationship and
+mood situations, coloured by how many lines fit; the number is the worst of them. Situations an act
+can never be spoken in are faint and not counted. Switch the colour to effective choices (how many
+equally likely lines the weights amount to) or lines in the speaker's own voice, or narrow to one
+relationship or mood. Open a recording made with `--speech` (or add `?run=` and its path) to colour
+by what was actually said and how often the same person repeated a line.
+
+Click a cell to read its lines, each with its chance of being picked there, and edit the words, the
+voice and the tags, add a line or remove one. Edits stay in that browser until you download the
+catalog or discard them; the Changes list shows each against the original and reverts it. The page
+will not download a catalog the loader would reject. Replace the file in the checkout with the
+download and rebuild. It never runs the simulation.
+
 ## The file
 
 `UnderGlass.Sim/Replay.cs` writes it (format `under-glass-run`, version 1); `ReplayTests` check it

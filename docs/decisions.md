@@ -918,7 +918,7 @@ curation).** Acts toward a person get spoken lines from an embedded, editable li
 `sim/UnderGlass.Sim/speech-catalog.json`, behind `--speech` (off by default). A line is tagged by
 act kind, archetype, relationship band and mood band; empty tags mean any. Selection reads only the
 speaker's own state, weights fitting lines rather than picking the most specific, avoids the
-speaker's last line for the same kind, and draws on speech's own seeded stream keyed by the act
+speaker's last three lines for the same kind, and draws on speech's own seeded stream keyed by the act
 id. Nothing in the simulation reads a line, so the pinned runs are byte-identical with speech off
 and every decision is identical with it on; the record says which library id spoke and why.
 
@@ -934,6 +934,28 @@ a task or a place, because the simulation does not know them.
 could show no speech for ordinary acts at all. Authored, tagged lines keep the rule that routine
 language is authored while the generator stays occasional; the blind judging keeps the voices from
 collapsing into one. See the [speech spec](under-glass/specs/speech-spec.md).
+
+### D49. A speech tag names where a line belongs best, not the only place it may be said
+
+**Decision (2026-10-12, Sid asked for it after seeing why the library felt repetitive).** A line's
+relationship and mood tags no longer rule it out everywhere else. A tag that names the speaker's
+band doubles the line's weight as before; one that only names the neighbouring band (one rung of
+familiarity, one mood band) halves it; anything further rules it out. Household lines never leave
+the household, though a household speaker may borrow a close line, and a low line is never said in
+high spirits. Archetype tags stay exclusive: another voice's line is never borrowed.
+`SpeechCatalog.Weight` is the rule; the curation page `sim/viewer/speech.html` carries a copy, and
+`sim/tools/fixtures/speech-weights.json` pins both.
+
+**Why.** Counting the situations showed the cause. Across 14 kinds, 12 voices, 5 relationship
+bands and 3 moods, a median of 3 lines fit a given speaker in a given state, and the selector
+avoids their last three, so repetition was built in; adding lines evenly would have needed several
+times the library. With neighbouring bands the median is 5, the situations with 3 or fewer fall from
+most to 77 of the 2,376 that can happen, and the recorded week (same seed and flags, same log hash)
+speaks 80 distinct lines where it spoke 60, with the same speaker repeating a line back to back 12
+times instead of 27. The rest is authoring, and the page shows where: the thin cells are the ones
+to write for.
+
+**Not changed.** What a line is, how it is recorded, and that nothing in the simulation reads it.
 
 ## Open work and known issues
 

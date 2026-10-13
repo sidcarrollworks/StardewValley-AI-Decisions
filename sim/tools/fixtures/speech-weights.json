@@ -1,0 +1,193 @@
+{
+ "note": "Pins the speech weight rule on both sides: SpeechCatalog.Weight (SpeechCatalogTests) and the viewer's speech page (test-speech-page.cjs). Every line of the case's kind is listed; 0 means it does not fit.",
+ "pack": {
+  "schema": 1,
+  "provenance": "test fixture",
+  "lines": [
+   {
+    "id": "plain",
+    "kind": "GaveGift",
+    "archetypes": [],
+    "relationship": [],
+    "mood": [],
+    "text": "Thought you might like this.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "gruff",
+    "kind": "GaveGift",
+    "archetypes": [
+     "weary-defender"
+    ],
+    "relationship": [],
+    "mood": [],
+    "text": "Take it before I change my mind.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "stranger-low",
+    "kind": "GaveGift",
+    "archetypes": [],
+    "relationship": [
+     "stranger"
+    ],
+    "mood": [
+     "low"
+    ],
+    "text": "Here. No need to make anything of it.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "close-only",
+    "kind": "GaveGift",
+    "archetypes": [],
+    "relationship": [
+     "close"
+    ],
+    "mood": [],
+    "text": "Kept this back for you, as always.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "house",
+    "kind": "GaveGift",
+    "archetypes": [],
+    "relationship": [
+     "household"
+    ],
+    "mood": [],
+    "text": "Found it under your bed, so it's yours now.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "high",
+    "kind": "GaveGift",
+    "archetypes": [],
+    "relationship": [],
+    "mood": [
+     "high"
+    ],
+    "text": "Open it now, I can't wait to see your face!",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "gruff-familiar-even",
+    "kind": "GaveGift",
+    "archetypes": [
+     "weary-defender"
+    ],
+    "relationship": [
+     "familiar",
+     "close"
+    ],
+    "mood": [
+     "even"
+    ],
+    "text": "You'll use it. Don't argue with me.",
+    "tags": [
+     "fixture"
+    ]
+   },
+   {
+    "id": "other-kind",
+    "kind": "Thanked",
+    "archetypes": [],
+    "relationship": [],
+    "mood": [],
+    "text": "Thanks for the other day.",
+    "tags": [
+     "fixture"
+    ]
+   }
+  ]
+ },
+ "cases": [
+  {
+   "kind": "GaveGift",
+   "archetype": "weary-defender",
+   "relationship": "stranger",
+   "mood": "low",
+   "weights": {
+    "plain": 1,
+    "gruff": 3,
+    "stranger-low": 4,
+    "close-only": 0,
+    "house": 0,
+    "high": 0,
+    "gruff-familiar-even": 0
+   }
+  },
+  {
+   "kind": "GaveGift",
+   "archetype": "weary-defender",
+   "relationship": "acquaintance",
+   "mood": "even",
+   "weights": {
+    "plain": 1,
+    "gruff": 3,
+    "stranger-low": 0.25,
+    "close-only": 0,
+    "house": 0,
+    "high": 0.5,
+    "gruff-familiar-even": 3
+   }
+  },
+  {
+   "kind": "GaveGift",
+   "archetype": null,
+   "relationship": "household",
+   "mood": "high",
+   "weights": {
+    "plain": 1,
+    "gruff": 0,
+    "stranger-low": 0,
+    "close-only": 0.5,
+    "house": 2,
+    "high": 2,
+    "gruff-familiar-even": 0
+   }
+  },
+  {
+   "kind": "GaveGift",
+   "archetype": "young-observer",
+   "relationship": "close",
+   "mood": "low",
+   "weights": {
+    "plain": 1,
+    "gruff": 0,
+    "stranger-low": 0,
+    "close-only": 2,
+    "house": 0,
+    "high": 0,
+    "gruff-familiar-even": 0
+   }
+  },
+  {
+   "kind": "GaveGift",
+   "archetype": "weary-defender",
+   "relationship": "familiar",
+   "mood": "high",
+   "weights": {
+    "plain": 1,
+    "gruff": 3,
+    "stranger-low": 0,
+    "close-only": 0.5,
+    "house": 0,
+    "high": 2,
+    "gruff-familiar-even": 3
+   }
+  }
+ ]
+}
