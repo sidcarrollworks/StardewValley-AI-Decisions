@@ -36,7 +36,10 @@ Sid then set the order of work: scene-specific knowledge into the model requests
 [speech library](docs/under-glass/specs/speech-spec.md) so acts have authored lines (first library
 built, opt-in, awaiting his curation; a coverage page shows where it is thin, and a neighbouring
 relationship or mood band now still fits, which halved repeats), broader actions, then
-follow-through; a player comes later.
+follow-through, and then player speech (2026-10-13): the Newcomer is the player's character, the
+player types, Laya reads the line into an act the engine offers, and a claim is checked through
+what the listener knows ([player speech spec](docs/under-glass/specs/player-speech-spec.md), planned;
+a first probe of Laya's reading is done).
 The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: character voice review, concrete
 encounter context and separate personal/listener appraisal next, then broader actions and tagged
 speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)

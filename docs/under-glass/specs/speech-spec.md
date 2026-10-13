@@ -108,8 +108,9 @@ reproduces the stored file) both read it.
 The busiest speaker in the recorded week is the Newcomer, who has no archetype and so draws only on
 plain lines (57 of 196 lines). Worse, a welcome is keyed on familiarity, not on who arrived: the
 newcomer, knowing nobody, does most of the welcoming, and every Welcomed line is written from the
-resident's side ("Welcome to town, Penny"). Either Welcomed lines need a side (the speaker is the
-new one, or the other person is), or the newcomer needs a voice of its own; this waits on Sid.
+resident's side ("Welcome to town, Penny"). Sid decided (2026-10-12) that the Newcomer gets a voice
+of its own: the player's, typed and read by Laya ([player speech spec](player-speech-spec.md)).
+Until a player exists, a reserved `newcomer` voice with arrival-side lines is planned there.
 
 The reply line is the obvious next piece: the other person's answer when an act completes, keyed
 to the recorded outcome (returned, rebuffed, accepted, refused) rather than to a guess. After that,

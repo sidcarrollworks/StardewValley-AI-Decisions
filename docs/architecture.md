@@ -76,6 +76,11 @@ The optional quiet-reflection prototype is specified in
   explicit contract that selects the structured-output schema. Loopback only, credentials from
   the environment or a key file and never logged, sampling and seed accepted but not forwarded
   and declared so in every receipt. Opt-in; the local service stays the default.
+- `sim/tools/laya_categorize_probe.py`: a standalone probe for the planned
+  [player speech](under-glass/specs/player-speech-spec.md): it asks a running loopback Laya which act a
+  typed line is and which known thing a claim refers to, with the game adapter's packet rules
+  (Balanced rotations, the 1,250-character budget, refused truncation) and full receipts. Not used
+  by the simulation.
 - `sim/tools/reflection_generator.py`: an explicitly started local generation service using
   pinned `Qwen/Qwen3-0.6B` weights, with request limits and raw response receipts. The helper uses
   the existing Python runtime; it is independent of the .NET simulation.
