@@ -74,6 +74,35 @@ one generic voice with a catchphrase for each character. Profiles must preserve 
 and the Laya budget. Then fix thought/action disagreement as a separate contract, using observed
 failure scenes. This does not postpone concrete encounters or broader actions until models are perfect.
 
+### The agreed order (Sid, 2026-10-12)
+
+Sid's reading after the Haiku run: being a participant is further off than it looks, and the
+repetitiveness of what people do and say is the thing to fix first; small talk, scene-specific
+knowledge and broader actions will make the viewer worth watching before any player exists.
+The order is:
+
+1. **Scene-specific knowledge into the model requests** — built 2026-10-12. Each reflection
+   request now carries a `ReflectionScene`: where the remembered encounter happened and how
+   long ago, where the actor is now and the time of day, how they know the subject, the pair's
+   kind and unkind acts this week, and the actor's own appraisal reasons as phrases. The
+   generator gets it as structured fields; Laya gets one line when it fits the budget, left out
+   whole otherwise and visibly so in the recorded packet. Every catalog kind an actor can do to
+   someone now has a memory verb. Nothing is read from the subject's records or the world's
+   truth; a changed request invalidates older tapes, as the tape rule requires.
+2. **A tagged speech library** for routine lines: authored, tagged by kind, perspective, tone,
+   archetype, mood and scene, chosen deterministically. The code is small; the authoring is the
+   long pole. Haiku may draft candidates offline for the same blind judging used in the
+   generator comparison, and Sid curates what enters; runtime stays authored.
+3. **Broader actions where reflection already reaches**: company (a game, a drink), comfort, and
+   the general Ask that b2-0 seamed (invitations, favour requests, loans), with accept and
+   decline as real outcomes. Distinct consequences, not different wording.
+4. **Follow-through**: one concrete need → request → agreement → attempt → outcome thread, so
+   help has an object and a next day. After 3, so there are things to ask for.
+
+Then batch 2's visits, dates, peace and festivals as the backlog, each behind its own switch.
+A text REPL in which Sid is the Newcomer stays later: it would test the mechanics' feel, not
+conversation, until 2 and 4 exist.
+
 ## 1. Concrete encounter context and event appraisal
 
 **First observer slice built (2026-10-09):** roles, existing causal links, separate private causes,

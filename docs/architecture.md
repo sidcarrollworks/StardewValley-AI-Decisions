@@ -45,8 +45,12 @@ The optional quiet-reflection prototype is specified in
   markup, conditions and coverage stay in ignored output; committed content is derived text and
   source references. See the [character context contract](under-glass/specs/character-inspiration-spec.md).
 
-- `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer, continuity and event records,
-  `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer provider.
+- `UnderGlass.Sim/Reflection.cs`: immutable request, choice, answer, continuity, scene and event
+  records, `IReflectionMind`, an explicit authored baseline and an exact-request recorded-answer
+  provider. `ReflectionScene` is what the actor knows of where and when (encounter place and age,
+  own place and time of day, relationship band, the pair's week, own appraisal reasons), built in
+  `Simulation.SceneOf` from the actor's encounter history and appraisals; `ReflectionText` holds
+  the memory verbs and bands so they are testable.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

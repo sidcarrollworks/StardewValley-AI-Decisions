@@ -208,7 +208,9 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             + "In knownSource, ownDeed=true means the actor did the remembered act; false means the subject did it to the actor. "
             + "Use the subject's name when their pronouns are not supplied. "
             + "Let their context shape the motive and voice; do not narrate or analyze the character, recite personality traits or numbers, or mention choices and evaluation. "
-            + "Ground the thought only in the supplied scene. Do not invent people, past events, executable acts, or another person's hidden intentions. "
+            + "Ground the thought only in what is supplied here. Do not invent people, past events, executable acts, or another person's hidden intentions. "
+            + "The scene field, when present, says where the remembered encounter happened, where the actor is now, how they know the subject and what passed between them this week; use it. "
+            + "A small imagined detail is allowed only if it fits that place and the actor's own life; it never adds a person, an event or an act. "
             + "This thought and any earlier imagined idea are imagination, not evidence. "
             + "Return only a JSON object with two string fields: thought and suggestedChoice. "
             + $"thought must be 1..{_options.MaxThoughtChars} characters. suggestedChoice must be one of the provided executable choice IDs. "
@@ -226,6 +228,14 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             earlierImaginedIdea = request.Continuity?.PriorThought,
             reasonToReconsider = request.Continuity?.Reason,
             opportunity = request.Opportunity?.Kind ?? "quiet",
+            // What the actor knows of where and when (ReflectionScene); absent on older requests.
+            scene = request.Scene is { } scene ? new
+            {
+                encounterPlace = scene.SourcePlace, encounterAge = ReflectionText.Age(scene.DaysAgo),
+                nowPlace = scene.Place, nowTimeOfDay = scene.TimeOfDay, relationship = scene.Relationship,
+                kindActsBetweenYouThisWeek = scene.KindThisWeek, unkindActsBetweenYouThisWeek = scene.UnkindThisWeek,
+                lastBetweenYou = scene.LastBetween, whyItMattered = scene.Reasons,
+            } : null,
             choices = request.Choices.Where(c => c.Kind.Length > 0).Select(c => new { id = c.Id, kind = c.Kind }),
         };
         string contextJson = JsonSerializer.Serialize(context);
@@ -282,6 +292,14 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         int available = LayaTextLimit - fixedChars - contextLabel.Length - memoryLabel.Length;
         if (available < requiredContext + requiredMemory)
             throw new InvalidDataException($"Required context, memory, thought (including any earlier imagined idea) and complete candidate lines exceed Laya's {LayaTextLimit}-character limit.");
+        // The scene line is useful, not required: it is included whole when the required
+        // context and memory still fit beside it, and left out otherwise. The recorded packet
+        // shows which; nothing in it is ever clipped.
+        if (SceneLine(request) is { } sceneLine && available - sceneLine.Length >= requiredContext + requiredMemory)
+        {
+            state += sceneLine;
+            available -= sceneLine.Length;
+        }
         string context = Cut(request.Context, Math.Min(260, available - requiredMemory));
         string memory = Cut(request.Memory, available - context.Length);
         state += contextLabel + context + memoryLabel + memory;
@@ -320,6 +338,11 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
         int available = LayaTextLimit - fixedChars;
         if (available < requiredContext + requiredMemory)
             throw new InvalidDataException($"Required personal history, disposition, context, memory, ideas and complete candidate lines exceed Laya's {LayaTextLimit}-character limit.");
+        if (SceneLine(request) is { } sceneLine && available - sceneLine.Length >= requiredContext + requiredMemory)
+        {
+            state += sceneLine;
+            available -= sceneLine.Length;
+        }
         string context = Cut(compactContext, Math.Min(260, available - requiredMemory));
         state += contextLabel + context + memoryLabel + Cut(request.Memory, available - context.Length);
         return JsonSerializer.Serialize(new
@@ -329,6 +352,9 @@ public sealed class ResilientReflectionMind : IReflectionMind, IDisposable
             questions = new Dictionary<string, object> { ["q"] = new { type = "choice", instructions, criteria } },
         });
     }
+
+    /// <summary>The one-line scene for the evaluator, or null when the request carries none.</summary>
+    private static string? SceneLine(ReflectionRequest request) => request.Scene is { } scene ? "\nScene: " + scene.Summary : null;
 
     private (string Thought, string SuggestedChoice) ParseGeneration(JsonElement root, ReflectionRequest request)
     {

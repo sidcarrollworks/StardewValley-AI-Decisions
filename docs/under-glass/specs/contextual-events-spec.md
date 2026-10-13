@@ -9,7 +9,9 @@ and authority behavior are unchanged. `ActKind.Tier` remains the legacy gossip c
 `HelpedSomeone` is still News at juiciness 2 there. Stories now distinguishes Everyday,
 Relationship moment, Public concern and Context unavailable.
 
-Still planned: concrete tasks/items/effort, use of the new context in model requests, and
+Use of the new context in model requests is built for reflection (2026-10-12): each request
+carries a `ReflectionScene` from the actor's own encounter history and appraisal reasons, see the
+[reflection spec](reflection-spec.md). Still planned: concrete tasks/items/effort and
 listener-specific gossip selection. The first interest score is an observer baseline for the
 holder who learned this account, not a teller's prediction of every possible listener.
 
