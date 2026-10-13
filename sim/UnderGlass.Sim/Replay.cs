@@ -9,6 +9,8 @@ namespace UnderGlass.Sim;
 public sealed record ReplayOptions
 {
     public ReflectionOptions Reflection { get; init; } = new();
+    /// <summary>The speech library; off unless asked for, so the pinned runs are unchanged.</summary>
+    public SpeechOptions Speech { get; init; } = new();
     /// <summary>Optional reviewed private voice and background. Never loaded implicitly.</summary>
     public CharacterInspirationPack? CharacterInspiration { get; init; }
     public long Seed { get; init; } = 1;
@@ -72,6 +74,7 @@ public static class Replay
         var scheduled = o.Inject ? new[] { Harness.ScandalFor(o.Seed, kinds) } : null;
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         sim.ConfigureReflection(o.Reflection);
+        sim.ConfigureSpeech(o.Speech);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -282,6 +285,15 @@ public static class Replay
         if (inspirationPack is { } inspiration)
             recording["characterInspiration"] = new { schema = inspiration.Schema,
                 hash = inspiration.ContentHash, provenance = inspiration.Provenance };
+        if (o.Speech.Enabled)
+        {
+            // Additive: a reader without speech ignores the table; an old recording has none.
+            recording["speechOptions"] = o.Speech;
+            recording["speechCatalog"] = new { schema = SpeechCatalog.Default.Schema, lines = SpeechCatalog.Default.Lines.Count,
+                provenance = SpeechCatalog.Default.Provenance };
+            recording["speech"] = JsonSerializer.SerializeToElement(r.Speech,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        }
         // Additive observer schema: v1 readers can ignore these fields. Old recordings have
         // no appraisals and remain explicitly unclassified, never backfilled from final regard.
         recording["encounterVersion"] = 1;

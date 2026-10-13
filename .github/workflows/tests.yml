@@ -56,6 +56,8 @@ jobs:
         run: node --test sim/tools/test-viewer-encounters.cjs
       - name: Test fixed-intention wording viewer
         run: node --test sim/tools/test-viewer-wording.cjs
+      - name: Test spoken lines follow the clock in the viewer
+        run: node --test sim/tools/test-viewer-speech.cjs
       - name: Test observer pack provenance without model calls
         shell: pwsh
         run: ./sim/tools/test-observer-pack.ps1

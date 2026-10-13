@@ -911,6 +911,30 @@ request shape.
 reads better for it; it also answers Sid's deferred concern about imagined details by telling
 the model what the scene contains instead of forbidding items.
 
+### D48. What people say is authored, tagged and chosen from the speaker's side, and changes nothing
+
+**Decision (2026-10-12, step 2 of the agreed order, built while Sid was away and awaiting his
+curation).** Acts toward a person get spoken lines from an embedded, editable library,
+`sim/UnderGlass.Sim/speech-catalog.json`, behind `--speech` (off by default). A line is tagged by
+act kind, archetype, relationship band and mood band; empty tags mean any. Selection reads only the
+speaker's own state, weights fitting lines rather than picking the most specific, avoids the
+speaker's last line for the same kind, and draws on speech's own seeded stream keyed by the act
+id. Nothing in the simulation reads a line, so the pinned runs are byte-identical with speech off
+and every decision is identical with it on; the record says which library id spoke and why.
+
+**Authoring.** The roadmap's method, applied: one Claude author per archetype wrote new lines with
+the local dialogue export as style evidence only, a generic author wrote plain lines, every line
+was copy-checked against the whole corpus (normalised equality or a 20-character containment either
+way), and three readers judged each line blind for which voice it sounded like and for rule breaks.
+A line the readers could not place kept its words and lost its archetype tag; a line heard as
+another voice, or breaking a rule, was dropped. Turning away stays silent. No line names an item,
+a task or a place, because the simulation does not know them.
+
+**Why.** Sid named repetitiveness as the thing to fix before any player exists, and the viewer
+could show no speech for ordinary acts at all. Authored, tagged lines keep the rule that routine
+language is authored while the generator stays occasional; the blind judging keeps the voices from
+collapsing into one. See the [speech spec](under-glass/specs/speech-spec.md).
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
