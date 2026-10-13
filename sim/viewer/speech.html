@@ -42,12 +42,13 @@
     table { border-collapse:separate; border-spacing:3px; }
     th { font-size:12px; font-weight:600; color:var(--muted); text-align:left; vertical-align:bottom; }
     thead th { width:70px; line-height:1.2; padding:0 2px 6px; } thead th.none { color:var(--accent); }
-    tbody th { padding-right:10px; white-space:nowrap; font-size:13px; color:var(--ink); } tbody th small { color:var(--muted); font-weight:400; font-variant-numeric:tabular-nums; }
+    tbody th { vertical-align:middle; padding-right:10px; white-space:nowrap; font-size:13px; color:var(--ink); } tbody th small { color:var(--muted); font-weight:400; font-variant-numeric:tabular-nums; }
     .cell { width:70px; height:50px; padding:4px; border:1px solid transparent; border-radius:6px; background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--cellink); font-variant-numeric:tabular-nums; transition:border-color .12s, transform .12s, box-shadow .12s; }
     .cell:hover:not(:disabled) { border-color:var(--muted); transform:translateY(-1px); box-shadow:0 2px 6px var(--shadow); }
     .cell.on { border-color:var(--ink); box-shadow:0 0 0 1px var(--ink); }
-    .cell b { font-size:13px; line-height:1; color:var(--ink); } .cell.single b { font-size:17px; color:var(--cellink); } .cell.single.blank b { color:var(--muted); }
+    .cell b { font-size:13px; line-height:1; color:var(--ink); } .cell.single b { font-size:17px; color:var(--cellink); } .cell.blank b { color:var(--muted); font-weight:400; }
     .mini { display:grid; gap:1px; } .mini i { display:block; width:9px; height:7px; border-radius:1.5px; }
+    @media(min-width:1000px) { body.panel-open main { margin-right:min(520px,100vw); max-width:none; } }
     aside { position:fixed; top:0; right:0; height:100vh; width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; z-index:5; padding:0 20px 48px; overscroll-behavior:contain; }
     .drawerhead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:sticky; top:0; background:var(--panel); padding:18px 0 12px; z-index:1; border-bottom:1px solid var(--line); }
     .drawerhead h2:focus { outline:none; } .drawerhead .meta { margin:4px 0 0; max-width:52ch; }
@@ -350,16 +351,18 @@ function renderGrid() {
       const contexts = [];
       for (const mood of moods) for (const rel of rels) contexts.push(situation(kind, arch, rel, mood));
       const values = contexts.map((s) => metric.value(s)), real = values.filter((v, i) => contexts[i].possible);
-      const total = !real.length ? null : metric.agg === "min" ? Math.min(...real) : real.reduce((a, b) => a + b, 0);
+      const spoken = contexts.some((s) => s.possible && s.rows.length);
+      const total = !real.length || (metric.run && !spoken) ? null : metric.agg === "min" ? Math.min(...real) : real.reduce((a, b) => a + b, 0);
       const shown = total == null ? "—" : metric.format ? metric.format(total) : String(total);
       if (contexts.length > 1) {
         const mini = node("span", null, "mini");
         mini.style.gridTemplateColumns = `repeat(${rels.length}, 9px)`;
         contexts.forEach((s, i) => { const sq = node("i"); sq.style.background = s.possible ? metric.colour(values[i], s) : "var(--empty)"; if (!s.possible) sq.style.opacity = ".35"; mini.append(sq); });
         button.append(mini, node("b", shown));
+        if (total == null) button.classList.add("blank");
       } else {
         button.classList.add("single");
-        if (contexts[0].possible) button.style.background = metric.colour(values[0], contexts[0]); else button.classList.add("blank");
+        if (contexts[0].possible && total != null) button.style.background = metric.colour(values[0], contexts[0]); else button.classList.add("blank");
         button.append(node("b", shown));
       }
       button.dataset.kind = kind; button.dataset.arch = arch;
@@ -398,7 +401,7 @@ function renderControls() {
 
 // ---- the drawer: one cell's lines, or the change list ----
 function closeDrawer() {
-  drawer = null; $("drawer").hidden = true;
+  drawer = null; $("drawer").hidden = true; document.body.classList.remove("panel-open");
   if (!pack) return;
   renderGrid();
   if (opener) {
@@ -417,7 +420,7 @@ function drawerHead(title, sub) {
 }
 function renderDrawer(fresh) {
   const aside = $("drawer"), keep = aside.scrollTop;
-  aside.hidden = false;
+  aside.hidden = false; document.body.classList.add("panel-open");
   if (drawer === "changes") renderChanges(aside); else renderCell(aside);
   aside.scrollTop = fresh ? 0 : keep;
   if (fresh) $("drawer-title").focus({ preventScroll: true });
@@ -637,7 +640,6 @@ document.addEventListener("drop", async (e) => {
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) throw new Error(`Could not read ${run} (${response.status}).`);
     loadRecording(await response.text(), run.split("/").pop());
-    $("metric").value = "repeat"; refresh();
   } catch (error) { showError(error.message); }
 })();
 </script>
