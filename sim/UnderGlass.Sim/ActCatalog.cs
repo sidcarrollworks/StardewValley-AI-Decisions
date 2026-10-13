@@ -26,6 +26,8 @@ public static class ActCatalog
             rows.AddRange(Sides);
         if (o.Late)
             rows.AddRange(Late);
+        if (o.Invitations)
+            rows.AddRange(Invitations);
         return rows;
     }
 
@@ -179,6 +181,19 @@ public static class ActCatalog
             Affect: new Affect(Patient.Actor, -0.05, 0, 0.3)),
     };
 
+    /// <summary>
+    /// Invitations (agreed order step 3; invitation spec): Refused, "Penny turned down Sam's
+    /// invitation", the asked person's no to a game or a drink. Batch 2's row (acts-batch2 spec 3.2):
+    /// trivia (1.0, -1), one minute, wherever the asking happened; the asker, given by the caller,
+    /// takes part (FinishActs) and feels it (-0.1, plastic 0.15). It has no rate and no gate, so it is
+    /// not light: only the asking begins it, and as a given deed it answers nothing and stirs no motive.
+    /// </summary>
+    public static readonly IReadOnlyList<ActKind> Invitations = new[]
+    {
+        new ActKind("Refused", 1.0, -1, 1, 1, 0, Array.Empty<string>(),
+            Affect: new Affect(Patient.Target, -0.1, 0.15, 1, TargetIs.Given)),
+    };
+
     /// <summary>The switch of the slice a catalog row belongs to (a name in <see cref="ActOptions.Switches"/>);
     /// null for a kind that isn't the catalog's (every shipped row).</summary>
     public static string? SliceOf(string kind) => kind switch
@@ -189,6 +204,7 @@ public static class ActCatalog
         "Apologised" => nameof(ActOptions.Repair),
         "Comforted" or "Mocked" or "StoodUpFor" => nameof(ActOptions.Sides),
         "LateForWork" => nameof(ActOptions.Late),
+        "Refused" => nameof(ActOptions.Invitations),
         _ => null,
     };
 

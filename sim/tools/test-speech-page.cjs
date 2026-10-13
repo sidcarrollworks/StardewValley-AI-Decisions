@@ -10,7 +10,7 @@ const { Script, createContext } = require('node:vm');
 const page = readFileSync(join(__dirname, '../viewer/speech.html'), 'utf8');
 const rules = page.slice(page.indexOf('// rules:begin'), page.indexOf('// rules:end'));
 const context = createContext({});
-new Script(rules + '\n;globalThis.api = { weight, effectiveChoices, lineProblems, catalogProblems, serialize, RELATIONSHIPS, MOODS };').runInContext(context);
+new Script(rules + '\n;globalThis.api = { weight, effectiveChoices, lineProblems, catalogProblems, serialize, draftEdits, mergeDraft, RELATIONSHIPS, MOODS };').runInContext(context);
 const api = context.api;
 // Arrays made inside the sandbox have its own prototype; compare plain copies.
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -49,4 +49,39 @@ test('the shipped catalog has no problems and an export reproduces its stored te
   const pack = JSON.parse(stored);
   assert.deepEqual(plain(api.catalogProblems(pack.lines, [...new Set(pack.lines.map((l) => l.kind))])), []);
   assert.equal(api.serialize(pack), stored.replace(/\n$/, ''));
+});
+
+test('a draft made against another version replays its edits and never loses that version\'s lines', () => {
+  const a = line('First line of the old version.', { id: 'a' }), b = line('Second line of the old version.', { id: 'b' });
+  const added = line('A line the new version added.', { id: 'n' });
+  // An older draft that kept only its lines: an edit to a and nothing about n.
+  const legacy = { base: 'old', lines: [{ ...a, mood: ['low'] }, b] };
+  const plan = api.draftEdits(legacy, [a, b, added]);
+  assert.deepEqual(plain(plan.map((e) => e.id)), ['a']);
+  const merged = api.mergeDraft([a, b, added], plan, false);
+  assert.deepEqual(plain(merged.lines.map((l) => [l.id, l.mood])), [['a', ['low']], ['b', []], ['n', []]]);
+
+  // A recorded draft: an edit whose line is unchanged applies; one this version changed or removed is
+  // skipped; an addition under an id this version also uses is kept under a fresh id; a removal applies
+  // only to the very line it removed.
+  const changedB = { ...b, text: 'Second line, changed upstream.' };
+  const edits = [
+    { id: 'a', before: a, after: { ...a, text: 'First line, edited in the browser.' } },
+    { id: 'b', before: b, after: { ...b, text: 'Second line, edited in the browser.' } },
+    { id: 'gone', before: line('A line upstream removed.', { id: 'gone' }), after: line('Edited anyway.', { id: 'gone' }) },
+    { id: 'n', before: null, after: line('The draft added this under n.', { id: 'n' }) },
+    { id: 'c', before: null, after: line('The draft added this line.', { id: 'c' }) },
+  ];
+  const checked = api.mergeDraft([a, changedB, added], edits, true);
+  const text = Object.fromEntries(checked.lines.map((l) => [l.id, l.text]));
+  assert.equal(text.a, 'First line, edited in the browser.');
+  assert.equal(text.b, 'Second line, changed upstream.');
+  assert.equal(text.n, 'A line the new version added.');
+  assert.equal(text['n-draft1'], 'The draft added this under n.');
+  assert.equal(text.c, 'The draft added this line.');
+  assert.ok(!('gone' in text));
+  assert.deepEqual(plain(checked.skipped.map((e) => e.id)), ['b', 'gone']);
+  assert.deepEqual(plain(checked.renamed), [{ from: 'n', to: 'n-draft1' }]);
+  const removal = api.mergeDraft([a, changedB], [{ id: 'a', before: a, after: null }, { id: 'b', before: b, after: null }], true);
+  assert.deepEqual(plain(removal.lines.map((l) => l.id)), ['b']);
 });

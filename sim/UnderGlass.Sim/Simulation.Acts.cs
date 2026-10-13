@@ -42,10 +42,12 @@ public sealed partial class Simulation
     {
         // A game: at the saloon in the evening, outdoors by day; the two near in age, or both children.
         "PlayedGame" => (p.Place == "Saloon" ? Clock.OfDay(m) >= Clock.At(17) : Clock.OfDay(m) < Clock.At(19))
-                        && (Math.Abs(p.V.Age - o.V.Age) <= 6 || p.V.Age < 13 && o.V.Age < 13),
+                        && (Math.Abs(p.V.Age - o.V.Age) <= 6 || p.V.Age < 13 && o.V.Age < 13)
+                        && !InviteWaits(p, o, m),
         // A treat: both of age, and the purse holds a drink (the bar's own household treats free).
         "TreatedToDrink" => o.V.Age >= 18 && (!HasMoney || HouseholdOf(p.V.Name) == BarHousehold()
-                                              || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink),
+                                              || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink)
+                            && !InviteWaits(p, o, m),
         // A mocking: in public, by someone who shows what they feel.
         "Mocked" => !p.Place.StartsWith("Home:", StringComparison.Ordinal) && CharacterOf(_index[p.V.Name]).Expression >= 0.5,
         // A welcome: in a public place, once for each ordered pair.

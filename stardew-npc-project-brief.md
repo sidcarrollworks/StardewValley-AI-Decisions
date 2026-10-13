@@ -35,7 +35,9 @@ and private form where the small local model did not; it is an opt-in comparison
 Sid then set the order of work: scene-specific knowledge into the model requests (built), a tagged
 [speech library](docs/under-glass/specs/speech-spec.md) so acts have authored lines (first library
 built, opt-in, awaiting his curation; a coverage page shows where it is thin, and a neighbouring
-relationship or mood band now still fits, which halved repeats), broader actions, then
+relationship or mood band now still fits, which halved repeats), broader actions (begun:
+[invitations](docs/under-glass/specs/invitation-spec.md), a game or a drink asked for with a real
+yes or no, opt-in), then
 follow-through, and then player speech (2026-10-13): the Newcomer is the player's character, the
 player types, Laya reads the line into an act the engine offers, and a claim is checked through
 what the listener knows ([player speech spec](docs/under-glass/specs/player-speech-spec.md), planned;

@@ -11,12 +11,12 @@ const script = page.slice(page.indexOf('<script>') + 8, page.lastIndexOf('</scri
 const helpers = script.slice(script.indexOf('const RULER_INSET'), script.indexOf('function drawStrip()'));
 const scope = script.slice(script.indexOf('function observerScope('), script.indexOf('function momentTick('));
 
-function scene(speech) {
+function scene(speech, replies) {
   const context = createContext({
     R: { end: 2000, names: ['Evelyn', 'George'], people: [{ family: [] }, { family: [] }], kinds: [{ tier: 'News', name: 'HelpedSomeone' }],
       acts: [{ id: 0, kind: 0, tick: 100 }, { id: 1, kind: 0, tick: 300 }], ties: [], reflections: [],
       timeline: [{ type: 'act', tick: 100, people: [0, 1], act: 0 }, { type: 'act', tick: 300, people: [1, 0], act: 1 }],
-      actText: (a) => (a.id === 0 ? 'Evelyn helped George' : 'George helped Evelyn'), speechByAct: speech },
+      actText: (a) => (a.id === 0 ? 'Evelyn helped George' : 'George helped Evelyn'), speechByAct: speech, replyByAct: replies },
     S: { person: -1, hood: 'all', t: 0 }, when: (t) => `d${Math.floor(t / 1440)}`,
     reflectionAt: () => null, isWakingDream: () => false, reflectionEventText: () => '',
   });
@@ -50,4 +50,14 @@ test('a line is text, never markup', () => {
   const c = scene(new Map([[0, { actId: 0, tick: 100, line: '<b>bold</b> & "quoted"' }]]));
   assert.equal(c.speechOf(0, 100), '<b>bold</b> & "quoted"');
   assert.equal(c.timelineDescription(c.R.timeline[0], 100), 'Evelyn helped George · “<b>bold</b> & "quoted"”');
+});
+
+test('an answer follows its line under the same clock, and an act without one reads as before', () => {
+  const c = scene(new Map([[0, { actId: 0, tick: 100, speaker: 'Evelyn', line: 'Fancy a game?' }]]),
+    new Map([[0, { actId: 0, tick: 100, speaker: 'George', line: 'Not tonight.', reply: true }]]));
+  assert.equal(c.replyOf(0, 99), '');
+  assert.equal(c.replyOf(0, 100), 'Not tonight.');
+  assert.equal(c.timelineDescription(c.R.timeline[0], 100), 'Evelyn helped George · “Fancy a game?” “Not tonight.”');
+  assert.equal(c.replyOf(1, 300), '');
+  assert.equal(scene(new Map()).replyOf(0, 100), ''); // an older recording has no answers
 });

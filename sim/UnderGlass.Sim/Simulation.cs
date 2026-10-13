@@ -197,6 +197,8 @@ public sealed class SimResult
     public IReadOnlyList<ReflectionRecord> Reflections { get; init; } = Array.Empty<ReflectionRecord>();
     /// <summary>What was said with each act, when the speech library is on; otherwise empty.</summary>
     public IReadOnlyList<Speech> Speech { get; init; } = Array.Empty<Speech>();
+    /// <summary>Every invitation asked, with Invitations on; otherwise empty.</summary>
+    public IReadOnlyList<Invitation> Invitations { get; init; } = Array.Empty<Invitation>();
 }
 
 /// <summary>
@@ -300,6 +302,8 @@ public sealed partial class Simulation
         FeelingOptions? feelings = null)
     {
         _fo = feelings ?? (places is null ? DefaultTown.Feelings() : FeelingOptions.Off);
+        if (_fo.Acts.Invitations && !_fo.Acts.Company)
+            throw new ArgumentException("Invitations needs Company: there is nothing to invite to without it.", nameof(feelings));
         _economy = economy ?? (places is null ? DefaultTown.TownEconomy() : null);
         _mo = money ?? new MoneyOptions();
         _ho = habits ?? new HabitOptions();
@@ -530,6 +534,7 @@ public sealed partial class Simulation
             Stages = _cast.ToDictionary(v => v.Name, v => v.Stage),
             Reflections = ReflectionRecords(),
             Speech = _speechLines,
+            Invitations = _invitations,
             Encounters = _encounters,
             EncounterCauses = _encounterCauses,
             Appraisals = _appraisals,
@@ -962,6 +967,8 @@ public sealed partial class Simulation
             (target, about, with) = (null, -1, null);
         else if (target is null && kind.Affect is { } row)
             target = TargetFor(kind, row, actor, m);
+        if (!injected && target is not null && Asked(m, kind, actor, target))
+            return; // asked for company and turned down: the refusal began instead
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);
         RecordEncounter(act, kind, cause);
@@ -1037,8 +1044,12 @@ public sealed partial class Simulation
             int witnesses = 0;
             var watchers = _watching[act.Id];
             string? participant = null;
-            if (Steering && act.Target is { } other && kind.Affect is { Target: TargetIs.Chosen or TargetIs.Kin }
-                && _people[_index[other]] is { Asleep: false } op && op.Place == act.Location)
+            // A given deed done to someone face to face (a refusal: the asker is in reach) is known to
+            // them as well as a chosen one is; one done about them out of reach is not.
+            if (Steering && act.Target is { } other
+                && kind.Affect is { Target: TargetIs.Chosen or TargetIs.Kin } or { Target: TargetIs.Given, Patient: Patient.Target }
+                && _people[_index[other]] is { Asleep: false } op && op.Place == act.Location
+                && (kind.Affect.Target != TargetIs.Given || op.At.Chebyshev(act.At) <= _po.NearTiles))
             {
                 participant = other; // S1: they took part, so they know what happened and who did it
                 watchers.TryAdd(other, new List<double>());

@@ -380,6 +380,7 @@ The cloud session owns the m- and d- hooks, the local agent the rest.
 - **MetUp: "Sam and Penny met at the beach, as planned."** Both there, awake, within 8 tiles; the second to come is the actor; both stay to the window's end. Invited → Kept; MetUp pairs like a kindness. Line: "{actor} and {target} met at {place}, as planned."
 - **StoodUp: "Alex never came, and Haley waited at the saloon."** One waited `WaitMinutes`+ and the other never came (neither: Lapsed, no act); the reasons are the appointment rule's. The waiter feels Answer, or MakeUp if they still love the other, and tells it; the no-show, holding the waiter at 0+, feels acts-4's Remorse ("missed it, then said sorry"). Invited → Broken; the two pair as a hostile act. Line: "{actor} never came, and {target} waited at {place}."
 - **Refused: "Haley turned Alex down."** The Ask's no to an invitation, a peace offer or a loan, face to face; the asker takes `RefusedSting`; the asking act resolves Refused. Line: "{actor} turned down {target}'s {invitation|offer to make peace|request for a loan}."
+  *Built 2026-10-13 for company now, not dates* ([invitation spec](invitation-spec.md), switch `Invitations`): the row above, begun when a game or a drink is asked for and refused. It differs from this plan in three ways: the asker feels the row's own affect (-0.1, plastic 0.15) rather than `RefusedSting`; the row has no gate, so it is not light; and there is no asking act to resolve, since the company act begins only on a yes. `Invited`, `MetUp` and `StoodUp` remain planned.
 
 ### 3.3 Peace (b2-3)
 

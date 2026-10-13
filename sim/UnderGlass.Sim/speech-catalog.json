@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "provenance": "Drafted 2026-10-12 by Claude subagents, one per archetype, from the local Stardew 1.6.15.24356 dialogue export as style evidence only (new wording, copy-checked against the whole corpus), plus a generic author; then judged blind by three readers per line for archetype distinctness and rule breaks. Lines the judges could not place lost their archetype tag; lines heard as another voice or breaking a rule were dropped. Awaiting Sid's curation; nothing here is game text.",
+ "provenance": "Drafted 2026-10-12 by Claude subagents, one per archetype, from the local Stardew 1.6.15.24356 dialogue export as style evidence only (new wording, copy-checked against the whole corpus), plus a generic author; then judged blind by three readers per line for archetype distinctness and rule breaks. Lines the judges could not place lost their archetype tag; lines heard as another voice or breaking a rule were dropped. Awaiting Sid's curation; nothing here is game text. Reply lines for invitations (PlayedGame.Accepted and .Refused, TreatedToDrink.Accepted and .Refused) were added 2026-10-13 the same way: one author per archetype plus a plain author, copy-checked against the corpus, judged blind by three readers.",
  "lines": [
   {
    "id": "gavegift-guarded-independent-00",
@@ -5759,6 +5759,2101 @@
     "intuitive-seeker"
    ],
    "note": "Defends worth in the other that only the speaker has seen."
+  },
+  {
+   "id": "playedgame-accepted-young-observer-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Yes! Can I go first? Or no, you go first, and I'll watch how you do it.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "eager, learns by imitating"
+  },
+  {
+   "id": "playedgame-accepted-young-observer-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Me? Okay. I don't know all the rules yet, so you have to tell me them.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "candid about limits of knowledge"
+  },
+  {
+   "id": "playedgame-accepted-young-observer-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, you really want to play with me? Grown-ups never ask. Yes!",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "surprised to be included, child's view"
+  },
+  {
+   "id": "playedgame-accepted-young-observer-03",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Okay, but if I lose you can't laugh at me. Promise first.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "seeks safety before play"
+  },
+  {
+   "id": "playedgame-accepted-young-observer-04",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I was hoping somebody would ask! I'm going to pretend I'm the best one in town.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "imaginative, playful"
+  },
+  {
+   "id": "playedgame-refused-young-observer-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "No, thank you. I'm not supposed to play with people I don't know.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "rule-following, wary child"
+  },
+  {
+   "id": "playedgame-refused-young-observer-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Not right now. I'm watching something, and if I look away I'll miss it.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "absorbed observer, concrete reason"
+  },
+  {
+   "id": "playedgame-refused-young-observer-02",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I don't want to, {subject}. Can I just sit here next to you instead?",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "quiet retreat but still close"
+  },
+  {
+   "id": "playedgame-refused-young-observer-03",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No. It's too loud here and I want to go home now.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "overwhelmed, withdraws"
+  },
+  {
+   "id": "playedgame-refused-young-observer-04",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "I can't! I have to be home before dark or I'll be in big trouble.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "candid, worried about grown-up rules"
+  },
+  {
+   "id": "playedgame-accepted-guarded-independent-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Yeah, alright. One round, though. Don't turn it into a whole event.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "grudging yes, sets his own terms"
+  },
+  {
+   "id": "playedgame-accepted-guarded-independent-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Sure, {subject}. I was kind of hoping someone would ask, honestly.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "understated admission of warmth to a friend"
+  },
+  {
+   "id": "playedgame-accepted-guarded-independent-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Okay. Just don't comment on every move I make and we're good.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "dry condition, honest irritation"
+  },
+  {
+   "id": "playedgame-refused-guarded-independent-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "No thanks. I'd rather keep to myself right now.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "withdraws when crowded, spare"
+  },
+  {
+   "id": "playedgame-refused-guarded-independent-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. My head's somewhere else entirely.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "quiet, honest, no excuses padded on"
+  },
+  {
+   "id": "treatedtodrink-accepted-guarded-independent-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "You really don't have to... but yeah. Thanks, {subject}.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "opens slowly, reluctant gratitude"
+  },
+  {
+   "id": "treatedtodrink-refused-guarded-independent-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Thanks, {subject}, but I'm heading out soon. Really, I'm fine.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "warm but firm, keeps his own pace"
+  },
+  {
+   "id": "playedgame-accepted-weary-defender-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Alright, {subject}. I could use something to think about besides everything else.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "relief-seeking, weary"
+  },
+  {
+   "id": "playedgame-refused-weary-defender-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No. I'm not in the mood to lose at anything else today.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "bitterly funny retreat"
+  },
+  {
+   "id": "playedgame-refused-weary-defender-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. My back's done for and so am I.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "tired, attachment intact"
+  },
+  {
+   "id": "treatedtodrink-accepted-weary-defender-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Sure, {subject}. Sit with me a while. It's been a long one.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "weary, seeks relief"
+  },
+  {
+   "id": "treatedtodrink-refused-weary-defender-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Keep your money. I don't take handouts from people I just met.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "dignity, pushes back"
+  },
+  {
+   "id": "playedgame-accepted-intuitive-seeker-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Yes. Something told me this morning I'd be asked, and I've learned not to argue with that.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "trusts a premonition, assured"
+  },
+  {
+   "id": "playedgame-accepted-intuitive-seeker-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Very well, {subject}. A game shows more of a person than any conversation does.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "looks for hidden meaning in play"
+  },
+  {
+   "id": "playedgame-accepted-intuitive-seeker-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "One round, then. Chance and I have an old understanding, and I'd like to see if it still holds.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "treats luck as a presence"
+  },
+  {
+   "id": "playedgame-refused-intuitive-seeker-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Not today. The hour feels wrong for it, and I'd rather not force what isn't meant to be.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "refuses by intuition, faintly opaque"
+  },
+  {
+   "id": "playedgame-refused-intuitive-seeker-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No, {subject}. My thoughts are somewhere far off tonight, and you deserve someone who's actually here.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "inward, gently honest refusal"
+  },
+  {
+   "id": "treatedtodrink-accepted-intuitive-seeker-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "How kind! I had a feeling today would bring a small gift. I just didn't know it would be you.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "delighted, sees it as foretold"
+  },
+  {
+   "id": "treatedtodrink-accepted-intuitive-seeker-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I accept. A drink offered freely is an old kind of bond, older than any of us.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "finds ritual meaning in a small act"
+  },
+  {
+   "id": "treatedtodrink-accepted-intuitive-seeker-02",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Yes, {subject}, thank you. Sit with me a while; the evening has something left to say.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "evocative, unhurried warmth"
+  },
+  {
+   "id": "treatedtodrink-refused-intuitive-seeker-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, thank you. I keep my head clear in the evenings; that's when things tend to come through.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "guards receptivity, slightly cryptic"
+  },
+  {
+   "id": "playedgame-accepted-restless-explorer-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Finally, something besides sitting around. You're on, and I'm not going easy on you.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "restless relief, quick playful challenge"
+  },
+  {
+   "id": "playedgame-refused-restless-explorer-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. My head's somewhere else entirely, sorry.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "quick, honest, distracted mind"
+  },
+  {
+   "id": "playedgame-refused-restless-explorer-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Ugh, no. I've been stuck indoors all day. I need air, not another round.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "craves freedom over confinement, concrete"
+  },
+  {
+   "id": "treatedtodrink-accepted-restless-explorer-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You're buying? Then I'm definitely not saying no. Thanks, {subject}!",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "casual enthusiasm, quick and bright"
+  },
+  {
+   "id": "treatedtodrink-refused-restless-explorer-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Nah, I'm heading out exploring tonight. I want a clear head for it.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "freedom and adventure come first"
+  },
+  {
+   "id": "playedgame-accepted-wary-outsider-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "One round. I'll stand where I can see who comes and goes.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "says yes but stays watchful"
+  },
+  {
+   "id": "playedgame-refused-wary-outsider-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No. I don't know you well enough to stand that close.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "plain distance-keeping"
+  },
+  {
+   "id": "playedgame-refused-wary-outsider-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. Too many eyes in here, and I'd rather keep to the edges.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "warm but avoids being seen"
+  },
+  {
+   "id": "playedgame-refused-wary-outsider-02",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Games with people I've only just met rarely stay just games. No, thank you.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "suspicion of motives, polite and firm"
+  },
+  {
+   "id": "treatedtodrink-accepted-wary-outsider-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "You'd spend your coin on me? All right. I'll sit, but near the wall.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "accepts while guarding position"
+  },
+  {
+   "id": "treatedtodrink-accepted-wary-outsider-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Buying for someone else, is that how it's done up here? Fine. Explain it to me after.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "curiosity about customs mixed with caution"
+  },
+  {
+   "id": "treatedtodrink-refused-wary-outsider-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "And what would you want in return? No. I pay my own way or go without.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "tests motives, keeps dignity"
+  },
+  {
+   "id": "treatedtodrink-refused-wary-outsider-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Kind of you, {subject}, but crowded rooms and I don't mix. Asking again won't change that.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "gentle but immovable about crowds"
+  },
+  {
+   "id": "playedgame-accepted-practical-builder-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sure. I've been stuck on the same problem all day, and a break might shake the answer loose.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "play framed as useful to the work"
+  },
+  {
+   "id": "playedgame-accepted-practical-builder-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "One game? Fine, but walk me through how you keep score before we start.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "pointed question, wants the system first"
+  },
+  {
+   "id": "playedgame-accepted-practical-builder-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, I'm in, {subject}! I've been working out the angles on this one for weeks.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "earned enthusiasm from studied method"
+  },
+  {
+   "id": "treatedtodrink-accepted-practical-builder-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's kind of you. I'll take one, and then you can tell me what you've been building out there.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "curious about the other's projects"
+  },
+  {
+   "id": "playedgame-accepted-recognition-seeker-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Sure, but fair warning: I don't lose gracefully, mostly because I don't plan on losing.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "projected confidence, competitive swagger"
+  },
+  {
+   "id": "playedgame-accepted-recognition-seeker-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "You asked the right person, {subject}. Let's give everyone something worth watching.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "wants an audience, appraises the choice"
+  },
+  {
+   "id": "playedgame-accepted-recognition-seeker-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I've been off lately, so maybe go easy. Actually, don't. If I win, I want it to count.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "vulnerability cracks then polish returns"
+  },
+  {
+   "id": "playedgame-refused-recognition-seeker-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "I'll pass. If I play, I want to be at my best, and right now I'm nowhere near it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "refuses rather than be seen failing"
+  },
+  {
+   "id": "treatedtodrink-accepted-recognition-seeker-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Well, look at you, treating me. I'll take it, and I'll remember who's generous around here.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "enjoys the attention, keeps score"
+  },
+  {
+   "id": "treatedtodrink-accepted-recognition-seeker-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sure, I'll have one. Being seen with you doesn't hurt either of us.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "weighs the social standing it buys"
+  },
+  {
+   "id": "treatedtodrink-refused-recognition-seeker-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "I can buy my own, thanks. I'm doing just fine, whatever people might be saying.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "defends status when charity is implied"
+  },
+  {
+   "id": "treatedtodrink-refused-recognition-seeker-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No thanks, {subject}. Early start tomorrow, and I can't afford to look worn out.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "image-conscious, ambition first"
+  },
+  {
+   "id": "treatedtodrink-refused-recognition-seeker-02",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight. I'm not good company right now, and I'd rather you didn't see me like this.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "hides weakness from someone who matters"
+  },
+  {
+   "id": "playedgame-accepted-convivial-keeper-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Oh, go on then. An evening always sits better with a game in it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "hosting warmth with a settled opinion about evenings"
+  },
+  {
+   "id": "playedgame-accepted-convivial-keeper-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Count me in. It does the whole town good to see folks playing together.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "cares about community and how it looks"
+  },
+  {
+   "id": "playedgame-refused-convivial-keeper-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Not tonight. I keep to my routine, and if I drop it once it never comes back.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "guards routine as a definite preference"
+  },
+  {
+   "id": "playedgame-refused-convivial-keeper-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, thank you. I don't play with folks I've only just met; it gets talked about.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "protects reputation, polite but firm"
+  },
+  {
+   "id": "treatedtodrink-accepted-convivial-keeper-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "close",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Well, isn't that thoughtful. Yes, and you'll sit with me while I drink it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "accepts on its own terms, wants company"
+  },
+  {
+   "id": "treatedtodrink-accepted-convivial-keeper-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's kind of you, {subject}. Mind, I like mine plain, nothing fancy in it.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "gracious with definite preferences"
+  },
+  {
+   "id": "treatedtodrink-refused-convivial-keeper-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "No, no. Keep your coins; I'd much rather you came by for supper sometime.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "turns refusal into offering a place at the table"
+  },
+  {
+   "id": "treatedtodrink-refused-convivial-keeper-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I'll pass. People talk when I'm seen being treated, and I'd rather they didn't.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "minds standing in town"
+  },
+  {
+   "id": "treatedtodrink-refused-convivial-keeper-02",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight. I'm worn right through and I'd only be poor company.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "weighs company as the point of it"
+  },
+  {
+   "id": "playedgame-accepted-steadfast-carer-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Oh, all right. I can spare one game, I think. Just one, though, there are still things waiting at home.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "duty weighed against small pleasure"
+  },
+  {
+   "id": "playedgame-refused-steadfast-carer-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Thank you, but no. I'm needed elsewhere this evening, and I've already put it off once.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "polite refusal rooted in obligation"
+  },
+  {
+   "id": "playedgame-refused-steadfast-carer-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. I've been on my feet since dawn and I'd only make a poor partner.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "weary carer, apologetic toward the other"
+  },
+  {
+   "id": "treatedtodrink-accepted-steadfast-carer-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's very generous. Just a small one, please, and we'll both make sure we get home safely.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "accepts while still looking after others"
+  },
+  {
+   "id": "treatedtodrink-accepted-steadfast-carer-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, you're too good to me. Yes, all right... I can't remember the last time someone else paid.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "neglects own wishes, touched by care returned"
+  },
+  {
+   "id": "treatedtodrink-accepted-steadfast-carer-02",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar",
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, why not! The week's been long and everyone at home is fed. Yes, please.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "permission earned once duties are done"
+  },
+  {
+   "id": "treatedtodrink-refused-steadfast-carer-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Thank you, but no. I have an early start, and someone has to be clear-headed in the morning.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "responsibility outranks the treat"
+  },
+  {
+   "id": "treatedtodrink-refused-steadfast-carer-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'd better not, {subject}. I'm worn right through tonight, and it would go straight to my head.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "tired, gentle, honest with someone dear"
+  },
+  {
+   "id": "playedgame-accepted-generic-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Go on, then. I could use something to take my mind off the day.",
+   "tags": [
+    "plain"
+   ],
+   "note": "plain yes, a little weary"
+  },
+  {
+   "id": "playedgame-accepted-generic-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You're on, {subject}. Don't expect me to go easy on you.",
+   "tags": [
+    "plain"
+   ],
+   "note": "friendly teasing"
+  },
+  {
+   "id": "playedgame-accepted-generic-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sure, one round. Remind me how it goes first?",
+   "tags": [
+    "plain"
+   ],
+   "note": "polite, slightly unsure"
+  },
+  {
+   "id": "playedgame-accepted-generic-03",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "household",
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I was hoping somebody would ask. Set it up and I'll be right there.",
+   "tags": [
+    "plain"
+   ],
+   "note": "eager"
+  },
+  {
+   "id": "playedgame-accepted-generic-04",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Alright. Just the one, mind, I'm not much good tonight.",
+   "tags": [
+    "plain"
+   ],
+   "note": "reluctant yes"
+  },
+  {
+   "id": "playedgame-accepted-generic-05",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "Why not? It's been a long while since I played anything.",
+   "tags": [
+    "plain"
+   ],
+   "note": "easygoing"
+  },
+  {
+   "id": "playedgame-refused-generic-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not tonight, {subject}. I'd only be poor company.",
+   "tags": [
+    "plain"
+   ],
+   "note": "warm but tired refusal"
+  },
+  {
+   "id": "playedgame-refused-generic-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "No, thank you. I'd rather keep to myself.",
+   "tags": [
+    "plain"
+   ],
+   "note": "wary, polite"
+  },
+  {
+   "id": "playedgame-refused-generic-02",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'll pass. I've got too much on my mind to play anything.",
+   "tags": [
+    "plain"
+   ],
+   "note": "preoccupied"
+  },
+  {
+   "id": "playedgame-refused-generic-03",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Ha, no. You beat me last time and I haven't recovered.",
+   "tags": [
+    "plain"
+   ],
+   "note": "playful refusal"
+  },
+  {
+   "id": "playedgame-refused-generic-04",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sorry, I'm about to head off. Find someone else for this one.",
+   "tags": [
+    "plain"
+   ],
+   "note": "busy"
+  },
+  {
+   "id": "playedgame-refused-generic-05",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No. I don't play games with people I barely know.",
+   "tags": [
+    "plain"
+   ],
+   "note": "curt, cold"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's kind of you, {subject}. I'll gladly take one.",
+   "tags": [
+    "plain"
+   ],
+   "note": "grateful"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Now you're talking. I'll get the next round.",
+   "tags": [
+    "plain"
+   ],
+   "note": "cheerful, reciprocal"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-02",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [],
+   "text": "Well, I won't say no. Thank you.",
+   "tags": [
+    "plain"
+   ],
+   "note": "reserved yes"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-03",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I could really use one tonight. Thanks for asking.",
+   "tags": [
+    "plain"
+   ],
+   "note": "tired, appreciative"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-04",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You're buying? Then I'm drinking. Cheers, {subject}.",
+   "tags": [
+    "plain"
+   ],
+   "note": "jovial"
+  },
+  {
+   "id": "treatedtodrink-accepted-generic-05",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Just a small one, then. Thank you kindly.",
+   "tags": [
+    "plain"
+   ],
+   "note": "modest yes"
+  },
+  {
+   "id": "treatedtodrink-refused-generic-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [],
+   "text": "No, thank you. I'm fine as I am.",
+   "tags": [
+    "plain"
+   ],
+   "note": "polite, distant"
+  },
+  {
+   "id": "treatedtodrink-refused-generic-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That's sweet of you, {subject}, but I'm calling it an early night.",
+   "tags": [
+    "plain"
+   ],
+   "note": "warm, tired"
+  },
+  {
+   "id": "treatedtodrink-refused-generic-02",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I'll have to say no. I need a clear head in the morning.",
+   "tags": [
+    "plain"
+   ],
+   "note": "practical, busy"
+  },
+  {
+   "id": "treatedtodrink-refused-generic-03",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Keep your money. I'm not in the mood for company tonight.",
+   "tags": [
+    "plain"
+   ],
+   "note": "curt"
+  },
+  {
+   "id": "treatedtodrink-refused-generic-04",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I don't take drinks from people I don't know. No offence.",
+   "tags": [
+    "plain"
+   ],
+   "note": "wary"
+  },
+  {
+   "id": "playedgame-accepted-craft-devotee-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "All right, one round. I'll warn you, my hands are steadier than my aim.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "craft confidence, modest about play"
+  },
+  {
+   "id": "playedgame-accepted-craft-devotee-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high",
+    "even"
+   ],
+   "text": "{subject}, yes. I've been bent over my making since dawn and my shoulders want something else to do.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "comes out of absorbed work"
+  },
+  {
+   "id": "playedgame-refused-craft-devotee-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Not tonight. Something I started this morning still isn't right, and I won't rest until it is.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "retreats into unfinished making"
+  },
+  {
+   "id": "playedgame-refused-craft-devotee-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's kind, but no. My head's still half in what I was making, and I'd be poor company.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "polite distance, craft comes first"
+  },
+  {
+   "id": "treatedtodrink-accepted-craft-devotee-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Yes, gladly. I finished something today I'm actually proud of, so it feels earned.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "pride in finished work"
+  },
+  {
+   "id": "treatedtodrink-refused-craft-devotee-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, thank you. I'd rather get back to what I was doing before the light goes.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "prefers the making to company"
+  },
+  {
+   "id": "treatedtodrink-refused-craft-devotee-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "That's kind, {subject}, but no. I've doubted everything I made this week; I'd be dull company.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "doubt weighed against pride"
+  },
+  {
+   "id": "treatedtodrink-refused-craft-devotee-02",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "I'll pass. I keep a clear head for the morning; the early hours are the only ones that go right.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "guards working hours, curt"
+  },
+  {
+   "id": "playedgame-accepted-social-trader-00",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "One round, then. Loser owes the winner a favor, and I always collect what I'm owed.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "turns play into a trade, teasing"
+  },
+  {
+   "id": "playedgame-accepted-social-trader-01",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sure, {subject}. Business is slow today anyway, and I could use the company.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "practical livelihood framing, wants company"
+  },
+  {
+   "id": "playedgame-accepted-social-trader-02",
+   "kind": "PlayedGame.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Alright, I'm in. Go easy on me, though; nobody's been around to practice with.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "jokes lightly through loneliness"
+  },
+  {
+   "id": "playedgame-refused-social-trader-00",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Not today. There's a full day's trade waiting on me, and it won't mind itself.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "busy with livelihood, practical"
+  },
+  {
+   "id": "playedgame-refused-social-trader-01",
+   "kind": "PlayedGame.Refused",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Games are for regulars. Come by and do some business first, then we'll see.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "stranger kept at a merchant's distance"
+  },
+  {
+   "id": "treatedtodrink-accepted-social-trader-00",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Now that's a deal I won't haggle over. Next one's mine, so don't you run off.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "bargaining talk, reciprocal exchange"
+  },
+  {
+   "id": "treatedtodrink-accepted-social-trader-01",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Kind of you, {subject}. I'll take it, and pay you back with a good story.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "pays for kindness in trade"
+  },
+  {
+   "id": "treatedtodrink-accepted-social-trader-02",
+   "kind": "TreatedToDrink.Accepted",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Go on, then. A drink and someone to talk to beats another evening on my own.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "companionship drive, wry about solitude"
+  },
+  {
+   "id": "treatedtodrink-refused-social-trader-00",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Generous, but I keep my own tab with folks I don't know yet. No, thank you.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "wary merchant keeping accounts square"
+  },
+  {
+   "id": "treatedtodrink-refused-social-trader-01",
+   "kind": "TreatedToDrink.Refused",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Not tonight. I open early tomorrow, and I'm useless after a late one.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "practical, work comes first"
   }
  ]
 }

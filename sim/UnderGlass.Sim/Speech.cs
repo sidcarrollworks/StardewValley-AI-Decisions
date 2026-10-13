@@ -21,9 +21,10 @@ public sealed record SpeechLine(string Id, string Kind, IReadOnlyList<string> Ar
 public sealed record SpeechPack(int Schema, string Provenance, IReadOnlyList<SpeechLine> Lines);
 
 /// <summary>What was said with an act, as recorded: the line as spoken (subject filled in), its
-/// library id, and the bands the choice was made under so the observer can see why this line.</summary>
+/// library id, and the bands the choice was made under so the observer can see why this line.
+/// Reply: the other person's answer on the same act (an invitation's yes or no), said after the line.</summary>
 public sealed record Speech(int ActId, int Tick, string Speaker, string Line, string LineId,
-    string? Archetype, string Relationship, string Mood);
+    string? Archetype, string Relationship, string Mood, bool Reply = false);
 
 /// <summary>The library is embedded from speech-catalog.json; editing that file and rebuilding
 /// changes what people say, not what they do. Selection prefers lines that fit the speaker's
@@ -113,7 +114,7 @@ public static class SpeechCatalog
     /// weight. The draw is keyed by the act id on its own stream, so speech never moves another
     /// system's dice.</summary>
     public static SpeechLine? Choose(SpeechPack pack, string kind, string? archetype, string relationship, string mood,
-        long seed, int actId, IReadOnlyCollection<string>? avoid = null)
+        long seed, int actId, IReadOnlyCollection<string>? avoid = null, string? part = null)
     {
         ArgumentNullException.ThrowIfNull(pack);
         if (Silent.Contains(kind)) return null;
@@ -126,7 +127,9 @@ public static class SpeechCatalog
             var fresh = fits.Where(f => !avoid.Contains(f.Line.Id)).ToArray();
             if (fresh.Length > 0) fits = fresh;
         }
-        double roll = Rng.Unit(seed, "speech", actId.ToString(System.Globalization.CultureInfo.InvariantCulture)) * fits.Sum(f => f.Weight);
+        string id = actId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        // A second line on the same act (a reply) draws on its own key; the act's own line keeps the old one.
+        double roll = (part is null ? Rng.Unit(seed, "speech", id) : Rng.Unit(seed, "speech", id, part)) * fits.Sum(f => f.Weight);
         foreach (var (line, weight) in fits)
         {
             roll -= weight;

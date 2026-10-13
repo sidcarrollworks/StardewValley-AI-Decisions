@@ -16,6 +16,15 @@ readers could not place kept their words but lost their archetype tag; lines hea
 voice or breaking a rule were dropped. The result is awaiting Sid's curation; editing the file and
 rebuilding is the whole workflow. Nothing in it is game text.
 
+Replies, 2026-10-13: with the [invitation slice](invitation-spec.md) on, the asked person answers
+a game or a drink, and the answer is a line too. 115 reply lines (`PlayedGame.Accepted`,
+`PlayedGame.Refused`, `TreatedToDrink.Accepted`, `TreatedToDrink.Refused`) were drafted and
+judged the same way: 166 drafted (142 by archetype authors, 24 by a plain author); 83 kept with
+their voice; 32 plain (the plain author's 23 and 9 whose voice the readers could not place), eight
+per kind; 51 dropped, mostly heard as another voice (a stranger's refusal tends to sound like the
+wary outsider whoever says it). A reply is recorded on the same act as the line it answers, marked
+`Reply`, and draws on its own key.
+
 Coverage, 2026-10-12, the same day: the first library made people repeat themselves because the
 relationship and mood tags ruled lines out, so a given speaker in a given state could choose from a
 median of three lines while the selector avoided their last three. A tag now names where a line
@@ -112,7 +121,7 @@ resident's side ("Welcome to town, Penny"). Sid decided (2026-10-12) that the Ne
 of its own: the player's, typed and read by Laya ([player speech spec](player-speech-spec.md)).
 Until a player exists, a reserved `newcomer` voice with arrival-side lines is planned there.
 
-The reply line is the obvious next piece: the other person's answer when an act completes, keyed
-to the recorded outcome (returned, rebuffed, accepted, refused) rather than to a guess. After that,
+Reply lines exist for invitations (2026-10-13). Replies to other acts, keyed to their recorded
+outcome (returned, rebuffed, an apology accepted or refused), are the obvious next piece. After that,
 scene tags (time of day, place kind) can narrow lines further once the library is large enough
 that narrowing does not starve a kind.

@@ -294,6 +294,10 @@ public static class Replay
             recording["speech"] = JsonSerializer.SerializeToElement(r.Speech,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
+        if (feelings.Acts.Invitations)
+            // Additive, with Invitations on only: every asking, its answer and the act that followed.
+            recording["invitations"] = JsonSerializer.SerializeToElement(r.Invitations,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         // Additive observer schema: v1 readers can ignore these fields. Old recordings have
         // no appraisals and remain explicitly unclassified, never backfilled from final regard.
         recording["encounterVersion"] = 1;

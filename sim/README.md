@@ -119,6 +119,12 @@ Both models also get the actor's scene (2026-10-12): where the remembered encoun
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --feel on --desire on --catalog returns,company,welcome,repair,sides,late --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/speech.json --html out/speech.html
 ```
 
+**Invitations (2026-10-13, off by default):** add `invitations` to `--catalog` (with `company`) and a game or a drink is asked for before it begins. A yes begins it; a no begins `Refused` by the one asked, which the asker feels and others can see, and the asker waits a week before inviting that person again. With `--speech` both sides speak: the offer and an authored reply. The recording gains `invitations` ([invitation spec](../docs/under-glass/specs/invitation-spec.md)).
+
+```powershell
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 28 --feel on --desire on --catalog returns,company,welcome,repair,sides,late,invitations --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/invitations.json --html out/invitations.html
+```
+
 **Reading typed lines (probe, 2026-10-13):** the planned [player speech](../docs/under-glass/specs/player-speech-spec.md) has the player type the Newcomer's lines and Laya read them into an act the engine offers. [`tools/laya_categorize_probe.py`](tools/laya_categorize_probe.py) measures that reading against a running loopback Laya, with the game's packet rules; nothing in the simulation uses it yet ([write-up](../docs/under-glass/experiments/laya-categorize-2026-10-13.md)).
 
 ```powershell
