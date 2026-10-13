@@ -37,6 +37,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_claude_generator.py
       - name: Test dialogue corpus parsing without the game
         run: python -m unittest discover -s tests -p test_stardew_dialogue_corpus.py
+      - name: Test the Laya categorization probe without a server
+        run: python -m unittest discover -s tests -p test_laya_categorize_probe.py
 
   under-glass:
     name: Under Glass (sim)

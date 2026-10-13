@@ -1,6 +1,7 @@
 # Under Glass: current development roadmap
 
-Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices.
+Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices;
+amended 2026-10-13 to say where the agreed order leads (player speech, below).
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -98,16 +99,29 @@ The order is:
    best, and a neighbouring band still fits (D49), which cut back-to-back repeats by more than half;
    the curation page `sim/viewer/speech.html` shows which kinds and voices are still thin and edits
    the lines in place. The welcome's side (the newcomer welcomes the town, with lines written for
-   residents) waits on Sid. Reply lines and scene tags are next.
+   residents) is settled by Sid's decision that the Newcomer gets the player's voice (step 5, D50); a
+   placeholder `newcomer` voice with arrival-side lines is planned in the
+   [player speech spec](specs/player-speech-spec.md). Reply lines and scene tags are next.
 3. **Broader actions where reflection already reaches**: company (a game, a drink), comfort, and
    the general Ask that b2-0 seamed (invitations, favour requests, loans), with accept and
    decline as real outcomes. Distinct consequences, not different wording.
 4. **Follow-through**: one concrete need → request → agreement → attempt → outcome thread, so
    help has an object and a next day. After 3, so there are things to ask for.
 
+5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
+   The Newcomer is the player's character and gets the player's voice: the player types, Laya
+   reads the line into one of the acts the engine offers (and, for a claim, into one of the things
+   the listener knows of), and the engine executes it through ordinary eligibility. Words are not
+   facts: a listener takes a claim on trust, asks to see, demands or doubts it from their own
+   memory and trust in the speaker, a check is an event others can witness, and a lie taken on
+   trust comes out only through perception. Built so far: a probe of whether Laya can read typed
+   lines at all ([write-up](experiments/laya-categorize-2026-10-13.md)). It needs 3 (asks with
+   answers) and 4 (needs with real items) first; scripted player lines come before live typing.
+
 Then batch 2's visits, dates, peace and festivals as the backlog, each behind its own switch.
-A text REPL in which Sid is the Newcomer stays later: it would test the mechanics' feel, not
-conversation, until 2 and 4 exist.
+The text REPL in which Sid is the Newcomer is now the end of this order (step 5, amended
+2026-10-13) rather than unscheduled: it still waits for 3 and 4, because before them a typed line
+would have little to become.
 
 ## 1. Concrete encounter context and event appraisal
 
@@ -201,8 +215,8 @@ being summarized as one realism score.
 Longer ambitions, confidences and secrets, invitations, romance, community decisions and life
 events can build on concrete encounters and follow-through. The broader
 [action inventory](actions-and-twists.md) is a backlog, not a commitment to implement every row
-in its old batch order. Generations, large-town expansion, a text REPL and player farming are
-not prerequisites for the next observer milestone. A Godot renderer remains a later engine
+in its old batch order. Generations, large-town expansion and player farming are not prerequisites for the
+next observer milestone; the text REPL is scheduled as step 5 of the agreed order. A Godot renderer remains a later engine
 direction; current experiments stay on .NET 8.
 
 ## What must hold, and what we measure

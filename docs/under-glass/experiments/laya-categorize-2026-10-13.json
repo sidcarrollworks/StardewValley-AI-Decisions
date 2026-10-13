@@ -1,0 +1,1119 @@
+{
+ "acts": {
+  "english act15-v1 catalog": {
+   "n": 359,
+   "top1": 0.468,
+   "raw": 0.4485,
+   "meanPTrue": 0.4364,
+   "top3": 0.6825,
+   "tone": 0.7716
+  },
+  "english act15-v1 player": {
+   "n": 234,
+   "top1": 0.6239,
+   "raw": 0.6197,
+   "meanPTrue": 0.5699,
+   "top3": 0.7821,
+   "tone": 0.7735
+  },
+  "english act15-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.5778,
+   "raw": 0.4667,
+   "meanPTrue": 0.4429,
+   "top3": 0.9778,
+   "tone": 0.5778
+  },
+  "english act15-v2 catalog": {
+   "n": 359,
+   "top1": 0.4373,
+   "raw": 0.4178,
+   "meanPTrue": 0.3831,
+   "top3": 0.6602,
+   "tone": 0.6574
+  },
+  "english act15-v2 player": {
+   "n": 234,
+   "top1": 0.5598,
+   "raw": 0.5641,
+   "meanPTrue": 0.5128,
+   "top3": 0.7692,
+   "tone": 0.6667
+  },
+  "english act15-v2 smalltalk": {
+   "n": 45,
+   "top1": 0.7111,
+   "raw": 0.7111,
+   "meanPTrue": 0.5645,
+   "top3": 1.0,
+   "tone": 0.7111
+  },
+  "english act6-v1 catalog": {
+   "n": 359,
+   "top1": 0.61,
+   "raw": 0.5989,
+   "meanPTrue": 0.5269,
+   "top3": 0.844,
+   "tone": 0.7827
+  },
+  "english act6-v1 player": {
+   "n": 234,
+   "top1": 0.7564,
+   "raw": 0.765,
+   "meanPTrue": 0.6599,
+   "top3": 0.9359,
+   "tone": 0.8077
+  },
+  "english act6-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.8444,
+   "raw": 0.6889,
+   "meanPTrue": 0.6094,
+   "top3": 1.0,
+   "tone": 0.8444
+  },
+  "typed-decisions act15-v1 catalog": {
+   "n": 359,
+   "top1": 0.468,
+   "raw": 0.4373,
+   "meanPTrue": 0.373,
+   "top3": 0.6769,
+   "tone": 0.7855
+  },
+  "typed-decisions act15-v1 player": {
+   "n": 234,
+   "top1": 0.6026,
+   "raw": 0.5983,
+   "meanPTrue": 0.4811,
+   "top3": 0.7949,
+   "tone": 0.765
+  },
+  "typed-decisions act15-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.5333,
+   "raw": 0.4889,
+   "meanPTrue": 0.3552,
+   "top3": 0.9556,
+   "tone": 0.5333
+  },
+  "typed-decisions act15-v2 catalog": {
+   "n": 359,
+   "top1": 0.4624,
+   "raw": 0.4429,
+   "meanPTrue": 0.346,
+   "top3": 0.6936,
+   "tone": 0.7187
+  },
+  "typed-decisions act15-v2 player": {
+   "n": 234,
+   "top1": 0.6239,
+   "raw": 0.6111,
+   "meanPTrue": 0.4337,
+   "top3": 0.7821,
+   "tone": 0.7949
+  },
+  "typed-decisions act15-v2 smalltalk": {
+   "n": 45,
+   "top1": 0.4889,
+   "raw": 0.4667,
+   "meanPTrue": 0.332,
+   "top3": 1.0,
+   "tone": 0.4889
+  },
+  "typed-decisions act6-v1 catalog": {
+   "n": 359,
+   "top1": 0.5877,
+   "raw": 0.5738,
+   "meanPTrue": 0.4195,
+   "top3": 0.8384,
+   "tone": 0.7827
+  },
+  "typed-decisions act6-v1 player": {
+   "n": 234,
+   "top1": 0.7607,
+   "raw": 0.7778,
+   "meanPTrue": 0.5115,
+   "top3": 0.9231,
+   "tone": 0.8162
+  },
+  "typed-decisions act6-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.8667,
+   "raw": 0.8222,
+   "meanPTrue": 0.4367,
+   "top3": 1.0,
+   "tone": 0.8667
+  }
+ },
+ "actsClear": {
+  "english act15-v1 catalog": {
+   "n": 342,
+   "top1": 0.4825,
+   "raw": 0.462,
+   "meanPTrue": 0.45,
+   "top3": 0.693,
+   "tone": 0.7719
+  },
+  "english act15-v1 player": {
+   "n": 231,
+   "top1": 0.6234,
+   "raw": 0.619,
+   "meanPTrue": 0.5728,
+   "top3": 0.7835,
+   "tone": 0.7749
+  },
+  "english act15-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.5778,
+   "raw": 0.4667,
+   "meanPTrue": 0.4429,
+   "top3": 0.9778,
+   "tone": 0.5778
+  },
+  "english act15-v2 catalog": {
+   "n": 342,
+   "top1": 0.4444,
+   "raw": 0.4298,
+   "meanPTrue": 0.3924,
+   "top3": 0.6725,
+   "tone": 0.6579
+  },
+  "english act15-v2 player": {
+   "n": 231,
+   "top1": 0.5671,
+   "raw": 0.5671,
+   "meanPTrue": 0.517,
+   "top3": 0.7706,
+   "tone": 0.671
+  },
+  "english act15-v2 smalltalk": {
+   "n": 45,
+   "top1": 0.7111,
+   "raw": 0.7111,
+   "meanPTrue": 0.5645,
+   "top3": 1.0,
+   "tone": 0.7111
+  },
+  "english act6-v1 catalog": {
+   "n": 342,
+   "top1": 0.6199,
+   "raw": 0.614,
+   "meanPTrue": 0.5382,
+   "top3": 0.8538,
+   "tone": 0.7778
+  },
+  "english act6-v1 player": {
+   "n": 231,
+   "top1": 0.7619,
+   "raw": 0.7706,
+   "meanPTrue": 0.6655,
+   "top3": 0.9351,
+   "tone": 0.8139
+  },
+  "english act6-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.8444,
+   "raw": 0.6889,
+   "meanPTrue": 0.6094,
+   "top3": 1.0,
+   "tone": 0.8444
+  },
+  "typed-decisions act15-v1 catalog": {
+   "n": 342,
+   "top1": 0.4825,
+   "raw": 0.4532,
+   "meanPTrue": 0.3842,
+   "top3": 0.693,
+   "tone": 0.7924
+  },
+  "typed-decisions act15-v1 player": {
+   "n": 231,
+   "top1": 0.6061,
+   "raw": 0.6017,
+   "meanPTrue": 0.484,
+   "top3": 0.7922,
+   "tone": 0.7706
+  },
+  "typed-decisions act15-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.5333,
+   "raw": 0.4889,
+   "meanPTrue": 0.3552,
+   "top3": 0.9556,
+   "tone": 0.5333
+  },
+  "typed-decisions act15-v2 catalog": {
+   "n": 342,
+   "top1": 0.4737,
+   "raw": 0.4561,
+   "meanPTrue": 0.3549,
+   "top3": 0.7076,
+   "tone": 0.7251
+  },
+  "typed-decisions act15-v2 player": {
+   "n": 231,
+   "top1": 0.632,
+   "raw": 0.619,
+   "meanPTrue": 0.437,
+   "top3": 0.7835,
+   "tone": 0.8009
+  },
+  "typed-decisions act15-v2 smalltalk": {
+   "n": 45,
+   "top1": 0.4889,
+   "raw": 0.4667,
+   "meanPTrue": 0.332,
+   "top3": 1.0,
+   "tone": 0.4889
+  },
+  "typed-decisions act6-v1 catalog": {
+   "n": 342,
+   "top1": 0.5936,
+   "raw": 0.5819,
+   "meanPTrue": 0.4278,
+   "top3": 0.8538,
+   "tone": 0.7807
+  },
+  "typed-decisions act6-v1 player": {
+   "n": 231,
+   "top1": 0.7662,
+   "raw": 0.7792,
+   "meanPTrue": 0.5145,
+   "top3": 0.9221,
+   "tone": 0.8225
+  },
+  "typed-decisions act6-v1 smalltalk": {
+   "n": 45,
+   "top1": 0.8667,
+   "raw": 0.8222,
+   "meanPTrue": 0.4367,
+   "top3": 1.0,
+   "tone": 0.8667
+  }
+ },
+ "actsByDifficulty": {
+  "english act15-v1 player explicit": {
+   "n": 78,
+   "top1": 0.8846,
+   "raw": 0.8718,
+   "meanPTrue": 0.8196,
+   "top3": 0.9487,
+   "tone": 0.8974
+  },
+  "english act15-v1 player hard": {
+   "n": 78,
+   "top1": 0.4615,
+   "raw": 0.4487,
+   "meanPTrue": 0.3965,
+   "top3": 0.6538,
+   "tone": 0.7179
+  },
+  "english act15-v1 player implicit": {
+   "n": 78,
+   "top1": 0.5256,
+   "raw": 0.5385,
+   "meanPTrue": 0.4935,
+   "top3": 0.7436,
+   "tone": 0.7051
+  },
+  "english act15-v1 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.5238,
+   "raw": 0.3333,
+   "meanPTrue": 0.4014,
+   "top3": 0.9524,
+   "tone": 0.5238
+  },
+  "english act15-v1 smalltalk hard": {
+   "n": 9,
+   "top1": 0.6667,
+   "raw": 0.5556,
+   "meanPTrue": 0.5031,
+   "top3": 1.0,
+   "tone": 0.6667
+  },
+  "english act15-v1 smalltalk implicit": {
+   "n": 15,
+   "top1": 0.6,
+   "raw": 0.6,
+   "meanPTrue": 0.4647,
+   "top3": 1.0,
+   "tone": 0.6
+  },
+  "english act15-v2 player explicit": {
+   "n": 78,
+   "top1": 0.7949,
+   "raw": 0.7821,
+   "meanPTrue": 0.7278,
+   "top3": 0.9615,
+   "tone": 0.8333
+  },
+  "english act15-v2 player hard": {
+   "n": 78,
+   "top1": 0.3462,
+   "raw": 0.3462,
+   "meanPTrue": 0.336,
+   "top3": 0.6026,
+   "tone": 0.5385
+  },
+  "english act15-v2 player implicit": {
+   "n": 78,
+   "top1": 0.5385,
+   "raw": 0.5641,
+   "meanPTrue": 0.4745,
+   "top3": 0.7436,
+   "tone": 0.6282
+  },
+  "english act15-v2 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.619,
+   "raw": 0.619,
+   "meanPTrue": 0.4989,
+   "top3": 1.0,
+   "tone": 0.619
+  },
+  "english act15-v2 smalltalk hard": {
+   "n": 9,
+   "top1": 0.8889,
+   "raw": 0.6667,
+   "meanPTrue": 0.6299,
+   "top3": 1.0,
+   "tone": 0.8889
+  },
+  "english act15-v2 smalltalk implicit": {
+   "n": 15,
+   "top1": 0.7333,
+   "raw": 0.8667,
+   "meanPTrue": 0.6173,
+   "top3": 1.0,
+   "tone": 0.7333
+  },
+  "english act6-v1 player explicit": {
+   "n": 78,
+   "top1": 0.9359,
+   "raw": 0.9231,
+   "meanPTrue": 0.8648,
+   "top3": 0.9744,
+   "tone": 0.9487
+  },
+  "english act6-v1 player hard": {
+   "n": 78,
+   "top1": 0.6154,
+   "raw": 0.6538,
+   "meanPTrue": 0.5077,
+   "top3": 0.8846,
+   "tone": 0.6923
+  },
+  "english act6-v1 player implicit": {
+   "n": 78,
+   "top1": 0.7179,
+   "raw": 0.7179,
+   "meanPTrue": 0.607,
+   "top3": 0.9487,
+   "tone": 0.7821
+  },
+  "english act6-v1 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.7619,
+   "raw": 0.5714,
+   "meanPTrue": 0.5682,
+   "top3": 1.0,
+   "tone": 0.7619
+  },
+  "english act6-v1 smalltalk hard": {
+   "n": 9,
+   "top1": 0.7778,
+   "raw": 0.6667,
+   "meanPTrue": 0.5967,
+   "top3": 1.0,
+   "tone": 0.7778
+  },
+  "english act6-v1 smalltalk implicit": {
+   "n": 15,
+   "top1": 1.0,
+   "raw": 0.8667,
+   "meanPTrue": 0.6747,
+   "top3": 1.0,
+   "tone": 1.0
+  },
+  "typed-decisions act15-v1 player explicit": {
+   "n": 78,
+   "top1": 0.859,
+   "raw": 0.8846,
+   "meanPTrue": 0.7158,
+   "top3": 0.9487,
+   "tone": 0.8846
+  },
+  "typed-decisions act15-v1 player hard": {
+   "n": 78,
+   "top1": 0.4231,
+   "raw": 0.3974,
+   "meanPTrue": 0.3213,
+   "top3": 0.6795,
+   "tone": 0.6923
+  },
+  "typed-decisions act15-v1 player implicit": {
+   "n": 78,
+   "top1": 0.5256,
+   "raw": 0.5128,
+   "meanPTrue": 0.4062,
+   "top3": 0.7564,
+   "tone": 0.7179
+  },
+  "typed-decisions act15-v1 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.4286,
+   "raw": 0.381,
+   "meanPTrue": 0.3156,
+   "top3": 0.9048,
+   "tone": 0.4286
+  },
+  "typed-decisions act15-v1 smalltalk hard": {
+   "n": 9,
+   "top1": 0.5556,
+   "raw": 0.5556,
+   "meanPTrue": 0.4138,
+   "top3": 1.0,
+   "tone": 0.5556
+  },
+  "typed-decisions act15-v1 smalltalk implicit": {
+   "n": 15,
+   "top1": 0.6667,
+   "raw": 0.6,
+   "meanPTrue": 0.3755,
+   "top3": 1.0,
+   "tone": 0.6667
+  },
+  "typed-decisions act15-v2 player explicit": {
+   "n": 78,
+   "top1": 0.8333,
+   "raw": 0.859,
+   "meanPTrue": 0.6226,
+   "top3": 0.9487,
+   "tone": 0.8846
+  },
+  "typed-decisions act15-v2 player hard": {
+   "n": 78,
+   "top1": 0.3974,
+   "raw": 0.359,
+   "meanPTrue": 0.279,
+   "top3": 0.6282,
+   "tone": 0.7179
+  },
+  "typed-decisions act15-v2 player implicit": {
+   "n": 78,
+   "top1": 0.641,
+   "raw": 0.6154,
+   "meanPTrue": 0.3995,
+   "top3": 0.7692,
+   "tone": 0.7821
+  },
+  "typed-decisions act15-v2 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.381,
+   "raw": 0.2857,
+   "meanPTrue": 0.3049,
+   "top3": 1.0,
+   "tone": 0.381
+  },
+  "typed-decisions act15-v2 smalltalk hard": {
+   "n": 9,
+   "top1": 0.6667,
+   "raw": 0.5556,
+   "meanPTrue": 0.3569,
+   "top3": 1.0,
+   "tone": 0.6667
+  },
+  "typed-decisions act15-v2 smalltalk implicit": {
+   "n": 15,
+   "top1": 0.5333,
+   "raw": 0.6667,
+   "meanPTrue": 0.355,
+   "top3": 1.0,
+   "tone": 0.5333
+  },
+  "typed-decisions act6-v1 player explicit": {
+   "n": 78,
+   "top1": 0.9359,
+   "raw": 0.9359,
+   "meanPTrue": 0.6829,
+   "top3": 0.9744,
+   "tone": 0.9487
+  },
+  "typed-decisions act6-v1 player hard": {
+   "n": 78,
+   "top1": 0.6282,
+   "raw": 0.6667,
+   "meanPTrue": 0.3851,
+   "top3": 0.8718,
+   "tone": 0.7179
+  },
+  "typed-decisions act6-v1 player implicit": {
+   "n": 78,
+   "top1": 0.7179,
+   "raw": 0.7308,
+   "meanPTrue": 0.4667,
+   "top3": 0.9231,
+   "tone": 0.7821
+  },
+  "typed-decisions act6-v1 smalltalk explicit": {
+   "n": 21,
+   "top1": 0.8095,
+   "raw": 0.7619,
+   "meanPTrue": 0.4125,
+   "top3": 1.0,
+   "tone": 0.8095
+  },
+  "typed-decisions act6-v1 smalltalk hard": {
+   "n": 9,
+   "top1": 0.7778,
+   "raw": 0.7778,
+   "meanPTrue": 0.4289,
+   "top3": 1.0,
+   "tone": 0.7778
+  },
+  "typed-decisions act6-v1 smalltalk implicit": {
+   "n": 15,
+   "top1": 1.0,
+   "raw": 0.9333,
+   "meanPTrue": 0.4751,
+   "top3": 1.0,
+   "tone": 1.0
+  }
+ },
+ "claims": {
+  "english direct": {
+   "n": 22,
+   "top1": 0.9091,
+   "raw": 0.9545,
+   "meanPTrue": 0.7931
+  },
+  "english none": {
+   "n": 12,
+   "top1": 0.6667,
+   "raw": 0.6667,
+   "meanPTrue": 0.4469
+  },
+  "english paraphrase": {
+   "n": 18,
+   "top1": 0.9444,
+   "raw": 0.8333,
+   "meanPTrue": 0.539
+  },
+  "english trap": {
+   "n": 12,
+   "top1": 0.75,
+   "raw": 0.5833,
+   "meanPTrue": 0.5075
+  },
+  "typed-decisions direct": {
+   "n": 22,
+   "top1": 0.9091,
+   "raw": 0.9545,
+   "meanPTrue": 0.584
+  },
+  "typed-decisions none": {
+   "n": 12,
+   "top1": 0.6667,
+   "raw": 0.75,
+   "meanPTrue": 0.361
+  },
+  "typed-decisions paraphrase": {
+   "n": 18,
+   "top1": 0.9444,
+   "raw": 0.8889,
+   "meanPTrue": 0.4376
+  },
+  "typed-decisions trap": {
+   "n": 12,
+   "top1": 0.6667,
+   "raw": 0.5833,
+   "meanPTrue": 0.3888
+  }
+ },
+ "claimsAll": {
+  "english": {
+   "n": 64,
+   "top1": 0.8438,
+   "raw": 0.7969,
+   "meanPTrue": 0.6032
+  },
+  "typed-decisions": {
+   "n": 64,
+   "top1": 0.8281,
+   "raw": 0.8281,
+   "meanPTrue": 0.4644
+  }
+ },
+ "gate": {
+  "typed-decisions act15-v1 player": [
+   {
+    "threshold": 0.5,
+    "taken": 0.6282,
+    "takenRight": 0.7891,
+    "belowTop3": 0.6322
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.5128,
+    "takenRight": 0.8667,
+    "belowTop3": 0.6404
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.4017,
+    "takenRight": 0.9362,
+    "belowTop3": 0.6857
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.2735,
+    "takenRight": 0.9688,
+    "belowTop3": 0.7294
+   }
+  ],
+  "typed-decisions act15-v1 player+smalltalk": [
+   {
+    "threshold": 0.5,
+    "taken": 0.5914,
+    "takenRight": 0.7697,
+    "belowTop3": 0.7018
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.4659,
+    "takenRight": 0.8462,
+    "belowTop3": 0.7114
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.3513,
+    "takenRight": 0.9184,
+    "belowTop3": 0.7459
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.2294,
+    "takenRight": 0.9688,
+    "belowTop3": 0.7767
+   }
+  ],
+  "typed-decisions act6-v1 player": [
+   {
+    "threshold": 0.5,
+    "taken": 0.5726,
+    "takenRight": 0.9328,
+    "belowTop3": 0.86
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.453,
+    "takenRight": 0.9623,
+    "belowTop3": 0.8906
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.2949,
+    "takenRight": 0.9855,
+    "belowTop3": 0.897
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.1026,
+    "takenRight": 1.0,
+    "belowTop3": 0.9143
+   }
+  ],
+  "typed-decisions act6-v1 player+smalltalk": [
+   {
+    "threshold": 0.5,
+    "taken": 0.5305,
+    "takenRight": 0.9257,
+    "belowTop3": 0.8931
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.3943,
+    "takenRight": 0.9636,
+    "belowTop3": 0.9172
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.2509,
+    "takenRight": 0.9857,
+    "belowTop3": 0.9187
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.086,
+    "takenRight": 1.0,
+    "belowTop3": 0.9294
+   }
+  ],
+  "english act15-v1 player": [
+   {
+    "threshold": 0.5,
+    "taken": 0.8162,
+    "takenRight": 0.712,
+    "belowTop3": 0.5116
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.7051,
+    "takenRight": 0.7576,
+    "belowTop3": 0.5942
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.6111,
+    "takenRight": 0.8112,
+    "belowTop3": 0.6044
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.5385,
+    "takenRight": 0.8413,
+    "belowTop3": 0.6389
+   }
+  ],
+  "english act15-v1 player+smalltalk": [
+   {
+    "threshold": 0.5,
+    "taken": 0.7957,
+    "takenRight": 0.7027,
+    "belowTop3": 0.614
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.6774,
+    "takenRight": 0.746,
+    "belowTop3": 0.6778
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.5699,
+    "takenRight": 0.7862,
+    "belowTop3": 0.6917
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.4982,
+    "takenRight": 0.8058,
+    "belowTop3": 0.7143
+   }
+  ],
+  "english act6-v1 player": [
+   {
+    "threshold": 0.5,
+    "taken": 0.7778,
+    "takenRight": 0.8516,
+    "belowTop3": 0.8846
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.7009,
+    "takenRight": 0.8963,
+    "belowTop3": 0.9
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.6111,
+    "takenRight": 0.9441,
+    "belowTop3": 0.8901
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.5085,
+    "takenRight": 0.958,
+    "belowTop3": 0.913
+   }
+  ],
+  "english act6-v1 player+smalltalk": [
+   {
+    "threshold": 0.5,
+    "taken": 0.7778,
+    "takenRight": 0.8525,
+    "belowTop3": 0.9032
+   },
+   {
+    "threshold": 0.6,
+    "taken": 0.6846,
+    "takenRight": 0.9005,
+    "belowTop3": 0.9205
+   },
+   {
+    "threshold": 0.7,
+    "taken": 0.5735,
+    "takenRight": 0.9437,
+    "belowTop3": 0.916
+   },
+   {
+    "threshold": 0.8,
+    "taken": 0.4516,
+    "takenRight": 0.9524,
+    "belowTop3": 0.9346
+   }
+  ]
+ },
+ "r0Slots": {
+  "typed-decisions act15-v1": {
+   "0": 39,
+   "1": 49,
+   "2": 51,
+   "3": 46,
+   "4": 49,
+   "5": 37,
+   "6": 39,
+   "7": 35,
+   "8": 50,
+   "9": 44,
+   "10": 43,
+   "11": 56,
+   "12": 39,
+   "13": 27,
+   "14": 34
+  },
+  "typed-decisions act15-v2": {
+   "0": 39,
+   "1": 50,
+   "2": 50,
+   "3": 41,
+   "4": 55,
+   "5": 45,
+   "6": 46,
+   "7": 32,
+   "8": 43,
+   "9": 46,
+   "10": 46,
+   "11": 56,
+   "12": 27,
+   "13": 29,
+   "14": 33
+  },
+  "typed-decisions act6-v1": {
+   "0": 107,
+   "1": 134,
+   "2": 102,
+   "3": 87,
+   "4": 111,
+   "5": 97
+  },
+  "english act15-v1": {
+   "0": 42,
+   "1": 55,
+   "2": 45,
+   "3": 41,
+   "4": 45,
+   "5": 35,
+   "6": 40,
+   "7": 32,
+   "8": 43,
+   "9": 42,
+   "10": 43,
+   "11": 61,
+   "12": 46,
+   "13": 34,
+   "14": 34
+  },
+  "english act15-v2": {
+   "0": 33,
+   "1": 45,
+   "2": 41,
+   "3": 43,
+   "4": 48,
+   "5": 39,
+   "6": 40,
+   "7": 31,
+   "8": 48,
+   "9": 50,
+   "10": 41,
+   "11": 71,
+   "12": 35,
+   "13": 34,
+   "14": 39
+  },
+  "english act6-v1": {
+   "0": 120,
+   "1": 149,
+   "2": 94,
+   "3": 91,
+   "4": 103,
+   "5": 81
+  }
+ },
+ "calibration": {
+  "typed-decisions act15-v1": [
+   {
+    "p": "0.0-0.2",
+    "n": 8,
+    "accuracy": 0.125
+   },
+   {
+    "p": "0.2-0.4",
+    "n": 175,
+    "accuracy": 0.2114
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 178,
+    "accuracy": 0.4382
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 140,
+    "accuracy": 0.6429
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 137,
+    "accuracy": 0.927
+   }
+  ],
+  "typed-decisions act15-v2": [
+   {
+    "p": "0.0-0.2",
+    "n": 25,
+    "accuracy": 0.08
+   },
+   {
+    "p": "0.2-0.4",
+    "n": 210,
+    "accuracy": 0.3286
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 191,
+    "accuracy": 0.5079
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 108,
+    "accuracy": 0.6296
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 104,
+    "accuracy": 0.9423
+   }
+  ],
+  "typed-decisions act6-v1": [
+   {
+    "p": "0.2-0.4",
+    "n": 191,
+    "accuracy": 0.3508
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 220,
+    "accuracy": 0.6773
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 171,
+    "accuracy": 0.924
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 56,
+    "accuracy": 0.9643
+   }
+  ],
+  "english act15-v1": [
+   {
+    "p": "0.0-0.2",
+    "n": 2,
+    "accuracy": 0.0
+   },
+   {
+    "p": "0.2-0.4",
+    "n": 70,
+    "accuracy": 0.1571
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 138,
+    "accuracy": 0.3043
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 131,
+    "accuracy": 0.4809
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 297,
+    "accuracy": 0.7542
+   }
+  ],
+  "english act15-v2": [
+   {
+    "p": "0.0-0.2",
+    "n": 1,
+    "accuracy": 0.0
+   },
+   {
+    "p": "0.2-0.4",
+    "n": 80,
+    "accuracy": 0.225
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 153,
+    "accuracy": 0.3072
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 168,
+    "accuracy": 0.4524
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 236,
+    "accuracy": 0.7585
+   }
+  ],
+  "english act6-v1": [
+   {
+    "p": "0.2-0.4",
+    "n": 75,
+    "accuracy": 0.28
+   },
+   {
+    "p": "0.4-0.6",
+    "n": 158,
+    "accuracy": 0.4557
+   },
+   {
+    "p": "0.6-0.8",
+    "n": 139,
+    "accuracy": 0.705
+   },
+   {
+    "p": "0.8-1.0",
+    "n": 266,
+    "accuracy": 0.9135
+   }
+  ]
+ },
+ "errors": 0,
+ "maxChars": 811,
+ "medianMs": {
+  "act15-v1": 72.4,
+  "act15-v2": 87.9,
+  "act6-v1": 38.7,
+  "claim": 37.4
+ },
+ "health": {
+  "revisions": {
+   "typed-decisions": "7b928d828b7b0e022f929d9bd2e44165aa270148",
+   "english": "7b928d828b7b0e022f929d9bd2e44165aa270148"
+  },
+  "device": "cuda"
+ },
+ "models": [
+  "typed-decisions",
+  "english"
+ ],
+ "budget": 1250,
+ "note": "Summary of out/laya-probe-2026-10-13/results.json (ignored; receipts.jsonl holds every request and reply). Cases: speech-catalog.json act lines (359, author labels), 234 player-style lines and 45 small-talk lines authored 2026-10-13, 64 claim cases; each judged blind by three readers (clear = at least two agree with the label)."
+}

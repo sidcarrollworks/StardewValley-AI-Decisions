@@ -119,6 +119,12 @@ Both models also get the actor's scene (2026-10-12): where the remembered encoun
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --feel on --desire on --catalog returns,company,welcome,repair,sides,late --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/speech.json --html out/speech.html
 ```
 
+**Reading typed lines (probe, 2026-10-13):** the planned [player speech](../docs/under-glass/specs/player-speech-spec.md) has the player type the Newcomer's lines and Laya read them into an act the engine offers. [`tools/laya_categorize_probe.py`](tools/laya_categorize_probe.py) measures that reading against a running loopback Laya, with the game's packet rules; nothing in the simulation uses it yet ([write-up](../docs/under-glass/experiments/laya-categorize-2026-10-13.md)).
+
+```powershell
+python sim/tools/laya_categorize_probe.py --cases out/laya-probe-2026-10-13/cases.json --models typed-decisions english --out out/laya-probe-2026-10-13
+```
+
 Edit [`UnderGlass.Sim/reflection-catalog.json`](UnderGlass.Sim/reflection-catalog.json) and rebuild to change thoughts and response lines. Eligibility uses the remembered encounter's perspective/tone and current regard; overlapping ranges permit competing motives. Catalog edits change requests, so old tapes fail their exact-match check rather than replaying mismatched decisions.
 
 Run the controlled comparison separately from the town:

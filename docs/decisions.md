@@ -957,6 +957,34 @@ to write for.
 
 **Not changed.** What a line is, how it is recorded, and that nothing in the simulation reads it.
 
+### D50. The Newcomer speaks with the player's words; Laya reads them into what the engine offers, and words are not facts
+
+**Decision (Sid, 2026-10-12 and 2026-10-13).** The Newcomer gets a voice of its own, and it is the
+player's: "Ideally players get to determine how the character sounds. I'd like them to be able to
+type and have laya categorize the response." A claim in those words is not a fact: "Characters will
+need the ability to verify claims", answering by character ("Okay, let's see the fish", "Give it to
+me", "Oh! Thank you so much, I have something special planned").
+
+**Plan, not built.** The [player speech spec](under-glass/specs/player-speech-spec.md) sets it out:
+the typed line goes to Laya with the acts the engine would allow toward that listener now, plus
+small talk, and a second question with the things the listener knows of, plus "none of these";
+the engine executes the reading through ordinary eligibility; a listener takes a claim on trust,
+asks to see it, demands it or doubts it from their own memory and trust in the speaker; a check is
+an event others witness; a lie taken on trust comes out only through perception. It extends
+design 5a (free text, misreading as a feature, Laya never writing) and sets where the agreed order
+leads: after asks with answers (step 3) and needs with real items (step 4), so a typed line has
+something to become and a claim something to be about.
+
+**First measurements (2026-10-13).** A probe ([write-up](under-glass/experiments/laya-categorize-2026-10-13.md))
+on 638 lines and 64 claim cases, judged blind first: player-style lines read right 60% of the time
+with fifteen options and 76% with six (readers 99%); claims 83%. `typed-decisions`' confidence was
+honest (at 0.7 or above, 94% right), `english`'s was not. Hence: offer only possible acts, take a
+confident reading, let the player pick from the top three otherwise, guard claim matches, keep
+`typed-decisions`.
+
+**Not changed.** Laya writes nothing; every villager's reply is authored (D48); nothing in the
+simulation reads the player's words except through Laya's typed reading of offered options.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
