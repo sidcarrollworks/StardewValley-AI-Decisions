@@ -17,8 +17,9 @@ when opened directly from disk. Older saved pages gain the current tools when op
 recordings list or the Tools page's address form, without rewriting their files.
 
 The tools use the dashboard's typography, palette, registration corners, raised controls and
-light/dark preference. `ui.css` supplies these primitives to the tool pages; exported dashboards
-keep their copy inline so they still open independently. A test keeps the copies aligned.
+light/dark preference. The theme switch sits in the shared top bar on the preview server.
+`ui.css` supplies these primitives to the tool pages; exported dashboards keep their copy inline
+so they still open independently. A test keeps the copies aligned.
 Speech opens with catalog-wide counts (situations, median fitting lines, repeat risk and missing
 voice-specific lines); definitions, source metadata and recording statistics are collapsed.
 Grid filters affect the grid, not those totals. Recordings leads with the three observer controls;

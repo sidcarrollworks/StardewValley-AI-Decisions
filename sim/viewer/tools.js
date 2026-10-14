@@ -61,6 +61,7 @@
       #ug-tools a:focus-visible {outline:2px solid var(--accent,#bd4206); outline-offset:2px}
       #ug-tools .ug-context {color:var(--muted,#655e53); font:var(--step--2,11px)/1.5 var(--font-data,monospace); overflow-wrap:anywhere; flex:1 1 220px}
       #ug-tools .ug-error {color:var(--accent,#bd4206)}
+      #ug-tools .theme {margin-inline-start:auto; flex:none; font-size:var(--step--1,13px)}
     `;
     document.head.append(style);
     const nav = document.createElement("nav"); nav.id = "ug-tools"; nav.setAttribute("aria-label", "Under Glass tools");
@@ -73,6 +74,9 @@
     const context = document.createElement("span"); context.className = "ug-context";
     const error = document.createElement("span"); error.className = "ug-error"; error.setAttribute("role", "status");
     nav.append(links, context, error); document.body.prepend(nav);
+    // Move the existing control so its listeners, pressed state and disk-only fallback survive.
+    const theme = document.querySelector("#themeBtn, [data-theme-toggle]");
+    if (theme) nav.append(theme);
     let source = null;
     const state = readState(location.hash);
     function refresh() {
