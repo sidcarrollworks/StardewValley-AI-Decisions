@@ -49,7 +49,10 @@ seeded draw; if neither exists, attach no anchor. Mistaken identities remain mis
 the subject's private profile, true intentions or future run events to fill gaps.
 
 This self-knowledge is separate from witnessed acts and beliefs. It creates no source act, gossip,
-regard prior, feeling or reflection opportunity. Reflection still requires an eligible actual
+regard prior, feeling or reflection opportunity. (Planned change, Sid 2026-10-13: a few standout
+anchors become *core memories* that do shape feelings and behaviour from the start, such as Penny's
+shame at her mother's drinking; design rule 18, "Core memories". Until that is built, this contract
+holds as written.) Reflection still requires an eligible actual
 memory. The anchor is context for interpreting that memory, not something the simulation says
 happened during this run. New run experiences continue to distinguish individuals over time.
 
