@@ -1,6 +1,7 @@
 /* Dashboard primitives. Kept inline in exported dashboards for standalone playback.
    The UI tests pin these tokens and primitives to index.html. */
 :root {
+  --page-width: 1680px; --page-gutter: 36px;
   color-scheme: light;
   --bg: #e8e3d9;          /* the ground: the same warm off-white as the panels */
   --surface: #e8e3d9;     /* panels */
@@ -59,11 +60,13 @@
   --key-on: linear-gradient(#22201c, #292622); --press: rgba(0, 0, 0, 0.4); --led-off: #5d564c; --glow: rgba(255, 120, 50, 0.5);
   --rule: rgba(64, 58, 51, 0.8); --sel-row: #3a2c21; --thumb-edge: #8f3f0d; --tip-bg: #0e0d0b; --tip-ink: #ece6dc;
 }
+html { scrollbar-gutter: stable; }
 * { box-sizing: border-box; }
 body {
   background-color: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.45; margin: 0;
 }
-.app { padding-inline: 16px; padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
+.app { padding-inline: var(--page-gutter); padding-block: 14px 48px; max-width: var(--page-width); margin: 0 auto; display: grid; gap: 14px; }
+@media (max-width: 760px) { :root { --page-gutter: 16px; } }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
 h1 { font-size: var(--step-1); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
 h2 { font-size: var(--step-1); }
@@ -88,20 +91,21 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .card, .marks { position: relative; }
 .card { background: var(--surface); border-radius: var(--radius); }
 
+
 /* Shared tool layout and disclosures. */
 :root { --panel:var(--surface-hi); --raised:var(--surface-hi); --hair:var(--line); --accent-soft:var(--accent-wash); --select:var(--accent-wash); }
 html { scrollbar-color:var(--line) transparent; }
-.tool-page main { max-width:1440px; margin:auto; padding:14px 16px 48px; }
+.tool-page main { max-width:var(--page-width); margin:auto; padding:14px var(--page-gutter) 48px; }
 .tool-page p { margin:8px 0; }
 .tool-page a { color:var(--ink-2); text-underline-offset:4px; text-decoration-color:var(--line); }
 .tool-page a:hover { color:var(--ink); text-decoration-color:var(--accent); }
 .tool-page :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 .tool-page [hidden] { display:none!important; }
-.tool-head { padding:20px; display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.tool-head { padding:20px 0; display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
 .tool-head p { color:var(--ink-2); font-size:var(--step--1); max-width:65ch; }
 .tool-head .label { display:block; margin-bottom:8px; }
 .tool-head .theme { font-size:var(--step--1); }
-.tool-section { margin-top:14px; padding:20px; min-width:0; }
+.tool-section { margin-top:14px; padding:20px 0; min-width:0; }
 .section-heading { display:flex; align-items:baseline; flex-wrap:wrap; justify-content:space-between; gap:10px; margin-bottom:16px; }
 .tool-page .key-link { display:inline-flex; align-items:center; justify-content:center; background:var(--key); border:1px solid var(--line); border-radius:8px; padding:6px 11px; box-shadow:var(--key-shadow); color:var(--ink); text-decoration:none; font-size:var(--step--1); font-weight:500; }
 .tool-page .key-link:hover { border-color:var(--muted); }
@@ -141,8 +145,6 @@ html { scrollbar-color:var(--line) transparent; }
 .tool-page .meta { color:var(--muted); font-size:var(--step--2); }
 .tool-page button.primary { background:var(--key); border-color:var(--accent); color:var(--ink); }
 @media(max-width:760px) {
-  .tool-page main { padding:12px 10px 36px; }
-  .tool-head, .tool-section { padding:16px; }
   .recording-grid { grid-template-columns:1fr; }
   .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .source-list { grid-template-columns:1fr; gap:4px; }

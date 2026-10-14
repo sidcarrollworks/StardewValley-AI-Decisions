@@ -11,7 +11,6 @@
     html { scrollbar-color:var(--line) transparent; }
     body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,sans-serif; caret-color:var(--accent); }
     ::selection { background:var(--select); }
-    main { max-width:1280px; padding:32px 16px 72px; margin:auto; }
     h1 { font-size:clamp(28px,3.6vw,40px); letter-spacing:-.03em; line-height:1.12; margin:0 0 12px; text-wrap:balance; } h2 { font-size:19px; letter-spacing:-.01em; line-height:1.25; margin:0; }
     p { margin:8px 0; } header>p { max-width:78ch; color:var(--muted); } a { color:var(--accent); text-underline-offset:3px; }
     .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:var(--tools-height,0px); z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:10px 0 0; }
@@ -76,13 +75,13 @@
     .add { margin-top:14px; font-size:13px; }
     .empty { color:var(--muted); font-size:14px; padding:10px 0; }
     .change { border-top:1px solid var(--hair); padding:10px 0; font-size:14px; display:grid; gap:2px; } .change del { color:var(--muted); } .change button { justify-self:start; margin-top:4px; font-size:12px; }
-    @media(max-width:700px) { main { padding:22px 16px 48px; } .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 16px 40px; } }
+    @media(max-width:700px) { .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 16px 40px; } }
     @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=20261014-3">
+<link rel="stylesheet" href="ui.css?v=20261014-4">
 <script src="ui.js"></script>
 </head>
 <body class="tool-page">
@@ -804,7 +803,7 @@ window.underGlassToolPage = {
   },
 };
 if (/^https?:$/.test(location.protocol)) {
-  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-3"; document.head.append(script);
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-4"; document.head.append(script);
 }
 </script>
 </body>

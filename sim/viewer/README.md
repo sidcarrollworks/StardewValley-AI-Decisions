@@ -264,3 +264,5 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
   same switches and numbers for the shipped town, so the viewer can show which differ.
 - Settings that are not finite numbers (a threshold of `Infinity` to turn something off) are
   written as the strings `"Infinity"`, `"-Infinity"` and `"NaN"`.
+
+All four tools share a 1680px page frame with 36px side gutters (16px at widths up to 760px). Navigation, titles and primary sections align to this frame; cards retain their own internal padding.
