@@ -74,7 +74,8 @@ The optional quiet-reflection prototype is specified in
   tools. Saved HTML is parsed for its inert run-data node; its scripts are not executed. Local
   picked files are not uploaded or persisted by this navigation and must be reopened separately.
   `ui.css` reuses the dashboard's visual primitives on tool pages (pinned to its standalone inline
-  copy by a test); `ui.js` shares its theme preference. Speech metrics remain catalog-wide while
+  copy by a test); `ui.js` shares its theme preference. The sticky navigation measures its height
+  for the dashboard timeline, speech controls and drawer offsets. Speech metrics remain catalog-wide while
   definitions and source details are disclosed on demand; recordings retain their artifact links
   beneath compact run cards and expandable experiment collections.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable

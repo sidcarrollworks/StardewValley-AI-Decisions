@@ -16,8 +16,9 @@ The navigation is available through the preview server; exported HTML still work
 when opened directly from disk. Older saved pages gain the current tools when opened through the
 recordings list or the Tools page's address form, without rewriting their files.
 
-The tools use the dashboard's typography, palette, registration corners, raised controls and
-light/dark preference. The theme switch sits in the shared top bar on the preview server.
+The tools use the dashboard's typography, palette, plain headings, raised controls and
+light/dark preference. The theme switch sits in the sticky shared top bar on the preview server. Its measured height
+keeps the dashboard timeline and speech controls below it, including when the bar wraps.
 `ui.css` supplies these primitives to the tool pages; exported dashboards keep their copy inline
 so they still open independently. A test keeps the copies aligned.
 Speech opens with catalog-wide counts (situations, median fitting lines, repeat risk and missing

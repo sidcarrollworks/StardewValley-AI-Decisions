@@ -19,7 +19,7 @@ Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboar
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
 character and tab preserved on return. This is viewer navigation only; the history assessment,
 causal visualization and archetype studio remain separate work. The tools now share the viewer's
-visual style and theme; compact speech metrics and expandable recording collections replace
+visual style and theme, plain titles and sticky top navigation; compact speech metrics and expandable recording collections replace
 long introductions while retaining definitions, provenance and experiment links.
 
 The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social

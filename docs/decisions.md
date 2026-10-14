@@ -1040,10 +1040,12 @@ require reopening in the destination tool. This adds no history or archetype mec
 causal graph and archetype studio remain assessment work.
 
 Sid then requested visual consistency with the dashboard and less introductory text. The tools
-reuse its palette, typography, controls, corner marks and persisted theme. Speech shows four
+reuse its palette, typography, controls and persisted theme. Speech shows four
 catalog-wide metrics with definitions and source details collapsed; these do not change with grid
 filters. The recording index puts the observer runs first and keeps setup, spoilers and older
-experiments in expandable sections. Every original recording and reference remains linked.
+experiments in expandable sections. Every original recording and reference remains linked. Sid requested plain title sections without
+corner marks, a sticky shared top bar, and no timeline shadow or Happening now top border. The
+bar height is measured so nested sticky controls and the speech drawer remain below navigation.
 
 ## Open work and known issues
 

@@ -53,7 +53,7 @@
     if (!page || !/^https?:$/.test(location.protocol)) return;
     const style = document.createElement("style");
     style.textContent = `
-      #ug-tools {font:var(--step--1,13px)/1.5 var(--font-body,system-ui),sans-serif; color:var(--ink,#211b16); background:var(--bg,#e8e3d9); border-bottom:1px solid var(--line,#bab2a4); padding:10px 20px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px}
+      #ug-tools {position:sticky; top:0; z-index:20; font:var(--step--1,13px)/1.5 var(--font-body,system-ui),sans-serif; color:var(--ink,#211b16); background:var(--bg,#e8e3d9); border-bottom:1px solid var(--line,#bab2a4); padding:10px 20px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px}
       #ug-tools .ug-links {display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:4px; background:var(--surface-2,#d2cbbe); border-radius:11px}
       #ug-tools a {color:inherit; padding:5px 10px; border:1px solid transparent; border-radius:8px; text-decoration:none; font-weight:600}
       #ug-tools a:hover {text-decoration:underline; text-underline-offset:3px}
@@ -77,6 +77,10 @@
     // Move the existing control so its listeners, pressed state and disk-only fallback survive.
     const theme = document.querySelector("#themeBtn, [data-theme-toggle]");
     if (theme) nav.append(theme);
+    // Wrapping links, source labels and font loading can all change the bar height.
+    const sizeBar = () => document.documentElement.style.setProperty("--tools-height", `${Math.ceil(nav.getBoundingClientRect().height)}px`);
+    sizeBar();
+    new ResizeObserver(sizeBar).observe(nav);
     let source = null;
     const state = readState(location.hash);
     function refresh() {

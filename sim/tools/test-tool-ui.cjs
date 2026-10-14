@@ -37,7 +37,7 @@ test('shared tools retain the standalone dashboard palette, typography and contr
   const normalize = (s) => s.replace(/\s+/g, ' ').trim();
   assert.ok(normalize(read('ui.css')).includes(normalize(primitives)));
   for (const name of ['speech.html', 'morning.html', 'tools.html']) {
-    assert.match(read(name), /href="ui.css"/);
+    assert.match(read(name), /href="ui\.css(?:\?[^" ]+)?"/);
     assert.match(read(name), /src="ui.js"/);
     assert.match(read(name), /data-theme-toggle/);
   }

@@ -14,7 +14,7 @@
     main { max-width:1280px; padding:32px 16px 72px; margin:auto; }
     h1 { font-size:clamp(28px,3.6vw,40px); letter-spacing:-.03em; line-height:1.12; margin:0 0 12px; text-wrap:balance; } h2 { font-size:19px; letter-spacing:-.01em; line-height:1.25; margin:0; }
     p { margin:8px 0; } header>p { max-width:78ch; color:var(--muted); } a { color:var(--accent); text-underline-offset:3px; }
-    .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:10px 0 0; }
+    .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:var(--tools-height,0px); z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:10px 0 0; }
     .controls .spacer { flex:1 1 0; } .controls .group { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     select,button,input,textarea { font:inherit; color:var(--ink); }
     select,button { padding:5px 10px; background:var(--raised); border:1px solid var(--line); border-radius:6px; cursor:pointer; transition:border-color .15s, background-color .15s; }
@@ -44,7 +44,7 @@
     .cell b { font-size:13px; line-height:1; color:var(--ink); } .cell.single b { font-size:17px; color:var(--cellink); } .cell.blank b { color:var(--muted); font-weight:400; }
     .mini { display:grid; gap:1px; } .mini i { display:block; width:9px; height:7px; border-radius:1.5px; }
     @media(min-width:1000px) { body.panel-open main { margin-right:min(520px,100vw); max-width:none; } }
-    aside { position:fixed; top:0; right:0; height:100vh; width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; z-index:5; padding:0 20px 48px; overscroll-behavior:contain; }
+    aside { position:fixed; top:var(--tools-height,0px); right:0; height:calc(100vh - var(--tools-height,0px)); width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; z-index:5; padding:0 20px 48px; overscroll-behavior:contain; }
     .drawerhead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:sticky; top:0; background:var(--panel); padding:18px 0 12px; z-index:1; border-bottom:1px solid var(--line); }
     .drawerhead h2:focus { outline:none; } .drawerhead .meta { margin:4px 0 0; max-width:52ch; }
     .meta { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
@@ -82,7 +82,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="ui.css?v=20261014-3">
 <script src="ui.js"></script>
 </head>
 <body class="tool-page">
@@ -804,7 +804,7 @@ window.underGlassToolPage = {
   },
 };
 if (/^https?:$/.test(location.protocol)) {
-  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-2"; document.head.append(script);
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-3"; document.head.append(script);
 }
 </script>
 </body>

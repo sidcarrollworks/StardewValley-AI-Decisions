@@ -7,8 +7,7 @@
 <style>
 /* Layout: a technical sheet. The controls across the top carry the run's clock on a recessed
    dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the left; the
-   inspector and the log stand on the right. Sections sit on one warm off-white ground, marked only
-   by registration corners. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
+   inspector and the log stand on the right. Sections sit on one warm off-white ground, with open, unadorned headings. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
    crimson for liking and dislike; a dark look of the same, chosen with the switch at the top (the
    choice is remembered; until one is made it follows the host's theme, then the system's). */
 :root {
@@ -95,14 +94,9 @@ button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; b
 button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
-/* A section is marked only by registration marks in two corners, as on a technical sheet. The
-   controls and the timeline are open sections on the ground (.marks); the rest are flat panels
-   (.card) of the same tone. */
+/* Flat panels share the same ground as the page. */
 .card, .marks { position: relative; }
 .card { background: var(--surface); border-radius: var(--radius); }
-.card::before, .card::after, .marks::before, .marks::after { content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none; }
-.card::before, .marks::before { top: 7px; left: 7px; border-top: 1px solid var(--muted); border-left: 1px solid var(--muted); }
-.card::after, .marks::after { bottom: 7px; right: 7px; border-bottom: 1px solid var(--muted); border-right: 1px solid var(--muted); }
 
 /* The masthead: one section. The run and its clock across the top; under them the ruler, the
    fader, and the playback keys with the ruler's legend. */
@@ -114,8 +108,8 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .townview canvas.dragging { cursor: grabbing; }
 .mapkeys { position: absolute; right: 0; bottom: 0; display: flex; gap: 4px; }
 .mapkeys button { font-size: var(--step--1); padding: 2px 9px; border-radius: 7px; min-width: 30px; }
-.topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
+.topline { padding: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.brand { display: grid; gap: 8px; min-width: 0; justify-items: start; }
 .topline .theme { font-size: var(--step--1); padding: 4px 10px; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
@@ -142,12 +136,12 @@ button.link:active { transform: none; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
-.playback { position: sticky; top: 0; z-index: 5; align-self: start; background: var(--bg); padding: 10px 20px; border-bottom: 1px solid var(--line); box-shadow: 0 4px 12px var(--press); }
+.playback { position: sticky; top: var(--tools-height, 0px); z-index: 5; align-self: start; background: var(--bg); padding: 10px 20px; border-bottom: 1px solid var(--line); }
 .timeline-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--ink-2); font-size: var(--step--2); }
 .timeline-focus .following { color: var(--accent); font-weight: 600; }
 .timeline-focus .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .timeline-focus .thought { border-radius: 0; transform: rotate(45deg); }
-html { scroll-padding-top: var(--playback-height, 180px); }
+html { scroll-padding-top: calc(var(--tools-height, 0px) + var(--playback-height, 180px)); }
 [id^="reflection-"] { scroll-margin-top: 12px; }
 @media (max-width: 650px) { .playback { padding: 8px 12px; } .playback .hint, .playback .legend { display: none; } .transport .speed { margin-inline-start: 0; } }
 .deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
@@ -201,7 +195,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .inner-details .chosen { color: var(--accent); }
 .inner-empty { padding: 25px 16px; border: 1px dashed var(--line); border-radius: 10px; display: grid; gap: 9px; }
 .inner-empty p { margin: 0; max-width: 64ch; }
-.observer { display: grid; gap: 9px; border-top: 1px solid var(--line); padding-top: 12px; }
+.observer { display: grid; gap: 9px; padding-top: 12px; }
 .observer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .observer-head > div, .observer-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .observer-head h2 { font-size: var(--step-0); }
@@ -392,7 +386,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 <div class="app" id="app">
   <div class="topline">
     <div class="brand">
-      <h1>Under Glass</h1>
+      <span class="label">Under Glass / Dashboard</span>
+      <h1>Run viewer</h1>
       <div class="run" id="runLabel">No run loaded</div>
       <button id="openBtn" class="link" type="button">Open a run…</button>
       <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -3207,6 +3202,6 @@ window.underGlassToolPage = {
   },
 };
 if (/^https?:$/.test(location.protocol)) {
-  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-2"; document.head.append(script);
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-3"; document.head.append(script);
 }
 </script>
