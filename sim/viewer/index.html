@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Under Glass Viewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1223,6 +1225,7 @@ const hideTip = () => { tip.hidden = true; timelineHover = null; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
+let toolRecordingSource = null; // A server URL, never a guessed path for a picked local file.
 const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, innerFocus: null, popSort: "household", popHigh: false, hood: "all",
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
@@ -3078,7 +3081,9 @@ function showTab(tab) {
   lastRelKey = lastStoryKey = lastPopKey = lastInnerKey = ""; render();
 }
 function start(run, source) {
+  setPlaying(false);
   try { R = load(run); } catch (err) { showError(err.message); return; }
+  toolRecordingSource = null;
   readColours();
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
@@ -3090,6 +3095,8 @@ function start(run, source) {
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
   setTime(meeting ? meeting.from + 30 : 9 * 60);
+  window.dispatchEvent(new Event("under-glass-recording"));
+  return true;
 }
 function showError(message) { $("runLabel").textContent = message; }
 $("play").addEventListener("click", () => R && setPlaying(!S.playing));
@@ -3171,7 +3178,10 @@ new ResizeObserver(() => { if (R && S.tab === "town" && $("groups").clientWidth 
 
 // A run carried inside the page (written by UnderGlass.Replay --html), or an invitation to open one.
 const embedded = $("run-data").textContent.trim();
-if (embedded) start(JSON.parse(embedded), null);
+if (embedded) {
+  start(JSON.parse(embedded), null);
+  if (/^https?:$/.test(location.protocol)) toolRecordingSource = location.origin + location.pathname;
+}
 else {
   $("groups").replaceChildren(el("div", { class: "empty" }, el("h2", { text: "Open a run to watch the town" }),
     el("button", { onclick: () => $("fileInput").click(), text: "Open a run…" }),
@@ -3179,5 +3189,23 @@ else {
     el("pre", { class: "data", style: "white-space:pre-wrap;font-size:var(--step--1)", text: "dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --out run1.json" }),
     el("p", { class: "note", text: "Or write the viewer with the run inside it, one file to open: use --html run1.html instead of --out." })));
   $("inspector").replaceChildren(el("p", { class: "note", text: "Nothing loaded yet." }));
+}
+// Navigation is a preview enhancement; standalone exported recordings need no external files.
+window.underGlassToolPage = {
+  page: "dashboard",
+  source: () => toolRecordingSource ?? (R ? null : undefined),
+  hasRecording: () => !!R,
+  state: () => R ? { t: Math.floor(S.t), person: R.names[S.person] ?? "", tab: S.tab } : {},
+  load: (run, source, state) => {
+    if (!start(run, source.split("/").pop())) throw new Error("The dashboard could not read this recording.");
+    toolRecordingSource = source;
+    S.person = R.names.indexOf(state.person);
+    if (state.tab) showTab(state.tab);
+    if (state.t !== undefined) setTime(state.t);
+    else render();
+  },
+};
+if (/^https?:$/.test(location.protocol)) {
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js"; document.head.append(script);
 }
 </script>

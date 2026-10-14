@@ -4,6 +4,18 @@ A page for watching one run of the town: everyone moving through the day, each p
 stance and acts, who regards whom, how each story spread, and the event log, all on one clock.
 It only reads a recorded run; it never runs the simulation or changes it.
 
+Start at `http://127.0.0.1:8766/sim/viewer/tools.html` to move between the dashboard,
+speech editor and prepared recordings. The shared navigation carries a server-hosted recording
+between tools and preserves the dashboard's time, selected character and tab in the link.
+Playback returns paused. Speech coverage considers the whole recording, not just the saved clock.
+The dashboard and speech editor accept `?run=` with a same-server JSON or saved dashboard HTML
+address; HTML imports read only the embedded run JSON, never execute the saved page's scripts.
+Recordings without speech still open in the dashboard; the editor explains when there is no speech
+table. Local files picked or dropped into a page must be opened separately in each tool.
+The navigation is available through the preview server; exported HTML still works independently
+when opened directly from disk. Older saved pages gain the current tools when opened through the
+recordings list or the Tools page's address form, without rewriting their files.
+
 Prepared local recordings are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`.
 Run `sim/tools/start-preview.ps1 -Open` from this checkout to start or reuse its loopback preview.
 The morning page compares authored, balanced Laya and experimental local-generation recordings;

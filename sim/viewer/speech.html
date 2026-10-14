@@ -230,6 +230,7 @@ const ONLY = {
 const possible = (kind, rel, mood) => { const o = ONLY[kind]; return !o || ((!o.relationship || o.relationship.includes(rel)) && (!o.mood || o.mood.includes(mood))); };
 const BAND_SHORT = { stranger: "S", acquaintance: "A", familiar: "F", close: "C", household: "H" };
 let original = null, pack = null, recording = null, open = null, drawer = null, byKind = new Map(), runIndex = new Map();
+let toolRecordingSource = null;
 let pendingDraft = null, gridTimer = 0;
 
 function node(tag, text, className) {
@@ -272,8 +273,10 @@ function loadRecording(text, source) {
   const run = JSON.parse(text);
   if (!Array.isArray(run.speech)) throw new Error("That recording has no speech table; record it with --speech.");
   recording = { source, rows: run.speech, label: run.label || "", seed: run.seed };
+  toolRecordingSource = null;
   for (const option of $("metric").options) option.disabled = false;
   refresh();
+  window.dispatchEvent(new Event("under-glass-recording"));
 }
 function restoreDraft() {
   let draft = null;
@@ -406,7 +409,7 @@ function renderHeadline() {
       + (top ? `; the most used, “${topLine ? topLine.text : top[0]}”, ${top[1]} times.` : ".");
   }
   $("headline").textContent = text;
-  $("source").textContent = `Catalog: ${original.source} (${pack.lines.length} lines)` + (recording ? ` · Recording: ${recording.source}${recording.label ? ` (${recording.label})` : ""}` : " · No recording open: open one recorded with --speech to see what was actually said.");
+  $("source").textContent = `Catalog: ${original.source} (${pack.lines.length} lines)` + (recording ? ` · Recording: ${recording.source}${recording.label ? ` (${recording.label})` : ""} · Coverage includes the whole recording; the dashboard clock is preserved for your return.` : " · No recording open: open one recorded with --speech to see what was actually said.");
 }
 function renderGrid() {
   const { rels, moods } = bands(), metric = METRICS[$("metric").value];
@@ -725,7 +728,7 @@ document.addEventListener("drop", async (e) => {
   try { const text = await file.text(), data = JSON.parse(text); if (Array.isArray(data.speech)) { if (!pack) throw new Error("Open the catalog first."); loadRecording(text, file.name); } else loadCatalog(text, file.name); }
   catch (error) { showError(error.message); }
 });
-(async function boot() {
+const catalogReady = (async function boot() {
   try {
     const response = await fetch("../UnderGlass.Sim/speech-catalog.json", { cache: "no-store" });
     if (!response.ok) throw new Error(String(response.status));
@@ -734,16 +737,24 @@ document.addEventListener("drop", async (e) => {
     showNotice("Open speech-catalog.json with Open catalog… to begin. The page reads it from the checkout when served by sim/tools/start-preview.ps1.");
     return;
   }
-  const run = new URLSearchParams(location.search).get("run");
-  if (!run) return;
-  try {
-    const url = new URL(run, location.href);
-    if (url.origin !== location.origin) throw new Error("A recording must come from this preview server.");
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Could not read ${run} (${response.status}).`);
-    loadRecording(await response.text(), run.split("/").pop());
-  } catch (error) { showError(error.message); }
 })();
+window.underGlassToolPage = {
+  page: "speech",
+  ready: catalogReady,
+  source: () => toolRecordingSource ?? (recording ? null : undefined),
+  hasRecording: () => !!recording,
+  load: (run, source) => {
+    // Keep the return link even when an older recording has no speech table.
+    toolRecordingSource = source;
+    if (!pack) throw new Error("Open the speech catalog, then reopen the recording.");
+    if (!Array.isArray(run.speech)) throw new Error("This recording has no speech table. You can still edit the catalog or return to the dashboard.");
+    loadRecording(JSON.stringify(run), source.split("/").pop());
+    toolRecordingSource = source;
+  },
+};
+if (/^https?:$/.test(location.protocol)) {
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js"; document.head.append(script);
+}
 </script>
 </body>
 </html>

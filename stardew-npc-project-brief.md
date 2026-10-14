@@ -15,6 +15,11 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
+and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
+character and tab preserved on return. This is viewer navigation only; the history assessment,
+causal visualization and archetype studio remain separate work.
+
 The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social
 simulation viewed from above. Player gameplay comes afterward. The next milestone is a short run
 whose people and choices are worth following: observers can see what someone remembers, imagines,

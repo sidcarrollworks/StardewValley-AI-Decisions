@@ -1029,6 +1029,16 @@ seeds of 28 days, noes went from 9% to 30% (49% at 0.5); tiredness carries nearl
 company is in the evening and the town's moods rarely fall below even. Each invitation records the
 state behind its answer. See the [invitation spec](under-glass/specs/invitation-spec.md).
 
+### Observer tools navigation (2026-10-14)
+
+Sid requested connected testing tools while the history assessment proceeds. A tools landing page
+and shared preview navigation connect the dashboard, speech editor and recording index. Links
+carry the same server-hosted recording and the dashboard's time, character and tab; returning is
+paused. Existing saved HTML can be opened in the current viewer by extracting its run JSON,
+without rewriting the artifact or executing its scripts. Local picked files remain local and
+require reopening in the destination tool. This adds no history or archetype mechanics; the
+causal graph and archetype studio remain assessment work.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
