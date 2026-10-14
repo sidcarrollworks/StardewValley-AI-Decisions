@@ -547,7 +547,7 @@ function closeDrawer() {
   }
 }
 function drawerHead(title, sub) {
-  const head = node("div", null, "drawerhead"), text = node("div"), close = node("button", null, "quiet drawer-close");
+  const head = node("div", null, "drawerhead"), text = node("div"), close = node("button", null, "drawer-close");
   const icon = node("span", "×"); icon.setAttribute("aria-hidden", "true"); close.append(icon);
   const h = node("h2", title); h.id = "drawer-title"; h.tabIndex = -1;
   text.append(h);
