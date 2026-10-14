@@ -273,8 +273,8 @@ trait that makes them prone to specific things." Built on the indulgences above,
 | Proneness | a trait-like value per person and indulgence, inherited as traits are (rule 18) and never keyed to a name; it sets how fast use becomes addiction |
 | Drain | fun drains `AddictedDrain` (2) times as fast: Pam's bored line falls from about 2.5 days to about 1.25 |
 | Cure | a dose (a drink at the Saloon, `Drinks`; a beer at home, from the errands' beer) fills fun more than an ordinary outing does, so home counts: her beer errands become her drinking at home |
-| Tolerance | each dose's fill shrinks with recent use, down to a floor (`ToleranceFloor`), and recovers with time without, so she needs more, up to a limit; more drinks cost the Trailer's purse more |
-| Numbers | from `docs/under-glass/generations-research.md` (addiction part, in progress), tuned "to match real life somewhat" |
+| Tolerance | each dose cures less as dependence grows, down to a floor (`ToleranceFloor`, 0.5: at most two drinks for a full fill), and recovers with time without, so she needs more, up to a limit; more drinks cost the Trailer's purse more. The research's reading: liking doesn't fall with heavy use; what grows is the low between doses, which one dose cancels less of |
+| Numbers | the [research](../generations-research.md), Part 1: state per person and indulgence (proneness, recent use, adaptation, a slow scar that pulls a dry drinker back), a dead band before dependence, `AddictedDrain` 2.5 recommended against Sid's 2 (Pam bored about 25 hours after her last drink, against 32), built in four stages (A: Sid's simple method from starting data; B: tolerance, which moves money; C: the daily dynamics; D: generations); its nine questions for Sid are in its section 5 |
 
 Penny's concern reads the same indulgence, so the more Pam drinks at home, the more Penny sees it.
 
@@ -410,8 +410,8 @@ lowest 0.34 (Shane, the Saloon).
 rec 6. your rec 7. your rec 8. your rec 9. your rec 10. your rec 11. your rec. Core memories also have a
 chance of being somewhat passed on. We should research how these things work in real life and simplify
 it." So each recommendation below is the decision, hunger is B with the trip that can fail (above), and
-core memories passing on with a chance joins rule 18 (research in progress,
-`docs/under-glass/generations-research.md`).
+core memories passing on with a chance joins rule 18 (research:
+[generations-research.md](../generations-research.md), Part 2).
 
 | # | Question | Decision (the recommendation, taken) |
 |---|---|---|
