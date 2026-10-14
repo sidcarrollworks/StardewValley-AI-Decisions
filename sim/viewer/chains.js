@@ -60,7 +60,14 @@
       const cards=el('div',undefined,'stage-nodes');col.append(cards);
       if(!nodes.length)col.append(el('p','Nothing visible yet','stage-empty'));
       for(const n of shown){const b=button('',()=>select(n.id),'chain-node');b.dataset.node=n.id;b.setAttribute('aria-pressed',String(n.id===selected));b.setAttribute('aria-label',`${stage}: ${n.label}`);b.title=n.label;
-        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));cards.append(b);}
+        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));
+        if(n.data.type==='expectation'){
+          const chance=n.data.state?.chance, value=pct(chance).replace('.0%','%'), summary=Number.isFinite(chance)?`${value} expected chance`:'Chance not recorded yet';
+          const metric=el('span',undefined,'node-chance');
+          if(Number.isFinite(chance))metric.append(el('strong',value),el('span','expected chance'));else metric.textContent=summary;
+          b.append(metric);b.setAttribute('aria-label',`${stage}: ${n.label} · ${summary}`);
+        }
+        cards.append(b);}
       if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);
     }

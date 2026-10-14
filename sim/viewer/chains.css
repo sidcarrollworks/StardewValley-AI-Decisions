@@ -12,6 +12,7 @@ select {max-width:100%;background:var(--surface-hi);color:var(--ink);border:1px 
 .chain-node {min-width:0;overflow-wrap:anywhere}.chain-node.off-path .node-label {color:var(--muted)}.chain-node.off-path:hover .node-label,.chain-node.off-path:focus-visible .node-label {color:var(--ink)}
 .chain-node .node-label {font-size:var(--step--1);font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
 .chain-node small {font:var(--step--2)/1.5 var(--font-data);color:var(--muted)}
+.chain-node .node-chance {display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:var(--step--2);color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px}.node-chance strong {font:600 var(--step--1)/1.5 var(--font-data);font-variant-numeric:tabular-nums;color:var(--ink)}
 .chain-node[aria-pressed=true] {border-color:var(--accent);background:var(--accent-wash)}.chain-node.related {border-color:var(--muted);border-style:dashed}
 .stage .more {font-size:var(--step--2);box-shadow:none;background:none}.stage-empty {color:var(--muted);font-size:var(--step--2)}
 #connections {position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}#connections>path {fill:none;stroke:var(--accent);stroke-width:1.6;opacity:.85}#connections marker path {fill:var(--accent);stroke:none}
