@@ -43,9 +43,12 @@
     .cell b { font-size:13px; line-height:1; color:var(--ink); } .cell.single b { font-size:17px; color:var(--cellink); } .cell.blank b { color:var(--muted); font-weight:400; }
     .mini { display:grid; gap:1px; } .mini i { display:block; width:9px; height:7px; border-radius:1.5px; }
     @media(min-width:1000px) { body.panel-open main { margin-right:min(520px,100vw); max-width:none; } }
-    aside { position:fixed; top:var(--tools-height,0px); right:0; height:calc(100vh - var(--tools-height,0px)); width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; z-index:5; padding:0 20px 48px; overscroll-behavior:contain; }
+    aside { position:fixed; top:var(--tools-height,0px); right:0; height:calc(100vh - var(--tools-height,0px)); width:min(520px,100vw); background:var(--panel); border-left:1px solid var(--line); box-shadow:-8px 0 28px var(--shadow); overflow-y:auto; scrollbar-gutter:stable both-edges; z-index:5; padding:0 12px 48px; overscroll-behavior:contain; }
     .drawerhead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:sticky; top:0; background:var(--panel); padding:18px 0 12px; z-index:1; border-bottom:1px solid var(--line); }
     .drawerhead h2:focus { outline:none; } .drawerhead .meta { margin:4px 0 0; max-width:52ch; }
+    .drawerhead .drawer-close { display:grid; place-items:center; flex:none; width:32px; height:32px; padding:0; font-size:24px; line-height:1; }
+    .drawer-help.tool-disclosure { border-top:0; margin-top:0; }
+    .drawer-help .panelkey { margin-top:8px; }
     .meta { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
     .section { margin-top:28px; } .section>h3, .section>summary { font-size:13px; font-weight:600; letter-spacing:.01em; margin:0 0 4px; color:var(--ink); display:flex; align-items:baseline; gap:8px; }
     .section>h3 .meta, .section>summary .meta { font-weight:400; }
@@ -75,7 +78,7 @@
     .add { margin-top:14px; font-size:13px; }
     .empty { color:var(--muted); font-size:14px; padding:10px 0; }
     .change { border-top:1px solid var(--hair); padding:10px 0; font-size:14px; display:grid; gap:2px; } .change del { color:var(--muted); } .change button { justify-self:start; margin-top:4px; font-size:12px; }
-    @media(max-width:700px) { .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 16px 40px; } }
+    @media(max-width:700px) { .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 12px 40px; } }
     @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -544,11 +547,12 @@ function closeDrawer() {
   }
 }
 function drawerHead(title, sub) {
-  const head = node("div", null, "drawerhead"), text = node("div"), close = node("button", "Close", "quiet");
+  const head = node("div", null, "drawerhead"), text = node("div"), close = node("button", null, "quiet drawer-close");
+  const icon = node("span", "×"); icon.setAttribute("aria-hidden", "true"); close.append(icon);
   const h = node("h2", title); h.id = "drawer-title"; h.tabIndex = -1;
   text.append(h);
   if (sub) text.append(node("p", sub, "meta"));
-  close.type = "button"; close.onclick = closeDrawer; close.setAttribute("aria-label", "Close the panel");
+  close.type = "button"; close.onclick = closeDrawer; close.setAttribute("aria-label", "Close the panel"); close.title = "Close panel (Esc)";
   head.append(text, close);
   return head;
 }
@@ -606,13 +610,20 @@ function renderCell(aside) {
   const where = `${rels.length > 1 ? "every relationship" : rels[0]}, ${moods.length > 1 ? "every mood" : `${moods[0]} mood`}`;
   const counts = contexts.map((s) => s.n), min = Math.min(...counts), max = Math.max(...counts);
   aside.replaceChildren(drawerHead(`${kindLabel(kind)} · ${voiceLabel(arch)}`,
-    `${where}: ${min === max ? min : `${min} to ${max}`} lines fit`
-    + (recording ? `, said ${contexts.reduce((a, s) => a + s.rows.length, 0)} times in the recording` : "")
-    + `. The percentage is each line's ${contexts.length > 1 ? "average " : ""}chance of being picked${contexts.length > 1 ? " across them" : ""}.`));
+    `${min === max ? min : `${min}–${max}`} lines fit`
+    + (recording ? ` · ${contexts.reduce((a, s) => a + s.rows.length, 0)} recorded` : "")));
+  const help = node("details", null, "drawer-help tool-disclosure");
+  help.append(node("summary", "How these lines are chosen"));
+  help.open = sectionsOpen.has("help");
+  help.ontoggle = () => { if (help.open) sectionsOpen.add("help"); else sectionsOpen.delete("help"); };
+  const explanation = node("div", null, "detail-body");
+  explanation.append(node("p", `${where}. The percentage is each line's ${contexts.length > 1 ? "average " : ""}chance of being picked${contexts.length > 1 ? " across these situations" : ""}.`));
   const how = node("p", null, "panelkey");
   how.append(bandKey(RELATIONSHIPS, MOODS), node("span", `Each line's squares are its chance in every situation for a ${voiceLabel(arch)} speaker: the deeper the green, the likelier; empty means it cannot be said there${narrowed ? "; outlined squares are the ones chosen above" : ""}. Hover a square for its number.`));
-  aside.append(how);
-  if (ONLY[kind]) aside.append(node("p", ONLY[kind].why + (every.some((s) => s.possible) ? "" : " None of the bands chosen above can happen; the lines are shown as if they could."), "notice"));
+  explanation.append(how);
+  if (ONLY[kind]) explanation.append(node("p", ONLY[kind].why, "notice"));
+  help.append(explanation); aside.append(help);
+  if (!every.some((s) => s.possible)) aside.append(node("p", "These filters describe an unavailable situation. Lines below are hypothetical.", "notice"));
   const row = (line) => lineRow(line, info.get(line), contexts.length);
   const addButton = (voice) => {
     const button = node("button", voice === NONE ? "Add a line for any speaker" : `Add a ${voiceLabel(voice)} line`, "add");

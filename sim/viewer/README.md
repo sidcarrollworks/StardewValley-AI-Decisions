@@ -266,3 +266,5 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
   written as the strings `"Infinity"`, `"-Infinity"` and `"NaN"`.
 
 All four tools share a 1680px page frame with 36px side gutters (16px at widths up to 760px). Navigation, titles and primary sections align to this frame; Happening now and the dashboard tabs also use that gutter, while individual event cards retain their own internal padding.
+
+The speech drawer keeps its coverage explanations in “How these lines are chosen”; the close icon retains an accessible name and Escape support. Matching scrollbar gutters balance its side padding.
