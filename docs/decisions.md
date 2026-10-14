@@ -830,6 +830,9 @@ recorded time. This is a partial initial history and an editorial archetype inte
 not a claim of automatic canon reconstruction or established model quality. Ordinary spoken
 templates and thought/action semantic agreement need separate work.
 
+*Read with D53 (2026-10-14): the anchors are background context for the models, not a history; seven
+were corrected.*
+
 ### D45. Test private wording with the intention already fixed
 
 **Decision (2026-10-12, Sid).** Distinct voice cannot be established by longer personality
@@ -1070,6 +1073,79 @@ than coldness, keeping Pam from the saloon), to decide with the needs bars revis
 someone who works through the counter's hours; whether people should count their own hours when
 asked is open. Penny said no to beer eight times, all to her mother, most at margins that would
 otherwise have been clear yeses. See the [needs spec](under-glass/specs/needs-spec.md).
+
+*Read with D53 (2026-10-14): the concern no longer waits for needs bars, which are unresolved.*
+
+### D53. History before bars: the pack's anchors are context for the models, not memories, and seven are corrected first
+
+**Decision (Sid, 2026-10-14).** His directions of that day are verbatim in the [Lives
+assessment](under-glass/lives-gap-assessment.md), appendices A-E. For this entry:
+- **Order.** Histories, associations and meaningful actions come before any decision on how needs
+  bars influence behaviour. Next is the Lives pilot: one complete thread for Penny, Pam and Gus,
+  from history through recall, competing choices and an attempt to each person's perceived outcome
+  and what they learn, on general mechanisms and character data, never name switches. The same
+  mechanisms then go to Evelyn, George and Alex before the population grows. "The observer product
+  comes first; player gameplay remains later."
+- **Law 1 unchanged.** Its sentence "There is no separate list of needs for social life" governs.
+  The amendment asked for on 2026-10-13 (PR #91) is on hold.
+- **Bars unresolved,** neither scheduled nor rejected: "Later, assess how bodily pressures interact
+  with this richer system. Don't choose a formula now because it reduces aggregate boredom or
+  loneliness." The bars experiment (PR #92) stays a draft and none of its modes is promoted: its
+  "pure Spinoza" mode "tests sadness applied to an incomplete system", and "Its results don't
+  establish that the underlying principle needs changing." This supersedes D52's "to decide with the
+  needs bars revisit" and the roadmap's "Then, revisit needs bars".
+- **The anchors are background, not history.** The pack's anchors (D44) are private context for the
+  generator and Laya. As D44 says, they create no act, belief, feeling, gossip, regard prior or
+  opportunity, so nothing in the sim yet starts with a history that shapes behaviour; an anchor
+  reaches a choice only through the models' reading. Histories that do are planned in the
+  assessment: facts, completed pasts, recurring practices and each holder's readings kept apart,
+  admitted by the three rules of Codex's [history
+  audit](under-glass/experiments/history-evidence-audit-2026-10-14.md) and counted once. The audit
+  is cited and kept as written.
+- **Seven anchors are corrected first, in their own PR, before any history reuses them.** Four said
+  more than their sources: `maru-clinic` (her Tuesday and Thursday work, and Harvey's wish, as she
+  reports it, to have her there in case his equipment breaks down; no completed repair: `Maru:Wed`),
+  `linus-tent` (only that his tent has been destroyed before; no "someone", no wariness of visitors,
+  and his plea to the farmer stays voice evidence: `Linus:Fri`), `demetrius-valley` (the ecosystem
+  made him excited to move, not why he moved; `Introduction`'s present work no longer folded in:
+  `Demetrius:Tue`) and `clint-pressure` ("not the future I wanted" is in no source; now `Sun8`'s
+  weaker wording, that as a boy it wasn't really his dream, beside `Mon4`'s pressure). One was
+  under-cited: `alex-childhood` ("young" rests on `Data/Events/Beach:288847`, now cited; the text is
+  unchanged and no date is given). One was mis-cited and repeated another: `jas-parents` (drops
+  `Jas:Mon`, which doesn't mention her parents, and "Shane was a friend of theirs", held once in
+  `jas-shane`). One gave its holder another's account: `george-evelyn-meeting` (only Evelyn tells
+  the meeting, `Data/Festivals/winter8:Evelyn`; George keeps the participant fact, a snowball at the
+  Festival of Ice, and her report of his purpose and her reading of him leave it).
+- **Penny and alcohol.** Her absolute refusal to provide alcohol is Sid's product commitment (D52,
+  kept as written), not extended to accepting or drinking alcohol without a separate decision. Canon
+  supports it as characterization but does not prove it: she hates beer, wine, pale ale, mead and
+  hops as gifts, and item 873, a drink Pam loves (its name VERIFY; `Data/NPCGiftTastes:Penny`); the
+  game never has her suggest Pale Ale, Beer, Wine or Mead as a gift for Pam (game `NPC.cs:3667`).
+  Canon never calls Pam's drinking alcoholism; the admitted lines are milder: a problem with going
+  to the saloon too much (`Penny:Mon4`), way too much beer (`Gus:Thu8`), not healthy
+  (`Pam:summer_Thu4`). Penny's strongest words ("I don't want you destroying yourself!") come in a
+  quarrel the farmer joins (`Data/Events/Trailer:35`), so they are voice evidence only. Her wish to
+  keep her mother from the Saloon no longer waits for bars; the pilot takes up her care for Pam.
+
+**Why.** Sid: "text supplied to a model is not equivalent to a history that shapes behavior."
+Calling the anchors "a partial initial history" (D44), "a partial starting history"
+(`sim/README.md`) or "historical anchors" (the brief) invited reading 101 anchors as 101 memories.
+The audit found anchors that overlap (`jas-shane` and `jas-parents`; `leah-city` and `leah-kel`),
+which would count one experience twice, and four needing correction; its check found three more.
+Correcting them before reuse keeps unsupported detail out of anything that will later move a number.
+
+**What changes.** `sim/character-inspiration.json` (seven anchors, and a dated sentence appended to
+its provenance) and the docs. Without `--character-inspiration`, every run is byte-identical. With
+it, the pack's runtime hash moves from `67aff67c…` to `dd6be675…`; every profiled request's snapshot
+carries it, so every exact tape recorded with the earlier pack fails replay (the recording stays
+viewable; replay it with `git show a0a40ef:sim/character-inspiration.json`). Prompt text changes
+only where one of six anchors is drawn; `alex-childhood` changes only its sources, which no model
+sees. No anchor changes holder, subjects or ID, so the same anchor is drawn as before. Every profile
+still holds 2 or 3 anchors of at most 120 characters. Eight tests pin the corrected sources and the
+claims removed. D44 and D52 stay as written, each with a pointer here.
+
+**If you undo it.** The anchors would again say more than their sources, and calling them memories
+would again invite seeding behaviour from prompt text.
 
 ## Open work and known issues
 

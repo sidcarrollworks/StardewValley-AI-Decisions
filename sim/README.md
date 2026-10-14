@@ -4,17 +4,20 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Development base:** Sid designated `codex/reflection-prototype` as the ongoing Under Glass branch on 2026-10-08. Start new game feature branches from its latest remote revision and target it with PRs.
 
-**Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers.
+**Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers. Since 2026-10-14 the next work is the Lives pilot: histories, associations and meaningful actions in one complete Penny, Pam and Gus thread ([assessment](../docs/under-glass/lives-gap-assessment.md), D53). Needs bars are unresolved, not scheduled and not rejected.
 
-**Private voices and initial history:** add `--character-inspiration sim/character-inspiration.json`
+**Private voices and background:** add `--character-inspiration sim/character-inspiration.json`
 to a reflection replay command. Reusable archetypes provide drives, coping and cadence; named
 profiles add personal accents and reviewed pre-farmer background. Each request copies only the
 actor's relevant/general anchor, shared by generator and Laya. Background creates no act, belief,
 gossip, social prior or opportunity. Inner life details retain sources and the full pack hash;
 exact tapes require the same pack. No flag preserves previous behavior/prompts. Authored thoughts
-remain the existing catalog, so use hybrid to evaluate the new generated voice. This is a partial
-starting history, not all canonical memories or a large spoken-template library. See the
-[contract](../docs/under-glass/specs/character-inspiration-spec.md) and
+remain the existing catalog, so use hybrid to evaluate the new generated voice. The anchors are
+private context for the models, not memories and not a history that shapes behaviour; such histories
+are planned in the [Lives assessment](../docs/under-glass/lives-gap-assessment.md), and the [history
+audit](../docs/under-glass/experiments/history-evidence-audit-2026-10-14.md) classifies every
+anchor. Seven were corrected on 2026-10-14 (D53). Nor is the pack a large spoken-template library.
+See the [contract](../docs/under-glass/specs/character-inspiration-spec.md) and
 [source review](../docs/under-glass/experiments/character-voices-2026-10-12.md).
 
 ```powershell
