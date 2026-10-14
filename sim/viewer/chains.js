@@ -2,7 +2,7 @@
   'use strict';
   const M=window.UnderGlassChains, $=id=>document.getElementById(id);
   const EXAMPLE='fixtures/lives-observer-example-v0.1.json';
-  let model=null, source=null, tick=0, who=0, observer=false, thread=null, selected=null, current=null, moment=null, timer=null, expanded=new Set();
+  let model=null, source=null, tick=0, who=0, observer=false, thread=null, selected=null, current=null, moment=null, timer=null, expanded=new Set(),traceRoot=null,trace=null,traceOnly=true;
   const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
   const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b;};
   const pct=n=>Number.isFinite(n)?`${(n*100).toFixed(1)}%`:'Not recorded';
@@ -41,7 +41,7 @@
   }
   function notify(){history.replaceState(null,'',`${location.pathname}${location.search}#${new URLSearchParams({t:tick,person:model?.run.names[who]??'',tab:'inner'})}`);window.dispatchEvent(new Event('under-glass-recording'));}
   function accept(run,url,state={}){
-    const parsed=M.open(run);stop();model=parsed;source=url;selected=null;thread=null;expanded.clear();$('error').hidden=true;
+    const parsed=M.open(run);stop();model=parsed;source=url;selected=null;traceRoot=null;trace=null;thread=null;expanded.clear();$('error').hidden=true;
     $('workspace').hidden=model.missing;$('empty').hidden=!model.missing;$('illustrative').hidden=!(run.illustrative||run.lives?.illustrative);
     $('source-state').textContent=model.missing?'No Lives data':`Lives ${model.lives.version} · ${run.lives.illustrative?'illustrative fixture':'recorded run'}`;
     if(model.missing){notify();return;}
@@ -56,13 +56,14 @@
     render();
   }
   async function example(state={}){try{const url=new URL(EXAMPLE,location.href).href;const run=await window.UnderGlassTools.readRecording(url,location.href);accept(run,url,state);}catch(e){error(e);}}
-  function select(id){selected=id;renderGraph();renderInspector();}
-  function closeInspector(){const previous=selected;selected=null;renderGraph();renderInspector();const node=[...$('graph').querySelectorAll('[data-node]')].find(n=>n.dataset.node===previous);node?.focus({preventScroll:true});}
+  function select(id){selected=id;if(current.all.get(id)?.table==='decisions'){traceRoot=id;traceOnly=true;}trace=M.choicePath(current,traceRoot);if(trace&&!trace.ids.has(id))traceOnly=false;renderTrace();renderGraph();renderInspector();}
+  function closeInspector(){const previous=selected;selected=null;traceRoot=null;trace=null;renderTrace();renderGraph();renderInspector();const node=[...$('graph').querySelectorAll('[data-node]')].find(n=>n.dataset.node===previous);node?.focus({preventScroll:true});}
   function render(){
     if(!model||model.missing)return;
     current=M.view(model,{tick,who,observer,thread});thread=current.selected?.id??null;
     moment=M.currentMoment(current.nodes,tick);
     if(!current.nodes.some(n=>n.id===selected))selected=null;
+    trace=M.choicePath(current,traceRoot);if(!trace)traceRoot=null;
     $('thread').replaceChildren(...current.threads.map(t=>{const o=el('option',t.title);o.value=t.id;return o;}));$('thread').value=thread??'';
     $('thread-summary').textContent=current.selected?.summary??'No thread is visible at this moment.';
     $('thread-summary').hidden=current.selected?.summary===current.selected?.title;
@@ -71,9 +72,10 @@
     const moments=M.moments(model,who,observer).filter(t=>t>=Number($('time').min));$('previous').disabled=!moments.some(t=>t<tick);$('next').disabled=!moments.some(t=>t>tick);$('play').disabled=$('next').disabled;
     $('comparison-section').hidden=!observer||!current.comparisons.length;
     if(!observer){$('comparisons').hidden=true;$('compare-toggle').setAttribute('aria-expanded','false');$('compare-toggle').textContent='Open isolated comparisons';}
-    renderMoment();renderGraph();renderInspector();renderComparisons();notify();
+    renderMoment();renderTrace();renderGraph();renderInspector();renderComparisons();notify();
   }
   function locate(id){
+    if(trace&&traceOnly&&!trace.ids.has(id)){traceOnly=false;renderTrace();renderGraph();}
     const node=[...$('graph').querySelectorAll('[data-node]')].find(n=>n.dataset.node===id);
     if(node){
       node.scrollIntoView({block:'center',behavior:'instant'});
@@ -92,14 +94,39 @@
       b.title=nodes.map(n=>n.label).join('\n');b.setAttribute('aria-label',`Find ${stage.toLowerCase()} cards at ${clock(moment.at)}`);links.append(b);
     }
   }
+  function renderTrace(){
+    const panel=$('choice-path');panel.hidden=!trace;panel.replaceChildren();if(!trace)return;
+    const head=el('div',undefined,'path-heading'),title=el('div');
+    title.append(el('small',trace.pending?'Considering this choice':'Following this choice'),el('h2',current.all.get(trace.root).label));
+    head.append(title);const controls=el('div',undefined,'path-controls');
+    const toggle=button(traceOnly?'Show whole thread':'Show only this path',()=>{traceOnly=!traceOnly;renderTrace();renderGraph();});toggle.setAttribute('aria-pressed',String(traceOnly));
+    controls.append(toggle,button('Clear path',closeInspector));head.append(controls);panel.append(head);
+    if(trace.chosen)panel.append(el('p',`Chose: ${trace.chosen}`,'path-chosen'));
+    const reasons=el('div',undefined,'path-reasons');
+    for(const [role,label,tone] of [['supports','↑ Supports','up'],['conflicts','↓ Pulls against','down'],['context','· Context','same']]){
+      const ids=[...trace.roles].filter(([,roles])=>roles.has(role)).map(([id])=>id);if(!ids.length)continue;
+      reasons.append(button(`${label} · ${ids.length}`,()=>locate(ids[0]),`path-role change-${tone}`));
+    }
+    if(trace.pending)panel.append(el('small','Choice pending · memories are context until an option is selected.'));
+    else if(trace.roles.size)panel.append(el('small','Memory roles refer to the chosen option.'));
+    panel.append(reasons);
+    const steps=el('nav',undefined,'path-steps');steps.setAttribute('aria-label','Follow recorded consequences');
+    const after=current.nodes.filter(n=>trace.after.has(n.id)&&n.id!==trace.root);
+    for(const stage of ['Choice','Attempt','Outcome','Perceived','Learned']){
+      const nodes=after.filter(n=>n.stage===stage);if(!nodes.length)continue;
+      steps.append(button(`${stage==='Choice'?'Later choices':stage} · ${nodes.length}`,()=>locate(nodes[0].id)));
+    }
+    if(!after.some(n=>n.table==='attempts'))steps.append(el('span','No linked attempt recorded yet.','meta'));
+    panel.append(steps);
+  }
   function renderGraph(){
     const stages=$('stages');stages.replaceChildren();
-    const focus=current.all.get(selected);const related=new Set([...(focus?.refs??[]),...current.nodes.filter(n=>n.refs.includes(selected)).map(n=>n.id)]);
+    const focus=current.all.get(selected);const related=trace?trace.ids:new Set([...(focus?.refs??[]),...current.nodes.filter(n=>n.refs.includes(selected)).map(n=>n.id)]);
     const order=['History','Recall','Choice','Attempt',...(observer?['Outcome']:[]),'Perceived','Learned'];
     stages.style.setProperty('--stage-count',order.length);
     for(const [index,stage] of order.entries()){
-      const col=el('section',undefined,'stage'),nodes=current.nodes.filter(n=>n.stage===stage);const h=el('h2');h.append(el('span',String(index+1),'stage-number'),el('span',stage,'stage-name'),el('span',String(nodes.length),'stage-count'));col.append(h);
-      // Always show the selected node and its immediate path, even among older collapsed history.
+      const col=el('section',undefined,'stage'),nodes=current.nodes.filter(n=>n.stage===stage&&(!trace||!traceOnly||trace.ids.has(n.id)));const h=el('h2');h.append(el('span',String(index+1),'stage-number'),el('span',stage,'stage-name'),el('span',String(nodes.length),'stage-count'));col.append(h);
+        // Reveal the entire traced path, including older supporting memories.
       const shown=expanded.has(stage)?nodes:nodes.filter(n=>nodes.slice(-4).includes(n)||n.id===selected||related.has(n.id)||moment.ids.includes(n.id));
       const cards=el('div',undefined,'stage-nodes');col.append(cards);
       if(!nodes.length)col.append(el('p','Nothing visible yet','stage-empty'));
@@ -108,7 +135,12 @@
           b.classList.add('moment-current');b.setAttribute('aria-current','step');
           b.append(el('span',moment.exact?(M.time(n.at)===tick?'● Now · appeared':'● Now · updated'):'● Latest update','moment-badge'));
         }
-        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));
+        if(related.has(n.id))b.classList.add(trace?'on-choice-path':'related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));
+        if(trace?.roles.has(n.id)){
+          const roles=el('span',undefined,'memory-roles');
+          for(const role of trace.roles.get(n.id))roles.append(el('span',role==='supports'?'↑ Supports':role==='conflicts'?'↓ Pulls against':'· Context',`change-badge change-${role==='supports'?'up':role==='conflicts'?'down':'same'}`));
+          b.append(roles);
+        }
         const status=M.cardStatus(n);
         if(status){
           const summary=el('span',undefined,`card-status change-${status.tone}`);summary.append(el('span',`${status.symbol} ${status.label}`,'change-badge'));
@@ -124,6 +156,7 @@
         const metrics=M.learningMetrics(n);
         for(const metric of metrics)b.append(learningMetric(metric));
         if(metrics.length)b.setAttribute('aria-label',`${stage}: ${n.label} · ${metrics.map(m=>m.key==='mood'?`Mood change ${signed(m.delta)}`:`${m.label}: ${m.before===null?(m.status==='new'?'new entry':'prior not recorded'):m.key==='chance'?pct(m.before)+' before':amount(m.before)+' before'}, ${m.key==='chance'?pct(m.after):amount(m.after)} after`).join(' · ')}`);
+        if(trace?.roles.has(n.id))b.setAttribute('aria-label',`${b.getAttribute('aria-label')} · ${[...trace.roles.get(n.id)].map(role=>role==='supports'?'Supports this choice':role==='conflicts'?'Pulls against this choice':'Context for this choice').join(' · ')}`);
         cards.append(b);}
       if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);
@@ -136,10 +169,14 @@
     for(const [key,value] of Object.entries({id:'chain-arrow',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'}))marker.setAttribute(key,value);
     const tip=document.createElementNS(ns,'path');tip.setAttribute('d','M 0 0 L 10 5 L 0 10 z');marker.append(tip);defs.append(marker);svg.append(defs);
     const buttons=new Map([...graph.querySelectorAll('[data-node]')].map(b=>[b.dataset.node,b]));const box=graph.getBoundingClientRect();
-    for(const n of current?.nodes??[])for(const ref of n.refs){if(n.id!==selected&&ref!==selected)continue;const a=buttons.get(ref),b=buttons.get(n.id);if(!a||!b)continue;
+    const edges=trace?trace.edges:(current?.nodes??[]).flatMap(n=>n.refs.filter(ref=>n.id===selected||ref===selected).map(from=>({from,to:n.id,roles:[]})));
+    for(const edge of edges){const a=buttons.get(edge.from),b=buttons.get(edge.to);if(!a||!b)continue;
       const x=a.getBoundingClientRect(),y=b.getBoundingClientRect(),stacked=Math.abs(x.left-y.left)<5;
       const x1=(stacked?x.left+x.width/2:x.right)-box.left,y1=(stacked?x.bottom:x.top+x.height/2)-box.top,x2=(stacked?y.left+y.width/2:y.left)-box.left,y2=(stacked?y.top:y.top+y.height/2)-box.top;
-      const path=document.createElementNS(ns,'path');path.setAttribute('marker-end','url(#chain-arrow)');path.setAttribute('d',stacked?`M${x1},${y1} C${x1},${y1+14} ${x2},${y2-14} ${x2},${y2}`:`M${x1},${y1} C${x1+12},${y1} ${x2-12},${y2} ${x2},${y2}`);svg.append(path);
+      const path=document.createElementNS(ns,'path');path.setAttribute('marker-end','url(#chain-arrow)');path.dataset.from=edge.from;path.dataset.to=edge.to;
+        if(edge.roles.length===1)path.classList.add(`edge-${edge.roles[0]}`);
+        if(trace)path.classList.add(edge.from===selected||edge.to===selected?'edge-focused':'edge-background');
+      path.setAttribute('d',stacked?`M${x1},${y1} C${x1},${y1+14} ${x2},${y2-14} ${x2},${y2}`:`M${x1},${y1} C${x1+12},${y1} ${x2-12},${y2} ${x2},${y2}`);svg.append(path);
     }
   }
   function linkGroup(parent,title,nodes){if(!nodes.length)return;const d=details(parent,title,null);const body=d.lastChild;body.replaceChildren();body.classList.add('relation-links');for(const n of nodes)body.append(button(n.label,()=>{expanded.add(n.stage);select(n.id);}));}
@@ -149,6 +186,7 @@
     if(!n)return;
     const close=button('×',closeInspector,'inspector-close');close.setAttribute('aria-label','Close node details');panel.append(close);
     panel.append(el('span',`${n.stage} · ${clock(n.at)}`,'node-meta'),el('h2',n.label));
+    if(trace&&n.id!==trace.root)panel.append(button('Back to the choice',()=>{select(trace.root);locate(trace.root);},'back-to-choice'));
     if(n.table==='decisions'){
       if(n.data.thought){panel.append(el('p','Private imagination · not evidence','meta'),el('blockquote',n.data.thought));}
       panel.append(el('p',n.data.choice?`Chosen: ${n.data.alternatives.find(a=>a.id===n.data.choice.selected)?.label??'Unknown alternative'}`:'Choice pending at this moment.'));
@@ -213,9 +251,9 @@
   function step(direction){const points=[Number($('time').min),...M.moments(model,who,observer)].filter(t=>t>=Number($('time').min));const t=direction>0?points.find(t=>t>tick):points.filter(t=>t<tick).at(-1);if(t===undefined){stop();return;}tick=t;render();}
   $('previous').onclick=()=>{stop();step(-1);};$('next').onclick=()=>{stop();step(1);};$('play').onclick=()=>{if(timer){stop();return;}timer=setInterval(()=>step(1),900);$('play').textContent='Pause';};
   $('time').oninput=()=>{stop();tick=Number($('time').value);render();};
-  $('person').onchange=()=>{stop();who=Number($('person').value);selected=null;render();};
-  $('lens').onchange=()=>{stop();observer=$('lens').value==='observer';selected=null;render();};
-  $('thread').onchange=()=>{thread=$('thread').value;selected=null;render();};
+  $('person').onchange=()=>{stop();who=Number($('person').value);selected=null;traceRoot=null;trace=null;render();};
+  $('lens').onchange=()=>{stop();observer=$('lens').value==='observer';selected=null;traceRoot=null;trace=null;render();};
+  $('thread').onchange=()=>{thread=$('thread').value;selected=null;traceRoot=null;trace=null;render();};
   $('compare-toggle').onclick=()=>{$('comparisons').hidden=!$('comparisons').hidden;$('compare-toggle').setAttribute('aria-expanded',String(!$('comparisons').hidden));$('compare-toggle').textContent=$('comparisons').hidden?'Open isolated comparisons':'Close comparisons';renderComparisons();};
   $('example').onclick=()=>example();$('open-recording').onclick=()=>$('recording-file').click();
   $('recording-file').onchange=async()=>{const f=$('recording-file').files[0];if(!f)return;try{accept(window.UnderGlassTools.parseRecording(await f.text()),null);}catch(e){error(e);}finally{$('recording-file').value='';}};

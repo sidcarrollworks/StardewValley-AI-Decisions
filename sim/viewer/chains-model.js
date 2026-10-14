@@ -136,7 +136,7 @@
       data.timeline = (r.timeline ?? []).filter(x=>arrived(x.at,tick)).map(x=>pick(x,['at','label']));
       if (arrived(r.settledAt,tick)) { label = r.settledLabel ?? label; Object.assign(data,pick(r,['kind','world'])); }
       else data.status = 'Still unfolding';
-      add(r.attempts);
+      add(r.attempts,r.plan);
     } else if (table === 'perceptions') {
       data = pick(r,['perceived','unknown']);
       data.inferences = (r.inferences ?? []).map(x=>pick(x,['about','guess','certainty','establishes']));
@@ -233,5 +233,31 @@
     const at=Math.max(-1,...nodes.map(n=>n.updatedAt));
     return {at,exact:at===tick,ids:at<0?[]:nodes.filter(n=>n.updatedAt===at).map(n=>n.id)};
   }
-  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment};
+  function choicePath(view,root){
+    const nodes=new Map(view.nodes.map(n=>[n.id,n])),choice=nodes.get(root);
+    if(choice?.table!=='decisions')return null;
+    const references=n=>{
+      if(n.table!=='decisions'||!n.data.choice)return n.refs;
+      const allCites=new Set(n.data.alternatives.flatMap(a=>a.reasons.flatMap(r=>r.cites)));
+      const chosen=n.data.alternatives.find(a=>a.id===n.data.choice.selected);
+      const chosenCites=new Set((chosen?.reasons??[]).flatMap(r=>r.cites));
+      return n.refs.filter(id=>!allCites.has(id)||chosenCites.has(id));
+    };
+    const edges=[];
+    for(const n of nodes.values())for(const from of references(n))if(nodes.has(from))edges.push({from,to:n.id});
+    const parents=new Map(),children=new Map();
+    for(const e of edges){if(!parents.has(e.to))parents.set(e.to,[]);parents.get(e.to).push(e.from);if(!children.has(e.from))children.set(e.from,[]);children.get(e.from).push(e.to);}
+    const walk=links=>{const seen=new Set(),todo=[root];while(todo.length){const id=todo.pop();if(seen.has(id))continue;seen.add(id);todo.push(...(links.get(id)??[]));}return seen;};
+    const before=walk(parents),after=walk(children);
+    const ids=new Set([...before,...after]),roles=new Map();
+    const chosen=choice.data.alternatives.find(a=>a.id===choice.data.choice?.selected);
+    for(const reason of chosen?.reasons??[])for(const id of reason.cites)if(ids.has(id)){
+      const kind=reason.kind==='supports'?'supports':reason.kind==='conflicts'?'conflicts':'context';
+      if(!roles.has(id))roles.set(id,new Set());roles.get(id).add(kind);
+    }
+    for(const id of before)if(id!==root&&!roles.has(id))roles.set(id,new Set(['context']));
+    return {root,ids,before,after,roles,chosen:chosen?.label??null,pending:!choice.data.choice,
+      edges:edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).map(e=>({...e,roles:e.to===root?[...(roles.get(e.from)??['context'])]:[]}))};
+  }
+  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath};
 });

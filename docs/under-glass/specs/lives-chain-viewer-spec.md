@@ -14,6 +14,10 @@ Choice cards show the recorded selected option after its answer gate; attempt ca
 
 Playback advances between recorded moments or scrubs by minute within the excerpt. A thread selector limits the display to its stage members and recursively referenced supporting records. Character thread summaries are built from visible personal elements, never observer thread titles. Shared navigation carries the recording, time and person. A local import has no reusable server URL.
 
+Selecting a Choice card isolates its recorded path and reveals all supporting cards, including older history. Blue Supports, pink Pulls against and grey Context badges describe each record’s role for the chosen alternative; merely recalled material is context, not evidence of influence. Unchosen-only citations are excluded after the choice resolves. Pending choices have context only. The path includes upstream dependencies and downstream attempts, plans, outcomes, perceptions and learning, using explicit references within the current clock, lens and thread. It does not include other choices merely because they share a memory. Observer outcomes include their recorded plan link.
+
+The path header stays anchored to the chosen decision while individual memories and consequences are inspected. Stage shortcuts locate cards without opening details; Back to the choice returns to the root. Show whole thread restores surrounding cards, and Clear path or closing details restores the overview. Connected lines for the inspected card are emphasized while other path links remain faint. Rewinding removes unavailable consequences, and changing person, lens or thread clears the path.
+
 ## Knowledge and time
 
 `chains-model.js` is a pure adapter with exact 0.1 acceptance and basic structural checks, separate from DOM code. It does not reimplement the experiment's formula checker. Missing Lives blocks remain unavailable; unknown versions fail explicitly. Projection is immutable.
@@ -34,7 +38,7 @@ Archetypes remain separate from personal history. The fixture contains IDs witho
 
 ## Verification
 
-Twenty-three focused adapter tests cover missing/unknown formats, choice and thought gates, other minds and secret diagnostic text, unknowns and guesses, busy targets, acquisition gates, outcome settlement, attempt resolution, expectation rewind, thread summaries, dependency visibility, both comparison outcomes, formula independence, immutability, readable expectation/association labels, unknown-key fallback and personal versus observer attribution, and learning metric directions, missing priors and separate mood effects, choice/attempt status transitions and knowledge-safe current-moment highlights. Shared navigation adds the full-recording boundary and chain round trip. Browser review covers playback/rewind, both lenses, linked details, comparisons, and responsive themes.
+Twenty-seven focused adapter tests cover missing/unknown formats, choice and thought gates, other minds and secret diagnostic text, unknowns and guesses, busy targets, acquisition gates, outcome settlement, attempt resolution, expectation rewind, thread summaries, dependency visibility, both comparison outcomes, formula independence, immutability, readable expectation/association labels, unknown-key fallback and personal versus observer attribution, and learning metric directions, missing priors and separate mood effects, choice/attempt status transitions and knowledge-safe current-moment highlights, chosen-option path roles, full downstream tracing, pending and future gates, shared-memory branch exclusion, cycle safety and projection immutability. Shared navigation adds the full-recording boundary and chain round trip. Browser review covers playback/rewind, both lenses, linked details, comparisons, and responsive themes.
 
 ## Next
 

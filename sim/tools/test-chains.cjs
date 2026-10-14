@@ -175,3 +175,28 @@ test('projection leaves fixture data untouched and excludes unknown character fi
   const f=structuredClone(fixture);f.lives.perceptions.at(-1).futureSecret='HIDDEN';const original=JSON.stringify(f);const v=M.view(M.open(f),{tick:14240,who:penny});
   assert.equal(JSON.stringify(v.nodes).includes('HIDDEN'),false);assert.equal(JSON.stringify(f),original);
 });
+test('choice path follows recalled evidence through attempts, perceptions and learning',()=>{
+  const v=view(14101),path=M.choicePath(v,'dec:13510:Penny:0');
+  for(const id of ['rd:penny-pam-care','att:13511:Penny:0','plan:13512:Penny:Pam','dec:14028:Penny:0','att:14041:Penny:0','per:14101:Penny:0','lu:14101:Penny:1'])assert.ok(path.ids.has(id),id);
+  assert.ok(path.roles.get('rd:penny-pam-care').has('supports'));
+  assert.ok(path.roles.get('rd:penny-pam-burden').has('conflicts'));
+  assert.ok(path.roles.get('rd:penny-saloon-wary').has('context'));
+  assert.equal(path.ids.has('rd:penny-reading-home'),false,'an unchosen option is not a reason for the selected one');
+});
+test('choice paths obey the clock and knowledge lens without inventing future outcomes',()=>{
+  const pending=M.choicePath(view(13510),'dec:13510:Penny:0');assert.equal(pending.pending,true);assert.equal(pending.chosen,null);assert.equal(pending.after.size,1);
+  assert.equal([...pending.roles.values()].some(r=>r.has('supports')),false);
+  const early=M.choicePath(view(13511),'dec:13510:Penny:0');assert.ok(early.ids.has('att:13511:Penny:0'));assert.equal(early.ids.has('per:13512:Penny:0'),false);
+  const personal=M.choicePath(view(14240),'dec:13510:Penny:0');assert.equal(personal.ids.has('out:14040:Pam:0'),false);assert.equal(personal.ids.has('dec:14010:Pam:0'),false);
+  const observer=M.choicePath(view(14240,{observer:true}),'dec:13510:Penny:0');assert.ok(observer.ids.has('out:14040:Pam:0'));
+  assert.equal(M.choicePath(view(14240),'missing'),null);
+});
+test('a shared memory does not make an unrelated choice a consequence',()=>{
+  const v=view(14101),other={id:'unrelated',table:'decisions',data:{alternatives:[]},refs:['rd:penny-pam-care']};
+  v.nodes.push(other);const path=M.choicePath(v,'dec:13510:Penny:0');assert.equal(path.ids.has(other.id),false);
+  for(const e of path.edges){assert.ok(path.ids.has(e.from));assert.ok(path.ids.has(e.to));}
+});
+test('choice traversal handles cycles without changing the projected references',()=>{
+  const v=view(14101);v.nodes.find(n=>n.id==='rd:penny-pam-care').refs.push('dec:13510:Penny:0');
+  const before=JSON.stringify(v.nodes),path=M.choicePath(v,'dec:13510:Penny:0');assert.ok(path.ids.size<=v.nodes.length);assert.equal(JSON.stringify(v.nodes),before);
+});
