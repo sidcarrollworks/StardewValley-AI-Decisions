@@ -1,6 +1,6 @@
 # Character voices and initial background — 2026-10-12
 
-Editable runtime pack: [`sim/character-inspiration.json`](../../../sim/character-inspiration.json). This is an opt-in content experiment, not a demonstrated improvement in story quality. It contains 12 reusable archetypes, 34 named profiles, and 101 short background anchors. Newcomer has no imported profile. The archetypes express tendencies; they must not force a friendly outcome, diagnose a character, or replace the current scene.
+Editable runtime pack: [`sim/character-inspiration.json`](../../../sim/character-inspiration.json). This is an opt-in content experiment, not a demonstrated improvement in story quality. It contains 12 reusable archetypes, 34 named profiles, and 101 short background anchors (seven corrected 2026-10-14; see "Revision, 2026-10-14"). Newcomer has no imported profile. The archetypes express tendencies; they must not force a friendly outcome, diagnose a character, or replace the current scene.
 
 ## What was reviewed
 
@@ -16,9 +16,11 @@ Voice cues are editorial interpretations of the full reviewed range, not source 
 
 **Distinct generated character voice remains unresolved.** Descriptive cues alone produced generic wording in live comparisons. A follow-up tried one freshly authored hypothetical cadence example per named accent; live trials copied the examples. Those examples have therefore been removed from every runtime `voiceAccent`. They remain in the experimental reference table below, outside generator input. The source-derived descriptors, personal voice citations and audited background anchors remain in the pack; they are not a claim that the current generator reliably expresses those distinctions.
 
-Background is **private initial self-knowledge**, separate from the simulation ledger. Baseline family/occupation statements and explicit childhood or earlier-life recollections are admitted. A later scene may reveal an old fact, but that conversation, the player's reply, and the scene's new consequence are not admitted. Dates are not supplied where the text gives none. Baseline undated history is identified as such in its note; this is a reviewed initialization choice, not a proof of an exact calendar.
+Background is **private context for the models**, separate from the simulation ledger, and not a memory. Baseline family/occupation statements and explicit childhood or earlier-life recollections are admitted. A later scene may reveal an old fact, but that conversation, the player's reply, and the scene's new consequence are not admitted. Dates are not supplied where the text gives none. Baseline undated facts are identified as such in their notes; this is a reviewed initialization choice, not a proof of an exact calendar.
 
 The runtime picks one anchor relevant to the believed subject, otherwise one subject-free anchor. A `subjects` name is a relevance hint, not a grant of knowledge to that person. A generic archetype carries no named biography. `condition` is null for every admitted anchor; uncertain or future-dependent candidates are kept out of the pack. The engine must continue to distinguish these anchors from observed events, model imagination, and gossip.
+
+**History audit, 2026-10-14.** Codex's [audit](history-evidence-audit-2026-10-14.md) checked all 101 anchors against their sources (cited, not changed here). Its rules now govern admission: **R1** an explicit old experience is admitted undated, with its old content only, never the later disclosure scene; **R2** an established role or routine is a baseline fact or practice, and carrying a present-tense source back to the start is an editorial choice; **R3** a current reaction or change needs independent evidence from before the farmer arrives, otherwise it stays out. A heart-gated key dates when the farmer can hear a line, not when its fact began. One participant's account gives nobody else's feelings or knowledge, and `subjects` is a relevance hint, not who knows. A fact held by several people is one fact with an account each, counted once. The anchors stay private context, not memories; one anchor may mix a fact, a past, a practice and a reading, and is split before any history record reuses it (D53). Seven anchors were corrected ("Revision, 2026-10-14", below).
 
 ## Reusable patterns
 
@@ -62,7 +64,7 @@ Reviewed per-character corpus: 432 records, including candidate/shared entries r
 | Anchor | Admitted self-knowledge | Admission/review note | Source asset and key |
 | --- | --- | --- | --- |
 | `alex-grandparents` | George and Evelyn are my grandparents. | Family relationship corroborated by Alex's childhood account in the cited event below; no farmer relationship. | `Characters/Dialogue/George:Wed`; `Characters/Dialogue/Alex:Fri4`; `Data/Events/Town:2481135/f Alex 1000/t 900 1600` |
-| `alex-childhood` | My father left, and my mother died when I was young; I went to live with my grandparents. | Explicit childhood history revealed later; omit inferred motives and do not import the revealing conversation. | `Data/Events/Town:2481135/f Alex 1000/t 900 1600` |
+| `alex-childhood` | My father left, and my mother died when I was young; I went to live with my grandparents. | Explicit childhood history revealed later (R1). "Young" rests on the Beach recollection (too young then to thank her); no age or date: the line's twelve years count back from a day that floats. Omit inferred motives (his guess at his father's) and import neither revealing conversation. | `Data/Events/Town:2481135/f Alex 1000/t 900 1600`; `Data/Events/Beach:288847/f Alex 2000/p Alex/w sunny/G !IS_PASSIVE_FESTIVAL_TODAY SquidFest` |
 | `alex-quarterback` | I was an all-star quarterback in high school. | Explicit school history, not a prediction of a professional career. | `Characters/Dialogue/Alex:Mon` |
 
 ### Caroline
@@ -86,7 +88,7 @@ Reviewed per-character corpus: 162 records, including candidate/shared entries r
 | Anchor | Admitted self-knowledge | Admission/review note | Source asset and key |
 | --- | --- | --- | --- |
 | `clint-family-trade` | My father, grandfather, and great-grandfather were blacksmiths. | Explicit multigenerational trade; no names or dates added. | `Characters/Dialogue/Clint:Mon`; `Characters/Dialogue/Clint:Mon_old` |
-| `clint-pressure` | My father pushed me into blacksmithing; it was not the future I wanted for myself. | Personal account of past pressure; not a claim that his father intended harm. | `Characters/Dialogue/Clint:Mon4` |
+| `clint-pressure` | I became a blacksmith only because my father pushed me to; as a boy, it wasn't really what I dreamed of. | His own account of past pressure (`Mon4`) and that smithing wasn't really his boyhood dream (`Sun8`, R1). Not a claim that his father intended harm, nor that he dislikes smithing; his pride stays in `clint-work`. | `Characters/Dialogue/Clint:Mon4`; `Characters/Dialogue/Clint:Sun8` |
 | `clint-work` | I run the town blacksmith shop and take pride in the quality of my work. | Established occupation and self-assessed pride coexist with discontent; no invented commission. | `Characters/Dialogue/Clint:Introduction`; `Characters/Dialogue/Clint:Sun8` |
 
 ### Demetrius
@@ -99,7 +101,7 @@ Reviewed per-character corpus: 172 records, including candidate/shared entries r
 | --- | --- | --- | --- |
 | `demetrius-maru` | Maru is my daughter and has helped me in the laboratory. | Explicit baseline family and recurring work; no later invention is completed. | `Characters/Dialogue/Demetrius:Introduction`; `Characters/Dialogue/Demetrius:Mon` |
 | `demetrius-robin` | Robin is my wife. | Baseline relationship; disagreements in conditional scenes are style evidence, not starting events. | `Characters/Dialogue/Demetrius:winter_Tue`; `Characters/Dialogue/Robin:Introduction`; `Characters/Dialogue/Robin:Sun2` |
-| `demetrius-valley` | The valley's varied ecosystem was one reason I moved here to study its plants and animals. | Explicit reason for a move already in the past, plus existing research occupation. | `Characters/Dialogue/Demetrius:Tue`; `Characters/Dialogue/Demetrius:Introduction` |
+| `demetrius-valley` | The valley's lively, varied ecosystem was one thing that made me excited to move here. | His own feeling about a move already in the past: the ecosystem excited him about it, not why he moved. His research is present work, held in `demetrius-maru` and his voice. | `Characters/Dialogue/Demetrius:Tue` |
 
 ### Dwarf
 
@@ -159,7 +161,7 @@ Reviewed per-character corpus: 117 records, including candidate/shared entries r
 | --- | --- | --- | --- |
 | `george-family` | Evelyn is my wife and Alex is my grandson. | Explicit baseline family relationships, with no simulated affection value asserted. | `Characters/Dialogue/Evelyn:Tue`; `Characters/Dialogue/George:Wed` |
 | `george-mine` | I lost the use of my legs in a mining accident many years ago. | The source explicitly dates the accident decades earlier; do not recreate it as a new town event. | `Data/Events/JoshHouse:18/f George 1500/p George` |
-| `george-evelyn-meeting` | Evelyn and I met after I hit her with a snowball and went to check on her. | Spouse's explicit account of their old meeting; mutual experience is reasonable owner self-knowledge. | `Data/Festivals/winter8:Evelyn` |
+| `george-evelyn-meeting` | Evelyn and I first met at the Festival of Ice, when I hit her with a snowball. | Evelyn's account of their first meeting, with George a participant (no line of his recalls it). That he came over to see if she was all right is her report of his purpose, and that he was a gentleman is her reading: both hers, left out. His feelings are unsourced. The festival is the one her line is spoken at. | `Data/Festivals/winter8:Evelyn` |
 
 ### Gus
 
@@ -207,7 +209,7 @@ Reviewed per-character corpus: 126 records, including candidate/shared entries r
 | --- | --- | --- | --- |
 | `jas-marnie` | Marnie is my aunt. | Ordinary baseline kinship; do not invent the date or legal terms of guardianship. | `Characters/Dialogue/Jas:Mon` |
 | `jas-shane` | Shane is my godfather and was a friend of my parents. | Later disclosure of an established kinship role; no rescue, recovery, or new gift is included. | `Characters/Dialogue/Jas:Sun10` |
-| `jas-parents` | My parents died. Shane was a friend of theirs. | Death is explicit, but its date and cause are not. Treat it as initial family history, without an invented timeline. | `Characters/Dialogue/Jas:Sun10`; `Characters/Dialogue/Jas:Mon` |
+| `jas-parents` | My parents died. | Death is explicit, but its date and cause are not. Treat it as a family fact from before the farmer arrives, without an invented timeline. Shane's friendship with her parents, in the same line, is held once, in `jas-shane`. | `Characters/Dialogue/Jas:Sun10` |
 
 ### Jodi
 
@@ -289,7 +291,7 @@ Reviewed per-character corpus: 133 records, including candidate/shared entries r
 | Anchor | Admitted self-knowledge | Admission/review note | Source asset and key |
 | --- | --- | --- | --- |
 | `linus-choice` | I chose a life in the wilderness rather than a house in town. | Explicit voluntary way of life; does not imply poverty, wealth, exile, or a need to be rescued. | `Characters/Dialogue/Linus:Mon` |
-| `linus-tent` | Someone destroyed my tent before, which makes me wary of visitors. | Explicit old harm; the source names no culprit, so no resident is blamed. | `Characters/Dialogue/Linus:Fri` |
+| `linus-tent` | My tent has been destroyed before. | His account of an earlier destruction (R1). The source names no one, so no resident is blamed, and whether he knows who is left open. His plea to the listener stays voice evidence (his profile's sources), not background; general wariness of visitors is an editorial reading held for review. | `Characters/Dialogue/Linus:Fri` |
 | `linus-travels` | Years ago I learned to build igloos from tundra dwellers beyond the frozen sea. | Explicit past travel lesson, not an invented social origin or current trip. | `Data/Festivals/winter8:Linus` |
 
 ### Marnie
@@ -314,7 +316,7 @@ Reviewed per-character corpus: 431 records, including candidate/shared entries r
 | --- | --- | --- | --- |
 | `maru-parents` | Robin is my mother and Demetrius is my father. | Explicit baseline family; career influences do not force a particular future. | `Characters/Dialogue/Maru:Fri4`; `Characters/Dialogue/Maru:Sat`; `Characters/Dialogue/Demetrius:Introduction` |
 | `maru-sebastian` | Sebastian is my half-brother. | Direct baseline kinship, without assuming either sibling's feelings. | `Characters/Dialogue/Maru:summer_Tue` |
-| `maru-clinic` | I work at Harvey's clinic and help when its medical equipment goes wrong. | Established job; no particular accident, repair, robot, or patient interaction is imported. | `Characters/Dialogue/Maru:Wed` |
+| `maru-clinic` | I work at Harvey's clinic on Tuesdays and Thursdays; he says he likes me there in case his equipment breaks down. | Established job on the days she names (R2; her canon schedule agrees, rain aside). Harvey's wish is her report of what he says, an anticipated role: no particular accident, repair, robot, or patient interaction is imported. | `Characters/Dialogue/Maru:Wed` |
 
 ### Pam
 
@@ -454,11 +456,25 @@ Reviewed per-character corpus: 111 records, including candidate/shared entries r
 - **Kent:** his year-two return, Gotoro imprisonment, and particular wartime losses are not securely dated before the farmer arrives. The pack uses established family and earlier city/childhood-trip history. His guarded voice can be informed by the corpus without fabricating a pre-arrival war timeline.
 - **Leo:** no mainland residence, Penny lessons, Jas/Vincent friendship or Linus adoption/mentorship. The shipwreck recollection includes distress and denial; the pack uses only existing parrot-family and language knowledge, excluding a certain recovered shipwreck memory, with no invented date, age, death detail, or mental-health diagnosis.
 - **Jas:** parents' deaths and Shane's godfather role are explicit, but neither cause nor date nor legal guardianship is supplied. Those details must stay unknown. Her childhood voice is not permission to manufacture traumatic episodes.
-- **Dwarf and Krobus:** old cultural conflict is not evidence that either personally attacked the other. Dwarf's loss of family and Krobus's fear of assassination are not converted into named blame or a witnessed act. The later peace scene is not initial history.
+- **Dwarf and Krobus:** old cultural conflict is not evidence that either personally attacked the other. Dwarf's loss of family and Krobus's fear of assassination are not converted into named blame or a witnessed act. The later peace scene is not admitted.
 - **Caroline, Pierre, Abigail and Wizard:** no biological paternity or affair theory. Tower walks, jealousy and Wizard's possible local child are not combined into an established fact. Pierre remains Abigail's social father.
 - **Lewis and Marnie:** the corpus clearly contains a secret relationship, but the reviewed lines do not establish its exact start relative to the farmer. It remains a candidate for a separately reviewed baseline relationship pack; these profiles preserve social longing and reputation concerns without asserting a dated affair.
 - **Linus, Shane and Pam:** no invented wealthy origin, forced rescue, diagnosed cause, sobriety, therapy already completed, or moral reform. Rejecting help, being hostile, doing ordinary work, or leaving an impulse unresolved are valid possibilities.
 - **Unknown relatives and names:** no invented original name for Sandy, biological father for Sebastian, names of dead parents, or gender of Kel. Branch-specific player romance never becomes a default preference.
+
+## Revision, 2026-10-14
+
+After Codex's [history audit](history-evidence-audit-2026-10-14.md) and its check (D53), seven anchors were corrected by hand, and the pack is edited by hand from now on (the local script that generated it on 2026-10-12 would revert these corrections). IDs, subjects and profiles are unchanged, so the same anchor is drawn as before. The runtime hash moved from `67aff67c40e47fb339d8ed304328b3e7647671a7cc6755496dd73ed4e4cc5c4e` to `dd6be67508596b3f63eb2a691d157341d6b857971627f16341de14854826a7ea`. `maru-clinic` is now the pack's longest anchor, 113 characters (73 before; the longest was 96). Laya's request carries an anchor whole (`ResilientReflectionMind.cs`), so whenever it is drawn (Maru thinking about Harvey) 40 more characters count toward the 1,250-character limit, and a request that no longer fits takes the visible fallback.
+
+| Anchor | 2026-10-12 text | Problem | Change |
+| --- | --- | --- | --- |
+| `maru-clinic` | I work at Harvey's clinic and help when its medical equipment goes wrong. | said more than its source: a completed repair | her days and Harvey's wish as she reports it |
+| `linus-tent` | Someone destroyed my tent before, which makes me wary of visitors. | said more than its source: an agent and a reading | the destruction only; the plea stays voice evidence |
+| `demetrius-valley` | The valley's varied ecosystem was one reason I moved here to study its plants and animals. | said more than its sources: the move's purpose, folded in from `Introduction` | the ecosystem excited him about the move; `Introduction` dropped as its source |
+| `clint-pressure` | My father pushed me into blacksmithing; it was not the future I wanted for myself. | said more than its source | `Sun8`'s weaker wording added beside `Mon4` |
+| `alex-childhood` | (unchanged) | under-cited: "young" was not in its source | `Data/Events/Beach:288847/...` added |
+| `jas-parents` | My parents died. Shane was a friend of theirs. | mis-cited (`Jas:Mon`) and repeating `jas-shane` | the bereavement only, from `Jas:Sun10` |
+| `george-evelyn-meeting` | Evelyn and I met after I hit her with a snowball and went to check on her. | gave George Evelyn's account of his purpose | the participant fact only |
 
 ## How to review the effect
 
@@ -511,7 +527,7 @@ These freshly authored lines were brief style probes, not quotations from the ga
 
 ## Content validation
 
-The profile names exactly match the 34 entries with birthdays in the installed `Data/Characters` asset. All 148 distinct cited asset/key pairs (including personal voice sources) resolve against the corrected export. Every profile has 2–4 anchors; all anchor texts fit 120 characters, evaluator cues fit 90, and the longest composed voice is 279 characters against the 360 limit. These checks establish coverage and bounds, not semantic correctness. The independent review narrowed Krobus to his own sunlight sensitivity, added a direct Clint family-trade confirmation, and excluded the uncertain recovered shipwreck memory.
+The profile names exactly match the 34 entries with birthdays in the installed `Data/Characters` asset. All 149 distinct cited asset/key pairs (including personal voice sources; 148 when reviewed on 2026-10-12, before the Beach key for `alex-childhood` was added on 2026-10-14) resolve against the corrected export. Every profile has 2–4 anchors; all anchor texts fit 120 characters, evaluator cues fit 90, and the longest composed voice is 279 characters against the 360 limit. These checks establish coverage and bounds, not semantic correctness. The independent review narrowed Krobus to his own sunlight sensitivity, added a direct Clint family-trade confirmation, and excluded the uncertain recovered shipwreck memory.
 
 ## Reproducing source review
 

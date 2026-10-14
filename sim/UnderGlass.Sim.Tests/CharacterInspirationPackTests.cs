@@ -57,4 +57,39 @@ public class CharacterInspirationPackTests
         Assert.Equal(run.RootElement.GetProperty("hash").GetString(), replay.RootElement.GetProperty("hash").GetString());
         Assert.Equal(run.RootElement.GetProperty("reflections").GetRawText(), replay.RootElement.GetProperty("reflections").GetRawText());
     }
+
+    /// <summary>The seven anchors corrected after the history audit and its check (D53) cite exactly the
+    /// sources checked for them: a source found not to support an anchor stays dropped.</summary>
+    [Theory]
+    [InlineData("Maru", "maru-clinic", "Characters/Dialogue/Maru:Wed")]
+    [InlineData("Linus", "linus-tent", "Characters/Dialogue/Linus:Fri")]
+    [InlineData("Demetrius", "demetrius-valley", "Characters/Dialogue/Demetrius:Tue")]
+    [InlineData("Alex", "alex-childhood", "Data/Events/Town:2481135/f Alex 1000/t 900 1600|Data/Events/Beach:288847/f Alex 2000/p Alex/w sunny/G !IS_PASSIVE_FESTIVAL_TODAY SquidFest")]
+    [InlineData("Clint", "clint-pressure", "Characters/Dialogue/Clint:Mon4|Characters/Dialogue/Clint:Sun8")]
+    [InlineData("Jas", "jas-parents", "Characters/Dialogue/Jas:Sun10")]
+    [InlineData("George", "george-evelyn-meeting", "Data/Festivals/winter8:Evelyn")]
+    public void TheAuditedAnchorsCiteWhatWasCheckedForThem(string person, string id, string sources)
+    {
+        CharacterBackground anchor = Pack().Characters.Single(p => p.Name == person).Background.Single(b => b.Id == id);
+        Assert.Equal(sources.Split('|').Order(StringComparer.Ordinal), anchor.Sources.Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>What the seven sources don't state stays out of the anchors (D53): a repair, a culprit,
+    /// wariness, the move's purpose, a stronger wish, a repeated Shane clause, and George's purpose in
+    /// coming over, in any letter case. Linus's plea stays voice evidence, in his profile's sources.</summary>
+    [Fact]
+    public void TheAuditedAnchorsLeaveOutWhatTheirSourcesDontSay()
+    {
+        CharacterInspirationPack pack = Pack();
+        string Text(string person, string id) => pack.Characters.Single(p => p.Name == person).Background.Single(b => b.Id == id).Text;
+        Assert.DoesNotContain("goes wrong", Text("Maru", "maru-clinic"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Someone", Text("Linus", "linus-tent"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("wary", Text("Linus", "linus-tent"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("study", Text("Demetrius", "demetrius-valley"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("reason", Text("Demetrius", "demetrius-valley"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("future I wanted", Text("Clint", "clint-pressure"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Shane", Text("Jas", "jas-parents"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("check on", Text("George", "george-evelyn-meeting"), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Characters/Dialogue/Linus:Fri", pack.Characters.Single(p => p.Name == "Linus").Sources!);
+    }
 }

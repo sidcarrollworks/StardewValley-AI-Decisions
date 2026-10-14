@@ -1,12 +1,22 @@
-# Character voice and initial self-knowledge
+# Character voice and background context
 
 ## Status
 
 Built as an explicit opt-in reflection context, 2026-10-12. Hybrid is Sid's selected development
 direction; authored and authored-plus-Laya remain controls and fallbacks. The pack is loaded with
 `--character-inspiration sim/character-inspiration.json`. Without the flag, requests, prompts and
-existing simulation behavior retain their previous shape. This is not a complete biography or a
+existing simulation behavior retain their previous shape. This is not a biography or a
 new spoken-dialogue system. Ordinary response lines still come from the reflection catalog.
+
+Corrected 2026-10-14 (D53): seven anchors whose wording went beyond their sources, or whose
+citations didn't hold, now say only what their sources support (the [history
+audit](../experiments/history-evidence-audit-2026-10-14.md) and its check; the earlier wording is
+in the [source review](../experiments/character-voices-2026-10-12.md), "Revision, 2026-10-14").
+The pack's runtime hash changed from `67aff67c…` to `dd6be675…`, so exact tapes recorded with the
+earlier pack no longer replay; their recordings stay viewable, and the earlier pack is
+`git show a0a40ef:sim/character-inspiration.json`. The anchors are private background context for
+the generator and Laya, not memories; histories that shape behaviour are planned separately
+([Lives assessment](../lives-gap-assessment.md)).
 
 The [source review](../experiments/character-voices-2026-10-12.md) describes the derived profiles,
 source coverage and excluded histories. Full extracted game text stays in ignored local output.
@@ -26,13 +36,17 @@ comparison, not a change to the pack, the prompts or any default.
 An archetype contains drives, coping, voice cadence, a short evaluator cue and source references.
 It contains no named donor biography. A profile selects an archetype, adds a personal voice accent
 with its own source references, and supplies reviewed background anchors. Each anchor has an ID, compact text, subject relevance
-and source references. The starting baseline is established history before the farmer arrives,
-as selected by Sid. Conditional histories are rejected by the runtime reader.
+and source references. Anchors draw only on established backstory from before the farmer arrives,
+as selected by Sid. Conditional anchors are rejected by the runtime reader. An anchor is compact
+text and may mix what the [history audit](../experiments/history-evidence-audit-2026-10-14.md)
+keeps apart (a fact, a past, a practice, a reading); it is split before any history record reuses it.
 
 All dialogue may help describe a voice, including conditional event/marriage lines. That does not
-establish that their circumstances occurred. A later dialogue recollection can support older
-history only after manual chronology review. Player marriage, heart-event outcomes, Joja/community
-choices, newly built homes and post-arrival recoveries are not initial memories. Unsettled facts
+establish that their circumstances occurred. A later dialogue recollection can support an older
+fact or past only after manual chronology review, and the disclosure scene itself is never admitted
+(a heart-gated key dates when the farmer can hear a line, not when its fact began: game
+`NPC.cs:4058-4071`). Player marriage, heart-event outcomes, Joja/community choices, newly built
+homes and post-arrival recoveries are not admitted as background. Unsettled facts
 remain review notes rather than runtime anchors. Raw game commands, player answers, ambiguous
 speakers and unsupported extraction cases retain their attribution/coverage status.
 
@@ -61,17 +75,17 @@ Source references and hashes are receipts rather than prose instructions to eith
 
 Limits: composed generator voice 360 characters, evaluator cue 90 and each anchor 120. Laya's
 1,250-character semantic budget includes state, instructions, option labels and descriptions.
-Profile packets use compact framing; prior ideas and dream markers remain explicit. If required
-history, ideas, minimum known context/memory and full lines cannot fit, use the explicit authored
+Profile packets use compact framing; prior ideas and dream markers remain explicit. If the required
+anchor, ideas, minimum known context/memory and full lines cannot fit, use the explicit authored
 fallback instead of silently dropping an anchor or candidate words. These limits are not a claim
 that every maximal combination can fit.
 
 ## Recording, inspection and replay
 
 Profile recordings add a pack hash/provenance receipt and copied `request.character` context.
-The Inner life detail shows the actual voice and selected initial history with source keys after
+The Inner life detail shows the actual voice and selected background anchor with source keys after
 the thought is considered. Existing clock gates still hide future thought/outcome content.
-History is described as private self-knowledge, never shared evidence.
+The anchor is described as private background, never shared evidence.
 
 Exact-answer tapes compare the complete character snapshot and nested source lists. A changed
 pack, including an unused edited anchor, changes its hash and invalidates the old tape. Replay
@@ -97,7 +111,8 @@ without names, grounding, cliché repetition, role reversals and whether a line 
 someone else. No quota of hostility or kindness establishes success. Source-derived descriptions
 are editorial hypotheses, not an objective personality extraction or proof the model uses them.
 Thought/action semantic agreement remains a separate known limitation; adding voice context does
-not fix it. Larger tagged spoken templates and deeper initial histories remain later work.
+not fix it. Larger tagged spoken templates remain later work; histories that shape behaviour are
+planned in the [Lives assessment](../lives-gap-assessment.md).
 
 `--suite wording` takes a reviewed case pack and the extracted global corpus. Each reference
 selects an exact case-sensitive record ID and NPC text node; ambiguous attribution, player/control
