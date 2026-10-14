@@ -53,6 +53,39 @@ test('attempt resolution is hidden until its own gate',()=>{
   assert.equal(node(view(14041),'att:14041:Penny:0').data.status,undefined);
   assert.ok(node(view(14101),'att:14041:Penny:0').data.status);
 });
+test('choice cards expose the chosen line only after the answer arrives',()=>{
+  assert.equal(M.cardStatus(node(view(13510),'dec:13510:Penny:0')).label,'Deciding');
+  const n=node(view(13511),'dec:13510:Penny:0'),s=M.cardStatus(n);
+  assert.equal(s.label,'Chose');assert.equal(s.detail,n.data.alternatives.find(a=>a.id===n.data.choice.selected).label);
+  assert.equal(n.updatedAt,13511);
+});
+test('attempt badges separate waiting, completion, unsuccessful plans and answers',()=>{
+  assert.equal(M.cardStatus(node(view(14041),'att:14041:Penny:0')).label,'Waiting');
+  assert.equal(M.cardStatus(node(view(14101),'att:14041:Penny:0')).label,'Plan did not happen');
+  assert.equal(M.cardStatus(node(view(14040),'att:14029:Penny:0')).label,'On the way');
+  assert.equal(M.cardStatus(node(view(14041),'att:14029:Penny:0')).label,'Completed');
+  assert.equal(M.cardStatus(node(view(13511),'att:13511:Penny:0')).label,'Awaiting response');
+  assert.equal(M.cardStatus(node(view(13512),'att:13511:Penny:0')).label,'Accepted');
+  assert.equal(M.cardStatus(node(view(13580,{who:0}),'att:13580:Gus:0')).label,'Blocked · busy');
+  assert.equal(M.cardStatus(node(view(14056,{who:0}),'att:14055:Gus:0')).label,'Declined');
+  assert.equal(M.cardStatus(node(view(14061,{who:pam}),'att:14060:Pam:0')).label,'Not now');
+});
+test('current moment includes older updated cards, rewinds, and labels the last update between events',()=>{
+  const v=view(14101),m=M.currentMoment(v.nodes,14101);
+  assert.equal(m.exact,true);assert.equal(m.at,14101);assert.ok(m.ids.includes('att:14041:Penny:0'));assert.ok(m.ids.includes('lu:14101:Penny:1'));
+  const later=M.currentMoment(view(14200).nodes,14200);assert.equal(later.at,14101);assert.equal(later.exact,false);
+  assert.ok(M.currentMoment(view(14100).nodes,14100).at<14101);
+  assert.deepEqual(M.currentMoment([],14000),{at:-1,exact:false,ids:[]});
+});
+test('current highlights and statuses respect acquisition and private resolution gates',()=>{
+  const f=structuredClone(fixture),r=f.lives.attempts.find(r=>r.id==='att:14011:Pam:0');
+  r.knownBy=[{who:penny,availableAt:14012}];
+  const m=M.open(f),n=M.view(m,{tick:14050,who:penny}).all.get(r.id);
+  assert.equal(M.cardStatus(n).label,'Outcome unknown');assert.equal(n.updatedAt,14012);
+  assert.equal(M.moments(m,penny,false).includes(14043),false);
+  const record=f.lives.records.find(r=>r.id==='rd:penny-pam-care');record.knownBy[0].availableAt=14000;
+  assert.equal(M.view(M.open(f),{tick:14000,who:penny}).all.get(record.id).updatedAt,14000);
+});
 test('expectations use recorded states as of the clock, never backfilled snapshots',()=>{
   const id='ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday';
   assert.equal(node(view(13504),id).data.state.chance,undefined);assert.equal(node(view(13505),id).data.state.chance,0.3333);

@@ -78,16 +78,23 @@
     return label.replace(`what does ${name} `,'what to ');
   }
   function project(model, table, r, tick, who, observer) {
-    let data = {}, label = r.label ?? human(r.kind ?? table), refs = [];
+    let data = {}, label = r.label ?? human(r.kind ?? table), refs = [], updatedAt=time(r.visibleAt);
+    const updated=v=>{if(arrived(v,tick))updatedAt=Math.max(updatedAt,time(v));};
+    if(!observer && (['records','plans'].includes(table) || (table==='attempts' && r.actor!==who))) {
+      const acquired=(r.knownBy??[]).filter(k=>k.who===who && arrived(k.availableAt,tick)).map(k=>time(k.availableAt));
+      if(table==='attempts')acquired.push(...model.lives.perceptions.filter(p=>p.who===who && p.of===r.id && arrived(p.visibleAt,tick)).map(p=>time(p.visibleAt)));
+      if(acquired.length)updated(Math.min(...acquired));
+    }
     const add = (...xs) => { for (const x of xs.flat(Infinity)) if (typeof x === 'string') refs.push(x); };
     if (table === 'records') {
       label = recordLabel(r,model.run.names);
       data = pick(r,['type','stance','certainty','scope','force','object','key','sign','name','strength','qualifications']);
       if (r.type === 'expectation') {
+        updated(r.initial?.asOf);
         data.state = arrived(r.initial?.asOf,tick) ? pick(r.initial,['asOf','chance','lived','seeded']) : {status:'Earlier state not recorded in this excerpt'};
         // Apply only recorded updates, never recompute a probability or lose its earlier state.
         for (const u of [...model.lives.learning].sort((a,b)=>time(a.visibleAt)-time(b.visibleAt)))
-          if (u.record === r.id && arrived(u.visibleAt,tick)) data.state = pick(u.new,['chance','lived','seeded','entries','strength']);
+          if (u.record === r.id && arrived(u.visibleAt,tick)) {data.state = pick(u.new,['chance','lived','seeded','entries','strength']);updated(u.visibleAt);}
       }
       add(r.fact, r.causes, typeof r.object === 'string' ? r.object : null);
       if (observer) data.provenance = pick(r,['origin','standing','sources','support','cues']);
@@ -102,6 +109,7 @@
       data.excluded = (r.excluded ?? []).map(a=>({label:a.label, reason:a.why?.code, cites:a.why?.cites ?? []}));
       data.constraints = (r.constraints ?? []).map(c=>pick(c,['code','value']));
       if (arrived(r.choice?.visibleAt,tick)) {
+        updated(r.choice.visibleAt);
         data.choice = pick(r.choice,['selected']);
         if (observer) Object.assign(data.choice,pick(r.choice,['backend','probabilities','fallback','sampled','provenance']));
         const tape = r.choice.provenance?.tape;
@@ -114,12 +122,17 @@
       add(r.opportunity,r.recall, ...(r.alternatives ?? []).flatMap(a=>(a.reasons ?? []).flatMap(z=>z.cites ?? [])));
     } else if (table === 'attempts') {
       data = pick(r,['kind','attempted']); add(r.decision);
+      data.inProgress=observer || r.actor===who;
       if (arrived(r.resolvedAt,tick) && (observer || r.actor === who)) {
+        updated(r.resolvedAt);data.inProgress=false;
         data.status = r.status; if (observer) { data.world = r.world; add(r.outcome); }
+        const perception=model.lives.perceptions.filter(p=>p.of===r.id && p.who===r.actor && arrived(p.visibleAt,tick)).sort((a,b)=>time(b.visibleAt)-time(a.visibleAt))[0];
+        if(perception){data.response=pick(perception.perceived,['answer','kind']);updated(perception.visibleAt);}
       }
     } else if (table === 'plans') {
       data = pick(r,['answer','activity','place','window','formal']); add(r.origin);
     } else if (table === 'outcomes') {
+      updated(r.settledAt);for(const entry of r.timeline??[])updated(entry.at);
       data.timeline = (r.timeline ?? []).filter(x=>arrived(x.at,tick)).map(x=>pick(x,['at','label']));
       if (arrived(r.settledAt,tick)) { label = r.settledLabel ?? label; Object.assign(data,pick(r,['kind','world'])); }
       else data.status = 'Still unfolding';
@@ -141,7 +154,7 @@
     if(withoutAnnotations!==label){data.recordedLabel=label;label=withoutAnnotations;}
     const owner=r.holder ?? r.who ?? r.actor ?? null;
     if(!observer && owner===who)label=personalLabel(label,model.run.names[who]);
-    return {id:r.id, table, stage:STAGES[table], at:r.visibleAt, label, owner, data, refs:[...new Set(refs)]};
+    return {id:r.id, table, stage:STAGES[table], at:r.visibleAt, updatedAt, label, owner, data, refs:[...new Set(refs)]};
   }
   function view(model, {tick, who=0, observer=false, thread=null}) {
     if (model.missing) return {nodes:[],threads:[],moments:[],comparisons:[]};
@@ -173,7 +186,8 @@
     if(model.missing) return [];
     const result = new Set([0]);
     for(const {table,row} of model.index.values()) {
-      const gates=[row.visibleAt,row.choice?.visibleAt,row.resolvedAt,row.initial?.asOf];
+      const gates=[row.visibleAt,row.choice?.visibleAt,row.initial?.asOf];
+      if(observer || row.actor===who)gates.push(row.resolvedAt);
       if(observer) gates.push(row.settledAt,...(row.timeline ?? []).map(x=>x.at));
       for(const g of gates) if(Number.isFinite(g) && permitted(model,table,row,g,who,observer)) result.add(g);
       for(const k of row.knownBy ?? []) if(k.who===who && Number.isFinite(k.availableAt)) result.add(k.availableAt);
@@ -201,5 +215,23 @@
     if(Number.isFinite(next?.moodChange))metrics.push({key:'mood',label:'Mood',delta:next.moodChange,status:direction(next.moodChange)});
     return metrics;
   }
-  return {open,view,moments,comparison,time,human,learningMetrics};
+  function cardStatus(n){
+    const d=n.data;
+    if(n.table==='decisions')return d.choice?{tone:'up',symbol:'✓',label:'Chose',detail:d.alternatives.find(a=>a.id===d.choice.selected)?.label??'Option not recorded'}:{tone:'new',symbol:'◷',label:'Deciding'};
+    if(n.table==='plans')return {tone:'up',symbol:'✓',label:'Agreed plan'};
+    if(n.table!=='attempts')return null;
+    if(!d.status)return d.inProgress?{tone:'new',symbol:'◷',label:d.kind==='go'?'On the way':d.kind==='begin-planned-act'?'Waiting':'Awaiting response'}:{tone:'unknown',symbol:'?',label:'Outcome unknown'};
+    if(d.status==='answered'){
+      if(d.response?.answer==='yes')return {tone:'up',symbol:'✓',label:'Accepted'};
+      if(d.response?.answer==='no')return {tone:'down',symbol:'×',label:'Declined'};
+      if(d.response?.kind==='not-now')return {tone:'new',symbol:'◷',label:'Not now'};
+      return {tone:'up',symbol:'✓',label:'Answered'};
+    }
+    return ({completed:{tone:'up',symbol:'✓',label:'Completed'},unsuccessful:{tone:'down',symbol:'×',label:d.kind==='begin-planned-act'?'Plan did not happen':'Unsuccessful'},busy:{tone:'new',symbol:'◷',label:'Blocked · busy'}})[d.status]??{tone:'unknown',symbol:'?',label:'Status unavailable'};
+  }
+  function currentMoment(nodes,tick){
+    const at=Math.max(-1,...nodes.map(n=>n.updatedAt));
+    return {at,exact:at===tick,ids:at<0?[]:nodes.filter(n=>n.updatedAt===at).map(n=>n.id)};
+  }
+  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment};
 });

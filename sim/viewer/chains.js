@@ -2,7 +2,7 @@
   'use strict';
   const M=window.UnderGlassChains, $=id=>document.getElementById(id);
   const EXAMPLE='fixtures/lives-observer-example-v0.1.json';
-  let model=null, source=null, tick=0, who=0, observer=false, thread=null, selected=null, current=null, timer=null, expanded=new Set();
+  let model=null, source=null, tick=0, who=0, observer=false, thread=null, selected=null, current=null, moment=null, timer=null, expanded=new Set();
   const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
   const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b;};
   const pct=n=>Number.isFinite(n)?`${(n*100).toFixed(1)}%`:'Not recorded';
@@ -61,15 +61,36 @@
   function render(){
     if(!model||model.missing)return;
     current=M.view(model,{tick,who,observer,thread});thread=current.selected?.id??null;
+    moment=M.currentMoment(current.nodes,tick);
     if(!current.nodes.some(n=>n.id===selected))selected=null;
     $('thread').replaceChildren(...current.threads.map(t=>{const o=el('option',t.title);o.value=t.id;return o;}));$('thread').value=thread??'';
     $('thread-summary').textContent=current.selected?.summary??'No thread is visible at this moment.';
+    $('thread-summary').hidden=current.selected?.summary===current.selected?.title;
     $('time').value=tick;$('clock').textContent=clock(tick);
     $('lens-note').textContent=observer?'World facts and private records · observer only':`Only ${model.run.names[who]}'s recorded knowledge`;
     const moments=M.moments(model,who,observer).filter(t=>t>=Number($('time').min));$('previous').disabled=!moments.some(t=>t<tick);$('next').disabled=!moments.some(t=>t>tick);$('play').disabled=$('next').disabled;
     $('comparison-section').hidden=!observer||!current.comparisons.length;
     if(!observer){$('comparisons').hidden=true;$('compare-toggle').setAttribute('aria-expanded','false');$('compare-toggle').textContent='Open isolated comparisons';}
-    renderGraph();renderInspector();renderComparisons();notify();
+    renderMoment();renderGraph();renderInspector();renderComparisons();notify();
+  }
+  function locate(id){
+    const node=[...$('graph').querySelectorAll('[data-node]')].find(n=>n.dataset.node===id);
+    if(node){
+      node.scrollIntoView({block:'center',behavior:'instant'});
+      const clearance=document.querySelector('.chain-controls').getBoundingClientRect().bottom+16, top=node.getBoundingClientRect().top;
+      if(top<clearance)window.scrollBy({top:top-clearance,behavior:'instant'});
+      node.focus({preventScroll:true});
+    }
+  }
+  function renderMoment(){
+    const label=$('moment-label'),links=$('moment-links');links.replaceChildren();
+    label.textContent=moment.at<0?'No recorded moment yet':`${moment.exact?'● Now':'Latest update'} · ${clock(moment.at)}`;
+    $('moment-strip').classList.toggle('at-now',moment.exact);
+    const active=current.nodes.filter(n=>moment.ids.includes(n.id));
+    for(const stage of ['History','Recall','Choice','Attempt','Outcome','Perceived','Learned'].filter(s=>active.some(n=>n.stage===s))){
+      const nodes=active.filter(n=>n.stage===stage),b=button(`${stage} · ${nodes.length}`,()=>locate(nodes[0].id),'moment-jump');
+      b.title=nodes.map(n=>n.label).join('\n');b.setAttribute('aria-label',`Find ${stage.toLowerCase()} cards at ${clock(moment.at)}`);links.append(b);
+    }
   }
   function renderGraph(){
     const stages=$('stages');stages.replaceChildren();
@@ -79,11 +100,21 @@
     for(const [index,stage] of order.entries()){
       const col=el('section',undefined,'stage'),nodes=current.nodes.filter(n=>n.stage===stage);const h=el('h2');h.append(el('span',String(index+1),'stage-number'),el('span',stage,'stage-name'),el('span',String(nodes.length),'stage-count'));col.append(h);
       // Always show the selected node and its immediate path, even among older collapsed history.
-      const shown=expanded.has(stage)?nodes:nodes.filter(n=>nodes.slice(-4).includes(n)||n.id===selected||related.has(n.id));
+      const shown=expanded.has(stage)?nodes:nodes.filter(n=>nodes.slice(-4).includes(n)||n.id===selected||related.has(n.id)||moment.ids.includes(n.id));
       const cards=el('div',undefined,'stage-nodes');col.append(cards);
       if(!nodes.length)col.append(el('p','Nothing visible yet','stage-empty'));
       for(const n of shown){const b=button('',()=>select(n.id),'chain-node');b.dataset.node=n.id;b.setAttribute('aria-pressed',String(n.id===selected));b.setAttribute('aria-label',`${stage}: ${n.label}`);b.title=n.label;
+        if(moment.ids.includes(n.id)){
+          b.classList.add('moment-current');b.setAttribute('aria-current','step');
+          b.append(el('span',moment.exact?(M.time(n.at)===tick?'● Now · appeared':'● Now · updated'):'● Latest update','moment-badge'));
+        }
         if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));
+        const status=M.cardStatus(n);
+        if(status){
+          const summary=el('span',undefined,`card-status change-${status.tone}`);summary.append(el('span',`${status.symbol} ${status.label}`,'change-badge'));
+          if(status.detail)summary.append(el('strong',status.detail,'chosen-option'));b.append(summary);
+          b.setAttribute('aria-label',`${stage}: ${n.label} · ${status.label}${status.detail?': '+status.detail:''}`);
+        }
         if(n.data.type==='expectation'){
           const chance=n.data.state?.chance, value=pct(chance).replace('.0%','%'), summary=Number.isFinite(chance)?`${value} expected chance`:'Chance not recorded yet';
           const metric=el('span',undefined,'node-chance');
