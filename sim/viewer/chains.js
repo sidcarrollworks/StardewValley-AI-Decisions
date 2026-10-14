@@ -67,6 +67,11 @@
           if(Number.isFinite(chance))metric.append(el('strong',value),el('span','expected chance'));else metric.textContent=summary;
           b.append(metric);b.setAttribute('aria-label',`${stage}: ${n.label} · ${summary}`);
         }
+        if(n.table==='learning' && Number.isFinite(n.data.next?.chance)){
+          const before=pct(n.data.previous?.chance).replace('.0%','%'), after=pct(n.data.next.chance).replace('.0%','%');
+          const metric=el('span',undefined,'node-chance');metric.append(el('strong',`${before} → ${after}`),el('span','expected chance'));
+          b.append(metric);b.setAttribute('aria-label',`${stage}: ${n.label} · Expected chance: ${before} before, ${after} after`);
+        }
         cards.append(b);}
       if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);

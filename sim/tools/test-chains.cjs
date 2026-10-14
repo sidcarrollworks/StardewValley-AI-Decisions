@@ -57,6 +57,11 @@ test('expectations use recorded states as of the clock, never backfilled snapsho
   const id='ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday';
   assert.equal(node(view(13504),id).data.state.chance,undefined);assert.equal(node(view(13505),id).data.state.chance,0.3333);
   const answer='ex:Pam:Penny:answers:errand:beer';assert.equal(node(view(13510,{who:pam}),answer).data.state.chance,0.5);
+  const learning='lu:14101:Penny:0';assert.equal(node(view(14100),learning),undefined);
+  const change=node(view(14101),learning);assert.equal(change.data.previous.chance,1);assert.equal(change.data.next.chance,0.5);
+  assert.equal(node(view(14240),'lu:14101:Penny:1').data.next.chance,undefined);
+  const f=structuredClone(fixture);f.lives.learning.find(r=>r.id===learning).previous=null;
+  assert.equal(M.view(M.open(f),{tick:14101,who:penny}).all.get(learning).data.previous,null);
 });
 test('expectation and feeling labels explain the subject without exposing storage keys',()=>{
   const v=view(14240,{observer:true});
