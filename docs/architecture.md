@@ -12,6 +12,8 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 
 ## Under Glass: the independent game
 
+The [archetype studio](under-glass/specs/archetype-studio-spec.md) edits reusable character-inspiration fields in browser-local drafts. It validates schema and composed voice budgets, exports complete packs, and leaves personal profiles and simulation state untouched. Its pure JS model is separate from DOM rendering; shared navigation preserves recording context without loading a run.
+
 `sim/UnderGlass.sln` targets .NET 8 and has no Stardew or SMAPI dependencies. Its first product is
 the social simulation viewed from above: an observer should be able to follow what people
 remember, consider, attempt and experience. Player gameplay comes later. The simulator's full

@@ -110,3 +110,7 @@ Background anchors and authored alternatives never enter these prompts. Failed c
 remains inspectable, with no substitution. Format checks and overlap flags are technical aids;
 meaning, private form, age register and voice require human review. The comparison viewer starts
 with Vincent and shows sources, authored controls, both arms and exact requests/responses.
+
+## Authoring UI
+
+The [archetype studio](archetype-studio-spec.md) is built as of 2026-10-14. It edits schema-1 reusable profiles with local drafts, validation and export; it reads character accents/background and speech examples without editing them. This does not resolve the pending history evidence corrections or implement histories as simulation state.

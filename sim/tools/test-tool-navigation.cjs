@@ -17,7 +17,9 @@ test('tool round trip retains exact recording, time, character and tab without n
   const source = api.recordingUrl('../../out/a run.html?variant=1#old', base);
   const speech = new URL(api.toolUrl('speech', source, { t: 2120, person: 'Penny', tab: 'inner' }, base));
   assert.equal(speech.searchParams.get('run'), 'http://127.0.0.1:8766/out/a%20run.html?variant=1');
-  const dashboard = new URL(api.toolUrl('dashboard', speech.searchParams.get('run'), api.readState(speech.hash), speech.href));
+  const studio = new URL(api.toolUrl('archetypes', speech.searchParams.get('run'), api.readState(speech.hash), speech.href));
+  assert.equal(studio.pathname, '/sim/viewer/archetypes.html');
+  const dashboard = new URL(api.toolUrl('dashboard', studio.searchParams.get('run'), api.readState(studio.hash), studio.href));
   assert.equal(dashboard.pathname, '/sim/viewer/index.html');
   assert.equal(dashboard.hash, '#t=2120&person=Penny&tab=inner');
   assert.equal(dashboard.searchParams.get('run'), source);

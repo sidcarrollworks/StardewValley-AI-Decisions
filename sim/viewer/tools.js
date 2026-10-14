@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const ROOT = "/sim/viewer/";
-  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", recordings: "morning.html" };
+  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", archetypes: "archetypes.html", recordings: "morning.html" };
 
   function recordingUrl(value, base) {
     const url = new URL(value, base), origin = new URL(base);
@@ -66,7 +66,7 @@
     document.head.append(style);
     const nav = document.createElement("nav"); nav.id = "ug-tools"; nav.setAttribute("aria-label", "Under Glass tools");
     const links = document.createElement("div"); links.className = "ug-links";
-    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Dashboard", speech: "Speech editor", recordings: "Recordings" })) {
+    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Dashboard", speech: "Speech editor", archetypes: "Archetypes", recordings: "Recordings" })) {
       const link = document.createElement("a"); link.dataset.toolLink = key; link.textContent = label;
       if (key === page.page) link.setAttribute("aria-current", "page");
       links.append(link);

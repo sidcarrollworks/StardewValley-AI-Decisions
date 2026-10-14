@@ -1047,6 +1047,10 @@ experiments in expandable sections. Every original recording and reference remai
 corner marks, a sticky shared top bar, and no timeline shadow or Happening now top border. The
 bar height is measured so nested sticky controls and the speech drawer remain below navigation.
 
+### Archetype studio first slice (2026-10-14)
+
+Sid authorized a separate archetype browser/editor while Claude develops the observer recording contract. The studio uses shared UI styles and edits only reusable drives, coping, voice, evaluator cue and source references. Personal accents, background and assignments are inspectable but read-only; duplicating an archetype copies no biography or speech. Source-aware browser drafts and validated pack downloads make edits reviewable without modifying the checkout or recorded runs. Fixed-scene trials and causal graphs are still planned. This is independent of the lives assessment and evidence corrections.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

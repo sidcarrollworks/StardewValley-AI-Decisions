@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=20261014-4">
+<link rel="stylesheet" href="ui.css?v=20261014-5">
 <script src="ui.js"></script>
 </head>
 <body class="tool-page">
@@ -16,6 +16,7 @@
   <div class="recording-grid tool-section">
     <article class="recording-card"><h2>Dashboard</h2><p>Follow characters, thoughts, actions and their recorded consequences on one clock.</p><a class="key-link" data-tool-link="dashboard" href="index.html">Open dashboard →</a></article>
     <article class="recording-card"><h2>Speech editor</h2><p>Explore coverage by voice and situation. Edit authored lines and download a revised catalog.</p><a class="key-link" data-tool-link="speech" href="speech.html">Open speech editor →</a></article>
+    <article class="recording-card"><h2>Archetypes</h2><p>Browse reusable tendencies, edit a voice, and export a character inspiration pack.</p><a class="key-link" data-tool-link="archetypes" href="archetypes.html">Open archetype studio →</a></article>
     <article class="recording-card"><h2>Saved recordings</h2><p>Choose from the prepared runs and voice comparisons, with guides for what to watch.</p><a class="key-link" data-tool-link="recordings" href="morning.html">Browse recordings →</a></article>
   </div>
   <details class="tool-disclosure"><summary>Open a recording by address</summary>
@@ -24,7 +25,7 @@
     <p id="open-error" role="status" class="meta"></p>
   </details>
   <details class="tool-disclosure"><summary>What changes when I edit speech?</summary><p>The editor saves a browser draft and can download a catalog. It does not alter a saved recording or the running simulation. Record a new run with the revised catalog to test its effect on speech.</p></details>
-  <details class="tool-disclosure"><summary>What is coming next?</summary><p>A focused view of thought and action chains, and an archetype studio for creating and testing reusable character tendencies, are being assessed. They are not available yet.</p></details>
+  <details class="tool-disclosure"><summary>What is coming next?</summary><p>The archetype browser and editor are available now. Fixed-scene trials and thought/action graphs will follow the recording contract being assessed.</p></details>
 </main>
 <script>
 window.underGlassToolPage = { page: "tools" };
@@ -36,7 +37,7 @@ document.getElementById("open-recording").onsubmit = (event) => {
   } catch (error) { document.getElementById("open-error").textContent = error.message; }
 };
 if (/^https?:$/.test(location.protocol)) {
-  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-4"; document.head.append(script);
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-5"; document.head.append(script);
 }
 </script>
 </body>
