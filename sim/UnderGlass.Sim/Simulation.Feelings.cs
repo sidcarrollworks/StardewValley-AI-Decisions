@@ -158,6 +158,7 @@ public sealed partial class Simulation
         double c = p.DetainedUntil > _now ? _fo.HeldPower : 0;
         if (HasMoney)
             c += _fo.NeedPower * NeedPressure(_names[i]) + _fo.WantPower * WantPressure(_names[i], _now);
+        c += BarSadness(i); // the needs bars as the body's sadness (law 1 experiment, mode 3); 0 otherwise
         return -c;
     }
 

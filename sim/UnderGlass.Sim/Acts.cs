@@ -58,6 +58,13 @@ public sealed class ActOptions
     /// someone to fetch it, and the promise is kept, kept late or broken. Needs money and a town with
     /// an errands book.</summary>
     public bool Errands { get; set; }
+    /// <summary>Hidden needs bars (needs bars spec, step 1): company and fun, known only to their owner,
+    /// measured against their own usual life, kept and recorded. How they press is BarMode.</summary>
+    public bool Bars { get; set; }
+    /// <summary>The law 1 experiment: how the bars press. 0 watch (kept and recorded, read by nothing);
+    /// 1 general (any gathering, the Saloon, any pastime lean); 2 particular (the places of one's own
+    /// good chats and outings lean); 3 Spinoza (the bars lower the power of acting, nothing else).</summary>
+    public int BarMode { get; set; }
 
     // Batch 2's switches (acts-batch2 spec 2.10), each with its slice; b2-0 builds the seams only,
     // so none has rows or rules yet.
@@ -146,6 +153,29 @@ public sealed class ActOptions
     public int ErrandAskMinutes { get; set; } = 60;
     /// <summary>What family or a shared home adds to the obligation to fetch something.</summary>
     public double ErrandKinBond { get; set; } = 0.2;
+    /// <summary>How soon a bar leans a free-time choice: factor min(BarCap, 1 + gain x pressure).</summary>
+    public double BarPullGain { get; set; } = 1.0;
+    /// <summary>The most a bar multiplies a free-time option or a draw by.</summary>
+    public double BarCap { get; set; } = 2.0;
+    /// <summary>How much loneliness grows Fond's and Missing's wish: min(BarWishCap, 1 + gain x pressure).</summary>
+    public double BarWishGain { get; set; } = 0.5;
+    public double BarWishCap { get; set; } = 1.5;
+    /// <summary>What loneliness or boredom takes off the cost of saying yes to an invitation, at full pressure.</summary>
+    public double BarAskEase { get; set; } = 0.2;
+    /// <summary>Mode 3 (Spinoza): what a full bar takes off the power of acting.</summary>
+    public double BarPowerWeight { get; set; } = 0.3;
+    /// <summary>Lonely past max(LonelyFloorMinutes, LonelyTimes x one's usual longest waking stretch without a good chat).</summary>
+    public int LonelyFloorMinutes { get; set; } = 360;
+    public double LonelyTimes { get; set; } = 2.0;
+    /// <summary>Bored past max(BoredFloorMinutes, BoredTimes x one's usual gap between outings).</summary>
+    public int BoredFloorMinutes { get; set; } = 2880;
+    public double BoredTimes { get; set; } = 2.5;
+    /// <summary>An outing: this many minutes at a pastime in one stay.</summary>
+    public int OutingMinutes { get; set; } = 60;
+    /// <summary>Someone has a pastime with outings on at least this share of their days.</summary>
+    public double RegularShare { get; set; } = 1.0 / 7;
+    /// <summary>Days known before anyone is pressed.</summary>
+    public int BarsSettleDays { get; set; } = 7;
     /// <summary>The share of a mishap's pity a witness feels at a hurt they saw, x understanding
     /// (acts spec 4.8: the understanding comfort).</summary>
     public double HurtPity { get; set; } = 0.5;
@@ -162,7 +192,7 @@ public sealed class ActOptions
         "Watch", "Returns", "Company", "Welcome", "Repair", "Sides", "Late",
         "Visits", "Dates", "Peace", "Festivals", "PublicConfront", "ReadVerdicts", "Settled", "Amends", "MadeScenes",
         "Bans", "Counter", "Hosting", "Debts", "Loans", "Items", "Blunders", "Contests", "Partiality", "Board",
-        "Invitations", "Errands",
+        "Invitations", "Errands", "Bars",
     };
 
     /// <summary>Whether the slice with this switch name is on.</summary>
@@ -195,6 +225,7 @@ public sealed class ActOptions
         nameof(Board) => Board,
         nameof(Invitations) => Invitations,
         nameof(Errands) => Errands,
+        nameof(Bars) => Bars,
         _ => false,
     };
 
