@@ -6,6 +6,29 @@
   const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
   const button=(text,fn,cls)=>{const b=el('button',text,cls);b.type='button';b.onclick=fn;return b;};
   const pct=n=>Number.isFinite(n)?`${(n*100).toFixed(1)}%`:'Not recorded';
+  const amount=n=>String(Number(n.toPrecision(4)));
+  const signed=n=>`${n>0?'+':n<0?'−':''}${amount(Math.abs(n))}`;
+  function learningMetric(m){
+    const root=el('span',undefined,`learning-metric change-${m.status}`),head=el('span',undefined,'metric-heading');
+    const symbol={up:'↑',down:'↓',same:'=',new:'✦',unknown:'?'}[m.status];
+    const difference=m.key==='chance' && m.delta!==null ? `${m.delta>0?'+':'−'}${Math.abs(m.delta*100)<0.1?'<0.1':amount(Math.abs(m.delta*100))} pp` : m.delta===null?'':signed(m.delta);
+    const status=m.status==='same'?'Unchanged':m.status==='new'?'New':m.status==='unknown'?'Prior unknown':difference;
+    head.append(el('span',m.label),el('span',`${symbol} ${status}`,'change-badge'));root.append(head);
+    const format=v=>m.key==='chance'?pct(v).replace('.0%','%'):amount(v);
+    if(m.key!=='mood'){
+      const values=el('span',undefined,'change-values');
+      if(m.before!==null)values.append(el('span',format(m.before),'previous-value'),el('span','→','change-arrow'));
+      root.title=m.status==='new'?'New recorded feeling; no previous entry.':m.before===null?'Previous value was not recorded.':`${m.label}: ${format(m.before)} before, ${format(m.after)} after`;
+      values.append(el('strong',format(m.after)));root.append(values);
+      if(m.key==='chance'){
+        const track=el('span',undefined,'change-track');track.setAttribute('aria-hidden','true');
+        const fill=el('span',undefined,'current-fill');fill.style.width=`${Math.max(0,Math.min(1,m.after))*100}%`;track.append(fill);
+        if(m.before!==null){const mark=el('span',undefined,'previous-mark');mark.style.left=`${Math.max(0,Math.min(1,m.before))*100}%`;track.append(mark);}
+        track.title='Fill: after · marker: before';root.append(track);
+      }
+    }
+    return root;
+  }
   const clock=n=>n==='pre-run'?'Before the run':`Day ${Math.floor(n/1440)+1} · ${String(Math.floor(n%1440/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
   function error(e){$('error').hidden=false;$('error').textContent=e.message;}
   function stop(){clearInterval(timer);timer=null;$('play').textContent='Play';}
@@ -67,11 +90,9 @@
           if(Number.isFinite(chance))metric.append(el('strong',value),el('span','expected chance'));else metric.textContent=summary;
           b.append(metric);b.setAttribute('aria-label',`${stage}: ${n.label} · ${summary}`);
         }
-        if(n.table==='learning' && Number.isFinite(n.data.next?.chance)){
-          const before=pct(n.data.previous?.chance).replace('.0%','%'), after=pct(n.data.next.chance).replace('.0%','%');
-          const metric=el('span',undefined,'node-chance');metric.append(el('strong',`${before} → ${after}`),el('span','expected chance'));
-          b.append(metric);b.setAttribute('aria-label',`${stage}: ${n.label} · Expected chance: ${before} before, ${after} after`);
-        }
+        const metrics=M.learningMetrics(n);
+        for(const metric of metrics)b.append(learningMetric(metric));
+        if(metrics.length)b.setAttribute('aria-label',`${stage}: ${n.label} · ${metrics.map(m=>m.key==='mood'?`Mood change ${signed(m.delta)}`:`${m.label}: ${m.before===null?(m.status==='new'?'new entry':'prior not recorded'):m.key==='chance'?pct(m.before)+' before':amount(m.before)+' before'}, ${m.key==='chance'?pct(m.after):amount(m.after)} after`).join(' · ')}`);
         cards.append(b);}
       if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);

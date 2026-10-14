@@ -131,7 +131,7 @@
       // notPerceived and observerLinks contain privileged truth, not the person's knowledge.
       if (observer) data.observerContext = pick(r,['notPerceived','notAsserted','observerLinks']);
     } else if (table === 'learning') {
-      data = {previous:r.previous ? pick(r.previous,['chance','strength','entries']) : null, next:pick(r.new,['chance','strength','entries','moodChange'])};
+      data = {previous:r.previous === null ? null : r.previous ? pick(r.previous,['chance','strength','entries']) : undefined, next:pick(r.new,['chance','strength','entries','moodChange'])};
       add(r.record,r.evidence);
       if (observer) data.rule = r.rule;
     }
@@ -190,5 +190,16 @@
       arms:c.arms.map(a=>({label:a.label,method:a.inputs.method.backend,draw:a.inputs.randomInput.unit,selected:names[a.derived.sampled] ?? a.derived.sampled,
         options:alternatives.map(x=>({id:x.id,label:x.label,probability:a.derived.probabilities[x.id],reasons:a.derived.reasons[x.slug] ?? []}))}))};
   }
-  return {open,view,moments,comparison,time,human};
+  function learningMetrics(node) {
+    if(node.table!=='learning')return [];
+    const {previous,next}=node.data, metrics=[];
+    const direction=d=>d>0?'up':d<0?'down':'same';
+    for(const [key,label] of [['chance','Expected chance'],['strength','Feeling strength']])if(Number.isFinite(next?.[key])){
+      const before=Number.isFinite(previous?.[key])?previous[key]:null, after=next[key], delta=before===null?null:after-before;
+      metrics.push({key,label,before,after,delta,status:delta===null?(key==='strength'&&previous===null?'new':'unknown'):direction(delta)});
+    }
+    if(Number.isFinite(next?.moodChange))metrics.push({key:'mood',label:'Mood',delta:next.moodChange,status:direction(next.moodChange)});
+    return metrics;
+  }
+  return {open,view,moments,comparison,time,human,learningMetrics};
 });

@@ -80,6 +80,28 @@ test('unrecognized expectation keys keep their exact details without inventing a
   const n=M.view(M.open(f),{tick:14240,who:penny}).all.get(r.id);
   assert.equal(n.label,'Expectation about Pam');assert.equal(n.data.key,r.key);
 });
+test('learning metrics separate a new feeling from its mood impact and probability changes',()=>{
+  assert.deepEqual(M.learningMetrics(node(view(14240),'lu:14101:Penny:1')), [
+    {key:'strength',label:'Feeling strength',before:null,after:0.0167,delta:null,status:'new'},
+    {key:'mood',label:'Mood',delta:-0.0167,status:'down'}
+  ]);
+  assert.deepEqual(M.learningMetrics(node(view(14240),'lu:14101:Penny:0')), [
+    {key:'chance',label:'Expected chance',before:1,after:0.5,delta:-0.5,status:'down'}
+  ]);
+  assert.equal(M.learningMetrics(node(view(14240),'lu:13512:Penny:0'))[0].status,'same');
+});
+test('learning direction preserves zero, small changes and missing priors without assigning valence',()=>{
+  const metrics=(previous,next)=>M.learningMetrics({table:'learning',data:{previous,next}});
+  assert.equal(metrics({strength:0},{strength:0.01})[0].status,'up');
+  assert.equal(metrics({strength:0.1},{strength:0})[0].status,'down');
+  assert.equal(metrics({strength:0.1},{strength:0.10001})[0].status,'up');
+  assert.equal(metrics({strength:0},{strength:0})[0].status,'same');
+  assert.equal(metrics({},{strength:0.01})[0].status,'unknown');
+  assert.equal(metrics(null,{chance:0.5})[0].status,'unknown');
+  const f=structuredClone(fixture);delete f.lives.learning.find(r=>r.id==='lu:14101:Penny:1').previous;
+  assert.equal(M.learningMetrics(M.view(M.open(f),{tick:14240,who:penny}).all.get('lu:14101:Penny:1'))[0].status,'unknown');
+  assert.deepEqual(M.learningMetrics({table:'records',data:{strength:0.5}}),[]);
+});
 test('personal labels omit their owner while preserving other people and observer attribution',()=>{
   const personal=view(14240),observer=view(14240,{observer:true});
   assert.equal(node(personal,'att:14041:Penny:0').label,'Waits for Pam');
