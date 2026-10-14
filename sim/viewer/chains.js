@@ -34,10 +34,11 @@
   }
   async function example(state={}){try{const url=new URL(EXAMPLE,location.href).href;const run=await window.UnderGlassTools.readRecording(url,location.href);accept(run,url,state);}catch(e){error(e);}}
   function select(id){selected=id;renderGraph();renderInspector();}
+  function closeInspector(){const previous=selected;selected=null;renderGraph();renderInspector();const node=[...$('graph').querySelectorAll('[data-node]')].find(n=>n.dataset.node===previous);node?.focus({preventScroll:true});}
   function render(){
     if(!model||model.missing)return;
     current=M.view(model,{tick,who,observer,thread});thread=current.selected?.id??null;
-    if(!current.nodes.some(n=>n.id===selected))selected=current.nodes.filter(n=>n.table==='decisions').at(-1)?.id??null;
+    if(!current.nodes.some(n=>n.id===selected))selected=null;
     $('thread').replaceChildren(...current.threads.map(t=>{const o=el('option',t.title);o.value=t.id;return o;}));$('thread').value=thread??'';
     $('thread-summary').textContent=current.selected?.summary??'No thread is visible at this moment.';
     $('time').value=tick;$('clock').textContent=clock(tick);
@@ -50,30 +51,39 @@
   function renderGraph(){
     const stages=$('stages');stages.replaceChildren();
     const focus=current.all.get(selected);const related=new Set([...(focus?.refs??[]),...current.nodes.filter(n=>n.refs.includes(selected)).map(n=>n.id)]);
-    for(const stage of ['History','Recall','Choice','Attempt','Outcome','Perceived','Learned']){
-      if(!observer&&stage==='Outcome')continue;
-      const col=el('section',undefined,'stage'),nodes=current.nodes.filter(n=>n.stage===stage);const h=el('h2',stage);h.append(el('span',String(nodes.length)));col.append(h);
-      const shown=expanded.has(stage)?nodes:nodes.slice(-4);
+    const order=['History','Recall','Choice','Attempt',...(observer?['Outcome']:[]),'Perceived','Learned'];
+    stages.style.setProperty('--stage-count',order.length);
+    for(const [index,stage] of order.entries()){
+      const col=el('section',undefined,'stage'),nodes=current.nodes.filter(n=>n.stage===stage);const h=el('h2');h.append(el('span',String(index+1),'stage-number'),el('span',stage,'stage-name'),el('span',String(nodes.length),'stage-count'));col.append(h);
+      // Always show the selected node and its immediate path, even among older collapsed history.
+      const shown=expanded.has(stage)?nodes:nodes.filter(n=>nodes.slice(-4).includes(n)||n.id===selected||related.has(n.id));
+      const cards=el('div',undefined,'stage-nodes');col.append(cards);
       if(!nodes.length)col.append(el('p','Nothing visible yet','stage-empty'));
       for(const n of shown){const b=button('',()=>select(n.id),'chain-node');b.dataset.node=n.id;b.setAttribute('aria-pressed',String(n.id===selected));b.setAttribute('aria-label',`${stage}: ${n.label}`);b.title=n.label;
-        if(related.has(n.id))b.classList.add('related');b.append(el('small',`${n.owner!==null?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));col.append(b);}
-      if(nodes.length>4)col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-4} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
+        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));cards.append(b);}
+      if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);
     }
     requestAnimationFrame(drawLinks);
   }
   function drawLinks(){
-    const svg=$('connections'),graph=$('graph');svg.replaceChildren();svg.setAttribute('width',graph.scrollWidth);svg.setAttribute('height',graph.scrollHeight);
+    const svg=$('connections'),graph=$('graph');svg.replaceChildren();svg.setAttribute('width',graph.clientWidth);svg.setAttribute('height',graph.clientHeight);
+    const ns='http://www.w3.org/2000/svg',defs=document.createElementNS(ns,'defs'),marker=document.createElementNS(ns,'marker');
+    for(const [key,value] of Object.entries({id:'chain-arrow',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'}))marker.setAttribute(key,value);
+    const tip=document.createElementNS(ns,'path');tip.setAttribute('d','M 0 0 L 10 5 L 0 10 z');marker.append(tip);defs.append(marker);svg.append(defs);
     const buttons=new Map([...graph.querySelectorAll('[data-node]')].map(b=>[b.dataset.node,b]));const box=graph.getBoundingClientRect();
     for(const n of current?.nodes??[])for(const ref of n.refs){if(n.id!==selected&&ref!==selected)continue;const a=buttons.get(ref),b=buttons.get(n.id);if(!a||!b)continue;
-      const x=a.getBoundingClientRect(),y=b.getBoundingClientRect(),x1=x.right-box.left+graph.scrollLeft,y1=x.top+x.height/2-box.top+graph.scrollTop,x2=y.left-box.left+graph.scrollLeft,y2=y.top+y.height/2-box.top+graph.scrollTop;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',`M${x1},${y1} C${x1+12},${y1} ${x2-12},${y2} ${x2},${y2}`);svg.append(path);
+      const x=a.getBoundingClientRect(),y=b.getBoundingClientRect(),stacked=Math.abs(x.left-y.left)<5;
+      const x1=(stacked?x.left+x.width/2:x.right)-box.left,y1=(stacked?x.bottom:x.top+x.height/2)-box.top,x2=(stacked?y.left+y.width/2:y.left)-box.left,y2=(stacked?y.top:y.top+y.height/2)-box.top;
+      const path=document.createElementNS(ns,'path');path.setAttribute('marker-end','url(#chain-arrow)');path.setAttribute('d',stacked?`M${x1},${y1} C${x1},${y1+14} ${x2},${y2-14} ${x2},${y2}`:`M${x1},${y1} C${x1+12},${y1} ${x2-12},${y2} ${x2},${y2}`);svg.append(path);
     }
   }
   function linkGroup(parent,title,nodes){if(!nodes.length)return;const d=details(parent,title,null);const body=d.lastChild;body.replaceChildren();body.classList.add('relation-links');for(const n of nodes)body.append(button(n.label,()=>{expanded.add(n.stage);select(n.id);}));}
   function renderInspector(){
     const panel=$('inspector');panel.replaceChildren();const n=current.all.get(selected);
-    if(!n){panel.append(el('p','Choose a node to inspect its reasons and supporting records.','meta'));return;}
+    panel.hidden=!n;
+    if(!n)return;
+    const close=button('×',closeInspector,'inspector-close');close.setAttribute('aria-label','Close node details');panel.append(close);
     panel.append(el('span',`${n.stage} · ${clock(n.at)}`,'node-meta'),el('h2',n.label));
     if(n.table==='decisions'){
       if(n.data.thought){panel.append(el('p','Private imagination · not evidence','meta'),el('blockquote',n.data.thought));}
@@ -145,6 +155,8 @@
   $('example').onclick=()=>example();$('open-recording').onclick=()=>$('recording-file').click();
   $('recording-file').onchange=async()=>{const f=$('recording-file').files[0];if(!f)return;try{accept(window.UnderGlassTools.parseRecording(await f.text()),null);}catch(e){error(e);}finally{$('recording-file').value='';}};
   window.addEventListener('resize',()=>requestAnimationFrame(drawLinks));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected){e.preventDefault();closeInspector();}});
+  new ResizeObserver(()=>requestAnimationFrame(drawLinks)).observe($('graph'));
   window.underGlassToolPage={page:'chains',load:accept,source:()=>model?source:undefined,hasRecording:()=>!!model,state:()=>({t:tick,person:model?.run.names[who]??'',tab:'inner'})};
   document.addEventListener('DOMContentLoaded',()=>{if(!new URLSearchParams(location.search).has('run'))example(window.UnderGlassTools.readState(location.hash));});
 })();

@@ -4,17 +4,18 @@
 select {max-width:100%;background:var(--surface-hi);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:6px;font:inherit}
 .playback {display:flex;align-items:center;gap:10px}.playback output {font:var(--step--1)/1.5 var(--font-data);white-space:nowrap;min-width:120px}.playback input {flex:1;min-width:60px;accent-color:var(--accent)}
 .thread-heading {display:flex;align-items:center;gap:24px;margin-top:24px}.thread-heading select {max-width:340px}.thread-heading p {font-size:var(--step--1);color:var(--ink-2)}
-.chain-layout {display:grid;grid-template-columns:minmax(0,1fr) 340px;border-block:1px solid var(--line);margin-top:16px;align-items:start}
-#graph {overflow:auto;position:relative;min-width:0;padding:20px 0 24px;max-height:760px}
-#stages {display:flex;gap:22px;width:max-content;padding:0 20px 0 0;position:relative;z-index:1}
-.stage {width:180px;flex:none}.stage h2 {font-size:var(--step--1);margin:0 0 14px;display:flex;justify-content:space-between}.stage h2 span {color:var(--muted);font-weight:400}
+.chain-layout {border-block:1px solid var(--line);margin-top:16px;min-width:0}
+#graph {position:relative;min-width:0;padding:20px 0 24px}
+#stages {display:grid;grid-template-columns:repeat(var(--stage-count,6),minmax(0,1fr));gap:16px;position:relative;z-index:1;align-items:start}
+.stage {min-width:0}.stage h2 {font-size:var(--step--1);margin:0 0 14px;display:flex;align-items:center;gap:6px}.stage-number {display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;width:22px;height:22px;flex:none;font:var(--step--2)/1 var(--font-data)}.stage-name {font-weight:600}.stage-count {margin-left:auto;color:var(--muted);font-weight:400;font-size:var(--step--2)}
 .chain-node {width:100%;text-align:left;background:var(--surface-hi);border:1px solid var(--line);border-radius:10px;box-shadow:none;margin:0 0 12px;padding:12px;display:grid;gap:8px;position:relative}
+.chain-node {min-width:0;overflow-wrap:anywhere}.chain-node.off-path .node-label {color:var(--muted)}.chain-node.off-path:hover .node-label,.chain-node.off-path:focus-visible .node-label {color:var(--ink)}
 .chain-node .node-label {font-size:var(--step--1);font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
 .chain-node small {font:var(--step--2)/1.5 var(--font-data);color:var(--muted)}
 .chain-node[aria-pressed=true] {border-color:var(--accent);background:var(--accent-wash)}.chain-node.related {border-color:var(--muted);border-style:dashed}
 .stage .more {font-size:var(--step--2);box-shadow:none;background:none}.stage-empty {color:var(--muted);font-size:var(--step--2)}
-#connections {position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}#connections path {fill:none;stroke:var(--accent);stroke-width:1.5;opacity:.8}
-#inspector {border-left:1px solid var(--line);padding:20px;min-width:0;max-height:760px;overflow:auto;scrollbar-gutter:stable}
+#connections {position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}#connections>path {fill:none;stroke:var(--accent);stroke-width:1.6;opacity:.85}#connections marker path {fill:var(--accent);stroke:none}
+#inspector {position:relative;border-top:1px solid var(--line);padding:24px 0;min-width:0}#inspector[hidden] {display:none}#inspector> :not(.inspector-close) {max-width:850px}#inspector h2 {padding-right:50px}.inspector-close {position:absolute;right:0;top:20px;width:36px;height:36px;padding:0;box-shadow:none;background:var(--surface-hi);border:1px solid var(--line);font-size:24px;line-height:1}
 #inspector h2 {font-size:var(--step-1);line-height:1.5;margin-top:8px}#inspector p {font-size:var(--step--1)}
 #inspector blockquote {margin:10px 0;padding:8px 12px;border-left:2px solid var(--accent);font-size:var(--step--1);line-height:1.6}
 .node-meta {font-size:var(--step--2);color:var(--muted)}.relation-links {display:grid;gap:8px;margin-top:12px}.relation-links button {text-align:left;font-size:var(--step--1);background:var(--surface-hi);box-shadow:none;overflow-wrap:anywhere}
@@ -24,5 +25,5 @@ select {max-width:100%;background:var(--surface-hi);color:var(--ink);border:1px 
 .comparison {border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:16px 0}.comparison h3 {font-size:var(--step-1);margin:0 0 12px}.comparison .result {display:flex;flex-wrap:wrap;gap:8px}.result span {border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:var(--step--1)}.result .changed {background:var(--accent-wash)}
 .arms {display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}.arm {min-width:0}.arm h4 {font-size:var(--step--1);margin:10px 0}.arm p,.comparison>p {font-size:var(--step--1)}
 .chain-layout :focus-visible {outline:2px solid var(--accent);outline-offset:3px}
-@media(max-width:1050px){.chain-layout{grid-template-columns:minmax(0,1fr)}#inspector{border-left:0;border-top:1px solid var(--line);max-height:none;padding-inline:0}#graph{max-height:500px}.thread-heading{align-items:start;flex-direction:column;gap:6px}}
-@media(max-width:600px){.arms{grid-template-columns:1fr}.playback{flex-wrap:wrap}.playback input{flex-basis:100%}.thread-heading label{width:100%;align-items:start;flex-direction:column}.thread-heading select{width:100%;max-width:100%}.comparison{padding:12px}.stage{width:165px}}
+@media(max-width:1050px){#stages{grid-template-columns:minmax(0,1fr);gap:24px}.stage{border-top:1px solid var(--line);padding-top:16px}.stage:first-child{border-top:0;padding-top:0}.stage h2{justify-content:start}.stage-count{margin-left:8px}.stage-nodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(175px,100%),1fr));gap:12px}.chain-node{margin:0}.stage .more{margin-top:12px}.thread-heading{align-items:start;flex-direction:column;gap:6px}}
+@media(max-width:600px){.arms{grid-template-columns:1fr}.playback{flex-wrap:wrap}.playback input{flex-basis:100%}.thread-heading label{width:100%;align-items:start;flex-direction:column}.thread-heading select{width:100%;max-width:100%}.comparison{padding:12px}.stage-nodes{grid-template-columns:minmax(0,1fr)}}

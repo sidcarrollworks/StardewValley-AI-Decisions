@@ -20,10 +20,10 @@
 <div class="playback"><button id="previous" aria-label="Previous recorded moment">‹</button><button id="play">Play</button><button id="next" aria-label="Next recorded moment">›</button><output id="clock"></output><input type="range" id="time" min="0" step="1" aria-label="Playback minute"></div>
 </section>
 <div class="thread-heading"><label>Thread <select id="thread"></select></label><p id="thread-summary"></p></div>
-<p class="meta">Select a node to trace its recorded links. Columns group stages; only drawn links represent dependencies.</p>
+<p class="meta">Read the stages in order. Select a node to highlight supporting records → selected node → consequences. Details open below.</p>
 <div class="chain-layout">
 <section id="graph" aria-label="History and action chain"><div id="stages"></div><svg id="connections" aria-hidden="true"></svg></section>
-<aside id="inspector" aria-label="Selected chain node"><p class="meta">Choose a node to inspect its reasons and supporting records.</p></aside>
+<aside id="inspector" aria-label="Selected chain node" hidden></aside>
 </div>
 <section id="comparison-section" class="tool-section" hidden>
 <div class="section-heading"><h2>History comparisons</h2><button id="compare-toggle" aria-expanded="false">Open isolated comparisons</button></div>
