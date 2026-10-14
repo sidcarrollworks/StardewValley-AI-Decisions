@@ -60,7 +60,7 @@
       const cards=el('div',undefined,'stage-nodes');col.append(cards);
       if(!nodes.length)col.append(el('p','Nothing visible yet','stage-empty'));
       for(const n of shown){const b=button('',()=>select(n.id),'chain-node');b.dataset.node=n.id;b.setAttribute('aria-pressed',String(n.id===selected));b.setAttribute('aria-label',`${stage}: ${n.label}`);b.title=n.label;
-        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));cards.append(b);}
+        if(related.has(n.id))b.classList.add('related');if(selected&&n.id!==selected&&!related.has(n.id))b.classList.add('off-path');b.append(el('small',`${n.owner!==null&&(observer||n.owner!==who)?model.run.names[n.owner]+' · ':''}${clock(n.at)}`),el('span',n.label,'node-label'));cards.append(b);}
       if(nodes.length>shown.length||expanded.has(stage))col.append(button(expanded.has(stage)?'Show fewer':`Show ${nodes.length-shown.length} earlier`,()=>{expanded.has(stage)?expanded.delete(stage):expanded.add(stage);renderGraph();},'more'));
       stages.append(col);
     }
@@ -123,8 +123,9 @@
       const {provenance,...record}=n.data;details(panel,'Record details',record);
       if(observer&&provenance)details(panel,'Source provenance',provenance);
     }else{
-      const {provenance,recallDetails,observerContext,...visible}=n.data;
+      const {provenance,recallDetails,observerContext,recordedLabel,...visible}=n.data;
       renderValue(panel,visible);
+      if(recordedLabel)details(panel,'Recorded wording',recordedLabel);
       if(observer&&provenance)details(panel,'Source provenance',provenance);
       if(observer&&recallDetails)details(panel,'Recall selection details',recallDetails);
       if(observer&&observerContext)details(panel,'Observer-only context',observerContext);

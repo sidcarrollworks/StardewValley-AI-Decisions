@@ -8,6 +8,8 @@ Built 2026-10-14 as a read-only preview of the proposed Lives 0.1 observer contr
 
 The initial view is Penny's first decision, under Character knowledge. Stage columns contain history, recall/opportunities, choices, attempts/plans, perceptions and learning; Observer mode adds world outcomes. Only recorded dependency references create graph links. Selecting a node highlights its dependencies and consequences, draws their links when both nodes are displayed, and opens a details tray below the full-width graph. The tray starts closed, closes with its icon or Escape, and never opens automatically during playback. Numbered stages fit the desktop width; narrower screens stack stages vertically without sideways scrolling. Four recent nodes per stage are initially shown; earlier nodes expand on request, and a selected node's immediate supporting/consequence nodes are revealed automatically. Directional arrows highlight recorded links, with unrelated nodes subdued.
 
+Cards describe expectations as questions and associations in plain language; exact expectation keys and association objects remain under Record details. Character mode omits the selected person’s repeated ownership header and explicit label prefix, keeping other people’s names and observer attribution intact. Unrecognized expectation keys use a neutral label rather than guessing their meaning.
+
 Playback advances between recorded moments or scrubs by minute within the excerpt. A thread selector limits the display to its stage members and recursively referenced supporting records. Character thread summaries are built from visible personal elements, never observer thread titles. Shared navigation carries the recording, time and person. A local import has no reusable server URL.
 
 ## Knowledge and time
@@ -30,7 +32,7 @@ Archetypes remain separate from personal history. The fixture contains IDs witho
 
 ## Verification
 
-Fourteen focused adapter tests cover missing/unknown formats, choice and thought gates, other minds and secret diagnostic text, unknowns and guesses, busy targets, acquisition gates, outcome settlement, attempt resolution, expectation rewind, thread summaries, dependency visibility, both comparison outcomes, formula independence and immutability. Shared navigation adds the full-recording boundary and chain round trip. Browser review covers playback/rewind, both lenses, linked details, comparisons, and responsive themes.
+Seventeen focused adapter tests cover missing/unknown formats, choice and thought gates, other minds and secret diagnostic text, unknowns and guesses, busy targets, acquisition gates, outcome settlement, attempt resolution, expectation rewind, thread summaries, dependency visibility, both comparison outcomes, formula independence, immutability, readable expectation/association labels, unknown-key fallback and personal versus observer attribution. Shared navigation adds the full-recording boundary and chain round trip. Browser review covers playback/rewind, both lenses, linked details, comparisons, and responsive themes.
 
 ## Next
 

@@ -58,6 +58,39 @@ test('expectations use recorded states as of the clock, never backfilled snapsho
   assert.equal(node(view(13504),id).data.state.chance,undefined);assert.equal(node(view(13505),id).data.state.chance,0.3333);
   const answer='ex:Pam:Penny:answers:errand:beer';assert.equal(node(view(13510,{who:pam}),answer).data.state.chance,0.5);
 });
+test('expectation and feeling labels explain the subject without exposing storage keys',()=>{
+  const v=view(14240,{observer:true});
+  const home=node(v,'ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday');
+  assert.equal(home.label,'Will Pam be at home on weekday evenings?');
+  assert.equal(home.data.key,'whereabouts:Home:Trailer:18-21:weekday');
+  assert.equal(node(v,'ex:Gus:Penny:availability:Square:10-14:weekday').label,'Will Penny be free at the town square on weekday late mornings and early afternoons?');
+  assert.equal(node(v,'ex:Pam:Penny:answers:errand:beer').label,'Will Penny fetch beer?');
+  assert.equal(node(v,'ex:Penny:Pam:followThrough:plan').label,'Will Pam keep a plan?');
+  for(const n of v.all.values())if(['expectation','association'].includes(n.data.type))assert.doesNotMatch(n.label,/whereabouts:|availability:|answers:|followThrough:|person:|place:|activity:|situation:/);
+  const worry=[...v.all.values()].find(n=>n.data.name==='worried care');
+  assert.equal(worry.label,'Worried about Pam');assert.equal(worry.data.object,'person:Pam');
+});
+test('unrecognized expectation keys keep their exact details without inventing a meaning',()=>{
+  const f=structuredClone(fixture),r=f.lives.records.find(r=>r.type==='expectation');r.key='new-kind:secret-code';
+  const n=M.view(M.open(f),{tick:14240,who:penny}).all.get(r.id);
+  assert.equal(n.label,'Expectation about Pam');assert.equal(n.data.key,r.key);
+});
+test('personal labels omit their owner while preserving other people and observer attribution',()=>{
+  const personal=view(14240),observer=view(14240,{observer:true});
+  assert.equal(node(personal,'att:14041:Penny:0').label,'Waits for Pam');
+  assert.equal(node(observer,'att:14041:Penny:0').label,'Penny waits for Pam');
+  assert.equal(node(personal,'per:14101:Penny:0').label,"She said yes, and she isn't here");
+  assert.equal(node(personal,'dec:13510:Penny:0').label,'After saying no to beer, what to offer instead?');
+  const opportunity=[...personal.all.values()].find(n=>n.table==='opportunities');
+  assert.doesNotMatch(opportunity.label,/\+0\.60/);assert.match(opportunity.data.recordedLabel,/\+0\.60/);
+  const f=structuredClone(fixture),r=f.lives.records.find(r=>r.holder===penny && r.type==='reading');
+  r.label='Pennyworth reminds Penny of Pam';
+  assert.equal(M.view(M.open(f),{tick:14240,who:penny}).all.get(r.id).label,r.label);
+  r.label='Penny and Pam agreed to stay home';
+  assert.equal(M.view(M.open(f),{tick:14240,who:penny}).all.get(r.id).label,r.label);
+  r.label="Penny's account: she cleans alone while Pam nurses a headache";
+  assert.equal(M.view(M.open(f),{tick:14240,who:penny}).all.get(r.id).label,'Account: she cleans alone while Pam nurses a headache');
+});
 test('character threads never use observer titles or summaries',()=>{
   const f=structuredClone(fixture);for(const t of f.lives.threads){t.title='SECRET';t.summary=[{visibleAt:0,label:'SECRET'}];}
   const v=M.view(M.open(f),{tick:14240,who:penny});assert.equal(JSON.stringify(v.threads).includes('SECRET'),false);

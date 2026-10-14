@@ -40,15 +40,49 @@
     }
     return (row.holder ?? row.who) === who;
   }
-  function recordLabel(r) {
-    return r.label ?? (r.type === 'association' ? `${r.name} · ${r.object}` : r.type === 'expectation' ? `Expectation · ${r.key}` : human(r.type));
+  const capital = s => s ? s[0].toUpperCase()+s.slice(1) : s;
+  const place = s => ({'Home:Trailer':'home','Saloon':'the Saloon','Square':'the town square'})[s];
+  function expectationLabel(r, names) {
+    const subject=names[r.subject] ?? 'this person', parts=String(r.key ?? '').split(':');
+    if(['whereabouts','availability'].includes(parts[0])) {
+      const location=place(parts.slice(1,-2).join(':')), hours=parts.at(-2), days=parts.at(-1);
+      const period={'18-21':'evenings','15-18':'afternoons','10-14':'late mornings and early afternoons'}[hours];
+      const schedule={weekday:'weekday',weekend:'weekend'}[days];
+      if(location && period && schedule) return `Will ${subject} be ${parts[0]==='availability'?'free ':''}at ${location} on ${schedule} ${period}?`;
+    }
+    if(r.key==='answers:plan') return `Will ${subject} agree to a plan?`;
+    if(r.key==='followThrough:plan') return `Will ${subject} keep a plan?`;
+    if(parts[0]==='answers' && parts[1]==='errand' && parts.length===3 && ['beer','flour'].includes(parts[2])) return `Will ${subject} fetch ${parts[2]}?`;
+    // Unknown keys stay inspectable, without guessing at a new contract's meaning.
+    return `Expectation about ${subject}`;
+  }
+  function associationLabel(r) {
+    const object=String(r.object ?? ''), split=object.indexOf(':'), kind=object.slice(0,split), value=object.slice(split+1);
+    const target=kind==='person'?value:kind==='place'?place(value):['activity','situation'].includes(kind)?(value.startsWith('evening-')?'an ':'')+human(value):null;
+    if(!target)return 'Remembered feeling';
+    const wording={'worried care':`Worried about ${target}`,burdened:`Burdened by ${target}`,wary:`Wary of ${target}`,absorbed:`Absorbed in ${target}`,proud:`Proud of ${target}`,enjoys:`Enjoys ${target}`,uneasy:`Uneasy about ${target}`,fond:`Fond of ${target}`,disappointed:`Disappointed about ${target}`};
+    return wording[r.name] ?? `${capital(human(r.name ?? 'Feeling'))} · ${target}`;
+  }
+  function recordLabel(r, names) {
+    return r.label ?? (r.type === 'association' ? associationLabel(r) : r.type === 'expectation' ? expectationLabel(r,names) : human(r.type));
+  }
+  function personalLabel(label, name) {
+    if(!name)return label;
+    // Only remove an explicit owner prefix/subject, never a target or a name inside a word.
+    if(label.startsWith(`${name}: `))return capital(label.slice(name.length+2));
+    const accountPrefix=`${name}'s account: `;
+    if(label.startsWith(accountPrefix))return `Account: ${label.slice(accountPrefix.length)}`;
+    const rest=label.slice(name.length+1);
+    if(label.startsWith(`${name} `) && /^(recalls|asks|waits|heads|leaves|refused|will|is|at)\b/.test(rest))return capital(rest);
+    for(const start of ['Does','Will'])if(label.startsWith(`${start} ${name} `))return capital(label.slice(start.length+name.length+2));
+    return label.replace(`what does ${name} `,'what to ');
   }
   function project(model, table, r, tick, who, observer) {
     let data = {}, label = r.label ?? human(r.kind ?? table), refs = [];
     const add = (...xs) => { for (const x of xs.flat(Infinity)) if (typeof x === 'string') refs.push(x); };
     if (table === 'records') {
-      label = recordLabel(r);
-      data = pick(r,['type','stance','certainty','scope','force','object','sign','name','strength','qualifications']);
+      label = recordLabel(r,model.run.names);
+      data = pick(r,['type','stance','certainty','scope','force','object','key','sign','name','strength','qualifications']);
       if (r.type === 'expectation') {
         data.state = arrived(r.initial?.asOf,tick) ? pick(r.initial,['asOf','chance','lived','seeded']) : {status:'Earlier state not recorded in this excerpt'};
         // Apply only recorded updates, never recompute a probability or lose its earlier state.
@@ -102,7 +136,12 @@
       if (observer) data.rule = r.rule;
     }
     // No generic raw-record inspector: unknown fields and diagnostic prose stay out of character views.
-    return {id:r.id, table, stage:STAGES[table], at:r.visibleAt, label, owner:r.holder ?? r.who ?? r.actor ?? null, data, refs:[...new Set(refs)]};
+    // Numeric motive annotations and decision-document codes belong in the inspector.
+    const withoutAnnotations=label.replace(/ \([+-]\d+(?:\.\d+)?\)/g,'').replace(/ \(Sid's D\d+\)/g,'');
+    if(withoutAnnotations!==label){data.recordedLabel=label;label=withoutAnnotations;}
+    const owner=r.holder ?? r.who ?? r.actor ?? null;
+    if(!observer && owner===who)label=personalLabel(label,model.run.names[who]);
+    return {id:r.id, table, stage:STAGES[table], at:r.visibleAt, label, owner, data, refs:[...new Set(refs)]};
   }
   function view(model, {tick, who=0, observer=false, thread=null}) {
     if (model.missing) return {nodes:[],threads:[],moments:[],comparisons:[]};
