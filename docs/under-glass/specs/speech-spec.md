@@ -40,6 +40,11 @@ recordings page. A server-hosted recording can move between dashboard and editor
 dashboard's character, time and tab preserved on return. Coverage still describes the whole run.
 The editor accepts a saved dashboard HTML as well as JSON; it reads only the embedded recording.
 Picked local files require reopening in the other tool. Editing speech never rewrites a recording.
+The editor now uses the dashboard's visual primitives and theme. Its opening paragraph is four
+metrics: reachable archetype situations, median fitting lines, repeat-risk situations (three or
+fewer lines) and situations without a voice-specific line. These remain catalog-wide when the
+grid is filtered. Definitions, the separate untyped-speaker median and recording details are
+collapsed, as is the grid's extended key.
 
 Not built: a reply line for the other person, lines for acts without a chosen target, lines for
 turning away (`Snubbed`, `TurnedAway` are silent by design), lines that mention an item, a task or

@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Under Glass — Speech coverage</title>
   <style>
-    :root { color-scheme:light dark; --bg:#e8e3d9; --panel:#f5f0e7; --raised:#fbf8f2; --ink:#211b16; --muted:#6b6054; --line:#c4b7a7; --hair:#d6ccbe;
-      --accent:#a94015; --accent-soft:rgba(169,64,21,.1); --select:rgba(169,64,21,.22);
-      --c0:#c8412f; --c1:#e3843f; --c2:#e9c25a; --c3:#9fc266; --c4:#4f9a69; --empty:#d9d1c4; --cellink:#1c1a17; --shadow:rgba(40,28,16,.18); }
-    @media(prefers-color-scheme:dark) { :root { --bg:#1c1a17; --panel:#25211c; --raised:#2c2722; --ink:#eee7de; --muted:#b8aa9a; --line:#51473c; --hair:#3a332c;
-      --accent:#ff9b63; --accent-soft:rgba(255,155,99,.1); --select:rgba(255,155,99,.3);
-      --c0:#d0553f; --c1:#cf7740; --c2:#c4a046; --c3:#86a656; --c4:#4f9a69; --empty:#38322b; --cellink:#1c1a17; --shadow:rgba(0,0,0,.45); } }
+    :root { --c0:#c8412f; --c1:#e3843f; --c2:#e9c25a; --c3:#9fc266; --c4:#4f9a69; --empty:#d9d1c4; --cellink:#1c1a17; --shadow:rgba(40,28,16,.18); }
+    :root[data-mode="dark"] { --c0:#d0553f; --c1:#cf7740; --c2:#c4a046; --c3:#86a656; --c4:#4f9a69; --empty:#38322b; --shadow:rgba(0,0,0,.45); }
     * { box-sizing:border-box; }
     html { scrollbar-color:var(--line) transparent; }
     body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,sans-serif; caret-color:var(--accent); }
@@ -18,8 +14,7 @@
     main { max-width:1280px; padding:32px 16px 72px; margin:auto; }
     h1 { font-size:clamp(28px,3.6vw,40px); letter-spacing:-.03em; line-height:1.12; margin:0 0 12px; text-wrap:balance; } h2 { font-size:19px; letter-spacing:-.01em; line-height:1.25; margin:0; }
     p { margin:8px 0; } header>p { max-width:78ch; color:var(--muted); } a { color:var(--accent); text-underline-offset:3px; }
-    .headline { color:var(--ink)!important; font-size:16px; font-variant-numeric:tabular-nums; margin-top:16px!important; }
-    .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:24px 0 0; }
+    .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 0; margin:10px 0 0; }
     .controls .spacer { flex:1 1 0; } .controls .group { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     select,button,input,textarea { font:inherit; color:var(--ink); }
     select,button { padding:5px 10px; background:var(--raised); border:1px solid var(--line); border-radius:6px; cursor:pointer; transition:border-color .15s, background-color .15s; }
@@ -84,15 +79,35 @@
     @media(max-width:700px) { main { padding:22px 16px 48px; } .controls { position:static; } .controls .spacer { display:none; } aside { padding:0 16px 40px; } }
     @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<script src="ui.js"></script>
 </head>
-<body>
+<body class="tool-page">
 <main>
-  <header><h1>Who has enough to say?</h1>
-    <p>Each cell is a kind of act and a speaker's voice. A line can only be spoken when it fits the act, the speaker's archetype, how well they know the other person, and their mood, so what matters is how many lines fit each situation. The selector avoids a speaker's last three lines for a kind, so three or fewer means they repeat within a few acts.</p>
-    <p id="headline" class="headline">Reading the catalog…</p>
-    <p id="source" class="meta"></p>
-    <p id="notice" class="notice" hidden></p>
+  <header class="tool-head marks">
+    <div><span class="label">Under Glass / Speech</span><h1>Speech editor</h1><p>Find thin spots in a voice, then select a cell to edit its lines.</p></div>
+    <button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button>
   </header>
+  <section class="tool-section card" aria-labelledby="coverage-title">
+    <div class="section-heading"><h2 id="coverage-title">Catalog coverage</h2><span class="label">All situations · independent of grid filters</span></div>
+    <dl id="headline" class="metric-grid" aria-label="Catalog coverage metrics"><div class="metric"><dt>Catalog</dt><dd>Reading…</dd></div></dl>
+    <details class="tool-disclosure" id="coverage-help"><summary>How to read these numbers</summary>
+      <div class="detail-body">
+        <p id="coverage-method"></p>
+        <p><strong>Repeat risk:</strong> three or fewer fitting lines. The selector avoids a speaker's last three lines for an act, so a small pool makes repetition more likely.</p>
+        <p><strong>No voice-specific lines:</strong> no fitting line is tagged for that archetype. Generic lines can still be available; this is a voice gap, not necessarily silence.</p>
+        <p id="plain-coverage"></p>
+        <p>The grid pairs an act with a voice. Its small squares show relationship and mood combinations; filters narrow the grid. These summary metrics always cover the full catalog.</p>
+      </div>
+    </details>
+    <details class="tool-disclosure" id="source-details"><summary>Sources &amp; recording <span id="recording-status" class="meta">· no recording</span></summary>
+      <div class="detail-body"><dl id="source" class="source-list"></dl><p id="recording-summary"></p><p id="recording-top"></p></div>
+    </details>
+    <p id="notice" class="notice" hidden></p>
+  </section>
   <div class="controls">
     <div class="group">
       <label>Relationship <select id="rel"><option value="">Every band</option></select></label>
@@ -111,6 +126,7 @@
   </div>
   <p id="error" class="error" role="alert" hidden></p>
   <div class="legend" id="legend"></div>
+  <details class="tool-disclosure" id="grid-help"><summary>Reading the grid</summary><div class="detail-body" id="grid-explanation"></div></details>
   <div class="gridwrap"><table id="grid"></table></div>
 </main>
 <aside id="drawer" hidden role="dialog" aria-modal="false" aria-labelledby="drawer-title"></aside>
@@ -388,28 +404,61 @@ function refresh(options = {}) {
   renderControls();
   if (options.panel !== false && drawer) renderDrawer();
 }
-function renderHeadline() {
+// coverage:begin — catalog-wide; grid filters do not change these denominators.
+function coverageSummary(situations) {
   const fits = [], plain = [];
   let noOwn = 0;
-  for (const kind of kinds()) for (const arch of voices()) for (const rel of RELATIONSHIPS) for (const mood of MOODS) {
-    const s = situation(kind, arch, rel, mood);
+  for (const s of situations) {
     if (!s.possible) continue;
-    if (arch === NONE) plain.push(s.n); else { fits.push(s.n); if (!s.own) noOwn++; }
+    if (!s.arch) plain.push(s.n);
+    else { fits.push(s.n); if (!s.own) noOwn++; }
   }
-  const thin = fits.filter((n) => n <= AVOIDED).length;
-  let text = `${fits.length.toLocaleString()} speaker situations that can happen (${kinds().length} kinds × ${archetypes().length} voices × ${RELATIONSHIPS.length} relationships × ${MOODS.length} moods, less those no act can reach): `
-    + `a median of ${median(fits)} lines fit, ${thin.toLocaleString()} have ${AVOIDED} or fewer, and ${noOwn.toLocaleString()} have no line in the speaker's own voice. `
-    + `A speaker without an archetype has a median of ${median(plain)}.`;
+  return { total:fits.length, median:median(fits), thin:fits.filter((n) => n <= AVOIDED).length,
+    noOwn, plainMedian:median(plain) };
+}
+// coverage:end
+function renderHeadline() {
+  const situations = [];
+  for (const kind of kinds()) for (const arch of voices()) for (const rel of RELATIONSHIPS) for (const mood of MOODS)
+    situations.push({ ...situation(kind, arch, rel, mood), arch });
+  const stats = coverageSummary(situations);
+  const metric = (label, value, hint, part) => {
+    const item = node("div", null, "metric" + (part > 0 ? " attention" : ""));
+    const description = node("dd");
+    description.append(node("span", value.toLocaleString(), "metric-value"), node("span", hint, "metric-hint"));
+    if (part !== undefined) {
+      const meter = node("div", null, "metric-meter"), fill = node("span");
+      meter.setAttribute("aria-hidden", "true");
+      fill.style.width = `${stats.total ? part / stats.total * 100 : 0}%`;
+      meter.append(fill); description.append(meter);
+    }
+    item.append(node("dt", label), description); return item;
+  };
+  const share = (n) => stats.total ? `${(100 * n / stats.total).toFixed(1)}% of situations` : "No archetype situations";
+  $("headline").replaceChildren(
+    metric("Speaker situations", stats.total, "Across all archetypes"),
+    metric("Typical choice", stats.median, "Fitting lines · median"),
+    metric("Repeat risk", stats.thin, `${share(stats.thin)} · ≤${AVOIDED} lines`, stats.thin),
+    metric("No voice-specific lines", stats.noOwn, share(stats.noOwn), stats.noOwn));
+  $("coverage-method").textContent = `${kinds().length} act kinds × ${archetypes().length} voices × ${RELATIONSHIPS.length} relationships × ${MOODS.length} moods, excluding situations an act cannot reach. A situation is one combination of those four things. Counts include both generic and voice-specific fitting lines.`;
+  $("plain-coverage").textContent = `Without an archetype, a speaker has a median of ${stats.plainMedian} fitting lines. Those situations are counted separately from the four metrics above.`;
+  const sources = $("source"); sources.replaceChildren();
+  const sourceRow = (label, value) => sources.append(node("dt", label), node("dd", value));
+  sourceRow("Catalog", `${original.source} · ${pack.lines.length.toLocaleString()} lines`);
+  $("recording-status").textContent = recording ? `· ${recording.rows.length.toLocaleString()} spoken lines` : "· no recording";
+  $("recording-summary").textContent = "Open a recording with speech to see actual use. Catalog coverage is available without one.";
+  $("recording-top").textContent = "";
   if (recording) {
+    sourceRow("Recording", recording.source);
+    if (recording.label) sourceRow("Run", recording.label);
+    sourceRow("Scope", "Whole recording. The dashboard clock is preserved for your return.");
     const counts = new Map();
     for (const row of recording.rows) counts.set(row.lineId, (counts.get(row.lineId) || 0) + 1);
     const top = [...counts].sort((a, b) => b[1] - a[1])[0];
     const topLine = top && [...original.pack.lines, ...pack.lines].find((l) => l.id === top[0]);
-    text += ` The recording spoke ${recording.rows.length} lines, ${counts.size} of them distinct`
-      + (top ? `; the most used, “${topLine ? topLine.text : top[0]}”, ${top[1]} times.` : ".");
+    $("recording-summary").textContent = `${recording.rows.length.toLocaleString()} lines spoken · ${counts.size.toLocaleString()} distinct lines.`;
+    if (top) $("recording-top").textContent = `Most used: “${topLine ? topLine.text : top[0]}” (${top[1]} times).`;
   }
-  $("headline").textContent = text;
-  $("source").textContent = `Catalog: ${original.source} (${pack.lines.length} lines)` + (recording ? ` · Recording: ${recording.source}${recording.label ? ` (${recording.label})` : ""} · Coverage includes the whole recording; the dashboard clock is preserved for your return.` : " · No recording open: open one recorded with --speech to see what was actually said.");
 }
 function renderGrid() {
   const { rels, moods } = bands(), metric = METRICS[$("metric").value];
@@ -458,12 +507,14 @@ function renderGrid() {
   const title = node("span"); title.append(node("strong", metric.label[0].toUpperCase() + metric.label.slice(1)));
   legend.replaceChildren(title);
   for (const [colour, text] of metric.legend) { const s = node("span"), sw = node("i", null, "sw"); sw.style.background = colour; s.append(sw, text); legend.append(s); }
+  const explanation = $("grid-explanation"); explanation.replaceChildren();
   if (r.length > 1 || m.length > 1) {
     const key = bandKey(r, m);
     const wrap = node("span", null, "wide"); wrap.append(key, node("span", `Each square is one situation (S stranger, A acquaintance, F familiar, C close, H household); faint ones cannot happen for that act. The number is the ${metric.agg === "min" ? "worst" : "total"} across those that can.`));
-    legend.append(wrap);
+    explanation.append(wrap);
   }
-  if (metric.explain) legend.append(node("span", metric.explain));
+  if (metric.explain) explanation.append(node("p", metric.explain));
+  $("grid-help").hidden = !explanation.childNodes.length;
 }
 /** The little key that names a grid's columns (relationship bands) and rows (moods). */
 function bandKey(rels, moods) {

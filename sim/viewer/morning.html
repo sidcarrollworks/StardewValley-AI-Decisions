@@ -3,95 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Under Glass — Morning test</title>
-  <style>
-    :root { color-scheme: light; --bg:#e8e3d9; --panel:#f2eee6; --ink:#1d1a17; --muted:#655e53; --line:#bab2a4; --accent:#bd4206; --screen:#1d1a17; --light:#f2eee6; --signal:#ff8a4c; }
-    @media (prefers-color-scheme:dark) { :root { color-scheme:dark; --bg:#1c1a17; --panel:#262320; --ink:#ece6dc; --muted:#b6ac9d; --line:#514a40; --accent:#ff995f; --screen:#0e0d0b; --light:#ece6dc; } }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 "Geist","Helvetica Neue",Arial,sans-serif; }
-    main { max-width:1120px; margin:auto; padding:36px 24px 30px; }
-    .mast { display:flex; justify-content:space-between; gap:16px; align-items:center; padding-bottom:20px; border-bottom:1px solid var(--line); }
-    .brand { font-weight:700; font-size:15px; letter-spacing:.16em; text-transform:uppercase; }
-    .label, .number, kbd { font-family:"Geist Mono",Consolas,monospace; }
-    .label { font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
-    .hero { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(230px,.8fr); gap:36px; padding:44px 0 34px; align-items:end; }
-    h1,h2,h3,p { margin:0; }
-    h1 { font-size:clamp(34px,5vw,58px); line-height:1.07; letter-spacing:-.04em; max-width:13ch; font-weight:600; }
-    .hero p { margin-top:18px; max-width:52ch; color:var(--muted); }
-    .chain { padding:22px 24px; background:var(--screen); color:var(--light); border-radius:10px; }
-    .chain .label { color:var(--signal); }
-    .chain ol { list-style:none; padding:14px 0 0; margin:0; display:grid; gap:10px; }
-    .chain li { display:flex; align-items:center; gap:12px; font-size:15px; }
-    .chain li::before { content:""; width:6px; height:6px; border:1px solid var(--signal); border-radius:50%; }
-    .chain li:last-child::before { background:var(--signal); }
-    .section-head { display:flex; gap:16px; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
-    h2 { font-size:20px; font-weight:600; letter-spacing:-.02em; }
-    .recordings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-    .recording { border:1px solid var(--line); border-radius:10px; padding:22px; background:var(--panel); display:flex; flex-direction:column; align-items:start; gap:14px; }
-    .number { color:var(--accent); font-size:13px; }
-    h3 { font-size:21px; line-height:1.2; font-weight:600; }
-    .recording p { font-size:14px; color:var(--muted); }
-    .recording a { margin-top:auto; padding-top:5px; }
-    a { color:var(--accent); text-underline-offset:4px; text-decoration-thickness:1px; }
-    a:hover { text-decoration-thickness:2px; }
-    a:focus-visible { outline:2px solid var(--accent); outline-offset:5px; border-radius:2px; }
-    .guide { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(230px,.8fr); gap:36px; margin-top:36px; padding-top:26px; border-top:1px solid var(--line); }
-    .steps { padding-left:22px; margin:16px 0 0; display:grid; gap:12px; }
-    .steps li { padding-left:4px; font-size:14px; }
-    .steps strong { font-weight:600; }
-    .note { border-left:2px solid var(--accent); padding-left:20px; }
-    .note h2 { font-size:18px; }
-    .note p { color:var(--muted); font-size:14px; margin-top:12px; }
-    .keys { margin-top:20px; font-size:12px; color:var(--muted); line-height:2; }
-    .bookmarks { margin-top:20px; padding:14px 18px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
-    .bookmarks summary { cursor:pointer; font-weight:600; }
-    .bookmarks ul { margin:12px 0 0; padding-left:20px; }
-    .bookmarks li + li { margin-top:8px; }
-    kbd { border:1px solid var(--line); border-radius:4px; padding:2px 5px; background:var(--panel); color:var(--ink); font-size:11px; white-space:nowrap; }
-    footer { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-top:34px; padding-top:17px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
-    @media (max-width:760px) { main { padding:22px 18px; } .hero,.guide { grid-template-columns:1fr; gap:24px; } .hero { padding:30px 0; } h1 { max-width:16ch; } .recordings { grid-template-columns:1fr; } .recording { gap:10px; } .section-head { flex-wrap:wrap; gap:5px; } .mast .label { max-width:12ch; text-align:right; } }
-  </style>
+  <title>Under Glass — Recordings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<script src="ui.js"></script>
 </head>
-<body>
+<body class="tool-page">
   <main id="under-glass-morning">
-    <header class="mast"><span class="brand">Under Glass</span><span class="label">Morning test · saved recordings</span></header>
-    <section class="hero" aria-labelledby="welcome">
-      <div><h1 id="welcome">Follow a thought through the town.</h1><p>Choose a recording, follow someone, and watch a remembered encounter become an idea, a decision, and perhaps an action.</p></div>
-      <aside class="chain" aria-label="What to follow"><div class="label">One thread to watch</div><ol><li>What they remember</li><li>What they imagine</li><li>What they choose</li><li>What happens next</li></ol></aside>
-    </section>
-    <section aria-labelledby="wording-title" style="margin-bottom:30px">
-      <div class="section-head"><h2 id="wording-title">New: Vincent, with the intention fixed</h2><span class="label">October 12 · wording experiment</span></div>
-      <p>Compare actual character dialogue, withheld authored thoughts, and two generated versions of the same gratitude plan. Vincent is the starting view; Maru and George provide contrasts.</p>
-      <p class="keys"><a href="../../out/voice-wording-2026-10-12/comparison.html">Start with Vincent →</a> · <a href="../../docs/under-glass/experiments/voice-wording-2026-10-12.md">Method and findings</a> · <a href="../../out/voice-wording-2026-10-12/structured-v1.html">Preserved first attempt</a></p>
-      <p class="keys">The final prompt gives 24 format-valid replies, including six source-overlap flags. The small generator still copies unrelated lines or changes the plan; valid JSON does not establish character voice. These comparisons make no live model requests.</p>
-    </section>
-    <section aria-labelledby="voices-title" style="margin-bottom:30px">
-      <div class="section-head"><h2 id="voices-title">New: character voice and history</h2><span class="label">October 12 · experimental</span></div>
-      <p>Compare eight identical scenes with private profiles off and on, then follow a week with reviewed pre-farmer history. The pack has 34 characters, 12 reusable archetypes and 101 history anchors.</p>
-      <p class="keys"><a href="../../out/character-voices-2026-10-12/comparison.html">Start with paired thoughts →</a> · <a data-recording href="../../out/character-voices-2026-10-12/hybrid-seed7.html">Watch the 7-day hybrid recording →</a> · <a href="../../docs/under-glass/experiments/character-voice-trial-2026-10-12.md">Results and limitations</a></p>
-      <p class="keys">The comparison includes one authored fallback in 16 answers. Distinct natural voices remain unresolved: the small generator still uses generic language and sometimes disagrees with its proposed action. These recordings make no live model requests.</p>
-    </section>
-    <section aria-labelledby="recordings-title">
-      <div class="section-head"><h2 id="recordings-title">The 28-day observer test</h2><span class="label">Seed 7 · authored control: seed 29</span></div>
-      <p>Shared setup: the shipped town, feelings and motives on, quiet reflection chance 0.35 and waking dream chance 0.15. Enabled catalog: <strong>returns, company, welcome, repair, sides, late</strong>. No injected scandal or extra trait, tension or 0d6 switches.</p>
-      <p class="keys"><strong>Ready · recorded and verified October 12.</strong> All four recordings cover 28 days and passed exact decision-tape replay. <a href="../../out/observer-test-2026-10-12/pack-plan.json">Exact settings and commands</a> · <a href="../../out/observer-test-2026-10-12/verification.json">Verification report</a> · <a href="../../docs/under-glass/experiments/observer-test-2026-10-09.md">Review guide and scene bookmarks (spoilers)</a>.</p>
-      <div class="recordings">
-        <article class="recording"><span class="number">01 / Authored</span><h3>Ideas from the catalog</h3><p>Context selects an authored thought. Fixed weights guide the character’s seeded choice.</p><p><strong>Recorded:</strong> 249 authored thoughts in seed 7; 253 in seed 29.</p><a data-recording href="../../out/observer-test-2026-10-12/authored-seed7.html">Open authored seed 7 →</a><a data-recording href="../../out/observer-test-2026-10-12/authored-seed29.html">Open seed 29 control →</a><p>Manifests and bookmarks (spoilers): <a href="../../out/observer-test-2026-10-12/authored-seed7.manifest.json">seed 7</a> · <a href="../../out/observer-test-2026-10-12/authored-seed29.manifest.json">seed 29</a></p></article>
-        <article class="recording"><span class="number">02 / Balanced Laya</span><h3>The evaluator reads the scene</h3><p>Authored thoughts meet <strong>typed-decisions</strong> on port 8000. Several option orders are evaluated, then their weights are averaged.</p><p><strong>Recorded:</strong> 256 authored + Laya thoughts; 0 fallbacks.</p><a data-recording href="../../out/observer-test-2026-10-12/laya-seed7.html">Open Laya seed 7 →</a><p><a href="../../out/observer-test-2026-10-12/laya-seed7.manifest.json">Measured counts and bookmarks (spoilers)</a></p></article>
-        <article class="recording"><span class="number">03 / Local generator + Laya</span><h3>A generated possibility</h3><p><strong>Qwen/Qwen3-0.6B</strong> on port 8080 proposes a thought; balanced Laya evaluates the available responses.</p><p><strong>Recorded:</strong> 250 local generator + Laya thoughts; 0 fallbacks. Voice and grounding still need review.</p><a data-recording href="../../out/observer-test-2026-10-12/hybrid-seed7.html">Open hybrid seed 7 →</a><p><a href="../../out/observer-test-2026-10-12/hybrid-seed7.manifest.json">Measured counts and bookmarks (spoilers)</a></p></article>
+    <header class="tool-head marks">
+      <div><span class="label">Under Glass / Recordings</span><h1>Saved recordings</h1><p>Choose a run to watch, or open an experiment to compare.</p></div>
+      <button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button>
+    </header>
+    <section class="tool-section card" aria-labelledby="recordings-title">
+      <div class="section-heading"><h2 id="recordings-title">28-day observer test</h2><span class="label">October 12 · seed 7</span></div>
+      <div class="recording-grid">
+
+        <article class="recording-card">
+          <span class="label">Comparison</span><h3>Authored control</h3><p class="card-copy">Catalog thoughts, with seeded choices.</p>
+          <div class="tool-actions"><a class="key-link" data-recording href="../../out/observer-test-2026-10-12/authored-seed7.html">Open authored seed 7 →</a></div>
+          <details class="tool-disclosure"><summary>Run details &amp; seed 29</summary><div class="detail-body"><p><strong>Recorded:</strong> 249 authored thoughts in seed 7; 253 in seed 29.</p><a data-recording href="../../out/observer-test-2026-10-12/authored-seed29.html">Open seed 29 control →</a><p>Manifests and bookmarks (spoilers): <a href="../../out/observer-test-2026-10-12/authored-seed7.manifest.json">seed 7</a> · <a href="../../out/observer-test-2026-10-12/authored-seed29.manifest.json">seed 29</a></p></div></details>
+        </article>
+        <article class="recording-card">
+          <span class="label">Comparison</span><h3>Balanced Laya</h3><p class="card-copy">Catalog thoughts, with Laya weighing the responses.</p>
+          <div class="tool-actions"><a class="key-link" data-recording href="../../out/observer-test-2026-10-12/laya-seed7.html">Open Laya seed 7 →</a></div>
+          <details class="tool-disclosure"><summary>Run details</summary><div class="detail-body"><p>Typed-decisions evaluates several option orders; their weights are averaged.</p><p><strong>Recorded:</strong> 256 authored + Laya thoughts; 0 fallbacks.</p><p><a href="../../out/observer-test-2026-10-12/laya-seed7.manifest.json">Measured counts and bookmarks (spoilers)</a></p></div></details>
+        </article>
+        <article class="recording-card featured">
+          <span class="label">Development direction</span><h3>Hybrid</h3><p class="card-copy">Generated thoughts, with Laya weighing the responses.</p>
+          <div class="tool-actions"><a class="key-link primary" data-recording href="../../out/observer-test-2026-10-12/hybrid-seed7.html">Open hybrid seed 7 →</a></div>
+          <details class="tool-disclosure"><summary>Run details</summary><div class="detail-body"><p>Qwen/Qwen3-0.6B proposes a thought; balanced Laya evaluates the responses.</p><p><strong>Recorded:</strong> 250 local generator + Laya thoughts; 0 fallbacks. Voice and grounding still need review.</p><p><a href="../../out/observer-test-2026-10-12/hybrid-seed7.manifest.json">Measured counts and bookmarks (spoilers)</a></p></div></details>
+        </article>
       </div>
-      <details class="bookmarks"><summary>Suggested starting scenes (spoilers)</summary><ul>
+      <details class="tool-disclosure"><summary>Shared setup &amp; verification</summary><div class="detail-body"><p>Shared setup: the shipped town, feelings and motives on, quiet reflection chance 0.35 and waking dream chance 0.15. Enabled catalog: <strong>returns, company, welcome, repair, sides, late</strong>. No injected scandal or extra trait, tension or 0d6 switches.</p><p class="keys"><strong>Ready · recorded and verified October 12.</strong> All four recordings cover 28 days and passed exact decision-tape replay. <a href="../../out/observer-test-2026-10-12/pack-plan.json">Exact settings and commands</a> · <a href="../../out/observer-test-2026-10-12/verification.json">Verification report</a> · <a href="../../docs/under-glass/experiments/observer-test-2026-10-09.md">Review guide and scene bookmarks (spoilers)</a>.</p></div></details>
+      <details class="tool-disclosure"><summary>Starting scenes · spoilers</summary><div class="detail-body"><ul>
         <li><strong>Hybrid · Kent and Newcomer.</strong> Follow Kent at d7 06:29. His generated idea becomes an apology at d8 12:34; watch the response at 12:39.</li>
         <li><strong>Laya · Harvey and Maru.</strong> A thought at d3 16:42 becomes a thank-you at d5 11:16. Follow its link back to the gift.</li>
         <li><strong>Authored seed 7 · Pierre and Caroline.</strong> A waking idea at d23 06:57 becomes an apology at 07:07; its outcome appears at 07:12.</li>
         <li><strong>Hybrid · Emily and Newcomer.</strong> An intention begins at d0 13:23 and expires at d3 13:23. Choosing an act does not guarantee an opportunity.</li>
-      </ul><p class="keys">Day numbers follow the event log: d0 is Spring 1. Keep whole-run analysis off to watch each chain unfold.</p></details>
+      </ul><p class="keys">Day numbers follow the event log: d0 is Spring 1. Keep whole-run analysis off to watch each chain unfold.</p></div></details>
     </section>
-    <section class="guide" aria-label="Viewing guide">
+    <section class="tool-section card" aria-labelledby="library-title">
+      <div class="section-heading"><h2 id="library-title">Experiments &amp; earlier runs</h2><span class="label">Expand a collection</span></div>
+      <details class="tool-disclosure"><summary>Vincent, with the intention fixed</summary><div class="detail-body">
+      <p>Compare actual character dialogue, withheld authored thoughts, and two generated versions of the same gratitude plan. Vincent is the starting view; Maru and George provide contrasts.</p>
+      <p class="keys"><a href="../../out/voice-wording-2026-10-12/comparison.html">Start with Vincent →</a> · <a href="../../docs/under-glass/experiments/voice-wording-2026-10-12.md">Method and findings</a> · <a href="../../out/voice-wording-2026-10-12/structured-v1.html">Preserved first attempt</a></p>
+      <p class="keys">The final prompt gives 24 format-valid replies, including six source-overlap flags. The small generator still copies unrelated lines or changes the plan; valid JSON does not establish character voice. These comparisons make no live model requests.</p>
+    </div></details>
+      <details class="tool-disclosure"><summary>Character voice and history</summary><div class="detail-body">
+      <p>Compare eight identical scenes with private profiles off and on, then follow a week with reviewed pre-farmer history. The pack has 34 characters, 12 reusable archetypes and 101 history anchors.</p>
+      <p class="keys"><a href="../../out/character-voices-2026-10-12/comparison.html">Start with paired thoughts →</a> · <a data-recording href="../../out/character-voices-2026-10-12/hybrid-seed7.html">Watch the 7-day hybrid recording →</a> · <a href="../../docs/under-glass/experiments/character-voice-trial-2026-10-12.md">Results and limitations</a></p>
+      <p class="keys">The comparison includes one authored fallback in 16 answers. Distinct natural voices remain unresolved: the small generator still uses generic language and sometimes disagrees with its proposed action. These recordings make no live model requests.</p>
+    </div></details>
+      <details class="tool-disclosure"><summary>October 9 archive</summary><div class="detail-body"><p> <a href="../../out/observer-test-2026-10-09/pack-plan.json">plan</a> · <a href="../../out/observer-test-2026-10-09/hybrid-seed7.manifest.json">hybrid manifest</a> (233 of 254 thoughts used authored fallback).</p></div></details>
+      <details class="tool-disclosure"><summary>Generator comparison week</summary><div class="detail-body"><p class="meta">October 12 · profiles on</p><p> <a data-recording href="../../out/voice-wording-haiku-2026-10-12/hybrid-haiku-seed7-7d.html">Haiku 5.5 + Laya</a> · <a data-recording href="../../out/voice-wording-haiku-2026-10-12/hybrid-qwen-seed7-7d.html">Qwen + Laya, same flags</a> · <a data-recording href="../../out/scene-context-2026-10-12/hybrid-haiku-scene2-seed7-7d.html">Haiku with the scene supplied</a> · <a href="../../docs/under-glass/experiments/voice-wording-haiku-2026-10-12.md">write-up</a>.</p></div></details>
+      <details class="tool-disclosure"><summary>Spoken lines</summary><div class="detail-body"><p class="meta">October 12 · speech enabled · authored thoughts · profiles on</p><p> <a data-recording href="../../out/speech-library-2026-10-12/speech-week-seed7.html">a week where every act has a line</a> · <a data-recording href="../../out/speech-coverage-2026-10-12/speech-week-seed7.html">the same week with neighbouring bands</a> · <a href="speech.html?run=../../out/speech-coverage-2026-10-12/speech-week-seed7.json">where the library is thin (curation page)</a> · <a href="../../docs/under-glass/specs/speech-spec.md">speech spec</a>.</p></div></details>
+      <details class="tool-disclosure"><summary>Invitations</summary><div class="detail-body"><p class="meta">October 13 · invitations and speech enabled</p><p> <a data-recording href="../../out/invitations-2026-10-13/month-seed7.html">a month where company is asked for and answered</a> · <a href="../../docs/under-glass/specs/invitation-spec.md">invitation spec</a>.</p></div></details>
+      <details class="tool-disclosure"><summary>Earlier short recordings</summary><div class="detail-body"><p> <a data-recording href="/reflection-demo.html">authored</a> · <a data-recording href="/reflection-laya-demo.html">Laya</a> · <a data-recording href="/reflection-hybrid-demo.html">hybrid</a></p></div></details>
+    </section>
+    <section class="tool-section card" aria-label="Viewing help">
+          <details class="tool-disclosure"><summary>How to follow a thought</summary><div class="detail-body">
       <div><h2>Try one person, one thought</h2><ol class="steps"><li><strong>Follow someone.</strong> Choose a person on the map or use a Follow button in <strong>Happening now</strong>.</li><li><strong>Move to the next moment.</strong> Use <strong>Next moment</strong> to skip quiet stretches while following that person.</li><li><strong>Open their inner life.</strong> Use <strong>Follow this thought</strong> to trace its memory, choice, action and recorded outcome. Some intentions may remain unresolved.</li><li><strong>Inspect the evidence.</strong> Expand <strong>What informed this choice?</strong> for candidate lines, weights and exact model receipts. The clock hides later events; Stories offers a separate whole-run analysis switch.</li></ol><p class="keys"><kbd>Space</kbd> play / pause &nbsp; <kbd>←</kbd> <kbd>→</kbd> five minutes &nbsp; <kbd>Shift + ←/→</kbd> one hour<br>Drag the timeline to rewind. Click the ruler to jump.</p></div>
       <aside class="note"><h2>A dream is an imagined possibility</h2><p>When a recording includes waking dreams, look for <strong>Dream on waking</strong>. Its images and ideas belong to that person’s private imagination.</p><p>They do not establish that an encounter happened or that someone witnessed it. The remembered source and the later recorded action remain separate.</p><p>Opening these pages replays saved records. It makes no model requests.</p></aside>
+    </div></details>
+
+      <p class="meta">Saved playback · no live model requests</p>
+      <a class="key-link" href="/sim/viewer/index.html">Open a different recording</a>
     </section>
-    <footer><span>October 9 pack preserved: <a href="../../out/observer-test-2026-10-09/pack-plan.json">plan</a> · <a href="../../out/observer-test-2026-10-09/hybrid-seed7.manifest.json">hybrid manifest</a> (233 of 254 thoughts used authored fallback).<br>Generator comparison week (2026-10-12, profiles on): <a data-recording href="../../out/voice-wording-haiku-2026-10-12/hybrid-haiku-seed7-7d.html">Haiku 5.5 + Laya</a> · <a data-recording href="../../out/voice-wording-haiku-2026-10-12/hybrid-qwen-seed7-7d.html">Qwen + Laya, same flags</a> · <a data-recording href="../../out/scene-context-2026-10-12/hybrid-haiku-scene2-seed7-7d.html">Haiku with the scene supplied</a> · <a href="../../docs/under-glass/experiments/voice-wording-haiku-2026-10-12.md">write-up</a>.<br>Spoken lines (2026-10-12, <code>--speech</code>, authored thoughts, profiles on): <a data-recording href="../../out/speech-library-2026-10-12/speech-week-seed7.html">a week where every act has a line</a> · <a data-recording href="../../out/speech-coverage-2026-10-12/speech-week-seed7.html">the same week with neighbouring bands</a> · <a href="speech.html?run=../../out/speech-coverage-2026-10-12/speech-week-seed7.json">where the library is thin (curation page)</a> · <a href="../../docs/under-glass/specs/speech-spec.md">speech spec</a>.<br>Invitations (2026-10-13, <code>--catalog …,invitations --speech</code>): <a data-recording href="../../out/invitations-2026-10-13/month-seed7.html">a month where company is asked for and answered</a> · <a href="../../docs/under-glass/specs/invitation-spec.md">invitation spec</a>.<br>Earlier short recordings: <a data-recording href="/reflection-demo.html">authored</a> · <a data-recording href="/reflection-laya-demo.html">Laya</a> · <a data-recording href="/reflection-hybrid-demo.html">hybrid</a></span><a href="/sim/viewer/index.html">Open a different run JSON</a></footer>
   </main>
   <script>
     window.underGlassToolPage = { page: "recordings" };

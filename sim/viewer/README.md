@@ -16,6 +16,14 @@ The navigation is available through the preview server; exported HTML still work
 when opened directly from disk. Older saved pages gain the current tools when opened through the
 recordings list or the Tools page's address form, without rewriting their files.
 
+The tools use the dashboard's typography, palette, registration corners, raised controls and
+light/dark preference. `ui.css` supplies these primitives to the tool pages; exported dashboards
+keep their copy inline so they still open independently. A test keeps the copies aligned.
+Speech opens with catalog-wide counts (situations, median fitting lines, repeat risk and missing
+voice-specific lines); definitions, source metadata and recording statistics are collapsed.
+Grid filters affect the grid, not those totals. Recordings leads with the three observer controls;
+setup, receipts, spoilers, experiments and older packs expand on demand.
+
 Prepared local recordings are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`.
 Run `sim/tools/start-preview.ps1 -Open` from this checkout to start or reuse its loopback preview.
 The morning page compares authored, balanced Laya and experimental local-generation recordings;

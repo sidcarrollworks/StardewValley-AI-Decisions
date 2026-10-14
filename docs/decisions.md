@@ -1039,6 +1039,12 @@ without rewriting the artifact or executing its scripts. Local picked files rema
 require reopening in the destination tool. This adds no history or archetype mechanics; the
 causal graph and archetype studio remain assessment work.
 
+Sid then requested visual consistency with the dashboard and less introductory text. The tools
+reuse its palette, typography, controls, corner marks and persisted theme. Speech shows four
+catalog-wide metrics with definitions and source details collapsed; these do not change with grid
+filters. The recording index puts the observer runs first and keeps setup, spoilers and older
+experiments in expandable sections. Every original recording and reference remains linked.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

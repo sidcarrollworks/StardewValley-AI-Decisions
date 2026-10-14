@@ -3171,6 +3171,7 @@ $("themeBtn").addEventListener("click", () => {
 const recolour = () => { if (!R) return; readColours(); if (TOWN) TOWN.back = null; for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
 const followHost = () => { if (!chosenMode()) applyMode(autoMode()); };
 themeWatch.addEventListener?.("change", followHost);
+window.addEventListener("storage", (event) => { if (event.key === "under-glass-mode" || event.key === null) applyMode(chosenMode() ?? autoMode()); });
 new MutationObserver(followHost).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 applyMode(chosenMode() ?? autoMode());
 window.addEventListener("resize", () => R && render());

@@ -4,36 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Under Glass — Tools</title>
-  <style>
-    :root {color-scheme:light dark; --bg:#e8e3d9; --panel:#f2eee6; --ink:#211b16; --muted:#655e53; --line:#bab2a4; --accent:#a94015}
-    @media(prefers-color-scheme:dark) {:root {--bg:#1c1a17; --panel:#262320; --ink:#ece6dc; --muted:#b6ac9d; --line:#514a40; --accent:#ff995f}}
-    * {box-sizing:border-box} body {margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,sans-serif}
-    main {max-width:1080px; margin:auto; padding:48px 24px} h1 {font-size:clamp(32px,5vw,48px); letter-spacing:-.04em; margin:0}
-    h2 {font-size:22px; margin:0} p {color:var(--muted); max-width:65ch} a {color:var(--accent); text-underline-offset:4px}
-    .cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin:32px 0}
-    article {border:1px solid var(--line); border-radius:10px; padding:24px; background:var(--panel); display:flex; flex-direction:column}
-    article a {margin-top:auto; padding-top:16px} details {border-top:1px solid var(--line); padding:20px 0}
-    summary {cursor:pointer} input,button {font:inherit; color:inherit; border:1px solid var(--line); border-radius:5px; padding:9px 12px; background:var(--panel)}
-    form {display:flex; flex-wrap:wrap; gap:10px} label {width:100%} input {flex:1 1 300px; min-width:0} button {cursor:pointer}
-    :focus-visible {outline:2px solid var(--accent); outline-offset:3px} #open-error {color:var(--accent)}
-  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<script src="ui.js"></script>
 </head>
-<body>
+<body class="tool-page">
 <main>
-  <h1>Under Glass tools</h1>
-  <p>Watch a life unfold, then inspect and refine the words people use. Switch tools with the same saved recording.</p>
-  <div class="cards">
-    <article><h2>Dashboard</h2><p>Follow characters, thoughts, actions and their recorded consequences on one clock.</p><a data-tool-link="dashboard" href="index.html">Open dashboard →</a></article>
-    <article><h2>Speech editor</h2><p>Explore coverage by voice and situation. Edit authored lines and download a revised catalog.</p><a data-tool-link="speech" href="speech.html">Open speech editor →</a></article>
-    <article><h2>Saved recordings</h2><p>Choose from the prepared runs and voice comparisons, with guides for what to watch.</p><a data-tool-link="recordings" href="morning.html">Browse recordings →</a></article>
+  <header class="tool-head marks"><div><span class="label">Under Glass / Tools</span><h1>Observer tools</h1><p>Watch a life unfold. Inspect and refine the words people use.</p></div><button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button></header>
+  <div class="recording-grid tool-section">
+    <article class="recording-card"><h2>Dashboard</h2><p>Follow characters, thoughts, actions and their recorded consequences on one clock.</p><a class="key-link" data-tool-link="dashboard" href="index.html">Open dashboard →</a></article>
+    <article class="recording-card"><h2>Speech editor</h2><p>Explore coverage by voice and situation. Edit authored lines and download a revised catalog.</p><a class="key-link" data-tool-link="speech" href="speech.html">Open speech editor →</a></article>
+    <article class="recording-card"><h2>Saved recordings</h2><p>Choose from the prepared runs and voice comparisons, with guides for what to watch.</p><a class="key-link" data-tool-link="recordings" href="morning.html">Browse recordings →</a></article>
   </div>
-  <details><summary>Open a recording by address</summary>
+  <details class="tool-disclosure"><summary>Open a recording by address</summary>
     <p>Use a JSON recording or a saved dashboard HTML page served by this preview. It opens in the current dashboard without changing the saved recording.</p>
-    <form id="open-recording"><label for="recording-address">Recording address</label><input id="recording-address" placeholder="/out/observer-test-2026-10-12/hybrid-seed7.html" required><button>Open dashboard</button></form>
-    <p id="open-error" role="status"></p>
+    <form id="open-recording" class="tool-actions"><label for="recording-address">Recording address</label><input type="search" id="recording-address" placeholder="/out/observer-test-2026-10-12/hybrid-seed7.html" required><button>Open dashboard</button></form>
+    <p id="open-error" role="status" class="meta"></p>
   </details>
-  <details><summary>What changes when I edit speech?</summary><p>The editor saves a browser draft and can download a catalog. It does not alter a saved recording or the running simulation. Record a new run with the revised catalog to test its effect on speech.</p></details>
-  <details><summary>What is coming next?</summary><p>A focused view of thought and action chains, and an archetype studio for creating and testing reusable character tendencies, are being assessed. They are not available yet.</p></details>
+  <details class="tool-disclosure"><summary>What changes when I edit speech?</summary><p>The editor saves a browser draft and can download a catalog. It does not alter a saved recording or the running simulation. Record a new run with the revised catalog to test its effect on speech.</p></details>
+  <details class="tool-disclosure"><summary>What is coming next?</summary><p>A focused view of thought and action chains, and an archetype studio for creating and testing reusable character tendencies, are being assessed. They are not available yet.</p></details>
 </main>
 <script>
 window.underGlassToolPage = { page: "tools" };
