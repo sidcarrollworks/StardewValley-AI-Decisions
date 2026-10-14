@@ -54,7 +54,7 @@
     details.section>summary { cursor:pointer; list-style:none; } details.section>summary::-webkit-details-marker { display:none; }
     details.section>summary::before { content:""; width:7px; height:7px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted); transform:rotate(-45deg); transition:transform .15s; align-self:center; margin-right:2px; }
     details.section[open]>summary::before { transform:rotate(45deg); }
-    .row { padding:22px 0 18px; border-top:1px solid var(--hair); } .row:first-of-type { border-top:0; }
+    .row { padding:16px; margin:12px 0; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
     .row textarea { display:block; width:100%; resize:none; field-sizing:content; min-height:2.6em; border:1px solid transparent; border-radius:6px; background:transparent; padding:5px 8px; margin:0 -8px; width:calc(100% + 16px); font-size:15.5px; line-height:1.4; transition:border-color .12s, background-color .12s; }
     .row textarea:hover { border-color:var(--hair); } .row textarea:focus { border-color:var(--line); background:var(--raised); outline:none; }
     .row.bad textarea { border-color:var(--accent); }
