@@ -120,7 +120,8 @@ The order is:
    beer, even for her mother (Sid). Still to come:
    needs beyond shop goods, asking through reflection, and the player as the one asked.
 
-   **Then, revisit needs bars** (Sid, 2026-10-13: after errands). Not taken on 2026-10-06; Sid now
+   **Then, revisit needs bars** (Sid, 2026-10-13: after errands; proposed in the
+   [needs bars spec](specs/needs-bars-spec.md), for his approval). Not taken on 2026-10-06; Sid now
    sees them as a source of motive, hidden from the player if need be. The proposed shape (hidden
    bars as pressure on existing motives, only hunger, social and fun) is in the
    [design](design.md), section 11c. Hunger could make the errands' needs come from an empty pantry.
