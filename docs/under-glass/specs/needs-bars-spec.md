@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposed, 2026-10-13, with Sid's answers of that day built in (For Sid); nothing is built. It is the
+Approved in shape by Sid, 2026-10-13 (every For Sid question answered; Law 1's wording still under
+discussion); nothing is built. It is the
 roadmap's step 4 revisit ("then, revisit needs bars") and decides Penny's concern for her mother's
 drinking with it. Paths are under `sim/UnderGlass.Sim/` unless they say otherwise; line numbers are from
 `a9eadaf`, which `claude/needs-bars` (`d0f0c63`, docs only since) still matches.
@@ -23,8 +24,8 @@ off, every run pin holds (the grown towns' census pins move once).
   already choose between lean a little: the saloon or the beach a bit more likely, a friend a bit more
   missed, an invitation a bit easier to accept. It is capped, and it adds no dice, money, act or routine
   log line. Tiredness stays as it is: it still sends people to bed.
-- **Hunger is your choice:** a thin personal hunger, or (recommended, later) a household pantry that runs
-  low on its own and gives errands a cause.
+- **Hunger is a household pantry** (Sid chose B), a later step: it runs low on its own, someone has to
+  go and buy the week's food on the household's shop day, and if everyone is too busy nobody does.
 - **Penny stays away from the saloon because of her history, not a rule with her name on it.** She starts
   with a core memory: growing up ashamed of her mother's drinking. That memory is a lasting shame, and a
   place where someone keeps being hurt or shamed pulls them less, so the evening gathering at the saloon
@@ -36,9 +37,11 @@ off, every run pin holds (the grown towns' census pins move once).
 - **Law 1 is amended** to say bars are the body's pressures on the one striving, not a second list of needs.
 - **Rollout:** watch only first (record what the bars would change, change nothing), then pressure on, then
   reflections, then hunger. Every piece is behind its own switch and off by default.
-- **Still yours to decide:** eleven questions in "For Sid", each with a recommendation; the ones that
-  matter most are the shape (1), hunger (2), how strong (4), whether Pam's yes to staying in is a promise
-  (6) and the errands questions (7, 8).
+- **Addiction** comes later, from the indulgences already here: an addicted person's fun drains faster,
+  the thing they are addicted to cures it faster, and the cure shrinks with use (Sid's design; numbers
+  from research).
+- **Decided:** all eleven questions in "For Sid" (Sid took every recommendation, B for hunger). Law 1's
+  amended wording is still being talked through.
 
 ## Where it comes from
 
@@ -117,7 +120,7 @@ last meal: no shared mealtime (design 9).
 |---|---|
 | Use | a member awake at home who hasn't eaten at home in `MealGapMinutes` (360) takes a meal: arithmetic, no draw, trip or log line |
 | Shop day | each household's own, authored (`BarBook.ShopDays`): Cottage Mon, HaleyHouse and Trailer Tue, SamHouse Wed (the Mart open, the Store shut), JoshHouse Thu, Ranch and ScienceHouse Fri, Saloon Sat, Manor Sun |
-| Restock | 00:00 on it, to the household's usual week (median of its last `PantryMemoryWeeks`, 4) + `PantrySpareDays` (0.25) of a day. **No money moves**: groceries stay paid at Monday's `Payday` (`Simulation.Money.cs:152-166`). The first `PantrySettleWeeks` (2) only count |
+| Restock | **a trip** (Sid, 2026-10-13: "I just want there to be the possibility, however small, for everyone to be busy and no one ends up getting the groceries"): on the shop day, a member of the household who is free while the household's shop (`ShopOf`: the Store or the Mart) is open goes there, as an errand-runner goes to a counter (`ErrandGoal`), and buys the household's usual week (median of its last `PantryMemoryWeeks`, 4) + `PantrySpareDays` (0.25) of a day; who goes is the first adult or teen by name free that hour, never on a keyed draw. If nobody gets there while it is open, the run moves to the next day the shop opens, and the shelf keeps falling. **Money moves when the food is bought**, at the shop's price (the Store to the keeper's household with restocking, the Mart out of town, as `Payday`'s groceries do today), so for a household with a pantry `Payday` no longer charges groceries; the purse's timing changes, and with it `NeedPressure`, measured at step 4. The first `PantrySettleWeeks` (2) only count |
 | A need with a cause | below `PantryLowDays` (1) with a day still before the shop day: the first member by name with staple uses, at home and with no open need, needs a staple on the pantry's own key (`"pantry-item"`, not the coin's `"need-item"`, so the draws aren't correlated); else the shelf waits. The coin skips anyone with an open need (`Simulation.Errands.cs:80-81`), so nobody holds two. `Need` + `Cause = "pantry"`; one open a household |
 | Coin, stretch | `NeedsArise`'s coin keeps cravings only (beer, coffee, cola); a staple handed over adds `StapleDays` (2) days |
 
@@ -127,7 +130,9 @@ payday at 2.5 meals a head: 3.1, 49 of 50 on a Saturday (design 9's shared clock
 16, never the Trailer; own day at 2.5 a head: 3.3; no spare: 4.5, every household.
 
 With B, staple needs fall from about 7 a week to 2, errands from 11.7 needs a week to 6.5, Penny's flour
-from 2-4 a month to about 1, with a quiet cause; no money-to-food link (it would move `NeedPressure`). A
+from 2-4 a month to about 1, with a quiet cause. (Those offline numbers assumed the restock always
+happens; with the trip, a missed run adds needs, and how often a household misses it is measured at step
+4. Households where every adult works through the shop's hours, as at the ScienceHouse, miss it most.) A
 (estimated, not run) leans every afternoon at haunts toward home (Haley at 17:00: 33% of picks to 43% at
 pressure 0.52), a routine nobody would read as a cause, lowering minutes out (`CountOut`).
 
@@ -253,6 +258,25 @@ Without joy cancelling, Pam would be pushed from the Saloon too (Measurements).
 | A's answer | the general `Ask`, obliged and cost as for an invitation (0.5 x liked + 0.3 x familiarity + 0.2 x chattiness + 0.2 if fond + `InviteKinBond`, against 0.15 + dislike x keep + 0.3 x withdrawn + the state cost), plus her pull the other way: `StayInHabitCost` 0.4 x her share of 14 evenings with a drink, `StayInNagCost` 0.1 a time asked in seven days (her memory), with bars `StayInBoredCost` 0.2 x her fun pressure. The margin decides outside the close band, the Ask's keyed draw (with `StayIn` in the key) inside. Pam (regard for Penny 0.60-0.65, familiarity assumed 0.9, chattiness 0.8, habit near 1): about +0.37, less 0.1 an earlier ask that week |
 | A yes | no act, no promise: A's own record (who asked, the place as she heard it, and until when: H's usual bedtime as H says it, the median of H's last 14 sleeps, H's self-knowledge; Penny about 21:15). Until then A's options at that place weigh x `StayInPull` (0.1), a `BarPull` with reader `stay-in`; `Decide` reads A's record, never H's sentiment. Pam's Saloon haunt goes 4 to 0.4, the Evening hub 2 to 0.2, against home's 1: later and shorter, not never. Going anyway breaks nothing (For Sid 6) |
 | A no | `Refused` by A toward H, as an invitation's; H feels it and waits two days |
+
+### Addiction, a later step (Sid, 2026-10-13)
+
+Sid: "Since Pam is an alcoholic i think 2.5 days might be too long. Unless she also has the option to drink
+at home. She is addicted ... if the character is addicted to something, the fun drain happens twice as fast
+and the item they're addicted to cures the boredom faster ... To be more accurate we'd also need the item
+cure factor to shrink over time, requiring more. Maybe up to a set limit. Some characters would have a
+trait that makes them prone to specific things." Built on the indulgences above, after step 2:
+
+| | |
+|---|---|
+| Who | someone addicted to an indulgence: starting data (Pam: drinking, part of her history, as Penny's core memory is hers) or grown in the run from repeated use by someone prone to it |
+| Proneness | a trait-like value per person and indulgence, inherited as traits are (rule 18) and never keyed to a name; it sets how fast use becomes addiction |
+| Drain | fun drains `AddictedDrain` (2) times as fast: Pam's bored line falls from about 2.5 days to about 1.25 |
+| Cure | a dose (a drink at the Saloon, `Drinks`; a beer at home, from the errands' beer) fills fun more than an ordinary outing does, so home counts: her beer errands become her drinking at home |
+| Tolerance | each dose's fill shrinks with recent use, down to a floor (`ToleranceFloor`), and recovers with time without, so she needs more, up to a limit; more drinks cost the Trailer's purse more |
+| Numbers | from `docs/under-glass/generations-research.md` (addiction part, in progress), tuned "to match real life somewhat" |
+
+Penny's concern reads the same indulgence, so the more Pam drinks at home, the more Penny sees it.
 
 ### Bar thoughts
 
@@ -382,9 +406,14 @@ lowest 0.34 (Shane, the Saloon).
   memories' that the characters hold on to. Eventually we'll have to design the mechanics for new
   generations to keep core memories." In rule 18; Penny's first, the rest later, generations in 0e.
 
-**Open:**
+**Also answered (2026-10-13): every question below.** Sid: "1. yes 2. B ... 3. Yes 4. your rec 5. your
+rec 6. your rec 7. your rec 8. your rec 9. your rec 10. your rec 11. your rec. Core memories also have a
+chance of being somewhat passed on. We should research how these things work in real life and simplify
+it." So each recommendation below is the decision, hunger is B with the trip that can fail (above), and
+core memories passing on with a chance joins rule 18 (research in progress,
+`docs/under-glass/generations-research.md`).
 
-| # | Question | Recommendation |
+| # | Question | Decision (the recommendation, taken) |
 |---|---|---|
 | 1 | **The shape:** bars as hidden, capped pressure on numbers the town already uses; company and fun first; R1-R6 | Yes. If no, nothing about bars is built; Penny's history can still be |
 | 2 | **Hunger:** A, B or neither | **B, as step 4**, confirmed by its watch run. Its own shop day and usual week keep design 9's dropped "shared hunger clock" (design.md :528) out: a Monday fill puts 49 of 50 low shelves on a Saturday, a flat 2.5 meals a head makes the ScienceHouse low 16 weeks of 16 and the Trailer never. A's cost is an estimate. If neither, the errands' coin stays |
@@ -413,7 +442,8 @@ targets that branch, or stacks on `claude/needs`.
 | 1 | `Bars`; beside it, each alone, `Concerns`, `CoreMemories`, `PlaceFeelings`, and `ErrandHoursBusy` if taken | Company and fun kept and recorded, energy for the first time; every pick or per-head draw a bar would have changed, with the would-be result (`BarPull`, Applied false); invitations and pursuits carry the pressure they would have had; the log byte-identical. Under the global `Watch` switch the haunt draw and Fond and Missing (R3) can be watched (`Pursue` still runs, and Fond acts on the shipped `GaveGift`, which no slice gates: `Fits`, `Simulation.Acts.cs:22`; `CatalogTests.cs:187`), Curious (R4) shows in the catalog's watch record, and per-head draws, invitations and errands don't run (`Simulation.Acts.cs:214`, `Simulation.Invitations.cs:27`, `Simulation.Errands.cs:51`). Six seeds of 56 days and a year of seed 1. Penny's Saloon evenings at 19:00 week by week (today 56 of 112) with the three history switches on, and with `CoreMemories` off (learning from seen drinks and Pam's scenes): whether she stops, and how fast |
 | 2 | `BarPressure`, then `StayInAsks` | R1-R6, then the stay-in ask; new pins for bars on |
 | 3 | `BarChance` | bar thoughts, after step 2, so the bars that prompt a thought also change deeds |
-| 4 | `Pantry` or `HungerBar`, if taken | a watch run keeping both, to confirm the choice and tune `PantrySpareDays`; then the one chosen |
+| 4 | `Pantry` (Sid chose B) | a watch run keeping both, to confirm the choice and tune `PantrySpareDays`; then the pantry, with its grocery trip; measured: runs missed, by household, and what the purse's new timing does to `NeedPressure` and power |
+| 5 | addiction, after research | proneness, the faster drain, the dose's cure and tolerance; Pam's evenings and home drinking, her purse, Penny's concern |
 
 Measured at each step (diagnostics, not quotas): spells, changed picks, dead-band time; goal changes
 against watch (at most +5%); hermit spells, minutes out, left out, `OutLate`; Pam's Saloon evenings,
