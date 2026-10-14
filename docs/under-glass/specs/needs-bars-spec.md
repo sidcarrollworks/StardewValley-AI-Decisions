@@ -271,12 +271,12 @@ trait that makes them prone to specific things." Built on the indulgences above,
 |---|---|
 | Who | someone addicted to an indulgence: starting data (Pam: drinking, part of her history, as Penny's core memory is hers) or grown in the run from repeated use by someone prone to it |
 | Proneness | a trait-like value per person and indulgence, inherited as traits are (rule 18) and never keyed to a name; it sets how fast use becomes addiction |
-| Drain | fun drains `AddictedDrain` (2) times as fast: Pam's bored line falls from about 2.5 days to about 1.25 |
-| Cure | a dose (a drink at the Saloon, `Drinks`; a beer at home, from the errands' beer) fills fun more than an ordinary outing does, so home counts: her beer errands become her drinking at home |
+| Drain | fun drains up to `AddictedDrain` times as fast with dependence: 2.5 (Sid, 2026-10-14: "we can keep 2.5 and experiment with 3x"), so Pam is bored about 25 hours after her last drink, about 21 at 3 |
+| Cure | a dose (a drink at the Saloon, `Drinks`; a beer at home, from the errands' beer) fills fun more than an ordinary outing does, so home counts: her beer errands become her drinking at home. **Hidden at home** (Sid, 2026-10-14: "Pam only drink at home when penny isn't there. She'll try to hide it"): someone dependent drinks at home only when nobody they know minds is home, known from their own record (who asked them to stay in, who turned a drink down), never by name |
 | Tolerance | each dose cures less as dependence grows, down to a floor (`ToleranceFloor`, 0.5: at most two drinks for a full fill), and recovers with time without, so she needs more, up to a limit; more drinks cost the Trailer's purse more. The research's reading: liking doesn't fall with heavy use; what grows is the low between doses, which one dose cancels less of |
 | Numbers | the [research](../generations-research.md), Part 1: state per person and indulgence (proneness, recent use, adaptation, a slow scar that pulls a dry drinker back), a dead band before dependence, `AddictedDrain` 2.5 recommended against Sid's 2 (Pam bored about 25 hours after her last drink, against 32), built in four stages (A: Sid's simple method from starting data; B: tolerance, which moves money; C: the daily dynamics; D: generations); its nine questions for Sid are in its section 5 |
 
-Penny's concern reads the same indulgence, so the more Pam drinks at home, the more Penny sees it.
+Penny's concern reads the same indulgence, but Pam hides her home drinking from her, so what Penny sees is mostly the Saloon. **A concern stops its holder's own use** of the indulgence (Sid, 2026-10-14: "her concern should stop it"): Penny no longer buys her own drink on the evenings she still goes. **Tolerance** (Stage B, a second drink a night) has its own switch, after the simple method (Sid: yes).
 
 ### Bar thoughts
 

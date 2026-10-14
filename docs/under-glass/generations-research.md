@@ -383,10 +383,10 @@ Measure over 5-10 simulated years: kin match rates for found tastes against the 
 
 ## 5. Questions for Sid
 
-1. **Drain:** your ×2 (`AddictedDrain` 2: Pam bored about 32 hours after her last drink) or the recommended 2.5 (about 25 hours, pressing by the next evening)?
-2. **Tolerance moves money:** Pam's second drink costs the Trailer about 1,330g in 112 days. Stage B behind its own switch, after Stage A?
-3. **Drinking at home:** the spec's addiction row counts a beer at home as a dose. Realistic for a dependent drinker, but Penny then sees far more drinks, her concern grows and her asks work less. Confirm?
-4. **Penny's own drink:** the research suggests a concern stops the holder's own dose; the spec keeps her 12g drink as the body's rule (For Sid 5). Change it?
+1. **Drain:** your ×2 (`AddictedDrain` 2: Pam bored about 32 hours after her last drink) or the recommended 2.5 (about 25 hours, pressing by the next evening)? *Sid, 2026-10-14: 2.5, and experiment with 3.*
+2. **Tolerance moves money:** Pam's second drink costs the Trailer about 1,330g in 112 days. Stage B behind its own switch, after Stage A? *Sid: yes.*
+3. **Drinking at home:** the spec's addiction row counts a beer at home as a dose. Realistic for a dependent drinker, but Penny then sees far more drinks, her concern grows and her asks work less. Confirm? *Sid: "maybe we have Pam only drink at home when penny isn't there. She'll try to hide it." So: someone dependent drinks at home only when nobody they know minds is home (who minds, from their own record: asked to stay in, a drink refused), never keyed to a name.*
+4. **Penny's own drink:** the research suggests a concern stops the holder's own dose; the spec keeps her 12g drink as the body's rule (For Sid 5). Change it? *Sid: "her concern should stop it." A concern stops its holder's own use of that indulgence.*
 5. **Withdrawal's low mood** stays out under law 1. Agreed?
 6. **Inherited place feelings:** a child's Lesson or Unease holds a place feeling it never felt firsthand. Accept the exception?
 7. **Tastes:** goods only, or places and pastimes too? Indulgence goods in the pool and tied to proneness (4.2), or kept out?
