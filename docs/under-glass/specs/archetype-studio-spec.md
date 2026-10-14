@@ -2,7 +2,7 @@
 
 ## Status
 
-Built 2026-10-14: `sim/viewer/archetypes.html` browses and edits schema-1 character inspiration packs using the shared observer UI. Fixed-scene trials, model execution and history/action graphs remain planned, pending the observer recording contract. This editor does not implement the lives assessment or change simulation behavior.
+Built 2026-10-14: `sim/viewer/archetypes.html` browses and edits schema-1 character inspiration packs using the shared observer UI. Fixed-scene trials and model execution remain planned. The separate Life chains viewer now previews proposed Lives 0.1 history/action graphs and isolated history comparisons with an illustrative fixture; no runtime Lives system is implied. This editor does not implement the lives assessment or change simulation behavior.
 
 ## Scope
 

@@ -19,7 +19,9 @@ test('tool round trip retains exact recording, time, character and tab without n
   assert.equal(speech.searchParams.get('run'), 'http://127.0.0.1:8766/out/a%20run.html?variant=1');
   const studio = new URL(api.toolUrl('archetypes', speech.searchParams.get('run'), api.readState(speech.hash), speech.href));
   assert.equal(studio.pathname, '/sim/viewer/archetypes.html');
-  const dashboard = new URL(api.toolUrl('dashboard', studio.searchParams.get('run'), api.readState(studio.hash), studio.href));
+  const chains = new URL(api.toolUrl('chains', studio.searchParams.get('run'), api.readState(studio.hash), studio.href));
+  assert.equal(chains.pathname, '/sim/viewer/chains.html');
+  const dashboard = new URL(api.toolUrl('dashboard', chains.searchParams.get('run'), api.readState(chains.hash), chains.href));
   assert.equal(dashboard.pathname, '/sim/viewer/index.html');
   assert.equal(dashboard.hash, '#t=2120&person=Penny&tab=inner');
   assert.equal(dashboard.searchParams.get('run'), source);
@@ -71,4 +73,12 @@ test('server reads refuse redirects, report missing files and do not fetch forei
 test('a local file does not inherit a server path in navigation', () => {
   const url = new URL(api.toolUrl('speech', null, { t: 10 }, base));
   assert.equal(url.searchParams.has('run'), false);
+});
+
+ test('illustrative Lives excerpts are not loaded as full dashboard or speech recordings', () => {
+  const fixture = {...run, illustrative:true, lives:{version:'0.1'}};
+  assert.throws(()=>api.compatibleRecording(fixture,'dashboard'), /Life chains/);
+  assert.throws(()=>api.compatibleRecording(fixture,'speech'), /Life chains/);
+  assert.equal(api.compatibleRecording(fixture,'chains'),fixture);
+  assert.equal(api.compatibleRecording(run,'dashboard'),run);
 });
