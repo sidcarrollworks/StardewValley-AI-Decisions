@@ -139,7 +139,7 @@ public sealed class CharacterInspirationTests
     {
         var sim = new Simulation(42, feelings: FeelingOptions.Off);
         sim.ConfigureCharacterInspiration(Pack());
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(sim.Run(7)));
+        Assert.Equal("d1a5fd6ac8e82bcd", Metrics.LogHash(sim.Run(7)));
     }
 
     [Fact]

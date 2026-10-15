@@ -33,8 +33,8 @@ public class PinnedTests
     [Fact]
     public void FeelingsOffReproducesTheRunsFromBeforeFeelings()
     {
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(new Simulation(42, feelings: FeelingOptions.Off).Run(7)));
-        Assert.Equal("388d128d7fd4cdf2", Metrics.LogHash(new Simulation(7,
+        Assert.Equal("d1a5fd6ac8e82bcd", Metrics.LogHash(new Simulation(42, feelings: FeelingOptions.Off).Run(7)));
+        Assert.Equal("6b2b062d09ec0258", Metrics.LogHash(new Simulation(7,
             scheduled: new[] { Harness.ScandalFor(7, DefaultTown.Acts()) }, feelings: FeelingOptions.Off).Run(14)));
     }
 
@@ -99,11 +99,11 @@ public class PinnedTests
     /// at 14 days after the three-year check). The first three start with no tensions.
     /// Update only for a deliberate change to the gate.</summary>
     [Theory]
-    [InlineData("base", "a123526358094b43")]
-    [InlineData("stance+power", "07505a08bf1a9f78")]
-    [InlineData("shipped without tensions", "f2af5b9f5b1fb4c4")]
-    [InlineData("tensions, Fond at 10 days", "b6a87fe3b8fc0916")]
-    [InlineData("shipped", "e9fd83b284f5c1b6")]
+    [InlineData("base", "f436d9f4bde4804b")]
+    [InlineData("stance+power", "5d63a0c57937ac68")]
+    [InlineData("shipped without tensions", "1de67ee905a330b6")]
+    [InlineData("tensions, Fond at 10 days", "4df36deae7f5f0a3")]
+    [InlineData("shipped", "8a002fea26b541fe")]
     public void TheGateIsPinned(string which, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings();
@@ -135,7 +135,7 @@ public class PinnedTests
     /// year of seed 1. Update only for a deliberate change to 0a-0c.</summary>
     [Fact]
     public void TheTownOf0cIsPinned()
-        => Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(new Simulation(1, feelings: Town0c()).Run(112)));
+        => Assert.Equal("84e6479eafeb666d", Metrics.LogHash(new Simulation(1, feelings: Town0c()).Run(112)));
 
     /// <summary>The town's feelings with the desire gate and the starting tensions off: phase 0c's town.</summary>
     internal static FeelingOptions Town0c() { FeelingOptions o = DefaultTown.Feelings(); o.Desire = false; o.Start = DefaultTown.Tensions(0); return o; }
@@ -146,12 +146,12 @@ public class PinnedTests
     /// contagion and the tone (bdefghm); and it with the tone (bdefghmt). Update only for a
     /// deliberate change to a 0d.6 rule or constant.</summary>
     [Theory]
-    [InlineData("b", "2ecdc13334939931")]
-    [InlineData("bde", "8d6a83059e7927cd")]
-    [InlineData("m", "ebc29ca2436b0442")]
-    [InlineData("bdefghm", "c0642c9c12bdf5b5")]
-    [InlineData("bdefghmt", "b7ad0f53570cba04")]
-    [InlineData("bcdefghmt", "e761f7aae0eef6fe")] // the review's set: every step, contagion and the tone
+    [InlineData("b", "c2a608182a967c1d")]
+    [InlineData("bde", "ec533fd249c57f55")]
+    [InlineData("m", "15fec38bf3f8c4df")]
+    [InlineData("bdefghm", "34259a77e3f9a70a")]
+    [InlineData("bdefghmt", "a2b7b3e655519016")]
+    [InlineData("bcdefghmt", "884a53de9b68fcb8")] // the review's set: every step, contagion and the tone
     public void The0d6StepsArePinned(string steps, string hash)
         => Assert.Equal(hash, Metrics.LogHash(new Simulation(1, feelings: DefaultTown.Feelings().With0d6(steps)).Run(112)));
 
@@ -164,7 +164,7 @@ public class PinnedTests
         o.WithdrawalWatch = true;
         o.LeftOutRate = 0.05; // strong enough to want to act
         SimResult r = new Simulation(1, feelings: o).Run(112);
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(r));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(r));
         foreach (string rule in new[] { "hurt at home", "contagion", "left out", "dial: chat", "recovery: keep", "missing", "held", "shown" })
             Assert.True(r.Rules.ContainsKey(rule), rule);
     }
@@ -173,23 +173,23 @@ public class PinnedTests
     /// 0d.6 review's set (bcdefghmt): acts-1, Returns; acts-2, Company, alone and with Returns; acts-3, Welcome, acts-4, Repair, acts-5, Sides, and acts-6, Late, each alone and with the slices before it.
     /// Update only for a deliberate change to a catalog rule or row.</summary>
     [Theory]
-    [InlineData("returns", "", "a43ef45b297b6d72")]
-    [InlineData("returns", "bcdefghmt", "91f49099ce1f1a8a")]
-    [InlineData("company", "", "5922838f89262278")]
-    [InlineData("returns,company", "", "8a14f966ed4a9510")]
-    [InlineData("returns,company", "bcdefghmt", "502e1f220652a4d1")]
-    [InlineData("welcome", "", "9b1949cb4fce55f1")]
-    [InlineData("returns,company,welcome", "", "491377bce4a325d3")]
-    [InlineData("returns,company,welcome", "bcdefghmt", "5c472a536d5b165a")]
-    [InlineData("repair", "", "936f4953aff04d00")]
-    [InlineData("returns,company,welcome,repair", "", "887e2607cbd9b819")]
-    [InlineData("returns,company,welcome,repair", "bcdefghmt", "29c0e8be61dd0a00")]
-    [InlineData("sides", "", "1e0eed9d1583b0b0")]
-    [InlineData("returns,company,welcome,repair,sides", "", "9dd54d2696596d67")]
-    [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "e1cf7c5f999bb28d")]
-    [InlineData("late", "", "9955eddea60ce641")]
-    [InlineData("returns,company,welcome,repair,sides,late", "", "3ff4143ab007d5e9")]
-    [InlineData("returns,company,welcome,repair,sides,late", "bcdefghmt", "7701a5a8af63b3f4")]
+    [InlineData("returns", "", "7862e06e743c4f25")]
+    [InlineData("returns", "bcdefghmt", "3b7d1fa03c0d927b")]
+    [InlineData("company", "", "7ce8b5cb510e2fee")]
+    [InlineData("returns,company", "", "505432fd74a8c7d0")]
+    [InlineData("returns,company", "bcdefghmt", "acd9ec30a746fd4e")]
+    [InlineData("welcome", "", "fd7a6a2ef016e46b")]
+    [InlineData("returns,company,welcome", "", "cce41a2382937ae9")]
+    [InlineData("returns,company,welcome", "bcdefghmt", "61a136dda52b2460")]
+    [InlineData("repair", "", "e3fd85b2da650214")]
+    [InlineData("returns,company,welcome,repair", "", "b7e9d63b891b554a")]
+    [InlineData("returns,company,welcome,repair", "bcdefghmt", "841fbf09dd316f42")]
+    [InlineData("sides", "", "4191fa33668ae70d")]
+    [InlineData("returns,company,welcome,repair,sides", "", "432b156173b8a2fd")]
+    [InlineData("returns,company,welcome,repair,sides", "bcdefghmt", "0a8acad9d8aa29cd")]
+    [InlineData("late", "", "8fed40e1ccd3d0c0")]
+    [InlineData("returns,company,welcome,repair,sides,late", "", "74a5628dd45ee0df")]
+    [InlineData("returns,company,welcome,repair,sides,late", "bcdefghmt", "14c8baefe84cf610")]
     public void TheCatalogsSlicesArePinned(string slices, string steps, string hash)
     {
         FeelingOptions o = DefaultTown.Feelings().With0d6(steps);
@@ -206,7 +206,7 @@ public class PinnedTests
         o.DesireActs = false;
         o.Start = DefaultTown.Tensions(0);
         SimResult r = new Simulation(1, feelings: o).Run(112);
-        Assert.Equal("c0488cc6bf81e64f", Metrics.LogHash(r));
+        Assert.Equal("84e6479eafeb666d", Metrics.LogHash(r));
         Assert.NotEmpty(r.MotiveLog);
         Assert.NotEmpty(r.Stirred);
     }

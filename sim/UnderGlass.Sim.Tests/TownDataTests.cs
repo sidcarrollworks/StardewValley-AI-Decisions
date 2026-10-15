@@ -13,9 +13,9 @@ public class TownDataTests
     public void TheShippedTownIsTheSameThroughTownData()
     {
         // P3, the town as it ships (PinnedTests.TheGateIsPinned, "shipped").
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, TownData.Default()).Run(112)));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(new Simulation(1, TownData.Default()).Run(112)));
         // The runs from before feelings (PinnedTests.FeelingsOffReproducesTheRunsFromBeforeFeelings).
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(new Simulation(42, TownData.Default() with { Feelings = FeelingOptions.Off }).Run(7)));
+        Assert.Equal("d1a5fd6ac8e82bcd", Metrics.LogHash(new Simulation(42, TownData.Default() with { Feelings = FeelingOptions.Off }).Run(7)));
     }
 
     [Fact]

@@ -167,7 +167,7 @@ public class CatalogTests
         FeelingOptions shipped = DefaultTown.Feelings();
         Assert.False(shipped.Acts.Watch || shipped.Acts.Returns || shipped.Acts.Company || shipped.Acts.Welcome
                      || shipped.Acts.Repair || shipped.Acts.Sides || shipped.Acts.Late);
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, cast: carded, kinds: kinds, feelings: shipped).Run(112)));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(new Simulation(1, cast: carded, kinds: kinds, feelings: shipped).Run(112)));
         AssertFeelingsOffHashes(carded, kinds, FeelingOptions.Off);
     }
 
@@ -181,7 +181,7 @@ public class CatalogTests
         FeelingOptions o = DefaultTown.Feelings();
         o.Acts = EveryOn();
         SimResult watched = new Simulation(1, cast: cast, kinds: kinds, feelings: o).Run(112);
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(watched));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(watched));
         Assert.DoesNotContain(watched.Acts, a => ActCatalog.SliceOf(a.Kind) is not null);
         Assert.Contains(watched.CatalogWatch, w => w.Motive == DesireKind.Return);
         Assert.Contains(watched.CatalogWatch, w => w.Motive == DesireKind.Fond);
@@ -192,8 +192,8 @@ public class CatalogTests
 
     private static void AssertFeelingsOffHashes(IReadOnlyList<Villager> cast, IReadOnlyList<ActKind> kinds, FeelingOptions off)
     {
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(new Simulation(42, cast: cast, kinds: kinds, feelings: off).Run(7)));
-        Assert.Equal("388d128d7fd4cdf2", Metrics.LogHash(new Simulation(7, cast: cast, kinds: kinds,
+        Assert.Equal("d1a5fd6ac8e82bcd", Metrics.LogHash(new Simulation(42, cast: cast, kinds: kinds, feelings: off).Run(7)));
+        Assert.Equal("6b2b062d09ec0258", Metrics.LogHash(new Simulation(7, cast: cast, kinds: kinds,
             scheduled: new[] { Harness.ScandalFor(7, kinds) }, feelings: off).Run(14)));
     }
 

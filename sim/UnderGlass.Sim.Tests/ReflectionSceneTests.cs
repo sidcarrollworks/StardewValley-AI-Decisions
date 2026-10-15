@@ -377,7 +377,7 @@ public class ReflectionSceneTests
         var mind = new Mind(answer: _ => throw new InvalidOperationException("Disabled reflection called the model."));
         SimResult r = await new Simulation(42, feelings: FeelingOptions.Off).RunAsync(7, mind);
 
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(r));
+        Assert.Equal("d1a5fd6ac8e82bcd", Metrics.LogHash(r));
         Assert.Empty(r.Reflections);
         Assert.Empty(mind.Requests);
         string json = await Replay.JsonAsync(new ReplayOptions { Seed = 42, Days = 1 }, mind);

@@ -522,6 +522,40 @@ public static class DefaultTown
                 Expression = Expressions.GetValueOrDefault(v.Name, 0.75),
             },
             Birthday = Birthdays.TryGetValue(v.Name, out YearDay b) ? b : null,
+            HubWeights = OwnHubWeights.TryGetValue(v.Name, out var hubs) ? hubs : null,
+            Bedtimes = HabitualBedtimes.TryGetValue(v.Name, out var kept) ? kept : null,
         }).ToList();
     }
+
+    /// <summary>A person's own weight for a named hub, in place of the hub's (D54). Penny's game schedule
+    /// (fixtures/game/Penny.json) never puts her at the Saloon but on year 1's green-rain day (its GreenRain
+    /// key; the sim has no green rain, so "never" is ours), so the evening gathering doesn't draw her. It
+    /// doesn't keep her out of the Saloon: an errand, an invitation or a friend can still take her there.</summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, double>> OwnHubWeights =
+        new Dictionary<string, IReadOnlyDictionary<string, double>>
+        {
+            ["Penny"] = new Dictionary<string, double> { ["Evening"] = 0 },
+        };
+
+    /// <summary>
+    /// Habitual bedtimes, sourced (D54); the first covering a day applies. Penny's are the hours her game
+    /// schedule sends her home to bed (penny_sleep at Trailer 4 9; canon's hours are departures, a kept
+    /// hour the hour from which bed is preferred): 18:30 on Tuesdays, Wednesdays and Fridays, 20:00 on
+    /// Saturdays, 21:00 on summer Mondays, Thursdays and Sundays, and 18:40 on the others (no fall key, so
+    /// spring's; winter's key goes to the Community Center, which falls back to spring until the Center is
+    /// restored; the sim has no Center, so all year is ours). Not represented: rain, the 9th and 23rd,
+    /// winter 4 and 15, festivals, green rain, Saturday in Town with the children until 20:00.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<KeptHour>> HabitualBedtimes =
+        new Dictionary<string, IReadOnlyList<KeptHour>>
+        {
+            ["Penny"] = new KeptHour[]
+            {
+                new(H(18, 30), new[] { 1, 2, 4 }, Array.Empty<int>(), "fixtures/game/Penny.json: Tue (Wed, Fri: GOTO Tue)"),
+                new(H(20), new[] { 5 }, Array.Empty<int>(), "fixtures/game/Penny.json: Sat"),
+                new(H(21), new[] { 0, 3, 6 }, new[] { 1 }, "fixtures/game/Penny.json: summer, summer_Sun"),
+                new(H(18, 40), new[] { 0, 3, 6 }, Array.Empty<int>(),
+                    "fixtures/game/Penny.json: spring (no fall key; winter falls back while the Community Center is unrestored)"),
+            },
+        };
 }

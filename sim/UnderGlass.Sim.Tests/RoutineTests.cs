@@ -262,9 +262,10 @@ public class RoutineTests
         Assert.Equal(Metrics.LogHash(new Simulation(3, town).Run(3)), Metrics.LogHash(new Simulation(3, back).Run(3)));
         Assert.NotEqual(Census.Hash(TownData.Default()), Census.Hash(town)); // a routine is part of what a town is
         // A card without them leaves the canonical form (and the hash) as it was.
-        Assert.DoesNotContain("\"HubWeights\"", TownJson.Canonical(TownData.Default()));
-        Assert.DoesNotContain("\"Bedtimes\"", TownJson.Canonical(TownData.Default()));
-        Assert.DoesNotContain("\"BedtimeHabitWeight\"", TownJson.Canonical(TownData.Default()));
+        string plain = TownJson.Canonical(UnderGlass.Sim.Towns.Named("pelican-as-shipped"));
+        Assert.DoesNotContain("\"HubWeights\"", plain);
+        Assert.DoesNotContain("\"Bedtimes\"", plain);
+        Assert.DoesNotContain("\"BedtimeHabitWeight\"", plain);
     }
 
     [Fact]
@@ -303,5 +304,72 @@ public class RoutineTests
         Assert.Contains("Penny: kept bedtime 1 is never used: an earlier one covers all its days",
             Problems(null, Kept(18, 40, new[] { 0, 3, 6 }), Kept(21, 0, new[] { 0, 3, 6 }, new[] { 1 })));
         Assert.Empty(Problems(null, Kept(21, 0, new[] { 0, 3, 6 }, new[] { 1 }), Kept(18, 40, new[] { 0, 3, 6 })));
+    }
+
+    // ---- Penny's sourced routine in the shipped town (D54) ---------------------------------------------
+
+    [Fact]
+    public void PennyCarriesHerSourcedRoutine_AndTheComparisonTownsLeaveItOut()
+    {
+        Villager penny = TownData.Default().Cast.Single(v => v.Name == "Penny");
+        Assert.Equal(new Dictionary<string, double> { ["Evening"] = 0 }, penny.HubWeights);
+        Assert.Equal(new[] { Clock.At(18, 30), Clock.At(20), Clock.At(21), Clock.At(18, 40) }, penny.Bedtimes!.Select(k => k.At));
+        Assert.All(penny.Bedtimes!, k => Assert.StartsWith("fixtures/game/Penny.json: ", k.Source));
+        Assert.All(TownData.Default().Cast.Where(v => v.Name != "Penny"), v => Assert.True(v.HubWeights is null && v.Bedtimes is null, v.Name));
+        // Her four hours cover every day of the year, each day by the hour her game gives it.
+        int[] expected = { Clock.At(18, 40), Clock.At(18, 30), Clock.At(18, 30), Clock.At(18, 40), Clock.At(18, 30), Clock.At(20), Clock.At(18, 40) };
+        for (int day = 0; day < 4 * Clock.DaysPerSeason; day++)
+        {
+            int weekday = day % Clock.DaysPerWeek;
+            bool summerEvening = Calendar.Season(day) == 1 && weekday is 0 or 3 or 6;
+            Assert.Equal(summerEvening ? Clock.At(21) : expected[weekday], KeptHour.For(penny.Bedtimes, day)!.Value.Hour.At);
+        }
+
+        Villager simulated = UnderGlass.Sim.Towns.Named("pelican-simulated-bedtime").Cast.Single(v => v.Name == "Penny");
+        Assert.Equal(penny.HubWeights, simulated.HubWeights);
+        Assert.Null(simulated.Bedtimes);
+        string shipped = TownJson.Canonical(UnderGlass.Sim.Towns.Named("pelican-as-shipped"));
+        Assert.DoesNotContain("\"HubWeights\"", shipped);
+        Assert.DoesNotContain("\"Bedtimes\"", shipped);
+        foreach (string name in new[] { "pelican", "pelican-simulated-bedtime", "pelican-as-shipped" })
+            Assert.Empty(TownCheck.Problems(UnderGlass.Sim.Towns.Named(name)));
+    }
+
+    /// <summary>The town as it shipped before D54 is kept, hash for hash: a year of seed 1 (the gate's
+    /// "shipped" pin of PinnedTests before D54) and a week of seed 42 without feelings (phase 0a's).</summary>
+    [Fact]
+    public void TheTownAsShippedRunsAsItDidBefore()
+    {
+        TownData town = UnderGlass.Sim.Towns.Named("pelican-as-shipped");
+        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, town).Run(112)));
+        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(new Simulation(42, town with { Feelings = FeelingOptions.Off }).Run(7)));
+    }
+
+    /// <summary>A year of the shipped town: Penny never takes the Saloon's evening (nothing else leads
+    /// her there with the catalog off), never sets out by habit before its hour and mostly at it, and
+    /// wakes rested or to her alarm. Rates beyond these loose bounds belong in the experiment note.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void PennyKeepsHerHabits_AndTheEnergyRuleKeepsHerHours(long seed)
+    {
+        var saloonEvenings = new HashSet<int>();
+        var sim = new Simulation(seed);
+        var notes = new NightList();
+        sim.ConfigureNights(notes);
+        sim.Run(112, (m, s) =>
+        {
+            if (m % Clock.TickMinutes == 0 && Clock.OfDay(m) >= Clock.At(18) && s.Where("Penny").Place == "Saloon")
+                saloonEvenings.Add(Clock.Day(m));
+        });
+        Assert.Empty(saloonEvenings);
+        var rows = NightTable.Rows(notes.Notes, DefaultTown.Cast()).Where(x => x.Person == "Penny" && x.Night >= 0).ToList();
+        var habit = rows.Where(x => x.SetOutWhy == "habit").ToList();
+        Assert.True(habit.Count >= 56, $"{habit.Count} nights to bed by habit");
+        Assert.All(habit, x => Assert.True(x.SetOutAt >= x.HabitAt, $"night {x.Night}: set out {x.SetOutAt}, habit {x.HabitAt}"));
+        int onTime = habit.Count(x => x.SetOutAt - x.HabitAt <= 5);
+        Assert.True(onTime * 3 >= habit.Count * 2, $"{onTime} of {habit.Count} at the hour");
+        Assert.All(rows.Where(x => x.WokeAt is not null), x => Assert.Contains(x.WokeWhy, new[] { "rested", "alarm" }));
     }
 }

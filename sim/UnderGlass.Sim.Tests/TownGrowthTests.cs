@@ -350,7 +350,7 @@ public class TownGrowthTests
     {
         TownData town = TownData.Default() with { Gossip = new GossipOptions { Forgetting = new ForgettingOptions { FadePerDay = 0.01 } } };
         string hash = Metrics.LogHash(new Simulation(1, town).Run(112));
-        Assert.NotEqual("e9fd83b284f5c1b6", hash);
-        Assert.Equal("0fb826867e0573b5", hash); // 2026-10-08: a new face counts once a week, and a tie fades from the night's start
+        Assert.NotEqual("8a002fea26b541fe", hash);
+        Assert.Equal("3ddb13b50f736df7", hash); // 2026-10-08: a new face counts once a week, and a tie fades from the night's start
     }
 }
