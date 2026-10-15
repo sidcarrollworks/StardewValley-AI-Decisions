@@ -4,8 +4,8 @@
 
 Built, 2026-10-14. `sim/viewer/runs.html` launches recordings from the local preview,
 using the shared observer UI. It exposes the Replay executable's current flags, repeatable
-feeling/action overrides and character traits. This does not implement the planned Lives pilot,
-player speech input or an automated archetype comparison suite.
+feeling/action overrides and character traits. The Lives routing/company/evening flags are now integrated. This does not implement player
+speech input or an automated archetype comparison suite.
 
 ## Workflow
 
@@ -72,3 +72,52 @@ Static viewing still works without the service; generating does not.
 - Manual browser checks: edit/export/upload a Newcomer line, generate/open a run, cancel a long
   run, edit/reload/validate character context, and start/stop managed Laya, Haiku and cached Qwen.
   No paid generation calls were made; Qwen startup includes its local warmup.
+
+## History workbench and live observation (2026-10-15)
+
+`histories.html` edits an executable version-1 history pack across the existing cast. Start from
+the reviewed pilot, import a pack, or add accounts for another person. A browser draft and JSON
+export preserve work. The form edits acquisition, cues, current feelings and expectation keys.
+Cue pickers use current cast/place names. Editing a sourced account converts that account and its
+readings in the draft into explicitly experimental authoring; the shipped source stays untouched.
+`ExperimentalStated` is an alternate starting attitude, not an admitted interpretation of canon.
+Finished pasts remain recall-only in this authoring mode. See the memory spec for admission.
+
+**Use draft in a new run** validates through Replay, then carries a saved path into New run.
+**Test its influence** additionally requests held-choice fallback comparisons with this account
+and its readings removed. These do not call Haiku or Laya or simulate a counterfactual whole life.
+The server freezes all file inputs in each job folder, including histories and character/speech
+packs. History is also recorded in `livesRouting` with its existing hash. Later draft edits never
+change an existing run. A history does not add a villager to the town; unknown holders are rejected
+by simulation setup. Archetypes still contain no personal histories. Haiku's inspiration prompt
+still uses the character-profile background, separately from the Lives memories Laya evaluates.
+
+New-run presets enable routing, company and evenings for the whole cast (no three-person filter).
+Only the reviewed pilot has sourced histories by default. Other characters learn during the run;
+users can author explicit experimental starting conditions for them. Existing action eligibility
+still applies: the editor does not create new activities from prose.
+
+**Watch while generating** supplies observer snapshots to Run Viewer and Life chains. Generation
+pace is a wall-clock ceiling (10 minutes/sec through unlimited), independent of recorded-playback
+speed. Pause waits until the current model answer finishes, then stops advancement. Model requests
+remain sequential at their simulated minute; no asynchronous answer can change the decision order.
+The UI distinguishes reflection, evening-choice waits, pause, failure and completion. Turning off
+Follow latest, scrubbing, or selecting a chain stops the viewport following without stopping the
+simulation. Pause run stops simulation advancement. Resume follows the latest snapshots again.
+
+Partial snapshots have `live.at` and `live.partial`. A partial run is never offered as successful.
+The final recording is written separately; stopped/failed jobs retain their last partial snapshot.
+The recorder constructs and serializes snapshots synchronously on the simulation worker, and
+atomically replaces files. Output callbacks and pacing consume no simulation draws. A regression
+test compares the full final JSON with and without intermediate serialization. Startup validation,
+file snapshotting and controls share the existing same-origin/token boundary.
+
+This first transport publishes full snapshots about once a second and at model-call boundaries;
+it is not a bounded incremental stream. Longer runs cost progressively more serialization and
+browser work. Start with short experiments; incremental transport and editing histories for an
+uploaded custom town deserve a later slice. Existing all-flags/custom-town support remains.
+
+Verification: browser-created Robin account, engine validation, frozen run input, live pause/resume,
+viewer/chain navigation; a one-day seed-7 Haiku + Laya run completed in about 6 seconds unlimited,
+with one generated/reflection evaluation and three Laya evening decisions. This is a smoke
+measurement, not a long-run throughput guarantee. The larger activity vocabulary remains next.

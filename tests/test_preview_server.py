@@ -65,6 +65,20 @@ class ValidationTests(unittest.TestCase):
             self.assertNotEqual(first['id'],second['id'])
         restored=server.Studio(self.root,prepare=False)
         self.assertEqual(restored.jobs[first['id']]['status'],'interrupted')
+    def test_inputs_are_frozen_and_live_controls_are_confined(self):
+        studio=server.Studio(self.root,prepare=False);studio.schema=schema()
+        with patch.object(server.threading.Thread,'start'):
+            job=studio.start({'options':{'speech-catalog':'catalog.json'},'live':True,'rate':60})
+        frozen=self.root/job['options']['speech-catalog']
+        (self.root/'catalog.json').write_text('{"changed":true}')
+        self.assertEqual(frozen.read_text(),'{}')
+        self.assertIn('--live-output',job['args'])
+        studio.control(job['id'],dict(paused=True,rate=10))
+        self.assertEqual(json.loads((self.root/'out/run-studio'/job['id']/'control.json').read_text()),dict(paused=True,rate=10))
+        for data in (dict(paused='true',rate=10),dict(paused=True,rate=-1),dict(paused=True,rate=True)):
+            with self.assertRaises(server.Invalid):studio.control(job['id'],data)
+        with self.assertRaises(server.Invalid):studio.control('not-the-active-job',dict(paused=True,rate=10))
+
     def test_subprocess_receives_an_argument_list_without_a_shell(self):
         studio=server.Studio(self.root,prepare=False);studio.schema=schema()
         with patch.object(server.threading.Thread,'start'):

@@ -53,7 +53,7 @@
     const holders=model.lives.holders?.length?model.lives.holders:run.names;
     if(!holders.includes(run.names[who]))who=run.names.indexOf(holders[0]);
     $('person').replaceChildren(...run.names.flatMap((name,i)=>{if(!holders.includes(name))return [];const o=el('option',name);o.value=i;return [o];}));$('person').value=who;
-    const moments=M.moments(model,who,true);totalMax=Math.max(0,...moments);
+    const moments=M.moments(model,who,true);totalMax=Math.max(0,run.live?.at??0,...moments);
     tick=Number.isFinite(state.t)?Math.max(0,Math.min(state.t,totalMax)):(M.eventIndex(model,who,false)[0]?.at??0);
     totalMin=Math.min(tick,model.lives.excerpt?.from??0);reindex();
     $('recording-info').replaceChildren(el('p',model.lives.runtime?model.lives.scope:`Format: proposed Lives ${model.lives.version}. Rules: ${model.lives.rules}.`),el('p','This adapter does not validate experimental formulas or run a simulation. It reads recorded links and values.'));
@@ -335,6 +335,6 @@
   window.addEventListener('resize',()=>{if(model&&!model.missing){renderTimeline();requestAnimationFrame(drawLinks);}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected){e.preventDefault();closeInspector();}});
   new ResizeObserver(()=>requestAnimationFrame(drawLinks)).observe($('graph'));
-  window.underGlassToolPage={page:'chains',load:accept,source:()=>model?source:undefined,hasRecording:()=>!!model,state:()=>({t:tick,person:model?.run.names[who]??'',tab:'inner'})};
+  window.underGlassToolPage={page:'chains',update:(run,url)=>{const filter=thread;accept(run,url,{t:run.live?.at??run.days*1440-1,person:model?.run.names[who]??'',tab:'inner'});if(filter!=='all'){thread=filter;reindex();render();}},load:accept,source:()=>model?source:undefined,hasRecording:()=>!!model,state:()=>({t:tick,person:model?.run.names[who]??'',tab:'inner'})};
   document.addEventListener('DOMContentLoaded',()=>{if(!new URLSearchParams(location.search).has('run'))example(window.UnderGlassTools.readState(location.hash));});
 })();

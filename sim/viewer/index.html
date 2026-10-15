@@ -1281,7 +1281,7 @@ function load(run) {
   if (!run || run.format !== "under-glass-run") throw new Error("This file is not an Under Glass run. Make one with the UnderGlass.Replay tool.");
   if (run.version !== 1) throw new Error(`This run is version ${run.version}; this viewer reads version 1.`);
   const n = run.names.length, names = run.names;
-  const m = { run, n, names, days: run.days, end: run.days * 1440 - 1, tick: run.clock.tick };
+  const m = { run, n, names, days: run.days, end: run.live?.at ?? run.days * 1440 - 1, tick: run.clock.tick };
   m.places = run.places.map((p, i) => ({ ...p, i, w: p.rows[0].length, h: p.rows.length, district: p.district ?? "core" }));
   m.kinds = run.kinds;
   m.encounters = new Map((run.encounters ?? []).map((x) => [x.actId, x]));
@@ -3144,7 +3144,8 @@ function start(run, source) {
   try { R = load(run); } catch (err) { showError(err.message); return; }
   toolRecordingSource = null;
   readColours();
-  const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
+  const label = [run.live ? "Live" : "Recording", `seed ${run.seed}`, `${run.days} days`, source].filter(Boolean).join(" · ");
+  $("runLabel").title = run.label || "the town as it ships";
   $("runLabel").textContent = label;
   $("scrub").max = R.end;
   buildTown(); layoutTownPlan(); VIEW.k = 1; VIEW.x = VIEW.y = 0; buildFeedFilters(); buildPopulationControls(); syncPopControls(); buildHoodPicker();
@@ -3253,6 +3254,15 @@ else {
 // Navigation is a preview enhancement; standalone exported recordings need no external files.
 window.underGlassToolPage = {
   page: "dashboard",
+  update: (run, source) => {
+    if (!R) return;
+    const person = R.names[S.person];
+    R = load(run); toolRecordingSource = source; S.person = R.names.indexOf(person);
+    $("scrub").max = R.end;
+    lastSideKey = lastRelKey = lastFeedKey = lastInnerKey = lastStoryKey = lastObserverKey = "";
+    setPlaying(false); setTime(run.live?.at ?? R.end);
+    window.dispatchEvent(new Event("under-glass-recording"));
+  },
   source: () => toolRecordingSource ?? (R ? null : undefined),
   hasRecording: () => !!R,
   state: () => R ? { t: Math.floor(S.t), person: R.names[S.person] ?? "", tab: S.tab } : {},
@@ -3263,6 +3273,7 @@ window.underGlassToolPage = {
     if (state.tab) showTab(state.tab);
     if (state.t !== undefined) setTime(state.t);
     else render();
+    window.dispatchEvent(new Event("under-glass-recording"));
   },
 };
 if (/^https?:$/.test(location.protocol)) {

@@ -22,7 +22,7 @@
       if(o.type==='boolean')root.classList.add('check');
     }
     input.id=id;root.append(input);controls.set(o.flag,{input,o});
-    if(o.repeat){
+    if(o.repeat&&['override','trait'].includes(o.type)){
       const builder=el('div',undefined,'override-builder'),name=el('select'),value=el('input');value.placeholder='Value';value.setAttribute('aria-label',o.label+' value');
       if(o.type==='override'){
         const search=el('input');search.placeholder='Find an option…';search.setAttribute('aria-label','Find '+o.label.toLowerCase());
@@ -46,19 +46,19 @@
     return root;
   }
   function initialize(){
-    const groups=['Run','Mind','Speech','Models','Actions','Advanced','Overrides'];
+    const groups=['Run','Histories','Mind','Speech','Models','Actions','Advanced','Overrides'];
     for(const group of groups){const fields=el('div',undefined,'run-fields');for(const o of schema.options.filter(o=>o.group===group))fields.append(field(o));
       if(group==='Run')$('options').append(fields);else{const d=el('details',undefined,'tool-disclosure');d.dataset.group=group;d.open=group==='Mind'||group==='Speech';d.append(el('summary',group),fields);$('options').append(d);}}
-    preset('haiku');initialized=true;
+    preset('haiku');const history=new URLSearchParams(location.search).get('history');if(history)set('history',history);const compare=new URLSearchParams(location.search).get('compare');if(compare)set('compare-history',[compare]);initialized=true;updateCommand();
   }
   function set(key,value){const c=controls.get(key);if(!c)return;const {input,o}=c;if(o.type==='boolean')input.checked=!!value;else if(o.type==='catalog'||o.type==='steps'){const values=o.type==='catalog'?String(value??'').toLowerCase().split(','):String(value??'').split('');input.querySelectorAll('input').forEach(n=>n.checked=values.includes(n.value.toLowerCase()));}else input.value=Array.isArray(value)?value.join('\n'):value??'';}
   function defaults(){for(const [key,{o}] of controls)set(key,o.type==='boolean'?false:o.default);$('output-json').checked=true;$('output-html').checked=false;updateCommand();}
   function values(){const result={};for(const [key,{input,o}] of controls){let v=o.type==='boolean'?input.checked:o.type==='catalog'||o.type==='steps'?[...input.querySelectorAll('input:checked')].map(n=>n.value).join(o.type==='catalog'?',':''):o.repeat?input.value.split('\n').map(s=>s.trim()).filter(Boolean):input.value.trim();if(v!==false&&v!==''&&(!Array.isArray(v)||v.length))result[key]=v;}return result;}
-  function payload(){return {name:$('run-name').value,options:values(),formats:[$('output-json').checked?'json':null,$('output-html').checked?'html':null].filter(Boolean)};}
+  function payload(){return {name:$('run-name').value,options:values(),live:$('live').checked,rate:Number($('pace').value),formats:[$('output-json').checked?'json':null,$('output-html').checked?'html':null].filter(Boolean)};}
   function updateCommand(){const a=[];for(const [key,v] of Object.entries(values())){for(const x of Array.isArray(v)?v:[v]){a.push('--'+key);if(x!==true)a.push(String(x));}}$('command').textContent=a.map(v=>/\s/.test(v)?JSON.stringify(v):v).join(' ')+'\nOutput paths are assigned when the run starts.';renderServices();}
-  function preset(name){if(!schema)return;defaults();const mode=['haiku','qwen'].includes(name)?'hybrid':name;set('reflection',mode);set('speech',true);set('newcomer-voice',true);set('character-inspiration','sim/character-inspiration.json');set('catalog',schema.options.find(o=>o.flag==='catalog').choices.filter(v=>v!=='Watch').join(','));if(mode!=='authored')set('laya-url','http://127.0.0.1:8000');if(mode==='hybrid'){set('llm-url',name==='haiku'?'http://127.0.0.1:8083':'http://127.0.0.1:8080');set('llm-model',name==='haiku'?'claude-haiku-5-5':'Qwen/Qwen3-0.6B');}updateCommand();}
+  function preset(name){if(!schema)return;defaults();const mode=['haiku','qwen'].includes(name)?'hybrid':name;set('reflection',mode);set('speech',true);set('lives-routing',true);set('lives-company',true);set('lives-evenings',true);set('history',new URLSearchParams(location.search).get('history')||'sim/history/penny-pam-gus.json');const compare=new URLSearchParams(location.search).get('compare');if(compare)set('compare-history',[compare]);if(mode!=='authored')set('lives-laya','http://127.0.0.1:8000');set('character-inspiration','sim/character-inspiration.json');set('catalog',schema.options.find(o=>o.flag==='catalog').choices.filter(v=>v!=='Watch').join(','));if(mode!=='authored')set('laya-url','http://127.0.0.1:8000');if(mode==='hybrid'){set('llm-url',name==='haiku'?'http://127.0.0.1:8083':'http://127.0.0.1:8080');set('llm-model',name==='haiku'?'claude-haiku-5-5':'Qwen/Qwen3-0.6B');}updateCommand();}
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>preset(b.dataset.preset));
-  function requiredServices(){const v=values();if(!['hybrid','laya'].includes(v.reflection))return [];
+  function requiredServices(){const v=values();if(!['hybrid','laya'].includes(v.reflection))return v['lives-laya']?'http://127.0.0.1:8000'===v['lives-laya']?['laya']:null:[];
     const local=(url,port)=>{try{const u=new URL(url);return ['localhost','127.0.0.1'].includes(u.hostname)&&u.port===String(port)&&u.pathname==='/';}catch{return false;}};
     if(!local(v['laya-url']||'http://127.0.0.1:8000',8000))return null;
     if(v.reflection==='laya')return ['laya'];
@@ -76,18 +76,19 @@
   }
   $('start-models').onclick=async()=>{try{startingModels=true;renderServices();error(null);await post('/services',{action:'start',services:requiredServices()});await refresh();}catch(e){error(e);}finally{startingModels=false;renderServices();}};
   $('defaults').onclick=()=>schema&&defaults();$('run-form').oninput=updateCommand;
-  $('run-form').onsubmit=async e=>{e.preventDefault();if(submitting)return;try{submitting=true;$('generate').disabled=true;error(null);await post('/jobs',payload());await refresh();}catch(e){error(e);}finally{submitting=false;}};
+  $('run-form').onsubmit=async e=>{e.preventDefault();if(submitting)return;try{submitting=true;$('generate').disabled=true;error(null);const job=await post('/jobs',payload());await refresh();if(job.live)location.href='index.html?run='+encodeURIComponent(job.live)+'&live='+encodeURIComponent(job.id);}catch(e){error(e);}finally{submitting=false;}};
   $('save-settings').onclick=()=>{const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({format:'under-glass-run-settings',...payload()},null,2)],{type:'application/json'}));a.download='run-settings.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
-  $('load-settings').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text());if(data.format!=='under-glass-run-settings'||!data.options)throw new Error('Choose run settings exported from this page.');defaults();for(const [key,value] of Object.entries(data.options)){if(!controls.has(key))throw new Error('Unknown option: '+key);set(key,value);}$('run-name').value=data.name||'Imported run';$('output-json').checked=data.formats?.includes('json');$('output-html').checked=data.formats?.includes('html');updateCommand();error(null);}catch(e){error(e);}finally{e.target.value='';}};
+  $('load-settings').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text());if(data.format!=='under-glass-run-settings'||!data.options)throw new Error('Choose run settings exported from this page.');defaults();for(const [key,value] of Object.entries(data.options)){if(!controls.has(key))throw new Error('Unknown option: '+key);set(key,value);}$('run-name').value=data.name||'Imported run';$('live').checked=!!data.live;$('pace').value=String(data.rate??60);$('output-json').checked=data.formats?.includes('json');$('output-html').checked=data.formats?.includes('html');updateCommand();error(null);}catch(e){error(e);}finally{e.target.value='';}};
   function renderJobs(jobs){
     const key=JSON.stringify(jobs);if(key===previousJobs)return;previousJobs=key;$('jobs').replaceChildren();
     if(!jobs.length)$('jobs').append(el('p','No runs yet.','meta'));
     for(const j of jobs){const card=el('article',undefined,'run-job');card.append(el('h3',j.name));const status=el('div');status.append(el('span',j.status,'job-state '+j.status));const duration=el('span',undefined,'meta');duration.dataset.started=j.started;if(j.finished)duration.dataset.finished=j.finished;status.append(duration);card.append(status);
       if(j.status==='succeeded'&&j.finished>j.started)card.append(el('p',`${j.options.days||28} simulated ${Number(j.options.days||28)===1?'day':'days'} · ${(Number(j.options.days||28)/(j.finished-j.started)).toFixed(1)} days/sec`,'meta'));
       const actions=el('div',undefined,'tool-actions');
+      if(j.live){const watch=el('a',j.status==='running'?'Watch live →':'Open last live snapshot');watch.href='index.html?run='+encodeURIComponent(j.live)+'&live='+encodeURIComponent(j.id);actions.append(watch);}
       if(j.status==='succeeded'){const url=j.outputs.json||j.outputs.html;const link=el('a','Open Run Viewer →','key-link');link.href='index.html?run='+encodeURIComponent(url);actions.append(link);for(const [fmt,path] of Object.entries(j.outputs)){const d=el('a','Download '+fmt.toUpperCase());d.href=path;d.download='';actions.append(d);}}
       if(['running','cancelling'].includes(j.status)){const cancel=button('Cancel run',async()=>{try{await post('/jobs/'+j.id+'/cancel',{});await refresh();}catch(e){error(e);}});cancel.disabled=j.status==='cancelling';actions.append(cancel);}
-      actions.append(button('Use settings',()=>{defaults();Object.entries(j.options).forEach(([k,v])=>set(k,v));$('run-name').value=j.name+' copy';$('output-json').checked=j.formats.includes('json');$('output-html').checked=j.formats.includes('html');updateCommand();}),button('Show output',async()=>{selectedLog=j.id;$('job-log').hidden=false;$('job-log').open=true;await log();}));card.append(actions);if(j.error)card.append(el('p',j.error));$('jobs').append(card);
+      actions.append(button('Use settings',()=>{defaults();Object.entries(j.options).forEach(([k,v])=>set(k,v));$('run-name').value=j.name+' copy';$('live').checked=!!j.live;$('pace').value=String(j.rate??60);$('output-json').checked=j.formats.includes('json');$('output-html').checked=j.formats.includes('html');updateCommand();}),button('Show output',async()=>{selectedLog=j.id;$('job-log').hidden=false;$('job-log').open=true;await log();}));card.append(actions);if(j.error)card.append(el('p',j.error));$('jobs').append(card);
     }
   }
   async function log(){if(!selectedLog)return;const r=await fetch('/api/run-studio/jobs/'+selectedLog+'/log');if(r.ok)$('log-text').textContent=(await r.json()).text||'No output yet. The simulation is running; elapsed time is shown above.';}

@@ -496,7 +496,7 @@ public sealed partial class Simulation
         }
     }
 
-    private SimResult Result(int days) => new SimResult
+    internal SimResult Result(int days) => new SimResult
         {
             Acts = _acts,
             Beliefs = _beliefs.ToDictionary(p => p.Key, p => (IReadOnlyDictionary<int, Belief>)p.Value),

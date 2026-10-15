@@ -244,3 +244,9 @@ all other matched record types out of the normal recall window. Evening gates ha
 counts. Life chains includes ongoing company/routing with personal outcomes, and tucks stable
 whereabouts checks away. Three fresh 35-day authored runs are retained; this is not a new live
 Laya comparison or the full observer contract.
+
+History/live workbench, 2026-10-15: users can author explicit experimental histories across the
+existing cast, validate/export drafts, freeze them in new runs and watch hybrid generation in
+Run Viewer or Life chains. Canon and authored provenance remain distinct. Pacing changes wall
+time only; models hold simulated time while answering. Richer activities and incremental live
+transport remain later work.

@@ -42,7 +42,7 @@ create knowledge for another person. There can be only one account for each hold
 overlapping citations belong on that account. A reading inherits its holder through `AccountId`.
 An inference can be preserved as an account without becoming witnessed evidence.
 
-Readings explicitly name `CanonStated` or `Authored` origin. A canon-stated reading requires
+Readings name `CanonStated`, `Authored`, or `ExperimentalStated` origin. A canon-stated reading requires
 `R1` or `R2` admission; an authored interpretation requires explicit `null` admission, since it
 has no canon admission rule. A `Reviewed` reading requires a reviewer and a valid calendar
 date. `Proposed` and `Rejected`
@@ -51,7 +51,15 @@ underlying accounts remain separate recallable records. A reviewed authored read
 recalled, and the input pack retains its declared stance, but it supplies no numeric warmth,
 wariness or expectation.
 
-Only reviewed, canon-stated readings seed numbers:
+Reviewed canon-stated readings seed numbers. The history workbench also admits a deliberately
+experimental character statement (`ExperimentalStated`), with an `Authored` source, null canon
+admission and explicit review. It uses the same small seed and duplicate guards. This is a user
+setting for an alternate starting character, not permission to turn our interpretations of canon
+into facts. Existing `Authored` readings remain recall-only. Experimental completed pasts cannot
+seed numbers: author a separate present attitude rather than inventing a causal link. Experimental
+statements cannot carry a canon present-link citation. No shipped history is converted implicitly.
+
+For eligible seeds:
 
 - `Warm` and `Wary` create separate positive and negative associations.
 - `Expects` creates one initial entry in its specific expectation key.

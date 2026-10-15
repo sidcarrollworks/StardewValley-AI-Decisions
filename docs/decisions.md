@@ -1493,3 +1493,18 @@ causal references. It groups unchanged whereabouts confirmations and hides autom
 the primary timeline, while retaining their evidence for inspection. A route selection is not
 labelled an arrival, an unavailable gate is not a private explanation, and older recordings are
 never rewritten to imply the recall correction applied to them.
+
+### 2026-10-15 — Author experimental lives and watch generation
+
+Sid requested history authoring beyond the three-person pilot and real-time hybrid experiments.
+The workbench covers the existing cast and keeps histories separate from reusable archetypes.
+Editing canon creates an explicitly experimental draft account; it does not change source truth.
+A new ExperimentalStated origin represents the author deliberately setting the character’s own
+present attitude. It uses existing small seeds, while Authored interpretations still seed nothing.
+Completed pasts remain recall-only here, requiring a separate present attitude rather than an
+invented link. Canon admission rules, law 1, routines and sleep remain unchanged.
+
+Each run freezes its inputs. Live viewing/pacing reads observer snapshots and changes only elapsed
+wall time; it cannot change the keyed draws or model-answer order. Full snapshots are an initial
+transport, not the final population-scale design. Haiku inspiration and Lives Laya remain separate
+consumers; editing histories does not rewrite the character inspiration background.

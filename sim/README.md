@@ -1329,3 +1329,15 @@ expectations remain visible. In Observer view, new recordings expose daily offer
 The recall window now prevents multiple expectation summaries from crowding out all other
 matched memory types. The same fixed evening trial can regenerate the comparison recordings;
 old recordings remain readable and keep their original choices.
+
+## Edit histories and watch hybrid runs
+
+Start `Start Under Glass.cmd` from this checkout. Open **Histories** to author a browser draft
+for any existing cast member, or import/export the executable history JSON. **Use draft in a
+new run** validates and freezes it; **Test its influence** requests matched fallback comparisons.
+Choose Haiku + Laya, start required servers, keep **Watch while generating** checked and generate.
+Generation pace and Pause run control simulation advancement; normal viewer playback controls
+inspect the recorded portion. Model calls hold simulated time. Run Viewer and Life chains share
+the live job, and completion links to the final recording. All cast members participate, though
+only Penny/Pam/Gus have reviewed sourced histories by default. Experimental histories are clearly
+marked and do not turn author interpretations into canon. See the [workbench contract](../docs/under-glass/specs/run-studio-spec.md).

@@ -116,7 +116,7 @@ public sealed class PersonalMemory
                          && r.Review.Status == ReviewStatus.Reviewed))
             {
                 // Authored interpretations can be recalled but never supply a numeric prior.
-                bool seeds = reading.Origin == ReadingOrigin.CanonStated
+                bool seeds = reading.Origin != ReadingOrigin.Authored
                     && (facts[account.FactId].Kind != HistoryKind.Past || reading.PresentLinkSource is not null);
                 double amount = seeds ? reading.Stance switch
                 {

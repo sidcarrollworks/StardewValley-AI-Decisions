@@ -62,11 +62,11 @@ public static class Replay
         => RecordAsync(o, new AuthoredReflectionMind()).GetAwaiter().GetResult();
 
     public static async Task<string> JsonAsync(ReplayOptions o, IReflectionMind mind, CancellationToken cancellationToken = default,
-        Lives.ILivesDecisionMind? livesMind = null)
-        => JsonSerializer.Serialize(await RecordAsync(o, mind, cancellationToken, livesMind).ConfigureAwait(false), Options);
+        Lives.ILivesDecisionMind? livesMind = null, Action<int, Func<string>>? observe = null)
+        => JsonSerializer.Serialize(await RecordAsync(o, mind, cancellationToken, livesMind, observe).ConfigureAwait(false), Options);
 
     public static async Task<Dictionary<string, object?>> RecordAsync(ReplayOptions o, IReflectionMind mind,
-        CancellationToken cancellationToken = default, Lives.ILivesDecisionMind? livesMind = null)
+        CancellationToken cancellationToken = default, Lives.ILivesDecisionMind? livesMind = null, Action<int, Func<string>>? observe = null)
     {
         CharacterInspirationPack? inspirationPack = o.CharacterInspiration?.CopyValidated();
         Lives.HistoryPack? history = o.History?.CopyValidated();
@@ -156,9 +156,13 @@ public static class Replay
                         flat[i * n + j] = i == j ? 0 : (int)Math.Round(s.PersonalRegard(names[i], names[j]) * 1000);
                 regard.Add(flat);
             }
+            observe?.Invoke(m, () => JsonSerializer.Serialize(Build(s.Result(o.Days), m), Options));
         };
         SimResult r = await sim.RunAsync(o.Days, mind, sample, cancellationToken).ConfigureAwait(false);
+        return Build(r, null);
 
+        Dictionary<string, object?> Build(SimResult r, int? liveAt)
+        {
         // The log: beliefs and tellings become tables of their own; every other line is kept. A
         // tie is logged as it is made, in the order of r.Ties, which holds only its day: the line
         // gives its minute (23:59 for feuds and friendships, the moment for a reconciliation).
@@ -397,7 +401,9 @@ public static class Replay
                 outcomes = r.LivesEveningOutcomes, decisions = r.LivesDecisions, gates = r.LivesEveningGates,
             }, json);
         }
+        if (liveAt is { } at) recording["live"] = new { at, partial = true };
         return recording;
+        }
     }
 
     private static int P2(Dictionary<string, int> place, string name) => place.TryGetValue(name, out int i) ? i : -1;

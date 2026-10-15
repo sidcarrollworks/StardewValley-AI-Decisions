@@ -1551,3 +1551,13 @@ joining explicit opportunity/episode/cause IDs with personal knowledge and clock
 unchanged confirmations are disclosed separately; decay snapshots remain available as support
 without midnight timeline spam. Routing selections prove choices only, not arrivals. Ordinary
 acts outside these runtime receipts remain outside this graph.
+
+### History workbench and live observation (2026-10-15)
+
+Histories edits per-person version-1 packs, independent of archetypes. Explicit experimental
+character statements use Authored provenance and a distinct origin; external Authored readings
+stay nonnumeric. The run service validates and freezes every file input per job. Replay accepts
+a synchronous observer callback and exposes only a lazy serialization function, not mutable sim
+state. LiveRecordingWriter publishes atomic partial files and model-wait status, and reads bounded
+wall-clock pacing/pause controls. Existing viewers follow these snapshots; final files remain
+separate. This first full-snapshot transport has increasing cost on long runs.
