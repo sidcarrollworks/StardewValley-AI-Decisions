@@ -2,6 +2,11 @@
 
 ## Status
 
+Run studio update, 2026-10-14: the editor always exposes a Newcomer column. Export a draft and
+load it with `--speech-catalog` or the New run page; `--newcomer-voice` opts that character into
+the tag. Both imply speech recording and remain presentation-only. Rebuilding the embedded
+library is still the workflow for changing defaults; test catalogs need no rebuild.
+
 Built as an opt-in presentation slice, 2026-10-12, the second step of the roadmap's agreed order.
 With `--speech` on a replay, every act an actor does to a chosen person gets one authored line,
 chosen deterministically from the embedded `sim/UnderGlass.Sim/speech-catalog.json` and recorded
@@ -14,7 +19,7 @@ generic author wrote plain lines, every line was copy-checked against the whole 
 readers judged each line blind for which voice it sounded like and for rule breaks. Lines the
 readers could not place kept their words but lost their archetype tag; lines heard as another
 voice or breaking a rule were dropped. The result is awaiting Sid's curation; editing the file and
-rebuilding is the whole workflow. Nothing in it is game text.
+rebuilding changes the default library. Nothing in it is game text.
 
 Replies, 2026-10-13: with the [invitation slice](invitation-spec.md) on, the asked person answers
 a game or a drink, and the answer is a line too. 115 reply lines (`PlayedGame.Accepted`,

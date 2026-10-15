@@ -41,6 +41,10 @@ jobs:
         run: python -m unittest discover -s tests -p test_laya_categorize_probe.py
       - name: Test Lives baseline capture and comparisons without a simulation
         run: python -m unittest discover -s tests -p test_lives_baseline.py
+      - name: Test the local run service and CLI option coverage
+        run: python -m unittest discover -s tests -p test_preview_server.py
+      - name: Test model service ownership and startup without models
+        run: python -m unittest discover -s tests -p test_studio_services.py
 
   under-glass:
     name: Under Glass (sim)
