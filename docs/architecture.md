@@ -12,6 +12,10 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 
 ## Under Glass: the independent game
 
+The read-only [Life chains viewer](under-glass/specs/lives-chain-viewer-spec.md) projects proposed Lives 0.1 recordings through a time and knowledge filter before rendering a marked event timeline, a focused cause-and-effect tree and on-demand details. Moment IDs are indexed per lens; time-specific marker summaries avoid projecting the whole recording for every marker. Crowded moments cluster, simultaneous events and branches paginate, and pre-run memories remain collapsed outside the run timeline. Its frozen illustrative fixture supports UI review, not runtime claims. Isolated history comparisons display recorded fallback probabilities and sampled actions without evaluating formulas or running models.
+
+The [archetype studio](under-glass/specs/archetype-studio-spec.md) edits reusable character-inspiration fields in browser-local drafts. It validates schema and composed voice budgets, exports complete packs, and leaves personal profiles and simulation state untouched. Its pure JS model is separate from DOM rendering; shared navigation preserves recording context without loading a run.
+
 `sim/UnderGlass.sln` targets .NET 8 and has no Stardew or SMAPI dependencies. Its first product is
 the social simulation viewed from above: an observer should be able to follow what people
 remember, consider, attempt and experience. Player gameplay comes later. The simulator's full
@@ -82,6 +86,15 @@ The optional quiet-reflection prototype is specified in
   under the act once the clock reaches it. `sim/viewer/speech.html` is the curation page: how many
   lines fit each kind, voice and situation, what a recording actually said, and the lines editable
   in place; it carries a copy of the weight rule pinned to the C# one by a shared fixture.
+  `sim/viewer/tools.html` and `tools.js` connect it to the dashboard and recording index. Same-origin
+  recording URLs and a bounded view fragment carry the recording, time, person and tab between
+  tools. Saved HTML is parsed for its inert run-data node; its scripts are not executed. Local
+  picked files are not uploaded or persisted by this navigation and must be reopened separately.
+  `ui.css` reuses the dashboard's visual primitives on tool pages (pinned to its standalone inline
+  copy by a test); `ui.js` shares its theme preference. The sticky navigation measures its height
+  for the dashboard timeline, speech controls and drawer offsets. Speech metrics remain catalog-wide while
+  definitions and source details are disclosed on demand; recordings retain their artifact links
+  beneath compact run cards and expandable experiment collections.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.
