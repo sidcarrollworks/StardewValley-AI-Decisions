@@ -5,10 +5,11 @@ using Xunit;
 namespace UnderGlass.Sim.Tests;
 
 /// <summary>
-/// Routines as character data (D54; Sid, 2026-10-14): a habitual bedtime is a strongly weighted
-/// free-time choice from its hour until they sleep, not a rule; sleep starts on reaching the bed and
-/// ends when the bar is full; they stay free until asleep. A person's own weight for a hub stands in
-/// for the hub's, and 0 leaves it out. Toy towns: a yard, a hall, and a home for each household.
+/// Routines as character data (D54; Sid, 2026-10-14: "bedtimes are habits, not hard rules"): a habitual
+/// bedtime is a weighted free-time choice from its hour until they sleep (the weight is ours), not a
+/// rule; sleep starts on reaching the bed and ends when the bar is full; they stay free until asleep. A
+/// person's own weight for a hub stands in for the hub's, and 0 leaves it out. Toy towns: a yard, a
+/// hall, and a home for each household.
 /// </summary>
 public class RoutineTests
 {
@@ -19,8 +20,11 @@ public class RoutineTests
 
     private static Haunt Yard(int from, int to, double weight = 1) => new("Yard", YardSpot, Clock.At(from), Clock.At(to), weight);
 
+    private static Dictionary<string, OwnWeight> Own(params (string Hub, double Weight)[] weights)
+        => weights.ToDictionary(w => w.Hub, w => new OwnWeight(w.Weight));
+
     private static Villager Person(string name, Body body, IReadOnlyList<Haunt> haunts, IReadOnlyList<KeptHour>? bedtimes = null,
-        IReadOnlyDictionary<string, double>? hubs = null, string? household = null)
+        IReadOnlyDictionary<string, OwnWeight>? hubs = null, string? household = null)
         => new(name, household ?? name, "villager", new Temperament(0.5, 0.5, 0.5, 0.5), body, null, haunts,
             new Dictionary<string, double>(), Array.Empty<string>(), HubWeights: hubs, Bedtimes: bedtimes);
 
@@ -239,9 +243,9 @@ public class RoutineTests
         var inHall = new Dictionary<string, int> { ["Ann"] = 0, ["Bob"] = 0, ["Cat"] = 0 };
         var cast = new[]
         {
-            Person("Ann", Owl, new[] { Yard(8, 24) }, hubs: new Dictionary<string, double> { ["Evening"] = 0 }),
+            Person("Ann", Owl, new[] { Yard(8, 24) }, hubs: Own(("Evening", 0))),
             Person("Bob", Owl, new[] { Yard(8, 24) }),
-            Person("Cat", Owl, new[] { Yard(8, 24) }, hubs: new Dictionary<string, double> { ["Party"] = 5 }),
+            Person("Cat", Owl, new[] { Yard(8, 24) }, hubs: Own(("Party", 5))),
         };
         var hubs = new[] { Hub("Evening", 2), Hub("Party", 100, local: new[] { "Nobody" }, visitors: 0) };
         Run(8, 7, cast, hubs: hubs, each: (m, s) =>
@@ -259,28 +263,36 @@ public class RoutineTests
     public void WithoutOwnWeightsOrBedtimesNothingChanges()
     {
         var plain = Person("Ann", Owl, new[] { Yard(8, 24) });
-        var empty = plain with { HubWeights = new Dictionary<string, double>(), Bedtimes = Array.Empty<KeptHour>() };
+        var empty = plain with { HubWeights = Own(), Bedtimes = Array.Empty<KeptHour>() };
         var hubs = new[] { Hub("Evening", 2) };
         Assert.Equal(Metrics.LogHash(Run(9, 7, new[] { plain }, hubs: hubs).R), Metrics.LogHash(Run(9, 7, new[] { empty }, hubs: hubs).R));
     }
 
     // ---- the town as data: written, read, checked -----------------------------------------------------
 
-    private static TownData WithRoutine(TownData town, string who, IReadOnlyDictionary<string, double>? hubs, IReadOnlyList<KeptHour>? bedtimes)
+    private static TownData WithRoutine(TownData town, string who, IReadOnlyDictionary<string, OwnWeight>? hubs, IReadOnlyList<KeptHour>? bedtimes)
         => town with { Cast = town.Cast.Select(v => v.Name == who ? v with { HubWeights = hubs, Bedtimes = bedtimes } : v).ToList() };
 
-    private static readonly KeptHour[] TwoHours = { Kept(18, 30, new[] { 1, 2, 4 }, source: "fixtures/game/Penny.json: Tue"), Kept(21, seasons: new[] { 1 }) };
+    private static readonly KeptHour[] TwoHours =
+    {
+        Kept(18, 30, new[] { 1, 2, 4 }, source: "fixtures/game/Penny.json: Tue"),
+        Kept(21, seasons: new[] { 1 }),
+        Kept(19, seasons: new[] { 3 }, source: "a source") with { Assumption = "every winter" },
+    };
 
     [Fact]
     public void OwnWeightsAndBedtimesAreWrittenAndReadBack()
     {
-        TownData town = WithRoutine(TownData.Default(), "Penny", new Dictionary<string, double> { ["Evening"] = 0 }, TwoHours);
+        var hubs = new Dictionary<string, OwnWeight> { ["Evening"] = new(0, "a fixture", "never"), ["Noon"] = new(2) };
+        TownData town = WithRoutine(TownData.Default(), "Penny", hubs, TwoHours);
         string json = TownJson.Write(town);
         TownData back = TownJson.Read(json);
         Assert.Equal(json, TownJson.Write(back));
         Villager penny = back.Cast.Single(v => v.Name == "Penny");
-        Assert.Equal(0, penny.HubWeights!["Evening"]);
-        Assert.Equal(new[] { "fixtures/game/Penny.json: Tue", null }, penny.Bedtimes!.Select(k => k.Source));
+        Assert.Equal(new OwnWeight(0, "a fixture", "never"), penny.HubWeights!["Evening"]);
+        Assert.Equal(new OwnWeight(2), penny.HubWeights!["Noon"]);
+        Assert.Equal(new[] { "fixtures/game/Penny.json: Tue", null, "a source" }, penny.Bedtimes!.Select(k => k.Source));
+        Assert.Equal(new[] { null, null, "every winter" }, penny.Bedtimes!.Select(k => k.Assumption));
         Assert.Equal(new[] { 1, 2, 4 }, penny.Bedtimes![0].Weekdays);
         Assert.Equal(Census.Hash(town), Census.Hash(back));
         Assert.Equal(Metrics.LogHash(new Simulation(3, town).Run(3)), Metrics.LogHash(new Simulation(3, back).Run(3)));
@@ -295,7 +307,7 @@ public class RoutineTests
     [Fact]
     public void AFileWrittenBeforeRoutinesIsRefused()
     {
-        string json = TownJson.Write(WithRoutine(TownData.Default(), "Penny", null, TwoHours));
+        string json = TownJson.Write(WithRoutine(TownData.Default(), "Penny", Own(("Evening", 0)), TwoHours));
         static string Edit(string json, Action<System.Text.Json.Nodes.JsonObject> edit)
         {
             var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
@@ -306,6 +318,8 @@ public class RoutineTests
         Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![0]!.AsObject().Remove("HubWeights"))));
         Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![0]!.AsObject().Remove("Bedtimes"))));
         Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![penny]!["Bedtimes"]![1]!.AsObject().Remove("Source"))));
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![penny]!["Bedtimes"]![1]!.AsObject().Remove("Assumption"))));
+        Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Cast"]![penny]!["HubWeights"]!["Evening"]!.AsObject().Remove("Source"))));
         Assert.Throws<System.Text.Json.JsonException>(() => TownJson.Read(Edit(json, o => o["Habits"]!.AsObject().Remove("BedtimeHabitWeight"))));
         TownJson.Read(json); // as written, it reads
     }
@@ -313,12 +327,15 @@ public class RoutineTests
     [Fact]
     public void TownCheckFindsABadRoutine()
     {
-        IReadOnlyList<string> Problems(IReadOnlyDictionary<string, double>? hubs, params KeptHour[] bedtimes)
+        IReadOnlyList<string> Problems(IReadOnlyDictionary<string, OwnWeight>? hubs, params KeptHour[] bedtimes)
             => TownCheck.Problems(WithRoutine(TownData.Default(), "Penny", hubs, bedtimes));
-        Assert.Empty(Problems(new Dictionary<string, double> { ["Evening"] = 0, ["Noon"] = 3 }, TwoHours));
-        Assert.Contains("Penny: own weight for hub Ball, which the town doesn't have", Problems(new Dictionary<string, double> { ["Ball"] = 1 }));
-        Assert.Contains("Penny: own weight -1 for hub Evening is not a number of 0 or more", Problems(new Dictionary<string, double> { ["Evening"] = -1 }));
-        Assert.Contains("Penny: own weight NaN for hub Evening is not a number of 0 or more", Problems(new Dictionary<string, double> { ["Evening"] = double.NaN }));
+        Assert.Empty(Problems(new Dictionary<string, OwnWeight> { ["Evening"] = new(0, "a fixture", "never"), ["Noon"] = new(3) }, TwoHours));
+        Assert.Contains("Penny: own weight for hub Ball, which the town doesn't have", Problems(Own(("Ball", 1))));
+        Assert.Contains("Penny: own weight -1 for hub Evening is not a number of 0 or more", Problems(Own(("Evening", -1))));
+        Assert.Contains("Penny: own weight NaN for hub Evening is not a number of 0 or more", Problems(Own(("Evening", double.NaN))));
+        Assert.Contains("Penny: own weight for hub Evening is blank", Problems(new Dictionary<string, OwnWeight> { ["Evening"] = null! }));
+        Assert.Contains("Penny: own weight for hub Evening has a blank source", Problems(new Dictionary<string, OwnWeight> { ["Evening"] = new(0, "") }));
+        Assert.Contains("Penny: own weight for hub Evening has a blank assumption", Problems(new Dictionary<string, OwnWeight> { ["Evening"] = new(0, "a fixture", " ") }));
         const string range = "is not a minute from noon of its evening's day to the next noon (720-2159)";
         Assert.Contains($"Penny: kept bedtime 0 at 2160 {range}", Problems(null, new KeptHour(2160, Array.Empty<int>(), Array.Empty<int>())));
         Assert.Contains($"Penny: kept bedtime 0 at 30 {range}", Problems(null, new KeptHour(30, Array.Empty<int>(), Array.Empty<int>())));
@@ -327,6 +344,7 @@ public class RoutineTests
         Assert.Contains("Penny: kept bedtime 0 on weekday 7, not 0-6", Problems(null, Kept(18, weekdays: new[] { 1, 7 })));
         Assert.Contains("Penny: kept bedtime 0 in season 4, not 0-3", Problems(null, Kept(18, seasons: new[] { 4 })));
         Assert.Contains("Penny: kept bedtime 0 has a blank source", Problems(null, Kept(18, source: " ")));
+        Assert.Contains("Penny: kept bedtime 0 has a blank assumption", Problems(null, Kept(18, source: "a fixture") with { Assumption = "" }));
         // The all-seasons hour placed before the summer one hides it.
         Assert.Contains("Penny: kept bedtime 1 is never used: an earlier one covers all its days",
             Problems(null, Kept(18, 40, new[] { 0, 3, 6 }), Kept(21, 0, new[] { 0, 3, 6 }, new[] { 1 })));
@@ -339,9 +357,22 @@ public class RoutineTests
     public void PennyCarriesHerSourcedRoutine_AndTheComparisonTownsLeaveItOut()
     {
         Villager penny = TownData.Default().Cast.Single(v => v.Name == "Penny");
-        Assert.Equal(new Dictionary<string, double> { ["Evening"] = 0 }, penny.HubWeights);
-        Assert.Equal(new[] { Clock.At(18, 30), Clock.At(20), Clock.At(21), Clock.At(18, 40) }, penny.Bedtimes!.Select(k => k.At));
+        OwnWeight evening = Assert.Single(penny.HubWeights!, x => x.Key == "Evening").Value;
+        Assert.Equal(0, evening.Weight);
+        Assert.StartsWith("fixtures/game/Penny.json: ", evening.Source);
+        Assert.Equal("sourced+ours", NightTable.Standing(evening.Source, evening.Assumption)); // "never" is ours: no green rain
+        Assert.Single(penny.HubWeights!);
+        Assert.Equal(new[] { Clock.At(18, 30), Clock.At(20), Clock.At(21), Clock.At(18, 40), Clock.At(18, 40) }, penny.Bedtimes!.Select(k => k.At));
         Assert.All(penny.Bedtimes!, k => Assert.StartsWith("fixtures/game/Penny.json: ", k.Source));
+        // Sourced, but for 18:40 in every winter, which is ours: the sim has no Community Center to restore.
+        Assert.Equal(new[] { "sourced", "sourced", "sourced", "sourced", "sourced+ours" }, penny.Bedtimes!.Select(k => NightTable.Standing(k.Source, k.Assumption)));
+        Assert.Equal(new[] { 3 }, penny.Bedtimes![4].Seasons);
+        // Built afresh for every cast: no two towns share the objects.
+        Villager again = TownData.Default().Cast.Single(v => v.Name == "Penny");
+        Assert.NotSame(penny.HubWeights, again.HubWeights);
+        Assert.NotSame(penny.Bedtimes, again.Bedtimes);
+        Assert.NotSame(penny.Bedtimes![0].Weekdays, again.Bedtimes![0].Weekdays);
+        Assert.Equal(Census.Hash(TownData.Default()), Census.Hash(TownData.Default()));
         Assert.All(TownData.Default().Cast.Where(v => v.Name != "Penny"), v => Assert.True(v.HubWeights is null && v.Bedtimes is null, v.Name));
         // Her four hours cover every day of the year, each day by the hour her game gives it.
         int[] expected = { Clock.At(18, 40), Clock.At(18, 30), Clock.At(18, 30), Clock.At(18, 40), Clock.At(18, 30), Clock.At(20), Clock.At(18, 40) };
@@ -362,35 +393,69 @@ public class RoutineTests
             Assert.Empty(TownCheck.Problems(UnderGlass.Sim.Towns.Named(name)));
     }
 
-    /// <summary>The town as it shipped before D54 is kept, hash for hash: a year of seed 1 (the gate's
-    /// "shipped" pin of PinnedTests before D54) and a week of seed 42 without feelings (phase 0a's).</summary>
-    [Fact]
-    public void TheTownAsShippedRunsAsItDidBefore()
+    /// <summary>The town as it shipped before D54 is kept, run hash for run hash (census hashes moved
+    /// with the generator's version): PinnedTests' values from before D54 on its cast, from phase 0a's
+    /// week to the act catalog's widest pin, and the 31 town with every card's routine left out.</summary>
+    [Theory]
+    [InlineData("P3: a year of seed 1, as shipped", "e9fd83b284f5c1b6")]
+    [InlineData("0a: a week of seed 42, feelings off", "e7f6653087ff7e18")]
+    [InlineData("0a: seed 7's placed scandal, feelings off", "388d128d7fd4cdf2")]
+    [InlineData("P1: phase 0c's town", "c0488cc6bf81e64f")]
+    [InlineData("the catalog through late, bcdefghmt", "7701a5a8af63b3f4")]
+    [InlineData("pelican31 without routines", "db268a57b95bada2")]
+    public void TheTownAsShippedRunsAsItDidBefore(string run, string hash)
     {
         TownData town = UnderGlass.Sim.Towns.Named("pelican-as-shipped");
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, town).Run(112)));
-        Assert.Equal("e7f6653087ff7e18", Metrics.LogHash(new Simulation(42, town with { Feelings = FeelingOptions.Off }).Run(7)));
+        IReadOnlyList<Villager> cast = town.Cast;
+        SimResult r;
+        switch (run)
+        {
+            case "P3: a year of seed 1, as shipped":
+                r = new Simulation(1, town).Run(112);
+                break;
+            case "0a: a week of seed 42, feelings off":
+                r = new Simulation(42, town with { Feelings = FeelingOptions.Off }).Run(7);
+                break;
+            case "0a: seed 7's placed scandal, feelings off":
+                r = new Simulation(7, cast: cast, scheduled: new[] { Harness.ScandalFor(7, DefaultTown.Acts()) }, feelings: FeelingOptions.Off).Run(14);
+                break;
+            case "P1: phase 0c's town":
+                FeelingOptions c = DefaultTown.Feelings();
+                c.Desire = false;
+                c.Start = DefaultTown.Tensions(0);
+                r = new Simulation(1, cast: cast, feelings: c).Run(112);
+                break;
+            case "the catalog through late, bcdefghmt":
+                FeelingOptions o = DefaultTown.Feelings().With0d6("bcdefghmt");
+                o.Acts.With("returns,company,welcome,repair,sides,late");
+                r = new Simulation(1, cast: ActCatalog.Cards(cast, o.Acts), kinds: ActCatalog.Kinds(o.Acts), feelings: o).Run(112);
+                break;
+            default:
+                TownData p31 = UnderGlass.Sim.Towns.Pelican31();
+                r = new Simulation(1, p31 with { Cast = p31.Cast.Select(v => v with { HubWeights = null, Bedtimes = null }).ToList() }).Run(112);
+                break;
+        }
+        Assert.Equal(hash, Metrics.LogHash(r));
     }
 
-    /// <summary>A year of the shipped town: Penny never takes the Saloon's evening (nothing else leads
-    /// her there with the catalog off), never sets out by habit before its hour and mostly at it, and
-    /// wakes rested or to her alarm. Rates beyond these loose bounds belong in the experiment note.</summary>
+    /// <summary>A year of the shipped town: the Saloon's evening gathering is never among Penny's options
+    /// (how she chooses, not where she ends up: an errand may still take her to the Saloon), she never
+    /// sets out by habit before its hour and mostly at it, and wakes rested or to her alarm. Rates beyond
+    /// these loose bounds belong in the experiment note.</summary>
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
     public void PennyKeepsHerHabits_AndTheEnergyRuleKeepsHerHours(long seed)
     {
-        var saloonEvenings = new HashSet<int>();
         var sim = new Simulation(seed);
         var notes = new NightList();
         sim.ConfigureNights(notes);
-        sim.Run(112, (m, s) =>
-        {
-            if (m % Clock.TickMinutes == 0 && Clock.OfDay(m) >= Clock.At(18) && s.Where("Penny").Place == "Saloon")
-                saloonEvenings.Add(Clock.Day(m));
-        });
-        Assert.Empty(saloonEvenings);
+        sim.Run(112);
+        var drawn = notes.Notes.Where(n => n.Person == "Penny" && n.Options is not null).ToList();
+        Assert.Contains(drawn, n => n.What == NightEvent.Checkpoint && Clock.OfDay(n.Tick) is >= 18 * 60 and < 23 * 60); // drawn while the evening is on
+        Assert.DoesNotContain(drawn, n => n.Options!.Any(o => o.Option == "hub:Evening"));
+        Assert.DoesNotContain(notes.Notes, n => n.Person == "Penny" && (n.Hub == "Evening" || n.Why == "hub:Evening"));
         var rows = NightTable.Rows(notes.Notes, DefaultTown.Cast()).Where(x => x.Person == "Penny" && x.Night >= 0).ToList();
         var habit = rows.Where(x => x.SetOutWhy == "habit").ToList();
         Assert.True(habit.Count >= 56, $"{habit.Count} nights to bed by habit");
@@ -398,5 +463,19 @@ public class RoutineTests
         int onTime = habit.Count(x => x.SetOutAt - x.HabitAt <= 5);
         Assert.True(onTime * 3 >= habit.Count * 2, $"{onTime} of {habit.Count} at the hour");
         Assert.All(rows.Where(x => x.WokeAt is not null), x => Assert.Contains(x.WokeWhy, new[] { "rested", "alarm" }));
+    }
+
+    /// <summary>The check above can fail: with her own weight left out, the same habit checkpoints draw
+    /// from the evening gathering too.</summary>
+    [Fact]
+    public void WithoutHerOwnWeightTheEveningIsAmongHerOptions()
+    {
+        TownData town = TownData.Default();
+        town = town with { Cast = town.Cast.Select(v => v.Name == "Penny" ? v with { HubWeights = null } : v).ToList() };
+        var sim = new Simulation(1, town);
+        var notes = new NightList();
+        sim.ConfigureNights(notes);
+        sim.Run(14);
+        Assert.Contains(notes.Notes, n => n.Person == "Penny" && n.What == NightEvent.Checkpoint && n.Options!.Any(o => o.Option == "hub:Evening"));
     }
 }

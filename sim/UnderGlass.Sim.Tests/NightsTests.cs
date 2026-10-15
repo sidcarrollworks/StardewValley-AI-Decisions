@@ -25,7 +25,11 @@ public class NightsTests
     {
         Cast = town.Cast.Select(v => v.Name switch
         {
-            "Penny" => v with { HubWeights = new Dictionary<string, double> { ["Evening"] = 0 }, Bedtimes = new[] { Kept(18, 30, Array.Empty<int>(), "a test") } },
+            "Penny" => v with
+            {
+                HubWeights = new Dictionary<string, OwnWeight> { ["Evening"] = new(0, "a test", "every year") },
+                Bedtimes = new[] { Kept(18, 30, Array.Empty<int>(), "a test") },
+            },
             "Shane" => v with { Bedtimes = new[] { Kept(22, 0, new[] { 1, 2, 3, 4, 5 }) } },
             "Sebastian" => v with { Bedtimes = new[] { Kept(24, 30, Array.Empty<int>()) } },
             _ => v,
@@ -80,11 +84,14 @@ public class NightsTests
         with.Remove("nights");
         Assert.Equal(without.ToJsonString(), with.ToJsonString());
 
-        // The cards' routines: every person in name order, sourced or ours marked.
+        // The cards' routines: every person in name order, each datum marked sourced, ours, or sourced
+        // and applied by an assumption of ours.
         var routines = nights["routines"]!.AsArray();
         Assert.Equal(town.Cast.Select(v => v.Name).Order(StringComparer.Ordinal), routines.Select(x => x!["person"]!.GetValue<string>()));
         JsonNode penny = routines.Single(x => x!["person"]!.GetValue<string>() == "Penny")!;
-        Assert.Equal(0, penny["hubWeights"]!["Evening"]!.GetValue<double>());
+        JsonNode evening = Assert.Single(penny["hubWeights"]!.AsArray())!;
+        Assert.Equal(("Evening", 0.0, "a test", "every year", "sourced+ours"), (evening["hub"]!.GetValue<string>(), evening["weight"]!.GetValue<double>(),
+            evening["source"]!.GetValue<string>(), evening["assumption"]!.GetValue<string>(), evening["standing"]!.GetValue<string>()));
         Assert.Equal("sourced", penny["bedtimes"]![0]!["standing"]!.GetValue<string>());
         JsonNode shane = routines.Single(x => x!["person"]!.GetValue<string>() == "Shane")!;
         Assert.Equal("ours", shane["bedtimes"]![0]!["standing"]!.GetValue<string>());

@@ -59,13 +59,16 @@ public sealed record NightRow(string Person, int Night, int? HabitAt, int? Habit
     double? CheckpointEnergy = null, IReadOnlyList<NightOption>? CheckpointOptions = null,
     double? SetOutEnergy = null, IReadOnlyList<NightOption>? SetOutOptions = null);
 
-/// <summary>A kept bedtime as the recording writes it: Standing "sourced" when it has a source,
-/// "ours" when not.</summary>
-public sealed record NightKeptHour(int At, IReadOnlyList<int> Weekdays, IReadOnlyList<int> Seasons, string? Source, string Standing);
+/// <summary>A kept bedtime as the recording writes it, with its standing (<see cref="NightTable.Standing"/>).</summary>
+public sealed record NightKeptHour(int At, IReadOnlyList<int> Weekdays, IReadOnlyList<int> Seasons, string? Source, string? Assumption,
+    string Standing);
 
-/// <summary>A person's card data the rows refer to: their body, their own hub weights and their
-/// habitual bedtimes (null when none).</summary>
-public sealed record NightRoutine(string Person, double MaxEnergy, double BedAt, IReadOnlyDictionary<string, double>? HubWeights,
+/// <summary>An own hub weight as the recording writes it, with its standing (<see cref="NightTable.Standing"/>).</summary>
+public sealed record NightHubWeight(string Hub, double Weight, string? Source, string? Assumption, string Standing);
+
+/// <summary>A person's card data the rows refer to: their body, their own hub weights (by hub name)
+/// and their habitual bedtimes (null when none).</summary>
+public sealed record NightRoutine(string Person, double MaxEnergy, double BedAt, IReadOnlyList<NightHubWeight>? HubWeights,
     IReadOnlyList<NightKeptHour>? Bedtimes);
 
 /// <summary>
@@ -75,17 +78,24 @@ public sealed record NightRoutine(string Person, double MaxEnergy, double BedAt,
 /// </summary>
 public static class NightTable
 {
-    /// <summary>Raised when the rows' shape changes: 2 added the checkpoint's and the set-out's energy
-    /// and options.</summary>
+    /// <summary>Raised when the block's shape changes: 2 added the checkpoint's and the set-out's energy
+    /// and options, and each routine datum's assumption.</summary>
     public const int Version = 2;
+
+    /// <summary>What a routine datum is (Sid, 2026-10-14: "Distinguish sourced routines from our simulation
+    /// assumptions"): "sourced" with a source and nothing assumed, "sourced+ours" with a source applied by
+    /// an assumption of ours, "ours" without a source.</summary>
+    public static string Standing(string? source, string? assumption)
+        => source is null ? "ours" : assumption is null ? "sourced" : "sourced+ours";
 
     /// <summary>The noon-to-noon night a minute falls in.</summary>
     public static int NightOf(int minute) => (int)Math.Floor((minute - Clock.MinutesPerDay / 2) / (double)Clock.MinutesPerDay);
 
     public static IReadOnlyList<NightRoutine> Routines(IReadOnlyList<Villager> cast)
         => cast.OrderBy(v => v.Name, StringComparer.Ordinal).Select(v => new NightRoutine(v.Name, v.Body.MaxEnergy, v.Body.BedAt,
-            v.HubWeights is null ? null : new SortedDictionary<string, double>(v.HubWeights.ToDictionary(x => x.Key, x => x.Value), StringComparer.Ordinal),
-            v.Bedtimes?.Select(k => new NightKeptHour(k.At, k.Weekdays, k.Seasons, k.Source, k.Source is null ? "ours" : "sourced")).ToList())).ToList();
+            v.HubWeights?.OrderBy(x => x.Key, StringComparer.Ordinal)
+                .Select(x => new NightHubWeight(x.Key, x.Value.Weight, x.Value.Source, x.Value.Assumption, Standing(x.Value.Source, x.Value.Assumption))).ToList(),
+            v.Bedtimes?.Select(k => new NightKeptHour(k.At, k.Weekdays, k.Seasons, k.Source, k.Assumption, Standing(k.Source, k.Assumption))).ToList())).ToList();
 
     public static IReadOnlyList<NightRow> Rows(IReadOnlyList<NightNote> notes, IReadOnlyList<Villager> cast)
     {

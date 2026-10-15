@@ -17,12 +17,12 @@ public class TownGenTests
         Assert.Equal(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(TownSpec.Parse("pelican:60@1"))));
         Assert.NotEqual(Census.Hash(TownGen.Build(new TownSpec(1, 60))), Census.Hash(TownGen.Build(new TownSpec(2, 60))));
         // Update only when a deliberate change to the generator lands (and raise TownGen.Version).
-        // Version 3 (2026-10-14, D54: the core's Penny keeps her sourced routine). The hash reads the
-        // town's canonical form, which leaves out values at their defaults, so fields appended with a
-        // default don't move it.
-        Assert.Equal("8309d6f57127aaaf", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
-        Assert.Equal("da4d06a9287bdbd2", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
-        Assert.Equal("88d691818fbc0114", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
+        // Version 3 (2026-10-14, D54: the core's Penny keeps her sourced routine, each datum with its
+        // source and our assumptions). The hash reads the town's canonical form, which leaves out values
+        // at their defaults, so fields appended with a default don't move it.
+        Assert.Equal("63d296ae8555c21e", Census.Hash(TownGen.Build(new TownSpec(1, 60))));
+        Assert.Equal("94ae449baf7c7b33", Census.Hash(TownGen.Build(new TownSpec(2, 60))));
+        Assert.Equal("d24463aa6b07f233", Census.Hash(TownGen.Build(new TownSpec(3, 60))));
     }
 
     [Fact]

@@ -8,7 +8,9 @@ namespace UnderGlass.Sim;
 /// from the hour until they next sleep; at the first free-time decision after the hour, a pick in
 /// progress is reconsidered once. Nothing here sets "tired", holds anyone asleep or makes them less
 /// available: sleep starts on reaching the bed and ends when the bar is full (design rule 1), and
-/// <see cref="Free"/>, reach and asking never read a schedule.
+/// <see cref="Free"/>, reach and asking never read a schedule. A card is fixed for the run: nothing here
+/// learns or changes a routine (that later experience should be able to is Sid's direction for the
+/// pilot, not built), and an own weight of 0 removes the hub from their draws outright.
 ///
 /// The nights record (<see cref="INightSink"/>) is written here too: each set-out for bed and why,
 /// each routine checkpoint, each sleep and waking, and each choice made from nothing. The simulation
@@ -79,7 +81,7 @@ public sealed partial class Simulation
 
     /// <summary>Their own weight for this hub is 0 or less: it is left out of their choices (not drawn at 0).</summary>
     private static bool NeverPicks(Person p, Gathering g)
-        => p.V.HubWeights is { } own && own.TryGetValue(g.Name, out double w) && w <= 0;
+        => p.V.HubWeights is { } own && own.TryGetValue(g.Name, out OwnWeight? w) && w is { Weight: <= 0 };
 
     /// <summary>The body asks for bed: tiredness felt has reached their bedtime, less the margin for
     /// getting home (design rule 1). Bodies with a negative BedAt never feel it.</summary>
