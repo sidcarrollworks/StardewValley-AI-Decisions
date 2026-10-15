@@ -3,7 +3,7 @@
   const M=window.UnderGlassChains, $=id=>document.getElementById(id);
   const EXAMPLE='fixtures/lives-observer-example-v0.1.json';
   let model=null, source=null, tick=0, who=0, observer=false, thread='all', selected=null, current=null, moment=null, timer=null;
-  let tape=[], totalMin=0,totalMax=0,windowStart=null,windowEnd=null,pinned=null,preview=null,inspection=null,graphView=null,branch=null;
+  let tape=[], totalMin=0,totalMax=0,windowStart=null,windowEnd=null,focusedEvent=null,preview=null,inspection=null,graphView=null,branch=null;
   let pages={},memoriesOpen=false,momentPage=0,zoomSpan=1440;
   let playbackAt=0,lastFrame=0,gates=[];
   const symbols={History:'◈',Recall:'↗',Choice:'◆',Attempt:'➜',Outcome:'●',Perceived:'◉',Learned:'✦'};
@@ -45,7 +45,7 @@
   }
   function notify(){history.replaceState(null,'',`${location.pathname}${location.search}#${new URLSearchParams({t:tick,person:model?.run.names[who]??'',tab:'inner'})}`);window.dispatchEvent(new Event('under-glass-recording'));}
   function accept(run,url,state={}){
-    const parsed=M.open(run);stop();model=parsed;source=url;selected=null;pinned=null;preview=null;inspection=null;thread='all';pages={};memoriesOpen=false;windowStart=null;$('error').hidden=true;
+    const parsed=M.open(run);stop();model=parsed;source=url;selected=null;focusedEvent=null;preview=null;inspection=null;thread='all';pages={};memoriesOpen=false;windowStart=null;$('error').hidden=true;
     $('workspace').hidden=model.missing;$('empty').hidden=!model.missing;$('illustrative').hidden=!(run.illustrative||run.lives?.illustrative);
     $('source-state').textContent=model.missing?'No Lives data':`Lives ${model.lives.version} · ${run.lives.illustrative?'illustrative fixture':'recorded run'}`;
     if(model.missing){notify();return;}
@@ -75,18 +75,18 @@
     if(windowEnd<=windowStart)windowEnd=windowStart+1;
   }
   function select(id){
-    pinned=id;preview=null;selected=null;inspection=null;pages={};memoriesOpen=false;
+    stop();focusedEvent=id;preview=null;selected=null;inspection=null;pages={};memoriesOpen=false;
     renderTimeline();renderMoment();renderGraph();renderInspector();
   }
   function closeInspector(){selected=null;inspection=null;renderInspector();}
-  function focusTime(){pinned=null;preview=null;selected=null;inspection=null;pages={};memoriesOpen=false;render();}
-  function seek(at,id){stop();tick=at;pinned=id??null;preview=null;$('timeline-preview').hidden=true;selected=null;inspection=null;pages={};memoriesOpen=false;momentPage=0;render();}
+  function focusTime(){focusedEvent=null;preview=null;selected=null;inspection=null;pages={};memoriesOpen=false;render();}
+  function seek(at,id){stop();tick=at;focusedEvent=id??null;preview=null;$('timeline-preview').hidden=true;selected=null;inspection=null;pages={};memoriesOpen=false;momentPage=0;render();}
   function render(){
     if(!model||model.missing)return;
     current=M.view(model,{tick,who,observer,thread});
     if(thread!=='all'&&current.selected?.id!==thread){thread=current.selected?.id??'all';reindex();}
     const latest=tape.filter(e=>e.at<=tick).at(-1);moment={at:latest?.at??-1,exact:latest?.at===tick,ids:latest?.ids??[]};
-    if(!current.all.has(pinned))pinned=null;
+    if(!current.all.has(focusedEvent))focusedEvent=null;
     preview=null;
     $('thread').replaceChildren(Object.assign(el('option','All events'),{value:'all'}),...current.threads.map(t=>Object.assign(el('option',t.title),{value:t.id})));$('thread').value=thread;
     $('clock').textContent=clock(tick);
@@ -101,7 +101,7 @@
   function preferred(ids,v){return ids.map(id=>v.all.get(id)).filter(Boolean).sort((a,b)=>['Choice','Attempt','Perceived','Learned','Recall','Outcome','History'].indexOf(a.stage)-['Choice','Attempt','Perceived','Learned','Recall','Outcome','History'].indexOf(b.stage))[0]?.id;}
   function previewEvent(e){
     if(e.at>tick){$('timeline-preview').hidden=false;$('timeline-preview').textContent=`${clock(e.at)} · Recorded moment · click to move here`;return;}
-    const v=atEvent(e),id=preferred(e.ids,v);if(pinned===id&&e.at===tick){endPreview();return;}preview={id,view:v};
+    const v=atEvent(e),id=preferred(e.ids,v);if(focusedEvent===id&&e.at===tick){endPreview();return;}preview={id,view:v};
     const n=v.all.get(id);$('timeline-preview').hidden=false;$('timeline-preview').textContent=`${clock(e.at)} · ${n?.label??'Recorded moment'}${e.ids.length>1?` · ${e.ids.length} events`:''}`;renderGraph();
   }
   function endPreview(){preview=null;$('timeline-preview').hidden=true;renderGraph();}
@@ -114,7 +114,7 @@
     const position=t=>100*(t-windowStart)/(windowEnd-windowStart);
     $('time-cursor').style.left=`${position(tick)}%`;$('time-cursor').hidden=tick<windowStart||tick>windowEnd;
     const buckets=Math.max(8,Math.min(72,Math.floor(($('event-timeline').clientWidth||600)/28)));
-    const selectedAt=tape.filter(e=>e.at<=tick&&e.ids.includes(pinned)).at(-1)?.at;
+    const selectedAt=tape.filter(e=>e.at<=tick&&e.ids.includes(focusedEvent)).at(-1)?.at;
     for(const bin of M.timelineBins(tape,windowStart,windowEnd,buckets)){
       const first=bin.events[0],future=first.at>tick,summary=future?[]:M.eventSummary(model,first,who,observer),n=summary.find(n=>n.stage==='Choice')??summary[0];
       const b=button(bin.count>1?String(bin.count):symbols[n?.stage]??'·',()=>{
@@ -123,7 +123,7 @@
       },'event-marker'+(future?' future':''));
       b.style.left=`${position((bin.from+bin.to)/2)}%`;
       const active=bin.events.some(e=>e.at===moment.at),chosen=bin.events.some(e=>e.at===selectedAt);
-      b.classList.toggle('current',active);b.classList.toggle('pinned',chosen);b.setAttribute('aria-pressed',String(chosen));
+      b.classList.toggle('current',active);b.classList.toggle('selected-event',chosen);b.setAttribute('aria-pressed',String(chosen));
       const label=bin.events.length>1?`${clock(bin.from)} to ${clock(bin.to)} · ${bin.count} events · zoom in`:`${clock(first.at)} · ${future?'Recorded moment':n?.label??'Recorded moment'}${bin.count>1?` · ${bin.count} events`:''}`;
       b.setAttribute('aria-label',label);b.title=label;
       b.onmouseenter=b.onfocus=()=>{if(bin.events.length===1)previewEvent(first);else{$('timeline-preview').hidden=false;$('timeline-preview').textContent=label;}};
@@ -144,8 +144,8 @@
     if(momentPage*4>=nodes.length)momentPage=0;
     const row=el('div',undefined,'event-cards');
     for(const n of nodes.slice(momentPage*4,momentPage*4+4)){
-      const b=nodeCard(n,()=>select(n.id),false);b.querySelector('small').textContent=`${symbols[n.stage]} ${n.stage} · ${clock(moment.at)}${M.time(n.at)<moment.at?' · updated':''}`;b.classList.toggle('selected-event',n.id===pinned);b.dataset.event=n.id;
-      b.onmouseenter=b.onfocus=()=>{if(pinned===n.id)return;preview={id:n.id,view:current};renderGraph();};b.onmouseleave=b.onblur=endPreview;row.append(b);
+      const b=nodeCard(n,()=>select(n.id),false);b.querySelector('small').textContent=`${symbols[n.stage]} ${n.stage} · ${clock(moment.at)}${M.time(n.at)<moment.at?' · updated':''}`;b.classList.toggle('selected-event',n.id===focusedEvent);b.dataset.event=n.id;
+      b.onmouseenter=b.onfocus=()=>{if(focusedEvent===n.id)return;preview={id:n.id,view:current};renderGraph();};b.onmouseleave=b.onblur=endPreview;row.append(b);
     }
     root.append(row);paginate(root,nodes.length,momentPage,4,p=>{momentPage=p;renderMoment();});
   }
@@ -166,11 +166,10 @@
   }
   function renderGraph(){
     graphView=preview?.view??current;
-    const rootId=preview?.id??pinned??preferred(moment.ids,current);
+    const rootId=preview?.id??focusedEvent??preferred(moment.ids,current);
     branch=M.neighborhood(graphView,rootId);const stages=$('stages');stages.replaceChildren();$('focus-heading').replaceChildren();
     if(!branch){stages.append(el('p','Select a timeline marker to follow an event.','meta'));drawLinks();return;}
-    $('focus-heading').append(el('h2',preview?'Preview':pinned?'Pinned event':'At this moment'),el('span',preview?'Click the event to pin it':'Click a branch to follow it','meta'));
-    if(pinned)$('focus-heading').append(button('Unpin event',focusTime,'flat-button'));
+    $('focus-heading').append(el('h2',preview?'Preview':focusedEvent?'Selected event':'At this moment'),el('span',preview?'Click to pause and explore':'Click a branch to follow it','meta'));
     const lane=(title,ns,key)=>{
       const col=el('section',undefined,`branch branch-${key}`);col.append(el('h3',title));
       const page=preview?0:pages[key]??0;
@@ -188,7 +187,7 @@
     }
     if(!branch.before.length&&!branch.memories.length)before.append(el('p','No earlier link recorded','branch-empty'));
     const center=el('section',undefined,'branch branch-focus');center.append(el('h3',clock(branch.root.updatedAt>=0?branch.root.updatedAt:branch.root.at)));
-    const showDetails=()=>{pinned=branch.root.id;preview=null;inspection=graphView;selected=branch.root.id;renderTimeline();renderInspector();};
+    const showDetails=()=>{stop();focusedEvent=branch.root.id;preview=null;inspection=graphView;selected=branch.root.id;renderTimeline();renderInspector();};
     const card=nodeCard(branch.root,showDetails,true);card.classList.add('focus-node');center.append(card);
     center.append(button('Open details',showDetails,'flat-button'));
     const after=lane('What followed',branch.after,'after');if(!branch.after.length)after.append(el('p','No later link recorded at this time','branch-empty'));
@@ -277,10 +276,10 @@
       details(card,'What changed, what stayed fixed',{intervention:c.intervention,heldConstant:c.heldConstant,validity:c.validity,derivedDifferences:c.unavoidableDifferences,actualRun:c.runChoice,scope:c.wholeRun});root.append(card);
     }
   }
-  function step(direction){const point=direction>0?tape.find(e=>e.at>tick):tape.filter(e=>e.at<tick).at(-1);if(!point){stop();return;}tick=point.at;pinned=null;selected=null;inspection=null;momentPage=0;pages={};memoriesOpen=false;render();}
+  function step(direction){const point=direction>0?tape.find(e=>e.at>tick):tape.filter(e=>e.at<tick).at(-1);if(!point){stop();return;}tick=point.at;focusedEvent=null;selected=null;inspection=null;momentPage=0;pages={};memoriesOpen=false;render();}
   $('previous').onclick=()=>{stop();step(-1);};$('next').onclick=()=>{stop();step(1);};$('play').onclick=()=>{
     if(timer!==null){stop();render();return;}
-    pinned=null;preview=null;selected=null;inspection=null;playbackAt=tick;lastFrame=performance.now();render();
+    focusedEvent=null;preview=null;selected=null;inspection=null;playbackAt=tick;lastFrame=performance.now();render();
     $('play').textContent='Pause';timer=requestAnimationFrame(animate);
   };
   function animate(now){
@@ -297,7 +296,7 @@
     if(playbackAt>=totalMax){stop();render();return;}
     timer=requestAnimationFrame(animate);
   }
-  $('time').oninput=()=>{stop();tick=Math.floor(Number($('time').value));pinned=null;selected=null;inspection=null;momentPage=0;pages={};render();};
+  $('time').oninput=()=>{stop();tick=Math.floor(Number($('time').value));focusedEvent=null;selected=null;inspection=null;momentPage=0;pages={};render();};
   $('zoom').onchange=()=>{setWindow(tick);renderTimeline();};
   $('window-back').onclick=()=>{const size=$('zoom').value==='custom'?windowEnd-windowStart:zoomSpan;windowEnd=windowStart;windowStart=Math.max(totalMin,windowEnd-size);seek(tape.filter(e=>e.at>=windowStart&&e.at<windowEnd).at(-1)?.at??windowStart);};
   $('window-next').onclick=()=>{const size=$('zoom').value==='custom'?windowEnd-windowStart:zoomSpan;windowStart=windowEnd;windowEnd=Math.min(totalMax,windowStart+size);seek(tape.find(e=>e.at>=windowStart&&e.at<=windowEnd)?.at??windowStart);};

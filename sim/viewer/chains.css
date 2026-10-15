@@ -44,7 +44,7 @@ select {max-width:100%;background:var(--surface-hi);color:var(--ink);border:1px 
 #event-timeline input {position:absolute;bottom:-10px;left:-8px;width:calc(100% + 16px);height:20px;margin:0;accent-color:var(--accent);cursor:ew-resize;z-index:3}
 #timeline-markers {position:absolute;inset:0 0 12px}.event-marker {position:absolute;top:5px;transform:translateX(-50%);min-width:25px;height:29px;padding:0 5px;background:var(--surface-hi);border:1px solid var(--line);border-radius:6px;box-shadow:none;font:var(--step--2)/1 var(--font-data);z-index:2}
 .event-marker::after {content:'';position:absolute;top:100%;left:50%;height:12px;border-left:1px solid var(--line)}
-.event-marker.future {color:var(--muted);border-style:dashed}.event-marker.current {border-color:var(--accent);color:var(--accent)}.event-marker.pinned {background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.event-marker.future {color:var(--muted);border-style:dashed}.event-marker.current {border-color:var(--accent);color:var(--accent)}.event-marker.selected-event {background:var(--accent);color:var(--bg);border-color:var(--accent)}
 #time-cursor {position:absolute;top:0;bottom:0;width:2px;background:var(--accent);pointer-events:none;z-index:1}
 #time-ruler {display:flex;justify-content:space-between;font:var(--step--2)/1 var(--font-data);color:var(--muted);gap:10px;margin:2px 8px 0}
 #timeline-preview {position:absolute;top:100%;left:0;right:0;background:var(--surface-hi);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:var(--step--1);z-index:20;pointer-events:none}
