@@ -251,3 +251,22 @@ test('marker summaries use their own event time and never return hidden record d
   assert.equal(summaries.length,1);assert.deepEqual(Object.keys(summaries[0]),['id','stage','label']);
   assert.equal(JSON.stringify(summaries).includes('probabilities'),false);
 });
+
+test('playback advances through empty time, clamps at the end and avoids background-tab leaps',()=>{
+  assert.equal(M.advancePlayback(100,16,10,200),100.16);
+  assert.equal(M.advancePlayback(199,250,10,200),200);
+  assert.equal(M.advancePlayback(100,60000,10,200),102.5);
+});
+test('timeline labels use aligned clock intervals and a single day heading',()=>{
+  const r=M.timelineRuler(13505,14240,800);
+  assert.equal(r.label,'Day 10');
+  assert.ok(r.ticks.every(t=>t.at%120===0));
+  assert.ok(r.ticks.every(t=>!t.label.includes('Day')));
+  assert.deepEqual(M.timelineRuler(14054,14062,800).ticks.map(t=>t.label),['18:14','18:15','18:16','18:17','18:18','18:19','18:20','18:21','18:22']);
+});
+test('multi-day rulers identify midnight and wide windows use days',()=>{
+  assert.ok(M.timelineRuler(14000,15000,800).ticks.some(t=>t.label==='Day 11 · 00:00'));
+  const r=M.timelineRuler(0,40320,600);
+  assert.equal(r.label,'Day 1 – Day 28');
+  assert.ok(r.ticks.every(t=>t.label.startsWith('Day ')));
+});

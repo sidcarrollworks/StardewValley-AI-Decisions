@@ -17,13 +17,13 @@
 <div id="workspace" hidden>
 <section class="chain-controls" aria-label="Chain playback">
 <div class="tool-actions"><label>Character <select id="person"></select></label><label>View <select id="lens"><option value="character">Character knowledge</option><option value="observer">Observer · privileged</option></select></label><span id="lens-note" class="meta"></span></div>
-<div class="playback"><button id="previous" aria-label="Previous recorded moment">‹</button><button id="play">Play</button><button id="next" aria-label="Next recorded moment">›</button><output id="clock"></output><label class="zoom-label">Window <select id="zoom"><option value="custom" disabled>Selected moments</option><option value="180">3 hours</option><option value="1440" selected>Day</option><option value="10080">Week</option><option value="40320">Season</option></select></label><button id="follow-now" aria-pressed="true">Follow time</button></div>
-<div class="time-window"><button id="window-back" aria-label="Earlier time window">‹</button><span id="window-label"></span><button id="window-next" aria-label="Later time window">›</button></div>
-<div id="event-timeline" aria-label="Recorded event timeline"><div id="timeline-markers"></div><div id="time-cursor" aria-hidden="true"></div><input type="range" id="time" min="0" step="1" aria-label="Playback minute"></div><div id="time-ruler" aria-hidden="true"></div>
+<div class="playback"><button id="previous" aria-label="Previous recorded moment">← Previous event</button><button id="play">Play</button><button id="next" aria-label="Next recorded moment">Next event →</button><output id="clock"></output><label>Speed <select id="speed" aria-label="Playback speed"><option value="1">1 min / sec</option><option value="10" selected>10 min / sec</option><option value="60">1 hour / sec</option></select></label><label class="zoom-label">Window <select id="zoom"><option value="custom" disabled>Selected moments</option><option value="180">3 hours</option><option value="1440" selected>Day</option><option value="10080">Week</option><option value="40320">Season</option></select></label></div>
+<div class="time-window"><button id="window-back" aria-label="Earlier time window">← Earlier range</button><span id="window-label"></span><button id="window-next" aria-label="Later time window">Later range →</button></div>
+<div id="event-timeline" aria-label="Recorded event timeline"><div id="timeline-markers"></div><div id="time-cursor" aria-hidden="true"></div><input type="range" id="time" min="0" step="any" aria-label="Playback minute"></div><div id="time-ruler" aria-hidden="true"></div>
 <div id="timeline-preview" role="status" hidden></div>
 <div id="moment-strip" class="moment-strip" aria-label="Current moment"><strong id="moment-label"></strong><span id="moment-links" class="moment-links"></span></div>
 </section>
-<div class="thread-heading"><label>Thread <select id="thread"></select></label><p id="thread-summary" hidden></p><span class="meta">Hover to preview · click to follow · time runs left → right</span></div>
+<div class="thread-heading"><label>Thread <select id="thread"></select></label><p id="thread-summary" hidden></p><span class="meta">Hover to preview · click to pin · time runs left → right</span></div>
 <section id="moment-events" aria-label="Events at this moment"></section>
 <div class="chain-layout">
 <div id="focus-heading" class="section-heading"></div>

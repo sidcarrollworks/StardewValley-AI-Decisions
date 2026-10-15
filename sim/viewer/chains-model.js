@@ -307,5 +307,22 @@
     const after=v.nodes.filter(n=>n.id!==id&&((selectedReferences(n).includes(id)&&!(n.table==='attempts'&&root.table==='outcomes'))||(root.table==='attempts'&&n.table==='outcomes'&&direct.has(n.id))));
     return {root,before:inputs,memories,after,roles:path?.roles??new Map()};
   }
-  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath,eventIndex,timelineBins,eventSummary,neighborhood};
+  // Presentation time is continuous; recorded evidence remains gated by whole minutes.
+  function advancePlayback(at,elapsedMs,rate,end){
+    return Math.min(end,at+Math.max(0,Math.min(elapsedMs,250))*rate/1000);
+  }
+  function timelineRuler(start,end,width=800){
+    const span=Math.max(1,end-start),count=Math.max(2,Math.floor(width/100));
+    const steps=[1,2,5,10,15,30,60,120,180,360,720,1440,2880,10080,20160,40320];
+    const step=steps.find(n=>n>=span/count)??Math.ceil(span/count/1440)*1440;
+    const day=n=>`Day ${Math.floor(n/1440)+1}`;
+    const first=day(start),last=day(Math.max(start,end-1));
+    const ticks=[];
+    for(let at=Math.ceil(start/step)*step;at<=end;at+=step){
+      const label=step>=1440?day(at):`${String(Math.floor(at%1440/60)).padStart(2,'0')}:${String(at%60).padStart(2,'0')}`;
+      ticks.push({at,label:step<1440&&first!==last&&at%1440===0?`${day(at)} · ${label}`:label,position:(at-start)/span*100});
+    }
+    return {label:first===last?first:`${first} – ${last}`,ticks};
+  }
+  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath,eventIndex,timelineBins,eventSummary,neighborhood,advancePlayback,timelineRuler};
 });
