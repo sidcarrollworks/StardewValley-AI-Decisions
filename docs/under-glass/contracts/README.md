@@ -6,6 +6,11 @@ nothing about runtime model quality. A reader accepts exact 0.x versions only.
 
 ## Versions
 
+Implementation follow-up, 2026-10-15: PRs #96–98 are merged. The
+[pilot plan](../specs/lives-pilot-spec.md) records the remaining runtime and viewer work,
+recommended implementation choices, and the individual-reading admission gate. Contract 0.2
+remains proposed; this follow-up does not edit either version or claim a runtime writer exists.
+
 | Version | Status | Files |
 |---|---|---|
 | **0.1** | **Frozen** (2026-10-14). Never edited. | `lives-observer-recording-v0.1.md`, `lives-observer-example-v0.1.json` (sha256 `57bb7248...cc4b4`), `check-lives-observer.cjs`, `lives-observer-v0.1-tools/` (`build-example.cjs`, `mutate-example.cjs`, `rng.cjs`) |

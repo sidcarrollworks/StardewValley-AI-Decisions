@@ -17,6 +17,7 @@
     <span id="draft-status" role="status" class="meta">Loading pack…</span>
     <input id="pack-file" type="file" accept=".json,application/json" hidden>
   </div>
+  <div class="studio-modes tool-actions" role="group" aria-label="Edit profiles"><button id="mode-archetypes" aria-pressed="true">Archetypes</button><button id="mode-characters" aria-pressed="false">Characters</button></div>
   <p id="studio-error" role="alert" hidden></p>
   <div id="confirm-action" class="studio-notice" role="alertdialog" aria-labelledby="confirm-message" hidden>
     <p id="confirm-message"></p><div class="tool-actions"><button id="confirm-yes">Confirm</button><button id="confirm-no">Cancel</button></div>
@@ -27,7 +28,7 @@
     <div class="tool-actions"><button type="submit">Create</button><button type="button" id="cancel-create">Cancel</button></div>
   </form>
   <div class="studio-layout">
-    <nav class="studio-list" aria-label="Archetypes"><label for="search">Find an archetype</label><input id="search" type="search" placeholder="Name, tendency or character"><span id="list-count" class="meta"></span><div id="archetype-list"></div></nav>
+    <nav class="studio-list" aria-label="Profiles"><label for="search" id="search-label">Find an archetype</label><input id="search" type="search" placeholder="Name, tendency or character"><span id="list-count" class="meta"></span><div id="archetype-list"></div></nav>
     <section id="archetype-editor" aria-label="Selected archetype"><p class="meta">Open a character-inspiration.json pack to begin.</p></section>
   </div>
   <details class="tool-disclosure"><summary>Pack details & changes <span id="change-count"></span></summary><div class="detail-body">
