@@ -23,7 +23,8 @@ if (args.Contains("--help", StringComparer.Ordinal))
     Console.WriteLine("""
         Under Glass recording generator
           --seed <integer> --days <integer> --out <run.json> --html <run.html>
-          --town <name> --speech --no-nights --inject
+          --town <name> --speech --speech-catalog <catalog.json> --newcomer-voice
+          --no-nights --inject
           --feel off|observe|on --desire off|observe|on --tensions <depth>
           --catalog <comma-separated slices> --fo <Name=value> --ao <Name=value>
           --trait <Name=Trait:value> --0d6 <steps>

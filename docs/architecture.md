@@ -12,6 +12,14 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 
 ## Under Glass: the independent game
 
+The [Lives pilot plan](under-glass/specs/lives-pilot-spec.md) continues the history-first
+assessment after the evidence, contract and routine PRs. Its runtime types and rules are
+still proposed. `sim/tools/record_lives_baseline.py` runs the existing Replay CLI without
+models, separates current-town and prerequisites-on arms, records source/settings/output
+receipts, and compares every recording field (apart from declared label/night-record
+differences) for recorder equivalence and authored tape replay. It does not write game data
+or backfill the illustrative Lives contract into existing runs.
+
 The read-only [Life chains viewer](under-glass/specs/lives-chain-viewer-spec.md) projects proposed Lives 0.1 recordings through a time and knowledge filter before rendering a marked event timeline, a focused cause-and-effect tree and on-demand details. Moment IDs are indexed per lens; time-specific marker summaries avoid projecting the whole recording for every marker. Crowded moments cluster, simultaneous events and branches paginate, and pre-run memories remain collapsed outside the run timeline. Its frozen illustrative fixture supports UI review, not runtime claims. Isolated history comparisons display recorded fallback probabilities and sampled actions without evaluating formulas or running models.
 
 The [archetype studio](under-glass/specs/archetype-studio-spec.md) edits reusable character-inspiration fields in browser-local drafts. It validates schema and composed voice budgets, exports complete packs, and leaves personal profiles and simulation state untouched. Its pure JS model is separate from DOM rendering; shared navigation preserves recording context without loading a run.

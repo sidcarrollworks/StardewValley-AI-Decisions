@@ -30,6 +30,12 @@ richer activities remain next. The current routine baseline is retained. See the
 [memory foundation](docs/under-glass/specs/lives-memory-spec.md) and
 [routing scope](docs/under-glass/specs/lives-routing-spec.md).
 
+Lives pilot preparation, 2026-10-15: Sid deferred further archetype editing and asked Codex to
+continue Claude's work. The [implementation plan](docs/under-glass/specs/lives-pilot-spec.md)
+specifies the history-to-learning loop, controlled history comparisons and staged acceptance.
+The current engine's three-seed, 35-day baseline is captured and verified by a new offline
+tool. Runtime Lives mechanics remain planned; no proposed history reading was approved or seeded.
+
 Run studio update, 2026-10-14: New run launches the existing Replay engine from the local
 preview, exposing all flags and numeric/boolean overrides, uploaded catalogs/towns/profiles,
 saved settings, logs and cancellation. Completed runs open in Run Viewer (the navbar's new

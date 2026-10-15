@@ -6,6 +6,14 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers. Since 2026-10-14 the next work is the Lives pilot: histories, associations and meaningful actions in one complete Penny, Pam and Gus thread ([assessment](../docs/under-glass/lives-gap-assessment.md), D53). Needs bars are unresolved, not scheduled and not rejected.
 
+**Lives pilot preparation (2026-10-15):** the [implementation plan](../docs/under-glass/specs/lives-pilot-spec.md)
+continues the approved assessment after the evidence, contract and routine PRs. The runtime
+history/choice/learning loop is not built. Capture its pre-change baseline with
+`python sim/tools/record_lives_baseline.py --out out/lives-baseline-run`: three seeds, 35 days,
+current town versus existing pilot prerequisites, plus night-recorder equivalence and authored
+tape replay. It uses no model services and preserves existing output directories. Twelve offline
+harness tests run with `python -m unittest discover -s tests -p test_lives_baseline.py`.
+
 **Lives memory and routing (2026-10-15, opt-in):** `UnderGlass.Sim/Lives` validates histories,
 keeps warm and wary associations separately and recalls matching records. The simulation can
 now learn associations from its existing perceived feelings and use remembered place feelings

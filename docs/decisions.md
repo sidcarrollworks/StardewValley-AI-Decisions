@@ -1307,6 +1307,19 @@ Sid authorized the fixture-backed chain viewer and history comparisons alongside
 
 Sid found the stage columns disconnected from playback and unsuitable for a long-lived population. The viewer now uses a shared marked timeline and playhead, with a bounded causal tree around a hovered or pinned event. Starting history stays outside the timeline and opens only as relevant memory branches. Dense moments cluster, branches paginate, and selecting the latest-event control visibly selects the event rather than merely scrolling. Temporal order and causal links remain distinct: arrows use explicit references, not proximity on the timeline. This changes observer presentation only; it does not add Lives runtime mechanics.
 
+### Lives pilot preparation after the routine merge (2026-10-15)
+
+Sid deferred further archetype editing and asked Codex to continue Claude's work. The
+[pilot implementation plan](under-glass/specs/lives-pilot-spec.md) continues D53/D54 and the
+approved assessment; it does not change Law 1 or enable needs bars. Runtime mechanics remain
+planned, and the contract's individual history-reading review gate remains in force.
+The new offline baseline tool separates the merged routine from existing pilot prerequisites,
+records provenance, verifies night-recorder independence and exact authored tape replay, and
+preserves failed runs. Its [first measurements](under-glass/experiments/lives-baseline-2026-10-15.md)
+are real pre-Lives runs. Sleep tuning, model quality and history effects are not inferred from
+these timings. The plan's implementation recommendations are labelled as such, not attributed
+to Sid as additional product decisions.
+
 ### Lives personal-memory foundation (2026-10-15)
 
 Sid authorized continuing the Lives pilot after the assessment and routine work, with the
