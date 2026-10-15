@@ -42,7 +42,10 @@ adds the reviewed `sim/history/penny-pam-gus.json` pack, informal shared-home pl
 distinct completion/interruption/missed-window learning and optional typed Laya evaluation. It
 retains current routines. No histories load implicitly and no generated inspiration is added by
 this trial. The dedicated review page displays actual outcomes and held-choice history comparisons;
-the main chain viewer still awaits its runtime adapter.
+the main chain viewer now follows the pilot through its recorded history, choices and outcomes.
+Open the review page’s “Follow in Life chains” link, or open the same recording in `chains.html`.
+This adapter covers evenings and their supporting memories, not all ordinary routing/company
+decisions or the full proposed observer contract.
 
 ```powershell
 # Three authored 35-day seeds plus a live Laya seed and exact tape replay.

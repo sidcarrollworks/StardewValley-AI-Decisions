@@ -86,7 +86,12 @@ minutes, capped at two evaluations per person/day. `LivesLayaMind` bounds comple
 characters and falls back on failure; `RecordedLivesDecisionMind` checks exact requests and tape
 consumption. The engine keeps its keyed draw. Experimental `livesEvenings` receipts and optional
 same-choice history comparisons are write-only. The dedicated trial review projects these receipts;
-the main chain viewer and full Lives 0.2 contract integration remain next.
+the main chain viewer now reads the evening pilot through `chains-runtime.js`; full Lives 0.2
+contract integration remains next. The adapter projects the recorded history snapshot, choices,
+plan IDs, own outcome receipts and before/after memory values into the existing gated graph.
+It keeps the source run unchanged and never calls a model or recomputes a simulation formula.
+Unrelated routine memory updates are omitted from this pilot graph, while cited supporting
+experiences stay reachable. Versioned memory snapshots prevent later values leaking into rewind.
 
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
 (`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes

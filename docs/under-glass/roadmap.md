@@ -51,7 +51,8 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   destinations, learns associations from perceived feelings, and records the same choice with and
   without requested history. It enables no canon history seeds, model calls, new plans or full Lives
   observer export on its own. The new evening pilot supplies an explicitly loaded, reviewed source pack.
-  The chain viewer does not yet display these runtime receipts.
+  Standalone routing receipts still use the trial report; the chain viewer now follows the evening
+  pilot and its supporting memory records.
 - Built, opt-in: [immediate company](specs/lives-company-spec.md) connects remembered warmth to
   seeking someone, a local game offer, a next-minute answer and a completed or interrupted activity.
   It learns distinct whereabouts, availability, answer and activity expectations that later company
@@ -60,8 +61,9 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
 - Built, opt-in: [evening plans](specs/lives-evenings-spec.md) connect the reviewed Penny/Pam/Gus
   pack to offers, answers, later follow-through, completed/interrupted/missed evenings and learned
   expectations. Laya can weigh torn choices within a bounded daily budget, with exact tape replay.
-  A separate review page compares held choices with and without specific history. Full Lives export,
-  shared chain-viewer integration, richer activity content and household transfer remain next.
+  The main chain viewer now follows these real pilot receipts and their history comparisons, with
+  the separate review page linking into it. Full Lives export, richer activity content and household
+  transfer remain next.
 - Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
@@ -169,7 +171,7 @@ The order is:
    The evening extension explicitly loads the reviewed pilot history pack and can use typed Laya
    evaluation. [Actual 35-day trials](experiments/lives-evenings-2026-10-15.md) retain completed,
    postponed and missed evenings. Generic destination routing still does not read expectations.
-   Next: connect runtime receipts to the full observer contract and chain viewer, then broaden
+   The chain viewer now reads the evening pilot. Next: complete the full observer export, then broaden
    meaningful competing activities and test transfer to another household. The illustrative
    contract fixture remains a design input, distinct from these actual recordings.
 

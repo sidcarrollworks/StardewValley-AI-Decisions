@@ -225,3 +225,9 @@ Long playtest (2026-10-02, spring 18 to summer 1): from spring 20 every Laya que
 
 - **Sims 4:** script mods are Python and hook autonomy. Wrap the autonomy pick: take the top 8 to 12 legal candidates, ask Laya to choose, and fall back on timeout. Run the model in a sidecar process, off the sim thread.
 - **Civ 6:** weak fit. Its AI problem is competence, not character. Diplomacy judgments are the one place it might help.
+
+
+**2026-10-15 — Evening pilot observer integration:** Life chains now reads the actual evening
+pilot recordings, with clock-gated personal histories, choices, intentions, outcomes and learning.
+The review report links directly to those moments. The proposed full observer export and broader
+routing/company visualization remain separate future work; simulation behavior is unchanged.

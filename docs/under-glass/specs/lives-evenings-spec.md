@@ -9,8 +9,8 @@ body rules, bedtime weight 9, and no added bedtime penalty on invitations. A hab
 does not forbid proposing a plan. Law 1 and needs bars are unchanged.
 
 This is an experimental runtime slice, not the full Lives observer 0.2 contract. The review
-page reads the separate `livesEvenings` receipts. The main chain viewer still needs a runtime
-adapter. Authored choices plus Laya isolate the evaluator here; this trial adds no generated
+page reads the separate `livesEvenings` receipts. The main chain viewer now also reads these
+version-1 receipts through a presentation-only adapter. Authored choices plus Laya isolate the evaluator here; this trial adds no generated
 inspiration or Haiku calls. A completed game still has the catalog's generic positive affect.
 
 ## History and knowledge
@@ -104,7 +104,15 @@ Additional seed-7 observer repeats isolate care and whereabouts. Their ordinary 
 must be identical. The review export keeps the full ordinary town recording and only the pilot's
 Lives observations; model tape verification occurs before that observer projection.
 
-Next: review actual threads and packet omissions, adapt runtime receipts to the shared chain
-viewer/observer contract, then test transfer to another household and richer activities. Do not
+The chain viewer follows the evening choices, agreements, personal outcomes and learning, including
+Gus’s observations and deferred concern. Only supporting memory updates appear; unrelated routing
+and company decisions stay outside this adapter. The proposed full observer contract is unchanged.
+History sits in expandable branches, learning marks timeline changes, and character views hide
+other minds and privileged plan outcomes. A keep-plan selection is shown as an intention because
+the current receipt does not separately prove that a journey began. Missing prior values remain
+unknown. Laya weights and authored factors are distinguished, not presented as model reasoning.
+
+Next: review actual threads and packet omissions, complete the full observer export, then test
+transfer to another household and richer activities. Do not
 tune toward a quota of successful evenings, or treat this pilot as completion of the assessment's
 commitment framework, learned routines, generated possibilities, or population scaling work.

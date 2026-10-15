@@ -47,16 +47,18 @@
   function accept(run,url,state={}){
     const parsed=M.open(run);stop();model=parsed;source=url;selected=null;focusedEvent=null;preview=null;inspection=null;thread='all';pages={};memoriesOpen=false;windowStart=null;$('error').hidden=true;
     $('workspace').hidden=model.missing;$('empty').hidden=!model.missing;$('illustrative').hidden=!(run.illustrative||run.lives?.illustrative);
-    $('source-state').textContent=model.missing?'No Lives data':`Lives ${model.lives.version} · ${run.lives.illustrative?'illustrative fixture':'recorded run'}`;
+    $('source-state').textContent=model.missing?'No Lives data':model.lives.runtime?'Evening pilot · actual recording':`Lives ${model.lives.version} · ${model.lives.illustrative?'illustrative fixture':'recorded run'}`;
     if(model.missing){notify();return;}
     const chosen=run.names.indexOf(state.person);who=chosen>=0?chosen:Math.max(0,run.names.indexOf('Penny'));
-    $('person').replaceChildren(...run.names.map((name,i)=>{const o=el('option',name);o.value=i;return o;}));$('person').value=who;
+    const holders=model.lives.holders?.length?model.lives.holders:run.names;
+    if(!holders.includes(run.names[who]))who=run.names.indexOf(holders[0]);
+    $('person').replaceChildren(...run.names.flatMap((name,i)=>{if(!holders.includes(name))return [];const o=el('option',name);o.value=i;return [o];}));$('person').value=who;
     const moments=M.moments(model,who,true);totalMax=Math.max(0,...moments);
-    tick=Number.isFinite(state.t)?Math.max(0,Math.min(state.t,totalMax)):Math.min(...model.lives.threads.map(t=>M.time(t.visibleAt)).filter(t=>t>=0),totalMax);
+    tick=Number.isFinite(state.t)?Math.max(0,Math.min(state.t,totalMax)):(M.eventIndex(model,who,false)[0]?.at??0);
     totalMin=Math.min(tick,model.lives.excerpt?.from??0);reindex();
-    $('recording-info').replaceChildren(el('p',`Format: proposed Lives ${model.lives.version}. Rules: ${model.lives.rules}.`),el('p','This adapter does not validate experimental formulas or run a simulation. It reads recorded links and values.'));
-    $('recording-info').append(el('p','Archetype IDs identify assignments only. This example has no immutable profile snapshot; the recorded archetype definition is unavailable. Current Studio drafts are never substituted.'));
-    if(run.lives.illustrative)$('recording-info').append(el('p','Hand-built Penny–Pam–Gus excerpt supplied with the contract. The two history comparisons use the fallback, not fresh Haiku/Qwen + Laya calls.'));
+    $('recording-info').replaceChildren(el('p',model.lives.runtime?model.lives.scope:`Format: proposed Lives ${model.lives.version}. Rules: ${model.lives.rules}.`),el('p','This adapter does not validate experimental formulas or run a simulation. It reads recorded links and values.'));
+    $('recording-info').append(el('p','Archetype IDs identify assignments only. This view has no immutable profile snapshot; the recorded archetype definition is unavailable. Current Studio drafts are never substituted.'));
+    if(model.lives.illustrative)$('recording-info').append(el('p','Hand-built Penny–Pam–Gus excerpt supplied with the contract. The two history comparisons use the fallback, not fresh Haiku/Qwen + Laya calls.'));
     render();
   }
   async function example(state={}){try{const url=new URL(EXAMPLE,location.href).href;const run=await window.UnderGlassTools.readRecording(url,location.href);accept(run,url,state);}catch(e){error(e);}}
@@ -220,7 +222,7 @@
       panel.append(el('p',n.data.choice?`Chosen: ${n.data.alternatives.find(a=>a.id===n.data.choice.selected)?.label??'Unknown alternative'}`:'Choice pending at this moment.'));
       if(observer&&n.data.choice)panel.append(el('p',`Recorded method: ${n.data.choice.backend}`,'meta'));
       for(const a of n.data.alternatives){const card=el('div',undefined,'option'+(n.data.choice?.selected===a.id?' selected':''));card.append(el('p',a.label));
-        if(observer&&n.data.choice)probability(card,n.data.choice.probabilities?.[a.id]);
+        if(observer&&n.data.choice){probability(card,n.data.choice.probabilities?.[a.id]);if(n.data.choice.modelWeights)card.append(el('small',`Authored chance above · model weight ${n.data.choice.modelWeights[a.id]??'not recorded'}`));}
         const d=details(card,`${a.reasons.length} reasons`,null);d.lastChild.replaceChildren();
         for(const r of a.reasons){const line=el('div',undefined,'reason');line.append(el('small',r.kind==='supports'?'Supports':r.kind==='conflicts'?'Pulls against':'Context only'),el('p',r.label??M.human(r.code)));
           if(observer&&Number.isFinite(r.value))line.append(el('small',`Recorded value ${r.value}`));
@@ -267,7 +269,7 @@
   function probability(parent,p){parent.append(el('span',pct(p),'meta'));if(Number.isFinite(p)){const bar=el('div',undefined,'probability'),fill=el('span');fill.style.width=`${Math.max(0,Math.min(1,p))*100}%`;bar.append(fill);parent.append(bar);}}
   function renderComparisons(){
     const root=$('comparisons');root.replaceChildren();if(!observer||root.hidden)return;
-    root.append(el('p','Isolated choice · fallback held fixed · no later lives simulated. The illustrative run itself used Laya for this decision.','notice'));
+    root.append(el('p','Isolated choice · fallback held fixed · no later lives simulated. Actual choices may use Laya; these comparison arms do not call a model.','notice'));
     for(const row of current.comparisons){let c;try{c=M.comparison(model,row);}catch(e){root.append(el('p',e.message));continue;}
       const card=el('article',undefined,'comparison');card.append(el('h3',c.question));const result=el('div',undefined,'result');
       for(const [k,label] of [['reasons','Reasons'],['probabilities','Probabilities'],['sampledAction','Selected action']])result.append(el('span',`${label}: ${c.differs[k]?'changed':'unchanged'}`,c.differs[k]?'changed':''));card.append(result);
