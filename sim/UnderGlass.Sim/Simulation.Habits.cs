@@ -17,8 +17,8 @@ public sealed class HabitOptions
     public int TeenCurfew { get; set; } = Clock.At(22);
     public int GrownCurfew { get; set; } = Clock.At(1);
     /// <summary>Going to bed's weight among a person's free-time choices once their habitual bedtime
-    /// (<see cref="Villager.Bedtimes"/>) has come, until they sleep (D54): 9 against home's 1 is bed at
-    /// the first pick on about 9 nights in 10. A first guess (E).</summary>
+    /// (<see cref="Villager.Bedtimes"/>) has come, until they sleep (D54): against home's 1, bed at the
+    /// first pick 9 times in 10 by the weights (Penny, measured: 84-87%). A first guess (E).</summary>
     public double BedtimeHabitWeight { get; set; } = 9;
 }
 

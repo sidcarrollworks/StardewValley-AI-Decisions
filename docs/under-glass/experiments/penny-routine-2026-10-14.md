@@ -21,10 +21,10 @@ Sid, 2026-10-14, answering "What should happen after an early sourced bedtime?" 
 
 | | Value | Standing |
 |---|---|---|
-| Her evening place | `HubWeights`: `Evening = 0`, so the Saloon's evening gathering is not among her choices | S for the place: her schedule (`fixtures/game/Penny.json`) puts her at the Saloon only on year 1's green-rain day. "Never" is E: the sim has no green rain |
-| Habitual bedtimes, first covering a day wins | 18:30 Tue, Wed, Fri (`Tue`; `Wed`, `Fri`: `GOTO Tue`); 20:00 Sat (`Sat`); 21:00 summer Mon, Thu, Sun (`summer`, `summer_Sun`); 18:40 the other Mon, Thu, Sun (`spring`; no `fall` key; `winter` falls back while the Community Center is unrestored) | S, each with its key in `KeptHour.Source`. 18:40 through every winter is E: the sim has no Center to restore |
+| Her evening place | `HubWeights`: `Evening = 0`, so the Saloon's evening gathering is not among her choices | S for the place: her schedule (`fixtures/game/Penny.json`) puts her at the Saloon only on year 1's green-rain day. "Never" is E: the sim has no green rain. The card says both (`OwnWeight.Source`, `.Assumption`), and the record marks it `sourced+ours` |
+| Habitual bedtimes, first covering a day wins | 18:30 Tue, Wed, Fri (`Tue`; `Wed`, `Fri`: `GOTO Tue`); 20:00 Sat (`Sat`); 21:00 summer Mon, Thu, Sun (`summer`, `summer_Sun`); 18:40 the other Mon, Thu, Sun in spring and fall (`spring`; no `fall` key), and in winter (`winter` falls back to `spring` while the Community Center is unrestored) | S, each with its key in `KeptHour.Source` (`sourced` in the record). 18:40 through every winter is E: the sim has no Center to restore; that entry carries the assumption (`sourced+ours`) |
 | What a bedtime does | From the hour until she next sleeps, going to bed is one of her free-time choices; at the first free-time decision after the hour a pick in progress is reconsidered once | A (a habit, not a rule); the mechanism is E |
-| How strongly | `HabitOptions.BedtimeHabitWeight` = 9, against home's weight of about 1: bed at the first pick about 9 nights in 10 when nothing else is open | E, a first guess |
+| How strongly | `HabitOptions.BedtimeHabitWeight` = 9, against home's weight of about 1: by the weights, bed at the first pick 9 times in 10 (9/(9+1)) when nothing else is open; measured, 84-87% of her nights (below) | E, a first guess |
 | Sleep onset | on reaching her bed, as for every bedtime | E (the sim's rule). Canon's hours are departures and she shows asleep on arrival; the walk's length in canon is VERIFY |
 | Sleep length and waking | the energy rule: sleep ends when the bar is full | A (Sid's rule 1, kept). Canon wakes everyone at the 06:00 day reset; a 03:00 waking is the sim's, not the game's |
 | What she can do on waking | whatever the ordinary decision offers at that hour | A (choose among the actions available); what is available is E |
@@ -52,11 +52,14 @@ dotnet run -c Release --project sim/UnderGlass.Run -- --seeds 20 --days 112 --to
 ```
 
 The rows by night come from each recording's `nights` block (one row per sleep: the habitual
-bedtime, when and why she set out, onset, waking, energy and her next choice); time with Pam,
-hours awake and evenings at home from the moves (5-minute ticks); acts, beliefs, pursuits and
-regard from their tables. The readers are throwaway scripts outside the repo; they only read. A
-night belongs to the day its evening falls on; three nights (one a seed) end asleep at day 112.
-"With Pam" is both awake, in the same place, within 8 tiles.
+bedtime, when and why she set out, onset, waking, energy and her next choice); time with Pam, hours
+awake and evenings at home from the moves (5-minute ticks); acts, beliefs, pursuits and regard from
+their tables. The readers are throwaway scripts outside the repo; they only read. The measurements
+were made with the block's version 1; version 2, after review, adds fields (each row's energy and
+options at the hour and at setting out; each routine datum's assumption and standing) and changes no
+run, so every hash and count below holds. A night belongs to the day its evening falls on; three
+nights (one a seed) end asleep at day 112. "With Pam" is both awake, in the same place, within 8
+tiles.
 
 ## Penny's nights, by day type (seeds 1-3 pooled)
 
@@ -130,7 +133,8 @@ nights (as shipped 30).
   for 18:40).
 - **Saturday and summer evenings end early.** After a 04:06 or 04:30 waking her body is tired
   before 20:00 and 21:00 (gap G3). Her summer Monday, Thursday and Sunday evenings at home run
-  about 18:00 to 19:50 (95 minutes), not canon's 18:00 to 21:00.
+  from about 18:15 to 19:50 (a median 95 minutes awake at home after 18:00), not canon's 18:00 to
+  21:00.
 - **She hears of Pam's scenes rather than seeing them**, and her regard for Gus stays at 0: she no
   longer meets him.
 - **She misses Leah and Maru.** They spend their evenings at the Saloon, so she sees them less, and
@@ -193,25 +197,28 @@ feuding.
 
 ## The recorder's cost (seed 1, 112 days, `pelican`; three runs each, one process a run)
 
+Re-measured with the block's version 2 (each row also carries the energy and options at the hour
+and at setting out).
+
 | | the simulation alone | recording without `nights` | recording with `nights` |
 |---|---|---|---|
-| CPU | 5.05-5.19 s | 5.22-5.83 s | 5.42-5.59 s |
-| allocated | 1,189 MB | 1,316 MB | 1,333 MB |
-| peak working set | 124-125 MB | 201-204 MB | 217 MB |
-| file | | 10.23 MB | 11.40 MB |
+| CPU | 4.67-4.78 s | 5.09-5.47 s | 4.89-5.41 s |
+| allocated | 1,189 MB | 1,316 MB | 1,335 MB |
+| peak working set | 125-126 MB | 202 MB | 218-219 MB |
+| file | | 10.23 MB | 11.68 MB |
 
-The `nights` block is 1.17-1.18 MB for 112 days (10% of the file): 2,931 rows on seed 1. Its CPU cost
-is inside run-to-run noise; it adds about 17 MB of allocation and 15 MB of peak memory. No model is
-called. The hash is the same with it on or off (`8a002fea26b541fe`).
+The `nights` block is 1.45 MB for 112 days (12% of the file; 1.17 MB at version 1): 2,931 rows on
+seed 1. Its CPU cost is inside run-to-run noise; it adds about 19 MB of allocation and 17 MB of peak
+memory. No model is called. The hash is the same with it on or off (`8a002fea26b541fe`).
 
 ## Not represented: canon recorded, not modelled (S)
 
 - **Rain** (the sim has no weather): `rain` has her reading at home from 18:00, `rain2` home from
   16:00 with dishes at 19:00; bed 21:00. The rain coin is `Game1.random.NextBool()`.
 - **Dated days:** the 9th and 23rd (dishes at home from 16:00, bed 18:40, unless a farmer has 6
-  hearts with Penny or with Sam); winter 4 (Town at 16:00, dishes at home at 19:00, bed 21:00); winter 15, the
-  Night Market (the Beach 16:00-23:50); the Desert Festival's second day (bed 24:40; dates VERIFY);
-  year 1's green rain (the Saloon all day).
+  hearts with Penny or with Sam); winter 4 (Town at 16:00, dishes at home at 19:00, bed 21:00);
+  winter 15 (`winter_15`, the Beach 16:00-23:50; the Night Market's first day, dates VERIFY); the
+  Desert Festival's second day (bed 24:40; dates VERIFY); year 1's green rain (the Saloon all day).
 - **Saturday:** in Town (29,91) from 17:00 to 20:00, beside Jas and Vincent. The sim has her home
   from 18:00 (E).
 - **Teaching:** Tuesday, Wednesday and Friday 09:00-14:00 at the museum. The sim keeps Monday to
@@ -235,15 +242,22 @@ Sid asked for these to be reported and assessed through the pilot. None is suppr
 | G2 | missing activities, early morning | Nothing she likes opens before work: her haunts open at 14:00, the market at 09:00 on Saturdays, noon at the square at 11:30 | from waking to first leaving home, median 6.7-6.8 h, 6.0-6.1 h of it with nobody else awake at home; 668-687 h a run alone and awake at home after waking (as shipped 414-423); first out at a median 09:35 on workdays (to work), 10:05 on Saturdays |
 | G3 | the energy rule against two sourced hours | Her 20:00 (Saturday) and 21:00 (summer Monday, Thursday, Sunday) habits seldom act: after a 04:00-04:30 waking her body sends her first. Whether a habit should also hold off bed until its hour is a question for Sid; rule 1 says villagers go to bed when tired enough | the body set her out on 44 of 48 Saturdays (42 before 20:00, median 19:15) and 36 of 36 summer nights (all before 21:00, median 19:52) |
 | G4 | the shape of sleep | Sleep lasts about 8-9 hours for everyone (waking drains a bar in 22 hours, sleep fills it in 11), so an 18:30 bedtime is a 02:50 waking. Nobody lies awake or dozes off again; canon has no awake-in-bed state either | woke before 03:00 on 85 of 144 Tue-Wed-Fri nights and 43 of 105 other Mon-Thu-Sun nights; awake 00:00-06:00 289-298 h a run (as shipped 35-41, simulated bedtime 119-121) |
-| G5 | implausible decision, not hers alone | Delivering an errand ignores the hour and whether the one sought is asleep (`LookFor`, `Simulation.Errands.cs:337`): early risers set out at night to find someone at their last-seen place | Penny went looking for Haley at the Square at 02:41 (seed 3, day 9) and at 02:45, then the Beach at 03:45 (seed 7, day 5). In both new towns Abigail looked for Shane at 00:00, 01:00 and 02:00 (seed 1, day 18) and Gus for Leah at 00:00 (seed 2, day 7); as shipped, Vincent, a child, looked for Penny at 01:31 and 02:35 (seed 7, day 11) |
+| G5 | implausible decision, not hers alone | Delivering an errand ignores the hour and whether the one sought is asleep (`LookFor`, `Simulation.Errands.cs:337`): people awake at night, early risers and night owls alike, set out to find someone at their last-seen place | Penny, woken early, went looking for Haley at the Square at 02:41 (seed 3, day 9) and at 02:45, then the Beach at 03:45 (seed 7, day 5). In both new towns Abigail, still up, looked for Shane at 00:00, 01:00 and 02:00 (seed 1, day 18; asleep at 02:52) and Gus for Leah at 00:00 (seed 2, day 7; asleep at 00:57); as shipped and with the simulated bedtime, Vincent, a child woken early, looked for Penny at 01:31 and 02:35 (seed 7, day 11) |
 | G6 | the household | Nobody is awake with her at either end of her night: Pam is at the Saloon from about 16:40, asleep at 00:33 and up at 09:02 | with Pam awake at home 00:00-06:00: 0 h in every town; at home together 18-24: 20 h over three seeds (as shipped 39, simulated bedtime 88) |
 | G7 | open question | An ask after her habitual hour weighs only her body, job and mood. That follows Sid's ruling; whether a habit should make "not now" likelier can't be seen in these runs, because nobody asked her then | 0 favours and 0 invitations asked of her between her habitual hour and sleep in 12 catalog runs; invitations to her fell from 8 to 1. The placed test (`RoutineTests`, a 19:00 habit for everyone) shows such an ask is asked and answered |
 | G8 | already there, town-wide | George, Jas and Vincent wake before 05:00 every night, and Evelyn nearly every night, with the same empty options; town-wide the first choice after waking is home on about nine wakings in ten | 333 of 333 nights (Evelyn 331) in all three towns; home on 7,721 of 8,658 first choices after waking (`pelican`, 3 seeds) |
 | G9 | measures that read hours out | Her free hours out fall by a third, and the hermit measure compares hours out with her own first season | free hours out a day 3.9-4.0 (as shipped 5.9-6.1); seed 29's hermit spell starts on day 36 (as shipped 73) |
 
 **For the pilot** (from the measurements, not decided here):
-- **Her evening.** Her summer Monday, Thursday and Sunday evening at home is about 18:00-19:50 in the
+- **Her evening.** Her summer Monday, Thursday and Sunday evening at home is about 18:15-19:50 in the
   sim, not canon's 18:00-21:00. Pam is at the Saloon then.
 - **When she and Pam overlap.** They are awake at home together for about half an hour on workday
   and Saturday mornings (09:00-09:30) and over two hours on Sunday mornings; at night, never.
 - **Invitations.** Few people ask her anything in the evening now, because she is home alone.
+- **Routines that learn.** Sid's direction is that later experience should be able to change a
+  routine. Nothing does yet: a card is fixed for the run, and an own weight of 0 removes the hub from
+  her draws outright, so no experience could bring the Saloon's evening back. How routines change is
+  open for the pilot.
+- **Pam's routine.** A bedtime past midnight is written as canon writes it, on its evening's day
+  (`pam_sleep` at 2400 is 24:00, minute 1440), so Pam's sourced hours can be carried the same way;
+  none is set here.

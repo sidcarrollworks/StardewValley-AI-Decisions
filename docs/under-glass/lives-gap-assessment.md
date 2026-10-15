@@ -617,7 +617,7 @@ share 0.25, `DeriveAfter` 3, `SourcedCue` 2, disappointment's D 0.05 and scale 0
 **After PR B (D54, 2026-10-14).** Sid decided that bedtimes are habits, not hard rules: no hold to 06:00, sleep until
 rested, and no less available because the hour has passed. Measured ([write-up](experiments/penny-routine-2026-10-14.md),
 seeds 1-3 x 112 days), for the pilot:
-- Her summer Monday, Thursday and Sunday evenings at home run about 18:00-19:50 in the sim, not canon's 18:00-21:00:
+- Her summer Monday, Thursday and Sunday evenings at home run about 18:15-19:50 in the sim, not canon's 18:00-21:00:
   after a 04:30 waking her body sends her to bed before her 21:00 habit.
 - She and Pam are awake at home together about half an hour on workday and Saturday mornings (Pam up at 09:02, Penny
   out at 09:30) and over two hours on Sundays, never at night; Pam is at the Saloon from about 16:40.

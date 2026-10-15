@@ -13,9 +13,10 @@ public static class Towns
     /// <summary>A town by name: "pelican" (the shipped 26, with Penny's sourced routine, D54),
     /// "pelican-simulated-bedtime" (the same without anyone's habitual bedtimes: bed from the body
     /// alone, as before D54), "pelican-as-shipped" (without bedtimes or own hub weights: the town as it
-    /// shipped before D54, hash for hash), "pelican31", a generated town written as its spec, such as
-    /// "pelican:60@7" (<see cref="Generation.TownGen"/>), or a town file written by --dump-town, as
-    /// "file:path" (<see cref="TownJson"/>).</summary>
+    /// shipped before D54, run hash for run hash; its census hash moved with the generator's version),
+    /// "pelican31", a generated town written as its spec, such as "pelican:60@7"
+    /// (<see cref="Generation.TownGen"/>), or a town file written by --dump-town, as "file:path"
+    /// (<see cref="TownJson"/>).</summary>
     /// <summary>A town's starting regards with the shipped tensions (<see cref="DefaultTown.TensionPairs"/>)
     /// at -depth, or left out at depth 0; every other starting regard the town has (the 31 town's
     /// Clint toward Emily, a grown town's rivals) is kept. For the runner's and the replay's

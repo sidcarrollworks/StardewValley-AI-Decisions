@@ -32,14 +32,17 @@ light caps and duplicate responses, consumes matching motives, and waits for act
 recording the final outcome. The recipient's existing apology Ask still determines acceptance/refusal.
 
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
-(0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes (`KeptHour`, by
-weekday and season, with the source). In `Simulation.Routine.cs` a due bedtime adds going to bed to
-the free-time draw, weighted `HabitOptions.BedtimeHabitWeight`, and reconsiders a pick in progress
-once at the hour; nothing forces sleep, and availability never reads a schedule. Penny's values sit
-in `DefaultTown`'s name-keyed tables; `Towns.Named` adds `pelican-simulated-bedtime` and
-`pelican-as-shipped` for comparison. `Nights.cs` is a write-only sink (`INightSink`) that `Replay`
-turns into the recording's `nights` block (`NightTable`), one row per sleep; the run is the same
-with it on or off (`--no-nights`).
+(`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes
+(`KeptHour`, by weekday and season, its minute counted on the evening's day, 720-2159). Each carries
+a source and, where a sourced value is applied beyond it, our assumption. In `Simulation.Routine.cs`
+a due bedtime (tonight's, or last night's until they sleep) adds going to bed to the free-time draw,
+weighted `HabitOptions.BedtimeHabitWeight`, and reconsiders a pick in progress once at the hour;
+nothing forces sleep, and availability never reads a schedule. Cards are fixed for a run: nothing
+changes a routine yet. Penny's values sit in `DefaultTown`'s name-keyed tables, built afresh for
+each cast; `Towns.Named` adds `pelican-simulated-bedtime` and `pelican-as-shipped` for comparison.
+`Nights.cs` is a write-only sink (`INightSink`) that `Replay` turns into the recording's `nights`
+block (`NightTable`, version 2): each card's routine with its standing (sourced, ours or
+sourced+ours) and one row per sleep; the run is the same with it on or off (`--no-nights`).
 
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
