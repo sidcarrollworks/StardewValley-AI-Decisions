@@ -1,7 +1,8 @@
 # Under Glass: current development roadmap
 
-Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices;
-amended 2026-10-13 to say where the agreed order leads (player speech, below).
+Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices; amended
+2026-10-13 to say where the agreed order leads (player speech, below), and 2026-10-14 for Sid's
+history-first direction: the Lives pilot is next, needs bars are unresolved (D53).
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -32,8 +33,10 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   optional act-catalog slices, recorded runs and an observer dashboard.
 - Built, opt-in: contextual authored inspiration, a local generative provider, Laya evaluation,
   waking dreams, deferred ideas revisited after new knowledge, intentions and later outcomes.
-- Built, opt-in: reviewed initial self-knowledge and source-derived private voice context,
-  separate from witnessed memories; reusable archetypes carry no donor biography.
+- Built, opt-in: reviewed pre-farmer background anchors and source-derived voice context: private
+  prompt context for the generator and Laya, separate from witnessed memories; they create no act,
+  belief, feeling or regard and reach a choice only through the models' reading. Reusable archetypes
+  carry no donor biography. Histories that shape behaviour are planned (the Lives pilot).
 - Built: current-moment cards, source/consequence navigation, character timeline markers and
   hover descriptions, and playback controls that remain visible while scrolling.
 - Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
@@ -52,12 +55,16 @@ and the dated [reliability measurements](experiments/reflection-reliability-2026
 
 ## Immediate: distinct private voices and reliable interpretation
 
-Use the [character inspiration slice](specs/character-inspiration-spec.md) to review the same
-known scenes with profiles disabled/enabled. The baseline is each person's established history
-before the farmer arrives. Read the full extracted dialogue as voice evidence, retain source
-coverage/conditions, and seed only individually reviewed historical anchors. Generic descendants
-reuse tendencies and voice; named histories are not inherited. Current anchors are a compact
-starting set, not every canonical memory.
+Use the [character inspiration slice](specs/character-inspiration-spec.md) to review the same known
+scenes with profiles disabled/enabled. Its source baseline is each person's established backstory
+before the farmer arrives (Sid, 2026-10-12). Read the full extracted dialogue as voice evidence,
+retain source coverage/conditions, and admit only individually reviewed background anchors. The
+anchors are private background context for the models, not memories: they create no act, belief,
+feeling or regard (D44), and one anchor can mix a fact, a past, a practice and a reading. Histories
+that shape behaviour are planned separately, as sourced records with an account per holder, admitted
+by the [history audit](experiments/history-evidence-audit-2026-10-14.md)'s rules and counted once
+([Lives assessment](lives-gap-assessment.md), section 2). Generic descendants reuse tendencies and
+voice; named backstories are not inherited.
 
 The [live character-voice trial](experiments/character-voice-trial-2026-10-12.md) shows that distinct
 generated voices remain unresolved with the current small generator. A [first run with Claude
@@ -68,8 +75,8 @@ as the generator for hybrid recordings; the pinned local service remains the off
 the shipped default. Imagined specifics may stay in private thoughts for now; whether they match
 the context and what a player would see is a later concern.
 Use the [fixed-intention wording probe](experiments/voice-wording-2026-10-12.md) to judge Vincent
-against actual dialogue and authored alternatives before changing runtime prompts or histories.
-It isolates wording from Laya decisions and preserves failed outputs.
+against actual dialogue and authored alternatives before changing runtime prompts or background
+anchors. It isolates wording from Laya decisions and preserves failed outputs.
 Review cadence, vocabulary, conflicting impulses and failures against the source. Avoid replacing
 one generic voice with a catchphrase for each character. Profiles must preserve grounded meaning
 and the Laya budget. Then fix thought/action disagreement as a separate contract, using observed
@@ -120,13 +127,26 @@ The order is:
    beer, even for her mother (Sid). Still to come:
    needs beyond shop goods, asking through reflection, and the player as the one asked.
 
-   **Then, revisit needs bars** (Sid, 2026-10-13: after errands). Not taken on 2026-10-06; Sid now
-   sees them as a source of motive, hidden from the player if need be. The proposed shape (hidden
-   bars as pressure on existing motives, only hunger, social and fun) is in the
-   [design](design.md), section 11c. Hunger could make the errands' needs come from an empty pantry.
-   Decide with it Penny's concern for her mother's drinking (Sid, 2026-10-13: she "would do anything
-   for her mom besides give her alcohol" and "tries to minimize her moms drinking"); the refusal is
-   built, the rest is proposed in the [needs spec](specs/needs-spec.md), "For Sid".
+   **Then, the Lives pilot** (Sid, 2026-10-14; [Lives assessment](lives-gap-assessment.md); D53).
+   Histories, associations and meaningful actions come before any decision on how needs bars
+   influence behaviour. One complete thread for Penny, Pam and Gus: history, recall, competing
+   choices, an attempt, each person's perceived outcome and what they learn, refusals, postponements
+   and failures included, on general mechanisms and character data with no name switches. Then the
+   same mechanisms for Evelyn, George and Alex, before the population grows. Before it, seven
+   anchors of the character pack that the [history
+   audit](experiments/history-evidence-audit-2026-10-14.md) and its check found unsupported were
+   corrected in their own PR (D53); the anchors stay background context for the models, not
+   memories. Penny's sourced routine (no Saloon evenings, her game bedtimes) follows as character
+   data in its own PR. Nothing of the pilot is built.
+
+   **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
+   pressures interact with the richer system is assessed once it exists, and no formula is chosen
+   because it lowers aggregate boredom or loneliness. Law 1 stays as written. Sid's 2026-10-13 wish
+   to revisit them, and the shape proposed then, stay on record in the [design](design.md), section
+   11c. Penny's refusal to fetch beer, for anyone, her mother included, stays built (D52): Sid's
+   product commitment, not extended to accepting or drinking alcohol without a separate decision.
+   Her trying to minimize her mother's drinking no longer waits for bars; the pilot takes up her
+   care for Pam outside bars (proposed).
 
 5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
    The Newcomer is the player's character and gets the player's voice: the player types, Laya
@@ -136,13 +156,15 @@ The order is:
    memory and trust in the speaker, a check is an event others can witness, and a lie taken on
    trust comes out only through perception. Built so far: a probe of whether Laya can read typed
    lines at all ([write-up](experiments/laya-categorize-2026-10-13.md)). It needs 3 (asks with
-   answers) and 4 (needs with real items) first; scripted player lines come before live typing, and
-   live typing waits for a gate on Sid's own lines (the spec's "The gate before live typing").
+   answers) and 4 (needs with real items) first, and follows the Lives pilot (Sid, 2026-10-14:
+   "The observer product comes first; player gameplay remains later"); scripted player lines come
+   before live typing, and live typing waits for a gate on Sid's own lines (the spec's "The gate
+   before live typing").
 
 Then batch 2's visits, dates, peace and festivals as the backlog, each behind its own switch.
-The text REPL in which Sid is the Newcomer is now the end of this order (step 5, amended
-2026-10-13) rather than unscheduled: it still waits for 3 and 4, because before them a typed line
-would have little to become.
+The text REPL in which Sid is the Newcomer is now the end of this order (step 5, amended 2026-10-13)
+rather than unscheduled: it still waits for 3 and 4 and follows the Lives pilot, because before them
+a typed line would have little to become.
 
 ## 1. Concrete encounter context and event appraisal
 

@@ -163,8 +163,12 @@ gives 8% broken and 4% late; two days (the default) 5% and 2%; three days 2.5% a
   with her or for her); seeing or hearing of it lands as shame on Penny, not coldness toward Pam; and
   she tries to keep Pam from it, either by asking her to something at home on evenings she believes
   Pam would go to the saloon (her own memory of Pam's habit, through an invitation), or, more
-  cheaply, by Pam drinking less with her daughter there. To decide with the needs bars revisit
-  (roadmap step 4), where Pam's drinking would be a pressure and Penny's concern the push against it.
+  cheaply, by Pam drinking less with her daughter there. *Since 2026-10-14 (D53) this no longer
+  waits for needs bars, which are unresolved: the Lives pilot takes up Penny's care for her mother
+  outside bars, from sourced history and lived outcomes (proposed; [Lives
+  assessment](../lives-gap-assessment.md)). The beer refusal stays as built; Sid has not extended it
+  to accepting or drinking alcohol, so "never a drink with her" above is part of the undecided
+  proposal.*
 - **Promising what your hours won't allow.** The broken promises all come from working people
   saying yes to a shop that is only open while they work. Should someone who knows their own
   hours and the shop's sign count that as "busy" when asked (a cost, as being due at work is for an

@@ -30,9 +30,11 @@ diagnostics, not proof of an interesting town; coherent extreme outcomes are all
 
 Sid selected hybrid and requested distinct private voices derived from the game's full dialogue.
 The optional [character context](docs/under-glass/specs/character-inspiration-spec.md) separates
-reusable archetypes, personal speech accents and reviewed pre-farmer historical anchors. These
-anchors are private self-knowledge, never fabricated witnessed events or inherited donor biography.
-They are a compact starting set; ordinary speech and complete canonical histories remain later work.
+reusable archetypes, personal speech accents and reviewed pre-farmer background anchors. These
+anchors are private context for the models, not memories: never fabricated witnessed events or
+inherited donor biography, and they create no act, belief or regard of their own. Seven were
+corrected on 2026-10-14 after Codex's history audit (D53). Ordinary speech remains later work;
+histories that shape behaviour are planned in the Lives pilot.
 The [fixed-intention wording probe](docs/under-glass/experiments/voice-wording-2026-10-12.md)
 compares Vincent, Maru and George against actual dialogue and withheld authored alternatives,
 separating wording from decision-making. Its results do not alter live simulation prompts.
@@ -50,9 +52,13 @@ promised, fetched and handed over, late or never, opt-in), and then player speec
 player types, Laya reads the line into an act the engine offers, and a claim is checked through
 what the listener knows ([player speech spec](docs/under-glass/specs/player-speech-spec.md), planned;
 a first probe of Laya's reading is done).
-The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: character voice review, concrete
-encounter context and separate personal/listener appraisal next, then broader actions and tagged
-speech, follow-through and controlled model comparisons. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
+On 2026-10-14 Sid put histories first: the Lives pilot (Penny, Pam and Gus, one complete thread from
+sourced history to what each learns) is next, on general mechanisms; law 1 stays unchanged and needs
+bars are unresolved, neither scheduled nor rejected (D53). Seven character-pack anchors were
+corrected first, in their own PR.
+The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: the Lives pilot
+next, with encounter context, broader actions and tagged speech, follow-through and controlled
+model comparisons continuing. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)
 now has its first observer slice: supported roles/source links, private causes, acquisition-time
 appraisals and grouped everyday activity with inspectable reasons. Concrete tasks and contextual
 gossip selection remain planned. Earlier batch orders, news ceilings and E1/E2 thresholds remain

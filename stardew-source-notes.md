@@ -57,7 +57,7 @@ All of the below was verified in this project against decompiled 1.6 (`NPC.parse
 5. `<day>_<hearts>` — tried from the current heart level DOWN to 1 (plain loop, no skip)
 6. `<day>`
 7. `bus` — Pam only, and only if the player has the `ccVault` mail flag
-8. if raining: `rain2` (50% coin flip, `Game1.random.NextBool()` — unseeded in the game), then `rain`
+8. if raining: `rain2` (50% coin flip, `Game1.random.NextBool()`; `Game1.random` is reseeded each new day from the game ID, days played and the farmer's steps, `Game1.cs:7854-7865`, and on load from the game ID and days played only, `SaveGame.cs:958`, `Utility.cs:1160-1163`, when schedules are chosen again, `SaveGame.cs:1575`, `NPC.cs:1178-1184`; so on a slept-into day the flip depends on the step count, on a loaded day it is fixed by the date and game ID, and either way it also depends on earlier draws), then `rain`
 9. `<season>_<dow>_<hearts>` — NOTE the loop decrements `tryHearts` twice per iteration, so it tries heartLevel, heartLevel-2, heartLevel-4, ... >= 1
 10. `<season>_<dow>`
 11. `<dow>_<hearts>` — same double-decrement quirk
@@ -74,7 +74,7 @@ Married NPCs use only `marriage_*` keys (+ `marriageJob` for Harvey/Maru/Penny o
 - `bed` (unmarried): resolves to the LAST point of the `default` schedule, else `spring`; married: BusStop. Any x/y after `bed` are ignored.
 - Facing: defaults to 2 (down); a non-numeric token is NOT consumed and is then read as the animation.
 - Dialogue = raw substring from the opening quote on (quotes included).
-- Locked locations (JojaMart/Railroad/CommunityCenter when unavailable): the game switches to the `<location>_Replacement` schedule, else `default`, else `spring`.
+- Locked locations: `JojaMart` and `Railroad`, while inaccessible, take their `<location>_Replacement` entry, and without one the whole schedule falls back to `default`, else `spring`. `CommunityCenter`, until event 191393 ends the restoration (`Game1.cs:12363-12367`), always falls back to `default`, else `spring`; its `_Replacement` entry is never read (`NPC.cs:5423-5446`, `:5669-5673`). So Penny's `winter` runs her `spring` until then, and always on the Joja route.
 - Arrival time math: walk distance (only orthogonal steps count) x 64px / 2, divided by `realMilliSecondsPerGameTenMinutes/1000*60` (= 420), rounded to ten-minute blocks, subtracted from the arrival time, then clamped to >= the previous point's time. An `a` point never starts before the previous point.
 
 **Runtime:** `checkSchedule(timeOfDay)` runs each ten-minute tick per visible NPC; looks up the exact time in the parsed schedule dictionary. `ignoreScheduleToday` returns early. `addHour()` re-checks the previous 50 to 90 minutes. No teleporting in this path.

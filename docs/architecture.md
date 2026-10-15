@@ -39,11 +39,12 @@ The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
 
 - `UnderGlass.Sim/CharacterInspiration.cs` and optional `sim/character-inspiration.json`:
-  validated reusable archetypes, named voice accents and source-keyed initial self-knowledge.
-  Configure explicitly before a run; each reflection copies only the actor's selected relevant
-  or general anchor. The generator gets voice/history; Laya gets the same history and compact
-  disposition within its text budget. Full pack hashes and immutable request snapshots protect
-  tape replay. Background is not a belief, act, social prior or source of gossip.
+  validated reusable archetypes, named voice accents and source-keyed background anchors (private
+  context for the models, not memories). Configure explicitly before a run; each reflection copies
+  only the actor's selected relevant or general anchor. The generator gets the voice and the anchor;
+  Laya gets the same anchor and compact disposition within its text budget. Full pack hashes and
+  immutable request snapshots protect tape replay. Background is not a memory, belief, act, social
+  prior or source of gossip; histories that shape behaviour are planned (the Lives assessment).
 - `sim/tools/export-stardew-dialogue.ps1` and `stardew_dialogue_corpus.py`: local XNB export and
   conservative attributed corpus parsing. Runtime assemblies have no game reference. Raw assets,
   markup, conditions and coverage stay in ignored output; committed content is derived text and
