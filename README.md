@@ -8,6 +8,11 @@ SMAPI (C#) mod for Stardew Valley 1.6 that makes NPCs feel less scripted. See `s
 
 **Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why). Under Glass's current priorities are in [its roadmap](docs/under-glass/roadmap.md); the Stardew mod's full spec and roadmap are in [`docs/spec/`](docs/spec/README.md).
 
+The [Lives pilot implementation plan](docs/under-glass/specs/lives-pilot-spec.md) continues
+Claude's assessment after PRs #96–98. The runtime remains planned; a reproducible baseline
+capture tool and 12 offline harness tests are built. Its [35-day baseline results](docs/under-glass/experiments/lives-baseline-2026-10-15.md)
+separate the existing town from the actions/reflection prerequisites, with recorder and tape checks.
+
 ## Layout
 
 | Path | What |

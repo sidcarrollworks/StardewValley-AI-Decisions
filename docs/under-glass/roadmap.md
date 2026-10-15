@@ -140,7 +140,11 @@ The order is:
    evenings, and her game's bedtimes as habits, not rules (Sid): from the hour, bed is a weighted
    free-time choice (the weight, 9, is ours: E); she sleeps until rested and can be up at 03:00 with
    nothing to do, gaps [recorded](experiments/penny-routine-2026-10-14.md) for the pilot rather than
-   suppressed. Nothing of the pilot itself is built.
+   suppressed. Nothing of the pilot itself is built. The [pilot implementation plan](specs/lives-pilot-spec.md)
+   now defines the build order, same-choice history comparisons and acceptance cases. Its
+   [baseline capture](experiments/lives-baseline-2026-10-15.md) is built and checked against
+   the merged routine: 35-day runs separate the current town from existing pilot prerequisites.
+   Personal history/recall is the next runtime increment; the archetype editor is deferred.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen
