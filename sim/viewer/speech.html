@@ -237,6 +237,7 @@ function mergeDraft(lines, plan, checked) {
   }
   return { lines: out, skipped, renamed };
 }
+function catalogVoices(lines) { return [...new Set(["newcomer", ...lines.flatMap(l => l.archetypes)])].sort(); }
 // rules:end
 
 const $ = (id) => document.getElementById(id);
@@ -263,7 +264,7 @@ function node(tag, text, className) {
 }
 function fnv(text) { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16); }
 const clone = (value) => JSON.parse(JSON.stringify(value));
-const voiceLabel = (arch) => (arch === NONE ? "no archetype" : arch.replace(/-/g, " "));
+const voiceLabel = (arch) => (arch === NONE ? "no archetype" : arch === "newcomer" ? "Newcomer" : arch.replace(/-/g, " "));
 /** "TreatedToDrink" reads as "Treated to drink"; the code name stays in titles. */
 const kindLabel = (kind) => kind.split(".").map((part) => part.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (m, c) => " " + c.toLowerCase()))
   .map((part, i) => (i ? part.toLowerCase() : part)).join(" · "); // a reply kind: "Played game · accepted"
@@ -276,7 +277,7 @@ function kinds() {
   const present = new Set([...original.pack.lines, ...pack.lines].map((l) => l.kind));
   return [...KIND_ORDER.filter((k) => present.has(k)), ...[...present].filter((k) => !KIND_ORDER.includes(k)).sort()];
 }
-function archetypes() { return [...new Set([...original.pack.lines, ...pack.lines].flatMap((l) => l.archetypes))].sort(); }
+function archetypes() { return catalogVoices([...original.pack.lines, ...pack.lines]); }
 function voices() { return [...archetypes(), NONE]; }
 function bands() { const r = $("rel").value, m = $("mood").value; return { rels: r ? [r] : RELATIONSHIPS, moods: m ? [m] : MOODS }; }
 
