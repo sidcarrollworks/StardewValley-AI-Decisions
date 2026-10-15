@@ -81,6 +81,15 @@ The optional quiet-reflection prototype is specified in
   under the act once the clock reaches it. `sim/viewer/speech.html` is the curation page: how many
   lines fit each kind, voice and situation, what a recording actually said, and the lines editable
   in place; it carries a copy of the weight rule pinned to the C# one by a shared fixture.
+  `sim/viewer/tools.html` and `tools.js` connect it to the dashboard and recording index. Same-origin
+  recording URLs and a bounded view fragment carry the recording, time, person and tab between
+  tools. Saved HTML is parsed for its inert run-data node; its scripts are not executed. Local
+  picked files are not uploaded or persisted by this navigation and must be reopened separately.
+  `ui.css` reuses the dashboard's visual primitives on tool pages (pinned to its standalone inline
+  copy by a test); `ui.js` shares its theme preference. The sticky navigation measures its height
+  for the dashboard timeline, speech controls and drawer offsets. Speech metrics remain catalog-wide while
+  definitions and source details are disclosed on demand; recordings retain their artifact links
+  beneath compact run cards and expandable experiment collections.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

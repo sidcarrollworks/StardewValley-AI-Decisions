@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Under Glass Viewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5,11 +7,11 @@
 <style>
 /* Layout: a technical sheet. The controls across the top carry the run's clock on a recessed
    dot-matrix screen; a ruler-like timeline sits under it; the town under glass fills the left; the
-   inspector and the log stand on the right. Sections sit on one warm off-white ground, marked only
-   by registration corners. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
+   inspector and the log stand on the right. Sections sit on one warm off-white ground, with open, unadorned headings. Warm putty neutrals, graphite ink, one signal orange, and cobalt and
    crimson for liking and dislike; a dark look of the same, chosen with the switch at the top (the
    choice is remembered; until one is made it follows the host's theme, then the system's). */
 :root {
+  --page-width: 1680px; --page-gutter: 36px;
   color-scheme: light;
   --bg: #e8e3d9;          /* the ground: the same warm off-white as the panels */
   --surface: #e8e3d9;     /* panels */
@@ -68,11 +70,13 @@
   --key-on: linear-gradient(#22201c, #292622); --press: rgba(0, 0, 0, 0.4); --led-off: #5d564c; --glow: rgba(255, 120, 50, 0.5);
   --rule: rgba(64, 58, 51, 0.8); --sel-row: #3a2c21; --thumb-edge: #8f3f0d; --tip-bg: #0e0d0b; --tip-ink: #ece6dc;
 }
+html { scrollbar-gutter: stable; }
 * { box-sizing: border-box; }
 body {
   background-color: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.45; margin: 0;
 }
-.app { padding-inline: 16px; padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
+.app { padding-inline: var(--page-gutter); padding-block: 14px 48px; max-width: var(--page-width); margin: 0 auto; display: grid; gap: 14px; }
+@media (max-width: 760px) { :root { --page-gutter: 16px; } }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
 h1 { font-size: var(--step-1); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
 h2 { font-size: var(--step-1); }
@@ -93,18 +97,13 @@ button.led::before { content: ""; width: 6px; height: 6px; border-radius: 50%; b
 button.led[aria-pressed="true"]::before { background: var(--accent); box-shadow: 0 0 4px var(--glow); }
 button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 select, input[type="search"] { background: var(--surface-hi); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
-/* A section is marked only by registration marks in two corners, as on a technical sheet. The
-   controls and the timeline are open sections on the ground (.marks); the rest are flat panels
-   (.card) of the same tone. */
+/* Flat panels share the same ground as the page. */
 .card, .marks { position: relative; }
 .card { background: var(--surface); border-radius: var(--radius); }
-.card::before, .card::after, .marks::before, .marks::after { content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none; }
-.card::before, .marks::before { top: 7px; left: 7px; border-top: 1px solid var(--muted); border-left: 1px solid var(--muted); }
-.card::after, .marks::after { bottom: 7px; right: 7px; border-bottom: 1px solid var(--muted); border-right: 1px solid var(--muted); }
 
 /* The masthead: one section. The run and its clock across the top; under them the ruler, the
    fader, and the playback keys with the ruler's legend. */
-.masthead { display: grid; gap: 12px; padding: 20px 20px 14px; min-width: 0; }
+.masthead { display: grid; gap: 12px; padding: 20px 0 14px; min-width: 0; }
 /* The whole town, like the picture of a video player: the timeline under it plays it. */
 .townview { position: relative; min-width: 0; }
 .townview canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; }
@@ -112,8 +111,8 @@ select, input[type="search"] { background: var(--surface-hi); border: 1px solid 
 .townview canvas.dragging { cursor: grabbing; }
 .mapkeys { position: absolute; right: 0; bottom: 0; display: flex; gap: 4px; }
 .mapkeys button { font-size: var(--step--1); padding: 2px 9px; border-radius: 7px; min-width: 30px; }
-.topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-.brand { display: grid; gap: 3px; min-width: 0; justify-items: start; padding: 4px 4px 0; }
+.topline { padding: 20px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.brand { display: grid; gap: 8px; min-width: 0; justify-items: start; }
 .topline .theme { font-size: var(--step--1); padding: 4px 10px; }
 .brand .run { font-family: var(--font-data); font-size: var(--step--2); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; overflow-wrap: anywhere; }
 .transport { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
@@ -140,14 +139,14 @@ button.link:active { transform: none; }
 
 /* The timeline, like a ruler with a fader. */
 .timeline { display: grid; gap: 6px; min-width: 0; }
-.playback { position: sticky; top: 0; z-index: 5; align-self: start; background: var(--bg); padding: 10px 20px; border-bottom: 1px solid var(--line); box-shadow: 0 4px 12px var(--press); }
+.playback { position: sticky; top: var(--tools-height, 0px); z-index: 5; align-self: start; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--line); }
 .timeline-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--ink-2); font-size: var(--step--2); }
 .timeline-focus .following { color: var(--accent); font-weight: 600; }
 .timeline-focus .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .timeline-focus .thought { border-radius: 0; transform: rotate(45deg); }
-html { scroll-padding-top: var(--playback-height, 180px); }
+html { scroll-padding-top: calc(var(--tools-height, 0px) + var(--playback-height, 180px)); }
 [id^="reflection-"] { scroll-margin-top: 12px; }
-@media (max-width: 650px) { .playback { padding: 8px 12px; } .playback .hint, .playback .legend { display: none; } .transport .speed { margin-inline-start: 0; } }
+@media (max-width: 650px) { .playback { padding: 8px 0; } .playback .hint, .playback .legend { display: none; } .transport .speed { margin-inline-start: 0; } }
 .deck { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .deck .legend { margin-inline-start: auto; }
 .timeline canvas { width: 100%; height: 54px; display: block; cursor: pointer; }
@@ -164,7 +163,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 
 .work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: 14px; align-items: start; }
 @media (max-width: 980px) { .work { grid-template-columns: minmax(0, 1fr); } }
-.stage { padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.stage { padding: 16px 0; display: grid; gap: 14px; min-width: 0; }
 /* The views: a segmented switch set into a well. */
 .tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 11px; justify-self: start; }
 .stagehead { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
@@ -199,7 +198,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 .inner-details .chosen { color: var(--accent); }
 .inner-empty { padding: 25px 16px; border: 1px dashed var(--line); border-radius: 10px; display: grid; gap: 9px; }
 .inner-empty p { margin: 0; max-width: 64ch; }
-.observer { display: grid; gap: 9px; border-top: 1px solid var(--line); padding-top: 12px; }
+.observer { display: grid; gap: 9px; padding: 16px 0; }
 .observer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .observer-head > div, .observer-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .observer-head h2 { font-size: var(--step-0); }
@@ -390,7 +389,8 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
 <div class="app" id="app">
   <div class="topline">
     <div class="brand">
-      <h1>Under Glass</h1>
+      <span class="label">Under Glass / Dashboard</span>
+      <h1>Run viewer</h1>
       <div class="run" id="runLabel">No run loaded</div>
       <button id="openBtn" class="link" type="button">Open a run…</button>
       <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -441,7 +441,7 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
       </div>
       <div class="hint">Hover markers for events · Click a marker to jump exactly · Space plays · ←/→ 5 min (Shift: 1 h) · [ ] a day</div>
     </section>
-    <section class="observer card" style="padding:16px" aria-label="What is happening now">
+    <section class="observer card" aria-label="What is happening now">
       <div class="observer-head">
         <div><h2>Happening now</h2><span class="observer-follow" id="observerScope">The town</span></div>
         <nav class="observer-nav" aria-label="Meaningful moments">
@@ -1243,6 +1243,7 @@ const hideTip = () => { tip.hidden = true; timelineHover = null; };
 
 // ---- the run --------------------------------------------------------------------------------
 let R = null; // the loaded run, with indexes
+let toolRecordingSource = null; // A server URL, never a guessed path for a picked local file.
 const S = { t: 0, playing: false, speed: 120, tab: "town", person: -1, pair: null, story: -1, innerFocus: null, popSort: "household", popHigh: false, hood: "all",
   relMode: "now", relMin: 0.3, relHome: false, feed: new Set(["acts", "gate", "ties", "authority"]), feedSearch: "", onlyPerson: false };
 
@@ -3139,7 +3140,9 @@ function showTab(tab) {
   lastRelKey = lastStoryKey = lastPopKey = lastInnerKey = ""; render();
 }
 function start(run, source) {
+  setPlaying(false);
   try { R = load(run); } catch (err) { showError(err.message); return; }
+  toolRecordingSource = null;
   readColours();
   const label = [`seed ${run.seed}`, `${run.days} days`, run.label || "the town as it ships", source].filter(Boolean).join(" · ");
   $("runLabel").textContent = label;
@@ -3151,6 +3154,8 @@ function start(run, source) {
   // Open on the town meeting of the first day when there is one, else at 9:00.
   const meeting = run.hubs.find((h) => h.onlyDay === 0);
   setTime(meeting ? meeting.from + 30 : 9 * 60);
+  window.dispatchEvent(new Event("under-glass-recording"));
+  return true;
 }
 function showError(message) { $("runLabel").textContent = message; }
 $("play").addEventListener("click", () => R && setPlaying(!S.playing));
@@ -3225,6 +3230,7 @@ $("themeBtn").addEventListener("click", () => {
 const recolour = () => { if (!R) return; readColours(); if (TOWN) TOWN.back = null; for (const p of panels) { p.back = null; p.chipKey = ""; } lastRelKey = lastStoryKey = lastSideKey = lastFeedKey = lastPopKey = ""; render(); };
 const followHost = () => { if (!chosenMode()) applyMode(autoMode()); };
 themeWatch.addEventListener?.("change", followHost);
+window.addEventListener("storage", (event) => { if (event.key === "under-glass-mode" || event.key === null) applyMode(chosenMode() ?? autoMode()); });
 new MutationObserver(followHost).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 applyMode(chosenMode() ?? autoMode());
 window.addEventListener("resize", () => R && render());
@@ -3232,7 +3238,10 @@ new ResizeObserver(() => { if (R && S.tab === "town" && $("groups").clientWidth 
 
 // A run carried inside the page (written by UnderGlass.Replay --html), or an invitation to open one.
 const embedded = $("run-data").textContent.trim();
-if (embedded) start(JSON.parse(embedded), null);
+if (embedded) {
+  start(JSON.parse(embedded), null);
+  if (/^https?:$/.test(location.protocol)) toolRecordingSource = location.origin + location.pathname;
+}
 else {
   $("groups").replaceChildren(el("div", { class: "empty" }, el("h2", { text: "Open a run to watch the town" }),
     el("button", { onclick: () => $("fileInput").click(), text: "Open a run…" }),
@@ -3240,5 +3249,23 @@ else {
     el("pre", { class: "data", style: "white-space:pre-wrap;font-size:var(--step--1)", text: "dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --out run1.json" }),
     el("p", { class: "note", text: "Or write the viewer with the run inside it, one file to open: use --html run1.html instead of --out." })));
   $("inspector").replaceChildren(el("p", { class: "note", text: "Nothing loaded yet." }));
+}
+// Navigation is a preview enhancement; standalone exported recordings need no external files.
+window.underGlassToolPage = {
+  page: "dashboard",
+  source: () => toolRecordingSource ?? (R ? null : undefined),
+  hasRecording: () => !!R,
+  state: () => R ? { t: Math.floor(S.t), person: R.names[S.person] ?? "", tab: S.tab } : {},
+  load: (run, source, state) => {
+    if (!start(run, source.split("/").pop())) throw new Error("The dashboard could not read this recording.");
+    toolRecordingSource = source;
+    S.person = R.names.indexOf(state.person);
+    if (state.tab) showTab(state.tab);
+    if (state.t !== undefined) setTime(state.t);
+    else render();
+  },
+};
+if (/^https?:$/.test(location.protocol)) {
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-4"; document.head.append(script);
 }
 </script>

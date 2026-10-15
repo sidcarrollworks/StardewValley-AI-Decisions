@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Under Glass — Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ui.css?v=20261014-4">
+<script src="ui.js"></script>
+</head>
+<body class="tool-page">
+<main>
+  <header class="tool-head marks"><div><span class="label">Under Glass / Tools</span><h1>Observer tools</h1><p>Watch a life unfold. Inspect and refine the words people use.</p></div><button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button></header>
+  <div class="recording-grid tool-section">
+    <article class="recording-card"><h2>Dashboard</h2><p>Follow characters, thoughts, actions and their recorded consequences on one clock.</p><a class="key-link" data-tool-link="dashboard" href="index.html">Open dashboard →</a></article>
+    <article class="recording-card"><h2>Speech editor</h2><p>Explore coverage by voice and situation. Edit authored lines and download a revised catalog.</p><a class="key-link" data-tool-link="speech" href="speech.html">Open speech editor →</a></article>
+    <article class="recording-card"><h2>Saved recordings</h2><p>Choose from the prepared runs and voice comparisons, with guides for what to watch.</p><a class="key-link" data-tool-link="recordings" href="morning.html">Browse recordings →</a></article>
+  </div>
+  <details class="tool-disclosure"><summary>Open a recording by address</summary>
+    <p>Use a JSON recording or a saved dashboard HTML page served by this preview. It opens in the current dashboard without changing the saved recording.</p>
+    <form id="open-recording" class="tool-actions"><label for="recording-address">Recording address</label><input type="search" id="recording-address" placeholder="/out/observer-test-2026-10-12/hybrid-seed7.html" required><button>Open dashboard</button></form>
+    <p id="open-error" role="status" class="meta"></p>
+  </details>
+  <details class="tool-disclosure"><summary>What changes when I edit speech?</summary><p>The editor saves a browser draft and can download a catalog. It does not alter a saved recording or the running simulation. Record a new run with the revised catalog to test its effect on speech.</p></details>
+  <details class="tool-disclosure"><summary>What is coming next?</summary><p>A focused view of thought and action chains, and an archetype studio for creating and testing reusable character tendencies, are being assessed. They are not available yet.</p></details>
+</main>
+<script>
+window.underGlassToolPage = { page: "tools" };
+document.getElementById("open-recording").onsubmit = (event) => {
+  event.preventDefault();
+  try {
+    if (!window.UnderGlassTools) throw new Error("Open this page through the local preview server.");
+    location.href = UnderGlassTools.toolUrl("dashboard", document.getElementById("recording-address").value.trim(), null, location.href);
+  } catch (error) { document.getElementById("open-error").textContent = error.message; }
+};
+if (/^https?:$/.test(location.protocol)) {
+  const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-4"; document.head.append(script);
+}
+</script>
+</body>
+</html>

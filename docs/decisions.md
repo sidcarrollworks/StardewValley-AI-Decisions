@@ -1071,6 +1071,24 @@ someone who works through the counter's hours; whether people should count their
 asked is open. Penny said no to beer eight times, all to her mother, most at margins that would
 otherwise have been clear yeses. See the [needs spec](under-glass/specs/needs-spec.md).
 
+### Observer tools navigation (2026-10-14)
+
+Sid requested connected testing tools while the history assessment proceeds. A tools landing page
+and shared preview navigation connect the dashboard, speech editor and recording index. Links
+carry the same server-hosted recording and the dashboard's time, character and tab; returning is
+paused. Existing saved HTML can be opened in the current viewer by extracting its run JSON,
+without rewriting the artifact or executing its scripts. Local picked files remain local and
+require reopening in the destination tool. This adds no history or archetype mechanics; the
+causal graph and archetype studio remain assessment work.
+
+Sid then requested visual consistency with the dashboard and less introductory text. The tools
+reuse its palette, typography, controls and persisted theme. Speech shows four
+catalog-wide metrics with definitions and source details collapsed; these do not change with grid
+filters. The recording index puts the observer runs first and keeps setup, spoilers and older
+experiments in expandable sections. Every original recording and reference remains linked. Sid requested plain title sections without
+corner marks, a sticky shared top bar, and no timeline shadow or Happening now top border. The
+bar height is measured so nested sticky controls and the speech drawer remain below navigation.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer

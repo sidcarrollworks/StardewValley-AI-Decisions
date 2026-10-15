@@ -18,8 +18,8 @@ public class ViewerPageTests
         Assert.Contains("id=\"play\"", controls);
         Assert.Contains("id=\"previousMoment\"", controls);
         Assert.Contains("id=\"nextMoment\"", controls);
-        Assert.Contains(".playback { position: sticky; top: 0;", html);
-        Assert.Contains("scroll-padding-top: var(--playback-height", html);
+        Assert.Contains(".playback { position: sticky; top: var(--tools-height, 0px);", html);
+        Assert.Contains("scroll-padding-top: calc(var(--tools-height, 0px) + var(--playback-height", html);
         Assert.Contains("ResizeObserver", html);
     }
 
