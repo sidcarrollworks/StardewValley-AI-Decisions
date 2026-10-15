@@ -49,3 +49,6 @@ public static class EveningPolicy
     public static ExpectationKey FollowKey(string partner, string place) => new(ExpectationKind.FollowThrough, partner, "PlayedGame:" + place + ":evening");
     public static MemoryObject Situation(string partner, string place) => new(MemoryObjectKind.Situation, "evening:PlayedGame:" + partner + ":" + place);
 }
+
+/// <summary>Observer-only counts of offer gates; not a character belief or a choice.</summary>
+public sealed record EveningGate(int Day, string Holder, string Partner, string Reason, int FirstAt, int LastAt, int Checks);

@@ -194,6 +194,13 @@ For this first ranking implementation, accounts and reviewed readings start at `
 amount, and expectation states use 1. These are recall ranking values, not evidence confidence
 or a calibrated comparison of psychological importance. They need review in actual choices.
 
+Expectation summaries receive at most one initial slot while other matched records remain.
+Unused slots can then be filled by further estimates. This keeps several unit-strength estimates
+with identical cues from excluding every lived feeling after one successful episode. It does not
+reserve a positive feeling: warm and wary memories use the same ranking. The existing pre-run
+slot and optional low-mood extra still apply. This 2026-10-15 correction changes opted-in runs;
+it is not a claim that this recall balance is a finished psychological model.
+
 With low mood, one additional positive candidate may be returned by warmth alone from the
 **already matched pool**. This implementation does not search all history for comfort. No mood
 is read automatically: the caller supplies `lowMood`.

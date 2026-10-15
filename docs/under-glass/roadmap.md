@@ -51,8 +51,8 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   destinations, learns associations from perceived feelings, and records the same choice with and
   without requested history. It enables no canon history seeds, model calls, new plans or full Lives
   observer export on its own. The new evening pilot supplies an explicitly loaded, reviewed source pack.
-  Standalone routing receipts still use the trial report; the chain viewer now follows the evening
-  pilot and its supporting memory records.
+  The chain viewer now follows routing, immediate company and evening plans, with the
+  supporting memory records and stable observations tucked away.
 - Built, opt-in: [immediate company](specs/lives-company-spec.md) connects remembered warmth to
   seeking someone, a local game offer, a next-minute answer and a completed or interrupted activity.
   It learns distinct whereabouts, availability, answer and activity expectations that later company
@@ -329,3 +329,12 @@ The mod's shadow mode, template-only dialogue and game-thread restrictions remai
 Work uses `codex/reflection-prototype` as the ongoing base and reviewable PRs targeting it, as
 specified in [AGENTS.md](../../AGENTS.md). The current reflection PR remains the review unit
 for the prototype and this roadmap; starting a new feature follows the repository branch rules.
+
+### Continuity review, 2026-10-15
+
+The evening pilot demonstrated a single episode but initially failed to keep offering later
+choices: expectation summaries could monopolize recall. This has been corrected with a bounded,
+valence-neutral recall mix and observer-only offer-gate diagnostics. Life chains now includes
+ongoing company and routing choices. Three new 35-day authored runs retain quiet and unsuccessful
+paths; the next evaluation is whether later experiences meaningfully change choices, not a quota
+of completed evenings. Fresh Laya comparisons and richer activity content remain subsequent work.

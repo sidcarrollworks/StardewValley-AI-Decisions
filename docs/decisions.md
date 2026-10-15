@@ -1488,3 +1488,21 @@ Starting histories stay in expandable branches. Timeline markers show learning r
 duplicate learned-memory card. Unrelated routing and immediate-company choices are outside this
 pilot adapter; supporting recalled experiences are retained. The trial report links directly to
 Life chains at the relevant character and moment. No simulation behavior changes.
+
+
+### 2026-10-15 — Preserve continued choices and expose incomplete opportunity chains
+
+Sid observed that Penny's life stopped after her first evening in the chain viewer. The recording
+contained ongoing company/routing choices that the narrow adapter omitted. The evening consumer
+also stopped asking because overlapping expectation summaries occupied bounded recall, excluding
+warmth/wishes even at eligible encounters. We now admit at most one estimate in the first recall
+pass, filling remaining slots from other matched records and finally unused slots with estimates.
+Ranking is valence-neutral; no positive result or invitation is guaranteed. Existing routines,
+choice weights, sleep rules and needs bars remain unchanged.
+
+Observer-only daily offer-gate counts diagnose silence without turning execution truth into a
+character belief. Life chains now includes company/routing and personal outcomes with explicit
+causal references. It groups unchanged whereabouts confirmations and hides automatic decay from
+the primary timeline, while retaining their evidence for inspection. A route selection is not
+labelled an arrival, an unavailable gate is not a private explanation, and older recordings are
+never rewritten to imply the recall correction applied to them.

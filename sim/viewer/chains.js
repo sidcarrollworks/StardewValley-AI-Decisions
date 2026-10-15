@@ -47,7 +47,7 @@
   function accept(run,url,state={}){
     const parsed=M.open(run);stop();model=parsed;source=url;selected=null;focusedEvent=null;preview=null;inspection=null;thread='all';pages={};memoriesOpen=false;windowStart=null;$('error').hidden=true;
     $('workspace').hidden=model.missing;$('empty').hidden=!model.missing;$('illustrative').hidden=!(run.illustrative||run.lives?.illustrative);
-    $('source-state').textContent=model.missing?'No Lives data':model.lives.runtime?'Evening pilot · actual recording':`Lives ${model.lives.version} · ${model.lives.illustrative?'illustrative fixture':'recorded run'}`;
+    $('source-state').textContent=model.missing?'No Lives data':model.lives.runtime?'Lives pilot · actual recording':`Lives ${model.lives.version} · ${model.lives.illustrative?'illustrative fixture':'recorded run'}`;
     if(model.missing){notify();return;}
     const chosen=run.names.indexOf(state.person);who=chosen>=0?chosen:Math.max(0,run.names.indexOf('Penny'));
     const holders=model.lives.holders?.length?model.lives.holders:run.names;
@@ -97,8 +97,32 @@
     if(windowStart===null||tick<windowStart||tick>windowEnd)setWindow(tick);
     $('comparison-section').hidden=!observer||!current.comparisons.length;
     if(!observer){$('comparisons').hidden=true;$('compare-toggle').setAttribute('aria-expanded','false');$('compare-toggle').textContent='Open isolated comparisons';}
-    renderTimeline();renderMoment();renderGraph();renderInspector();renderComparisons();notify();
+    renderTimeline();renderMoment();renderGraph();renderInspector();renderComparisons();renderRoutine();notify();
   }
+  function renderRoutine(){
+    const checks=M.routineChecks(model,tick,who,observer);$('routine-checks').hidden=!checks.length;
+    $('routine-count').textContent=`Routine observations · ${checks.length} unchanged confirmations`;
+    if($('routine-checks').open){
+      const root=$('routine-list');root.replaceChildren();
+      const groups=new Map();for(const c of checks){const key=`Day ${Math.floor(c.at/1440)+1} · ${model.run.names[c.holder]}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(c);}
+      for(const [day,items]of [...groups].reverse()){
+        const d=el('details',undefined,'tool-disclosure');d.append(el('summary',`${day} · ${items.length} checks`));
+        for(const c of items)d.append(button(`${clock(c.at)} · ${c.label}`,()=>seek(c.at,c.id)));
+        root.append(d);
+      }
+    }
+    // Daily counts are privileged diagnostics, never a character's knowledge. Incomplete
+    // aggregates are withheld until their last recorded check to avoid leaking future totals.
+    const gates=(model.run.livesEvenings?.gates||[]).filter(g=>g.holder===model.run.names[who]&&g.lastAt<=tick);
+    $('offer-gates').hidden=!observer||!gates.length;
+    if(observer&&$('offer-gates').open){
+      const root=$('gate-list');root.replaceChildren(el('p','First blocking gate per check, before 17:00. These are observer diagnostics, not refusals or beliefs.'));
+      const labels={'self-unavailable':'Unavailable to propose','partner-unavailable':'Partner unavailable','self-plan-active':'Already has a plan','partner-plan-active':'Partner already has a plan','already-considered-today':'Already considered today','no-local-encounter':'No nearby encounter','company-active':'Company activity underway','no-recalled-opening':'No relevant warmth or wish recalled',considered:'Considered an offer',age:'Age restriction'};
+      for(const g of gates.slice().reverse())root.append(el('p',`Day ${g.day+1} · ${g.partner} · ${labels[g.reason]||g.reason} · ${g.checks} checks`));
+    }
+  }
+  $('routine-checks').ontoggle=()=>{if(model)renderRoutine();};
+  $('offer-gates').ontoggle=()=>{if(model)renderRoutine();};
   function atEvent(e){return M.view(model,{tick:e.at,who,observer,thread});}
   function preferred(ids,v){return ids.map(id=>v.all.get(id)).filter(Boolean).sort((a,b)=>['Choice','Attempt','Perceived','Learned','Recall','Outcome','History'].indexOf(a.stage)-['Choice','Attempt','Perceived','Learned','Recall','Outcome','History'].indexOf(b.stage))[0]?.id;}
   function previewEvent(e){

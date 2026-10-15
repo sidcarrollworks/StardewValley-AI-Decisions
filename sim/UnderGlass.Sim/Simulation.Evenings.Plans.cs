@@ -53,17 +53,42 @@ public sealed partial class Simulation
         }
         foreach (Person p in _people)
         {
-            if (!EveningParticipant(p.V.Name) || !CompanyFree(p, m) || _eveningPerson.ContainsKey(p.V.Name) || EveningReserved(p.V.Name)) continue;
+            if (!EveningParticipant(p.V.Name)) continue;
             foreach (Person other in _people)
             {
-                if (p == other || !EveningParticipant(other.V.Name) || p.V.Home != other.V.Home || p.V.Household != other.V.Household
-                    || !_places.ContainsKey(p.V.Home) || _eveningPerson.ContainsKey(other.V.Name) || EveningReserved(other.V.Name)
-                    || _eveningConsidered.GetValueOrDefault(CompanyPair(p.V.Name, other.V.Name), -1) == Clock.Day(m)
-                    || !EveningEncounter(p, other, m)) continue;
+                if (p == other || !EveningParticipant(other.V.Name) || p.V.Home != other.V.Home
+                    || p.V.Household != other.V.Household || !_places.ContainsKey(p.V.Home)) continue;
+                string? gate = EveningOfferGate(p, other, m);
+                if (gate is not null) { CountEveningGate(p, other, m, gate); continue; }
                 OfferEveningPlan(p, other, m);
                 if (EveningReserved(p.V.Name)) break;
             }
         }
+    }
+
+    // Observer diagnostics aggregate the first blocking gate per directed pair/day. These
+    // counters are never read by decisions and expose live availability only to observers.
+    private readonly Dictionary<(int Day, string Holder, string Partner, string Reason), EveningGate> _eveningGates = new();
+    private void CountEveningGate(Person p, Person other, int m, string reason)
+    {
+        if (!_evenings.Record) return;
+        var key = (Clock.Day(m), p.V.Name, other.V.Name, reason);
+        _eveningGates[key] = _eveningGates.TryGetValue(key, out var old)
+            ? old with { LastAt = m, Checks = old.Checks + 1 }
+            : new(key.Item1, key.Item2, key.Item3, reason, m, m, 1);
+    }
+
+    private string? EveningOfferGate(Person p, Person other, int m)
+    {
+        if (!CompanyFree(p, m)) return "self-unavailable";
+        if (_eveningPerson.ContainsKey(p.V.Name) || EveningReserved(p.V.Name)) return "self-plan-active";
+        if (_eveningPerson.ContainsKey(other.V.Name) || EveningReserved(other.V.Name)) return "partner-plan-active";
+        if (_eveningConsidered.GetValueOrDefault(CompanyPair(p.V.Name, other.V.Name), -1) == Clock.Day(m)) return "already-considered-today";
+        if (!CompanyFree(other, m)) return "partner-unavailable";
+        if (p.V.Age < 5 || other.V.Age < 5) return "age";
+        if (!CompanySees(p, other) || p.At.Chebyshev(other.At) > _po.NearTiles) return "no-local-encounter";
+        if (_companyByPerson.ContainsKey(p.V.Name) || _companyByPerson.ContainsKey(other.V.Name)) return "company-active";
+        return null;
     }
 
     private void OfferEveningPlan(Person p, Person other, int m, double? refusedMargin = null, string? refusedItem = null)
@@ -75,7 +100,8 @@ public sealed partial class Simulation
         string[] cues = EveningCues(other.V.Name, p.V.Home);
         string? warm = CompanyOpening(_livesMemory[p.V.Name].Capture(), other.V.Name, cues, m);
         string? wish = EveningWish(p, cues, m);
-        if (warm is null && wish is null) return;
+        if (warm is null && wish is null) { CountEveningGate(p, other, m, "no-recalled-opening"); return; }
+        CountEveningGate(p, other, m, "considered");
         _eveningConsidered[CompanyPair(p.V.Name, other.V.Name)] = Clock.Day(m);
         var plan = new EveningPlan($"{m}:{p.V.Name}:{other.V.Name}", p.V.Name, other.V.Name, p.V.Home, m, start, end, EveningStage.Considering);
         var options = new[] {

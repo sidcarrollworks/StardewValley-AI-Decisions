@@ -394,7 +394,7 @@ public static class Replay
             {
                 version = 1, stage = "evening-plans", settings = livesEvenings,
                 updates = r.LivesEveningUpdates, choices = r.LivesEveningChoices,
-                outcomes = r.LivesEveningOutcomes, decisions = r.LivesDecisions,
+                outcomes = r.LivesEveningOutcomes, decisions = r.LivesDecisions, gates = r.LivesEveningGates,
             }, json);
         }
         return recording;

@@ -211,6 +211,7 @@ public sealed class SimResult
     public IReadOnlyList<Lives.CompanyChoice> LivesCompanyChoices { get; init; } = Array.Empty<Lives.CompanyChoice>();
     public IReadOnlyList<Lives.CompanyAnswer> LivesCompanyAnswers { get; init; } = Array.Empty<Lives.CompanyAnswer>();
     public IReadOnlyList<Lives.CompanyOutcome> LivesCompanyOutcomes { get; init; } = Array.Empty<Lives.CompanyOutcome>();
+    public IReadOnlyList<Lives.EveningGate> LivesEveningGates { get; init; } = Array.Empty<Lives.EveningGate>();
     public IReadOnlyList<Lives.EveningUpdate> LivesEveningUpdates { get; init; } = Array.Empty<Lives.EveningUpdate>();
     public IReadOnlyList<Lives.EveningChoice> LivesEveningChoices { get; init; } = Array.Empty<Lives.EveningChoice>();
     public IReadOnlyList<Lives.EveningOutcome> LivesEveningOutcomes { get; init; } = Array.Empty<Lives.EveningOutcome>();
@@ -572,6 +573,7 @@ public sealed partial class Simulation
             LivesCompanyChoices = _companyChoices.AsReadOnly(),
             LivesCompanyAnswers = _companyAnswers.AsReadOnly(),
             LivesCompanyOutcomes = _companyOutcomes.AsReadOnly(),
+            LivesEveningGates = _eveningGates.Values.OrderBy(g => g.FirstAt).ThenBy(g => g.Holder, StringComparer.Ordinal).ThenBy(g => g.Partner, StringComparer.Ordinal).ThenBy(g => g.Reason, StringComparer.Ordinal).ToArray(),
             LivesEveningUpdates = _eveningUpdates.AsReadOnly(),
             LivesEveningChoices = _eveningChoices.AsReadOnly(),
             LivesEveningOutcomes = _eveningOutcomes.AsReadOnly(),
