@@ -15,6 +15,12 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Lives pilot preparation, 2026-10-15: Sid deferred further archetype editing and asked Codex to
+continue Claude's work. The [implementation plan](docs/under-glass/specs/lives-pilot-spec.md)
+specifies the history-to-learning loop, controlled history comparisons and staged acceptance.
+The current engine's three-seed, 35-day baseline is captured and verified by a new offline
+tool. Runtime Lives mechanics remain planned; no proposed history reading was approved or seeded.
+
 Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
 character and tab preserved on return. This is viewer navigation only; the history assessment
