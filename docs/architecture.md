@@ -60,7 +60,7 @@ Frozen same-choice comparisons recompute recall and weights after removing speci
 holding the scene, personal state, options and random unit fixed. They never direct the live run.
 `Replay` writes additive `livesRouting` version-1 receipts only when recording is enabled; this is
 not the full Lives 0.2 export and the chain viewer does not read it yet. No canon history pack is
-loaded implicitly or shipped as admitted content. Tests use synthetic histories. Generic routes
+loaded implicitly. The evening extension below ships separately reviewed pilot content. Generic routes
 do not read expectation keys. The separate company consumer below does.
 
 The opt-in [immediate company consumer](under-glass/specs/lives-company-spec.md) adds remembered
@@ -75,6 +75,18 @@ from write-only observer lists. Replay writes experimental `livesCompany` versio
 neither this nor `livesRouting` is a full Lives 0.2 export. No future appointments, new model calls
 or canon seed approvals are introduced. The existing sleep rules and bedtime weight remain the
 baseline, with no added bedtime cost on invitations.
+
+The separate [evening extension](under-glass/specs/lives-evenings-spec.md) connects explicit reviewed
+history to future shared-home offers, answers, later choices and outcomes. `Simulation.Evenings*`
+owns active plans, per-holder expectation windows and deferred concern. It reuses managed company
+activities for physical continuity and shared learning. No private plan leaks into Gus's observation:
+he reads his own whereabouts evidence and local sightings. Disappointment changes mood and the
+hoped-for situation only. `ILivesDecisionMind` supplies typed weights on torn choices between
+minutes, capped at two evaluations per person/day. `LivesLayaMind` bounds complete requests to 1,250
+characters and falls back on failure; `RecordedLivesDecisionMind` checks exact requests and tape
+consumption. The engine keeps its keyed draw. Experimental `livesEvenings` receipts and optional
+same-choice history comparisons are write-only. The dedicated trial review projects these receipts;
+the main chain viewer and full Lives 0.2 contract integration remain next.
 
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
 (`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes

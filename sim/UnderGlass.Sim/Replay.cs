@@ -29,6 +29,7 @@ public sealed record ReplayOptions
     public Lives.HistoryPack? History { get; init; }
     /// <summary>Experimental immediate shared games; off unless explicitly enabled.</summary>
     public Lives.CompanyOptions LivesCompany { get; init; } = new();
+    public Lives.EveningOptions LivesEvenings { get; init; } = new();
 }
 
 /// <summary>
@@ -60,11 +61,12 @@ public static class Replay
     public static Dictionary<string, object?> Record(ReplayOptions o)
         => RecordAsync(o, new AuthoredReflectionMind()).GetAwaiter().GetResult();
 
-    public static async Task<string> JsonAsync(ReplayOptions o, IReflectionMind mind, CancellationToken cancellationToken = default)
-        => JsonSerializer.Serialize(await RecordAsync(o, mind, cancellationToken).ConfigureAwait(false), Options);
+    public static async Task<string> JsonAsync(ReplayOptions o, IReflectionMind mind, CancellationToken cancellationToken = default,
+        Lives.ILivesDecisionMind? livesMind = null)
+        => JsonSerializer.Serialize(await RecordAsync(o, mind, cancellationToken, livesMind).ConfigureAwait(false), Options);
 
     public static async Task<Dictionary<string, object?>> RecordAsync(ReplayOptions o, IReflectionMind mind,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, Lives.ILivesDecisionMind? livesMind = null)
     {
         CharacterInspirationPack? inspirationPack = o.CharacterInspiration?.CopyValidated();
         Lives.HistoryPack? history = o.History?.CopyValidated();
@@ -79,6 +81,8 @@ public static class Replay
         // All company settings are value fields; retain one immutable snapshot for both the
         // simulation and its recording, as with the routing configuration above.
         var livesCompany = o.LivesCompany with { };
+        ArgumentNullException.ThrowIfNull(o.LivesEvenings);
+        var livesEvenings = o.LivesEvenings.CopyValidated();
         TownData given = o.Town ?? TownData.Default();
         FeelingOptions feelings = o.Feelings ?? given.Feelings;
         // The act catalog's rows and cards for the slices that are on, added as the runner adds them
@@ -100,6 +104,7 @@ public static class Replay
         sim.ConfigureNights(nights);
         sim.ConfigureLivesRouting(livesRouting, history);
         sim.ConfigureLivesCompany(livesCompany);
+        sim.ConfigureLivesEvenings(livesEvenings, livesMind);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -376,6 +381,18 @@ public static class Replay
                 settings = livesCompany,
                 updates = r.LivesCompanyUpdates, choices = r.LivesCompanyChoices,
                 answers = r.LivesCompanyAnswers, outcomes = r.LivesCompanyOutcomes,
+            }, json);
+        }
+        if (livesEvenings.Enabled && livesEvenings.Record)
+        {
+            var json = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                Converters = { new JsonStringEnumConverter() } };
+            recording["livesEvenings"] = JsonSerializer.SerializeToElement(new
+            {
+                version = 1, stage = "evening-plans", settings = livesEvenings,
+                updates = r.LivesEveningUpdates, choices = r.LivesEveningChoices,
+                outcomes = r.LivesEveningOutcomes, decisions = r.LivesDecisions,
             }, json);
         }
         return recording;

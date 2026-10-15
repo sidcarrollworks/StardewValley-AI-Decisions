@@ -23,8 +23,10 @@ draw and comparisons with specified history removed from the same choice. A synt
 trial exercises this connection; no canon seeds are enabled. A separate opt-in
 [immediate-company slice](docs/under-glass/specs/lives-company-spec.md) now connects remembered
 warmth to searching, offering a game, answering and completing or interrupting it. Its own outcome
-expectations feed later company choices. Reviewed pilot histories, future shared plans and model
-evaluation remain next. The current routine baseline is retained. See the
+expectations feed later company choices. The opt-in [evening pilot](docs/under-glass/specs/lives-evenings-spec.md)
+now adds reviewed Penny/Pam/Gus histories, future shared plans, perceived outcomes and bounded typed
+Laya evaluations with exact tape replay. The main chain-viewer adapter, full observer contract and
+richer activities remain next. The current routine baseline is retained. See the
 [memory foundation](docs/under-glass/specs/lives-memory-spec.md) and
 [routing scope](docs/under-glass/specs/lives-routing-spec.md).
 

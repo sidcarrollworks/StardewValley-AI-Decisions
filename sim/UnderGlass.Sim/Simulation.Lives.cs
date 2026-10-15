@@ -5,6 +5,7 @@ namespace UnderGlass.Sim;
 public sealed partial class Simulation
 {
     private LivesRoutingOptions _livesRouting = new();
+    private HistoryPack? _livesHistory;
     private readonly Dictionary<string, PersonalMemory> _livesMemory = new(StringComparer.Ordinal);
     private readonly Dictionary<string, long> _livesSequence = new(StringComparer.Ordinal);
     private readonly Dictionary<(string Holder, int Act), LearnedFeeling> _livesFelt = new();
@@ -57,6 +58,7 @@ public sealed partial class Simulation
         _livesRouting = options with { CompareHistory = Array.AsReadOnly(options.CompareHistory.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()) };
         foreach (var pair in memories) { _livesMemory.Add(pair.Key, pair.Value); _livesSequence.Add(pair.Key, 0); }
         _livesChanges = changes;
+        _livesHistory = pack;
     }
 
     /// <summary>Frozen observer/test view; routing never reads another person's view.</summary>

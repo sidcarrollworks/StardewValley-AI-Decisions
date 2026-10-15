@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\UnderGlass.Sim\UnderGlass.Sim.csproj" />
+    <ProjectReference Include="..\UnderGlass.Minds\UnderGlass.Minds.csproj" />
   </ItemGroup>
 </Project>

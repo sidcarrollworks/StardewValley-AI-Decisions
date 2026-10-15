@@ -3,6 +3,7 @@ using System.Reflection;
 using UnderGlass.Sim;
 using UnderGlass.Minds;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UnderGlass.Sim.Lives;
 
 // Under Glass: record one run of the default town for the viewer (sim/viewer/index.html).
@@ -38,6 +39,15 @@ if (args.Contains("--help", StringComparer.Ordinal))
         Company requires routing and both catalog slices. Its separate livesCompany
         recording block is experimental; it is not the full Lives observer 0.2 contract.
 
+        Experimental future evenings (requires company, routing and their catalog slices):
+          --lives-evenings --evening-people Penny,Pam,Gus
+          --lives-laya <loopback-url> --lives-laya-model <model>    Default model: laya.
+          --lives-tape <previous-run.json or tape-array.json>     No network calls.
+          --no-evening-record              Omit evening receipts; behavior is unchanged.
+        Omit --lives-laya for authored choices. Laya and tape are mutually exclusive.
+        Histories remain explicit: --history sim/history/penny-pam-gus.json.
+        These typed choices do not require reflection or a text generator.
+
         Optional reflection:
           --reflection authored|laya|hybrid|tape --character-inspiration <pack.json>
           --laya-url <url> --laya-model <model> --evaluation raw|canonical|balanced
@@ -57,6 +67,10 @@ string? inspirationPath = null;
 string? historyPath = null;
 bool livesRouting = false, livesRecord = true;
 bool livesCompany = false, companyRecord = true;
+bool livesEvenings = false, eveningRecord = true;
+string? livesLayaUrl = null, livesTapePath = null;
+string livesLayaModel = "laya";
+var eveningPeople = new List<string>();
 var compareHistory = new List<string>();
 string layaModel = "typed-decisions";
 string evaluationMode = "balanced";
@@ -80,6 +94,16 @@ for (int i = 0; i < args.Length; i++)
         case "--no-lives-record": livesRecord = false; break;
         case "--lives-company": livesCompany = true; break;
         case "--no-company-record": companyRecord = false; break;
+        case "--lives-evenings": livesEvenings = true; break;
+        case "--no-evening-record": eveningRecord = false; break;
+        case "--lives-laya": livesLayaUrl = Next(); break;
+        case "--lives-laya-model": livesLayaModel = Next(); break;
+        case "--lives-tape": livesTapePath = Next(); break;
+        case "--evening-people":
+            string people = Next();
+            if (people.Split(',').Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("--evening-people needs comma-separated names without empty entries.");
+            eveningPeople.AddRange(people.Split(',').Select(name => name.Trim()));
+            break;
         case "--laya-url": layaUrl = Next(); break;
         case "--laya-model": layaModel = Next(); break;
         case "--evaluation": evaluationMode = Next(); break;
@@ -172,6 +196,15 @@ if (livesCompany && !livesRouting)
     throw new ArgumentException("--lives-company requires --lives-routing and --catalog company,invitations.");
 if (!companyRecord && !livesCompany)
     throw new ArgumentException("--no-company-record requires --lives-company.");
+if (livesEvenings && !livesCompany)
+    throw new ArgumentException("--lives-evenings requires --lives-company, --lives-routing and --catalog company,invitations.");
+if (!livesEvenings && (!eveningRecord || livesLayaUrl is not null || livesTapePath is not null
+    || eveningPeople.Count > 0 || args.Contains("--lives-laya-model", StringComparer.Ordinal)))
+    throw new ArgumentException("Evening model, participant and recording options require --lives-evenings.");
+if (livesLayaUrl is not null && livesTapePath is not null)
+    throw new ArgumentException("Choose either --lives-laya or --lives-tape; a tape never calls the model.");
+if (args.Contains("--lives-laya-model", StringComparer.Ordinal) && livesLayaUrl is null && livesTapePath is null)
+    throw new ArgumentException("--lives-laya-model requires --lives-laya or --lives-tape.");
 HistoryPack? history = historyPath is null ? null : HistoryPack.Read(File.ReadAllText(historyPath));
 var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
@@ -189,16 +222,45 @@ if (reflectionMode == "tape")
     mind = new RecordedReflectionMind(tape.RootElement.GetProperty("reflections")
         .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
 }
+using var livesModel = livesLayaUrl is null ? null : new LivesLayaMind(new LivesLayaOptions
+{
+    BaseUrl = livesLayaUrl,
+    Model = livesLayaModel,
+});
+ILivesDecisionMind? livesMind = livesModel;
+RecordedLivesDecisionMind? livesTape = null;
+if (livesTapePath is not null)
+{
+    using JsonDocument tape = JsonDocument.Parse(File.ReadAllText(livesTapePath));
+    JsonElement records = tape.RootElement.ValueKind == JsonValueKind.Array ? tape.RootElement
+        : tape.RootElement.TryGetProperty("livesEvenings", out var block) && block.TryGetProperty("decisions", out var decisions)
+            ? decisions : throw new ArgumentException("The Lives tape must be an array of decision records or a run with livesEvenings.decisions.");
+    var tapeJson = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } };
+    livesTape = new RecordedLivesDecisionMind(records.Deserialize<LivesDecisionRecord[]>(tapeJson)
+        ?? throw new ArgumentException("The Lives tape is null."));
+    livesMind = livesTape;
+}
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
     Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech }, Nights = nights,
     LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
-    LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord } }, mind);
+    LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord },
+    LivesEvenings = new EveningOptions { Enabled = livesEvenings, Record = eveningRecord,
+        Participants = eveningPeople, Model = livesLayaModel } }, mind, livesMind: livesMind);
+livesTape?.RequireConsumed();
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);
     var thoughts = recorded.RootElement.GetProperty("reflections").EnumerateArray().ToArray();
     Console.WriteLine($"reflections: {thoughts.Length}; " + string.Join(", ", thoughts.GroupBy(t => t.GetProperty("answer").GetProperty("backend").GetString())
         .Select(g => $"{g.Key} {g.Count()}")));
+}
+if (livesEvenings && eveningRecord)
+{
+    using JsonDocument recorded = JsonDocument.Parse(json);
+    var evaluations = recorded.RootElement.GetProperty("livesEvenings").GetProperty("decisions").EnumerateArray().ToArray();
+    Console.WriteLine($"evening model evaluations: {evaluations.Length}; " + string.Join(", ", evaluations
+        .GroupBy(d => d.GetProperty("answer").GetProperty("backend").GetString()).Select(g => $"{g.Key} {g.Count()}")));
+    if (livesTape is not null) Console.WriteLine("all recorded Lives answers consumed without network access");
 }
 Console.WriteLine($"recorded seed {seed}, {days} days in {clock.Elapsed.TotalSeconds:0.0} s ({json.Length / 1024.0 / 1024:0.0} MB)");
 if (outPath is not null)
