@@ -2,9 +2,10 @@
 
 A page for watching one run of the town: everyone moving through the day, each person's mood,
 stance and acts, who regards whom, how each story spread, and the event log, all on one clock.
-It only reads a recorded run; it never runs the simulation or changes it.
+Run Viewer only reads a recorded run; it never runs the simulation or changes it. The separate
+**New run** page starts Replay jobs through the local preview service.
 
-Start at `http://127.0.0.1:8766/sim/viewer/tools.html` to move between the dashboard,
+Start at `http://127.0.0.1:8766/sim/viewer/tools.html` to move between Run Viewer,
 speech editor and prepared recordings. The shared navigation carries a server-hosted recording
 between tools and preserves the dashboard's time, selected character and tab in the link.
 Playback returns paused. Speech coverage considers the whole recording, not just the saved clock.
@@ -32,6 +33,17 @@ The morning page compares authored, balanced Laya and experimental local-generat
 opening them needs no running model. See [the simulator guide](../README.md) to record fresh runs.
 
 ## Make a run and open it
+
+Choose **New run** in the navbar for presets, all Replay flags, searchable feeling/action
+overrides, JSON uploads, saved settings and cancellation. Finished runs open directly in Run
+Viewer. The preview builds Replay at startup; restart it after simulation code changes. If an
+older static preview is running, stop it with `start-preview.ps1 -Stop` before starting again.
+Output and logs go into unique `out/run-studio` folders. Models must already be running.
+
+For Newcomer speech tests, edit the permanent **Newcomer** column, download the catalog,
+upload it under Speech on New run, and enable **Use Newcomer test voice**. Generic lines can
+still be selected. These options change recorded words, not simulation decisions.
+See [run studio](../../docs/under-glass/specs/run-studio-spec.md) for the service contract.
 
 ```bash
 # The viewer with the run inside it: one file to open in any browser.

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Serves the prepared Under Glass pages on loopback; no simulation or model is started.
+Serves Under Glass tools on loopback, builds Replay, and accepts user-requested run jobs.
 .EXAMPLE
 pwsh -File sim/tools/start-preview.ps1
 # Then visit http://127.0.0.1:8766/sim/viewer/morning.html
@@ -58,8 +58,8 @@ function Get-RegisteredPreview {
     $processInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $($registeredProcess.Id)"
     $commandLine = $processInfo.CommandLine
     if ($registeredProcess.Path -ne $receipt.executable -or
-        $commandLine -notmatch ('-m\s+http\.server\s+' + $Port + '\s') -or
-        $commandLine -notmatch '--bind\s+127\.0\.0\.1\s' -or
+        (($commandLine -notmatch ('-m\s+http\.server\s+' + $Port + '\s') -or $commandLine -notmatch '--bind\s+127\.0\.0\.1\s') -and
+         ($commandLine -notmatch 'preview_server\.py' -or $commandLine -notmatch ('--port\s+' + $Port + '\s'))) -or
         -not $commandLine.Contains('--directory "' + $previewRoot + '"')) {
         throw "The registered PID no longer matches this preview. No process was stopped. Receipt: $previewReceipt"
     }
@@ -94,14 +94,21 @@ function Write-PreviewReady([string] $Status) {
     if (-not (Test-Path -LiteralPath (Get-PreviewPath 'sim/viewer/morning.html') -PathType Leaf)) {
         Write-Host 'The morning page has not been prepared yet. The viewer can open an existing run JSON.'
     }
-    Write-Host 'This server only serves files; it does not run the simulation or start a model.'
+    Write-Host "Run studio:   $previewBaseUrl/sim/viewer/runs.html"
+    Write-Host 'Replay builds at startup. Runs start only from the New run page; model services are not started.'
     if ($Open) { Start-Process -FilePath $previewPageUrl | Out-Null }
 }
 
 $registered = Get-RegisteredPreview
 if ($Stop) {
     if ($null -ne $registered) {
-        Stop-Process -Id $registered.Id
+        # New previews cancel their active job before stopping; old static previews have no jobs.
+        try {
+            $studio = Invoke-RestMethod -Uri "$previewBaseUrl/api/run-studio" -TimeoutSec 3
+            Invoke-RestMethod -Uri "$previewBaseUrl/api/run-studio/shutdown" -Method Post -ContentType 'application/json' -Body '{}' -Headers @{ 'X-Run-Studio-Token' = $studio.token } -TimeoutSec 3 | Out-Null
+            $registered.WaitForExit(5000) | Out-Null
+        } catch { }
+        if (-not $registered.HasExited) { Stop-Process -Id $registered.Id }
         if (-not $registered.WaitForExit(5000)) { throw 'The preview has not exited; its receipt was kept for another stop attempt.' }
         Write-Host "Stopped this checkout's preview on port $Port."
     }
@@ -114,6 +121,8 @@ if (Test-PreviewPort) {
     if (-not (Test-ExpectedPreview)) {
         throw "Port $Port is already serving something else. It was left running. Choose another -Port."
     }
+    try { $null = Invoke-RestMethod -Uri "$previewBaseUrl/api/run-studio" -TimeoutSec 3 }
+    catch { throw "This checkout has an older static preview on port $Port. Run this launcher with -Port $Port -Stop, then start it again to enable New run." }
     Write-PreviewReady 'Reusing the existing preview of this checkout.'
     return
 }
@@ -131,7 +140,7 @@ if (-not (Test-Path -LiteralPath $previewPython -PathType Leaf)) {
 
 New-Item -ItemType Directory -Path $previewDirectory -Force | Out-Null
 # Start-Process joins arguments into a Windows command line; quote the validated absolute root.
-$previewArguments = '-u -m http.server ' + $Port + ' --bind 127.0.0.1 --directory "' + $previewRoot + '"'
+$previewArguments = '-u "' + (Get-PreviewPath 'sim/tools/preview_server.py') + '" --port ' + $Port + ' --directory "' + $previewRoot + '"'
 $previewProcess = Start-Process -FilePath $previewPython -ArgumentList $previewArguments -WorkingDirectory $previewRoot `
     -WindowStyle Hidden -RedirectStandardOutput $previewOutput -RedirectStandardError $previewErrors -PassThru
 try {

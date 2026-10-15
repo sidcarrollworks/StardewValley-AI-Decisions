@@ -15,6 +15,12 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Run studio update, 2026-10-14: New run launches the existing Replay engine from the local
+preview, exposing all flags and numeric/boolean overrides, uploaded catalogs/towns/profiles,
+saved settings, logs and cancellation. Completed runs open in Run Viewer (the navbar's new
+name for Dashboard). The speech editor has a permanent Newcomer column and its exported
+catalog can be tested in a run without rebuilding. This is authored speech testing, not player input.
+
 Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
 character and tab preserved on return. This is viewer navigation only; the history assessment

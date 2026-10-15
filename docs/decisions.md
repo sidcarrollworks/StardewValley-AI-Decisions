@@ -1284,6 +1284,15 @@ Sid authorized a separate archetype browser/editor while Claude develops the obs
     who can't socialize included; they then get a motives weighing every tick and a viewer card.
 
 
+### Local run studio and Newcomer speech testing (2026-10-14)
+
+Sid requested a site tool with all run flags and a Newcomer speech-editor column. The local
+preview now launches the existing Replay executable with typed, schema-described arguments,
+one job at a time, into separate output folders. It does not start models or add a second
+simulation implementation. Exported speech catalogs can be loaded for a run; the optional
+Newcomer tag changes authored line selection only. Free-text player input remains planned.
+The navbar uses **Run Viewer** for the dashboard.
+
 ### Life chains viewer boundary (2026-10-14)
 
 Sid authorized the fixture-backed chain viewer and history comparisons alongside Claude's simulation work. The viewer uses a frozen illustrative Lives 0.1 fixture, exact version acceptance, and a separate pure projection adapter. Character views omit observer summaries, other minds, world outcomes and diagnostic secrets such as `notPerceived`; being targeted by an unspoken attempt grants no knowledge. Comparisons are explicitly observer analysis, isolated and fallback-only for this fixture. The UI displays recorded numbers without duplicating experimental formulas. No archetype definition is substituted from the current editable pack when the recording lacks an immutable snapshot.

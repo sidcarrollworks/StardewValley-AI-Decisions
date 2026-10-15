@@ -81,6 +81,15 @@ Replay evaluation defaults to `--evaluation balanced`: distinct response lines r
 
 ### Morning preview and optional generator
 
+**New run** in the shared navbar opens `viewer/runs.html`: launch recordings with every Replay
+flag, searchable numeric/boolean overrides, saved settings, uploads, logs and cancellation.
+The preview builds Replay once at startup; restart after code changes. Models are started
+separately. For an old static preview, use `start-preview.ps1 -Stop`, then start again.
+Each job gets a new `out/run-studio` folder and a link to Run Viewer.
+The speech editor's Newcomer column exports ordinary catalog JSON; upload it in New run and
+enable the Newcomer test voice (`--speech-catalog` and `--newcomer-voice` from the CLI).
+See [run studio](../docs/under-glass/specs/run-studio-spec.md).
+
 The prepared local demos are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`. Restart the preview with:
 
 ```powershell

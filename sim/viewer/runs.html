@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Under Glass — New run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"><link rel="stylesheet" href="ui.css"><link rel="stylesheet" href="runs.css"><script src="ui.js"></script></head>
+<body class="tool-page"><main>
+<header class="tool-head"><div><span class="label">Under Glass / Run studio</span><h1>New run</h1><p>Set the conditions. Watch what happens.</p></div><button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button></header>
+<p id="service" role="status">Connecting to the local runner…</p><p id="error" role="alert" hidden></p>
+<div class="run-layout"><section>
+<form id="run-form"><div class="run-presets" aria-label="Run presets"><button type="button" data-preset="authored">Authored control</button><button type="button" data-preset="laya">Laya</button><button type="button" data-preset="hybrid">Hybrid</button><button type="button" id="defaults">CLI defaults</button></div>
+<label class="field">Run name<input id="run-name" value="Town observation" maxlength="120" required></label>
+<div id="options"></div>
+<details class="tool-disclosure"><summary>Output and saved settings</summary><div class="detail-body">
+<label><input type="checkbox" id="output-json" checked> JSON recording</label> <label><input type="checkbox" id="output-html"> Standalone HTML</label>
+<p class="meta">Each run gets its own folder under out/run-studio. Existing recordings are never overwritten.</p>
+<div class="tool-actions"><button type="button" id="save-settings">Download settings</button><label class="file-label">Load settings<input id="load-settings" type="file" accept=".json"></label></div>
+</div></details>
+<details class="tool-disclosure"><summary>Replay arguments</summary><pre id="command"></pre></details>
+<div class="run-submit"><button class="primary" id="generate" disabled>Generate run</button><span class="meta">Models must already be running. Hybrid may use a paid provider through your configured local service.</span></div>
+</form></section>
+<section class="run-history" aria-labelledby="history-title"><h2 id="history-title">Runs</h2><div id="jobs"><p class="meta">No runs yet.</p></div><details id="job-log" class="tool-disclosure" hidden><summary>Run output</summary><pre id="log-text"></pre></details></section></div>
+<details class="tool-disclosure"><summary>Runner setup</summary><p>Launch this checkout with <code>pwsh -File sim/tools/start-preview.ps1</code>. The local server builds the replay engine once at startup. Restart it after changing simulation code. All replay flags are available here, including numeric and boolean feeling/action overrides. Defaults for those overrides describe the shipped town before other flags are applied.</p><p>For Newcomer testing, add lines in the Speech editor, download the catalog, then upload it under Speech and enable the Newcomer test voice. This selects authored lines; it does not add player input or change decisions.</p></details>
+</main><script src="runs.js"></script><script src="tools.js"></script></body></html>

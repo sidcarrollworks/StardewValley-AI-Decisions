@@ -39,6 +39,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_stardew_dialogue_corpus.py
       - name: Test the Laya categorization probe without a server
         run: python -m unittest discover -s tests -p test_laya_categorize_probe.py
+      - name: Test the local run service and CLI option coverage
+        run: python -m unittest discover -s tests -p test_preview_server.py
 
   under-glass:
     name: Under Glass (sim)

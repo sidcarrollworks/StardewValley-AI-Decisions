@@ -108,6 +108,13 @@ The optional quiet-reflection prototype is specified in
   for the dashboard timeline, speech controls and drawer offsets. Speech metrics remain catalog-wide while
   definitions and source details are disclosed on demand; recordings retain their artifact links
   beneath compact run cards and expandable experiment collections.
+- `sim/viewer/runs.html` and `sim/tools/preview_server.py`: local run studio, using Replay's
+  `--describe-options` schema for all flags and numeric/boolean overrides. The loopback service
+  builds Replay, validates jobs and uploaded JSON, executes one subprocess at a time, records
+  arguments/logs in unique output folders and supports cancellation. Shared navigation calls
+  the dashboard **Run Viewer**. `--speech-catalog` loads an edited catalog and
+  `--newcomer-voice` opts Newcomer into its own authored tag; both remain presentation-only.
+  See [run studio](under-glass/specs/run-studio-spec.md).
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

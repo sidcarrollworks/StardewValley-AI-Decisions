@@ -10,7 +10,7 @@ const { Script, createContext } = require('node:vm');
 const page = readFileSync(join(__dirname, '../viewer/speech.html'), 'utf8');
 const rules = page.slice(page.indexOf('// rules:begin'), page.indexOf('// rules:end'));
 const context = createContext({});
-new Script(rules + '\n;globalThis.api = { weight, effectiveChoices, lineProblems, catalogProblems, serialize, draftEdits, mergeDraft, RELATIONSHIPS, MOODS };').runInContext(context);
+new Script(rules + '\n;globalThis.api = { catalogVoices, weight, effectiveChoices, lineProblems, catalogProblems, serialize, draftEdits, mergeDraft, RELATIONSHIPS, MOODS };').runInContext(context);
 const api = context.api;
 // Arrays made inside the sandbox have its own prototype; compare plain copies.
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -92,4 +92,13 @@ test('a draft made against another version replays its edits and never loses tha
   assert.deepEqual(plain(checked.renamed), [{ from: 'n', to: 'n-draft1' }]);
   const removal = api.mergeDraft([a, changedB], [{ id: 'a', before: a, after: null }, { id: 'b', before: b, after: null }], true);
   assert.deepEqual(plain(removal.lines.map((l) => l.id)), ['b']);
+});
+
+test('Newcomer remains editable in an empty catalog and survives catalog round trips', () => {
+  assert.deepEqual(plain(api.catalogVoices([])), ['newcomer']);
+  const own=line('Hello, I just moved here.', {archetypes:['newcomer']});
+  assert.equal(api.weight(own,'newcomer','stranger','even'),3);
+  assert.equal(api.weight(own,null,'stranger','even'),0);
+  assert.equal(api.weight(own,'weary-defender','stranger','even'),0);
+  assert.deepEqual(plain(api.lineProblems(own,new Map([['x',1]]))),[]);
 });
