@@ -1284,6 +1284,21 @@ Sid authorized a separate archetype browser/editor while Claude develops the obs
     who can't socialize included; they then get a motives weighing every tick and a viewer card.
 
 
+### Local run studio and Newcomer speech testing (2026-10-14)
+
+Follow-up: Sid requested character inspiration editing within Archetype Studio and selected
+Haiku + Laya as the easy-start default, with Qwen as an alternative. Personal prompt context
+is editable separately from reusable archetypes; neither is simulated memory. Installed model
+services can start from New run, with explicit ownership and health status. Generation remains
+unthrottled and awaits model answers between simulated minutes; playback speed is independent.
+
+Sid requested a site tool with all run flags and a Newcomer speech-editor column. The local
+preview now launches the existing Replay executable with typed, schema-described arguments,
+one job at a time, into separate output folders. It does not start models or add a second
+simulation implementation. Exported speech catalogs can be loaded for a run; the optional
+Newcomer tag changes authored line selection only. Free-text player input remains planned.
+The navbar uses **Run Viewer** for the dashboard.
+
 ### Life chains viewer boundary (2026-10-14)
 
 Sid authorized the fixture-backed chain viewer and history comparisons alongside Claude's simulation work. The viewer uses a frozen illustrative Lives 0.1 fixture, exact version acceptance, and a separate pure projection adapter. Character views omit observer summaries, other minds, world outcomes and diagnostic secrets such as `notPerceived`; being targeted by an unspoken attempt grants no knowledge. Comparisons are explicitly observer analysis, isolated and fallback-only for this fixture. The UI displays recorded numbers without duplicating experimental formulas. No archetype definition is substituted from the current editable pack when the recording lacks an immutable snapshot.
@@ -1291,6 +1306,19 @@ Sid authorized the fixture-backed chain viewer and history comparisons alongside
 ### Life chains: time first, causes on demand (2026-10-14)
 
 Sid found the stage columns disconnected from playback and unsuitable for a long-lived population. The viewer now uses a shared marked timeline and playhead, with a bounded causal tree around a hovered or pinned event. Starting history stays outside the timeline and opens only as relevant memory branches. Dense moments cluster, branches paginate, and selecting the latest-event control visibly selects the event rather than merely scrolling. Temporal order and causal links remain distinct: arrows use explicit references, not proximity on the timeline. This changes observer presentation only; it does not add Lives runtime mechanics.
+
+### Lives pilot preparation after the routine merge (2026-10-15)
+
+Sid deferred further archetype editing and asked Codex to continue Claude's work. The
+[pilot implementation plan](under-glass/specs/lives-pilot-spec.md) continues D53/D54 and the
+approved assessment; it does not change Law 1 or enable needs bars. Runtime mechanics remain
+planned, and the contract's individual history-reading review gate remains in force.
+The new offline baseline tool separates the merged routine from existing pilot prerequisites,
+records provenance, verifies night-recorder independence and exact authored tape replay, and
+preserves failed runs. Its [first measurements](under-glass/experiments/lives-baseline-2026-10-15.md)
+are real pre-Lives runs. Sleep tuning, model quality and history effects are not inferred from
+these timings. The plan's implementation recommendations are labelled as such, not attributed
+to Sid as additional product decisions.
 
 ### Lives personal-memory foundation (2026-10-15)
 

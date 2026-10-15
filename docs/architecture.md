@@ -12,6 +12,14 @@ this file in the same PR. `git log da8eb8e..` shows what changed since.
 
 ## Under Glass: the independent game
 
+The [Lives pilot plan](under-glass/specs/lives-pilot-spec.md) continues the history-first
+assessment after the evidence, contract and routine PRs. Its runtime types and rules are
+still proposed. `sim/tools/record_lives_baseline.py` runs the existing Replay CLI without
+models, separates current-town and prerequisites-on arms, records source/settings/output
+receipts, and compares every recording field (apart from declared label/night-record
+differences) for recorder equivalence and authored tape replay. It does not write game data
+or backfill the illustrative Lives contract into existing runs.
+
 The read-only [Life chains viewer](under-glass/specs/lives-chain-viewer-spec.md) projects proposed Lives 0.1 recordings through a time and knowledge filter before rendering a marked event timeline, a focused cause-and-effect tree and on-demand details. Moment IDs are indexed per lens; time-specific marker summaries avoid projecting the whole recording for every marker. Crowded moments cluster, simultaneous events and branches paginate, and pre-run memories remain collapsed outside the run timeline. Its frozen illustrative fixture supports UI review, not runtime claims. Isolated history comparisons display recorded fallback probabilities and sampled actions without evaluating formulas or running models.
 
 The [archetype studio](under-glass/specs/archetype-studio-spec.md) edits reusable character-inspiration fields in browser-local drafts. It validates schema and composed voice budgets, exports complete packs, and leaves personal profiles and simulation state untouched. Its pure JS model is separate from DOM rendering; shared navigation preserves recording context without loading a run.
@@ -150,6 +158,18 @@ The optional quiet-reflection prototype is specified in
   for the dashboard timeline, speech controls and drawer offsets. Speech metrics remain catalog-wide while
   definitions and source details are disclosed on demand; recordings retain their artifact links
   beneath compact run cards and expandable experiment collections.
+- `sim/viewer/runs.html` and `sim/tools/preview_server.py`: local run studio, using Replay's
+  `--describe-options` schema for all flags and numeric/boolean overrides. The loopback service
+  builds Replay, validates jobs and uploaded JSON, executes one subprocess at a time, records
+  arguments/logs in unique output folders and supports cancellation. Shared navigation calls
+  the dashboard **Run Viewer**. `--speech-catalog` loads an edited catalog and
+  `--newcomer-voice` opts Newcomer into its own authored tag; both remain presentation-only.
+  See [run studio](under-glass/specs/run-studio-spec.md).
+  `studio_services.py` launches only the fixed installed Laya/Haiku/Qwen services, probes their
+  health and contract, and stops only owned children. The preview API identifies its checkout
+  so the one-click launcher can reuse the right preview or find another port. Archetype Studio's
+  Characters view edits assignments, voice accents and background prompt lines in the existing
+  schema-1 pack; version-2 local drafts permit those edits and recover old version-1 drafts.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

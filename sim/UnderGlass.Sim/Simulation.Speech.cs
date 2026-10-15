@@ -47,10 +47,11 @@ public sealed partial class Simulation
     private void Speak(Act act, string speaker, string subject, string kind, bool reply, string? item = null)
     {
         string? archetype = _inspirationPack?.Characters.FirstOrDefault(c => c.Name == speaker)?.ArchetypeId;
+        if (_speech.NewcomerVoice && speaker == "Newcomer") archetype = "newcomer";
         string relationship = ReflectionText.Relationship(Familiarity(speaker, subject), HouseholdOf(speaker) == HouseholdOf(subject), _fo.Acts.NewAt);
         string mood = SpeechCatalog.MoodBand(MoodOf(_index[speaker]));
         if (!_lastSaid.TryGetValue((speaker, kind), out List<string>? recent)) _lastSaid[(speaker, kind)] = recent = new();
-        SpeechLine? line = SpeechCatalog.Choose(SpeechCatalog.Default, kind, archetype, relationship, mood, _seed, act.Id, recent,
+        SpeechLine? line = SpeechCatalog.Choose(_speech.Catalog ?? SpeechCatalog.Default, kind, archetype, relationship, mood, _seed, act.Id, recent,
             reply ? "reply" : null);
         if (line is null) return;
         recent.Add(line.Id);
