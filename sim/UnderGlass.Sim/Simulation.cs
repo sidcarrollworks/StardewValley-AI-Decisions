@@ -203,6 +203,10 @@ public sealed class SimResult
     public IReadOnlyList<Need> Needs { get; init; } = Array.Empty<Need>();
     /// <summary>Every favour asked, with Errands on; otherwise empty.</summary>
     public IReadOnlyList<Favour> Favours { get; init; } = Array.Empty<Favour>();
+    public IReadOnlyList<Lives.RoutingChoice> LivesRouting { get; init; } = Array.Empty<Lives.RoutingChoice>();
+    public IReadOnlyList<Lives.RoutingSkipped> LivesRoutingSkipped { get; init; } = Array.Empty<Lives.RoutingSkipped>();
+    public IReadOnlyList<Lives.LivesMemoryChange> LivesMemoryChanges { get; init; } = Array.Empty<Lives.LivesMemoryChange>();
+    public IReadOnlyList<Lives.RoutingPerception> LivesPerceptions { get; init; } = Array.Empty<Lives.RoutingPerception>();
 }
 
 /// <summary>
@@ -441,6 +445,7 @@ public sealed partial class Simulation
     {
         if (days < 0) throw new ArgumentOutOfRangeException(nameof(days));
         cancellationToken.ThrowIfCancellationRequested();
+        _livesRunStarted = true;
         foreach (Person p in _people)
         {
             bool home = _places.ContainsKey(p.V.Home);
@@ -462,6 +467,7 @@ public sealed partial class Simulation
             // before any minute's state changes, rather than only after MoveNext returns.
             cancellationToken.ThrowIfCancellationRequested();
             _now = m;
+            if (Clock.OfDay(m) == 0) AdvanceLivesDay(Clock.Day(m));
             if (m == _forkAt)
                 _seed = _forkSeed; // a fork (V7): every die from here on is drawn anew
             if (Clock.OfDay(m) == 0)
@@ -548,6 +554,10 @@ public sealed partial class Simulation
             Encounters = _encounters,
             EncounterCauses = _encounterCauses,
             Appraisals = _appraisals,
+            LivesRouting = _livesChoices.AsReadOnly(),
+            LivesRoutingSkipped = _livesSkipped.AsReadOnly(),
+            LivesMemoryChanges = _livesChanges.AsReadOnly(),
+            LivesPerceptions = _livesPerceptions.AsReadOnly(),
         };
 
     private Dictionary<(string, string), double> Pairs(double[,] values)
@@ -772,13 +782,25 @@ public sealed partial class Simulation
             Goal(p, p.Place, p.At, m + 60, "home", null);
             return;
         }
+        var routing = LivesRoute(p, m, options);
         double r = Rng.Unit(_seed, "haunt", p.V.Name, m.ToString()) * options.Sum(o => o.Weight);
         Haunt? pick = options[^1].Haunt;
-        foreach (var o in options)
+        int chosen = options.Count - 1;
+        if (routing is { Decision.Legacy: false, Decision.SelectedId: not null } lives)
         {
-            r -= o.Weight;
-            if (r < 0) { pick = o.Haunt; break; }
+            chosen = Array.IndexOf(lives.Ids, lives.Decision.SelectedId);
+            pick = options[chosen].Haunt;
+            if (_nights is not null)
+                _drawn = options.Select((o, i) => new NightOption(OptionName(o.Haunt),
+                    lives.Decision.Alternatives.SingleOrDefault(a => a.Option.Id == lives.Ids[i])?.Probability ?? 0)).ToList();
         }
+        else
+            for (int i = 0; i < options.Count; i++)
+            {
+                r -= options[i].Weight;
+                if (r < 0) { pick = options[i].Haunt; chosen = i; break; }
+            }
+        NoteLivesRoute(p, m, pick, routing, chosen);
         if (ReferenceEquals(pick, BedtimeHabit)) { GoToBed(p, hasHome); return; }
         int stay = Rng.Range(_seed, 60, 180, "stay", p.V.Name, m.ToString());
         if (pick is null)

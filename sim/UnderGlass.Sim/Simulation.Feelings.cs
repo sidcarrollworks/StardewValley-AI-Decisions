@@ -207,7 +207,10 @@ public sealed partial class Simulation
         int h = _index[who];
         var (x, c) = PatientAndCause(h, b, row);
         if (c == h)
+        {
+            RetractLivesFeeling(who, b.ActId, m);
             return; // they caused it
+        }
         if (!_felt.TryGetValue((h, b.ActId), out FeltRecord? rec))
             _felt[(h, b.ActId)] = rec = new FeltRecord();
         bool fresh = !rec.Started;
@@ -288,6 +291,7 @@ public sealed partial class Simulation
             Want(-(k + 1), rec.F0 * seenWeight * row.Plastic * _fo.PlasticScale * freedom * keep * (1 - 0.5 * U(h)), "Kind");
         }
         Reconcile(h, rec, desired, act.Id, basis, m);
+        RememberLivesFeeling(who, b, c, rec.Mood, basis, m);
     }
 
     /// <summary>How present a belief is (law 11; rule 9): s weighs mood, w weighs the regard
@@ -493,6 +497,7 @@ public sealed partial class Simulation
         int s = _index[act.Actor];
         double f = JoyOf(act, row) * Sens(s);
         AddMood(s, f, act.Id);
+        RememberLivesUndergone(act, row, f, m);
         _feltLog.Add(new Felt(m, act.Actor, act.Id, "Undergone", "Event", f, null, 0, 0));
         Underwent(s, act.Target, act.Id, Math.Abs(f), m);
         if (_fo.MishapHurtOn && row.Freedom <= 0 && f < 0 && CharacterOf(s).Boldness < 0.5)

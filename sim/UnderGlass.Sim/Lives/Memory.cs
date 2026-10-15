@@ -82,6 +82,9 @@ public sealed class PersonalMemory
     private sealed record Receipt(long Sequence, IReadOnlyList<MemoryObject> Objects, bool Retracted = false);
     private readonly Dictionary<string, Receipt> _receipts = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Candidate> _history = new(StringComparer.Ordinal);
+    // The holder's own dependency graph includes audit-only readings so ablation has explicit,
+    // stable identities without exposing another holder's accounts of a shared fact.
+    private readonly Dictionary<string, string?> _historyParents = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Candidate> _candidates = new(StringComparer.Ordinal);
     private readonly Dictionary<string, HashSet<string>> _cueIndex = new(StringComparer.Ordinal);
     private long _sequence = -1;
@@ -103,6 +106,10 @@ public sealed class PersonalMemory
         var facts = input.Facts.ToDictionary(f => f.Id, StringComparer.Ordinal);
         foreach (HistoryAccount account in input.Accounts.Where(a => a.Holder == holder))
         {
+            _historyParents.TryAdd(account.FactId, null);
+            _historyParents.Add(account.Id, account.FactId);
+            foreach (HistoryReading reading in input.Readings.Where(r => r.AccountId == account.Id))
+                _historyParents.Add(reading.Id, account.Id);
             AddHistory(new(account.Id, RecallKind.Account, account.Text, true, -1, account.How, account.Teller,
                 _options.SeedStrength, 0, 0, 0, Freeze(new[] { account.FactId }), account.Sources, account.Cues));
             foreach (HistoryReading reading in input.Readings.Where(r => r.AccountId == account.Id
@@ -143,9 +150,70 @@ public sealed class PersonalMemory
         Emit(before, -1, "initialize", null, trimmed, added);
     }
 
+    // A decision frame owns its mutable collections but shares the validated immutable records.
+    // Acquisition receipts are intentionally absent: queries never need the run-long retry ledger.
+    private PersonalMemory(PersonalMemory source)
+    {
+        _holder = source._holder;
+        _options = source._options;
+        _sink = null;
+        _sequence = source._sequence;
+        _knownAt = source._knownAt;
+        _day = source._day;
+        _associations.AddRange(source._associations);
+        foreach (var (key, entries) in source._expectations) _expectations.Add(key, new(entries));
+        foreach (var (key, value) in source._livedCounts) _livedCounts.Add(key, value);
+        foreach (var (key, value) in source._seedObjects) _seedObjects.Add(key, value);
+        foreach (var (key, value) in source._history) _history.Add(key, value);
+        foreach (var (key, value) in source._historyParents) _historyParents.Add(key, value);
+    }
+
     public string Holder => _holder;
     public int ActiveAssociationCount => _associations.Count;
     public int AcquisitionReceiptCount => _receipts.Count;
+
+    /// <summary>Freeze the knowledge available for one decision or controlled comparison.
+    /// Later learning, retraction and decay cannot change it. Capturing and querying are silent.</summary>
+    public MemoryFrame Capture() => new(this);
+
+    internal IReadOnlyList<string> FrameHistoryIds => Freeze(_historyParents.Keys.Order(StringComparer.Ordinal));
+
+    internal PersonalMemory CopyForFrame(IEnumerable<string> removedHistory, out IReadOnlyList<string> removedIds)
+    {
+        ArgumentNullException.ThrowIfNull(removedHistory);
+        var removed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string id in removedHistory)
+        {
+            if (id is null || !_historyParents.ContainsKey(id))
+                throw new ArgumentException("History IDs must belong to the captured holder.", nameof(removedHistory));
+            removed.Add(id);
+        }
+        bool changed;
+        do
+        {
+            changed = false;
+            foreach (var (id, parent) in _historyParents)
+                if (parent is not null && removed.Contains(parent)) changed |= removed.Add(id);
+        } while (changed);
+
+        var copy = new PersonalMemory(this);
+        foreach (string id in removed)
+        {
+            copy._history.Remove(id);
+            if (copy._seedObjects.Remove(id, out var obj))
+                copy._associations.RemoveAll(a => a.Seed && a.Id == AssociationId(id, obj));
+        }
+        foreach (var (key, entries) in copy._expectations.ToArray())
+        {
+            entries.RemoveAll(e => e.Seed && removed.Contains(e.CauseId));
+            if (entries.Count == 0) copy._expectations.Remove(key);
+        }
+        // Removal only withdraws admitted pre-run evidence. Lived entries, decay, and cumulative
+        // dilution stay at the captured values; this is a same-choice comparison, not a rerun.
+        copy.RebuildIndex();
+        removedIds = Freeze(removed.Order(StringComparer.Ordinal));
+        return copy;
+    }
 
     /// <summary>All amounts in this snapshot include the cumulative dilution of initial readings.</summary>
     public MemorySnapshot Snapshot() => new(_holder,
@@ -185,13 +253,45 @@ public sealed class PersonalMemory
         Validate(experience); // atomic: nothing is applied until every projection is valid
         if (_receipts.ContainsKey(experience.CauseId)) return false;
         MemorySnapshot before = Snapshot();
+        Apply(experience, before, "learn");
+        return true;
+    }
+
+    /// <summary>Replace the holder's current reading of an already acquired cause, for example
+    /// after attribution is corrected. The acquisition stays one experience, with one receipt;
+    /// its previous dilution is undone even if its projections have left the active window.
+    /// A newer explicit correction may re-establish a retracted cause; an ordinary Learn retry
+    /// cannot. Corrections do not restore unrelated evicted evidence. A zero-amount correction
+    /// projection retains the acquisition's dilution/provenance without restoring forgotten feeling.</summary>
+    public bool Correct(MemoryExperience experience)
+    {
+        ArgumentNullException.ThrowIfNull(experience);
+        if (experience.Sequence < 0) throw new ArgumentException("Acquisition sequence must be nonnegative.");
+        if (experience.Sequence <= _sequence) return false;
+        Validate(experience, allowZero: true);
+        if (!_receipts.TryGetValue(experience.CauseId, out var receipt))
+            throw new ArgumentException("Only an acquired cause can be corrected.", nameof(experience));
+        MemorySnapshot before = Snapshot();
+        _associations.RemoveAll(a => !a.Seed && a.CauseId == experience.CauseId);
+        foreach (var entries in _expectations.Values) entries.RemoveAll(e => !e.Seed && e.CauseId == experience.CauseId);
+        if (!receipt.Retracted)
+            foreach (MemoryObject obj in receipt.Objects) _livedCounts[obj]--;
+        Apply(experience, before, "correct");
+        return true;
+    }
+
+    private void Apply(MemoryExperience experience, MemorySnapshot before, string reason)
+    {
         _sequence = experience.Sequence;
         _knownAt = experience.KnownAt;
-        _receipts.Add(experience.CauseId, new(experience.Sequence, Freeze(experience.Associations.Select(a => a.Object))));
+        _receipts[experience.CauseId] = new(experience.Sequence, Freeze(experience.Associations.Select(a => a.Object)));
         var added = new List<AssociationEntry>();
         foreach (AssociationInput input in experience.Associations)
         {
             _livedCounts[input.Object] = _livedCounts.GetValueOrDefault(input.Object) + 1;
+            // A forgotten cause can be reattributed without reviving its feeling or undoing
+            // its historical dilution of a seed. Its object remains on the acquisition receipt.
+            if (input.Amount == 0) continue;
             // Told amounts are supplied already felt (including hearsay/credence), not discounted twice.
             var entry = new AssociationEntry(AssociationId(experience.CauseId, input.Object), input.Object, experience.CauseId,
                 input.Amount, experience.KnownAt, experience.How, experience.Teller, false, input.PersonalSignificance,
@@ -209,8 +309,7 @@ public sealed class PersonalMemory
         }
         var trimmed = Trim();
         RebuildIndex();
-        Emit(before, experience.KnownAt, "learn", experience.CauseId, trimmed, added);
-        return true;
+        Emit(before, experience.KnownAt, reason, experience.CauseId, trimmed, added);
     }
 
     /// <summary>Apply each elapsed night once. Source readings do not fade or regain authority.</summary>
@@ -366,7 +465,7 @@ public sealed class PersonalMemory
             Freeze(dropped.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)), Freeze(added ?? Array.Empty<AssociationEntry>())));
     }
 
-    private void Validate(MemoryExperience e)
+    private void Validate(MemoryExperience e, bool allowZero = false)
     {
         Name(e.CauseId, "cause");
         CheckTime(e.KnownAt);
@@ -384,7 +483,7 @@ public sealed class PersonalMemory
         {
             if (a.Object is null || !Enum.IsDefined(a.Object.Kind)) throw new ArgumentException("Invalid association object.");
             Name(a.Object.Key, "object");
-            if (!double.IsFinite(a.Amount) || a.Amount is < -1 or > 1 || a.Amount == 0
+            if (!double.IsFinite(a.Amount) || a.Amount is < -1 or > 1 || !allowZero && a.Amount == 0
                 || !double.IsFinite(a.PersonalSignificance) || a.PersonalSignificance is < 0 or > 1)
                 throw new ArgumentException("Invalid felt amount/significance.");
             CheckCues(a.Cues);

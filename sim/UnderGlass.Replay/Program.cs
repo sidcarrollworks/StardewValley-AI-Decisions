@@ -3,6 +3,7 @@ using System.Reflection;
 using UnderGlass.Sim;
 using UnderGlass.Minds;
 using System.Text.Json;
+using UnderGlass.Sim.Lives;
 
 // Under Glass: record one run of the default town for the viewer (sim/viewer/index.html).
 //   dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 28 --html run1.html
@@ -30,6 +31,9 @@ string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
 string? inspirationPath = null, speechPath = null;
 bool newcomerVoice = false;
+string? historyPath = null;
+bool livesRouting = false, livesRecord = true;
+var compareHistory = new List<string>();
 string layaModel = "typed-decisions";
 string evaluationMode = "balanced";
 double reflectionChance = 0.35;
@@ -46,6 +50,10 @@ for (int i = 0; i < args.Length; i++)
     {
         case "--reflection": reflectionMode = Next(); break;
         case "--character-inspiration": inspirationPath = Next(); break;
+        case "--lives-routing": livesRouting = true; break;
+        case "--history": historyPath = Next(); break;
+        case "--compare-history": compareHistory.Add(Next()); break;
+        case "--no-lives-record": livesRecord = false; break;
         case "--laya-url": layaUrl = Next(); break;
         case "--laya-model": layaModel = Next(); break;
         case "--evaluation": evaluationMode = Next(); break;
@@ -134,6 +142,9 @@ if (inspirationPath is not null && reflectionMode is null)
     throw new ArgumentException("Character inspiration requires --reflection authored|laya|hybrid|tape.");
 CharacterInspirationPack? inspiration = inspirationPath is null ? null
     : CharacterInspirationPack.Read(File.ReadAllText(inspirationPath));
+if (!livesRouting && (historyPath is not null || compareHistory.Count > 0 || !livesRecord))
+    throw new ArgumentException("--history, --compare-history and --no-lives-record require --lives-routing.");
+HistoryPack? history = historyPath is null ? null : HistoryPack.Read(File.ReadAllText(historyPath));
 var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
 {
@@ -151,7 +162,8 @@ if (reflectionMode == "tape")
         .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights }, mind);
+    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights,
+    LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history }, mind);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);

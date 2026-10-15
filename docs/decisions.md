@@ -1323,9 +1323,9 @@ to Sid as additional product decisions.
 ### Lives personal-memory foundation (2026-10-15)
 
 Sid authorized continuing the Lives pilot after the assessment and routine work, with the
-archetype editor deferred. The first implementation increment is an independently testable
-[history and memory library](under-glass/specs/lives-memory-spec.md). It supplies no canon pack
-and has no Simulation or Replay hook yet. This preserves D53's distinction between authoring
+archetype editor deferred. The first implementation increment was an independently testable
+[history and memory library](under-glass/specs/lives-memory-spec.md). It shipped without a canon pack
+or Simulation/Replay hook. This preserved D53's distinction between authoring
 evidence, an individual's account and a reviewed interpretation before choices begin reading it.
 Canon-stated numeric seeds require a reviewed reading; a completed past additionally requires
 the holder's sourced present link. Authored interpretations are recall-only, with no canon
@@ -1343,5 +1343,45 @@ policies, not new laws or evidence of character fidelity.
 Immutable observer receipts never supply decisions back to the library. They are not the
 versioned Lives export. Active association and per-key expectation windows are bounded; original
 history, distinct expectation keys and the cause-receipt index are separate lifetime costs that
-still need population-scale measurement. Choices, actual outcomes and the full recorded pilot
-remain next; needs bars stay unresolved and law 1 is unchanged.
+still need population-scale measurement. At this increment, choices, actual outcomes and the full
+recorded pilot remained next; needs bars stayed unresolved and law 1 unchanged. The following
+entry records the first integration without retroactively treating this foundation as a pilot.
+
+### Lives free-time choices and held history comparisons (2026-10-15)
+
+Sid authorized the next step: connect memories to opportunities and competing choices, then compare
+the same decision with and without the relevant history. The first delivered integration is
+[opt-in free-time routing](under-glass/specs/lives-routing-spec.md). It reads the existing physically
+eligible destination menu after the existing duty and tiredness rules; it does not invent company
+locations or replace routines with new plans. Relevant recall opens the assessment's experimental
+weighting of base, warm and cold sides, boldness and a keyed draw. No relevant recall preserves the
+exact original draw, and a menu above five remains wholly on that original path rather than being
+truncated. Warm/cold weights use all retained associations to the named destination after the recall
+gate, not only the three recalled context records. That implementation policy remains inspectable
+in the receipts rather than being hidden as a claim about attention.
+
+The live writer acquires already-felt amounts from the holder's existing perception and undergone
+events, keeping one cause across person/place/activity projections. Told knowledge retains its teller
+and does not gain the hidden event location. Witnessing an event does not make the believed identity
+certain; confidence, clarity and presence basis are separately recorded. Revised attribution uses
+`Correct` to replace the prior acquisition under the same cause, reversing its old dilution once.
+A newer explicit correction may re-establish a retracted cause; an ordinary `Learn` retry still
+cannot. The adapter writes no expectation outcomes yet, and generic routes read no expectation keys.
+
+`Capture` creates an immutable frame using the production memory queries, without copying the
+run-long retry ledger. History ablation removes the requested holder-owned fact/account/reading and
+its dependencies, leaving independent lived evidence and dilution fixed. The same-choice comparison
+holds the scene, options/order, other personal state, settings and random unit fixed, then recomputes
+recall, eligibility, reasons and probabilities. Requested IDs and the full removal closure are both
+recorded. A vanished opportunity, legacy-only side or changed eligible set is non-comparable; no
+counterfactual action is manufactured or used to direct the run. This does not claim how a later
+life or a model response would have differed without that history.
+
+Replay adds a separate experimental `livesRouting` block, version 1, stage `free-time-routing`.
+Its history snapshot hash is SHA-256 of this implementation's validated-pack JSON, not JCS or the
+full observer contract's hash definition. Turning its observer record off does not change routing.
+It is not a Lives 0.2 export, and the chain viewer does not read these receipts yet. No canon history
+pack is shipped or implicitly enabled; tests use explicitly synthetic histories. There are no new
+Laya calls, reflection/model-context changes, company-seeking actions, plans or expectation outcome
+classifiers. Meaningful shared outcomes, reviewed pilot content and the full recorded thread remain
+next. The archetype editor remains deferred; law 1 and the unresolved bars decision are unchanged.

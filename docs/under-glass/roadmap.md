@@ -3,7 +3,8 @@
 Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices; amended
 2026-10-13 to say where the agreed order leads (player speech, below), and 2026-10-14 for Sid's
 history-first direction: the Lives pilot is next, needs bars are unresolved (D53). Updated
-2026-10-15 for the first personal-memory foundation; the end-to-end pilot remains unbuilt.
+2026-10-15 for the personal-memory foundation and its first opt-in free-time routing consumer;
+the end-to-end pilot remains unbuilt.
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -37,17 +38,20 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
 - Built, opt-in: reviewed pre-farmer background anchors and source-derived voice context: private
   prompt context for the generator and Laya, separate from witnessed memories; they create no act,
   belief, feeling or regard and reach a choice only through the models' reading. Reusable archetypes
-  carry no donor biography. Histories that shape behaviour are planned (the Lives pilot).
+  carry no donor biography. These anchors remain separate from the new opt-in Lives history input.
 - Built: current-moment cards, source/consequence navigation, character timeline markers and
   hover descriptions, and playback controls that remain visible while scrolling.
 - Built: supported encounter facts, private cause receipts, acquisition-time perceived accounts
   and authored appraisals. Stories shows contextual reasons and groups everyday repetitions.
 - Built: reflection also offers source-specific thanks (Returns) and apologies (Repair), with
   source/eligibility checks and actual catalog consequences. Company/comfort reflection remains planned.
-- Built as a standalone engine library: validated personal histories, separate warm and wary
-  associations, first-outcome expectation learning and bounded cue-based recall. The
-  [memory foundation](specs/lives-memory-spec.md) has synthetic tests; it is not connected to
-  simulation choices, model requests or recordings, and enables no canon history seeds.
+- Built: validated personal histories, separate warm and wary associations, first-outcome expectation
+  learning and bounded cue-based recall in the [memory foundation](specs/lives-memory-spec.md).
+- Built, opt-in: [free-time routing](specs/lives-routing-spec.md) reads that memory to weigh existing
+  destinations, learns associations from perceived feelings, and records the same choice with and
+  without requested history. It enables no canon history seeds, model calls, new plans or full Lives
+  observer export. The mechanism tests use synthetic histories; the pilot's sourced pack still needs
+  individual admission review. The chain viewer does not yet display these runtime receipts.
 - Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
@@ -66,9 +70,10 @@ before the farmer arrives (Sid, 2026-10-12). Read the full extracted dialogue as
 retain source coverage/conditions, and admit only individually reviewed background anchors. The
 anchors are private background context for the models, not memories: they create no act, belief,
 feeling or regard (D44), and one anchor can mix a fact, a past, a practice and a reading. Histories
-that shape behaviour are planned separately, as sourced records with an account per holder, admitted
-by the [history audit](experiments/history-evidence-audit-2026-10-14.md)'s rules and counted once
-([Lives assessment](lives-gap-assessment.md), section 2). Generic descendants reuse tendencies and
+that shape behaviour now have a separate opt-in memory and routing implementation, with an account
+per holder. The pilot's sourced content still needs admission under the
+[history audit](experiments/history-evidence-audit-2026-10-14.md)'s rules, with each experience
+counted once ([Lives assessment](lives-gap-assessment.md), section 2). Generic descendants reuse tendencies and
 voice; named backstories are not inherited.
 
 The [live character-voice trial](experiments/character-voice-trial-2026-10-12.md) shows that distinct
@@ -145,16 +150,19 @@ The order is:
    evenings, and her game's bedtimes as habits, not rules (Sid): from the hour, bed is a weighted
    free-time choice (the weight, 9, is ours: E); she sleeps until rested and can be up at 03:00 with
    nothing to do, gaps [recorded](experiments/penny-routine-2026-10-14.md) for the pilot rather than
-   suppressed. Nothing of the pilot itself is built yet. The [pilot implementation plan](specs/lives-pilot-spec.md)
-   defines the build order, same-choice history comparisons and acceptance cases. Its
-   [baseline capture](experiments/lives-baseline-2026-10-15.md) is built and checked against
-   the merged routine: 35-day runs separate the current town from existing pilot prerequisites.
-   The [personal-memory foundation](specs/lives-memory-spec.md) is now built separately:
-   history validation, per-holder associations, expectation learning and indexed recall. Next:
-   reviewed pilot history data and integration with opportunities and competing choices, then
-   shared plans, perceived outcomes and learning in an actual recorded thread. No Lives switch
-   or history-driven town behaviour exists yet; the archetype editor is deferred. The observer
-   contract and illustrative recordings remain design inputs, not evidence of a working pilot.
+   suppressed. The [pilot implementation plan](specs/lives-pilot-spec.md) defines the build order,
+   same-choice history comparisons and acceptance cases, and its
+   [baseline capture](experiments/lives-baseline-2026-10-15.md) is built against the merged routine.
+   The [personal-memory foundation](specs/lives-memory-spec.md) now has an
+   [opt-in free-time consumer](specs/lives-routing-spec.md): perceived feelings produce associations,
+   relevant recall opens weighting of existing destinations, and frozen comparisons hold a choice
+   constant while removing specified history. This is actual simulation integration, with a separate
+   experimental recording block, but no shipped canon history pack or completed pilot. Generic routes
+   do not yet use learned expectations, and no new reflection, company-seeking or plan mechanism is
+   added. Next: individually reviewed pilot histories, reflection and meaningful competing options,
+   shared plans, classified perceived outcomes and learning that affects a later choice, then the
+   full observer export and viewer connection. The observer contract and illustrative recordings
+   remain design inputs, not evidence of a working pilot. The archetype editor is deferred.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen
