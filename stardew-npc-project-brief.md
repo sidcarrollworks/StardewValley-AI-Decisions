@@ -231,3 +231,10 @@ Long playtest (2026-10-02, spring 18 to summer 1): from spring 20 every Laya que
 pilot recordings, with clock-gated personal histories, choices, intentions, outcomes and learning.
 The review report links directly to those moments. The proposed full observer export and broader
 routing/company visualization remain separate future work; simulation behavior is unchanged.
+
+
+2026-10-15: Under Glass continuity correction: recalled expectation summaries no longer crowd
+all other matched record types out of the normal recall window. Evening gates have observer-only
+counts. Life chains includes ongoing company/routing with personal outcomes, and tucks stable
+whereabouts checks away. Three fresh 35-day authored runs are retained; this is not a new live
+Laya comparison or the full observer contract.

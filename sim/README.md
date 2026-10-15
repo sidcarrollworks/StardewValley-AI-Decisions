@@ -27,7 +27,7 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --days 7 --lives-routin
 
 `--no-lives-record` keeps the behaviour but omits its observer receipts. The new `livesRouting`
 recording block is a version 1 routing experiment, separate from the proposed full `lives` observer
-contract. The existing chain viewer does not read it yet. The trial's review page displays recorded
+contract. Life chains reads these routing decisions, including the actual routine selection when memory fell back. It does not infer arrival from a destination choice. The trial's review page displays recorded
 probabilities and choices without recomputing formulas. Its separate whole runs can diverge;
 only the comparisons embedded inside `with-history.json` hold the scene and draw fixed.
 The [first measured trial](../docs/under-glass/experiments/lives-routing-2026-10-15.md) records
@@ -72,7 +72,7 @@ dotnet run -c Release --project sim/UnderGlass.LivesTrial -- --suite company --o
 
 `--no-company-record` omits only the separate experimental `livesCompany` version-1 block.
 No observer receipts feed the simulation. This block is not the full Lives 0.2 contract, and the
-chain viewer does not read it yet; use the company trial's review page. No canon seeds or model
+chain viewer now reads its choices, answers, search attempts and personal outcomes; the company trial also has a review page. No canon seeds or model
 calls are enabled by this flag. The normal-town trial starts without history; the separately
 labelled synthetic household tests exercise histories and held-choice comparisons.
 The [first company trial](../docs/under-glass/experiments/lives-company-2026-10-15.md)
@@ -1302,3 +1302,11 @@ This adds the records, switches and edits batch 2's slices build on (acts-batch2
 5. **0e:** character over time and generations (design rule 18): plasticity read from the life record, inheritance with mutation, the life course, time skips.
 
 The Laya adapter (design 5a) will be a separate .NET 10 project that references this library. The simulator itself stays on .NET 8, which Godot 4 C# can use directly.
+
+**Continuity review (2026-10-15):** Life chains now includes recorded free-time routing and
+immediate company, rather than ending a person's visible life after their last evening plan.
+Unchanged whereabouts confirmations are grouped under Routine observations; new or changed
+expectations remain visible. In Observer view, new recordings expose daily offer-gate diagnostics.
+The recall window now prevents multiple expectation summaries from crowding out all other
+matched memory types. The same fixed evening trial can regenerate the comparison recordings;
+old recordings remain readable and keep their original choices.

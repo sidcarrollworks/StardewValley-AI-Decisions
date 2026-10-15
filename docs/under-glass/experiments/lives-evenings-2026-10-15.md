@@ -82,3 +82,34 @@ by this change. Long-run retention and population scaling still need dedicated m
 Review the existing threads and bounded model packets before tuning. The next implementation
 should make these actual runtime chains visible in the main viewer, then test richer activities
 and transfer to another household without named-person branches.
+
+
+## Continuity correction and repeat, later 2026-10-15
+
+Sid's inspection exposed that seed 7's first evening was its last considered plan, while Penny's
+continuing company decisions were omitted from Life chains. Observer-only gate counts reproduced
+116 directed encounter checks blocked by no recalled opening on days 2–7 (58 shared moments).
+No active-plan lock remained: the participants met while available, but expectation summaries
+with high cue overlap and unit strength excluded their felt memories from the three-slot recall.
+
+The bounded recall mix now admits one estimate before filling other matched types, with unused
+slots returned to estimates. It is valence-neutral and does not change choice weights or habits.
+The same 7-day seed now contains five later offer considerations, all selecting carry-on. The
+full three-seed 35-day authored repeat is in ignored output `out/lives-continuity-review-2026-10-15/`:
+
+| Seed | Offers made | Completed games |
+|---|---:|---:|
+| 7 | 3 | 2 |
+| 29 | 3 | 0 |
+| 101 | 1 | 0 |
+
+Seed 7 has 25 offer considerations, rather than one; games finish on days 1 and 14. It retains
+101 matched same-choice comparisons across the matrix. The care/whereabouts observer repeats
+preserve ordinary-world output. These are new authored simulations, not edited old recordings,
+and no fresh Laya run was made for this correction. Independent lives diverge after new choices;
+counts do not establish character quality or isolate every later causal effect.
+
+Life chains now includes routing and company. For example, the original seed-7 Penny chooses
+to look for Alex at minute 1494, searches, fails to see him at minute 1531, and records an
+expectation update without knowing where he actually went. This is covered by an actual-data
+regression fixture, together with knowledge/time gates and routine-observation grouping.

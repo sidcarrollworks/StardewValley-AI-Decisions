@@ -59,7 +59,7 @@ exact original draw; menus over five keep their existing behavior instead of los
 Frozen same-choice comparisons recompute recall and weights after removing specified history while
 holding the scene, personal state, options and random unit fixed. They never direct the live run.
 `Replay` writes additive `livesRouting` version-1 receipts only when recording is enabled; this is
-not the full Lives 0.2 export and the chain viewer does not read it yet. No canon history pack is
+not the full Lives 0.2 export; the chain viewer reads its actual selected destinations and supporting memory. No canon history pack is
 loaded implicitly. The evening extension below ships separately reviewed pilot content. Generic routes
 do not read expectation keys. The separate company consumer below does.
 
@@ -1526,3 +1526,16 @@ for those can go in the next code PR.
 
 The facts and their file and line are in `stardew-source-notes.md`, "Audit pass (2026-10-05)".
 | Rain weights and the extractor's other recalls | `README.md`, "Remaining recalls to verify" | open (`Data/Locations` is data, not code) |
+
+
+### Under Glass continuity (2026-10-15)
+
+Lives recall admits one expectation summary before filling other slots with matched accounts,
+readings or feelings, then fills otherwise unused slots with estimates. This prevents several
+unit-strength summaries with identical cues from excluding an activity's remembered affect.
+`EveningGate` rows aggregate first-blocker checks per directed pair/day only when recording is
+on; they never feed choices. Life chains adapts routing, company answers/searches and evenings,
+joining explicit opportunity/episode/cause IDs with personal knowledge and clock gates. Routine
+unchanged confirmations are disclosed separately; decay snapshots remain available as support
+without midnight timeline spam. Routing selections prove choices only, not arrivals. Ordinary
+acts outside these runtime receipts remain outside this graph.

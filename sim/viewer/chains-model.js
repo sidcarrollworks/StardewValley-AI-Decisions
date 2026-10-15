@@ -268,12 +268,12 @@
       edges:edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).map(e=>({...e,roles:e.to===root?[...(roles.get(e.from)??['context'])]:[]}))};
   }
   // Index moments, not future text. Project an event only at the time being inspected.
-  function eventIndex(model,who,observer){
+  function eventIndex(model,who,observer,includeRoutine=false){
     if(model.missing)return [];
     const groups=new Map();
     for(const {table,row} of model.index.values()){
       // Runtime learning already marks the update; its memory snapshot stays in the tree.
-      if(model.lives.runtime&&table==='records')continue;
+      if(model.lives.runtime&&(table==='records'||row.passive||row.routine&&!includeRoutine))continue;
       const gates=[row.visibleAt];
       if(table==='decisions')gates.push(row.choice?.visibleAt);
       if(table==='attempts'&&(observer||row.actor===who))gates.push(row.resolvedAt,...(row.progress??[]).map(p=>p.at));
@@ -287,6 +287,10 @@
       }
     }
     return [...groups].sort((a,b)=>a[0]-b[0]).map(([at,ids])=>({at,ids:[...ids]}));
+  }
+  function routineChecks(model,tick,who,observer){
+    return [...model.index.values()].filter(({table,row})=>table==='perceptions'&&row.routine&&permitted(model,table,row,tick,who,observer))
+      .map(({row})=>({id:row.id,at:row.visibleAt,holder:row.holder,label:row.label}));
   }
   function timelineBins(events,start,end,count=60){
     const limit=Math.max(1,Math.floor(count)),gap=Math.max(1,end-start)/limit,cells=new Map();
@@ -334,5 +338,5 @@
     }
     return {label:first===last?first:`${first} – ${last}`,ticks};
   }
-  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath,eventIndex,timelineBins,eventSummary,neighborhood,advancePlayback,timelineRuler};
+  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath,eventIndex,routineChecks,timelineBins,eventSummary,neighborhood,advancePlayback,timelineRuler};
 });

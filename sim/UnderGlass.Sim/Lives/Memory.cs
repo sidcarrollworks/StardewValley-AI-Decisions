@@ -357,7 +357,18 @@ public sealed class PersonalMemory
                 .GroupBy(k => k.Key, StringComparer.Ordinal).Sum(g => g.Any(k => k.SourceId is not null) ? 2 : 1)))
             .OrderByDescending(x => x.Overlap).ThenByDescending(x => x.Item.Strength * (1 + x.Item.Significance))
             .ThenBy(x => x.Item.Id, StringComparer.Ordinal).ToList();
-        var chosen = candidates.Take(_options.RecallCount).ToList();
+        // Expectation summaries all have unit strength and can share a whole cue set.
+        // Keep one in the base window while other matched memories exist, so learning
+        // several estimates cannot mechanically erase the experiences behind a desire.
+        // This is valence-neutral: fear and warmth compete under the same ordering.
+        var mixed = candidates.Where(c => c.Item.Kind != RecallKind.Expectation).ToList();
+        var estimate = candidates.FirstOrDefault(c => c.Item.Kind == RecallKind.Expectation);
+        if (estimate.Item is not null) mixed.Add(estimate);
+        var admitted = mixed.Select(c => c.Item.Id).ToHashSet(StringComparer.Ordinal);
+        var chosen = candidates.Where(c => admitted.Contains(c.Item.Id)).Take(_options.RecallCount).ToList();
+        if (chosen.Count < _options.RecallCount)
+            chosen.AddRange(candidates.Where(c => chosen.All(x => x.Item.Id != c.Item.Id))
+                .Take(_options.RecallCount - chosen.Count));
         var prior = candidates.FirstOrDefault(c => c.Item.PreRun);
         if (prior.Item is not null && chosen.All(c => !c.Item.PreRun))
         {

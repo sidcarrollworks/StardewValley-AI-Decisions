@@ -105,8 +105,8 @@ must be identical. The review export keeps the full ordinary town recording and 
 Lives observations; model tape verification occurs before that observer projection.
 
 The chain viewer follows the evening choices, agreements, personal outcomes and learning, including
-Gus’s observations and deferred concern. Only supporting memory updates appear; unrelated routing
-and company decisions stay outside this adapter. The proposed full observer contract is unchanged.
+Gus’s observations and deferred concern. It also follows recorded routing and immediate-company
+decisions, with supporting memory updates. Ordinary acts lacking these receipts remain outside it. The proposed full observer contract is unchanged.
 History sits in expandable branches, learning marks timeline changes, and character views hide
 other minds and privileged plan outcomes. A keep-plan selection is shown as an intention because
 the current receipt does not separately prove that a journey began. Missing prior values remain
@@ -116,3 +116,19 @@ Next: review actual threads and packet omissions, complete the full observer exp
 transfer to another household and richer activities. Do not
 tune toward a quota of successful evenings, or treat this pilot as completion of the assessment's
 commitment framework, learned routines, generated possibilities, or population scaling work.
+
+## Continuity correction (2026-10-15)
+
+The first seed-7 recording produced one evening, then no more evening decisions. Observer-only
+`gates` now aggregate the first blocked offer gate by directed housemate pair/day, with first/last
+check and count. They reveal observer execution conditions, never character beliefs, and are
+omitted when recording is off. No decision reads them. The viewer withholds aggregates until
+their last check and only displays them in the observer lens.
+
+A repeat with identical settings identified later eligible local encounters blocked by recall:
+unit-strength expectation summaries crowded out the remembered feelings/wish needed to open an
+offer. The memory spec now limits summary competition within bounded recall, without changing
+choice weights, routine habits or enforcing successful plans. Ordinary routing and immediate
+company receipts are also connected in Life chains. Stable whereabouts confirmations are tucked
+behind a disclosure; changes in expectation remain on the timeline. Nightly decay remains in
+memory snapshots and their details, without becoming a new foreground event every midnight.

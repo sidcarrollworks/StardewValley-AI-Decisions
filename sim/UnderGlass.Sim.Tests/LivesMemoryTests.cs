@@ -48,6 +48,23 @@ public sealed class LivesMemoryTests
         public void Recalled(RecallSnapshot recall) => Recalls.Add(recall);
     }
 
+    [Theory]
+    [InlineData(0.2)]
+    [InlineData(-0.2)]
+    public void ExpectationSummariesCannotCrowdOutMatchedFeelings(double amount)
+    {
+        var memory = new PersonalMemory("Ada", Empty);
+        memory.Learn(Felt(0, "shared-evening", amount));
+        for (int i = 1; i <= 5; i++)
+            memory.Learn(Outcome(i, true, key: new(ExpectationKind.Answers, "Bo", "question-" + i)));
+        var recalled = memory.Recall(new[] { "shared" }, 5);
+        Assert.Equal(3, recalled.Items.Count);
+        Assert.Contains(recalled.Items, r => r.Causes.Contains("shared-evening"));
+        Assert.Contains(recalled.Items, r => r.Kind == RecallKind.Expectation);
+        Assert.Equal(amount > 0, recalled.Items.Single(r => r.Kind == RecallKind.Association).Warm > 0);
+        Assert.Empty(memory.Recall(new[] { "unrelated" }, 5).Items);
+    }
+
     [Fact]
     public void SharedFactDoesNotShareAnAccountOrPrivateReadingWithAnotherHolder()
     {

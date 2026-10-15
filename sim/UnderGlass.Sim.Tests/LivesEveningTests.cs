@@ -80,6 +80,16 @@ public sealed class LivesEveningTests
     private static string Json(object value) => JsonSerializer.Serialize(value);
 
     [Fact]
+    public async Task LearnedEveningDoesNotPreventLaterPlansFromBeingConsidered()
+    {
+        var run = await Run(new Scripted(), days: 3);
+        Assert.Contains(run.Result.LivesEveningUpdates, u => u.Plan.Stage == EveningStage.Completed && u.At < 1440);
+        Assert.Contains(run.Result.LivesEveningChoices, c => c.Phase == "offer" && c.Decision.Opportunity.At >= 1440);
+        Assert.Contains(run.Result.LivesEveningGates, g => g.Day > 0 && g.Reason == "considered");
+        Assert.All(run.Result.LivesEveningGates, g => { Assert.True(g.Checks > 0); Assert.True(g.LastAt >= g.FirstAt); });
+    }
+
+    [Fact]
     public async Task AcceptedPlanOnlyStartsAtItsWindowAndCompletesARealGame()
     {
         var run = await Run(new Scripted());
@@ -116,6 +126,8 @@ public sealed class LivesEveningTests
         Assert.Equal(Json(visible.Result.Sleeps), Json(quiet.Result.Sleeps));
         Assert.Equal(Json(visibleMind.Requests), Json(quietMind.Requests));
         Assert.Equal(Json(visible.Sim.LivesMemoryOf("Ann")!.Snapshot()), Json(quiet.Sim.LivesMemoryOf("Ann")!.Snapshot()));
+        Assert.NotEmpty(visible.Result.LivesEveningGates);
+        Assert.Empty(quiet.Result.LivesEveningGates);
         Assert.Empty(quiet.Result.LivesEveningUpdates);
         Assert.Empty(quiet.Result.LivesEveningChoices);
         Assert.Empty(quiet.Result.LivesDecisions);
