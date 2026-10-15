@@ -89,6 +89,8 @@ public sealed record Haunt(string Place, Tile Spot, int From, int To, double Wei
 /// A villager. Household names the home (<c>Home:&lt;household&gt;</c>) and seeds familiarity.
 /// The day comes from the job, the haunts and the body (design rule 1). Acts are the act kinds the
 /// villager may commit, with a weight (design rule 15). Birthday: an occasion for gifts (0d.6).
+/// HubWeights: their own weight for a named hub in place of the hub's (0 or less: never picks it);
+/// Bedtimes: habitual bedtimes, the first covering a day applies (<see cref="KeptHour"/>; both D54).
 /// </summary>
 public sealed record Villager(
     string Name,
@@ -102,7 +104,9 @@ public sealed record Villager(
     IReadOnlyList<string> Friends,
     int Age = 30,
     IReadOnlyDictionary<string, Kin>? Family = null,
-    YearDay? Birthday = null)
+    YearDay? Birthday = null,
+    IReadOnlyDictionary<string, double>? HubWeights = null,
+    IReadOnlyList<KeptHour>? Bedtimes = null)
 {
     public string Home => "Home:" + Household;
 

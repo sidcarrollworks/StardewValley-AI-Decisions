@@ -244,6 +244,7 @@ public sealed partial class Simulation
         public string HoldPlace = "";
         public Tile HoldSpot;
         public string? HubSeen; // the gathering whose crowd they looked over on arriving (town spec E4)
+        public int LastWoke = -1, HabitChecked = -1; // bedtime habits (Simulation.Routine.cs)
     }
 
     private long _seed; // not readonly: a fork (batch 2's m-2) swaps it at its minute, Simulation.Forks.cs
@@ -650,7 +651,7 @@ public sealed partial class Simulation
             return;
         }
         if (tick || p.Why == "")
-            Decide(p, m);
+            DecideNoting(p, m);
         if (p.BusyUntil >= m)
         {
             p.Walking = false;
@@ -672,6 +673,7 @@ public sealed partial class Simulation
         p.Alarm = NextAlarm(p, m);
         p.SleepIndex = _sleeps.Count;
         _sleeps.Add(new Sleep(p.V.Name, m, null, p.Energy, false, collapsed));
+        NoteSlept(p, m, collapsed ? "collapse" : log ? "bed" : "start");
         if (log)
             _log.Add($"{m} sleep {p.V.Name} {p.Energy:0.#}{(p.Alarm is { } a ? " alarm " + a : "")}");
     }
@@ -679,11 +681,13 @@ public sealed partial class Simulation
     private void Wake(Person p, int m, string why)
     {
         p.Asleep = false;
+        p.LastWoke = m;
         p.Alarm = null;
         _sleeps[p.SleepIndex] = _sleeps[p.SleepIndex] with { WokeAt = m, MissedAlarm = p.MissedAlarm };
         p.MissedAlarm = false;
         p.Why = "";
         _log.Add($"{m} wake {p.V.Name} {why} {p.Energy:0.#}");
+        NoteWoke(p, m, why);
     }
 
     /// <summary>The next workday's alarm after <paramref name="m"/>, or none for someone without a job.</summary>
@@ -722,8 +726,7 @@ public sealed partial class Simulation
     {
         int t = Clock.OfDay(m);
         bool hasHome = _places.ContainsKey(p.V.Home);
-        Body body = p.V.Body;
-        bool tired = p.Why == "bed" || body.BedAt >= 0 && _bo.Tiredness(p.Energy / body.MaxEnergy, t) >= 1 - body.BedAt - _bo.HeadHomeMargin;
+        bool tired = p.Why == "bed" || BodyTired(p, t);
         if (p.DetainedUntil > m)
         {
             // Held until the time is up: they sleep there too (design rule 16).
@@ -733,10 +736,7 @@ public sealed partial class Simulation
         }
         if (tired)
         {
-            if (hasHome)
-                Goal(p, p.V.Home, DefaultTown.Bed, int.MaxValue, "bed", null);
-            else
-                Goal(p, p.Place, p.At, int.MaxValue, "bed", null); // no home in this world: sleep where you stand
+            GoToBed(p, hasHome); // no home in this world: sleep where they stand
             return;
         }
         if (p.V.Job is { } job && job.WorksOn(Clock.Weekday(m)) && t >= job.Start - (job.Commute ?? _bo.CommuteMinutes) && t < job.End)
@@ -748,11 +748,12 @@ public sealed partial class Simulation
             return;
         if (ErrandGoal(p, m))
             return; // errands (needs spec): to the counter, or to find the one it's for
-        if (p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
+        bool checkpoint = BedtimeCheckpoint(p, m); // a habitual bedtime come: the pick in progress is reconsidered once
+        if (!checkpoint && p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;
 
         var options = p.V.Haunts.Where(h => h.Open(t)).Select(h => (Haunt: (Haunt?)h, h.Weight)).ToList();
-        foreach (Gathering g in _gatherings.Where(g => g.On(m) && Admits(g, p, m)))
+        foreach (Gathering g in _gatherings.Where(g => g.On(m) && Admits(g, p, m) && !NeverPicks(p, g)))
         {
             // A spot in the crowd, the same for this person all through the gathering.
             int day = Clock.Day(m);
@@ -765,6 +766,7 @@ public sealed partial class Simulation
         }
         if (hasHome)
             options.Add((null, HomeWeight(p, m)));
+        OfferBed(p, m, options); // going to bed, once a habitual bedtime has come (D54)
         if (options.Count == 0)
         {
             Goal(p, p.Place, p.At, m + 60, "home", null);
@@ -777,6 +779,7 @@ public sealed partial class Simulation
             r -= o.Weight;
             if (r < 0) { pick = o.Haunt; break; }
         }
+        if (ReferenceEquals(pick, BedtimeHabit)) { GoToBed(p, hasHome); return; }
         int stay = Rng.Range(_seed, 60, 180, "stay", p.V.Name, m.ToString());
         if (pick is null)
             Goal(p, p.V.Home, DefaultTown.Sofa, m + stay, "home", null);
