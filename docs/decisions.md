@@ -1319,3 +1319,29 @@ preserves failed runs. Its [first measurements](under-glass/experiments/lives-ba
 are real pre-Lives runs. Sleep tuning, model quality and history effects are not inferred from
 these timings. The plan's implementation recommendations are labelled as such, not attributed
 to Sid as additional product decisions.
+
+### Lives personal-memory foundation (2026-10-15)
+
+Sid authorized continuing the Lives pilot after the assessment and routine work, with the
+archetype editor deferred. The first implementation increment is an independently testable
+[history and memory library](under-glass/specs/lives-memory-spec.md). It supplies no canon pack
+and has no Simulation or Replay hook yet. This preserves D53's distinction between authoring
+evidence, an individual's account and a reviewed interpretation before choices begin reading it.
+Canon-stated numeric seeds require a reviewed reading; a completed past additionally requires
+the holder's sourced present link. Authored interpretations are recall-only, with no canon
+admission label. The test histories are explicitly synthetic, not approvals of proposed readings.
+
+Implementation policies made explicit in this increment: active memory retains both signs per
+object, and global pressure evicts a whole least-strong object rather than only its uncomfortable
+side. Initial strength is diluted by cumulative acquired causes, so forgetting an active entry
+does not restore the seed's influence. A cause's person/place/activity projections count once
+per side when combined. Expectation learning starts at one outcome; a summary threshold changes
+only the summary. Recall is indexed and bounded by records; aliases can still occupy several
+slots, and the low-mood extra comes only from matching cues. These are inspectable experimental
+policies, not new laws or evidence of character fidelity.
+
+Immutable observer receipts never supply decisions back to the library. They are not the
+versioned Lives export. Active association and per-key expectation windows are bounded; original
+history, distinct expectation keys and the cause-receipt index are separate lifetime costs that
+still need population-scale measurement. Choices, actual outcomes and the full recorded pilot
+remain next; needs bars stay unresolved and law 1 is unchanged.

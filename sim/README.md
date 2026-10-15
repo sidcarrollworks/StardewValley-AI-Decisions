@@ -14,6 +14,12 @@ current town versus existing pilot prerequisites, plus night-recorder equivalenc
 tape replay. It uses no model services and preserves existing output directories. Twelve offline
 harness tests run with `python -m unittest discover -s tests -p test_lives_baseline.py`.
 
+**Lives memory foundation (2026-10-15):** `UnderGlass.Sim/Lives` now contains validated history
+input and a per-holder memory library: two-sided associations, cumulative seed dilution,
+first-outcome expectation learning and bounded cue-based recall. It has synthetic tests and
+immutable observer receipts, but no Simulation, Replay or CLI integration. No canon history
+seeds are enabled and current runs are unchanged. See the [built scope and API](../docs/under-glass/specs/lives-memory-spec.md).
+
 **Private voices and background:** add `--character-inspiration sim/character-inspiration.json`
 to a reflection replay command. Reusable archetypes provide drives, coping and cadence; named
 profiles add personal accents and reviewed pre-farmer background. Each request copies only the

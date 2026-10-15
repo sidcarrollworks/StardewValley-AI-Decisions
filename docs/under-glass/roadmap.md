@@ -2,7 +2,8 @@
 
 Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices; amended
 2026-10-13 to say where the agreed order leads (player speech, below), and 2026-10-14 for Sid's
-history-first direction: the Lives pilot is next, needs bars are unresolved (D53).
+history-first direction: the Lives pilot is next, needs bars are unresolved (D53). Updated
+2026-10-15 for the first personal-memory foundation; the end-to-end pilot remains unbuilt.
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -43,6 +44,10 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   and authored appraisals. Stories shows contextual reasons and groups everyday repetitions.
 - Built: reflection also offers source-specific thanks (Returns) and apologies (Repair), with
   source/eligibility checks and actual catalog consequences. Company/comfort reflection remains planned.
+- Built as a standalone engine library: validated personal histories, separate warm and wary
+  associations, first-outcome expectation learning and bounded cue-based recall. The
+  [memory foundation](specs/lives-memory-spec.md) has synthetic tests; it is not connected to
+  simulation choices, model requests or recordings, and enables no canon history seeds.
 - Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
@@ -140,11 +145,16 @@ The order is:
    evenings, and her game's bedtimes as habits, not rules (Sid): from the hour, bed is a weighted
    free-time choice (the weight, 9, is ours: E); she sleeps until rested and can be up at 03:00 with
    nothing to do, gaps [recorded](experiments/penny-routine-2026-10-14.md) for the pilot rather than
-   suppressed. Nothing of the pilot itself is built. The [pilot implementation plan](specs/lives-pilot-spec.md)
-   now defines the build order, same-choice history comparisons and acceptance cases. Its
+   suppressed. Nothing of the pilot itself is built yet. The [pilot implementation plan](specs/lives-pilot-spec.md)
+   defines the build order, same-choice history comparisons and acceptance cases. Its
    [baseline capture](experiments/lives-baseline-2026-10-15.md) is built and checked against
    the merged routine: 35-day runs separate the current town from existing pilot prerequisites.
-   Personal history/recall is the next runtime increment; the archetype editor is deferred.
+   The [personal-memory foundation](specs/lives-memory-spec.md) is now built separately:
+   history validation, per-holder associations, expectation learning and indexed recall. Next:
+   reviewed pilot history data and integration with opportunities and competing choices, then
+   shared plans, perceived outcomes and learning in an actual recorded thread. No Lives switch
+   or history-driven town behaviour exists yet; the archetype editor is deferred. The observer
+   contract and illustrative recordings remain design inputs, not evidence of a working pilot.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen

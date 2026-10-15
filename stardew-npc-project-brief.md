@@ -15,6 +15,13 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Personal-memory foundation, 2026-10-15: a standalone engine library now validates histories,
+keeps private accounts and conflicting associations, learns expectations from one outcome and
+recalls a bounded set through matching cues. Synthetic tests exercise admission, knowledge
+boundaries, forgetting and immutable observer receipts. It is not connected to live choices or
+recordings and activates no canon seeds. The next work connects reviewed pilot histories to
+opportunities, choices and meaningful outcomes; see the [built scope](docs/under-glass/specs/lives-memory-spec.md).
+
 Lives pilot preparation, 2026-10-15: Sid deferred further archetype editing and asked Codex to
 continue Claude's work. The [implementation plan](docs/under-glass/specs/lives-pilot-spec.md)
 specifies the history-to-learning loop, controlled history comparisons and staged acceptance.
