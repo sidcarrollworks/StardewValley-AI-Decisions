@@ -1101,3 +1101,7 @@ Sid authorized a separate archetype browser/editor while Claude develops the obs
 ### Life chains viewer boundary (2026-10-14)
 
 Sid authorized the fixture-backed chain viewer and history comparisons alongside Claude's simulation work. The viewer uses a frozen illustrative Lives 0.1 fixture, exact version acceptance, and a separate pure projection adapter. Character views omit observer summaries, other minds, world outcomes and diagnostic secrets such as `notPerceived`; being targeted by an unspoken attempt grants no knowledge. Comparisons are explicitly observer analysis, isolated and fallback-only for this fixture. The UI displays recorded numbers without duplicating experimental formulas. No archetype definition is substituted from the current editable pack when the recording lacks an immutable snapshot.
+
+### Life chains: time first, causes on demand (2026-10-14)
+
+Sid found the stage columns disconnected from playback and unsuitable for a long-lived population. The viewer now uses a shared marked timeline and playhead, with a bounded causal tree around a hovered or pinned event. Starting history stays outside the timeline and opens only as relevant memory branches. Dense moments cluster, branches paginate, and selecting the latest-event control visibly selects the event rather than merely scrolling. Temporal order and causal links remain distinct: arrows use explicit references, not proximity on the timeline. This changes observer presentation only; it does not add Lives runtime mechanics.

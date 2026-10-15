@@ -174,8 +174,8 @@
       const latest = ids.map(id=>byId.get(id)).sort((a,b)=>time(b.at)-time(a.at))[0];
       return {id:t.id, title:observer ? summary ?? `Thread ${i+1}` : latest?.label ?? `Thread ${i+1} · ${model.run.names[who]}`, summary:observer ? summary : latest?.label, ids};
     }).filter(t=>t.ids.length);
-    const selected = threads.find(t=>t.id===thread) ?? threads[0];
-    const chosen = new Set(selected?.ids ?? []);
+    const selected = thread==='all' ? null : threads.find(t=>t.id===thread) ?? threads[0];
+    const chosen = new Set(thread==='all' ? nodes.map(n=>n.id) : selected?.ids ?? []);
     // Include recorded supporting records recursively, not arbitrary nearby events.
     const visit = id => { const n=byId.get(id); for(const r of n?.refs ?? []) if(!chosen.has(r)) { chosen.add(r); visit(r); } };
     [...chosen].forEach(visit);
@@ -233,18 +233,18 @@
     const at=Math.max(-1,...nodes.map(n=>n.updatedAt));
     return {at,exact:at===tick,ids:at<0?[]:nodes.filter(n=>n.updatedAt===at).map(n=>n.id)};
   }
-  function choicePath(view,root){
-    const nodes=new Map(view.nodes.map(n=>[n.id,n])),choice=nodes.get(root);
-    if(choice?.table!=='decisions')return null;
-    const references=n=>{
+  function selectedReferences(n){
       if(n.table!=='decisions'||!n.data.choice)return n.refs;
       const allCites=new Set(n.data.alternatives.flatMap(a=>a.reasons.flatMap(r=>r.cites)));
       const chosen=n.data.alternatives.find(a=>a.id===n.data.choice.selected);
       const chosenCites=new Set((chosen?.reasons??[]).flatMap(r=>r.cites));
       return n.refs.filter(id=>!allCites.has(id)||chosenCites.has(id));
-    };
+  }
+  function choicePath(view,root){
+    const nodes=new Map(view.nodes.map(n=>[n.id,n])),choice=nodes.get(root);
+    if(choice?.table!=='decisions')return null;
     const edges=[];
-    for(const n of nodes.values())for(const from of references(n))if(nodes.has(from))edges.push({from,to:n.id});
+    for(const n of nodes.values())for(const from of selectedReferences(n))if(nodes.has(from))edges.push({from,to:n.id});
     const parents=new Map(),children=new Map();
     for(const e of edges){if(!parents.has(e.to))parents.set(e.to,[]);parents.get(e.to).push(e.from);if(!children.has(e.from))children.set(e.from,[]);children.get(e.from).push(e.to);}
     const walk=links=>{const seen=new Set(),todo=[root];while(todo.length){const id=todo.pop();if(seen.has(id))continue;seen.add(id);todo.push(...(links.get(id)??[]));}return seen;};
@@ -259,5 +259,53 @@
     return {root,ids,before,after,roles,chosen:chosen?.label??null,pending:!choice.data.choice,
       edges:edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).map(e=>({...e,roles:e.to===root?[...(roles.get(e.from)??['context'])]:[]}))};
   }
-  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath};
+  // Index moments, not future text. Project an event only at the time being inspected.
+  function eventIndex(model,who,observer){
+    if(model.missing)return [];
+    const groups=new Map();
+    for(const {table,row} of model.index.values()){
+      const gates=[row.visibleAt];
+      if(table==='decisions')gates.push(row.choice?.visibleAt);
+      if(table==='attempts'&&(observer||row.actor===who))gates.push(row.resolvedAt);
+      if(observer&&table==='outcomes')gates.push(row.settledAt,...(row.timeline??[]).map(x=>x.at));
+      if(!observer){
+        gates.push(...(row.knownBy??[]).filter(k=>k.who===who).map(k=>k.availableAt));
+        if(table==='attempts')gates.push(...model.lives.perceptions.filter(p=>p.who===who&&p.of===row.id).map(p=>p.visibleAt));
+      }
+      for(const at of new Set(gates))if(Number.isFinite(at)&&permitted(model,table,row,at,who,observer)){
+        if(!groups.has(at))groups.set(at,new Set());groups.get(at).add(row.id);
+      }
+    }
+    return [...groups].sort((a,b)=>a[0]-b[0]).map(([at,ids])=>({at,ids:[...ids]}));
+  }
+  function timelineBins(events,start,end,count=60){
+    const limit=Math.max(1,Math.floor(count)),gap=Math.max(1,end-start)/limit,cells=new Map();
+    for(const e of events.filter(e=>e.at>=start&&e.at<=end).sort((a,b)=>a.at-b.at)){
+      const key=Math.min(limit-1,Math.floor((e.at-start)/gap));
+      if(!cells.has(key))cells.set(key,[]);cells.get(key).push(e);
+    }
+    const bins=[];
+    for(const cell of cells.values()){
+      const last=bins.at(-1),center=xs=>(xs[0].at+xs.at(-1).at)/2;
+      if(last&&center(cell)-center(last)<gap)last.push(...cell);else bins.push([...cell]);
+    }
+    return bins.map(events=>({from:events[0].at,to:events.at(-1).at,events,count:events.reduce((n,e)=>n+e.ids.length,0)}));
+  }
+  function eventSummary(model,event,who,observer){
+    return event.ids.flatMap(id=>{
+      const entry=model.index.get(id);if(!entry||!permitted(model,entry.table,entry.row,event.at,who,observer))return [];
+      const n=project(model,entry.table,entry.row,event.at,who,observer);return [{id:n.id,stage:n.stage,label:n.label}];
+    });
+  }
+  function neighborhood(v,id){
+    const nodes=new Map(v.nodes.map(n=>[n.id,n])),root=nodes.get(id);if(!root)return null;
+    const path=choicePath(v,id),parents=path?[...path.before].filter(x=>x!==id):root.refs;
+    const before=parents.map(x=>nodes.get(x)).filter(Boolean);
+    const memories=before.filter(n=>n.table==='records');
+    // Only immediate event edges; click a branch to walk one step, never imply a transitive edge.
+    const direct=new Set(selectedReferences(root)),inputs=before.filter(n=>n.table!=='records'&&direct.has(n.id)&&!(root.table==='attempts'&&n.table==='outcomes'));
+    const after=v.nodes.filter(n=>n.id!==id&&((selectedReferences(n).includes(id)&&!(n.table==='attempts'&&root.table==='outcomes'))||(root.table==='attempts'&&n.table==='outcomes'&&direct.has(n.id))));
+    return {root,before:inputs,memories,after,roles:path?.roles??new Map()};
+  }
+  return {open,view,moments,comparison,time,human,learningMetrics,cardStatus,currentMoment,choicePath,eventIndex,timelineBins,eventSummary,neighborhood};
 });

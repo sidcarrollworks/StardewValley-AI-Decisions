@@ -200,3 +200,54 @@ test('choice traversal handles cycles without changing the projected references'
   const v=view(14101);v.nodes.find(n=>n.id==='rd:penny-pam-care').refs.push('dec:13510:Penny:0');
   const before=JSON.stringify(v.nodes),path=M.choicePath(v,'dec:13510:Penny:0');assert.ok(path.ids.size<=v.nodes.length);assert.equal(JSON.stringify(v.nodes),before);
 });
+
+test('event timeline excludes starting history and indexes answer and resolution moments',()=>{
+  const tape=M.eventIndex(model,penny,false);
+  assert.ok(tape.every(e=>e.at>=0));
+  assert.ok(tape.find(e=>e.at===13511).ids.includes('dec:13510:Penny:0'));
+  assert.ok(tape.find(e=>e.at===14101).ids.includes('att:14041:Penny:0'));
+  assert.equal(JSON.stringify(tape).includes('rd:penny-pam-care'),false);
+  assert.ok(tape.every(e=>Object.keys(e).join(',')==='at,ids'),'index contains no future labels or outcomes');
+});
+test('event timeline respects personal knowledge and stays separate from observer outcomes',()=>{
+  const personal=M.eventIndex(model,penny,false),observer=M.eventIndex(model,penny,true);
+  assert.equal(personal.some(e=>e.ids.includes('out:14040:Pam:0')),false);
+  assert.ok(observer.some(e=>e.ids.includes('out:14040:Pam:0')));
+  assert.equal(personal.some(e=>e.ids.includes('dec:14010:Pam:0')),false);
+  for(const e of personal)for(const id of e.ids)assert.ok(M.view(model,{tick:e.at,who:penny,thread:'all'}).all.has(id));
+});
+test('crowded timelines stay bounded and retain every event across a six-month window',()=>{
+  const events=Array.from({length:12000},(_,i)=>({at:i*22,ids:['event:'+i]}));
+  const before=JSON.stringify(events),bins=M.timelineBins(events,0,180*1440,40);
+  assert.ok(bins.length<=40);assert.ok(bins.length>10,'dense recordings retain their distribution instead of merging the whole season');assert.equal(bins.reduce((n,b)=>n+b.count,0),events.filter(e=>e.at<=180*1440).length);
+  assert.equal(JSON.stringify(events),before);
+  const zoom=M.timelineBins(events,10000,10100,10);assert.ok(zoom.every(b=>b.from>=10000&&b.to<=10100));
+});
+test('nearby markers combine without hiding distinct moments within the group',()=>{
+  const bins=M.timelineBins([{at:99,ids:['a']},{at:101,ids:['b']},{at:800,ids:['c']}],0,1000,10);
+  assert.equal(bins.length,2);assert.deepEqual(bins[0].events.map(e=>e.at),[99,101]);assert.equal(bins[0].count,2);
+});
+test('focused tree separates memories from events and uses only the chosen option reasons',()=>{
+  const v=view(14101,{thread:'all'}),b=M.neighborhood(v,'dec:13510:Penny:0');
+  assert.ok(b.memories.some(n=>n.id==='rd:penny-pam-care'));assert.ok(b.before.every(n=>n.table!=='records'));
+  assert.equal(b.memories.some(n=>n.id==='rd:penny-reading-home'),false);
+  assert.equal(M.neighborhood(v,'rd:penny-reading-home').after.some(n=>n.id==='dec:13510:Penny:0'),false,'a citation for an unchosen option is not a chosen consequence');
+  assert.ok(b.after.some(n=>n.id==='att:13511:Penny:0'));assert.equal(b.after.some(n=>n.id==='per:14101:Penny:0'),false,'descendants do not become direct children');
+  assert.equal(M.neighborhood(view(13510),'att:13511:Penny:0'),null);
+});
+test('attempt outcomes remain on the consequence side rather than becoming causes',()=>{
+  const attempt={id:'attempt',table:'attempts',refs:['decision','outcome'],data:{}},decision={id:'decision',table:'decisions',refs:[],data:{alternatives:[]}},outcome={id:'outcome',table:'outcomes',refs:['attempt'],data:{}};
+  const b=M.neighborhood({nodes:[attempt,decision,outcome]},'attempt');
+  assert.deepEqual(b.before.map(n=>n.id),['decision']);assert.deepEqual(b.after.map(n=>n.id),['outcome']);
+  assert.equal(M.neighborhood({nodes:[attempt,decision,outcome]},'outcome').after.length,0);
+});
+test('all-events view includes permitted events outside a selected thread',()=>{
+  const f=structuredClone(fixture),row=structuredClone(f.lives.opportunities[0]);row.id='outside-thread';row.holder=penny;row.visibleAt=14000;f.lives.opportunities.push(row);
+  const m=M.open(f);assert.ok(M.view(m,{tick:14101,who:penny,thread:'all'}).nodes.some(n=>n.id===row.id));assert.equal(M.view(m,{tick:14101,who:penny}).nodes.some(n=>n.id===row.id),false);
+});
+
+test('marker summaries use their own event time and never return hidden record data',()=>{
+  const summaries=M.eventSummary(model,{at:13510,ids:['dec:13510:Penny:0','dec:14010:Pam:0']},penny,false);
+  assert.equal(summaries.length,1);assert.deepEqual(Object.keys(summaries[0]),['id','stage','label']);
+  assert.equal(JSON.stringify(summaries).includes('probabilities'),false);
+});
