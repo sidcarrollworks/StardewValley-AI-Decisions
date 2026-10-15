@@ -15,6 +15,13 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
+and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
+character and tab preserved on return. This is viewer navigation only; the history assessment
+and causal visualization remain separate work. The archetype browser/editor now supports local drafts, reusable-profile duplication, validation and pack export; character backgrounds remain read-only. The Life chains page now previews clock-gated history/action links on a marked timeline, with a focused causal tree, collapsed/paged starting memories and two fallback-only history comparisons using an explicitly illustrative fixture. Runtime Lives mechanics and model trial launching remain separate work. The tools now share the viewer's
+visual style and theme, plain titles and sticky top navigation; compact speech metrics and expandable recording collections replace
+long introductions while retaining definitions, provenance and experiment links.
+
 The independent game in [`sim/`](sim/README.md) is now aimed first at an in-depth social
 simulation viewed from above. Player gameplay comes afterward. The next milestone is a short run
 whose people and choices are worth following: observers can see what someone remembers, imagines,

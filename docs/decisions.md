@@ -1215,6 +1215,28 @@ tuned.
 
 **If you undo it.** Penny back at the Saloon most evenings, against her sourced routine.
 
+### Observer tools navigation (2026-10-14)
+
+Sid requested connected testing tools while the history assessment proceeds. A tools landing page
+and shared preview navigation connect the dashboard, speech editor and recording index. Links
+carry the same server-hosted recording and the dashboard's time, character and tab; returning is
+paused. Existing saved HTML can be opened in the current viewer by extracting its run JSON,
+without rewriting the artifact or executing its scripts. Local picked files remain local and
+require reopening in the destination tool. This adds no history or archetype mechanics; the
+causal graph and archetype studio remain assessment work.
+
+Sid then requested visual consistency with the dashboard and less introductory text. The tools
+reuse its palette, typography, controls and persisted theme. Speech shows four
+catalog-wide metrics with definitions and source details collapsed; these do not change with grid
+filters. The recording index puts the observer runs first and keeps setup, spoilers and older
+experiments in expandable sections. Every original recording and reference remains linked. Sid requested plain title sections without
+corner marks, a sticky shared top bar, and no timeline shadow or Happening now top border. The
+bar height is measured so nested sticky controls and the speech drawer remain below navigation.
+
+### Archetype studio first slice (2026-10-14)
+
+Sid authorized a separate archetype browser/editor while Claude develops the observer recording contract. The studio uses shared UI styles and edits only reusable drives, coping, voice, evaluator cue and source references. Personal accents, background and assignments are inspectable but read-only; duplicating an archetype copies no biography or speech. Source-aware browser drafts and validated pack downloads make edits reviewable without modifying the checkout or recorded runs. Fixed-scene trials and causal graphs are still planned. This is independent of the lives assessment and evidence corrections.
+
 ## Open work and known issues
 
 - **Richer diary, part 3.** The remaining kinds wait on their features: the visit kinds (newcomer
@@ -1260,3 +1282,12 @@ tuned.
   - the live ledger is not reset at the title screen (rollout.md);
   - history at install creates an empty diary for every character in `Data/Characters`, the ones
     who can't socialize included; they then get a motives weighing every tick and a viewer card.
+
+
+### Life chains viewer boundary (2026-10-14)
+
+Sid authorized the fixture-backed chain viewer and history comparisons alongside Claude's simulation work. The viewer uses a frozen illustrative Lives 0.1 fixture, exact version acceptance, and a separate pure projection adapter. Character views omit observer summaries, other minds, world outcomes and diagnostic secrets such as `notPerceived`; being targeted by an unspoken attempt grants no knowledge. Comparisons are explicitly observer analysis, isolated and fallback-only for this fixture. The UI displays recorded numbers without duplicating experimental formulas. No archetype definition is substituted from the current editable pack when the recording lacks an immutable snapshot.
+
+### Life chains: time first, causes on demand (2026-10-14)
+
+Sid found the stage columns disconnected from playback and unsuitable for a long-lived population. The viewer now uses a shared marked timeline and playhead, with a bounded causal tree around a hovered or pinned event. Starting history stays outside the timeline and opens only as relevant memory branches. Dense moments cluster, branches paginate, and selecting the latest-event control visibly selects the event rather than merely scrolling. Temporal order and causal links remain distinct: arrows use explicit references, not proximity on the timeline. This changes observer presentation only; it does not add Lives runtime mechanics.

@@ -4,6 +4,28 @@ A page for watching one run of the town: everyone moving through the day, each p
 stance and acts, who regards whom, how each story spread, and the event log, all on one clock.
 It only reads a recorded run; it never runs the simulation or changes it.
 
+Start at `http://127.0.0.1:8766/sim/viewer/tools.html` to move between the dashboard,
+speech editor and prepared recordings. The shared navigation carries a server-hosted recording
+between tools and preserves the dashboard's time, selected character and tab in the link.
+Playback returns paused. Speech coverage considers the whole recording, not just the saved clock.
+The dashboard and speech editor accept `?run=` with a same-server JSON or saved dashboard HTML
+address; HTML imports read only the embedded run JSON, never execute the saved page's scripts.
+Recordings without speech still open in the dashboard; the editor explains when there is no speech
+table. Local files picked or dropped into a page must be opened separately in each tool.
+The navigation is available through the preview server; exported HTML still works independently
+when opened directly from disk. Older saved pages gain the current tools when opened through the
+recordings list or the Tools page's address form, without rewriting their files.
+
+The tools use the dashboard's typography, palette, plain headings, raised controls and
+light/dark preference. The theme switch sits in the sticky shared top bar on the preview server. Its measured height
+keeps the dashboard timeline and speech controls below it, including when the bar wraps.
+`ui.css` supplies these primitives to the tool pages; exported dashboards keep their copy inline
+so they still open independently. A test keeps the copies aligned.
+Speech opens with catalog-wide counts (situations, median fitting lines, repeat risk and missing
+voice-specific lines); definitions, source metadata and recording statistics are collapsed.
+Grid filters affect the grid, not those totals. Recordings leads with the three observer controls;
+setup, receipts, spoilers, experiments and older packs expand on demand.
+
 Prepared local recordings are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`.
 Run `sim/tools/start-preview.ps1 -Open` from this checkout to start or reuse its loopback preview.
 The morning page compares authored, balanced Laya and experimental local-generation recordings;
@@ -242,3 +264,22 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
   same switches and numbers for the shipped town, so the viewer can show which differ.
 - Settings that are not finite numbers (a threshold of `Infinity` to turn something off) are
   written as the strings `"Infinity"`, `"-Infinity"` and `"NaN"`.
+
+All five tools share a 1680px page frame with 36px side gutters (16px at widths up to 760px). Navigation, titles and primary sections align to this frame; Happening now and the dashboard tabs also use that gutter, while individual event cards retain their own internal padding.
+
+The speech drawer keeps its coverage explanations in “How these lines are chosen”; the close icon retains an accessible name and Escape support. Matching scrollbar gutters balance its side padding.
+
+## Archetype studio
+
+Open `archetypes.html` through the shared navigation. Search by archetype, tendency or character; edit reusable fields, create or duplicate a profile, and download a schema-1 `character-inspiration.json` pack. The source pack and authored speech examples load from the checkout. Personal profiles are read-only. Drafts persist in this browser; a changed source requires explicit draft recovery or discard. Invalid edits remain drafts and disable export. See [the studio contract](../../docs/under-glass/specs/archetype-studio-spec.md).
+
+Run `node --test sim/tools/test-archetypes.cjs` for the eight editor model tests. Trial execution and history graphs await their separate recording interface; the studio makes no model calls.
+
+
+## Life chains (illustrative preview)
+
+Open `chains.html`. It starts at Penny's first decision in the frozen proposed Lives 0.1 fixture. Select a node to see its dependencies and docked details; use Next/Previous or the scrubber to follow the excerpt. Character knowledge is the default. Observer mode reveals world outcomes and explicitly opened isolated history comparisons. Those two comparisons use the fallback in both arms; the fixture's run choice uses invented Laya weights. Nothing calls a model or changes a run.
+
+The shared navigation preserves time and person. Older recordings show a no-Lives message; future unknown contract versions fail explicitly. Illustrative excerpts are refused by dashboard/speech loaders rather than presented as full recordings. Pack definitions are unavailable in this fixture, not inferred from today's Studio draft.
+
+`node --test sim/tools/test-chains.cjs` checks knowledge/time gates, rewind, dependency filtering, busy/no-ask privacy, immutable projection and both history comparisons. The shared navigation test also covers the chain route and illustrative/full-recording boundary. See `docs/under-glass/specs/lives-chain-viewer-spec.md`.
