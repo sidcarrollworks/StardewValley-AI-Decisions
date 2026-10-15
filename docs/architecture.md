@@ -35,7 +35,7 @@ thanks under Returns and apologies under Repair. Execution rechecks catalog/sour
 light caps and duplicate responses, consumes matching motives, and waits for act completion before
 recording the final outcome. The recipient's existing apology Ask still determines acceptance/refusal.
 
-The standalone [personal-memory foundation](under-glass/specs/lives-memory-spec.md) lives in
+The [personal-memory foundation](under-glass/specs/lives-memory-spec.md) lives in
 `sim/UnderGlass.Sim/Lives`. `HistoryPack` validates and copies source/fact/account/reading data;
 `PersonalMemory` uses only its holder's accounts and reviewed readings. Warm and wary causes
 remain separate; one cause projected onto several objects contributes once to each side when
@@ -43,9 +43,26 @@ those objects are considered together. Expectations learn on the first acquired 
 retain one seed plus six lived entries per key. Recall uses a cue index with bounded output.
 Active associations are capped, but immutable history, expectation keys and the minimal
 acquisition-receipt index have different growth bounds; this is not yet population-scale proof.
-`ILivesSink` receives immutable copies and is never read back. These are internal kernel
-receipts, not the versioned Lives recording contract. No Simulation/Replay/CLI path calls the
-library yet, and no real character history is seeded. The new tests use synthetic evidence.
+`Correct` replaces a known cause's acquired reading atomically, undoing its old dilution rather
+than adding another experience. `Capture` returns an immutable `MemoryFrame` for queries and
+history interventions, sharing immutable record values but copying working collections and
+omitting the acquisition-receipt ledger. `ILivesSink` receives immutable copies and is never read
+back. These are internal kernel receipts, not the versioned Lives recording contract.
+
+The first [live consumer](under-glass/specs/lives-routing-spec.md), `Simulation.Lives.cs`, is
+explicitly enabled through `ConfigureLivesRouting`, Replay options or `--lives-routing`. It imports
+the holder's perceived feelings as person/place/activity associations; told evidence keeps its
+teller and adds no hidden event location. Belief revisions correct the same cause. At existing
+free-time picks, `LivesChoices` weighs the original eligible destination menu against the holder's
+retained place associations, preserving both sides and a keyed draw. No relevant recall means the
+exact original draw; menus over five keep their existing behavior instead of losing options.
+Frozen same-choice comparisons recompute recall and weights after removing specified history while
+holding the scene, personal state, options and random unit fixed. They never direct the live run.
+`Replay` writes additive `livesRouting` version-1 receipts only when recording is enabled; this is
+not the full Lives 0.2 export and the chain viewer does not read it yet. No canon history pack is
+loaded implicitly or shipped as admitted content. Tests use synthetic histories. Generic routes
+do not yet read expectation keys, the live adapter does not classify expectation outcomes, and
+there are no new Laya calls, company-seeking actions or plans in this increment.
 
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
 (`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes
@@ -69,7 +86,8 @@ The optional quiet-reflection prototype is specified in
   only the actor's selected relevant or general anchor. The generator gets the voice and the anchor;
   Laya gets the same anchor and compact disposition within its text budget. Full pack hashes and
   immutable request snapshots protect tape replay. Background is not a memory, belief, act, social
-  prior or source of gossip; histories that shape behaviour are planned (the Lives assessment).
+  prior or source of gossip; the opt-in Lives history input above is a separate mechanism. It does
+  not convert these anchors into acquired history or add Lives memory to the model context.
 - `sim/tools/export-stardew-dialogue.ps1` and `stardew_dialogue_corpus.py`: local XNB export and
   conservative attributed corpus parsing. Runtime assemblies have no game reference. Raw assets,
   markup, conditions and coverage stay in ignored output; committed content is derived text and

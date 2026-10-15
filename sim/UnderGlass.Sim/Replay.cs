@@ -25,6 +25,8 @@ public sealed record ReplayOptions
     public string? Label { get; init; }
     /// <summary>Records each sleep's night (the "nights" block, D54); the run is the same either way.</summary>
     public bool Nights { get; init; } = true;
+    public Lives.LivesRoutingOptions LivesRouting { get; init; } = new();
+    public Lives.HistoryPack? History { get; init; }
 }
 
 /// <summary>
@@ -63,6 +65,14 @@ public static class Replay
         CancellationToken cancellationToken = default)
     {
         CharacterInspirationPack? inspirationPack = o.CharacterInspiration?.CopyValidated();
+        Lives.HistoryPack? history = o.History?.CopyValidated();
+        ArgumentNullException.ThrowIfNull(o.LivesRouting);
+        ArgumentNullException.ThrowIfNull(o.LivesRouting.CompareHistory);
+        var livesRouting = o.LivesRouting with
+        {
+            CompareHistory = Array.AsReadOnly(o.LivesRouting.CompareHistory.Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal).ToArray()),
+        };
         TownData given = o.Town ?? TownData.Default();
         FeelingOptions feelings = o.Feelings ?? given.Feelings;
         // The act catalog's rows and cards for the slices that are on, added as the runner adds them
@@ -82,6 +92,7 @@ public static class Replay
         sim.ConfigureSpeech(o.Speech);
         NightList? nights = o.Nights ? new NightList() : null;
         sim.ConfigureNights(nights);
+        sim.ConfigureLivesRouting(livesRouting, history);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -329,6 +340,23 @@ public static class Replay
                 routines = NightTable.Routines(cast),
                 rows = NightTable.Rows(nights.Notes, cast),
             }, encounterJson);
+        if (livesRouting.Enabled && livesRouting.Record)
+        {
+            // Experimental free-time routing receipts, NOT the full Lives observer 0.2 contract.
+            // Existing readers ignore this distinct field; no illustrative fixture is used here.
+            var json = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                Converters = { new JsonStringEnumConverter() } };
+            byte[]? packBytes = history is null ? null : JsonSerializer.SerializeToUtf8Bytes(history, json);
+            recording["livesRouting"] = JsonSerializer.SerializeToElement(new
+            {
+                version = 1, stage = "free-time-routing", backend = "authored-keyed-draw",
+                options = livesRouting, history,
+                historySnapshotHash = packBytes is null ? null : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(packBytes)).ToLowerInvariant(),
+                decisions = r.LivesRouting, skipped = r.LivesRoutingSkipped, memoryChanges = r.LivesMemoryChanges,
+                perceptions = r.LivesPerceptions,
+            }, json);
+        }
         return recording;
     }
 

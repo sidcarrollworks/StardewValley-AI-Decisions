@@ -6,11 +6,33 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers. Since 2026-10-14 the next work is the Lives pilot: histories, associations and meaningful actions in one complete Penny, Pam and Gus thread ([assessment](../docs/under-glass/lives-gap-assessment.md), D53). Needs bars are unresolved, not scheduled and not rejected.
 
-**Lives memory foundation (2026-10-15):** `UnderGlass.Sim/Lives` now contains validated history
-input and a per-holder memory library: two-sided associations, cumulative seed dilution,
-first-outcome expectation learning and bounded cue-based recall. It has synthetic tests and
-immutable observer receipts, but no Simulation, Replay or CLI integration. No canon history
-seeds are enabled and current runs are unchanged. See the [built scope and API](../docs/under-glass/specs/lives-memory-spec.md).
+**Lives memory and routing (2026-10-15, opt-in):** `UnderGlass.Sim/Lives` validates histories,
+keeps warm and wary associations separately and recalls matching records. The simulation can
+now learn associations from its existing perceived feelings and use remembered place feelings
+to choose an eligible free-time destination. Turning it off preserves existing runs. No canon
+history seeds are loaded implicitly. The choice kernel supports specific expectation keys, but
+this first adapter does not yet classify plan outcomes or learn whereabouts. Shared plans and
+model evaluation of these choices remain next. See the [memory API](../docs/under-glass/specs/lives-memory-spec.md)
+and [routing scope](../docs/under-glass/specs/lives-routing-spec.md).
+
+```powershell
+# Offline proof: actual synthetic-town recordings, isolated comparisons and index.html.
+# The output directory must be new; no models or game installation are needed.
+dotnet run -c Release --project sim/UnderGlass.LivesTrial -- --out out/lives-routing-review --days 7 --seed 7
+# Let the normal town build place associations from what its people experience.
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --lives-routing --out out/lives-routing.json
+# With a separately reviewed history pack: repeat --compare-history to remove multiple roots.
+dotnet run -c Release --project sim/UnderGlass.Replay -- --days 7 --lives-routing --history path/to/history.json --compare-history reading-id --out out/history-routing.json
+```
+
+`--no-lives-record` keeps the behaviour but omits its observer receipts. The new `livesRouting`
+recording block is a version 1 routing experiment, separate from the proposed full `lives` observer
+contract. The existing chain viewer does not read it yet. The trial's review page displays recorded
+probabilities and choices without recomputing formulas. Its separate whole runs can diverge;
+only the comparisons embedded inside `with-history.json` hold the scene and draw fixed.
+The [first measured trial](../docs/under-glass/experiments/lives-routing-2026-10-15.md) records
+84 matched choices, seven changed destinations, and a separate week of the normal town learning
+without starting history. Those counts demonstrate the connection, not a quality target.
 
 **Private voices and background:** add `--character-inspiration sim/character-inspiration.json`
 to a reflection replay command. Reusable archetypes provide drives, coping and cadence; named

@@ -2,21 +2,25 @@
 
 ## Status
 
-Built 2026-10-15 as a standalone component in
+First built 2026-10-15 as an independently testable component in
 [`History.cs`](../../../sim/UnderGlass.Sim/Lives/History.cs) and
 [`Memory.cs`](../../../sim/UnderGlass.Sim/Lives/Memory.cs), namespace `UnderGlass.Sim.Lives`.
 This is the first foundation for the [Lives assessment](../lives-gap-assessment.md), principally
 sections 2 and 9.2–9.5. It can be exercised directly with synthetic inputs.
 
-There is **no `Simulation`, Replay or CLI hook**, no enabled Lives switch, and no shipped canon
-history pack. Existing town recordings do not use this component. Its tests use invented people
-and explicitly synthetic evidence; a test source classified `Canon` exercises admission rules
-without asserting anything about Stardew. Background anchors in `character-inspiration.json`
-remain private model prompt context and are not converted into these records.
+The follow-up [free-time routing increment](lives-routing-spec.md) now connects this kernel to
+`Simulation`, Replay and `--lives-routing`, all opt-in. It learns associations from the holder's
+perceived feelings and can use explicit history in existing destination choices. This is not the
+full Lives pilot, and no reviewed canon history pack is shipped or loaded implicitly. Tests use
+invented people and explicitly synthetic evidence; a test source classified `Canon` exercises
+admission rules without asserting anything about Stardew. Background anchors in
+`character-inspiration.json` remain private model prompt context and are not converted into these
+records. The new memory is not added to reflection/model context in this increment.
 
-The foundation stores and recalls knowledge. It does not generate options, choose actions, call
-a model, set mood or regard, discover another person's location, classify real encounters, or
-implement invitations and planned evenings. Law 1 and the unresolved needs-bars direction are
+The memory kernel stores and recalls knowledge. Its separate routing consumer chooses among
+existing free-time destinations; the kernel itself calls no model, sets no mood or regard,
+discovers no person's location, and does not classify expectation outcomes or implement invitations
+and planned evenings. Law 1 and the unresolved needs-bars direction are
 unchanged. The constants below are experimental implementation settings, not canon facts or
 new product decisions.
 
@@ -113,7 +117,7 @@ state. One acquisition cannot project twice to the same object or expectation ke
 
 New learned experience accepts `Lived`, `Witnessed` and `Told`; it rejects `Inferred` and `Reading`.
 A told acquisition requires its teller and retains credence. Association amounts are already
-felt amounts supplied by the future adapter, including any hearsay adjustment; the kernel does
+felt amounts supplied by the caller, including any hearsay adjustment; the kernel does
 not discount them a second time. Stored credence does not weight the expectation formula.
 No mechanism here turns a model's imagined scene or inference into an acquired outcome.
 
@@ -197,19 +201,21 @@ is read automatically: the caller supplies `lowMood`.
 The three normal results are **records, not necessarily three distinct experiences**. An account,
 its reading and a related expectation can share a cause and occupy separate recall slots.
 Cause-aware numeric deduplication in `Sides` does not imply recall diversity. These receipts keep
-that overlap visible for the next decision-layer implementation.
+that overlap visible. The first routing consumer gates on nonempty recall but weighs all retained
+associations to an option's destination; the top recalled records are not its complete numeric
+evidence set. See the routing spec for this explicit experimental policy.
 
 ## Clock, retries and corrected attribution
 
-The kernel starts on day 0. Its caller must call `AdvanceToDay(day)` before learning, recalling
-or retracting anything on that day. Advancing applies all elapsed nights exactly once and rejects
+The kernel starts on day 0. Its caller must call `AdvanceToDay(day)` before learning, correcting,
+recalling or retracting anything on a later day. Advancing applies all elapsed nights exactly once and rejects
 backwards movement. Acquisition/retraction times must also respect the latest acquired state;
 past-time viewing uses recorded snapshots rather than rewinding the live store. Explicit day
 advancement prevents newly acquired evidence from being aged retroactively.
 
 Retries must preserve the original sequence and cause ID. Old/repeated sequences do not learn
 again. A minimal dictionary of acquisition receipts also remembers every accepted cause, so
-eviction or retraction cannot let the same cause re-enter under a new sequence. Each receipt
+eviction or retraction cannot let an ordinary `Learn` retry re-enter under a new sequence. Each receipt
 retains the sequence, projected objects and whether it has been retracted. This dictionary grows
 with the holder's known causes; it is **not bounded active memory** and is not used as a recall
 archive. Cumulative object counters and expectation keys also persist separately from the
@@ -217,8 +223,43 @@ bounded association list. Larger-population lifetime cost remains to be measured
 
 `Retract(causeId, at)` removes that cause's retained lived associations and expectation entries,
 and reverses its cumulative dilution contribution once. It does not erase the receipt, change
-pre-run history, revive trimmed evidence, or infer a corrected culprit. A future perception
-adapter must supply any newly justified acquisition separately.
+pre-run history, revive trimmed evidence, or infer a corrected culprit.
+
+`Correct(MemoryExperience)` explicitly revises an already acquired cause with a newer sequence and
+valid acquisition time. It validates all projections first, removes that cause's retained old
+associations and expectation entries, reverses its old dilution once, then applies the replacement
+under the same cause identity. The old and new states appear in one `correct` observer receipt.
+Unknown causes fail; stale sequences are ignored as retries. A newer explicit correction can
+re-establish a previously retracted cause without reversing its dilution twice. This preserves a
+distinction between revised knowledge and an accidental repeated acquisition. It does not restore
+unrelated evidence evicted earlier. The routing adapter uses this path when the holder's perceived
+culprit, felt strength or acquisition provenance changes.
+
+A correction alone may include a zero-amount association projection. It updates that cause's
+object receipt and cumulative dilution, but stores no active association. This lets a fully faded
+or forgotten cause be reattributed without restoring its emotion or giving an unrelated seed back
+its original authority. First acquisitions through `Learn()` still reject zero amounts. The caller
+supplies corrected amounts at their current age; `Correct()` does not infer elapsed decay itself.
+
+## Frozen decision frames and history interventions
+
+`Capture()` returns a `MemoryFrame` exposing `Snapshot`, `Recall`, `Sides` and `Expectation` through
+the same production query implementations. It copies working collections and shares only validated
+immutable record values. It does not copy the run-long acquisition receipts and has no mutation API,
+model or observer sink. Later live learning, correction, retraction and decay cannot alter the frame.
+Recall must remain within its captured day and cannot precede its latest known evidence.
+
+`WithoutHistory(ids)` creates a new frozen frame. Its removal closure follows a fact to the holder's
+accounts, then their readings and numeric seeds; removing just a reading leaves its account and
+sibling readings intact. Seeded expectation entries are removed with their readings. Independent
+lived evidence and cumulative dilution remain fixed. This is an intervention at the current choice,
+not a re-simulation of the past or recovery of evidence previously lost to capacity limits.
+
+`HistoryIds` lists the original holder-owned fact/account/reading IDs, including audit-only readings
+and IDs already removed in an earlier intervention. `RemovedIds` lists the cumulative removal
+closure. Source IDs, unknown IDs and other holders' private account/reading IDs are rejected
+atomically. Repeated removals are idempotent. Capture, queries and removal emit no observer events;
+the decision layer separately records its comparison results.
 
 ## Observation and remaining integration
 
@@ -229,13 +270,15 @@ IDs, their causes and sources, knowledge route and ranking values. The sink retu
 data to the kernel; no simulation reader consumes these observer records.
 
 These records are a **write-only observation boundary**, not an implementation of the
-[Lives observer v0.2 contract](../contracts/lives-observer-recording-v0.2.md). The versioned export
-adapter, viewer integration and acquisition/outcome classification are still to come. In
-particular, learning from an actual missed meeting must establish what that holder could know;
-this generic store does not decide that an absence is a rejection, a whereabouts observation or
-a broken agreement.
+[Lives observer v0.2 contract](../contracts/lives-observer-recording-v0.2.md). The routing adapter
+currently acquires associations from perceived feelings and exports a separate experimental
+`livesRouting` version-1 block. Full observer export and chain-viewer integration remain to come,
+as does live expectation-outcome classification. In particular, learning from an actual missed
+meeting must establish what that holder could know; this store does not decide that an absence is
+a rejection, a whereabouts observation or a broken agreement.
 
 Focused tests cover validation, knowledge separation, two-sided causes, dilution and retraction,
-bounded active state, first-outcome learning, indexed recall, timing and observation copies.
-They establish the mechanics with synthetic material. They do not establish character fidelity,
-complete the Penny–Pam–Gus thread, or demonstrate that history already changes a town choice.
+bounded active state, first-outcome learning, indexed recall, timing, correction, frozen history
+interventions and observation copies. Routing tests now demonstrate changed destination choices
+with synthetic history. They establish mechanics, not character fidelity or a completed
+Penny–Pam–Gus thread.
