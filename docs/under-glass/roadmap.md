@@ -136,8 +136,11 @@ The order is:
    anchors of the character pack that the [history
    audit](experiments/history-evidence-audit-2026-10-14.md) and its check found unsupported were
    corrected in their own PR (D53); the anchors stay background context for the models, not
-   memories. Penny's sourced routine (no Saloon evenings, her game bedtimes) follows as character
-   data in its own PR. Nothing of the pilot is built.
+   memories. Penny's sourced routine is built as character data (D54, 2026-10-14): no Saloon
+   evenings, and her game's bedtimes as habits, not rules (Sid): from the hour, bed is a strongly
+   weighted choice; she sleeps until rested and can be up at 03:00 with nothing to do, gaps
+   [recorded](experiments/penny-routine-2026-10-14.md) for the pilot rather than suppressed. Nothing
+   of the pilot itself is built.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen

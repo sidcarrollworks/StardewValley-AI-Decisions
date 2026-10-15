@@ -168,7 +168,11 @@ gives 8% broken and 4% late; two days (the default) 5% and 2%; three days 2.5% a
   outside bars, from sourced history and lived outcomes (proposed; [Lives
   assessment](../lives-gap-assessment.md)). The beer refusal stays as built; Sid has not extended it
   to accepting or drinking alcohol, so "never a drink with her" above is part of the undecided
-  proposal.*
+  proposal.* *As of D54 she is no longer at the Saloon in the evening, so she mostly hears of Pam's
+  scenes rather than seeing them (over three seeds of a year, of Pam's 15 scenes she saw none and
+  heard of 8, against 2 seen as shipped), and without her drinks the trailer stays out of debt, so
+  Pam's need-driven rummaging in bins, and the kin shame it brought Penny, no longer happen in 20
+  seed-years ([write-up](../experiments/penny-routine-2026-10-14.md)).*
 - **Promising what your hours won't allow.** The broken promises all come from working people
   saying yes to a shop that is only open while they work. Should someone who knows their own
   hours and the shop's sign count that as "busy" when asked (a cost, as being due at work is for an

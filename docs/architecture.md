@@ -31,6 +31,16 @@ thanks under Returns and apologies under Repair. Execution rechecks catalog/sour
 light caps and duplicate responses, consumes matching motives, and waits for act completion before
 recording the final outcome. The recipient's existing apology Ask still determines acceptance/refusal.
 
+Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
+(0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes (`KeptHour`, by
+weekday and season, with the source). In `Simulation.Routine.cs` a due bedtime adds going to bed to
+the free-time draw, weighted `HabitOptions.BedtimeHabitWeight`, and reconsiders a pick in progress
+once at the hour; nothing forces sleep, and availability never reads a schedule. Penny's values sit
+in `DefaultTown`'s name-keyed tables; `Towns.Named` adds `pelican-simulated-bedtime` and
+`pelican-as-shipped` for comparison. `Nights.cs` is a write-only sink (`INightSink`) that `Replay`
+turns into the recording's `nights` block (`NightTable`), one row per sleep; the run is the same
+with it on or off (`--no-nights`).
+
 The optional quiet-reflection prototype is specified in
 [under-glass/specs/reflection-spec.md](under-glass/specs/reflection-spec.md). It adds:
 
