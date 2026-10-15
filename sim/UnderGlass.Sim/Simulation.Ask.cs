@@ -1,7 +1,7 @@
 namespace UnderGlass.Sim;
 
 /// <summary>What one person asks of another (acts-batch2 spec 2.3). Append only.</summary>
-public enum AskKind { Apology, Door, Invitation, Party, Peace, Loan }
+public enum AskKind { Apology, Door, Invitation, Party, Peace, Loan, Errand }
 
 /// <summary>The asked person's own state when an invitation comes (Sid, 2026-10-13), each 0..1: how
 /// tired they are, whether they are due to leave for work soon, and how low their mood is.</summary>
@@ -54,6 +54,11 @@ public sealed partial class Simulation
     /// <item>Peace: 0.5 x understanding + 0.3 x familiarity + 0.3 x the asked one's own Peace (none
     /// before b2-3), + 0.2 within 3 days of the Winter Star, against 0.2 + dislike x (0.5 +
     /// retention) + 0.3 x max(0, self-regard - 0.5).</item>
+    /// <item>Errand (needs spec): 0.5 x regard + 0.3 x familiarity + 0.2 x understanding, + 0.2 if fond
+    /// of the asker, + ErrandKinBond for family or a shared home, against 0.2 + dislike x (0.5 +
+    /// retention) + 0.3 x withdrawn + the asked person's state as for an invitation, + 1 if already
+    /// on an errand, + 1 if their household can't pay for it. Something they won't fetch is a no
+    /// whatever the margin.</item>
     /// <item>Loan: 0.5 x regard + 0.3 x familiarity + 0.3 x understanding, against 0.2 + 0.3 x the
     /// act's amount over the asked household's weekly costs (need and broken promises come with their
     /// slices).</item>
@@ -80,10 +85,17 @@ public sealed partial class Simulation
             AskKind.Peace => (0.5 * u + 0.3 * fam + (NearWinterStar(Clock.Day(m)) ? 0.2 : 0),
                 0.2 + dislike * keep + 0.3 * Math.Max(0, t.SelfRegard - 0.5)),
             AskKind.Loan => (0.5 * liked + 0.3 * fam + 0.3 * u, 0.2 + 0.3 * LoanShare(asked, actId)),
+            AskKind.Errand => (0.5 * liked + 0.3 * fam + 0.2 * u + (FondOf(asked, asker, m) > 0 ? 0.2 : 0)
+                    + (Close(asked, asker) ? _fo.Acts.ErrandKinBond : 0),
+                0.2 + dislike * keep + 0.3 * withdrawn
+                    + AskMath.StateCost(AskStateOf(asked, m), AskMath.Eagerness(t), AskMath.Bond(Close(asked, asker), liked, fam), _fo.Acts)
+                    + ErrandCost(asked)),
             _ => (0, 1),
         };
         double margin = obliged - cost;
-        bool yes = DesireMath.Call(margin, _fo) switch
+        // A thing someone won't fetch is a no however obliged they are (Sid, 2026-10-13: Penny "would
+        // do anything for her mom besides give her alcohol"); the margin still says how obliged.
+        bool yes = what == AskKind.Errand && WontFetchAsked(asked) ? false : DesireMath.Call(margin, _fo) switch
         {
             "clear" => true,
             "no" => false,

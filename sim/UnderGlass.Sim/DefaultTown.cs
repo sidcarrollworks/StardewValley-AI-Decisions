@@ -318,7 +318,48 @@ public static class DefaultTown
             .ToDictionary(h => h, h => h == "Trailer" ? 300.0 : 200.0 + 200.0 * cast.Count(v => v.Household == h));
         return new Economy(start, incomes,
             new Dictionary<string, double> { ["Abigail"] = 60, ["Alex"] = 50, ["Haley"] = 40, ["Vincent"] = 10, ["Jas"] = 10 },
-            groceries, wants, TownStipend: 1200, TownStart: 2000);
+            groceries, wants, TownStipend: 1200, TownStart: 2000, Errands: Errands());
+    }
+
+    /// <summary>
+    /// The town's errands book (needs spec). Goods are Stardew's own, sold where Stardew sells them
+    /// (Data/Shops in 1.6.15: Pierre's flour, sugar, rice and vinegar; the Saloon's beer, coffee and
+    /// bread; the chain's cola), priced on Stardew's ratio with the Saloon's beer at the town's drink
+    /// price (400g there, 12 here, so 0.03 a g). Signs: Pierre 9 to 5, shut Wednesdays, as in the game;
+    /// the Saloon from noon, as in the game, to midnight; the chain as its staff work here (9 to 5,
+    /// shut at weekends; the game's JojaMart keeps longer hours, VERIFY if it matters). Uses come from
+    /// each life and Stardew's gift tastes: Pam and Shane love beer, Harvey coffee, Evelyn bakes, Gus
+    /// cooks. Penny won't fetch beer for anyone, her mother least of all (Sid, 2026-10-13: "she is
+    /// ashamed of her mom's alcoholism so she despises it ... she would do anything for her mom besides
+    /// give her alcohol").
+    /// </summary>
+    public static ErrandBook Errands()
+    {
+        var goods = new[]
+        {
+            new Good("beer", "a bottle of beer", "Saloon", 12, MinAge: 18), new Good("coffee", "a coffee", "Saloon", 9),
+            new Good("bread", "a loaf of bread", "Saloon", 4),
+            new Good("flour", "some flour", "Store", 3), new Good("sugar", "some sugar", "Store", 3),
+            new Good("rice", "a bag of rice", "Store", 6), new Good("vinegar", "a bottle of vinegar", "Store", 6),
+            new Good("cola", "a can of cola", "Mart", 2),
+        };
+        var counters = new[]
+        {
+            new Counter("Saloon", new Tile(9, 3), H(12), H(24), Array.Empty<int>()),
+            new Counter("Store", new Tile(4, 3), H(9), H(17), new[] { 2 }),
+            new Counter("Mart", new Tile(9, 4), H(9), H(17), new[] { 5, 6 }),
+        };
+        var uses = new Dictionary<string, IReadOnlyList<string>>
+        {
+            ["Demetrius"] = new[] { "rice", "sugar" }, ["Evelyn"] = new[] { "flour", "sugar" }, ["George"] = new[] { "bread", "coffee" },
+            ["Gus"] = new[] { "flour", "vinegar" }, ["Haley"] = new[] { "sugar" }, ["Harvey"] = new[] { "coffee" },
+            ["Jodi"] = new[] { "flour", "rice", "vinegar" }, ["Kent"] = new[] { "coffee" }, ["Leah"] = new[] { "vinegar" },
+            ["Lewis"] = new[] { "bread" }, ["Marnie"] = new[] { "flour", "sugar" }, ["Maru"] = new[] { "coffee" },
+            ["Pam"] = new[] { "beer" }, ["Penny"] = new[] { "flour" }, ["Robin"] = new[] { "flour" },
+            ["Sebastian"] = new[] { "coffee", "cola" }, ["Shane"] = new[] { "beer" },
+        };
+        var wontFetch = new Dictionary<string, IReadOnlyList<string>> { ["Penny"] = new[] { "beer" } };
+        return new ErrandBook(goods, counters, uses, wontFetch);
     }
 
     private static int H(int hour, int min = 0) => Clock.At(hour, min);
