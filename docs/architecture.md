@@ -35,6 +35,18 @@ thanks under Returns and apologies under Repair. Execution rechecks catalog/sour
 light caps and duplicate responses, consumes matching motives, and waits for act completion before
 recording the final outcome. The recipient's existing apology Ask still determines acceptance/refusal.
 
+The standalone [personal-memory foundation](under-glass/specs/lives-memory-spec.md) lives in
+`sim/UnderGlass.Sim/Lives`. `HistoryPack` validates and copies source/fact/account/reading data;
+`PersonalMemory` uses only its holder's accounts and reviewed readings. Warm and wary causes
+remain separate; one cause projected onto several objects contributes once to each side when
+those objects are considered together. Expectations learn on the first acquired outcome and
+retain one seed plus six lived entries per key. Recall uses a cue index with bounded output.
+Active associations are capped, but immutable history, expectation keys and the minimal
+acquisition-receipt index have different growth bounds; this is not yet population-scale proof.
+`ILivesSink` receives immutable copies and is never read back. These are internal kernel
+receipts, not the versioned Lives recording contract. No Simulation/Replay/CLI path calls the
+library yet, and no real character history is seeded. The new tests use synthetic evidence.
+
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
 (`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes
 (`KeptHour`, by weekday and season, its minute counted on the evening's day, 720-2159). Each carries

@@ -15,6 +15,13 @@ Working rules:
 
 ## Under Glass: current direction (2026-10-12)
 
+Personal-memory foundation, 2026-10-15: a standalone engine library now validates histories,
+keeps private accounts and conflicting associations, learns expectations from one outcome and
+recalls a bounded set through matching cues. Synthetic tests exercise admission, knowledge
+boundaries, forgetting and immutable observer receipts. It is not connected to live choices or
+recordings and activates no canon seeds. The next work connects reviewed pilot histories to
+opportunities, choices and meaningful outcomes; see the [built scope](docs/under-glass/specs/lives-memory-spec.md).
+
 Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
 character and tab preserved on return. This is viewer navigation only; the history assessment
