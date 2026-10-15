@@ -1,7 +1,7 @@
 namespace UnderGlass.Sim;
 
 /// <summary>What a promise is for (acts-batch2 spec 2.1, 2.6; rule 13). Append only.</summary>
-public enum PromiseKind { Date, Party, Tab, Loan }
+public enum PromiseKind { Date, Party, Tab, Loan, Errand }
 
 /// <summary>How a promise stands. Append only.</summary>
 public enum PromiseState { Open, Kept, Broken, Forgiven, Lapsed, Refused }
@@ -13,7 +13,8 @@ public enum PromiseState { Open, Kept, Broken, Forgiven, Lapsed, Refused }
 /// </summary>
 public sealed record Promise(int Id, PromiseKind Kind, string By, string To, int Made, int MadeAct,
     string Place, Tile Spot, int DueFrom, int DueTo, double Amount = 0,
-    PromiseState State = PromiseState.Open, int Settled = -1, int SettledAct = -1, bool Late = false);
+    PromiseState State = PromiseState.Open, int Settled = -1, int SettledAct = -1, bool Late = false,
+    string? Item = null, int FetchedAct = -1);
 
 /// <summary>Something dropped and perhaps found (acts-batch2 spec, b2-14): its owner, where, its
 /// value, when dropped, who holds it, whether they kept it, and when that came out.</summary>

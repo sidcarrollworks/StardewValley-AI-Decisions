@@ -168,6 +168,46 @@ public static class TownCheck
             foreach (string who in e.Allowances.Keys.Concat(e.Wants.Keys).Distinct().OrderBy(w => w, StringComparer.Ordinal))
                 if (!names.Contains(who))
                     problems.Add($"allowance or want of {who}: not in the town");
+            if (e.Errands is { } book)
+            {
+                // The errands book (needs spec): every thing used or refused is sold somewhere, every
+                // place that sells has one counter, and every counter stands somewhere reachable.
+                var goods = new HashSet<string>(StringComparer.Ordinal);
+                foreach (Good g in book.Goods ?? Array.Empty<Good>())
+                {
+                    if (g is null || string.IsNullOrWhiteSpace(g.Name) || string.IsNullOrWhiteSpace(g.Phrase) || !goods.Add(g.Name))
+                    {
+                        problems.Add($"errands: a good is blank or named twice ({g?.Name})");
+                        continue;
+                    }
+                    if (g.Price < 0)
+                        problems.Add($"errands: {g.Name} costs less than nothing");
+                    if ((book.Counters ?? Array.Empty<Counter>()).Count(c => c?.Place == g.Place) != 1)
+                        problems.Add($"errands: {g.Name} is sold at {g.Place}, which needs exactly one counter");
+                }
+                foreach (Counter c in book.Counters ?? Array.Empty<Counter>())
+                {
+                    if (c is null)
+                    {
+                        problems.Add("errands: a counter is blank");
+                        continue;
+                    }
+                    Spot($"counter {c.Place}", c.Place, c.Spot);
+                    if (c.DaysShut is null || c.DaysShut.Any(d => d < 0 || d >= Clock.DaysPerWeek))
+                        problems.Add($"errands: counter {c.Place} has no list of days shut, or a day that isn't one");
+                    if (c.From < 0 || c.From >= c.To || c.To > Clock.MinutesPerDay)
+                        problems.Add($"errands: counter {c.Place} opens {c.From} and shuts {c.To}, not within one day");
+                }
+                foreach (var (list, what) in new[] { (book.Uses, "uses"), (book.WontFetch, "won't fetch") })
+                    foreach (var (who, items) in (list ?? new Dictionary<string, IReadOnlyList<string>>()).OrderBy(x => x.Key, StringComparer.Ordinal))
+                    {
+                        if (!names.Contains(who))
+                            problems.Add($"errands: {who} {what} things but is not in the town");
+                        foreach (string item in items ?? Array.Empty<string>())
+                            if (!goods.Contains(item))
+                                problems.Add($"errands: {who} {what} {item}, which nobody sells");
+                    }
+            }
         }
         // Inside each place, every door and every spot in use can be walked to from the place's first
         // door (8 ways over open tiles, as the engine walks); otherwise a walker steps over walls to it.

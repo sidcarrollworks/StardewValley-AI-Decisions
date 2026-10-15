@@ -62,6 +62,18 @@ The optional quiet-reflection prototype is specified in
   part in the refusal (`FinishActs` treats a given deed's patient target within reach as a
   participant), and the
   gate records the asking as not acted. Replay writes `invitations` only with the switch on.
+- `UnderGlass.Sim/Errands.cs` and `Simulation.Errands.cs`: errands ([spec](under-glass/specs/needs-spec.md),
+  D52), opt-in with `Errands`, in a town whose `Economy` carries an `ErrandBook` (goods, counters'
+  signs, who uses what, who won't fetch what; `DefaultTown.Errands`). `RunErrands`, each tick after
+  `Rows`: needs arise at midnight (noticed at a keyed waking minute) and lapse; favours are asked
+  through the general `Ask` (`AskKind.Errand`, whose cost reads `ErrandCost`); runners buy at the
+  counter (`Fetched`, money through `Sell`); hand-overs (`HandedOver`) and broken promises (`LetDown`,
+  through `BeginUnseen`). `Decide` calls `ErrandGoal` after patrol: to the counter while its sign says
+  open, then, carrying it, to where the runner believes the person is (their job in working hours,
+  then the runner's own sightings; `errand-seek` in the log). `TownCheck` checks a town file's book
+  (every thing used is sold, one counter a place, counters reachable). Promises (`PromiseKind.Errand`), needs and favours fill
+  `SimResult.Promises`, `Needs` and `Favours`; Replay writes `needs`, `favours` and `promises` only with
+  the switch on. Speech names the thing through `{item}` (`SpeechCatalog.ItemKinds`).
 - `UnderGlass.Sim/Speech.cs`, `Simulation.Speech.cs` and embedded `speech-catalog.json`: the
   opt-in speech library ([spec](under-glass/specs/speech-spec.md)). When an act toward a person
   begins, `Say` chooses one authored line by kind, the speaker's archetype, relationship band and
