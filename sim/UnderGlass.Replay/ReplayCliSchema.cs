@@ -37,6 +37,8 @@ internal static class ReplayCliSchema
             new Option("history", "Reviewed history pack", "path", "Lives"),
             new Option("compare-history", "History reading to remove in comparisons", "text", "Lives", Repeat:true),
             new Option("no-lives-record", "Omit Lives routing receipts", "boolean", "Lives"),
+            new Option("lives-company", "Remembered company opens shared games", "boolean", "Lives"),
+            new Option("no-company-record", "Omit Lives company receipts", "boolean", "Lives"),
             new Option("fo", "Feeling overrides", "override", "Overrides", Repeat:true),
             new Option("ao", "Action overrides", "override", "Overrides", Repeat:true),
             new Option("trait", "Character trait overrides", "trait", "Overrides", Repeat:true),

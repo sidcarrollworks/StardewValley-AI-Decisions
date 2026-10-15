@@ -138,6 +138,58 @@ public sealed class LivesChoiceTests
         Assert.DoesNotContain(comparison.WithoutHistory.Alternatives, a => a.Option.Id == "visit");
     }
 
+    [Theory]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void AnotherWarmMemoryCanKeepTheSameOptionAvailableAfterHistoryRemoval(int recallCount)
+    {
+        var frame = new PersonalMemory("Ada", TwoWarmHistories(), new(RecallCount: recallCount)).Capture();
+        var scene = Scene(Visit() with { Objects = new[] { Place, Person }, WarmRecallObjects = new[] { Place, Person } }, Stay());
+        var comparison = LivesChoices.CompareAtUnit(frame, scene, new[] { "reading" }, .1);
+        Assert.True(comparison.Comparable);
+        Assert.True(comparison.ProbabilitiesChanged);
+        Assert.Equal(new[] { "visit", "stay" }, comparison.WithoutHistory.Alternatives.Select(a => a.Option.Id));
+        Assert.Contains(comparison.WithoutHistory.Recall.Items, item => item.Id == "reading-2");
+        Assert.Contains(comparison.WithoutHistory.Alternatives[0].Reasons, reason => reason.Code == "warm-recall"
+            && reason.Cites.Contains("reading-2"));
+        if (recallCount == 3)
+            Assert.DoesNotContain(comparison.WithHistory.Recall.Items, item => item.Id == "reading-2");
+        else Assert.Contains(comparison.WithHistory.Recall.Items, item => item.Id == "reading-2");
+    }
+
+    [Fact]
+    public void RemovingEveryWarmSupportExcludesTheOptionWithoutInventingAReplacement()
+    {
+        var scene = Scene(Visit() with { Objects = new[] { Place, Person }, WarmRecallObjects = new[] { Place, Person } }, Stay());
+        var comparison = LivesChoices.CompareAtUnit(Frame(TwoWarmHistories()), scene,
+            new[] { "reading", "reading-2" }, .1);
+        Assert.False(comparison.Comparable);
+        Assert.Equal("eligible-alternatives-changed", comparison.NonComparableReason);
+        Assert.Equal("stay", Assert.Single(comparison.WithoutHistory.Alternatives).Option.Id);
+        Assert.Equal("missing-warm-recall", Assert.Single(comparison.WithoutHistory.Excluded).Code);
+        Assert.Null(comparison.SelectionChanged);
+    }
+
+    [Fact]
+    public void WarmRecallMustConcernTheSpecifiedObjectsAndHavePositiveWarmth()
+    {
+        var scene = Scene(Visit() with { WarmRecallObjects = new[] { Person } }, Stay());
+        Assert.Equal("missing-warm-recall", Assert.Single(LivesChoices.Evaluate(Frame(), scene, .2).Excluded).Code);
+        scene = Scene(Visit() with { WarmRecallObjects = new[] { Place } }, Stay());
+        Assert.Equal("missing-warm-recall", Assert.Single(LivesChoices.Evaluate(Frame(History(ReadingStance.Wary)), scene, .2).Excluded).Code);
+    }
+
+    private static HistoryPack TwoWarmHistories()
+    {
+        HistoryPack pack = History();
+        return pack with
+        {
+            Facts = pack.Facts.Append(pack.Facts[0] with { Id = "fact-2" }).ToArray(),
+            Accounts = pack.Accounts.Append(pack.Accounts[0] with { Id = "account-2", FactId = "fact-2" }).ToArray(),
+            Readings = pack.Readings.Append(pack.Readings[0] with { Id = "reading-2", AccountId = "account-2", Object = Person }).ToArray(),
+        };
+    }
+
     [Fact]
     public void RemovingOpportunitySupportDoesNotManufactureAnotherChoice()
     {
@@ -270,18 +322,20 @@ public sealed class LivesChoiceTests
     public void ReceiptsCopyInputsAndContainOnlyReadOnlyCollections()
     {
         var objects = new List<MemoryObject> { Place };
+        var warmObjects = new List<MemoryObject> { Place };
         var cues = new List<string> { "scene" };
         var cites = new List<string> { "account" };
-        var options = new List<ChoiceOption> { Visit() with { Objects = objects }, Stay() };
+        var options = new List<ChoiceOption> { Visit() with { Objects = objects, WarmRecallObjects = warmObjects }, Stay() };
         var scene = Scene() with { Cues = cues, Options = options,
             Excluded = new[] { new ChoiceExclusion("closed", "closed", cites) },
             Constraints = new[] { new ChoiceConstraint("travel", 5, cites) } };
         var decision = LivesChoices.Evaluate(Frame(), scene, .2);
         string before = Json(decision);
-        objects.Clear(); cues.Clear(); options.Clear(); cites.Clear();
+        objects.Clear(); warmObjects.Clear(); cues.Clear(); options.Clear(); cites.Clear();
         Assert.Equal(before, Json(decision));
         Assert.Throws<NotSupportedException>(() => ((IList<ChoiceAlternative>)decision.Alternatives).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<MemoryObject>)decision.Alternatives[0].Option.Objects).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IList<MemoryObject>)decision.Alternatives[0].Option.WarmRecallObjects!).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<string>)decision.Excluded[0].Cites).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<ChoiceReason>)decision.Alternatives[0].Reasons).Clear());
     }
@@ -330,6 +384,8 @@ public sealed class LivesChoiceTests
         Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene() with { Options = Array.Empty<ChoiceOption>() }, .2));
         Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene() with { Options = Enumerable.Range(0, 6).Select(i => Visit() with { Id = "x" + i }).ToArray() }, .2));
         Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene(Visit() with { Line = "bad\ud800" }), .2));
+        Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene(Visit() with { WarmRecallObjects = Array.Empty<MemoryObject>() }), .2));
+        Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene(Visit() with { WarmRecallObjects = new[] { new MemoryObject((MemoryObjectKind)999, "invalid") } }), .2));
         Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene() with { Excluded = new[] { new ChoiceExclusion("visit", "closed", Array.Empty<string>()) } }, .2));
         Assert.Throws<ArgumentException>(() => LivesChoices.Evaluate(frame, Scene(), .2, new ChoiceSettings(Scale: 0)));
     }

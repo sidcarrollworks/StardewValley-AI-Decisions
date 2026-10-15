@@ -1385,3 +1385,49 @@ pack is shipped or implicitly enabled; tests use explicitly synthetic histories.
 Laya calls, reflection/model-context changes, company-seeking actions, plans or expectation outcome
 classifiers. Meaningful shared outcomes, reviewed pilot content and the full recorded thread remain
 next. The archetype editor remains deferred; law 1 and the unresolved bars decision are unchanged.
+
+### Lives immediate company and the retained routine baseline (2026-10-15)
+
+Sid authorized the next steps and explicitly selected keeping the current routine baseline:
+existing sleep rules and bedtime weight, with no additional bedtime penalty on invitations.
+`--lives-company` builds one bounded executable thread before future evening plans: a recalled
+warm person/activity cause can suggest seeking company or offering a game during an encounter.
+No named-character exception or canon numeric seed is added. The assessment's larger pilot,
+including later appointments, disappointment and Laya choices, is still planned.
+
+Seeking uses only the seeker's recorded sightings (subject to the existing three-day retention)
+or a known shared home. It does not consult remote positions or a partner's current schedule.
+Current local perception can reveal that the person is present, asleep or occupied. Travel and
+search windows are separate; an aborted journey does not manufacture evidence of absence. A
+completed search with no sighting changes whereabouts expectations only, never acceptance or
+regard. One active episode per person and one considered offer per unordered pair per day bound
+repeated attempts. Legacy game invitations share the pair/day cap; their existing refusal cooldown
+also gates new offers. Seeking candidates are capped at three in name order, a current limitation.
+
+At a free-time decision, company competes with carrying on at the sum of the current routine
+weights (including the existing bedtime weight). Carrying on uses the unchanged destination
+selection path. An offer has its own carry-on alternative. A required recalled warm cause gates
+each new option, and is reevaluated per comparison arm so another recalled warm cause can replace
+one that was removed. Removing the only supporting history can therefore remove eligibility; such a
+comparison is marked non-comparable instead of inventing a counterfactual action.
+
+An offer receives a next-minute answer without creating a fake act ID. The offline three-way
+fallback uses the existing Ask margin and state; yes/no have weights exp(±scale × margin), and
+not-now has weight reason × exp(scale × reason), where reason is max(tired, busy, low). It is absent
+at zero reason and grows continuously from zero. This is an experimental policy, not a claim that
+the proportions match Laya. A no creates a real refusal; not-now changes availability only.
+An acceptance also contributes positive availability evidence, so old postponements are not an
+irreversible penalty. There are no new model calls in this slice.
+
+Accepted games reserve both participants for the existing duration. Shared-home games can cross
+ages without requiring an authored game card; elsewhere existing game place/age rules apply.
+Continuity is checked through completion. Work, tiredness, collapse, another act or lost contact
+can interrupt; only completion pays one sensitivity-scaled shared feeling to each participant.
+Its person/place/activity projections share one cause. Later company choices read specific
+whereabouts, availability, answer and activity expectations. A completed game currently always
+has the catalog's positive affect; richer activity content and disappointing evenings remain next.
+
+`livesCompany` version 1 is a separate experimental observer block, not Lives 0.2. Observer lists
+never direct the run, and disabling their recording preserves behavior. The offline review uses
+normal towns without history seeds plus clearly labelled synthetic households; no trial result
+is an approval of a sourced character history or a social-outcome quota.

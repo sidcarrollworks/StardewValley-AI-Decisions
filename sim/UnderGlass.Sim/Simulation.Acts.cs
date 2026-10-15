@@ -38,12 +38,13 @@ public sealed partial class Simulation
     }
 
     /// <summary>The rules a catalog kind adds of its own (acts spec 3.1 and section 4).</summary>
-    private bool KindFits(ActKind kind, Person p, Person o, int m) => kind.Name switch
+    private bool KindFits(ActKind kind, Person p, Person o, int m, bool companyProposal = false) => kind.Name switch
     {
         // A game: at the saloon in the evening, outdoors by day; the two near in age, or both children.
         "PlayedGame" => (p.Place == "Saloon" ? Clock.OfDay(m) >= Clock.At(17) : Clock.OfDay(m) < Clock.At(19))
                         && (Math.Abs(p.V.Age - o.V.Age) <= 6 || p.V.Age < 13 && o.V.Age < 13)
-                        && !InviteWaits(p, o, m),
+                        && !InviteWaits(p, o, m)
+                        && (companyProposal || !_companyOptions.Enabled || !CompanyConsidered(p.V.Name, o.V.Name, m)),
         // A treat: both of age, and the purse holds a drink (the bar's own household treats free).
         "TreatedToDrink" => o.V.Age >= 18 && (!HasMoney || HouseholdOf(p.V.Name) == BarHousehold()
                                               || _purse.GetValueOrDefault(HouseholdOf(p.V.Name)) >= _mo.SaloonDrink)
@@ -255,6 +256,8 @@ public sealed partial class Simulation
     /// asked as company does; a drink bought for someone is paid for.</summary>
     private void AfterAct(Act act, ActKind kind, int m)
     {
+        if (CompleteCompanyGame(act, m))
+            return; // the shared activity owns both participants' completion, once
         if (!Steering || ActCatalog.SliceOf(kind.Name) is null || act.Target is not { } t || !_index.TryGetValue(t, out int ti))
             return;
         int a = _index[act.Actor];

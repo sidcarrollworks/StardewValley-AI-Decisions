@@ -17,6 +17,36 @@ using UnderGlass.Sim.Lives;
 // for a grown town (pelican31). --speech records an authored line beside every act to a person
 // (the speech library; presentation only, off by default). --no-nights leaves out the "nights" block
 // (each sleep's habitual bedtime, onset, waking and next choice; on by default, the run the same either way).
+if (args.Contains("--help", StringComparer.Ordinal))
+{
+    Console.WriteLine("""
+        Under Glass recording generator
+          --seed <integer> --days <integer> --out <run.json> --html <run.html>
+          --town <name> --speech --speech-catalog <catalog.json> --newcomer-voice
+          --no-nights --inject
+          --feel off|observe|on --desire off|observe|on --tensions <depth>
+          --catalog <comma-separated slices> --fo <Name=value> --ao <Name=value>
+          --trait <Name=Trait:value> --0d6 <steps>
+
+        Experimental history and free-time choices (off by default):
+          --lives-routing --history <reviewed-pack.json>
+          --compare-history <history-id>    Repeatable, same-choice comparison.
+          --no-lives-record                Omit routing receipts; behavior is unchanged.
+
+        Experimental immediate shared games (off by default, no model calls):
+          --lives-company --lives-routing --catalog company,invitations
+          --no-company-record              Omit company receipts; behavior is unchanged.
+        Company requires routing and both catalog slices. Its separate livesCompany
+        recording block is experimental; it is not the full Lives observer 0.2 contract.
+
+        Optional reflection:
+          --reflection authored|laya|hybrid|tape --character-inspiration <pack.json>
+          --laya-url <url> --laya-model <model> --evaluation raw|canonical|balanced
+          --llm-url <url> --llm-model <model> --reflection-tape <run.json>
+          --reflection-chance <number> --dreams --dream-chance <number>
+        """);
+    return;
+}
 if (args.SequenceEqual(new[] { "--describe-options" }))
 {
     Console.WriteLine(ReplayCliSchema.Json());
@@ -33,6 +63,7 @@ string? inspirationPath = null, speechPath = null;
 bool newcomerVoice = false;
 string? historyPath = null;
 bool livesRouting = false, livesRecord = true;
+bool livesCompany = false, companyRecord = true;
 var compareHistory = new List<string>();
 string layaModel = "typed-decisions";
 string evaluationMode = "balanced";
@@ -54,6 +85,8 @@ for (int i = 0; i < args.Length; i++)
         case "--history": historyPath = Next(); break;
         case "--compare-history": compareHistory.Add(Next()); break;
         case "--no-lives-record": livesRecord = false; break;
+        case "--lives-company": livesCompany = true; break;
+        case "--no-company-record": companyRecord = false; break;
         case "--laya-url": layaUrl = Next(); break;
         case "--laya-model": layaModel = Next(); break;
         case "--evaluation": evaluationMode = Next(); break;
@@ -144,6 +177,10 @@ CharacterInspirationPack? inspiration = inspirationPath is null ? null
     : CharacterInspirationPack.Read(File.ReadAllText(inspirationPath));
 if (!livesRouting && (historyPath is not null || compareHistory.Count > 0 || !livesRecord))
     throw new ArgumentException("--history, --compare-history and --no-lives-record require --lives-routing.");
+if (livesCompany && !livesRouting)
+    throw new ArgumentException("--lives-company requires --lives-routing and --catalog company,invitations.");
+if (!companyRecord && !livesCompany)
+    throw new ArgumentException("--no-company-record requires --lives-company.");
 HistoryPack? history = historyPath is null ? null : HistoryPack.Read(File.ReadAllText(historyPath));
 var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
@@ -163,7 +200,8 @@ if (reflectionMode == "tape")
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
     Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights,
-    LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history }, mind);
+    LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
+    LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord } }, mind);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);

@@ -201,6 +201,8 @@ public sealed partial class Simulation
     private void Feel(string who, Belief b, Belief? prior, string? teller, int m)
     {
         Act act = _acts[b.ActId];
+        if (CompanyManagedAct(act.Id) && (who == act.Actor || who == act.Target))
+            return; // participating in the game is felt at its real completion, never as a second kindness
         ActKind kind = KindOf(act);
         if (kind.Affect is not { } row || row.Joy == 0)
             return;

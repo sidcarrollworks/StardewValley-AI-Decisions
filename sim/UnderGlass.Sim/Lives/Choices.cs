@@ -13,10 +13,13 @@ public sealed record ChoiceSettings(double Scale = 5, double TornAt = 0.025, dou
 }
 
 /// <summary>The caller supplies physically possible options, in stable draw order. All required
-/// recalls must actually occupy a bounded recall slot. A wish can open an option without warmth.</summary>
+/// recalls must actually occupy a bounded recall slot. A wish can open an option without warmth.
+/// When WarmRecallObjects is supplied, at least one recalled warm cause must concern one of those
+/// objects. This predicate is reevaluated for each comparison arm, so another memory may support it.</summary>
 public sealed record ChoiceOption(string Id, string Line, double Base,
     IReadOnlyList<MemoryObject> Objects, IReadOnlyList<ExpectationKey> Expectations,
-    IReadOnlyList<string>? RequiredRecallIds = null, double Intended = 0, double GoingCost = 0);
+    IReadOnlyList<string>? RequiredRecallIds = null, double Intended = 0, double GoingCost = 0,
+    IReadOnlyList<MemoryObject>? WarmRecallObjects = null);
 public sealed record ChoiceExclusion(string Id, string Code, IReadOnlyList<string> Cites);
 public sealed record ChoiceConstraint(string Code, double? Value, IReadOnlyList<string> Cites);
 public sealed record ChoiceOpportunity(string Id, string Holder, int At, string Trigger,
@@ -83,6 +86,19 @@ public static class LivesChoices
                 excluded.Add(new(option.Id, missing.Length > 0 ? "required-recall-missing" : "zero-base", Freeze(missing)));
                 continue;
             }
+            IReadOnlyList<string> warmRecall = Array.Empty<string>();
+            if (option.WarmRecallObjects is { } warmObjects)
+            {
+                var causes = frame.Sides(warmObjects).Causes.Where(c => c.Warm > 0)
+                    .Select(c => c.CauseId).ToHashSet(StringComparer.Ordinal);
+                warmRecall = Freeze(recall.Items.Where(item => item.Warm > 0 && item.Causes.Any(causes.Contains))
+                    .Select(item => item.Id));
+                if (warmRecall.Count == 0)
+                {
+                    excluded.Add(new(option.Id, "missing-warm-recall", Array.Empty<string>()));
+                    continue;
+                }
+            }
             MemorySides sides = frame.Sides(option.Objects);
             var expectations = Freeze(option.Expectations.Distinct().Select(frame.Expectation));
             double chance = expectations.Aggregate(1.0, (value, expectation) => value * expectation.Chance);
@@ -94,6 +110,8 @@ public static class LivesChoices
                 new(ChoiceReasonKind.Shown, ChoiceReasonVia.Routine, "base", option.Base, Array.Empty<string>()),
                 new(ChoiceReasonKind.Shown, ChoiceReasonVia.State, "boldness", input.Boldness, Array.Empty<string>()),
             };
+            if (warmRecall.Count > 0)
+                reasons.Add(new(ChoiceReasonKind.Shown, ChoiceReasonVia.Rule, "warm-recall", null, warmRecall));
             foreach (CauseContribution cause in sides.Causes)
             {
                 if (cause.Warm > 0) reasons.Add(new(ChoiceReasonKind.Supports, ChoiceReasonVia.OptionSide,
@@ -204,13 +222,16 @@ public static class LivesChoices
             if (!double.IsFinite(option.Base) || option.Base < 0) throw new ArgumentException("Invalid base weight.");
             UnitInterval(option.Intended); UnitInterval(option.GoingCost);
             if (option.Objects is null || option.Objects.Count > 32 || option.Objects.Any(o => o is null)
+                || option.WarmRecallObjects is { } warm && (warm.Count is < 1 or > 32 || warm.Any(o => o is null))
                 || option.Expectations is null || option.Expectations.Count > 16 || option.Expectations.Any(e => e is null))
                 throw new ArgumentException("Invalid option objects or expectations.");
-            foreach (MemoryObject obj in option.Objects) { if (!Enum.IsDefined(obj.Kind)) throw new ArgumentException("Unknown object kind."); Name(obj.Key); }
+            foreach (MemoryObject obj in option.Objects.Concat(option.WarmRecallObjects ?? Array.Empty<MemoryObject>()))
+            { if (!Enum.IsDefined(obj.Kind)) throw new ArgumentException("Unknown object kind."); Name(obj.Key); }
             foreach (ExpectationKey key in option.Expectations)
             { if (!Enum.IsDefined(key.Kind)) throw new ArgumentException("Unknown expectation kind."); Name(key.Subject); Name(key.Context); }
             options.Add(option with { Objects = Freeze(option.Objects.Distinct()), Expectations = Freeze(option.Expectations.Distinct()),
-                RequiredRecallIds = Names(option.RequiredRecallIds ?? Array.Empty<string>(), 128) });
+                RequiredRecallIds = Names(option.RequiredRecallIds ?? Array.Empty<string>(), 128),
+                WarmRecallObjects = option.WarmRecallObjects is null ? null : Freeze(option.WarmRecallObjects.Distinct()) });
         }
         if (options.Select(o => o.Id).Distinct(StringComparer.Ordinal).Count() != options.Count)
             throw new ArgumentException("Alternative IDs must be unique.");

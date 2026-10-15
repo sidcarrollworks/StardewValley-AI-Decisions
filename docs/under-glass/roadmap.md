@@ -3,7 +3,7 @@
 Updated 2026-10-12 after Sid selected hybrid and requested source-derived character voices; amended
 2026-10-13 to say where the agreed order leads (player speech, below), and 2026-10-14 for Sid's
 history-first direction: the Lives pilot is next, needs bars are unresolved (D53). Updated
-2026-10-15 for the personal-memory foundation and its first opt-in free-time routing consumer;
+2026-10-15 for the personal-memory foundation, free-time routing and immediate company consumer;
 the end-to-end pilot remains unbuilt.
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
@@ -52,6 +52,12 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
   without requested history. It enables no canon history seeds, model calls, new plans or full Lives
   observer export. The mechanism tests use synthetic histories; the pilot's sourced pack still needs
   individual admission review. The chain viewer does not yet display these runtime receipts.
+- Built, opt-in: [immediate company](specs/lives-company-spec.md) connects remembered warmth to
+  seeking someone, a local game offer, a next-minute answer and a completed or interrupted activity.
+  It learns distinct whereabouts, availability, answer and activity expectations that later company
+  choices read. It keeps the current routine baseline. This is a bounded prerequisite for the pilot's
+  future evening plans, not their completion. Canon seed review, model evaluation and full Lives
+  export are still ahead.
 - Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
