@@ -158,10 +158,11 @@ public sealed partial class Simulation
     private bool Admits(Gathering g, Person p, int m)
         => p.V.Age >= g.MinAge && p.V.Age <= g.MaxAge && (g.Capacity <= 0 || !_struck.Contains((p.V.Name, g.Name, Clock.Day(m))));
 
-    /// <summary>A hub's weight for someone: its own for its households (or everyone, with none named),
-    /// times Visitors for anyone else.</summary>
+    /// <summary>A hub's weight for someone: their own for it, when their card gives one (D54); else the
+    /// hub's for its households (or everyone, with none named), times Visitors for anyone else.</summary>
     private static double HubWeight(Gathering g, Person p)
-        => g.Local is null || g.Local.Contains(p.V.Household) ? g.Weight : g.Weight * g.Visitors;
+        => p.V.HubWeights is { } own && own.TryGetValue(g.Name, out OwnWeight? w) && w is not null ? w.Weight
+         : g.Local is null || g.Local.Contains(p.V.Household) ? g.Weight : g.Weight * g.Visitors;
 
     /// <summary>On arriving at the place of a hub with a crowd limit: someone who sees Capacity or more
     /// awake people within its radius turns back, strikes it off for the day and decides again. Only

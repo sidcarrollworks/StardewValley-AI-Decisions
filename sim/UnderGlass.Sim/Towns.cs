@@ -8,11 +8,15 @@ namespace UnderGlass.Sim;
 public static class Towns
 {
     /// <summary>The names <see cref="Named"/> knows, for the runner's and the replay's --town.</summary>
-    public static readonly IReadOnlyList<string> Names = new[] { "pelican", "pelican31" };
+    public static readonly IReadOnlyList<string> Names = new[] { "pelican", "pelican-simulated-bedtime", "pelican-as-shipped", "pelican31" };
 
-    /// <summary>A town by name: "pelican" (the shipped 26), "pelican31", a generated town written as
-    /// its spec, such as "pelican:60@7" (<see cref="Generation.TownGen"/>), or a town file written by
-    /// --dump-town, as "file:path" (<see cref="TownJson"/>).</summary>
+    /// <summary>A town by name: "pelican" (the shipped 26, with Penny's sourced routine, D54),
+    /// "pelican-simulated-bedtime" (the same without anyone's habitual bedtimes: bed from the body
+    /// alone, as before D54), "pelican-as-shipped" (without bedtimes or own hub weights: the town as it
+    /// shipped before D54, run hash for run hash; its census hash moved with the generator's version),
+    /// "pelican31", a generated town written as its spec, such as "pelican:60@7"
+    /// (<see cref="Generation.TownGen"/>), or a town file written by --dump-town, as "file:path"
+    /// (<see cref="TownJson"/>).</summary>
     /// <summary>A town's starting regards with the shipped tensions (<see cref="DefaultTown.TensionPairs"/>)
     /// at -depth, or left out at depth 0; every other starting regard the town has (the 31 town's
     /// Clint toward Emily, a grown town's rivals) is kept. For the runner's and the replay's
@@ -37,11 +41,16 @@ public static class Towns
     public static TownData Named(string name) => name switch
     {
         "pelican" or "pelican26" => TownData.Default(),
+        "pelican-simulated-bedtime" => Without(TownData.Default(), v => v with { Bedtimes = null }),
+        "pelican-as-shipped" => Without(TownData.Default(), v => v with { Bedtimes = null, HubWeights = null }),
         "pelican31" => Pelican31(),
         _ when name.StartsWith("file:", StringComparison.Ordinal) => Checked(TownJson.Read(File.ReadAllText(name[5..])), name[5..]),
         _ when name.Contains(':') => Generation.TownGen.Build(Generation.TownSpec.Parse(name)),
         _ => throw new ArgumentException($"no town called {name}: one of {string.Join(", ", Names)}, or a spec such as pelican:60@7"),
     };
+
+    /// <summary>A comparison town (D54): every card changed the same way, never by name.</summary>
+    private static TownData Without(TownData town, Func<Villager, Villager> change) => town with { Cast = town.Cast.Select(change).ToList() };
 
     /// <summary>A generated town with a run's seed as its town seed (the runner's --town-seeds):
     /// pelican:60@1 for seed 7 is pelican:60@7, so each run of a sweep is a different town of the same

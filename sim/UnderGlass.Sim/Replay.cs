@@ -23,6 +23,8 @@ public sealed record ReplayOptions
     public IReadOnlyList<(string Who, Trait Trait, double Value)> Traits { get; init; } = Array.Empty<(string, Trait, double)>();
     /// <summary>A note for the viewer's header, such as the flags the run was made with.</summary>
     public string? Label { get; init; }
+    /// <summary>Records each sleep's night (the "nights" block, D54); the run is the same either way.</summary>
+    public bool Nights { get; init; } = true;
 }
 
 /// <summary>
@@ -37,7 +39,10 @@ public sealed record ReplayOptions
 /// from midnight of day 0. Real numbers are rounded to three places; regard is stored as integers
 /// in thousandths, and mood and power in hundredths. Movements are packed per person (see
 /// <see cref="Pack"/>). Settings that are not finite numbers (a threshold set to Infinity to turn
-/// something off) are written as the strings "Infinity", "-Infinity" and "NaN".
+/// something off) are written as the strings "Infinity", "-Infinity" and "NaN". With
+/// <see cref="ReplayOptions.Nights"/> (the default) the "nights" block holds one row per sleep: the
+/// habitual bedtime and its source, when and why they set out, onset, waking, energy and the next
+/// choice (<see cref="NightTable"/>); a recording without it has its nights unrecorded.
 /// </summary>
 public static class Replay
 {
@@ -75,6 +80,8 @@ public static class Replay
         var sim = new Simulation(o.Seed, town with { Feelings = feelings }, scheduled);
         sim.ConfigureReflection(o.Reflection);
         sim.ConfigureSpeech(o.Speech);
+        NightList? nights = o.Nights ? new NightList() : null;
+        sim.ConfigureNights(nights);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -314,6 +321,14 @@ public static class Replay
         recording["encounters"] = JsonSerializer.SerializeToElement(r.Encounters, encounterJson);
         recording["encounterCauses"] = JsonSerializer.SerializeToElement(r.EncounterCauses, encounterJson);
         recording["appraisals"] = JsonSerializer.SerializeToElement(r.Appraisals, encounterJson);
+        if (nights is not null)
+            // Additive, write-only (D54): each sleep's night; the cards' routines the rows refer to.
+            recording["nights"] = JsonSerializer.SerializeToElement(new
+            {
+                version = NightTable.Version,
+                routines = NightTable.Routines(cast),
+                rows = NightTable.Rows(nights.Notes, cast),
+            }, encounterJson);
         return recording;
     }
 

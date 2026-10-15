@@ -29,7 +29,8 @@ public sealed record TownSpec(long Seed, int People, string Profile = "pelican",
 public static partial class TownGen
 {
     /// <summary>Raised whenever a change makes the same spec build a different town.</summary>
-    public const int Version = 2; // 2: the review's fixes (2026-10-08): ages, kin, spots, the lane's green, wildcards, the hash
+    public const int Version = 3; // 2: the review's fixes (2026-10-08): ages, kin, spots, the lane's green, wildcards, the hash;
+                                 // 3: the core's Penny keeps her sourced routine, bedtimes as habits (D54)
 
     /// <summary>A ring-1 slot (town spec 2.3): where it joins the core, its template and size,
     /// and the people it holds.</summary>

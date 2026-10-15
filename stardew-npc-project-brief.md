@@ -56,6 +56,10 @@ On 2026-10-14 Sid put histories first: the Lives pilot (Penny, Pam and Gus, one 
 sourced history to what each learns) is next, on general mechanisms; law 1 stays unchanged and needs
 bars are unresolved, neither scheduled nor rejected (D53). Seven character-pack anchors were
 corrected first, in their own PR.
+Penny's sourced routine followed as character data (D54): no Saloon evenings, and her game's
+bedtimes kept as habits, not rules (Sid). She sleeps until rested, so an 18:30 bed means a 03:00
+waking with nothing yet to do at home; that and the other gaps are
+[recorded](docs/under-glass/experiments/penny-routine-2026-10-14.md) for the pilot, not suppressed.
 The [current roadmap](docs/under-glass/roadmap.md) is the priority guide: the Lives pilot
 next, with encounter context, broader actions and tagged speech, follow-through and controlled
 model comparisons continuing. The [contextual-event spec](docs/under-glass/specs/contextual-events-spec.md)

@@ -1147,6 +1147,74 @@ claims removed. D44 and D52 stay as written, each with a pointer here.
 **If you undo it.** The anchors would again say more than their sources, and calling them memories
 would again invite seeding behaviour from prompt text.
 
+### D54. Penny's sourced routine is her character data; bedtimes are habits
+
+**Decision (Sid, 2026-10-14; the assessment's O1, and his answer on early bedtimes).** Unsupported
+starting routines are corrected as character data, with their source and the change in behaviour
+recorded, not outweighed by history weights; later experience should be able to change them (not
+built: a card is fixed for the run, and an own weight of 0 removes the hub from the draw outright;
+that learning is the pilot's). Penny's first. Her game schedule (`fixtures/game/Penny.json`) never
+puts her at the Saloon except on year 1's green-rain day, and she leaves for bed at 18:30 on
+Tuesdays, Wednesdays and Fridays, 20:00 on Saturdays, 21:00 on summer Mondays, Thursdays and Sundays
+and 18:40 on the others (winter's Community Center schedule falls back to spring until the Center is
+restored, and the sim has no Center). On what follows an early bedtime, Sid decided (verbatim):
+
+> Pilot decision: bedtimes are habits, not hard rules.
+> Keep Penny’s sourced bedtimes as routine preferences. Actual sleep and waking follow the energy rule: when rested, she wakes—even at 3 am—and can choose among the actions available to her.
+> Don’t force sleep until 6 am, introduce a special Penny correction, or make her unavailable merely because her habitual bedtime has passed. Actual sleep can prevent conversation; the schedule alone shouldn’t.
+> Record the habitual bedtime, actual sleep onset, waking time, energy, and what she chooses next. Distinguish sourced routines from our simulation assumptions.
+> If early waking exposes missing activities or implausible decisions, report those gaps. We’ll assess them through the pilot rather than suppressing the outcome.
+
+**As built.** Two optional fields any villager can carry, with the data in `DefaultTown`'s
+name-keyed tables (built afresh for every town), never a name switch: `HubWeights`, a person's own
+weight for a named hub in place of the hub's (`OwnWeight`; 0 or less: the hub is left out of their
+choices), and `Bedtimes`, habitual bedtimes by weekday and season, the first covering a day
+applying (`KeptHour`, its minute counted on the evening's day as canon writes it, 24:00 being
+1440). Each datum carries its source and, where a sourced value is applied beyond what its source
+says, our assumption; the record marks it "sourced", "ours" or "sourced+ours". From a habitual
+bedtime until they next sleep, going to bed is one of their free-time choices, weighted
+`HabitOptions.BedtimeHabitWeight` (9, ours; against home's 1 that is bed at the first pick 9 times
+in 10 by the weights, and Penny picked it on 84-87% of nights at the hour). At the first free-time
+decision after the hour, a pick in progress is reconsidered once. Nothing sets "tired" and there is
+no rise hour: sleep starts on reaching the bed and ends when the bar is full, the body still sends
+anyone earlier, and nobody is less free, in reach or askable because the hour has passed. Penny's
+card carries `Evening = 0` (sourced: no key of her schedule puts her at the Saloon but green rain;
+ours: "never", in every year, since the sim has no green rain) and her bedtimes, 18:40 in every
+winter being ours (the sim has no Center to restore). The 0 removes the gathering from her choices,
+not the place: only an errand takes her to the Saloon today. A recording gains a write-only
+`nights` block, one row per sleep: the habitual bedtime and its source, when and why they set out
+(habit or body), her energy and the options drawn from at the hour and at setting out, onset,
+waking, energy and the next choice with the options it was drawn from. The sim's later bedtime
+stays as the town `pelican-simulated-bedtime`, and the town as it shipped as `pelican-as-shipped`
+(run hash for run hash; census hashes move with the generator's version). `TownGen.Version` is 3.
+
+**Not represented, recorded.** Rain (the sim has no weather), the 9th and 23rd, winter 4 and 15,
+festivals, green rain, Saturday in Town with the children until 20:00, her canon teaching days and
+place (Tuesday, Wednesday and Friday at the museum; the sim keeps Monday to Friday at the Square),
+her afternoons, and canon's 06:00 waking.
+
+**Why.** As shipped she spent about 80% of evenings (90, 90 and 88 of 112 on seeds 1-3) at the
+Saloon's Evening gathering, buying a drink each time, because at 18:00 her only choices were the
+Saloon (weight 2) and home (1): a pull canon doesn't support, at the centre of the Lives pilot's
+household. A bedtime kept as a rule (held asleep to 06:00) would have matched canon's evenings but
+broken rule 1's sleep cap; Sid chose habits.
+
+**What changes.** Every pinned run that includes the shipped cast (44 test cases, old and new hashes
+in the commit that adds Penny's data; the as-shipped town keeps six of the old values as tests); the
+grown towns' census hashes; two golden tests re-picked (G1's feud now seed 2; the shame check's
+placed scandal now seed 14, Penny ashamed of Pam's rummaging in both towns). Measured in [the
+write-up](under-glass/experiments/penny-routine-2026-10-14.md) (seeds 1-3 x 112 days): no Saloon
+evenings; on her 18:30 and 18:40 days she is asleep a median minute after canon's hour, and wakes
+rested at a median 02:50-03:06; her body sends her before her 20:00 and 21:00 habits (Saturdays
+about 19:15, summer about 19:52); on waking her only option is home, and she sits there about six
+hours alone before work. She misses Leah and Maru and receives about twice the kindness; her regard
+with Gus falls to 0; she hears of Pam's scenes rather than seeing them. Without her drinks the
+Trailer stays out of debt, and Pam's need-driven bin rummaging, and Penny's shame at it, no longer
+happen (20 seeds). The gaps early waking exposes are recorded for the pilot, not suppressed or
+tuned.
+
+**If you undo it.** Penny back at the Saloon most evenings, against her sourced routine.
+
 ### Observer tools navigation (2026-10-14)
 
 Sid requested connected testing tools while the history assessment proceeds. A tools landing page

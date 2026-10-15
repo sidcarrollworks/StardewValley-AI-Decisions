@@ -24,7 +24,7 @@ public class Batch2SeamsTests
         o.Acts.With(string.Join(",", Batch2));
         Assert.All(Batch2, n => Assert.True(o.Acts.IsOn(n), n));
         Assert.Equal(DefaultTown.Acts().Count, ActCatalog.Kinds(o.Acts).Count); // no rows yet
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(new Simulation(1, kinds: ActCatalog.Kinds(o.Acts), feelings: o).Run(112)));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(new Simulation(1, kinds: ActCatalog.Kinds(o.Acts), feelings: o).Run(112)));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class Batch2SeamsTests
         var kinds = DefaultTown.Acts().Append(new ActKind("Slandered", 4.5, -1, 1, 1, 0, Array.Empty<string>(), Placeable: false)).ToList();
         for (long seed = 1; seed <= 50; seed++)
             Assert.Equal(Harness.ScandalFor(seed, DefaultTown.Acts()), Harness.ScandalFor(seed, kinds));
-        Assert.Equal("388d128d7fd4cdf2", Metrics.LogHash(new Simulation(7, kinds: kinds,
+        Assert.Equal("6b2b062d09ec0258", Metrics.LogHash(new Simulation(7, kinds: kinds,
             scheduled: new[] { Harness.ScandalFor(7, kinds) }, feelings: FeelingOptions.Off).Run(14)));
     }
 

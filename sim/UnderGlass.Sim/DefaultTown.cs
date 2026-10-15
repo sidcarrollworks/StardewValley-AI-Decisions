@@ -512,6 +512,8 @@ public static class DefaultTown
                 },
                 A(everyday, trip, ("RummagedInBin", 1.0), ("Stole", 0.5)), Array.Empty<string>(), 25),
         };
+        var hubWeights = OwnHubWeights();
+        var bedtimes = HabitualBedtimes();
         return list.Select(v => v with
         {
             Family = FamilyOf(v.Name),
@@ -522,6 +524,49 @@ public static class DefaultTown
                 Expression = Expressions.GetValueOrDefault(v.Name, 0.75),
             },
             Birthday = Birthdays.TryGetValue(v.Name, out YearDay b) ? b : null,
+            HubWeights = hubWeights.GetValueOrDefault(v.Name),
+            Bedtimes = bedtimes.GetValueOrDefault(v.Name),
         }).ToList();
     }
+
+    /// <summary>
+    /// People's own weights for named hubs, in place of the hubs' (D54), built afresh for every cast so
+    /// no two towns share them. Penny's game schedule (fixtures/game/Penny.json) puts her at the Saloon on
+    /// no day but year 1's green-rain day (its GreenRain key), so the evening gathering doesn't draw her:
+    /// sourced, and applied by an assumption of ours, since the sim has no green rain ("never", in every
+    /// year). It doesn't keep her out of the Saloon itself: an errand can still take her there (today
+    /// nothing else does).
+    /// </summary>
+    private static Dictionary<string, IReadOnlyDictionary<string, OwnWeight>> OwnHubWeights() => new()
+    {
+        ["Penny"] = new Dictionary<string, OwnWeight>
+        {
+            ["Evening"] = new(0, "fixtures/game/Penny.json: no key puts her at the Saloon but GreenRain (year 1's green-rain day)",
+                "never, in every year, as a weight of 0: the sim has no green rain"),
+        },
+    };
+
+    /// <summary>
+    /// Habitual bedtimes (D54), built afresh for every cast; the first covering a day applies. Penny's are
+    /// the hours her game schedule sends her home to bed (penny_sleep at Trailer 4 9; canon's hours are
+    /// departures, a kept hour the hour from which bed is preferred): 18:30 on Tuesdays, Wednesdays and
+    /// Fridays, 20:00 on Saturdays, 21:00 on summer Mondays, Thursdays and Sundays, and 18:40 on the
+    /// others. 18:40 is spring's key, which fall uses too (it has none), and which winter's falls back to
+    /// until the Community Center is restored (winter's key goes to the Center; stardew-source-notes.md);
+    /// the sim has no Center, so 18:40 in every winter is our assumption. Not represented: rain, the 9th
+    /// and 23rd, winter 4 and 15, festivals, green rain, Saturday in Town with the children until 20:00.
+    /// </summary>
+    private static Dictionary<string, IReadOnlyList<KeptHour>> HabitualBedtimes() => new()
+    {
+        ["Penny"] = new KeptHour[]
+        {
+            new(H(18, 30), new[] { 1, 2, 4 }, Array.Empty<int>(), "fixtures/game/Penny.json: Tue (Wed, Fri: GOTO Tue)"),
+            new(H(20), new[] { 5 }, Array.Empty<int>(), "fixtures/game/Penny.json: Sat"),
+            new(H(21), new[] { 0, 3, 6 }, new[] { 1 }, "fixtures/game/Penny.json: summer, summer_Sun"),
+            new(H(18, 40), new[] { 0, 3, 6 }, new[] { 0, 2 }, "fixtures/game/Penny.json: spring (fall has no key, so spring's)"),
+            new(H(18, 40), new[] { 0, 3, 6 }, new[] { 3 },
+                "fixtures/game/Penny.json: winter, which runs spring's until the Community Center is restored",
+                "every winter: the sim has no Community Center, so it is never restored"),
+        },
+    };
 }

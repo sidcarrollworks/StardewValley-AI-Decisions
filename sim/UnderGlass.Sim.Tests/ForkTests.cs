@@ -37,7 +37,7 @@ public class ForkTests
     public void AForkAfterTheRunsLastDayChangesNothing()
     {
         // P3, the town as it ships (PinnedTests.TheGateIsPinned, "shipped"): the swap is the fork's only effect.
-        Assert.Equal("e9fd83b284f5c1b6", Metrics.LogHash(Forked(1, 112, 7, 112)));
+        Assert.Equal("8a002fea26b541fe", Metrics.LogHash(Forked(1, 112, 7, 112)));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Simulation(1, TownData.Default()).Fork(-1, 1));
     }
 

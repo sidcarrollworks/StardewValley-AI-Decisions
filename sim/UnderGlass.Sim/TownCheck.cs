@@ -5,7 +5,8 @@ namespace UnderGlass.Sim;
 /// no door reaches makes people arrive there at once; a spot on a wall makes them step over it; a
 /// keeper or a mayor who isn't in the cast makes the authority's rules do nothing; a home that
 /// doesn't exist leaves someone sleeping wherever they stand; a starting regard for someone who
-/// isn't there vanishes. Returns every problem found, in a fixed order; none for a sound town.
+/// isn't there vanishes; an own weight for a hub the town doesn't have, or a kept bedtime an earlier
+/// one hides, is read and never used (D54). Returns every problem found, in a fixed order; none for a sound town.
 /// Not checked yet from 4.4: households with no adult, plan lots, and the route limits of 2.4
 /// (TownGenTests checks the generator's).
 /// </summary>
@@ -113,6 +114,7 @@ public static class TownCheck
                 else if (kin == Kin.Parent && o.Age < v.Age + 18)
                     problems.Add($"{v.Name} ({v.Age}): parent {k} is {o.Age}, less than 18 years older");
             }
+            Routine(v, town, problems);
         }
         var households = town.Cast.Select(v => v.Household).ToHashSet(StringComparer.Ordinal);
         foreach (var ((from, to), _) in town.Feelings.Start.OrderBy(x => x.Key.From, StringComparer.Ordinal).ThenBy(x => x.Key.To, StringComparer.Ordinal))
@@ -246,5 +248,66 @@ public static class TownCheck
             if (!names.Contains(x) || !names.Contains(y) || x == y)
                 problems.Add($"familiarity seed {x}-{y}: both must be different people in the town");
         return problems;
+    }
+
+    /// <summary>A person's routine as character data (D54): their own hub weights name the town's hubs
+    /// and are numbers of 0 or more; each kept bedtime is a minute of its evening's day (noon to the next
+    /// noon, as canon writes 24:00 and after) on real weekdays and seasons, and none is hidden by an
+    /// earlier one that covers all its days (the first covering a day applies). A source or an
+    /// assumption isn't blank (null: none).</summary>
+    private static void Routine(Villager v, TownData town, List<string> problems)
+    {
+        void Blank(string? source, string? assumption, string what)
+        {
+            if (source is not null && string.IsNullOrWhiteSpace(source))
+                problems.Add($"{v.Name}: {what} has a blank source");
+            if (assumption is not null && string.IsNullOrWhiteSpace(assumption))
+                problems.Add($"{v.Name}: {what} has a blank assumption");
+        }
+        foreach (var (h, own) in (v.HubWeights ?? new Dictionary<string, OwnWeight>()).OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            if (!town.Gatherings.Any(g => g.Name == h))
+                problems.Add($"{v.Name}: own weight for hub {h}, which the town doesn't have");
+            if (own is null)
+            {
+                problems.Add($"{v.Name}: own weight for hub {h} is blank");
+                continue;
+            }
+            if (!double.IsFinite(own.Weight) || own.Weight < 0)
+                problems.Add($"{v.Name}: own weight {own.Weight.ToString(System.Globalization.CultureInfo.InvariantCulture)} for hub {h} is not a number of 0 or more");
+            Blank(own.Source, own.Assumption, $"own weight for hub {h}");
+        }
+        IReadOnlyList<KeptHour> kept = v.Bedtimes ?? Array.Empty<KeptHour>();
+        for (int i = 0; i < kept.Count; i++)
+        {
+            KeptHour k = kept[i];
+            if (k is null)
+            {
+                problems.Add($"{v.Name}: kept bedtime {i} is blank");
+                continue;
+            }
+            if (k.At < KeptHour.FirstMinute || k.At > KeptHour.LastMinute)
+                problems.Add($"{v.Name}: kept bedtime {i} at {k.At} is not a minute from noon of its evening's day to the next noon ({KeptHour.FirstMinute}-{KeptHour.LastMinute})");
+            if (k.Weekdays is null || k.Seasons is null)
+            {
+                problems.Add($"{v.Name}: kept bedtime {i} has no weekday or season list");
+                continue;
+            }
+            foreach (int d in k.Weekdays.Where(d => d < 0 || d >= Clock.DaysPerWeek))
+                problems.Add($"{v.Name}: kept bedtime {i} on weekday {d}, not 0-6");
+            foreach (int s in k.Seasons.Where(s => s < 0 || s >= Calendar.Seasons))
+                problems.Add($"{v.Name}: kept bedtime {i} in season {s}, not 0-3");
+            Blank(k.Source, k.Assumption, $"kept bedtime {i}");
+            bool covers = false, used = false; // over the 28 weekday-season pairs
+            for (int d = 0; d < Clock.DaysPerWeek; d++)
+                for (int s = 0; s < Calendar.Seasons; s++)
+                    if (k.Covers(d, s))
+                    {
+                        covers = true;
+                        used |= !kept.Take(i).Any(e => e?.Weekdays is not null && e.Seasons is not null && e.Covers(d, s));
+                    }
+            if (covers && !used)
+                problems.Add($"{v.Name}: kept bedtime {i} is never used: an earlier one covers all its days");
+        }
     }
 }
