@@ -115,6 +115,11 @@ The optional quiet-reflection prototype is specified in
   the dashboard **Run Viewer**. `--speech-catalog` loads an edited catalog and
   `--newcomer-voice` opts Newcomer into its own authored tag; both remain presentation-only.
   See [run studio](under-glass/specs/run-studio-spec.md).
+  `studio_services.py` launches only the fixed installed Laya/Haiku/Qwen services, probes their
+  health and contract, and stops only owned children. The preview API identifies its checkout
+  so the one-click launcher can reuse the right preview or find another port. Archetype Studio's
+  Characters view edits assignments, voice accents and background prompt lines in the existing
+  schema-1 pack; version-2 local drafts permit those edits and recover old version-1 drafts.
 - `UnderGlass.Sim/ReflectionCatalog.cs` and embedded `reflection-catalog.json`: eleven editable
   thoughts, each with a distinct waking variant, and five response profiles. The source perspective, known kind's valence and personal
   regard select eligible motives; overlapping regard ranges allow contradictory possibilities.

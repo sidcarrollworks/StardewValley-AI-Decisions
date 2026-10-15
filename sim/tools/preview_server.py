@@ -12,6 +12,7 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, unquote
+from studio_services import Services
 
 
 class Invalid(ValueError):
@@ -149,6 +150,7 @@ class Studio:
         self.process = None
         self.active = None
         self.jobs = {}
+        self.services = Services(self.root, kill_process) if prepare else None
         self.dll = self.root / 'sim/UnderGlass.Replay/bin/Release/net8.0/UnderGlass.Replay.dll'
         for path in self.store.glob('*/job.json'):
             try:
@@ -242,7 +244,8 @@ class Studio:
 
     def snapshot(self):
         with self.lock:
-            return dict(ready=self.schema is not None, error=self.error, token=self.token, schema=self.schema,
+            return dict(ready=self.schema is not None, error=self.error, token=self.token, schema=self.schema, checkout=str(self.root),
+                        services=self.services.snapshot() if self.services else [],
                         jobs=[dict(j) for j in sorted(self.jobs.values(), key=lambda j:j['started'], reverse=True)])
 
 
@@ -305,6 +308,23 @@ class Handler(SimpleHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise Invalid('Expected a JSON object.')
             path = urlsplit(self.path).path
+            if path == '/api/run-studio/services':
+                if not studio.services:
+                    raise Invalid('Service management is unavailable.')
+                if data.get('action') == 'start':
+                    names = data.get('services')
+                    if not isinstance(names, list) or not names or any(n not in ('laya','haiku','qwen') for n in names):
+                        raise Invalid('Choose Laya, Haiku or Qwen.')
+                    for name in dict.fromkeys(names):
+                        studio.services.start(name)
+                elif data.get('action') == 'stop':
+                    with studio.lock:
+                        if studio.active:
+                            raise Invalid('Finish or cancel the active run before stopping model servers.')
+                        studio.services.stop(data.get('service'))
+                else:
+                    raise Invalid('Choose start or stop.')
+                return self.reply({'ok':True})
             if path == '/api/run-studio/jobs':
                 return self.reply(studio.start(data), 201)
             if re.fullmatch(r'/api/run-studio/jobs/[\w-]+/cancel', path):
@@ -346,6 +366,7 @@ def main():
     finally:
         if studio.active:
             studio.cancel(studio.active)
+        studio.services.close()
         server.server_close()
 
 

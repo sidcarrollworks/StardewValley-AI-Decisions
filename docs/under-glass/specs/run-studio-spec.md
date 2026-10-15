@@ -11,8 +11,23 @@ player speech input or an automated archetype comparison suite.
 
 Start `sim/tools/start-preview.ps1` and choose **New run** in the shared navigation. The
 server builds Replay once at startup; restart it after simulation changes. Choose a preset or
-CLI defaults, edit the grouped settings and generate. Models must already be running; a hybrid
-service may use a paid provider. Authored control needs neither Laya nor a generator.
+CLI defaults, edit the grouped settings and generate. Haiku + Laya is the page's default preset;
+local Qwen + Laya, Laya only and authored control are alternatives. Authored control needs neither
+Laya nor a generator. Haiku generation uses the configured Anthropic account.
+
+Double-click `Start Under Glass.cmd` to open New run. The launcher tries the usual port and
+nearby ports, reusing only a preview whose API identifies this checkout. **Start required servers**
+starts installed services and reuses compatible healthy servers. Service status and logs stay
+visible; Stop is available only for a process this preview started, and is disabled during a run.
+Stopping the preview stops its model children too. No package installation or weight download is
+performed. Qwen uses the pinned cached checkpoint on CUDA; custom/CPU services can still be
+started with their own launcher and selected through the model fields. Health is not an inference
+test, and unavailable model calls can still produce the existing authored fallback.
+
+Model Python comes from this checkout's `sidecar/.venv`, then the main checkout of the worktree,
+or `UNDER_GLASS_PYTHON`. Haiku uses its existing environment credentials, an explicit
+`UNDER_GLASS_ANTHROPIC_KEY_FILE`, or the existing `~/.anthropic/api-key.txt`; keys never enter
+browser settings or recordings. Startup makes no paid inference request.
 
 Only one run executes at a time. Each has a unique folder under `out/run-studio/`, a `job.json`
 receipt containing arguments/settings, a log, and JSON and/or standalone HTML. Successful runs
@@ -50,7 +65,10 @@ Static viewing still works without the service; generating does not.
 - `tests/test_preview_server.py`: CLI/schema parity, typed options, path and request boundaries,
   unique output, job failure/restart behaviour and uploads, without models or .NET execution.
 - `sim/tools/test-preview.ps1`: launcher ownership, reuse, stop and unrelated listener checks.
+- `tests/test_studio_services.py`: compatible service reuse, owned-child stop, fixed commands,
+  cached weights and credential-path separation, without launching models.
 - `sim/tools/test-speech-page.cjs`: Newcomer appears in an empty catalog and uses normal weights.
 - `SpeechSceneTests`: custom catalogs and the test tag preserve the world and speech determinism.
-- Manual browser check: edit/export/upload a Newcomer line, generate and open a run, and cancel
-  a long run. Model inference is covered by existing adapters, not invoked by these UI checks.
+- Manual browser checks: edit/export/upload a Newcomer line, generate/open a run, cancel a long
+  run, edit/reload/validate character context, and start/stop managed Laya, Haiku and cached Qwen.
+  No paid generation calls were made; Qwen startup includes its local warmup.

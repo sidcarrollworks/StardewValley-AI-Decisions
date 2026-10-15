@@ -83,12 +83,22 @@ Replay evaluation defaults to `--evaluation balanced`: distinct response lines r
 
 **New run** in the shared navbar opens `viewer/runs.html`: launch recordings with every Replay
 flag, searchable numeric/boolean overrides, saved settings, uploads, logs and cancellation.
-The preview builds Replay once at startup; restart after code changes. Models are started
-separately. For an old static preview, use `start-preview.ps1 -Stop`, then start again.
+The preview builds Replay once at startup; restart after code changes. Double-click
+`Start Under Glass.cmd` at the checkout root, choose the Haiku + Laya preset (the default),
+and click **Start required servers**. Local Qwen + Laya is another preset. Installed servers
+and cached weights are required; existing compatible servers are reused. The launcher can use
+the main checkout's Python environment from a worktree. For an old static preview, use
+`start-preview.ps1 -Stop`, then start again, or let the one-click launcher find a free port.
 Each job gets a new `out/run-studio` folder and a link to Run Viewer.
 The speech editor's Newcomer column exports ordinary catalog JSON; upload it in New run and
 enable the Newcomer test voice (`--speech-catalog` and `--newcomer-voice` from the CLI).
 See [run studio](../docs/under-glass/specs/run-studio-spec.md).
+
+Archetype Studio now has a **Characters** view for personal voice cues and background prompt
+lines, assignments and source references. Export its pack and upload it under Mind in New run.
+These are model prompt inputs, not simulated histories. Generation runs without real-time
+throttling; model replies pause advancement between simulated minutes. Finished job cards show
+wall time and simulated days/sec. Playback speed remains independent.
 
 The prepared local demos are linked from `http://127.0.0.1:8766/sim/viewer/morning.html`. Restart the preview with:
 

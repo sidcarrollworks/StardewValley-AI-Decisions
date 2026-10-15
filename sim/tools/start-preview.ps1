@@ -13,6 +13,7 @@ pwsh -File sim/tools/start-preview.ps1 -Stop
 [CmdletBinding()]
 param(
     [ValidateRange(1024, 65535)] [int] $Port = 8766,
+    [switch] $AutoPort,
     [switch] $Stop,
     [switch] $Open
 )
@@ -25,6 +26,21 @@ $previewRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $previewRoot = (Resolve-Path -LiteralPath $previewRoot).ProviderPath.TrimEnd('\', '/')
 if (-not (Test-Path -LiteralPath (Join-Path $previewRoot 'sim/UnderGlass.sln') -PathType Leaf)) {
     throw "Cannot find the Under Glass checkout above $PSScriptRoot."
+}
+if ($AutoPort -and -not $Stop) {
+    $portFound = $false
+    foreach ($candidatePort in $Port..([Math]::Min(65535, $Port + 10))) {
+        $portProbe = [System.Net.Sockets.TcpClient]::new()
+        try { $occupied = $portProbe.ConnectAsync('127.0.0.1', $candidatePort).Wait(250) -and $portProbe.Connected }
+        catch { $occupied = $false }
+        finally { $portProbe.Dispose() }
+        if (-not $occupied) { $Port = $candidatePort; $portFound = $true; break }
+        try {
+            $existingStudio = Invoke-RestMethod -Uri "http://127.0.0.1:$candidatePort/api/run-studio" -TimeoutSec 1
+            if ($existingStudio.checkout -eq $previewRoot) { $Port = $candidatePort; $portFound = $true; break }
+        } catch { }
+    }
+    if (-not $portFound) { throw 'No free preview port in the next ten ports. Choose an explicit -Port.' }
 }
 
 function Get-PreviewPath([string] $RelativePath) {
@@ -41,7 +57,7 @@ $previewOutput = Get-PreviewPath "out/under-glass-preview/server-$Port.stdout.lo
 $previewErrors = Get-PreviewPath "out/under-glass-preview/server-$Port.stderr.log"
 $previewViewer = Get-PreviewPath 'sim/viewer/index.html'
 $previewBaseUrl = "http://127.0.0.1:$Port"
-$previewPageUrl = "$previewBaseUrl/sim/viewer/morning.html"
+$previewPageUrl = "$previewBaseUrl/sim/viewer/runs.html"
 
 function Get-RegisteredPreview {
     if (-not (Test-Path -LiteralPath $previewReceipt -PathType Leaf)) { return $null }
@@ -89,13 +105,13 @@ function Test-ExpectedPreview {
 
 function Write-PreviewReady([string] $Status) {
     Write-Host $Status
-    Write-Host "Morning page: $previewPageUrl"
+    Write-Host "Recordings:   $previewBaseUrl/sim/viewer/morning.html"
     Write-Host "Viewer:       $previewBaseUrl/sim/viewer/index.html"
     if (-not (Test-Path -LiteralPath (Get-PreviewPath 'sim/viewer/morning.html') -PathType Leaf)) {
         Write-Host 'The morning page has not been prepared yet. The viewer can open an existing run JSON.'
     }
     Write-Host "Run studio:   $previewBaseUrl/sim/viewer/runs.html"
-    Write-Host 'Replay builds at startup. Runs start only from the New run page; model services are not started.'
+    Write-Host 'Replay builds at startup. Use Start required servers on New run for Haiku + Laya or local Qwen.'
     if ($Open) { Start-Process -FilePath $previewPageUrl | Out-Null }
 }
 
@@ -121,8 +137,11 @@ if (Test-PreviewPort) {
     if (-not (Test-ExpectedPreview)) {
         throw "Port $Port is already serving something else. It was left running. Choose another -Port."
     }
-    try { $null = Invoke-RestMethod -Uri "$previewBaseUrl/api/run-studio" -TimeoutSec 3 }
+    try { $runningStudio = Invoke-RestMethod -Uri "$previewBaseUrl/api/run-studio" -TimeoutSec 3 }
     catch { throw "This checkout has an older static preview on port $Port. Run this launcher with -Port $Port -Stop, then start it again to enable New run." }
+    if ($runningStudio.PSObject.Properties.Name -notcontains 'checkout' -or $runningStudio.checkout -ne $previewRoot) {
+        throw "Port $Port is an older preview or belongs to another checkout. Use -AutoPort, or stop this checkout's registered preview and restart it."
+    }
     Write-PreviewReady 'Reusing the existing preview of this checkout.'
     return
 }

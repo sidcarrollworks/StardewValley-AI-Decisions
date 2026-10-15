@@ -4,11 +4,13 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import sys
 import threading
 import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'sim/tools'))
 spec = importlib.util.spec_from_file_location('preview_server', ROOT / 'sim/tools/preview_server.py')
 server = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(server)

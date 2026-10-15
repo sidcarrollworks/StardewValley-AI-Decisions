@@ -9,3 +9,5 @@
 .field input:not([type=checkbox]):not([type=file]),.field textarea,.override-builder input{background:var(--surface-hi);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;color:var(--ink)}
 .field.check{flex-direction:row-reverse;justify-content:flex-end}.field input[type=checkbox],.check-grid input{accent-color:var(--accent)}.field input[type=file]{font-size:var(--step--2);color:var(--muted)}.field input::file-selector-button{background:var(--surface-hi);border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;cursor:pointer}.run-history{position:sticky;top:calc(var(--tools-height,64px) + 20px)}
 @media(max-width:850px){.run-history{position:static}}
+.model-services{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+#model-services{display:flex;gap:12px;flex-wrap:wrap;flex:1}.model-server{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.model-server button{box-shadow:none;border:1px solid var(--line);padding:4px 8px;font-size:var(--step--2)}

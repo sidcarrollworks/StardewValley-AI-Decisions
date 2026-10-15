@@ -38,7 +38,7 @@ Choose **New run** in the navbar for presets, all Replay flags, searchable feeli
 overrides, JSON uploads, saved settings and cancellation. Finished runs open directly in Run
 Viewer. The preview builds Replay at startup; restart it after simulation code changes. If an
 older static preview is running, stop it with `start-preview.ps1 -Stop` before starting again.
-Output and logs go into unique `out/run-studio` folders. Models must already be running.
+Output and logs go into unique `out/run-studio` folders. Use Start required servers for the Haiku + Laya default or local Qwen alternative; installed dependencies and cached weights are required.
 
 For Newcomer speech tests, edit the permanent **Newcomer** column, download the catalog,
 upload it under Speech on New run, and enable **Use Newcomer test voice**. Generic lines can
@@ -283,7 +283,7 @@ The speech drawer keeps its coverage explanations in “How these lines are chos
 
 ## Archetype studio
 
-Open `archetypes.html` through the shared navigation. Search by archetype, tendency or character; edit reusable fields, create or duplicate a profile, and download a schema-1 `character-inspiration.json` pack. The source pack and authored speech examples load from the checkout. Personal profiles are read-only. Drafts persist in this browser; a changed source requires explicit draft recovery or discard. Invalid edits remain drafts and disable export. See [the studio contract](../../docs/under-glass/specs/archetype-studio-spec.md).
+Open `archetypes.html` through the shared navigation. Search by archetype, tendency or character; edit reusable fields, create or duplicate a profile, and download a schema-1 `character-inspiration.json` pack. The source pack and authored speech examples load from the checkout. The Characters view edits assignments, personal voice accents and background prompt lines with relevance/source details. These are prompt inputs, not simulated memories. Drafts persist in this browser; a changed source requires explicit draft recovery or discard. Invalid edits remain drafts and disable export. See [the studio contract](../../docs/under-glass/specs/archetype-studio-spec.md).
 
 Run `node --test sim/tools/test-archetypes.cjs` for the eight editor model tests. Trial execution and history graphs await their separate recording interface; the studio makes no model calls.
 

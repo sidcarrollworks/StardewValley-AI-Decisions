@@ -1286,6 +1286,12 @@ Sid authorized a separate archetype browser/editor while Claude develops the obs
 
 ### Local run studio and Newcomer speech testing (2026-10-14)
 
+Follow-up: Sid requested character inspiration editing within Archetype Studio and selected
+Haiku + Laya as the easy-start default, with Qwen as an alternative. Personal prompt context
+is editable separately from reusable archetypes; neither is simulated memory. Installed model
+services can start from New run, with explicit ownership and health status. Generation remains
+unthrottled and awaits model answers between simulated minutes; playback speed is independent.
+
 Sid requested a site tool with all run flags and a Newcomer speech-editor column. The local
 preview now launches the existing Replay executable with typed, schema-described arguments,
 one job at a time, into separate output folders. It does not start models or add a second
