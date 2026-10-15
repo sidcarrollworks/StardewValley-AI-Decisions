@@ -60,6 +60,38 @@ public class SpeechSceneTests
     }));
 
     [Fact]
+    public async Task CustomCatalogAndNewcomerTestVoiceChangeSpeechOnly()
+    {
+        var pack = new SpeechPack(1, "test", new[] {
+            new SpeechLine("plain", "GaveGift", Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), "A little something for you.", Array.Empty<string>()),
+            new SpeechLine("arrival", "GaveGift", new[]{"newcomer"}, Array.Empty<string>(), Array.Empty<string>(), "I am new here. This is for you.", Array.Empty<string>()) });
+        async Task<SimResult> Run(bool voice)
+        {
+            var town = Town() with { Cast = new[] { Person("Newcomer", 3), Person("Bob", 5) } };
+            var sim = new Simulation(3, town);
+            sim.Place(new[] { new Scenario("gift", "GaveGift", "Newcomer", "Bob", Day:0, From:Clock.At(10), To:Clock.At(10)+1) });
+            sim.ConfigureSpeech(new SpeechOptions { Enabled=true, Catalog=pack, NewcomerVoice=voice });
+            return await sim.RunAsync(1, new AuthoredReflectionMind());
+        }
+        SimResult enabled = await Run(true), disabled = await Run(false);
+        Assert.Equal(Metrics.LogHash(disabled), Metrics.LogHash(enabled));
+        Assert.All(enabled.Speech.Where(s=>s.Speaker=="Newcomer"), s=>Assert.Equal("newcomer",s.Archetype));
+        Assert.All(enabled.Speech.Where(s=>s.Speaker!="Newcomer"), s=>Assert.Null(s.Archetype));
+        Assert.All(disabled.Speech, s=>Assert.Equal("plain",s.LineId));
+        Assert.NotEmpty(enabled.Speech);
+        Assert.Equal(enabled.Speech, (await Run(true)).Speech);
+    }
+
+    [Fact]
+    public void CustomCatalogIsExcludedFromOptionsSerialization()
+    {
+        var options = new SpeechOptions { Enabled=true, NewcomerVoice=true, Catalog=SpeechCatalog.Default };
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(options));
+        Assert.False(json.RootElement.TryGetProperty("Catalog",out _));
+        Assert.True(json.RootElement.GetProperty("NewcomerVoice").GetBoolean());
+    }
+
+    [Fact]
     public async Task EveryActToAPersonGetsALineFromTheSpeakersSideAndNothingElseChanges()
     {
         SimResult on = await Scene(true).RunAsync(1, new AuthoredReflectionMind());

@@ -25,7 +25,11 @@ to become) and step 4 (needs with real items, so a claim has something to be abo
 text REPL moves from "later" to the end of that order (roadmap, "The agreed order", amended
 2026-10-13).
 
-Not built: the Newcomer's own voice, any player input to a run, Laya readings in the simulation,
+Testing support, 2026-10-14: the speech editor has a Newcomer column, and Replay accepts an
+exported catalog with `--speech-catalog` and the opt-in `--newcomer-voice` tag. No Newcomer
+lines are supplied by default. This is authored speech curation, separate from the player-input plan.
+
+Not built: player voice creation through typed input, any player input to a run, Laya readings in the simulation,
 claims, verification, per-pair trust, lie exposure, and the viewer for any of it.
 
 ## What it adds

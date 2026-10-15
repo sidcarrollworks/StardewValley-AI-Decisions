@@ -32,6 +32,11 @@ comparison, not a change to the pack, the prompts or any default.
 
 ## Content and evidence
 
+Archetype Studio now edits both reusable profiles and each character's assignment, personal
+voice and background prompt lines. Sources/relevance tags remain attached; new background is
+explicitly authored test content. Export and select the pack in New run to try it. This edits
+prompt context, not a history record or an existing recording.
+
 `CharacterInspirationPack` schema 1 has provenance, reusable archetypes and named profiles.
 An archetype contains drives, coping, voice cadence, a short evaluator cue and source references.
 It contains no named donor biography. A profile selects an archetype, adds a personal voice accent
