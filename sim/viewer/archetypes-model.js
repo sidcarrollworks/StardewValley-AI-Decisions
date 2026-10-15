@@ -73,25 +73,39 @@
   }
   function changes(base, pack) {
     const before = new Map(base.archetypes.map(a => [a.id, a]));
-    return pack.archetypes.flatMap(a => !before.has(a.id) ? [{id:a.id, fields:['new archetype']}] :
+    const archetypes = pack.archetypes.flatMap(a => !before.has(a.id) ? [{id:a.id, fields:['new archetype']}] :
       ['drives','coping','voice','evaluatorCue','sources'].some(k => JSON.stringify(a[k]) !== JSON.stringify(before.get(a.id)[k]))
         ? [{id:a.id, fields:['drives','coping','voice','evaluatorCue','sources'].filter(k => JSON.stringify(a[k]) !== JSON.stringify(before.get(a.id)[k]))}] : []);
+    const people = new Map(base.characters.map(c => [c.name,c]));
+    return [...archetypes, ...pack.characters.flatMap(c => {
+      const fields = ['archetypeId','voiceAccent','background','sources'].filter(k => JSON.stringify(c[k]) !== JSON.stringify(people.get(c.name)?.[k]));
+      return fields.length ? [{id:c.name,kind:'character',fields}] : [];
+    })];
+  }
+  function newBackground(character) {
+    let i=1; while(character.background.some(b=>b.id===`authored-context-${i}`))i++;
+    return {id:`authored-context-${i}`,text:'',subjects:[],sources:['Authored for this test; not sourced canon.']};
   }
   function serialize(pack) { const errors = problems(pack); if (errors.length) throw new Error(errors.join('\n')); return JSON.stringify(pack, null, 2) + '\n'; }
-  function savedDraft(base, pack) { return JSON.stringify({version:1, base:JSON.stringify(base), pack}); }
+  function savedDraft(base, pack) { return JSON.stringify({version:2, base:JSON.stringify(base), pack}); }
   function restore(text, base) {
     const draft = JSON.parse(text);
-    if (draft.version !== 1 || draft.base !== JSON.stringify(base)) throw new Error('The source pack has changed. Download the saved draft to compare it before importing.');
+    if (![1,2].includes(draft.version) || draft.base !== JSON.stringify(base)) throw new Error('The source pack has changed. Download the saved draft to compare it before importing.');
     // Incomplete edits may be restored, but never exported without full validation.
     if (!draft.pack || draft.pack.schema !== 1 || typeof draft.pack.provenance !== 'string' ||
       !Array.isArray(draft.pack.archetypes) || !draft.pack.archetypes.length ||
-      JSON.stringify(draft.pack.characters) !== JSON.stringify(base.characters) ||
+      JSON.stringify(draft.pack.characters.map(c=>c?.name)) !== JSON.stringify(base.characters.map(c=>c.name)) ||
+      (draft.version===1 && JSON.stringify(draft.pack.characters) !== JSON.stringify(base.characters)) ||
+      draft.pack.characters.some(c => !c || typeof c.name!=='string' || typeof c.archetypeId!=='string' || typeof c.voiceAccent!=='string' ||
+        !Array.isArray(c.background) || (c.sources!=null && (!Array.isArray(c.sources)||c.sources.some(s=>typeof s!=='string'))) ||
+        c.background.some(b=>!b || typeof b.id!=='string' || typeof b.text!=='string' ||
+          ['subjects','sources'].some(k=>!Array.isArray(b[k])||b[k].some(s=>typeof s!=='string')))) ||
       draft.pack.archetypes.some(a => !a || ['id','drives','coping','voice','evaluatorCue'].some(k => typeof a[k] !== 'string') ||
         !Array.isArray(a.sources) || a.sources.some(s => typeof s !== 'string')))
-      throw new Error('The saved draft is damaged or changes personal character data.');
+      throw new Error('The saved draft is damaged or uses unsupported personal character data.');
     return copy(draft.pack);
   }
-  const api = {copy, compose, problems, read, create, changes, serialize, savedDraft, restore};
+  const api = {copy, compose, problems, read, create, changes, newBackground, serialize, savedDraft, restore};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ArchetypeModel = api;
 })(globalThis);

@@ -307,8 +307,10 @@ public static class Replay
         {
             // Additive: a reader without speech ignores the table; an old recording has none.
             recording["speechOptions"] = o.Speech;
-            recording["speechCatalog"] = new { schema = SpeechCatalog.Default.Schema, lines = SpeechCatalog.Default.Lines.Count,
-                provenance = SpeechCatalog.Default.Provenance };
+            SpeechPack catalog = o.Speech.Catalog ?? SpeechCatalog.Default;
+            string catalogJson = JsonSerializer.Serialize(catalog);
+            recording["speechCatalog"] = new { schema = catalog.Schema, lines = catalog.Lines.Count,
+                provenance = catalog.Provenance, hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(catalogJson))).ToLowerInvariant() };
             recording["speech"] = JsonSerializer.SerializeToElement(r.Speech,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
