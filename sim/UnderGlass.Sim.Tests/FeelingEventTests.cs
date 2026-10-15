@@ -459,14 +459,16 @@ public class FeelingEventTests
     /// <summary>T30. Nobody's regard moves over an act they know nothing of: they hold a belief
     /// about it, it was done to them, or they were questioned, judged or confronted over it.
     /// Natural scandals are too rare for four weeks, so each run has one placed by the harness;
-    /// seed 6 also brings a verdict, a confrontation and, in the town as it ships, kin shame.</summary>
+    /// seed 14 also brings a verdict, a confrontation and, in every mode, kin shame: Penny ashamed of
+    /// her mother going through the bins. (Seed 6 brought them, with feelings watched, until Penny kept her own
+    /// evenings, D54; seed 14 brings them with or without her routine.)</summary>
     [Fact]
     public void EveryRegardChangeCitesAnActItsHolderKnows()
     {
         var all = new List<Felt>();
         foreach (var (mode, options) in Modes)
         {
-            foreach (long seed in new long[] { 1, 2, 3, 6 })
+            foreach (long seed in new long[] { 1, 2, 3, 14 })
             {
                 SimResult r = new Simulation(seed, scheduled: new[] { Harness.ScandalFor(seed, DefaultTown.Acts()) },
                     feelings: options()).Run(28);

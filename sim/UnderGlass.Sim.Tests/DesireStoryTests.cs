@@ -19,15 +19,18 @@ public class DesireStoryTests
 
     private static bool Between(Act a, string x, string y) => (a.Actor, a.Target) == (x, y) || (a.Actor, a.Target) == (y, x);
 
-    /// <summary>G1, seed 1: Lewis argues with Pam at the saloon on the first evening. She answers
-    /// within the half hour, citing it, and they answer each other every few days (each after the
-    /// pair's cooldown) until both are under -0.3: a feud on day 10.</summary>
+    /// <summary>G1, seed 2: Alex argues with Pam in the square on the afternoon of day 7. She answers
+    /// ten minutes later, citing it, and they answer each other every three days (each after the
+    /// pair's cooldown), in the square and then at the saloon, until both are under -0.3: a feud on
+    /// day 16. (Seed 1's, Lewis and Pam at the saloon on the first evening, needed Penny there with her
+    /// mother; since she keeps her own evenings, D54, seed 1 grows no feud in four weeks. Seed 2's
+    /// story is the same with or without her routine.)</summary>
     [Fact]
     public void G1_AFeudGrowsFromAnsweringBack()
     {
-        SimResult r = new Simulation(1, feelings: DefaultTown.Feelings()).Run(11);
+        SimResult r = new Simulation(2, feelings: DefaultTown.Feelings()).Run(17);
         var tie = r.Ties.First(t => t.What == "feud" && !Close(t.A, t.B));
-        Assert.Equal((10, "Lewis", "Pam"), (tie.Day, tie.A, tie.B));
+        Assert.Equal((16, "Alex", "Pam"), (tie.Day, tie.A, tie.B));
 
         var hostile = r.Acts.Where(a => a.Kind == "Argued" && Between(a, tie.A, tie.B)).ToList();
         Act first = hostile[0];
