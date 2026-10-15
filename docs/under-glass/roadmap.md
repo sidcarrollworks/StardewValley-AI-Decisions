@@ -162,7 +162,10 @@ The order is:
    evenings, and her game's bedtimes as habits, not rules (Sid): from the hour, bed is a weighted
    free-time choice (the weight, 9, is ours: E); she sleeps until rested and can be up at 03:00 with
    nothing to do, gaps [recorded](experiments/penny-routine-2026-10-14.md) for the pilot rather than
-   suppressed. The [personal-memory foundation](specs/lives-memory-spec.md) now has an
+   suppressed. The [pilot implementation plan](specs/lives-pilot-spec.md) defines the build order,
+   same-choice history comparisons and acceptance cases, and its
+   [baseline capture](experiments/lives-baseline-2026-10-15.md) is built against the merged routine.
+   The [personal-memory foundation](specs/lives-memory-spec.md) now has an
    [opt-in free-time consumer](specs/lives-routing-spec.md): perceived feelings produce associations,
    relevant recall opens weighting of existing destinations, and frozen comparisons hold a choice
    constant while removing specified history. This is actual simulation integration, with a separate
@@ -173,7 +176,8 @@ The order is:
    postponed and missed evenings. Generic destination routing still does not read expectations.
    The chain viewer now reads the evening pilot. Next: complete the full observer export, then broaden
    meaningful competing activities and test transfer to another household. The illustrative
-   contract fixture remains a design input, distinct from these actual recordings.
+   contract fixture remains a design input, distinct from these actual recordings. The archetype
+   editor is deferred.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen
