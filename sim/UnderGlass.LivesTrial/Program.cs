@@ -5,9 +5,10 @@ using System.Text.Json.Serialization;
 using UnderGlass.Sim;
 using UnderGlass.Sim.Lives;
 
-// Actual engine output from an explicitly synthetic scenario. This harness has no model client,
-// approved Stardew histories, invitations or planned activities; it exercises free-time routing.
+// Actual engine output: routing and company retain their synthetic controls; evenings exercises
+// the explicitly sourced pilot and optionally verifies live typed answers against their tape.
 string? output = null;
+string? layaUrl = null;
 int days = 7;
 long seed = 7;
 string suite = "routing";
@@ -20,21 +21,28 @@ try
         if (!seen.Add(flag)) throw new ArgumentException($"Repeated option: {flag}.");
         if (flag == "--help")
         {
-            Console.WriteLine("LivesTrial --out <new-directory> [--suite routing|company] [--days 7] [--seed 7]\n"
+            Console.WriteLine("LivesTrial --out <new-directory> [--suite routing|company|evenings] [--days 7] [--seed 7]\n"
                 + "Offline synthetic Ann/Bo routing experiment. Days and seed must be positive integers.\n"
                 + "Writes three real recordings, the synthetic history input, a summary, and an HTML review. Never overwrites output.\n"
                 + "Matched comparisons inside with-history.json hold the choice fixed; the separate recordings do not.\n"
-                + "The company suite uses a fixed seed/day matrix and does not accept --days or --seed.");
+                + "Company and evenings use fixed seed/day matrices and do not accept --days or --seed.\n"
+                + "Evenings: sourced Penny/Pam/Gus in the normal town, seeds 7/29/101 for 35 days.\n"
+                + "Add --laya-url <http://127.0.0.1:8000> to evenings for a live seed-7 run and exact tape replay.");
             return 0;
         }
-        if (flag is not ("--out" or "--days" or "--seed" or "--suite")) throw new ArgumentException($"Unknown option: {flag}.");
+        if (flag is not ("--out" or "--days" or "--seed" or "--suite" or "--laya-url")) throw new ArgumentException($"Unknown option: {flag}.");
         if (++i >= args.Length) throw new ArgumentException($"{flag} needs a value.");
         string value = args[i];
         switch (flag)
         {
             case "--out": output = value; break;
+            case "--laya-url":
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+                    throw new ArgumentException("--laya-url must be an absolute HTTP or HTTPS URL.");
+                layaUrl = value;
+                break;
             case "--suite":
-                if (value is not ("routing" or "company")) throw new ArgumentException("--suite must be routing or company.");
+                if (value is not ("routing" or "company" or "evenings")) throw new ArgumentException("--suite must be routing, company or evenings.");
                 suite = value;
                 break;
             case "--days":
@@ -51,11 +59,12 @@ try
     if (string.IsNullOrWhiteSpace(output)) throw new ArgumentException("--out <new-directory> is required.");
     output = Path.GetFullPath(output);
     if (Directory.Exists(output) || File.Exists(output)) throw new ArgumentException("The output path already exists. Choose a fresh directory.");
-    if (suite == "company")
+    if (suite != "evenings" && layaUrl is not null) throw new ArgumentException("--laya-url is only supported by the evenings suite.");
+    if (suite is "company" or "evenings")
     {
         if (seen.Contains("--days") || seen.Contains("--seed"))
-            throw new ArgumentException("The company suite uses its documented fixed seed/day matrix; omit --days and --seed.");
-        return CompanyTrial.Run(output);
+            throw new ArgumentException("This suite uses its documented fixed seed/day matrix; omit --days and --seed.");
+        return suite == "company" ? CompanyTrial.Run(output) : EveningTrial.Run(output, layaUrl);
     }
 
     var json = new JsonSerializerOptions

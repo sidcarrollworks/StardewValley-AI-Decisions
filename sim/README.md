@@ -20,7 +20,7 @@ now learn associations from its existing perceived feelings and use remembered p
 to choose an eligible free-time destination. Turning it off preserves existing runs. No canon
 history seeds are loaded implicitly. The choice kernel supports specific expectation keys, but
 the routing adapter itself does not classify plan outcomes or learn whereabouts. Shared plans and
-model evaluation of these choices remain next. See the [memory API](../docs/under-glass/specs/lives-memory-spec.md)
+model evaluation are now provided by the separate evening extension below. See the [memory API](../docs/under-glass/specs/lives-memory-spec.md)
 and [routing scope](../docs/under-glass/specs/lives-routing-spec.md).
 
 ```powershell
@@ -44,6 +44,27 @@ without starting history. Those counts demonstrate the connection, not a quality
 
 **Immediate company (opt-in):** `--lives-company --lives-routing --catalog company,invitations`
 lets remembered warmth suggest looking for someone or offering a game in a current encounter.
+
+**Future evenings (opt-in):** the [evening pilot](../docs/under-glass/specs/lives-evenings-spec.md)
+adds the reviewed `sim/history/penny-pam-gus.json` pack, informal shared-home plans, later choices,
+distinct completion/interruption/missed-window learning and optional typed Laya evaluation. It
+retains current routines. No histories load implicitly and no generated inspiration is added by
+this trial. The dedicated review page displays actual outcomes and held-choice history comparisons;
+the main chain viewer still awaits its runtime adapter.
+
+```powershell
+# Three authored 35-day seeds plus a live Laya seed and exact tape replay.
+dotnet run --project sim/UnderGlass.LivesTrial -- --suite evenings --out out/lives-evenings-review --laya-url http://127.0.0.1:8000
+# One custom recording; omit --lives-laya for the authored fallback.
+dotnet run --project sim/UnderGlass.Replay -- --days 35 --seed 7 --catalog company,invitations --lives-routing --lives-company --lives-evenings --evening-people Penny,Pam,Gus --history sim/history/penny-pam-gus.json --lives-laya http://127.0.0.1:8000 --out out/evenings.json
+```
+
+`--lives-tape <recording.json>` replays recorded typed answers instead of calling a server;
+`--lives-laya-model` selects the recorded model identity. `--no-evening-record` disables only the
+new observer block. The trial exports only the three watched people's detailed Lives receipts,
+keeps the ordinary whole-town recording, and verifies the full recording before that projection.
+
+The immediate-company behavior itself is unchanged:
 The answer comes next minute; an actual game can finish or be interrupted. What was learned about
 whereabouts, availability, answers and the activity feeds later choices through distinct keys.
 Current sleep rules, bedtime weight and invitation state costs remain in place. These are immediate

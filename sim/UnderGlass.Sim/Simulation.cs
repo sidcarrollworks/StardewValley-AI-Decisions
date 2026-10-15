@@ -211,6 +211,10 @@ public sealed class SimResult
     public IReadOnlyList<Lives.CompanyChoice> LivesCompanyChoices { get; init; } = Array.Empty<Lives.CompanyChoice>();
     public IReadOnlyList<Lives.CompanyAnswer> LivesCompanyAnswers { get; init; } = Array.Empty<Lives.CompanyAnswer>();
     public IReadOnlyList<Lives.CompanyOutcome> LivesCompanyOutcomes { get; init; } = Array.Empty<Lives.CompanyOutcome>();
+    public IReadOnlyList<Lives.EveningUpdate> LivesEveningUpdates { get; init; } = Array.Empty<Lives.EveningUpdate>();
+    public IReadOnlyList<Lives.EveningChoice> LivesEveningChoices { get; init; } = Array.Empty<Lives.EveningChoice>();
+    public IReadOnlyList<Lives.EveningOutcome> LivesEveningOutcomes { get; init; } = Array.Empty<Lives.EveningOutcome>();
+    public IReadOnlyList<Lives.LivesDecisionRecord> LivesDecisions { get; init; } = Array.Empty<Lives.LivesDecisionRecord>();
 }
 
 /// <summary>
@@ -418,6 +422,7 @@ public sealed partial class Simulation
             each?.Invoke(m, this);
             // The synchronous path only uses the completed authored baseline, never HTTP.
             AnswerReflections(mind, CancellationToken.None).GetAwaiter().GetResult();
+            AnswerEveningDecisions(CancellationToken.None, authoredOnly: true).GetAwaiter().GetResult();
         }
         return Result(days);
     }
@@ -438,6 +443,7 @@ public sealed partial class Simulation
                 each?.Invoke(m, this);
                 cancellationToken.ThrowIfCancellationRequested();
                 await AnswerReflections(mind, cancellationToken).ConfigureAwait(false);
+                await AnswerEveningDecisions(cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             return Result(days);
@@ -566,6 +572,10 @@ public sealed partial class Simulation
             LivesCompanyChoices = _companyChoices.AsReadOnly(),
             LivesCompanyAnswers = _companyAnswers.AsReadOnly(),
             LivesCompanyOutcomes = _companyOutcomes.AsReadOnly(),
+            LivesEveningUpdates = _eveningUpdates.AsReadOnly(),
+            LivesEveningChoices = _eveningChoices.AsReadOnly(),
+            LivesEveningOutcomes = _eveningOutcomes.AsReadOnly(),
+            LivesDecisions = _livesDecisions.AsReadOnly(),
         };
 
     private Dictionary<(string, string), double> Pairs(double[,] values)
@@ -583,6 +593,7 @@ public sealed partial class Simulation
 
     private void Step(int m)
     {
+        ApplyEveningAnswers(m);
         int t = Clock.OfDay(m);
         bool tick = m % Clock.TickMinutes == 0;
         foreach (Person p in _people)
@@ -617,6 +628,7 @@ public sealed partial class Simulation
             Rows(m);
             RunErrands(m); // errands (needs spec); nothing with the switch off
         }
+        RunEvenings(m, tick);
         RunCompany(m, tick);
         CheckLate(m, t);
         Arrivals(m); // the act catalog: coming in late (Late)
@@ -769,6 +781,7 @@ public sealed partial class Simulation
         if (ErrandGoal(p, m))
             return; // errands (needs spec): to the counter, or to find the one it's for
         bool checkpoint = BedtimeCheckpoint(p, m); // a habitual bedtime come: the pick in progress is reconsidered once
+        if (ContinueEveningGoal(p, m, checkpoint)) return;
         if (ContinueCompanyGoal(p, m, checkpoint)) return;
         if (!checkpoint && p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;

@@ -177,6 +177,7 @@ public sealed partial class Simulation
             _errandSpeech[actId] = (need.Holder, "AskedFavour", asked.V.Name, "AskedFavour.Refused", good.Phrase);
             _favourAgain[(h, t)] = Clock.Day(m) + _fo.Acts.ErrandAskAgainDays;
             Begin(m, _kindByName["Refused"], asked, injected: false, target: need.Holder);
+            EveningAfterRefusal(asked, asker, good, margin, m);
             return;
         }
         _errandSpeech[actId] = (need.Holder, "AskedFavour", asked.V.Name, "AskedFavour.Accepted", good.Phrase);

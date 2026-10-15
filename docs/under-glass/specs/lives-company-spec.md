@@ -2,6 +2,10 @@
 
 ## Status
 
+The separate [evening-plan extension](lives-evenings-spec.md), built later on 2026-10-15,
+now supplies reviewed pilot history and optional typed Laya evaluation. The scope below describes
+the immediate-company switch on its own.
+
 Built 2026-10-15 as an opt-in extension of [history-informed routing](lives-routing-spec.md).
 It connects a recalled warm experience to looking for someone or offering an immediate game,
 an actual answer, a shared activity that can finish or be interrupted, and expectations read by

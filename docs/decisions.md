@@ -1431,3 +1431,40 @@ has the catalog's positive affect; richer activity content and disappointing eve
 never direct the run, and disabling their recording preserves behavior. The offline review uses
 normal towns without history seeds plus clearly labelled synthetic households; no trial result
 is an approval of a sourced character history or a social-outcome quota.
+
+### Sourced histories, future evenings and Laya (2026-10-15)
+
+Sid asked to connect the Penny/Pam/Gus pilot's histories to evening plans and Laya. The explicit
+`sim/history/penny-pam-gus.json` pack records each holder's own reviewed accounts/readings. Current
+feelings seed small separate warm/wary entries; a hobby wish opens an option without inventing
+enjoyment. Past events without an admitted present link remain recall-only. Provenance and the
+24 exact source keys are checked in the accompanying history review and tests.
+
+The opt-in evening extension adds informal agreements and each participant's later choice to keep
+them or carry on. It preserves the selected routine baseline, including bedtime weight 9 and no
+new invitation penalty. Unlike the assessment's proposed bedtime-bounded window, the initial
+window is an experimental fixed 18:00–20:00: a habit cannot make proposing a game impossible.
+The body and ordinary bedtime reconsideration still govern actual participation.
+
+No agreement guarantees an outcome. Starting together supports follow-through; an interrupted
+activity can fail independently. A holder choosing other plans cannot turn that into evidence
+against the partner. Disappointment reads the holder's frozen expectation and investment and
+affects mood plus the hoped-for situation, never automatic rejection, whereabouts or blame.
+Own observed minutes and whether the partner was seen remain in the outcome receipt. Gus's
+ordinary whereabouts windows use only his existing expectation and local observation; they do
+not reveal others' private agreements. A missed window can prompt deferred help, gated at a later
+real encounter. The underlying help/game content remains generic.
+
+Laya weighs the same eligible authored options and numeric reasons as the fallback at torn
+choices, capped at two evaluations per person/day. Calls occur between minutes, answers apply
+the next minute, and the engine reuses its original keyed draw. Complete requests fit 1,250
+characters or fall back without a call; omitted whole recall texts are explicitly recorded.
+The exact request/answer tape must reproduce a complete live recording before any export-only
+projection. This trial isolates the evaluator and introduces no new generator/Haiku calls.
+
+`livesEvenings` remains a separate experimental observer block, not a claimed full Lives 0.2
+export. Same-choice history comparisons recompute only the fallback, never an alternative life
+or hypothetical model response. The dedicated review filters detailed Lives export to the three
+watched people after simulation; ordinary town output stays intact. Full observer integration,
+learned routines, the complete commitment framework, richer activities and population transfer
+remain future work. See [the implementation spec](under-glass/specs/lives-evenings-spec.md).

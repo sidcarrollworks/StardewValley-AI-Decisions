@@ -4,7 +4,7 @@ Updated 2026-10-12 after Sid selected hybrid and requested source-derived charac
 2026-10-13 to say where the agreed order leads (player speech, below), and 2026-10-14 for Sid's
 history-first direction: the Lives pilot is next, needs bars are unresolved (D53). Updated
 2026-10-15 for the personal-memory foundation, free-time routing and immediate company consumer;
-the end-to-end pilot remains unbuilt.
+and the opt-in sourced-history evening pilot. The full observer contract and broader pilot remain unfinished.
 This is the current order of work for the independent game. It supersedes older build orders,
 event-volume budgets and social-outcome acceptance thresholds. Existing code, regression tests
 and dated measurements still describe what was implemented; a planned change is not already live.
@@ -50,14 +50,18 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
 - Built, opt-in: [free-time routing](specs/lives-routing-spec.md) reads that memory to weigh existing
   destinations, learns associations from perceived feelings, and records the same choice with and
   without requested history. It enables no canon history seeds, model calls, new plans or full Lives
-  observer export. The mechanism tests use synthetic histories; the pilot's sourced pack still needs
-  individual admission review. The chain viewer does not yet display these runtime receipts.
+  observer export on its own. The new evening pilot supplies an explicitly loaded, reviewed source pack.
+  The chain viewer does not yet display these runtime receipts.
 - Built, opt-in: [immediate company](specs/lives-company-spec.md) connects remembered warmth to
   seeking someone, a local game offer, a next-minute answer and a completed or interrupted activity.
   It learns distinct whereabouts, availability, answer and activity expectations that later company
   choices read. It keeps the current routine baseline. This is a bounded prerequisite for the pilot's
-  future evening plans, not their completion. Canon seed review, model evaluation and full Lives
-  export are still ahead.
+  future evening plans, which are now a separate opt-in extension.
+- Built, opt-in: [evening plans](specs/lives-evenings-spec.md) connect the reviewed Penny/Pam/Gus
+  pack to offers, answers, later follow-through, completed/interrupted/missed evenings and learned
+  expectations. Laya can weigh torn choices within a bounded daily budget, with exact tape replay.
+  A separate review page compares held choices with and without specific history. Full Lives export,
+  shared chain-viewer integration, richer activity content and household transfer remain next.
 - Current limits: other richer actions exist in `ActCatalog` behind switches.
   Generic acts do not record what help or a gift concretely involved. Gossip tiers remain fixed
   by action-kind juiciness; the new observer appraisal does not yet choose what NPCs retell.
@@ -77,7 +81,7 @@ retain source coverage/conditions, and admit only individually reviewed backgrou
 anchors are private background context for the models, not memories: they create no act, belief,
 feeling or regard (D44), and one anchor can mix a fact, a past, a practice and a reading. Histories
 that shape behaviour now have a separate opt-in memory and routing implementation, with an account
-per holder. The pilot's sourced content still needs admission under the
+per holder. The pilot's [reviewed source pack](experiments/pilot-history-review-2026-10-15.md) follows the
 [history audit](experiments/history-evidence-audit-2026-10-14.md)'s rules, with each experience
 counted once ([Lives assessment](lives-gap-assessment.md), section 2). Generic descendants reuse tendencies and
 voice; named backstories are not inherited.
@@ -163,12 +167,15 @@ The order is:
    [opt-in free-time consumer](specs/lives-routing-spec.md): perceived feelings produce associations,
    relevant recall opens weighting of existing destinations, and frozen comparisons hold a choice
    constant while removing specified history. This is actual simulation integration, with a separate
-   experimental recording block, but no shipped canon history pack or completed pilot. Generic routes
-   do not yet use learned expectations, and no new reflection, company-seeking or plan mechanism is
-   added. Next: individually reviewed pilot histories, reflection and meaningful competing options,
-   shared plans, classified perceived outcomes and learning that affects a later choice, then the
-   full observer export and viewer connection. The observer contract and illustrative recordings
-   remain design inputs, not evidence of a working pilot. The archetype editor is deferred.
+   experimental recording block. Immediate company and [future evenings](specs/lives-evenings-spec.md)
+   now add seeking, offers, later follow-through, observed outcomes and learned expectations.
+   The evening extension explicitly loads the reviewed pilot history pack and can use typed Laya
+   evaluation. [Actual 35-day trials](experiments/lives-evenings-2026-10-15.md) retain completed,
+   postponed and missed evenings. Generic destination routing still does not read expectations.
+   Next: connect runtime receipts to the full observer contract and chain viewer, then broaden
+   meaningful competing activities and test transfer to another household. The illustrative
+   contract fixture remains a design input, distinct from these actual recordings. The archetype
+   editor is deferred.
 
    **Needs bars: unresolved** (Sid, 2026-10-14). Not scheduled and not rejected: how bodily
    pressures interact with the richer system is assessed once it exists, and no formula is chosen

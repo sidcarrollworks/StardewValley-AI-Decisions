@@ -112,7 +112,7 @@ public sealed partial class Simulation
 
     private bool TrySeekCompany(Person p, int m, List<(Haunt? Haunt, double Weight)> routine)
     {
-        if (!_companyOptions.Enabled || !CompanyFree(p, m) || _companyByPerson.ContainsKey(p.V.Name)) return false;
+        if (!_companyOptions.Enabled || !CompanyFree(p, m) || _companyByPerson.ContainsKey(p.V.Name) || EveningReserved(p.V.Name) || p.Why == "evening-plan") return false;
         double carryBase = routine.Sum(o => o.Weight);
         if (!double.IsFinite(carryBase) || carryBase <= 0) return false;
         MemoryFrame frame = _livesMemory[p.V.Name].Capture();
@@ -175,11 +175,11 @@ public sealed partial class Simulation
         if (!tick) return;
         foreach (Person p in _people)
         {
-            if (!CompanyFree(p, m) || _companyByPerson.ContainsKey(p.V.Name)) continue;
+            if (!CompanyFree(p, m) || _companyByPerson.ContainsKey(p.V.Name) || EveningReserved(p.V.Name) || p.Why == "evening-plan") continue;
             foreach (Person other in _people)
             {
                 if (p == other || CompanyConsidered(p.V.Name, other.V.Name, m)
-                    || _companyByPerson.ContainsKey(other.V.Name) || !CompanyFits(p, other, m)) continue;
+                    || _companyByPerson.ContainsKey(other.V.Name) || EveningReserved(other.V.Name) || other.Why == "evening-plan" || !CompanyFits(p, other, m)) continue;
                 OfferCompany(p, other, m, null);
                 if (_companyByPerson.ContainsKey(p.V.Name)) break;
             }
@@ -304,6 +304,7 @@ public sealed partial class Simulation
         Person asker = _people[_index[episode.Asker]];
         if (asker.Why == "company-seek") asker.Why = "";
         if (_companyOptions.Record) _companyUpdates.Add(new(m, ended, reason));
+        SyncEveningGame(ended, stage, m, reason);
     }
 
     private void LearnCompany(string holder, CompanyEpisode episode, int m, string kind,

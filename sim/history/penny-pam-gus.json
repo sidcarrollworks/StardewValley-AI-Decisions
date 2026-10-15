@@ -1,0 +1,1128 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "ppg-source-penny-fall-fri6",
+      "key": "Characters/Dialogue/Penny:fall_Fri6",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-mon4",
+      "key": "Characters/Dialogue/Penny:Mon4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-fri4",
+      "key": "Characters/Dialogue/Penny:Fri4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-sun4",
+      "key": "Characters/Dialogue/Penny:Sun4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-fall-thu6",
+      "key": "Characters/Dialogue/Penny:fall_Thu6",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-mon8",
+      "key": "Characters/Dialogue/Penny:Mon8",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-thu",
+      "key": "Characters/Dialogue/Penny:Thu",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-wed",
+      "key": "Characters/Dialogue/Penny:Wed",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-tue4",
+      "key": "Characters/Dialogue/Penny:Tue4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-penny-summer-fri",
+      "key": "Characters/Dialogue/Penny:summer_Fri",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-fall-thu",
+      "key": "Characters/Dialogue/Pam:fall_Thu",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-winter-tue4",
+      "key": "Characters/Dialogue/Pam:winter_Tue4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-winter-fri",
+      "key": "Characters/Dialogue/Pam:winter_Fri",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-saloon",
+      "key": "Characters/Dialogue/Pam:Saloon",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-saloon-entry",
+      "key": "Characters/Dialogue/Pam:Saloon_Entry",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-saloon-thu",
+      "key": "Characters/Dialogue/Pam:Saloon_Thu",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-summer-thu4",
+      "key": "Characters/Dialogue/Pam:summer_Thu4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-fri2",
+      "key": "Characters/Dialogue/Pam:Fri2",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-fall-sun4",
+      "key": "Characters/Dialogue/Pam:fall_Sun4",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-wed",
+      "key": "Characters/Dialogue/Pam:Wed",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-pam-sun",
+      "key": "Characters/Dialogue/Pam:Sun",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-gus-thu",
+      "key": "Characters/Dialogue/Gus:Thu",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-gus-sun",
+      "key": "Characters/Dialogue/Gus:Sun",
+      "kind": "Canon"
+    },
+    {
+      "id": "ppg-source-gus-thu8",
+      "key": "Characters/Dialogue/Gus:Thu8",
+      "kind": "Canon"
+    }
+  ],
+  "facts": [
+    {
+      "id": "ppga-saloon-practice",
+      "kind": "Practice",
+      "sources": [
+        "ppg-source-penny-mon4",
+        "ppg-source-penny-fri4",
+        "ppg-source-penny-sun4",
+        "ppg-source-pam-saloon",
+        "ppg-source-pam-saloon-entry",
+        "ppg-source-pam-saloon-thu",
+        "ppg-source-pam-summer-thu4",
+        "ppg-source-pam-fri2",
+        "ppg-source-gus-thu",
+        "ppg-source-gus-sun",
+        "ppg-source-gus-thu8"
+      ]
+    },
+    {
+      "id": "ppgf-penny-care",
+      "kind": "Fact",
+      "sources": [
+        "ppg-source-penny-fall-thu6",
+        "ppg-source-penny-mon8"
+      ]
+    },
+    {
+      "id": "ppgf-pam-pride",
+      "kind": "Fact",
+      "sources": [
+        "ppg-source-pam-fall-thu",
+        "ppg-source-pam-winter-tue4",
+        "ppg-source-pam-winter-fri"
+      ]
+    },
+    {
+      "id": "ppgf-penny-reading",
+      "kind": "Practice",
+      "sources": [
+        "ppg-source-penny-thu"
+      ]
+    },
+    {
+      "id": "ppgf-penny-teaching",
+      "kind": "Practice",
+      "sources": [
+        "ppg-source-penny-wed"
+      ]
+    },
+    {
+      "id": "ppgf-penny-father-left",
+      "kind": "Past",
+      "sources": [
+        "ppg-source-penny-fall-fri6"
+      ]
+    },
+    {
+      "id": "ppgf-pam-truck-job",
+      "kind": "Past",
+      "sources": [
+        "ppg-source-pam-fall-sun4"
+      ]
+    },
+    {
+      "id": "ppgf-pam-bus-work-ended",
+      "kind": "Past",
+      "sources": [
+        "ppg-source-pam-wed",
+        "ppg-source-penny-summer-fri",
+        "ppg-source-penny-tue4"
+      ]
+    },
+    {
+      "id": "ppgf-pam-gus-birthday",
+      "kind": "Practice",
+      "sources": [
+        "ppg-source-pam-sun"
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "id": "ppga-penny-saloon",
+      "factId": "ppga-saloon-practice",
+      "holder": "Penny",
+      "text": "Pam often goes to the Saloon. I keep cleaning and doing the dishes alone; I connect her headaches and lack of help to those late nights.",
+      "how": "Inferred",
+      "sources": [
+        "ppg-source-penny-mon4",
+        "ppg-source-penny-fri4",
+        "ppg-source-penny-sun4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-fri4"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-penny-mon4"
+        },
+        {
+          "key": "place:Home:Trailer"
+        },
+        {
+          "key": "time:evening"
+        },
+        {
+          "key": "situation:household-work"
+        }
+      ]
+    },
+    {
+      "id": "ppga-pam-saloon",
+      "factId": "ppga-saloon-practice",
+      "holder": "Pam",
+      "text": "I keep returning to the Saloon and look forward to a drink. I also think that ending up there so often is unhealthy, and wish I had another hobby; perhaps checkers on my own.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-pam-saloon",
+        "ppg-source-pam-saloon-entry",
+        "ppg-source-pam-saloon-thu",
+        "ppg-source-pam-summer-thu4",
+        "ppg-source-pam-fri2"
+      ],
+      "cues": [
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-pam-saloon"
+        },
+        {
+          "key": "person:Gus",
+          "sourceId": "ppg-source-pam-saloon-entry"
+        },
+        {
+          "key": "time:evening"
+        },
+        {
+          "key": "activity:PlayedGame"
+        },
+        {
+          "key": "wish:activity:PlayedGame"
+        }
+      ]
+    },
+    {
+      "id": "ppga-gus-saloon",
+      "factId": "ppga-saloon-practice",
+      "holder": "Gus",
+      "text": "Pam and Clint are regular evening customers. Their custom helps keep my business going. I see Pam drink too much beer and remind myself not to judge my customers.",
+      "how": "Witnessed",
+      "sources": [
+        "ppg-source-gus-thu",
+        "ppg-source-gus-sun",
+        "ppg-source-gus-thu8"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu8"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "time:evening"
+        }
+      ]
+    },
+    {
+      "id": "ppga-penny-care",
+      "factId": "ppgf-penny-care",
+      "holder": "Penny",
+      "text": "I worry that my mother does not look after herself. I want her to be happy, but that worry burdens me and I want a life outside this home.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-penny-fall-thu6",
+        "ppg-source-penny-mon8"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-fall-thu6"
+        },
+        {
+          "key": "place:Home:Trailer"
+        }
+      ]
+    },
+    {
+      "id": "ppga-pam-pride",
+      "factId": "ppgf-pam-pride",
+      "holder": "Pam",
+      "text": "Penny is my only child. I want people to treat her kindly, hope she has a good life, and feel glad that she is clever and loves books.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-pam-fall-thu",
+        "ppg-source-pam-winter-tue4",
+        "ppg-source-pam-winter-fri"
+      ],
+      "cues": [
+        {
+          "key": "person:Penny",
+          "sourceId": "ppg-source-pam-fall-thu"
+        },
+        {
+          "key": "place:Home:Trailer"
+        }
+      ]
+    },
+    {
+      "id": "ppga-penny-reading",
+      "factId": "ppgf-penny-reading",
+      "holder": "Penny",
+      "text": "Reading helps me set aside the difficulties of my life for a while.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-penny-thu"
+      ],
+      "cues": [
+        {
+          "key": "activity:Reading",
+          "sourceId": "ppg-source-penny-thu"
+        }
+      ]
+    },
+    {
+      "id": "ppga-penny-teaching",
+      "factId": "ppgf-penny-teaching",
+      "holder": "Penny",
+      "text": "I teach Vincent and Jas and try to give them opportunities to do well.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-penny-wed"
+      ],
+      "cues": [
+        {
+          "key": "activity:Teaching",
+          "sourceId": "ppg-source-penny-wed"
+        },
+        {
+          "key": "person:Vincent",
+          "sourceId": "ppg-source-penny-wed"
+        },
+        {
+          "key": "person:Jas",
+          "sourceId": "ppg-source-penny-wed"
+        }
+      ]
+    },
+    {
+      "id": "ppga-penny-father-left",
+      "factId": "ppgf-penny-father-left",
+      "holder": "Penny",
+      "text": "My father left when I was a child. He said he felt trapped, and we have not seen him since. Autumn brings this memory back.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-penny-fall-fri6"
+      ],
+      "cues": [
+        {
+          "key": "season:fall",
+          "sourceId": "ppg-source-penny-fall-fri6"
+        }
+      ]
+    },
+    {
+      "id": "ppga-pam-truck-job",
+      "factId": "ppgf-pam-truck-job",
+      "holder": "Pam",
+      "text": "I used to drive a truck around the valley, meeting people and listening to the radio. I miss that work.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-pam-fall-sun4"
+      ],
+      "cues": [
+        {
+          "key": "activity:Travel",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        },
+        {
+          "key": "activity:MeetingPeople",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        },
+        {
+          "key": "activity:Radio",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        }
+      ]
+    },
+    {
+      "id": "ppga-pam-bus-work-ended",
+      "factId": "ppgf-pam-bus-work-ended",
+      "holder": "Pam",
+      "text": "I was laid off from my job driving the bus. I would like to have that work back.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-pam-wed"
+      ],
+      "cues": [
+        {
+          "key": "activity:BusDriving",
+          "sourceId": "ppg-source-pam-wed"
+        }
+      ]
+    },
+    {
+      "id": "ppga-penny-bus-work-ended",
+      "factId": "ppgf-pam-bus-work-ended",
+      "holder": "Penny",
+      "text": "Pam used to drive the bus, which stopped working. She is out of work, and saving money from my tutoring has been difficult.",
+      "how": "Inferred",
+      "sources": [
+        "ppg-source-penny-summer-fri",
+        "ppg-source-penny-tue4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-tue4"
+        },
+        {
+          "key": "activity:Teaching",
+          "sourceId": "ppg-source-penny-tue4"
+        }
+      ]
+    },
+    {
+      "id": "ppga-pam-gus-birthday",
+      "factId": "ppgf-pam-gus-birthday",
+      "holder": "Pam",
+      "text": "Gus gives me beer on my birthday, and I think well of him.",
+      "how": "Lived",
+      "sources": [
+        "ppg-source-pam-sun"
+      ],
+      "cues": [
+        {
+          "key": "person:Gus",
+          "sourceId": "ppg-source-pam-sun"
+        }
+      ]
+    }
+  ],
+  "readings": [
+    {
+      "id": "ppg-penny-burden",
+      "accountId": "ppga-penny-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Wary",
+      "text": "Doing the housework alone is hard while Pam is nursing a headache.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-fri4",
+        "ppg-source-penny-sun4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-fri4"
+        },
+        {
+          "key": "situation:household-work"
+        }
+      ]
+    },
+    {
+      "id": "ppg-penny-saloon-wary",
+      "accountId": "ppga-penny-saloon",
+      "object": {
+        "kind": "Place",
+        "key": "Saloon"
+      },
+      "stance": "Wary",
+      "text": "I think Pam goes to the Saloon too much.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-mon4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-mon4"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-penny-mon4"
+        }
+      ]
+    },
+    {
+      "id": "ppg-pam-saloon-warm",
+      "accountId": "ppga-pam-saloon",
+      "object": {
+        "kind": "Place",
+        "key": "Saloon"
+      },
+      "stance": "Warm",
+      "text": "I look forward to my usual drink at the Saloon.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-saloon",
+        "ppg-source-pam-saloon-entry",
+        "ppg-source-pam-saloon-thu"
+      ],
+      "cues": [
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-pam-saloon"
+        },
+        {
+          "key": "time:evening"
+        }
+      ]
+    },
+    {
+      "id": "ppg-pam-saloon-wary",
+      "accountId": "ppga-pam-saloon",
+      "object": {
+        "kind": "Place",
+        "key": "Saloon"
+      },
+      "stance": "Wary",
+      "text": "I think ending up at the Saloon so often is unhealthy.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-summer-thu4"
+      ],
+      "cues": [
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-pam-summer-thu4"
+        },
+        {
+          "key": "time:evening"
+        }
+      ]
+    },
+    {
+      "id": "ppg-pam-hobby-wish",
+      "accountId": "ppga-pam-saloon",
+      "object": {
+        "kind": "Activity",
+        "key": "PlayedGame"
+      },
+      "stance": "None",
+      "text": "I wish I had another hobby. I have considered playing checkers by myself.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-fri2"
+      ],
+      "cues": [
+        {
+          "key": "activity:PlayedGame"
+        },
+        {
+          "key": "wish:activity:PlayedGame"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-pam-fri2"
+        }
+      ]
+    },
+    {
+      "id": "ppg-gus-pam-wary",
+      "accountId": "ppga-gus-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Wary",
+      "text": "I think Pam drinks too much beer, though I try not to judge my customers.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-gus-thu8"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu8"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu8"
+        }
+      ]
+    },
+    {
+      "id": "ppg-penny-pam-away-weekday",
+      "accountId": "ppga-penny-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam to be away from home in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-mon4",
+        "ppg-source-penny-fri4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-mon4"
+        },
+        {
+          "key": "place:Home:Trailer"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Home:Trailer:18-21:weekday"
+      },
+      "expectedSuccess": false
+    },
+    {
+      "id": "ppg-gus-pam-saloon-18-21-weekday",
+      "accountId": "ppga-gus-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam at the Saloon in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-gus-thu"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Saloon:18-21:weekday"
+      },
+      "expectedSuccess": true
+    },
+    {
+      "id": "ppg-gus-pam-saloon-21-24-weekday",
+      "accountId": "ppga-gus-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam at the Saloon in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-gus-thu"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Saloon:21-24:weekday"
+      },
+      "expectedSuccess": true
+    },
+    {
+      "id": "ppg-penny-pam-away-weekend",
+      "accountId": "ppga-penny-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam to be away from home in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-mon4",
+        "ppg-source-penny-fri4"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-mon4"
+        },
+        {
+          "key": "place:Home:Trailer"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Home:Trailer:18-21:weekend"
+      },
+      "expectedSuccess": false
+    },
+    {
+      "id": "ppg-gus-pam-saloon-18-21-weekend",
+      "accountId": "ppga-gus-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam at the Saloon in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-gus-thu"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Saloon:18-21:weekend"
+      },
+      "expectedSuccess": true
+    },
+    {
+      "id": "ppg-gus-pam-saloon-21-24-weekend",
+      "accountId": "ppga-gus-saloon",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Expects",
+      "text": "I expect Pam at the Saloon in the evening.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-gus-thu"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "place:Saloon",
+          "sourceId": "ppg-source-gus-thu"
+        },
+        {
+          "key": "time:evening"
+        }
+      ],
+      "expectation": {
+        "kind": "Whereabouts",
+        "subject": "Pam",
+        "context": "Saloon:21-24:weekend"
+      },
+      "expectedSuccess": true
+    },
+    {
+      "id": "ppg-penny-care",
+      "accountId": "ppga-penny-care",
+      "object": {
+        "kind": "Person",
+        "key": "Pam"
+      },
+      "stance": "Warm",
+      "text": "I care about Pam and want her to be happy.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-fall-thu6",
+        "ppg-source-penny-mon8"
+      ],
+      "cues": [
+        {
+          "key": "person:Pam",
+          "sourceId": "ppg-source-penny-fall-thu6"
+        }
+      ]
+    },
+    {
+      "id": "ppg-pam-penny-warm",
+      "accountId": "ppga-pam-pride",
+      "object": {
+        "kind": "Person",
+        "key": "Penny"
+      },
+      "stance": "Warm",
+      "text": "I am proud of Penny and hope she has a good life.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-fall-thu",
+        "ppg-source-pam-winter-tue4",
+        "ppg-source-pam-winter-fri"
+      ],
+      "cues": [
+        {
+          "key": "person:Penny",
+          "sourceId": "ppg-source-pam-winter-tue4"
+        }
+      ]
+    },
+    {
+      "id": "ppg-penny-reading-warm",
+      "accountId": "ppga-penny-reading",
+      "object": {
+        "kind": "Activity",
+        "key": "Reading"
+      },
+      "stance": "Warm",
+      "text": "I like getting lost in a book.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-thu"
+      ],
+      "cues": [
+        {
+          "key": "activity:Reading",
+          "sourceId": "ppg-source-penny-thu"
+        }
+      ]
+    },
+    {
+      "id": "ppg-penny-teaching-warm",
+      "accountId": "ppga-penny-teaching",
+      "object": {
+        "kind": "Activity",
+        "key": "Teaching"
+      },
+      "stance": "Warm",
+      "text": "Giving the children a chance matters to me.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-wed"
+      ],
+      "cues": [
+        {
+          "key": "activity:Teaching",
+          "sourceId": "ppg-source-penny-wed"
+        }
+      ]
+    },
+    {
+      "id": "ppg-penny-father-autumn",
+      "accountId": "ppga-penny-father-left",
+      "object": {
+        "kind": "Situation",
+        "key": "Autumn"
+      },
+      "stance": "None",
+      "text": "This time of year reminds me of my father leaving.",
+      "origin": "CanonStated",
+      "admission": "R1",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-penny-fall-fri6"
+      ],
+      "cues": [
+        {
+          "key": "season:fall",
+          "sourceId": "ppg-source-penny-fall-fri6"
+        }
+      ]
+    },
+    {
+      "id": "ppg-pam-truck-travel",
+      "accountId": "ppga-pam-truck-job",
+      "object": {
+        "kind": "Activity",
+        "key": "Travel"
+      },
+      "stance": "Warm",
+      "text": "I miss travelling around the valley.",
+      "origin": "CanonStated",
+      "admission": "R1",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-fall-sun4"
+      ],
+      "cues": [
+        {
+          "key": "activity:Travel",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        }
+      ],
+      "presentLinkSource": "ppg-source-pam-fall-sun4"
+    },
+    {
+      "id": "ppg-pam-truck-meetingpeople",
+      "accountId": "ppga-pam-truck-job",
+      "object": {
+        "kind": "Activity",
+        "key": "MeetingPeople"
+      },
+      "stance": "Warm",
+      "text": "I miss meeting people on my route.",
+      "origin": "CanonStated",
+      "admission": "R1",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-fall-sun4"
+      ],
+      "cues": [
+        {
+          "key": "activity:MeetingPeople",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        }
+      ],
+      "presentLinkSource": "ppg-source-pam-fall-sun4"
+    },
+    {
+      "id": "ppg-pam-truck-radio",
+      "accountId": "ppga-pam-truck-job",
+      "object": {
+        "kind": "Activity",
+        "key": "Radio"
+      },
+      "stance": "Warm",
+      "text": "I miss listening to the radio on my route.",
+      "origin": "CanonStated",
+      "admission": "R1",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-fall-sun4"
+      ],
+      "cues": [
+        {
+          "key": "activity:Radio",
+          "sourceId": "ppg-source-pam-fall-sun4"
+        }
+      ],
+      "presentLinkSource": "ppg-source-pam-fall-sun4"
+    },
+    {
+      "id": "ppg-pam-gus-warm",
+      "accountId": "ppga-pam-gus-birthday",
+      "object": {
+        "kind": "Person",
+        "key": "Gus"
+      },
+      "stance": "Warm",
+      "text": "I think Gus is a good person.",
+      "origin": "CanonStated",
+      "admission": "R2",
+      "review": {
+        "status": "Reviewed",
+        "by": "Codex source review; Sid approved R2 policy",
+        "date": "2026-10-15"
+      },
+      "sources": [
+        "ppg-source-pam-sun"
+      ],
+      "cues": [
+        {
+          "key": "person:Gus",
+          "sourceId": "ppg-source-pam-sun"
+        }
+      ]
+    }
+  ]
+}
