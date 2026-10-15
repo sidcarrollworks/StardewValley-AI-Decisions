@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Under Glass — Archetypes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="ui.css?v=20261014-5"><link rel="stylesheet" href="archetypes.css">
+  <script src="ui.js"></script>
+</head>
+<body class="tool-page">
+<main>
+  <header class="tool-head"><div><span class="label">Under Glass / Archetypes</span><h1>Archetype studio</h1><p>Shape a voice and its tendencies. Keep each person's life their own.</p></div><button class="theme led" data-theme-toggle aria-pressed="false">Dark mode</button></header>
+  <div class="studio-toolbar">
+    <div class="tool-actions"><button id="open-pack">Open pack…</button><button id="new-archetype" disabled>New archetype</button><button id="export-pack" disabled>Download pack</button></div>
+    <span id="draft-status" role="status" class="meta">Loading pack…</span>
+    <input id="pack-file" type="file" accept=".json,application/json" hidden>
+  </div>
+  <p id="studio-error" role="alert" hidden></p>
+  <div id="confirm-action" class="studio-notice" role="alertdialog" aria-labelledby="confirm-message" hidden>
+    <p id="confirm-message"></p><div class="tool-actions"><button id="confirm-yes">Confirm</button><button id="confirm-no">Cancel</button></div>
+  </div>
+  <div id="saved-draft" class="studio-notice" hidden><span id="saved-message"></span><div class="tool-actions"><button id="restore-draft">Restore saved draft</button><button id="recover-draft">Download saved draft</button></div></div>
+  <form id="create-form" class="studio-notice" hidden>
+    <label for="new-id" id="create-label">New archetype ID</label><input id="new-id" placeholder="patient-observer" maxlength="100" required pattern="[a-z][a-z0-9]*(-[a-z0-9]+)*">
+    <div class="tool-actions"><button type="submit">Create</button><button type="button" id="cancel-create">Cancel</button></div>
+  </form>
+  <div class="studio-layout">
+    <nav class="studio-list" aria-label="Archetypes"><label for="search">Find an archetype</label><input id="search" type="search" placeholder="Name, tendency or character"><span id="list-count" class="meta"></span><div id="archetype-list"></div></nav>
+    <section id="archetype-editor" aria-label="Selected archetype"><p class="meta">Open a character-inspiration.json pack to begin.</p></section>
+  </div>
+  <details class="tool-disclosure"><summary>Pack details & changes <span id="change-count"></span></summary><div class="detail-body">
+    <p>Edits are a browser draft. Download a pack and explicitly use it in a new run to test it. Existing recordings and the checkout stay unchanged.</p>
+    <p id="pack-source"></p><label for="provenance">Pack provenance</label><textarea id="provenance" rows="4" maxlength="2000" disabled></textarea>
+    <ul id="change-list"></ul><button id="discard-draft" disabled>Discard all draft changes</button>
+  </div></details>
+  <details class="tool-disclosure"><summary>What can this studio test?</summary><div class="detail-body"><p>This first version edits the profile supplied to private inspiration and typed choices. The speech examples are authored lines tagged with this archetype, not generated predictions. New archetypes need their own speech lines.</p><p>The Life chains tool previews history-to-outcome links and isolated history comparisons using an illustrative fixture. Fixed-scene model trials are not connected yet. Personal backgrounds below are existing pack context, not simulated experiences or proof that the character witnessed an event. Source corrections are being reviewed separately.</p></div></details>
+</main>
+<script src="archetypes-model.js"></script><script src="archetypes.js"></script>
+</body>
+</html>
