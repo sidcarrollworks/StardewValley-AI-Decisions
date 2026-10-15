@@ -251,7 +251,8 @@ public static class TownCheck
     }
 
     /// <summary>A person's routine as character data (D54): their own hub weights name the town's hubs
-    /// and are numbers of 0 or more; each kept bedtime is a minute of the day on real weekdays and
+    /// and are numbers of 0 or more; each kept bedtime is a minute of its evening's day (noon to the next
+    /// noon, as canon writes 24:00 and after) on real weekdays and
     /// seasons, with a source that isn't blank (null: ours), and none is hidden by an earlier one that
     /// covers all its days (the first covering a day applies).</summary>
     private static void Routine(Villager v, TownData town, List<string> problems)
@@ -272,8 +273,8 @@ public static class TownCheck
                 problems.Add($"{v.Name}: kept bedtime {i} is blank");
                 continue;
             }
-            if (k.At < 0 || k.At >= Clock.MinutesPerDay)
-                problems.Add($"{v.Name}: kept bedtime {i} at {k.At} is not a minute of the day (0-1439)");
+            if (k.At < KeptHour.FirstMinute || k.At > KeptHour.LastMinute)
+                problems.Add($"{v.Name}: kept bedtime {i} at {k.At} is not a minute from noon of its evening's day to the next noon ({KeptHour.FirstMinute}-{KeptHour.LastMinute})");
             if (k.Weekdays is null || k.Seasons is null)
             {
                 problems.Add($"{v.Name}: kept bedtime {i} has no weekday or season list");

@@ -82,10 +82,34 @@ public class RoutineTests
         Assert.True(nights.Count >= 18);
         Assert.All(nights, x =>
         {
-            bool monday = x.Night % Clock.DaysPerWeek == 1;
-            Assert.Equal((int?)(monday ? 0 : 1), x.Habit);
-            Assert.Equal(("habit", Clock.At(monday ? 20 : 18)), (x.SetOutWhy, Clock.OfDay(x.SetOutAt!.Value)));
+            bool tuesday = x.Night % Clock.DaysPerWeek == 1; // day 0 is a Monday
+            Assert.Equal((int?)(tuesday ? 0 : 1), x.Habit);
+            Assert.Equal(("habit", Clock.At(tuesday ? 20 : 18)), (x.SetOutWhy, Clock.OfDay(x.SetOutAt!.Value)));
         });
+    }
+
+    /// <summary>A bedtime past midnight is written as canon writes it, on its evening's day (24:00 is
+    /// 1440): it covers that evening's weekday, falls in that day's night, and the night's row names the
+    /// hour the habit acted at.</summary>
+    [Theory]
+    [InlineData(24, 0, new int[0])]       // every night at midnight
+    [InlineData(24, 30, new[] { 1 })]     // Tuesday evenings: 00:30 on the Wednesday
+    [InlineData(25, 10, new[] { 5, 6 })]  // Saturday and Sunday evenings: 01:10 after
+    public void AHabitPastMidnightBelongsToItsEveningsNight(int hour, int min, int[] weekdays)
+    {
+        var ann = Person("Ann", Owl, new[] { Yard(8, 24) }, new[] { Kept(hour, min, weekdays) });
+        var (_, rows) = Run(10, 28, new[] { ann }, weight: 1e9);
+        var habit = Nights(rows).Where(x => x.SetOutWhy == "habit").ToList();
+        Assert.True(habit.Count >= (weekdays.Length == 0 ? 20 : 3), $"{habit.Count} nights to bed by habit"); // on some nights the body comes first
+        Assert.All(habit, x =>
+        {
+            Assert.Equal(x.HabitAt, x.SetOutAt); // the row's hour is the one the habit acted at
+            Assert.Equal(x.Night * Clock.MinutesPerDay + Clock.At(hour, min), x.HabitAt);
+            Assert.Equal(x.Night, NightTable.NightOf(x.HabitAt!.Value));
+            if (weekdays.Length > 0)
+                Assert.Contains(x.Night % Clock.DaysPerWeek, weekdays);
+        });
+        Assert.All(Nights(rows).Where(x => x.HabitAt is null), x => Assert.NotEqual("habit", x.SetOutWhy));
     }
 
     [Fact]
@@ -295,8 +319,11 @@ public class RoutineTests
         Assert.Contains("Penny: own weight for hub Ball, which the town doesn't have", Problems(new Dictionary<string, double> { ["Ball"] = 1 }));
         Assert.Contains("Penny: own weight -1 for hub Evening is not a number of 0 or more", Problems(new Dictionary<string, double> { ["Evening"] = -1 }));
         Assert.Contains("Penny: own weight NaN for hub Evening is not a number of 0 or more", Problems(new Dictionary<string, double> { ["Evening"] = double.NaN }));
-        Assert.Contains("Penny: kept bedtime 0 at 1440 is not a minute of the day (0-1439)", Problems(null, new KeptHour(1440, Array.Empty<int>(), Array.Empty<int>())));
-        Assert.Contains("Penny: kept bedtime 0 has no weekday or season list", Problems(null, new KeptHour(60, null!, Array.Empty<int>())));
+        const string range = "is not a minute from noon of its evening's day to the next noon (720-2159)";
+        Assert.Contains($"Penny: kept bedtime 0 at 2160 {range}", Problems(null, new KeptHour(2160, Array.Empty<int>(), Array.Empty<int>())));
+        Assert.Contains($"Penny: kept bedtime 0 at 30 {range}", Problems(null, new KeptHour(30, Array.Empty<int>(), Array.Empty<int>())));
+        Assert.Empty(Problems(null, Kept(24, 40, new[] { 5 }), Kept(12, weekdays: new[] { 0 }), Kept(35, 59, new[] { 1 }))); // canon's 2440; the range's ends
+        Assert.Contains("Penny: kept bedtime 0 has no weekday or season list", Problems(null, new KeptHour(Clock.At(20), null!, Array.Empty<int>())));
         Assert.Contains("Penny: kept bedtime 0 on weekday 7, not 0-6", Problems(null, Kept(18, weekdays: new[] { 1, 7 })));
         Assert.Contains("Penny: kept bedtime 0 in season 4, not 0-3", Problems(null, Kept(18, seasons: new[] { 4 })));
         Assert.Contains("Penny: kept bedtime 0 has a blank source", Problems(null, Kept(18, source: " ")));

@@ -41,17 +41,23 @@ public sealed record NightChoice(int At, string Why, string Place, string? Hub, 
 /// <summary>
 /// One sleep, as the recording's "nights" rows hold it. Night: noon to noon, (SleptAt - 720) / 1440
 /// rounded down, so the run's first sleep is night -1. HabitAt and Habit: that night's habitual
-/// bedtime (an absolute minute) and its index in the person's list, from their card, on every night it
-/// covers, whoever sent them to bed; null without one. SetOutAt and SetOutWhy: the last time they set
-/// out for bed before falling asleep and why ("habit", "body" or "held"); null when they didn't (the
-/// run's start, a collapse where they stood). CheckpointAt and CheckpointPick: that night's routine
-/// checkpoint and what it picked; null without one. SleptHow: "bed", "collapse" or "start". Energies
-/// are absolute, to three places, out of MaxEnergy. WokeAt, WokeWhy, WokeEnergy and Next are null
-/// while they were still asleep when the run ended. Next: their first choice after waking.
+/// bedtime (an absolute minute) and its index in the person's list, from their card: the kept hour
+/// covering the night's own day, which always falls in that night (<see cref="KeptHour.At"/>), on
+/// every night it covers, whoever sent them to bed; null without one. SetOutAt and SetOutWhy: the last
+/// time they set out for bed before falling asleep and why ("habit", "body" or "held"); null when they
+/// didn't (the run's start, a collapse where they stood). CheckpointAt and CheckpointPick: that
+/// night's routine checkpoint and what it picked; null without one. SleptHow: "bed", "collapse" or
+/// "start". Energies are absolute, to three places, out of MaxEnergy. WokeAt, WokeWhy, WokeEnergy and
+/// Next are null while they were still asleep when the run ended. Next: their first choice after
+/// waking. CheckpointEnergy and CheckpointOptions: their energy at the checkpoint and the options its
+/// draw was made from; SetOutEnergy and SetOutOptions: the same when they set out (no options when
+/// no free-time draw sent them: the body, being held). Null where the checkpoint or set-out is.
 /// </summary>
 public sealed record NightRow(string Person, int Night, int? HabitAt, int? Habit, int? SetOutAt, string? SetOutWhy,
     int? CheckpointAt, string? CheckpointPick, int SleptAt, string SleptPlace, string SleptHow, double SleptEnergy,
-    double MaxEnergy, int? WokeAt, string? WokeWhy, double? WokeEnergy, NightChoice? Next);
+    double MaxEnergy, int? WokeAt, string? WokeWhy, double? WokeEnergy, NightChoice? Next,
+    double? CheckpointEnergy = null, IReadOnlyList<NightOption>? CheckpointOptions = null,
+    double? SetOutEnergy = null, IReadOnlyList<NightOption>? SetOutOptions = null);
 
 /// <summary>A kept bedtime as the recording writes it: Standing "sourced" when it has a source,
 /// "ours" when not.</summary>
@@ -69,8 +75,9 @@ public sealed record NightRoutine(string Person, double MaxEnergy, double BedAt,
 /// </summary>
 public static class NightTable
 {
-    /// <summary>Raised when the rows' shape changes.</summary>
-    public const int Version = 1;
+    /// <summary>Raised when the rows' shape changes: 2 added the checkpoint's and the set-out's energy
+    /// and options.</summary>
+    public const int Version = 2;
 
     /// <summary>The noon-to-noon night a minute falls in.</summary>
     public static int NightOf(int minute) => (int)Math.Floor((minute - Clock.MinutesPerDay / 2) / (double)Clock.MinutesPerDay);
@@ -107,7 +114,9 @@ public static class NightTable
                         rows.Add(new NightRow(person.Key, night,
                             habit is { } h ? night * Clock.MinutesPerDay + h.Hour.At : null, habit?.Index,
                             setOut?.Tick, setOut?.Why, checkpoint?.Tick, checkpoint?.Why,
-                            n.Tick, n.Place ?? "", n.Why ?? "bed", R(n.Energy), max, null, null, null, null));
+                            n.Tick, n.Place ?? "", n.Why ?? "bed", R(n.Energy), max, null, null, null, null,
+                            checkpoint is null ? null : R(checkpoint.Energy), checkpoint?.Options,
+                            setOut is null ? null : R(setOut.Energy), setOut?.Options));
                         open = rows.Count - 1;
                         setOut = checkpoint = null;
                         awaitingNext = false;

@@ -24,20 +24,22 @@ public sealed partial class Simulation
     // The options of the free-time draw just made, kept only while the nights record is on.
     private List<NightOption>? _drawn;
 
-    /// <summary>The minute of the habitual bedtime now due, or null: the first kept hour covering
-    /// today, or else yesterday, that has come and that they haven't woken since. Null without bedtimes.</summary>
+    /// <summary>The minute of the habitual bedtime now due, or null: tonight's kept hour (the night,
+    /// noon to noon, that this minute falls in), or else last night's, if it has come and they haven't
+    /// woken since. A kept hour always falls in its own day's night (<see cref="KeptHour.At"/>). Null
+    /// without bedtimes.</summary>
     private static int? HabitDue(Person p, int m)
     {
         if (p.V.Bedtimes is not { Count: > 0 } list)
             return null;
-        int day = Clock.Day(m);
-        for (int d = day; d >= Math.Max(0, day - 1); d--)
+        int night = NightTable.NightOf(m);
+        for (int d = night; d >= Math.Max(0, night - 1); d--)
         {
             if (KeptHour.For(list, d) is not { } h)
                 continue;
             int k = d * Clock.MinutesPerDay + h.Hour.At;
             if (k > m)
-                continue; // not yet today: yesterday's may still be due
+                continue; // not yet tonight: last night's may still be due
             return p.LastWoke < k ? k : null;
         }
         return null;

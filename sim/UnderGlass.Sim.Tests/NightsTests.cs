@@ -18,14 +18,16 @@ public class NightsTests
     private static KeptHour Kept(int hour, int min, int[] weekdays, string? source = null)
         => new(Clock.At(hour, min), weekdays, Array.Empty<int>(), source);
 
-    /// <summary>Habits on two people, so the record's every path runs: Penny early every day (sourced in
-    /// the test's terms), and Shane, who keeps the Saloon's evenings, at 22:00 on weekdays (ours).</summary>
+    /// <summary>Habits on three people, so the record's every path runs: Penny early every day (sourced in
+    /// the test's terms), Shane, who keeps the Saloon's evenings, at 22:00 on weekdays (ours), and
+    /// Sebastian at 00:30 after every evening, written as canon writes it (24:30; ours).</summary>
     private static TownData WithHabits(TownData town) => town with
     {
         Cast = town.Cast.Select(v => v.Name switch
         {
             "Penny" => v with { HubWeights = new Dictionary<string, double> { ["Evening"] = 0 }, Bedtimes = new[] { Kept(18, 30, Array.Empty<int>(), "a test") } },
             "Shane" => v with { Bedtimes = new[] { Kept(22, 0, new[] { 1, 2, 3, 4, 5 }) } },
+            "Sebastian" => v with { Bedtimes = new[] { Kept(24, 30, Array.Empty<int>()) } },
             _ => v,
         }).ToList(),
     };
@@ -90,7 +92,8 @@ public class NightsTests
         // A row as the viewer reads it.
         JsonNode row = nights["rows"]!.AsArray().First(x => x!["person"]!.GetValue<string>() == "Penny" && x["setOutWhy"]?.GetValue<string>() == "habit")!;
         foreach (string field in new[] { "night", "habitAt", "habit", "setOutAt", "checkpointAt", "checkpointPick", "sleptAt", "sleptPlace", "sleptHow",
-                     "sleptEnergy", "maxEnergy", "wokeAt", "wokeWhy", "wokeEnergy", "next" })
+                     "sleptEnergy", "maxEnergy", "wokeAt", "wokeWhy", "wokeEnergy", "next", "checkpointEnergy", "checkpointOptions",
+                     "setOutEnergy", "setOutOptions" })
             Assert.True(row.AsObject().ContainsKey(field), field);
     }
 
@@ -123,9 +126,20 @@ public class NightsTests
             Assert.Equal(NightTable.NightOf(s.SleptAt), x.Night);
             Villager v = town.Cast.Single(c => c.Name == s.Name);
             Assert.Equal(v.Body.MaxEnergy, x.MaxEnergy);
-            // The night's habitual bedtime comes from the card, whoever sent them to bed.
+            // The night's habitual bedtime comes from the card, whoever sent them to bed: the kept hour of
+            // the night's own day, which falls in that night, past midnight too.
             var kept = KeptHour.For(v.Bedtimes, x.Night);
             Assert.Equal(kept is { } k ? x.Night * Clock.MinutesPerDay + k.Hour.At : null, x.HabitAt);
+            if (x.HabitAt is { } habitAt)
+                Assert.Equal(x.Night, NightTable.NightOf(habitAt));
+            // A habit's set-out names the hour the simulation found due, and the row the same one.
+            if (x.SetOutWhy == "habit")
+                Assert.Equal(x.HabitAt, notes.Notes.Single(n => n.Person == x.Person && n.What == NightEvent.SetOut && n.Tick == x.SetOutAt).HabitAt);
+            Assert.Equal(x.CheckpointAt is null, x.CheckpointEnergy is null);
+            Assert.Equal(x.CheckpointAt is null, x.CheckpointOptions is null);
+            Assert.Equal(x.SetOutAt is null, x.SetOutEnergy is null);
+            if (x.SetOutWhy is "body" or "held")
+                Assert.Null(x.SetOutOptions); // no free-time draw sent them
             if (x.WokeAt is { } woke)
             {
                 Assert.Contains(x.WokeWhy, new[] { "rested", "alarm" });
@@ -136,6 +150,8 @@ public class NightsTests
         }
         Assert.Contains(rows, x => x.Person == "Penny" && x.SetOutWhy == "habit" && x.CheckpointPick == "bed");
         Assert.Contains(rows, x => x.Person == "Pam" && x.HabitAt is null && x.SetOutWhy == "body");
+        Assert.Contains(rows, x => x.Person == "Sebastian" && x.SetOutWhy == "habit" && x.SetOutAt == x.HabitAt && Clock.OfDay(x.HabitAt!.Value) == Clock.At(0, 30));
+        Assert.Contains(rows, x => x.SetOutWhy == "habit" && x.SetOutOptions!.Any(o => o.Option == "bed"));
         Assert.Contains(rows, x => x.Next?.Options is { Count: > 0 });
     }
 
@@ -165,22 +181,25 @@ public class NightsTests
         };
         var rows = NightTable.Rows(notes, new[] { ann });
         Assert.Equal(3, rows.Count);
-        NightRow start = rows[0], monday = rows[1], tuesday = rows[2];
+        NightRow start = rows[0], tuesday = rows[1], wednesday = rows[2]; // day 0 is a Monday
         Assert.Equal((-1, (int?)null, "start", (string?)null), (start.Night, start.HabitAt, start.SleptHow, start.SetOutWhy));
         Assert.Equal((400, "rested", 90.0), (start.WokeAt, start.WokeWhy, start.WokeEnergy));
         Assert.Equal(new NightChoice(401, "home", "Home:Ann", null, notes[2].Options), start.Next);
 
-        Assert.Equal(1, monday.Night);
-        Assert.Equal((day1 + Clock.At(18, 30), (int?)0), (monday.HabitAt, monday.Habit)); // Monday's own hour, the first covering it
-        Assert.Equal((day1 + Clock.At(18, 30), "habit"), (monday.SetOutAt, monday.SetOutWhy));
-        Assert.Equal((day1 + Clock.At(18, 30), "bed"), (monday.CheckpointAt, monday.CheckpointPick));
-        Assert.Equal((29.988, 90.0), (monday.SleptEnergy, monday.MaxEnergy));
-        Assert.Equal(day2 + Clock.At(3, 1), monday.Next!.At);
-        Assert.Equal("home", monday.Next.Why);
+        Assert.Equal(1, tuesday.Night);
+        Assert.Equal((day1 + Clock.At(18, 30), (int?)0), (tuesday.HabitAt, tuesday.Habit)); // Tuesday's own hour, the first covering it
+        Assert.Equal((day1 + Clock.At(18, 30), "habit"), (tuesday.SetOutAt, tuesday.SetOutWhy));
+        Assert.Equal((day1 + Clock.At(18, 30), "bed"), (tuesday.CheckpointAt, tuesday.CheckpointPick));
+        Assert.Equal(((double?)30.0, options, (double?)30.0, options), (tuesday.CheckpointEnergy, tuesday.CheckpointOptions, tuesday.SetOutEnergy, tuesday.SetOutOptions));
+        Assert.Equal((29.988, 90.0), (tuesday.SleptEnergy, tuesday.MaxEnergy));
+        Assert.Equal(day2 + Clock.At(3, 1), tuesday.Next!.At);
+        Assert.Equal("home", tuesday.Next.Why);
 
-        Assert.Equal(2, tuesday.Night);
-        Assert.Equal((day2 + Clock.At(20), (int?)1, "body"), (tuesday.HabitAt, tuesday.Habit, tuesday.SetOutWhy));
-        Assert.Null(tuesday.CheckpointAt);
-        Assert.Equal(((int?)null, (string?)null, (double?)null, (NightChoice?)null), (tuesday.WokeAt, tuesday.WokeWhy, tuesday.WokeEnergy, tuesday.Next)); // still asleep
+        Assert.Equal(2, wednesday.Night);
+        Assert.Equal((day2 + Clock.At(20), (int?)1, "body"), (wednesday.HabitAt, wednesday.Habit, wednesday.SetOutWhy));
+        Assert.Null(wednesday.CheckpointAt);
+        Assert.Equal(((double?)null, (IReadOnlyList<NightOption>?)null, (double?)20.0, (IReadOnlyList<NightOption>?)null),
+            (wednesday.CheckpointEnergy, wednesday.CheckpointOptions, wednesday.SetOutEnergy, wednesday.SetOutOptions));
+        Assert.Equal(((int?)null, (string?)null, (double?)null, (NightChoice?)null), (wednesday.WokeAt, wednesday.WokeWhy, wednesday.WokeEnergy, wednesday.Next)); // still asleep
     }
 }
