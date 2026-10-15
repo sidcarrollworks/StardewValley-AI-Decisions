@@ -72,16 +72,15 @@ suite plants each 0.1 path above that the adapter reads (and 0.1's block metadat
 
 ## Implementation sequence
 
-1. **Docs PR: the contracts** (this folder, no code; stacked on #96): 0.1 frozen; 0.2 proposed, with its checkers,
-   tools and README. It cites the assessment, which #96 commits, and Codex's audit, which is not yet committed, so it
-   merges with or after #96. Codex and Sid agree the breaking rows above; Codex keeps its 0.1 adapter (#95) until then.
-2. **PR #96, the evidence corrections** (open; `claude/lives-evidence` on `claude/needs`, #90): the seven pack anchors
+1. **Docs PR: the contracts** (this folder, no simulation code; targets `codex/reflection-prototype` after #96): 0.1 frozen; 0.2 proposed, with its checkers,
+   tools and README. The assessment and Codex's original audit are now committed and merged in #96. Codex and Sid agree the breaking rows above; Codex keeps its 0.1 adapter (#95) until then.
+2. **PR #96, the evidence corrections** (merged into `codex/reflection-prototype` after #90): the seven pack anchors
    narrowed to their sources, with tests; the Lives assessment and its dated corrections note; history before bars in
    the docs (D53); two source-note fixes. No simulation code: runs without `--character-inspiration` are byte-identical.
-   With a pack, the runtime hash moves from `67aff67c…` to `dd6be675…`. It waits for Codex to commit the audit. The
+   With a pack, the runtime hash moves from `67aff67c…` to `dd6be675…`. The original audit is included in #96. The
    0.2 fixture already pins the corrected pack (`hash` and `packHash` `dd6be675…`, artifact the blob at 38dd92d): the
    seven anchors belong to other people, so the three archetypes in its snapshot, and `snapshotHash`, are unchanged.
-3. **PR B, Penny's sourced routine with habitual bedtimes** (stacked on #96; designed, not yet opened): her canon
+3. **PR #98, Penny's sourced routine with habitual bedtimes** (implemented; now targets `codex/reflection-prototype` after #96): her canon
    routine as character data with its source (teaching days, Saturday in town, bedtimes by season), its behaviour
    changes recorded and pinned runs changing in that PR (D54). Bedtimes are habits, not hard rules (Sid, 2026-10-14): a
    kept hour adds going to bed as one weighted choice, sleep and waking follow energy, and she stays askable until
@@ -90,7 +89,7 @@ suite plants each 0.1 path above that the adapter reads (and 0.1's block metadat
    contract section 16 are settled there; and the pilot's evening follows from it (contract open point 11).
 4. **#91 and #92 on hold** (docs only, on rebase after #96): law 1 unchanged; bars unresolved, not the recommendation;
    #92's modes stay experimental.
-5. **Pilot PR**, on the errands branch after #96 and PR B: the `Lives` switch, off byte-identical (pinned hashes; no
+5. **Pilot PR**, on the development base after #96 and #98: the `Lives` switch, off byte-identical (pinned hashes; no
    `lives` key; no new row fields, archetype snapshot or answer additions); `sim/histories.json`, its readings seeded
    only once Sid marks each `reviewed`; the records; rules 1-16 as general mechanisms over character data, never name
    switches; the write-only recorder sink emitting 0.2 through a storage adapter; base-row `id`, `answer` and `askMade`
