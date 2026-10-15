@@ -10,6 +10,9 @@ namespace UnderGlass.Sim;
 public sealed record SpeechOptions
 {
     public bool Enabled { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public SpeechPack? Catalog { get; init; }
+    public bool NewcomerVoice { get; init; }
 }
 
 /// <summary>One authored line and where it fits. Empty lists mean "any". Archetypes name reusable

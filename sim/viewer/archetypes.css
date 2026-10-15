@@ -32,3 +32,9 @@
 #archetype-editor { min-width:0; }
 @media(max-width:1100px) { .studio-fields { grid-template-columns:1fr; } .studio-field textarea { min-height:70px; } }
 @media(max-width:760px) { .studio-layout { grid-template-columns:1fr; gap:24px; } #archetype-list { max-height:225px; overflow:auto; } }
+.studio-modes{margin:20px 0}.studio-modes [aria-pressed=true]{background:var(--ink);color:var(--bg);box-shadow:none}
+.studio-assignment{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:24px}
+.studio-context{border:1px solid var(--line);border-radius:10px;padding:18px;margin:16px 0;display:grid;gap:8px;background:var(--surface-hi)}
+.studio-context textarea{box-sizing:border-box;background:var(--surface);font-size:var(--step--1)}
+.studio-context .tool-disclosure{margin:4px 0}.studio-context .tool-disclosure textarea{margin:8px 0 14px}
+.context-remove{justify-self:end;box-shadow:none;border:1px solid var(--line);background:transparent}

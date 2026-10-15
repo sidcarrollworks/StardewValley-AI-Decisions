@@ -16,6 +16,11 @@ using System.Text.Json;
 // for a grown town (pelican31). --speech records an authored line beside every act to a person
 // (the speech library; presentation only, off by default). --no-nights leaves out the "nights" block
 // (each sleep's habitual bedtime, onset, waking and next choice; on by default, the run the same either way).
+if (args.SequenceEqual(new[] { "--describe-options" }))
+{
+    Console.WriteLine(ReplayCliSchema.Json());
+    return;
+}
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
@@ -23,7 +28,8 @@ int days = 28;
 bool inject = false, speech = false, nights = true;
 string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
-string? inspirationPath = null;
+string? inspirationPath = null, speechPath = null;
+bool newcomerVoice = false;
 string layaModel = "typed-decisions";
 string evaluationMode = "balanced";
 double reflectionChance = 0.35;
@@ -53,6 +59,8 @@ for (int i = 0; i < args.Length; i++)
         case "--days": days = int.Parse(Next(), inv); break;
         case "--inject": inject = true; break;
         case "--speech": speech = true; break;
+        case "--speech-catalog": speechPath = Next(); speech = true; break;
+        case "--newcomer-voice": newcomerVoice = true; speech = true; break;
         case "--no-nights": nights = false; break;
         case "--out": outPath = Next(); break;
         case "--html": htmlPath = Next(); break;
@@ -143,7 +151,7 @@ if (reflectionMode == "tape")
         .Deserialize<ReflectionRecord[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!);
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech }, Nights = nights }, mind);
+    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights }, mind);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);

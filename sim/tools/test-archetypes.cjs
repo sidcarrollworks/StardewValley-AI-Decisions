@@ -6,6 +6,30 @@ const M = require('../viewer/archetypes-model.js');
 const original = M.read(readFileSync(join(__dirname,'../character-inspiration.json'),'utf8'));
 const pack = () => M.copy(original);
 
+test('personal context round trip preserves unrelated people and reusable archetypes',()=>{
+  const p=pack(), c=p.characters[0];c.voiceAccent='Short and direct.';c.background[0].text='An authored test interpretation.';
+  assert.deepEqual(M.read(M.serialize(p)),p);
+  assert.deepEqual(M.restore(M.savedDraft(original,p),original),p);
+  assert.deepEqual(p.archetypes,original.archetypes);assert.deepEqual(p.characters.slice(1),original.characters.slice(1));
+  assert.deepEqual(M.changes(original,p),[{id:c.name,kind:'character',fields:['voiceAccent','background']}]);
+});
+test('background creation is explicitly authored, uniquely identified and incomplete until written',()=>{
+  const p=pack(), c=p.characters[0], a=M.newBackground(c);c.background.push(a);const b=M.newBackground(c);
+  assert.notEqual(a.id,b.id);assert.deepEqual(a.subjects,[]);assert.match(a.sources[0],/not sourced canon/);
+  assert.throws(()=>M.serialize(p));a.text='A test background line.';assert.doesNotThrow(()=>M.serialize(p));
+});
+test('legacy draft restores without broadening its character permissions',()=>{
+  const saved={version:1,base:JSON.stringify(original),pack:pack()};saved.pack.archetypes[0].drives='A legacy draft';
+  assert.deepEqual(M.restore(JSON.stringify(saved),original),saved.pack);
+  saved.pack.characters[0].voiceAccent='Unexpected old-format edit';assert.throws(()=>M.restore(JSON.stringify(saved),original));
+});
+test('incomplete personal drafts recover but invalid or conditional content cannot export',()=>{
+  const p=pack();p.characters[0].background[0].text='';
+  assert.deepEqual(M.restore(M.savedDraft(original,p),original),p);assert.throws(()=>M.serialize(p));
+  p.characters[0].background[0].condition='after the player arrives';assert.throws(()=>M.serialize(p));
+  p.characters[0].background[0].subjects=null;assert.throws(()=>M.restore(M.savedDraft(original,p),original));
+});
+
 test('studio round trip preserves the shipped pack and all personal accounts', () => {
   assert.deepEqual(M.read(M.serialize(original)), original);
   assert.equal(original.archetypes.length, 12);

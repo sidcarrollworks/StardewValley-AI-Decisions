@@ -1,0 +1,888 @@
+{
+  "format": "under-glass-lives-baseline-evidence",
+  "version": 1,
+  "recordedUtc": "2026-10-15T07:24:45.146464+00:00",
+  "sourceCommit": "2711963d19ae0f450ac2e57f0d08ec6717b3613a",
+  "sourceDirty": true,
+  "simSourceFilesSha256": "16f7bd79c6489f2bf42a7f05d7ecd352254cf1e5dd29a786e8428715bd9397de",
+  "sourceNote": "Only the new baseline harness was untracked under sim when captured; runtime C# and data match the source commit.",
+  "days": 35,
+  "cpuSeconds": null,
+  "peakMemoryBytes": null,
+  "measurement": "Process wall seconds including startup, simulation, serialization and file write; excludes build. Sequential single samples, no models.",
+  "localPack": "out/lives-baseline-2026-10-15/",
+  "runs": [
+    {
+      "name": "routine-seed1",
+      "mode": "routine",
+      "seed": 1,
+      "status": "completed",
+      "processSeconds": 2.4252,
+      "bytes": 3127838,
+      "sha256": "9244069079ccf710c3feb89628fd88c03fb33f3aa399bb328d1d2e1ef08ed100",
+      "summary": {
+        "logHash": "3d571cba24527933",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 40,
+          "DrunkScene": 1,
+          "GaveGift": 152,
+          "HelpedSomeone": 14,
+          "Squabbled": 5,
+          "Stumbled": 50
+        },
+        "reflections": 0,
+        "backendCounts": {},
+        "invitations": 0,
+        "favours": 0,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 188.5,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 34
+            },
+            "firstChoicesWithOnlyHome": 34
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 541.5,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 30,
+              "haunt": 4
+            },
+            "firstChoicesWithOnlyHome": 29
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 551.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 13,
+              "haunt": 21
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "1",
+        "--days",
+        "35",
+        "--town",
+        "pelican"
+      ]
+    },
+    {
+      "name": "prerequisites-seed1",
+      "mode": "prerequisites",
+      "seed": 1,
+      "status": "completed",
+      "processSeconds": 4.2843,
+      "bytes": 6923465,
+      "sha256": "ed7af964b901b19ea369130b7444db6d9fd0ded141ac04d38efe4d4893daa94f",
+      "summary": {
+        "logHash": "f87cca0bb07b5f27",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 105,
+          "AskedFavour": 64,
+          "DrunkScene": 1,
+          "Fetched": 63,
+          "GaveGift": 228,
+          "HandedOver": 63,
+          "HelpedSomeone": 90,
+          "LetDown": 1,
+          "PlayedGame": 4,
+          "Refused": 27,
+          "Squabbled": 5,
+          "Stumbled": 50,
+          "TreatedToDrink": 21
+        },
+        "reflections": 277,
+        "backendCounts": {
+          "authored": 277
+        },
+        "invitations": 28,
+        "favours": 88,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 190.5,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 34
+            },
+            "firstChoicesWithOnlyHome": 34
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 541.5,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 31,
+              "haunt": 3
+            },
+            "firstChoicesWithOnlyHome": 30
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 550.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 14,
+              "haunt": 20
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "1",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--catalog",
+        "company,invitations,errands",
+        "--reflection",
+        "authored"
+      ]
+    },
+    {
+      "name": "routine-seed2",
+      "mode": "routine",
+      "seed": 2,
+      "status": "completed",
+      "processSeconds": 2.4922,
+      "bytes": 3494981,
+      "sha256": "ab3fd69b6f9b0c44553d588919e6d6de1f09b1538282756e6e4e45329e6950cd",
+      "summary": {
+        "logHash": "6bcd412a1eb125d9",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 55,
+          "DrunkScene": 2,
+          "GaveGift": 156,
+          "HelpedSomeone": 11,
+          "OutLate": 2,
+          "Squabbled": 8,
+          "Stumbled": 61
+        },
+        "reflections": 0,
+        "backendCounts": {},
+        "invitations": 0,
+        "favours": 0,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 187.0,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 34
+            },
+            "firstChoicesWithOnlyHome": 34
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 539.5,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 30,
+              "haunt": 4
+            },
+            "firstChoicesWithOnlyHome": 30
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 550.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "haunt": 22,
+              "home": 12
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "2",
+        "--days",
+        "35",
+        "--town",
+        "pelican"
+      ]
+    },
+    {
+      "name": "prerequisites-seed2",
+      "mode": "prerequisites",
+      "seed": 2,
+      "status": "completed",
+      "processSeconds": 3.9979,
+      "bytes": 7110076,
+      "sha256": "1f10c02a56dca7a721f1c702c910aa775b2fc4e35254d07592d235a7b1bc9ef6",
+      "summary": {
+        "logHash": "e67b729f626e4d89",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 106,
+          "AskedFavour": 63,
+          "DrunkScene": 2,
+          "Fetched": 60,
+          "GaveGift": 256,
+          "HandedOver": 60,
+          "HelpedSomeone": 61,
+          "LetDown": 2,
+          "OutLate": 4,
+          "PlayedGame": 7,
+          "Refused": 33,
+          "Squabbled": 8,
+          "Stumbled": 61,
+          "TreatedToDrink": 8
+        },
+        "reflections": 251,
+        "backendCounts": {
+          "authored": 251
+        },
+        "invitations": 18,
+        "favours": 93,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 186.5,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 33,
+              "deliver": 1
+            },
+            "firstChoicesWithOnlyHome": 33
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 540.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 30,
+              "haunt": 4
+            },
+            "firstChoicesWithOnlyHome": 30
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 550.5,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "haunt": 20,
+              "home": 13,
+              "errand": 1
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "2",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--catalog",
+        "company,invitations,errands",
+        "--reflection",
+        "authored"
+      ]
+    },
+    {
+      "name": "routine-seed3",
+      "mode": "routine",
+      "seed": 3,
+      "status": "completed",
+      "processSeconds": 2.1247,
+      "bytes": 3378855,
+      "sha256": "7a559eac802d5520015c1658d8433fede2d4a313f20ca9306bbaf569db54d0b5",
+      "summary": {
+        "logHash": "9f16b99ecaf796ea",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 27,
+          "DrunkScene": 2,
+          "GaveGift": 180,
+          "HelpedSomeone": 29,
+          "OutLate": 2,
+          "Squabbled": 6,
+          "Stumbled": 55
+        },
+        "reflections": 0,
+        "backendCounts": {},
+        "invitations": 0,
+        "favours": 0,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 187.0,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 34
+            },
+            "firstChoicesWithOnlyHome": 34
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 543.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 31,
+              "haunt": 3
+            },
+            "firstChoicesWithOnlyHome": 31
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 550.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "haunt": 22,
+              "home": 12
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "3",
+        "--days",
+        "35",
+        "--town",
+        "pelican"
+      ]
+    },
+    {
+      "name": "prerequisites-seed3",
+      "mode": "prerequisites",
+      "seed": 3,
+      "status": "completed",
+      "processSeconds": 4.3212,
+      "bytes": 7158559,
+      "sha256": "bbfa859b0d268d853bcf0469eb12b5ae5b80bba1175201273708892ec6ed3daf",
+      "summary": {
+        "logHash": "5a90abdc528a4e3b",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 102,
+          "AskedFavour": 51,
+          "DrunkScene": 3,
+          "Fetched": 47,
+          "GaveGift": 259,
+          "HandedOver": 46,
+          "HelpedSomeone": 109,
+          "LetDown": 3,
+          "OutLate": 2,
+          "PlayedGame": 7,
+          "Refused": 18,
+          "Squabbled": 7,
+          "Stumbled": 55,
+          "TreatedToDrink": 7
+        },
+        "reflections": 268,
+        "backendCounts": {
+          "authored": 268
+        },
+        "invitations": 14,
+        "favours": 69,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 187.0,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 33,
+              "deliver": 1
+            },
+            "firstChoicesWithOnlyHome": 33
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 544.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 28,
+              "errand": 2,
+              "haunt": 4
+            },
+            "firstChoicesWithOnlyHome": 28
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 551.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "haunt": 19,
+              "home": 13,
+              "errand": 2
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "arguments": [
+        "--seed",
+        "3",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--catalog",
+        "company,invitations,errands",
+        "--reflection",
+        "authored"
+      ]
+    },
+    {
+      "name": "routine-seed1-no-nights",
+      "mode": "observer-check",
+      "seed": 1,
+      "reference": "routine-seed1",
+      "status": "completed",
+      "processSeconds": 2.3462,
+      "bytes": 2669085,
+      "sha256": "4d6cc35bf0a0b4928e9224177037f6561a95684fc329b4af7e8c12e254480d9e",
+      "summary": {
+        "logHash": "3d571cba24527933",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 40,
+          "DrunkScene": 1,
+          "GaveGift": 152,
+          "HelpedSomeone": 14,
+          "Squabbled": 5,
+          "Stumbled": 50
+        },
+        "reflections": 0,
+        "backendCounts": {},
+        "invitations": 0,
+        "favours": 0,
+        "nights": 0,
+        "people": {
+          "Penny": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          },
+          "Pam": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          },
+          "Gus": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "verification": {
+        "status": "passed",
+        "ignoredFields": [
+          "label",
+          "nights"
+        ],
+        "comparedFields": [
+          "accounts",
+          "acts",
+          "appraisalRevision",
+          "appraisals",
+          "baseline",
+          "beliefs",
+          "clock",
+          "confrontations",
+          "constable",
+          "days",
+          "defaults",
+          "encounterCauses",
+          "encounterVersion",
+          "encounters",
+          "events",
+          "feelings",
+          "format",
+          "hash",
+          "hubs",
+          "kindFeelings",
+          "kinds",
+          "life",
+          "links",
+          "minutesOut",
+          "mood",
+          "motives",
+          "moves",
+          "names",
+          "outcomes",
+          "people",
+          "personKinds",
+          "places",
+          "power",
+          "pursuits",
+          "regard",
+          "roles",
+          "routes",
+          "seed",
+          "sentiments",
+          "settings",
+          "stance",
+          "stirred",
+          "tellings",
+          "ties",
+          "townCash",
+          "traitNames",
+          "verdicts",
+          "version",
+          "withdrawal"
+        ]
+      },
+      "arguments": [
+        "--seed",
+        "1",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--no-nights"
+      ]
+    },
+    {
+      "name": "prerequisites-seed1-no-nights",
+      "mode": "observer-check",
+      "seed": 1,
+      "reference": "prerequisites-seed1",
+      "status": "completed",
+      "processSeconds": 4.4712,
+      "bytes": 6464380,
+      "sha256": "9e7e6e9ffe27f35b44897ccc49f7f57a3b1b44b8e8034812c92d6f1952bf97c2",
+      "summary": {
+        "logHash": "f87cca0bb07b5f27",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 105,
+          "AskedFavour": 64,
+          "DrunkScene": 1,
+          "Fetched": 63,
+          "GaveGift": 228,
+          "HandedOver": 63,
+          "HelpedSomeone": 90,
+          "LetDown": 1,
+          "PlayedGame": 4,
+          "Refused": 27,
+          "Squabbled": 5,
+          "Stumbled": 50,
+          "TreatedToDrink": 21
+        },
+        "reflections": 277,
+        "backendCounts": {
+          "authored": 277
+        },
+        "invitations": 28,
+        "favours": 88,
+        "nights": 0,
+        "people": {
+          "Penny": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          },
+          "Pam": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          },
+          "Gus": {
+            "completedWakings": 0,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": null,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {},
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "verification": {
+        "status": "passed",
+        "ignoredFields": [
+          "label",
+          "nights"
+        ],
+        "comparedFields": [
+          "accounts",
+          "acts",
+          "appraisalRevision",
+          "appraisals",
+          "baseline",
+          "beliefs",
+          "clock",
+          "confrontations",
+          "constable",
+          "days",
+          "defaults",
+          "encounterCauses",
+          "encounterVersion",
+          "encounters",
+          "events",
+          "favours",
+          "feelings",
+          "format",
+          "hash",
+          "hubs",
+          "invitations",
+          "kindFeelings",
+          "kinds",
+          "life",
+          "links",
+          "minutesOut",
+          "mood",
+          "motives",
+          "moves",
+          "names",
+          "needs",
+          "outcomes",
+          "people",
+          "personKinds",
+          "places",
+          "power",
+          "promises",
+          "pursuits",
+          "reflectionOptions",
+          "reflections",
+          "regard",
+          "roles",
+          "routes",
+          "seed",
+          "sentiments",
+          "settings",
+          "stance",
+          "stirred",
+          "tellings",
+          "ties",
+          "townCash",
+          "traitNames",
+          "verdicts",
+          "version",
+          "withdrawal"
+        ]
+      },
+      "arguments": [
+        "--seed",
+        "1",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--catalog",
+        "company,invitations,errands",
+        "--reflection",
+        "authored",
+        "--no-nights"
+      ]
+    },
+    {
+      "name": "prerequisites-seed1-tape",
+      "mode": "tape-check",
+      "seed": 1,
+      "reference": "prerequisites-seed1",
+      "status": "completed",
+      "processSeconds": 4.5407,
+      "bytes": 6923606,
+      "sha256": "d913fd76cc17035fdb10e2d1d934ceebfac56c3ec454b5dd9b26fa7108a14164",
+      "summary": {
+        "logHash": "f87cca0bb07b5f27",
+        "days": 35,
+        "population": 26,
+        "actCounts": {
+          "Argued": 105,
+          "AskedFavour": 64,
+          "DrunkScene": 1,
+          "Fetched": 63,
+          "GaveGift": 228,
+          "HandedOver": 63,
+          "HelpedSomeone": 90,
+          "LetDown": 1,
+          "PlayedGame": 4,
+          "Refused": 27,
+          "Squabbled": 5,
+          "Stumbled": 50,
+          "TreatedToDrink": 21
+        },
+        "reflections": 277,
+        "backendCounts": {
+          "authored": 277
+        },
+        "invitations": 28,
+        "favours": 88,
+        "nights": 929,
+        "people": {
+          "Penny": {
+            "completedWakings": 34,
+            "incompleteSleeps": 1,
+            "medianWakeMinute": 190.5,
+            "wakingBeforeSix": 34,
+            "nextChoiceCounts": {
+              "home": 34
+            },
+            "firstChoicesWithOnlyHome": 34
+          },
+          "Pam": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 541.5,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 31,
+              "haunt": 3
+            },
+            "firstChoicesWithOnlyHome": 30
+          },
+          "Gus": {
+            "completedWakings": 34,
+            "incompleteSleeps": 0,
+            "medianWakeMinute": 550.0,
+            "wakingBeforeSix": 0,
+            "nextChoiceCounts": {
+              "home": 14,
+              "haunt": 20
+            },
+            "firstChoicesWithOnlyHome": 0
+          }
+        }
+      },
+      "verification": {
+        "status": "passed",
+        "ignoredFields": [
+          "label"
+        ],
+        "comparedFields": [
+          "accounts",
+          "acts",
+          "appraisalRevision",
+          "appraisals",
+          "baseline",
+          "beliefs",
+          "clock",
+          "confrontations",
+          "constable",
+          "days",
+          "defaults",
+          "encounterCauses",
+          "encounterVersion",
+          "encounters",
+          "events",
+          "favours",
+          "feelings",
+          "format",
+          "hash",
+          "hubs",
+          "invitations",
+          "kindFeelings",
+          "kinds",
+          "life",
+          "links",
+          "minutesOut",
+          "mood",
+          "motives",
+          "moves",
+          "names",
+          "needs",
+          "nights",
+          "outcomes",
+          "people",
+          "personKinds",
+          "places",
+          "power",
+          "promises",
+          "pursuits",
+          "reflectionOptions",
+          "reflections",
+          "regard",
+          "roles",
+          "routes",
+          "seed",
+          "sentiments",
+          "settings",
+          "stance",
+          "stirred",
+          "tellings",
+          "ties",
+          "townCash",
+          "traitNames",
+          "verdicts",
+          "version",
+          "withdrawal"
+        ]
+      },
+      "arguments": [
+        "--seed",
+        "1",
+        "--days",
+        "35",
+        "--town",
+        "pelican",
+        "--catalog",
+        "company,invitations,errands",
+        "--reflection",
+        "tape",
+        "--reflection-tape",
+        "prerequisites-seed1.json"
+      ]
+    }
+  ]
+}
