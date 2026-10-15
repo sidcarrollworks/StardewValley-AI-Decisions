@@ -17,8 +17,8 @@ Working rules:
 
 Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
-character and tab preserved on return. This is viewer navigation only; the history assessment,
-causal visualization and archetype studio remain separate work. The tools now share the viewer's
+character and tab preserved on return. This is viewer navigation only; the history assessment
+and causal visualization remain separate work. The archetype browser/editor now supports local drafts, reusable-profile duplication, validation and pack export; character backgrounds remain read-only. Model trials and history/action graphs are not connected. The tools now share the viewer's
 visual style and theme, plain titles and sticky top navigation; compact speech metrics and expandable recording collections replace
 long introductions while retaining definitions, provenance and experiment links.
 

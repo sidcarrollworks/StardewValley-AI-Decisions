@@ -265,6 +265,12 @@ name their act kinds instead. Times, ties included, are game minutes from midnig
 - Settings that are not finite numbers (a threshold of `Infinity` to turn something off) are
   written as the strings `"Infinity"`, `"-Infinity"` and `"NaN"`.
 
-All four tools share a 1680px page frame with 36px side gutters (16px at widths up to 760px). Navigation, titles and primary sections align to this frame; Happening now and the dashboard tabs also use that gutter, while individual event cards retain their own internal padding.
+All five tools share a 1680px page frame with 36px side gutters (16px at widths up to 760px). Navigation, titles and primary sections align to this frame; Happening now and the dashboard tabs also use that gutter, while individual event cards retain their own internal padding.
 
 The speech drawer keeps its coverage explanations in “How these lines are chosen”; the close icon retains an accessible name and Escape support. Matching scrollbar gutters balance its side padding.
+
+## Archetype studio
+
+Open `archetypes.html` through the shared navigation. Search by archetype, tendency or character; edit reusable fields, create or duplicate a profile, and download a schema-1 `character-inspiration.json` pack. The source pack and authored speech examples load from the checkout. Personal profiles are read-only. Drafts persist in this browser; a changed source requires explicit draft recovery or discard. Invalid edits remain drafts and disable export. See [the studio contract](../../docs/under-glass/specs/archetype-studio-spec.md).
+
+Run `node --test sim/tools/test-archetypes.cjs` for the eight editor model tests. Trial execution and history graphs await their separate recording interface; the studio makes no model calls.

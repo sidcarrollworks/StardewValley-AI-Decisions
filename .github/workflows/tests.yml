@@ -65,7 +65,7 @@ jobs:
       - name: Test the speech coverage page agrees with the selector
         run: node --test sim/tools/test-speech-page.cjs
       - name: Test navigation between observer tools
-        run: node --test sim/tools/test-tool-navigation.cjs sim/tools/test-tool-ui.cjs
+        run: node --test sim/tools/test-tool-navigation.cjs sim/tools/test-tool-ui.cjs sim/tools/test-archetypes.cjs
       - name: Test observer pack provenance without model calls
         shell: pwsh
         run: ./sim/tools/test-observer-pack.ps1
