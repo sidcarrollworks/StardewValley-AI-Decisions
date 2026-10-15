@@ -298,6 +298,14 @@ public static class Replay
             // Additive, with Invitations on only: every asking, its answer and the act that followed.
             recording["invitations"] = JsonSerializer.SerializeToElement(r.Invitations,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        if (feelings.Acts.Errands)
+        {
+            // Additive, with Errands on only: every need, every favour asked and every promise made.
+            var errandJson = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } };
+            recording["needs"] = JsonSerializer.SerializeToElement(r.Needs, errandJson);
+            recording["favours"] = JsonSerializer.SerializeToElement(r.Favours, errandJson);
+            recording["promises"] = JsonSerializer.SerializeToElement(r.Promises, errandJson);
+        }
         // Additive observer schema: v1 readers can ignore these fields. Old recordings have
         // no appraisals and remain explicitly unclassified, never backfilled from final regard.
         recording["encounterVersion"] = 1;

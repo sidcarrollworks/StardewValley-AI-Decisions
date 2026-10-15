@@ -398,6 +398,12 @@ The actor keeps the place; the target is a customer, not staff, kin or a housema
 
 ### 3.6 The counter (b2-10)
 
+- *Built 2026-10-13 for favours, not groceries* ([needs spec](needs-spec.md), switch `Errands`): a
+  trip to a counter in its posted hours (`Counter`, `ErrandGoal`) and a purchase that moves money as
+  groceries' does (`Sell`), made by someone who promised to fetch one thing for someone else. It
+  differs from this plan in that the trip comes after patrol in `Decide`, the counter's hours are a
+  sign in the town's errands book rather than read from the keeper's job, and nobody keeps a tally of
+  regulars. Household grocery trips can reuse the trip and the counter.
 - **Errands.** Each household that buys groceries makes `TripsPerWeek` trips to its shop (`ShopOf`, Simulation.Money.cs:119-120) on keyed days, by its first adult or elder by name with no job that day (else whoever finishes earliest), in the shop's posted hours (the keeper's job hours and days off), never in festival hours. The shop's own family eats at cost (:154-155).
 - **Bought (ledger).** A 28-day tally of (customer, shop, keeper), never retold: the shopper within 3 tiles of the counter while staff work. A trip pays `WeekCost / TripsPerWeek` × (1 − `Favour` × the keeper's regard) (rule 12): at the Store, `Move` to the keeper's household plus restocking through `ToOutside`, as `Payday` does (:158-159); at the Mart, `ToOutside`. `Payday` charges only trips not made (:149-163); money conserved; nothing on day 0. The bag goes home with them, or lasts `BagMinutes`. Regulars: `RegularTrips`+ in 28 days, known to the keeper's household. The bar's drinks (:211-227) are tallied alike.
 - **FoundItClosed: "Jodi found Pierre's shut."** The keeper slept through an alarm, collapsed, or is detained or doing service. `Undergo` blames them at freedom 0.5 (Simulation.Feelings.cs:495-501). The shopper goes on to the rival if open. Line: "{actor} found {place} shut."

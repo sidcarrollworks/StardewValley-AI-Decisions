@@ -23,6 +23,13 @@ public sealed partial class Simulation
     private void Say(Act act, ActKind kind, Person actor)
     {
         if (!_speech.Enabled || act.Target is null || !_index.ContainsKey(act.Target) || SpeechCatalog.Silent.Contains(kind.Name)) return;
+        if (_errandSpeech.TryGetValue(act.Id, out var errand))
+        {
+            // An errand (needs spec): the asking and its answer, or the hand-over and the thanks.
+            Speak(act, errand.First, errand.Second, errand.FirstKind, reply: false, errand.Item);
+            Speak(act, errand.Second, errand.First, errand.SecondKind, reply: true, errand.Item);
+            return;
+        }
         if (_answered.TryGetValue(act.Id, out var invitation))
         {
             // An invitation (invitation spec): the asker's offer, then the answer. On a yes the act is
@@ -35,8 +42,9 @@ public sealed partial class Simulation
         Speak(act, actor.V.Name, act.Target, kind.Name, reply: false);
     }
 
-    /// <summary>One line from the library, chosen from the speaker's side and recorded on the act.</summary>
-    private void Speak(Act act, string speaker, string subject, string kind, bool reply)
+    /// <summary>One line from the library, chosen from the speaker's side and recorded on the act.
+    /// Item: the thing an errand is for, as said ("some flour").</summary>
+    private void Speak(Act act, string speaker, string subject, string kind, bool reply, string? item = null)
     {
         string? archetype = _inspirationPack?.Characters.FirstOrDefault(c => c.Name == speaker)?.ArchetypeId;
         string relationship = ReflectionText.Relationship(Familiarity(speaker, subject), HouseholdOf(speaker) == HouseholdOf(subject), _fo.Acts.NewAt);
@@ -47,6 +55,6 @@ public sealed partial class Simulation
         if (line is null) return;
         recent.Add(line.Id);
         if (recent.Count > Remembered) recent.RemoveAt(0);
-        _speechLines.Add(new Speech(act.Id, act.Tick, speaker, SpeechCatalog.Render(line, subject), line.Id, archetype, relationship, mood, reply));
+        _speechLines.Add(new Speech(act.Id, act.Tick, speaker, SpeechCatalog.Render(line, subject, item), line.Id, archetype, relationship, mood, reply));
     }
 }

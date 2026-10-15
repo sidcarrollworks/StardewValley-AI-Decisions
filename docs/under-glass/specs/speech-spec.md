@@ -121,7 +121,10 @@ resident's side ("Welcome to town, Penny"). Sid decided (2026-10-12) that the Ne
 of its own: the player's, typed and read by Laya ([player speech spec](player-speech-spec.md)).
 Until a player exists, a reserved `newcomer` voice with arrival-side lines is planned there.
 
-Reply lines exist for invitations (2026-10-13). Replies to other acts, keyed to their recorded
+Reply lines exist for invitations (2026-10-13), and errands have lines of their own: the request
+and its answer, the hand-over (in time or late) and the thanks, naming the thing through `{item}`
+(said as the errands book says it, "some flour"; only errand kinds may carry it), 128 lines drafted
+and judged the same way ([needs spec](needs-spec.md)). Replies to other acts, keyed to their recorded
 outcome (returned, rebuffed, an apology accepted or refused), are the obvious next piece. After that,
 scene tags (time of day, place kind) can narrow lines further once the library is large enough
 that narrowing does not starve a kind.

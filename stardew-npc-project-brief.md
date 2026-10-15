@@ -38,7 +38,8 @@ built, opt-in, awaiting his curation; a coverage page shows where it is thin, an
 relationship or mood band now still fits, which halved repeats), broader actions (begun:
 [invitations](docs/under-glass/specs/invitation-spec.md), a game or a drink asked for with a real
 yes or no, opt-in), then
-follow-through, and then player speech (2026-10-13): the Newcomer is the player's character, the
+follow-through (begun: [errands](docs/under-glass/specs/needs-spec.md), a need for one named thing
+promised, fetched and handed over, late or never, opt-in), and then player speech (2026-10-13): the Newcomer is the player's character, the
 player types, Laya reads the line into an act the engine offers, and a claim is checked through
 what the listener knows ([player speech spec](docs/under-glass/specs/player-speech-spec.md), planned;
 a first probe of Laya's reading is done).
