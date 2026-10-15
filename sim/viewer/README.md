@@ -295,3 +295,9 @@ Open `chains.html`. It starts at Penny's first decision in the frozen proposed L
 The shared navigation preserves time and person. Older recordings show a no-Lives message; future unknown contract versions fail explicitly. Illustrative excerpts are refused by dashboard/speech loaders rather than presented as full recordings. Pack definitions are unavailable in this fixture, not inferred from today's Studio draft.
 
 `node --test sim/tools/test-chains.cjs` checks knowledge/time gates, rewind, dependency filtering, busy/no-ask privacy, immutable projection and both history comparisons. The shared navigation test also covers the chain route and illustrative/full-recording boundary. See `docs/under-glass/specs/lives-chain-viewer-spec.md`.
+
+Histories (`histories.html`) edits executable per-person starting history packs across the cast,
+with separate experimental provenance, browser drafts and JSON import/export. Test its influence
+sets up matched history comparisons in New run. Live jobs open in Run Viewer or Life chains with
+generation pause/pace and Follow latest controls; scrubbing or inspecting chains stops following.
+This is a full-snapshot preview, so large/long runs can cost more browser work.

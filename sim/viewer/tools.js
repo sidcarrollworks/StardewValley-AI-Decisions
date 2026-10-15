@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const ROOT = "/sim/viewer/";
-  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", archetypes: "archetypes.html", chains: "chains.html", recordings: "morning.html", runs: "runs.html" };
+  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", archetypes: "archetypes.html", chains: "chains.html", recordings: "morning.html", runs: "runs.html", histories: "histories.html" };
 
   function recordingUrl(value, base) {
     const url = new URL(value, base), origin = new URL(base);
@@ -55,6 +55,9 @@
 
   async function mount() {
     const page = window.underGlassToolPage;
+    if(new URLSearchParams(location.search).has('live')) {
+      await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=ROOT+'live.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
+    }
     if (!page || !/^https?:$/.test(location.protocol)) return;
     const style = document.createElement("style");
     style.textContent = `
@@ -71,7 +74,7 @@
     document.head.append(style);
     const nav = document.createElement("nav"); nav.id = "ug-tools"; nav.setAttribute("aria-label", "Under Glass tools");
     const links = document.createElement("div"); links.className = "ug-links";
-    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Run Viewer", speech: "Speech editor", archetypes: "Archetypes", chains: "Life chains", recordings: "Recordings", runs: "New run" })) {
+    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Run Viewer", speech: "Speech editor", archetypes: "Archetypes", chains: "Life chains", recordings: "Recordings", runs: "New run", histories: "Histories" })) {
       const link = document.createElement("a"); link.dataset.toolLink = key; link.textContent = label;
       if (key === page.page) link.setAttribute("aria-current", "page");
       links.append(link);
@@ -92,8 +95,12 @@
       const supplied = page.source?.();
       const active = supplied === undefined ? source : supplied;
       const view = page.hasRecording?.() && page.state ? page.state() : state;
-      for (const link of document.querySelectorAll("[data-tool-link]"))
-        link.href = toolUrl(link.dataset.toolLink, active, view, location.href);
+      for (const link of document.querySelectorAll("[data-tool-link]")) {
+        const url = new URL(toolUrl(link.dataset.toolLink, active, view, location.href));
+        const live = new URLSearchParams(location.search).get('live');
+        if(live && ['dashboard','chains'].includes(link.dataset.toolLink))url.searchParams.set('live',live);
+        link.href = url.href;
+      }
       context.textContent = active ? `Recording: ${new URL(active).pathname.split("/").pop()}`
         : page.hasRecording?.() ? "Local file: open it separately in each tool." : "Choose a recording or open a local file.";
     }
@@ -108,7 +115,7 @@
       const requested = new URLSearchParams(location.search).get("run");
       if (requested) source = recordingUrl(requested, location.href);
       refresh();
-      if (source && page.load) {
+      if (source && page.load && !new URLSearchParams(location.search).has("live")) {
         error.textContent = "Opening recording…";
         await page.ready;
         const run = await readRecording(source, location.href);
@@ -117,6 +124,8 @@
       }
     } catch (err) { error.textContent = err.message; }
     refresh();
+    const jobId = new URLSearchParams(location.search).get('live');
+    if (jobId && /^[\w-]+$/.test(jobId) && page.update) window.UnderGlassLive(jobId, page, nav);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount, { once: true });
   else mount();

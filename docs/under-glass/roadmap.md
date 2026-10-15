@@ -31,6 +31,13 @@ Quiet, hostile or socially collapsed towns are valid when their causes make sens
 
 ## Where we are
 
+- Built, 2026-10-15: the [history/live workbench](specs/run-studio-spec.md) lets users author
+  experimental starting histories for the existing cast, compare held choices without an account,
+  and watch hybrid generation in Run Viewer and Life chains. Runs freeze all file inputs. This
+  expands experiment access, not the range of executable activities. Richer activities and
+  relationships remain the next simulation work; incremental live transport remains a scale need.
+
+
 - Built: a deterministic .NET 8 town, perception and beliefs, feelings and motives, money,
   optional act-catalog slices, recorded runs and an observer dashboard.
 - Built, opt-in: contextual authored inspiration, a local generative provider, Laya evaluation,

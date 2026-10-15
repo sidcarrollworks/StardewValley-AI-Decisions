@@ -7,7 +7,7 @@ namespace UnderGlass.Sim.Lives;
 public enum HistoryKind { Fact, Past, Practice }
 public enum HistorySourceKind { Canon, Authored, ProductDecision }
 public enum KnowledgeKind { Lived, Witnessed, Told, Inferred, Reading }
-public enum ReadingOrigin { CanonStated, Authored }
+public enum ReadingOrigin { CanonStated, Authored, ExperimentalStated }
 public enum AdmissionRule { R1, R2 }
 public enum ReviewStatus { Proposed, Reviewed, Rejected }
 public enum ReadingStance { None, Warm, Wary, Expects }
@@ -46,7 +46,8 @@ public sealed record HistoryReview(
     string? By = null, string? Date = null);
 
 /// <summary>A private reading of exactly one account, never a fact about another holder's mind.
-/// A reviewed authored interpretation is available for recall but cannot seed a number.</summary>
+/// Authored interpretations cannot seed numbers. ExperimentalStated explicitly authors the
+/// character’s own present starting attitude for an experiment; it is never a canon claim.</summary>
 public sealed record HistoryReading(
     [property: JsonRequired] string Id,
     [property: JsonRequired] string AccountId,
@@ -161,13 +162,22 @@ public sealed record HistoryPack(
             if (reading.Admission is { } admission) Defined(admission);
             if (reading.Origin == ReadingOrigin.CanonStated && reading.Admission is null)
                 throw Invalid("A canon-stated reading requires R1 or R2 admission.");
-            if (reading.Origin == ReadingOrigin.Authored && reading.Admission is not null)
+            if (reading.Origin != ReadingOrigin.CanonStated && reading.Admission is not null)
                 throw Invalid("An authored interpretation has no canon admission rule; its admission must be null.");
             Text(reading.Text, 2000, "reading text");
             CheckReview(reading.Review);
             IReadOnlyList<string> references = References(reading.Sources, sources, reading.Id);
             if (reading.Origin == ReadingOrigin.CanonStated && !references.Any(s => sources[s].Kind == HistorySourceKind.Canon))
                 throw Invalid("A CanonStated reading needs a canon source.");
+            if (reading.Origin == ReadingOrigin.ExperimentalStated)
+            {
+                if (!references.Any(s => sources[s].Kind == HistorySourceKind.Authored))
+                    throw Invalid("An experimental character statement requires an Authored source.");
+                if (fact.Kind == HistoryKind.Past && reading.Stance != ReadingStance.None)
+                    throw Invalid("An experimental past is recall-only; author a separate present attitude to seed feelings.");
+                if (reading.PresentLinkSource is not null)
+                    throw Invalid("An experimental statement cannot claim a canon present link.");
+            }
             if (reading.PresentLinkSource is not null)
             {
                 HistorySource source = Reference(reading.PresentLinkSource, sources, "present link source");
@@ -191,7 +201,7 @@ public sealed record HistoryPack(
 
             // Warm and wary remain distinct; repeat citations of the same seed do not add strength.
             // Audit-only interpretations/revisions are not seeds and can coexist with an admitted reading.
-            if (reading.Review.Status == ReviewStatus.Reviewed && reading.Origin == ReadingOrigin.CanonStated &&
+            if (reading.Review.Status == ReviewStatus.Reviewed && reading.Origin != ReadingOrigin.Authored &&
                 reading.Stance != ReadingStance.None &&
                 !(reading.Stance == ReadingStance.Expects
                     ? expectationKeys.Add((account.Holder, reading.Expectation!))

@@ -186,7 +186,14 @@ class Studio:
     def start(self, payload):
         if not self.schema:
             raise Invalid(self.error or 'Preparing the replay engine. Try again shortly.')
-        args = replay_args(self.root, self.schema, payload.get('options', {}))
+        if not isinstance(payload.get('options', {}), dict):
+            raise Invalid('Options must be an object.')
+        options = dict(payload.get('options', {}))
+        args = replay_args(self.root, self.schema, options)
+        live = payload.get('live', False)
+        if not isinstance(live, bool):
+            raise Invalid('Live must be true or false.')
+        rate = self.rate(payload.get('rate', 60))
         formats = payload.get('formats', ['json'])
         if not isinstance(formats, list) or not formats or set(formats) - {'json', 'html'}:
             raise Invalid('Choose JSON and/or standalone HTML.')
@@ -197,13 +204,32 @@ class Studio:
             if self.active:
                 raise Invalid('A run is already active. Finish or cancel it first.')
             identity = time.strftime('%Y%m%d-%H%M%S') + '-' + secrets.token_hex(4)
+            folder = self.store / identity
+            folder.mkdir()
+            # Freeze every file input, not just histories, before starting the worker.
+            for option in self.schema['options']:
+                flag = option['flag']
+                value = options.get(flag)
+                if not value or not (option['type'] == 'path' or flag == 'town' and str(value).startswith('file:')):
+                    continue
+                source = local_file(self.root, str(value).removeprefix('file:'))
+                target = folder / (flag + '.json')
+                target.write_bytes((self.root / source).read_bytes())
+                if flag == 'history':
+                    self.validate_history(target)
+                options[flag] = ('file:' if flag == 'town' else '') + target.relative_to(self.root).as_posix()
+            args = replay_args(self.root, self.schema, options)
+            live_path = f'out/run-studio/{identity}/live.json' if live else None
+            if live:
+                args.extend(['--live-output', live_path, '--live-control', str(folder / 'control.json')])
+                (folder / 'control.json').write_text(json.dumps(dict(paused=False, rate=rate)), encoding='utf-8')
             outputs = {}
             for fmt in dict.fromkeys(formats):
                 path = f'out/run-studio/{identity}/run.{fmt}'
                 args.extend(['--out' if fmt == 'json' else '--html', path])
                 outputs[fmt] = '/' + path
             job = dict(id=identity, name=name.strip(), status='running', started=time.time(), finished=None,
-                       options=payload.get('options', {}), formats=formats, args=args, outputs=outputs)
+                       options=options, formats=formats, args=args, outputs=outputs, live=('/' + live_path) if live else None, rate=rate)
             self.jobs[identity] = job
             self.active = identity
             self.save(job)
@@ -242,6 +268,37 @@ class Studio:
             process = self.process
         kill_process(process)
 
+    @staticmethod
+    def rate(value):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not (value == 0 or 1 <= value <= 1440):
+            raise Invalid('Pace must be 0 (unlimited), or 1–1440 simulated minutes per second.')
+        return value
+
+    def validate_history(self, path):
+        result = subprocess.run(['dotnet', str(self.dll), '--validate-history', str(path)], cwd=self.root,
+                                capture_output=True, text=True, encoding='utf-8', timeout=30)
+        if result.returncode:
+            raise Invalid(result.stderr.strip()[-2000:] or 'Invalid history pack.')
+
+    def control(self, identity, data):
+        with self.lock:
+            if identity != self.active or not self.jobs[identity].get('live'):
+                raise Invalid('This live run is not active.')
+            if not isinstance(data.get('paused'), bool):
+                raise Invalid('Paused must be true or false.')
+            value = dict(paused=data['paused'], rate=self.rate(data.get('rate', 60)))
+            target = self.store / identity / 'control.json'
+            temp = target.with_suffix('.tmp')
+            temp.write_text(json.dumps(value), encoding='utf-8')
+            temp.replace(target)
+
+    def live_status(self, identity):
+        with self.lock:
+            job = dict(self.jobs[identity])
+        path = self.store / identity / 'live.json.status.json'
+        state = json.loads(path.read_text(encoding='utf-8')) if path.exists() else dict(phase='starting')
+        return dict(job=job, state=state)
+
     def snapshot(self):
         with self.lock:
             return dict(ready=self.schema is not None, error=self.error, token=self.token, schema=self.schema, checkout=str(self.root),
@@ -276,6 +333,11 @@ class Handler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == '/api/run-studio':
             return self.reply(self.server.studio.snapshot())
+        if re.fullmatch(r'/api/run-studio/jobs/[\w-]+/live', path):
+            identity = path.split('/')[-2]
+            if identity not in self.server.studio.jobs:
+                return self.reply({'error':'Unknown run.'}, 404)
+            return self.reply(self.server.studio.live_status(identity))
         if re.fullmatch(r'/api/run-studio/jobs/[\w-]+/log', path):
             identity = path.split('/')[-2]
             if identity not in self.server.studio.jobs:
@@ -325,6 +387,25 @@ class Handler(SimpleHTTPRequestHandler):
                 else:
                     raise Invalid('Choose start or stop.')
                 return self.reply({'ok':True})
+            if re.fullmatch(r'/api/run-studio/jobs/[\w-]+/control', path):
+                studio.control(path.split('/')[-2], data)
+                return self.reply({'ok':True})
+            if path == '/api/run-studio/history':
+                if not studio.schema:
+                    raise Invalid('Wait for the engine to finish preparing.')
+                text = data.get('text')
+                if not isinstance(text, str) or len(text) > 8 * 1024 * 1024:
+                    raise Invalid('Expected history JSON, at most 8 MiB.')
+                folder = studio.store / 'inputs'
+                folder.mkdir(exist_ok=True)
+                target = folder / ('history-' + secrets.token_hex(8) + '.json')
+                target.write_text(text, encoding='utf-8')
+                try:
+                    studio.validate_history(target)
+                except Exception:
+                    target.unlink(missing_ok=True)
+                    raise
+                return self.reply({'path':target.relative_to(studio.root).as_posix()}, 201)
             if path == '/api/run-studio/jobs':
                 return self.reply(studio.start(data), 201)
             if re.fullmatch(r'/api/run-studio/jobs/[\w-]+/cancel', path):

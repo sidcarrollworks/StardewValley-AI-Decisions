@@ -48,6 +48,20 @@ internal static class ReplayCliSchema
             new Option("fo", "Feeling overrides", "override", "Overrides", Repeat:true),
             new Option("ao", "Action overrides", "override", "Overrides", Repeat:true),
             new Option("trait", "Character trait overrides", "trait", "Overrides", Repeat:true),
+            new Option("lives-routing", "History-aware destinations", "boolean", "Histories"),
+            new Option("history", "Starting histories", "path", "Histories"),
+            new Option("compare-history", "Compare without history IDs", "text", "Histories", Repeat:true),
+            new Option("no-lives-record", "Omit routing records", "boolean", "Advanced"),
+            new Option("lives-company", "Seek company and play games", "boolean", "Histories"),
+            new Option("no-company-record", "Omit company records", "boolean", "Advanced"),
+            new Option("lives-evenings", "Plan shared evenings", "boolean", "Histories"),
+            new Option("no-evening-record", "Omit evening records", "boolean", "Advanced"),
+            new Option("evening-people", "Evening participants (blank: whole cast)", "text", "Histories"),
+            new Option("lives-laya", "Evening Laya service", "url", "Models"),
+            new Option("lives-laya-model", "Evening Laya model", "text", "Models"),
+            new Option("lives-tape", "Evening decision tape", "path", "Models"),
+            new Option("live-output", "Live recording", "output", "Output"),
+            new Option("live-control", "Live controls", "output", "Output"),
             new Option("out", "JSON recording", "output", "Output"),
             new Option("html", "Standalone dashboard", "output", "Output"),
         };
@@ -56,7 +70,7 @@ internal static class ReplayCliSchema
             .OrderBy(p=>p.Name, StringComparer.Ordinal)
             .Select(p=>new { name=p.Name, type=p.PropertyType==typeof(bool)?"boolean":p.PropertyType==typeof(int)?"integer":"number", value=p.GetValue(value) }).ToArray();
         return JsonSerializer.Serialize(new { options, knobs = new { fo=Knobs(DefaultTown.Feelings()), ao=Knobs(DefaultTown.Feelings().Acts) },
-            traits=Enum.GetNames<Trait>(), characters=DefaultTown.Cast().Select(v=>v.Name).ToArray(),
+            places=TownData.Default().Places.Select(p=>p.Name).ToArray(), traits=Enum.GetNames<Trait>(), characters=DefaultTown.Cast().Select(v=>v.Name).ToArray(),
             stepLabels=new[]{"Household hurt", "Mood contagion", "Exclusion", "Personal dials", "Recovery", "Patience and coercion", "Show feelings", "Mishap hurt", "Combative discount", "Tone", "Missing people"} },
             new JsonSerializerOptions { PropertyNamingPolicy=JsonNamingPolicy.CamelCase });
     }

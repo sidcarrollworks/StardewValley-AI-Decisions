@@ -62,12 +62,19 @@ if (args.SequenceEqual(new[] { "--describe-options" }))
     Console.WriteLine(ReplayCliSchema.Json());
     return;
 }
+if (args.Length == 2 && args[0] == "--validate-history")
+{
+    try { HistoryPack.Read(File.ReadAllText(args[1])); Console.WriteLine("History valid."); }
+    catch (Exception ex) when (ex is InvalidDataException or ArgumentException or JsonException)
+    { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 1; }
+    return;
+}
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
 int days = 28;
 bool inject = false, speech = false, nights = true;
-string? outPath = null, htmlPath = null;
+string? outPath = null, htmlPath = null, livePath = null, liveControl = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
 string? inspirationPath = null, speechPath = null;
 bool newcomerVoice = false;
@@ -127,6 +134,8 @@ for (int i = 0; i < args.Length; i++)
         case "--speech-catalog": speechPath = Next(); speech = true; break;
         case "--newcomer-voice": newcomerVoice = true; speech = true; break;
         case "--no-nights": nights = false; break;
+        case "--live-output": livePath = Next(); break;
+        case "--live-control": liveControl = Next(); break;
         case "--out": outPath = Next(); break;
         case "--html": htmlPath = Next(); break;
         case "--town": Next(); break; // read above
@@ -177,7 +186,7 @@ if (outPath is null && htmlPath is null)
 var shown = new List<string>();
 for (int k = 0; k < args.Length; k++)
 {
-    if (args[k] is "--out" or "--html" or "--seed" or "--days") { k++; continue; }
+    if (args[k] is "--out" or "--html" or "--seed" or "--days" or "--live-output" or "--live-control") { k++; continue; }
     shown.Add(args[k]);
 }
 string? label = shown.Count == 0 ? null : string.Join(' ', shown);
@@ -249,13 +258,16 @@ if (livesTapePath is not null)
         ?? throw new ArgumentException("The Lives tape is null."));
     livesMind = livesTape;
 }
+using var live = livePath is null ? null : new LiveRecordingWriter(livePath, liveControl);
+if (live is not null) { mind = live.Wrap(mind); if (livesMind is not null) livesMind = live.Wrap(livesMind); }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
     Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights,
     LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
     LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord },
     LivesEvenings = new EveningOptions { Enabled = livesEvenings, Record = eveningRecord,
-        Participants = eveningPeople, Model = livesLayaModel } }, mind, livesMind: livesMind);
+        Participants = eveningPeople, Model = livesLayaModel } }, mind, livesMind: livesMind, observe: live is null ? null : live.Observe);
 livesTape?.RequireConsumed();
+live?.Finish(json);
 if (reflection.Enabled)
 {
     using JsonDocument recorded = JsonDocument.Parse(json);
