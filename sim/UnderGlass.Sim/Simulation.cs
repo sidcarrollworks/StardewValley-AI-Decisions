@@ -207,6 +207,10 @@ public sealed class SimResult
     public IReadOnlyList<Lives.RoutingSkipped> LivesRoutingSkipped { get; init; } = Array.Empty<Lives.RoutingSkipped>();
     public IReadOnlyList<Lives.LivesMemoryChange> LivesMemoryChanges { get; init; } = Array.Empty<Lives.LivesMemoryChange>();
     public IReadOnlyList<Lives.RoutingPerception> LivesPerceptions { get; init; } = Array.Empty<Lives.RoutingPerception>();
+    public IReadOnlyList<Lives.CompanyUpdate> LivesCompanyUpdates { get; init; } = Array.Empty<Lives.CompanyUpdate>();
+    public IReadOnlyList<Lives.CompanyChoice> LivesCompanyChoices { get; init; } = Array.Empty<Lives.CompanyChoice>();
+    public IReadOnlyList<Lives.CompanyAnswer> LivesCompanyAnswers { get; init; } = Array.Empty<Lives.CompanyAnswer>();
+    public IReadOnlyList<Lives.CompanyOutcome> LivesCompanyOutcomes { get; init; } = Array.Empty<Lives.CompanyOutcome>();
 }
 
 /// <summary>
@@ -558,6 +562,10 @@ public sealed partial class Simulation
             LivesRoutingSkipped = _livesSkipped.AsReadOnly(),
             LivesMemoryChanges = _livesChanges.AsReadOnly(),
             LivesPerceptions = _livesPerceptions.AsReadOnly(),
+            LivesCompanyUpdates = _companyUpdates.AsReadOnly(),
+            LivesCompanyChoices = _companyChoices.AsReadOnly(),
+            LivesCompanyAnswers = _companyAnswers.AsReadOnly(),
+            LivesCompanyOutcomes = _companyOutcomes.AsReadOnly(),
         };
 
     private Dictionary<(string, string), double> Pairs(double[,] values)
@@ -595,6 +603,7 @@ public sealed partial class Simulation
         }
         StartScheduled(m);
         StartScenarios(m); // batch 2's scenario harness; nothing without a scenario
+        CheckCompanyGames(m);
         Watch(m, t);
         FinishActs(m);
         if (tick)
@@ -608,6 +617,7 @@ public sealed partial class Simulation
             Rows(m);
             RunErrands(m); // errands (needs spec); nothing with the switch off
         }
+        RunCompany(m, tick);
         CheckLate(m, t);
         Arrivals(m); // the act catalog: coming in late (Late)
         Reflect(m);
@@ -759,6 +769,7 @@ public sealed partial class Simulation
         if (ErrandGoal(p, m))
             return; // errands (needs spec): to the counter, or to find the one it's for
         bool checkpoint = BedtimeCheckpoint(p, m); // a habitual bedtime come: the pick in progress is reconsidered once
+        if (ContinueCompanyGoal(p, m, checkpoint)) return;
         if (!checkpoint && p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;
 
@@ -782,6 +793,7 @@ public sealed partial class Simulation
             Goal(p, p.Place, p.At, m + 60, "home", null);
             return;
         }
+        if (TrySeekCompany(p, m, options)) return;
         var routing = LivesRoute(p, m, options);
         double r = Rng.Unit(_seed, "haunt", p.V.Name, m.ToString()) * options.Sum(o => o.Weight);
         Haunt? pick = options[^1].Haunt;
@@ -998,13 +1010,13 @@ public sealed partial class Simulation
     /// <param name="about">The act a consequence answers.</param>
     /// <param name="with">A third person the act is for (the act catalog); only while feelings are on.</param>
     private void Begin(int m, ActKind kind, Person actor, bool injected, string? target = null, int about = -1, string? with = null,
-        bool fromReflection = false, EncounterCause? cause = null)
+        bool fromReflection = false, EncounterCause? cause = null, bool companyAccepted = false)
     {
         if (!_fo.Enabled)
             (target, about, with) = (null, -1, null);
         else if (target is null && kind.Affect is { } row)
             target = TargetFor(kind, row, actor, m);
-        if (!injected && target is not null && Asked(m, kind, actor, target))
+        if (!injected && !companyAccepted && target is not null && Asked(m, kind, actor, target))
             return; // asked for company and turned down: the refusal began instead
         var act = new Act(_acts.Count, m, actor.V.Name, kind.Name, actor.Place, actor.At, injected, target, about, with);
         _acts.Add(act);

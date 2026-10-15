@@ -27,6 +27,8 @@ public sealed record ReplayOptions
     public bool Nights { get; init; } = true;
     public Lives.LivesRoutingOptions LivesRouting { get; init; } = new();
     public Lives.HistoryPack? History { get; init; }
+    /// <summary>Experimental immediate shared games; off unless explicitly enabled.</summary>
+    public Lives.CompanyOptions LivesCompany { get; init; } = new();
 }
 
 /// <summary>
@@ -73,6 +75,10 @@ public static class Replay
             CompareHistory = Array.AsReadOnly(o.LivesRouting.CompareHistory.Distinct(StringComparer.Ordinal)
                 .Order(StringComparer.Ordinal).ToArray()),
         };
+        ArgumentNullException.ThrowIfNull(o.LivesCompany);
+        // All company settings are value fields; retain one immutable snapshot for both the
+        // simulation and its recording, as with the routing configuration above.
+        var livesCompany = o.LivesCompany with { };
         TownData given = o.Town ?? TownData.Default();
         FeelingOptions feelings = o.Feelings ?? given.Feelings;
         // The act catalog's rows and cards for the slices that are on, added as the runner adds them
@@ -93,6 +99,7 @@ public static class Replay
         NightList? nights = o.Nights ? new NightList() : null;
         sim.ConfigureNights(nights);
         sim.ConfigureLivesRouting(livesRouting, history);
+        sim.ConfigureLivesCompany(livesCompany);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -355,6 +362,20 @@ public static class Replay
                 historySnapshotHash = packBytes is null ? null : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(packBytes)).ToLowerInvariant(),
                 decisions = r.LivesRouting, skipped = r.LivesRoutingSkipped, memoryChanges = r.LivesMemoryChanges,
                 perceptions = r.LivesPerceptions,
+            }, json);
+        }
+        if (livesCompany.Enabled && livesCompany.Record)
+        {
+            // Separate experimental receipts. This is not the full Lives observer 0.2 contract.
+            var json = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                Converters = { new JsonStringEnumConverter() } };
+            recording["livesCompany"] = JsonSerializer.SerializeToElement(new
+            {
+                version = 1, stage = "immediate-company", backend = "authored-keyed-draw",
+                settings = livesCompany,
+                updates = r.LivesCompanyUpdates, choices = r.LivesCompanyChoices,
+                answers = r.LivesCompanyAnswers, outcomes = r.LivesCompanyOutcomes,
             }, json);
         }
         return recording;

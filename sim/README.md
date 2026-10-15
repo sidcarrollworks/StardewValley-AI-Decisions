@@ -11,7 +11,7 @@ keeps warm and wary associations separately and recalls matching records. The si
 now learn associations from its existing perceived feelings and use remembered place feelings
 to choose an eligible free-time destination. Turning it off preserves existing runs. No canon
 history seeds are loaded implicitly. The choice kernel supports specific expectation keys, but
-this first adapter does not yet classify plan outcomes or learn whereabouts. Shared plans and
+the routing adapter itself does not classify plan outcomes or learn whereabouts. Shared plans and
 model evaluation of these choices remain next. See the [memory API](../docs/under-glass/specs/lives-memory-spec.md)
 and [routing scope](../docs/under-glass/specs/lives-routing-spec.md).
 
@@ -33,6 +33,27 @@ only the comparisons embedded inside `with-history.json` hold the scene and draw
 The [first measured trial](../docs/under-glass/experiments/lives-routing-2026-10-15.md) records
 84 matched choices, seven changed destinations, and a separate week of the normal town learning
 without starting history. Those counts demonstrate the connection, not a quality target.
+
+**Immediate company (opt-in):** `--lives-company --lives-routing --catalog company,invitations`
+lets remembered warmth suggest looking for someone or offering a game in a current encounter.
+The answer comes next minute; an actual game can finish or be interrupted. What was learned about
+whereabouts, availability, answers and the activity feeds later choices through distinct keys.
+Current sleep rules, bedtime weight and invitation state costs remain in place. These are immediate
+offers, not future evening appointments. See the [company spec](../docs/under-glass/specs/lives-company-spec.md).
+
+```powershell
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --lives-routing --lives-company --catalog company,invitations --out out/company.json
+dotnet run -c Release --project sim/UnderGlass.LivesTrial -- --suite company --out out/company-review
+```
+
+`--no-company-record` omits only the separate experimental `livesCompany` version-1 block.
+No observer receipts feed the simulation. This block is not the full Lives 0.2 contract, and the
+chain viewer does not read it yet; use the company trial's review page. No canon seeds or model
+calls are enabled by this flag. The normal-town trial starts without history; the separately
+labelled synthetic household tests exercise histories and held-choice comparisons.
+The [first company trial](../docs/under-glass/experiments/lives-company-2026-10-15.md)
+includes 23 fixed recordings, 41 completed activities and 36 matched history comparisons.
+All 36 changed odds; none changed the sampled selection. The report retains both results.
 
 **Private voices and background:** add `--character-inspiration sim/character-inspiration.json`
 to a reflection replay command. Reusable archetypes provide drives, coping and cadence; named

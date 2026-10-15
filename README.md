@@ -13,6 +13,13 @@ someone actually goes. Recorded comparisons remove specified history while holdi
 and random draw fixed. An offline synthetic trial makes that effect inspectable. No canon seeds
 are enabled; shared plans, model evaluation of these choices and the full Lives pilot remain next.
 
+**Immediate company (2026-10-15, opt-in):** remembered warmth can now lead to looking for someone,
+offering a game and learning from an answer, completion or interruption. The
+[company slice](docs/under-glass/specs/lives-company-spec.md) connects choices to actual outcomes,
+with separate learning for whereabouts, availability, answers and shared activity. It keeps the
+current routine baseline. Future evening plans, individually reviewed canon seeds and model
+evaluation remain ahead; the offline review uses clearly labelled synthetic histories.
+
 **Working on the code?** Start with [`AGENTS.md`](AGENTS.md), then [`docs/architecture.md`](docs/architecture.md) (how it works) and [`docs/decisions.md`](docs/decisions.md) (why). Under Glass's current priorities are in [its roadmap](docs/under-glass/roadmap.md); the Stardew mod's full spec and roadmap are in [`docs/spec/`](docs/spec/README.md).
 
 ## Layout
@@ -35,7 +42,7 @@ are enabled; shared plans, model evaluation of these choices and the full Lives 
 | `sim/UnderGlass.Replay/`, `sim/viewer/` | Record and observe the town: current moments, event navigation, source memory, earlier ideas, selected lines and outcomes shown only when the replay clock reaches them. Live evaluation defaults to Balanced. |
 | `sim/UnderGlass.ReflectionTrial/` | Controlled smoke/social probes, eight hybrid voice pairs, and a separate fixed-intention wording comparison with actual dialogue and withheld authored controls. Complete receipts and optional HTML comparisons; wording calls only the generator. |
 | `sim/UnderGlass.LivesTrial/` | Offline synthetic routing trial: real recordings with and without a history reading, a disabled control, and isolated comparisons holding each choice and random draw fixed. |
-| `sim/UnderGlass.Sim.Tests/` | 987 Under Glass tests, separate from the mod solution; run `dotnet test sim/UnderGlass.sln`. Ninety viewer behavior tests also run with `node --test sim/tools/test-viewer-timeline.cjs sim/tools/test-viewer-encounters.cjs sim/tools/test-viewer-wording.cjs sim/tools/test-viewer-speech.cjs sim/tools/test-viewer-errands.cjs sim/tools/test-speech-page.cjs sim/tools/test-tool-navigation.cjs sim/tools/test-tool-ui.cjs sim/tools/test-archetypes.cjs sim/tools/test-chains.cjs`. |
+| `sim/UnderGlass.Sim.Tests/` | 1043 Under Glass tests, separate from the mod solution; run `dotnet test sim/UnderGlass.sln`. Ninety viewer behavior tests also run with `node --test sim/tools/test-viewer-timeline.cjs sim/tools/test-viewer-encounters.cjs sim/tools/test-viewer-wording.cjs sim/tools/test-viewer-speech.cjs sim/tools/test-viewer-errands.cjs sim/tools/test-speech-page.cjs sim/tools/test-tool-navigation.cjs sim/tools/test-tool-ui.cjs sim/tools/test-archetypes.cjs sim/tools/test-chains.cjs`. |
 | `sim/tools/` | Optional pinned local generator, an opt-in Claude generator behind the same loopback contract, dialogue exporter/corpus parser, the Laya categorization probe, observer-pack recorder and safe preview launcher; 22 offline HTTP contracts in `tests/test_reflection_generator.py`, 16 in `tests/test_claude_generator.py`, 17 offline probe tests in `tests/test_laya_categorize_probe.py`, 20 corpus parser tests, seven observer-pack checks in `test-observer-pack.ps1`, plus `test-preview.ps1` for the preview lifecycle. |
 | `sidecar/` | How to run Laya locally (`laya-serve`), run scripts, and a smoke test. `sidecar/eval/` holds the golden eval set + runner + results (typed-decisions 5/6 vs english 3/6). |
 | `src/NpcShadow/` | Shadow-mode harness: simulates days from schedules, drives the memory layer, logs what the mod would do (changes nothing). |

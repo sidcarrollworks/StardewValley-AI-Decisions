@@ -29,11 +29,20 @@ public sealed partial class Simulation
     private static bool Invites(ActKind kind) => kind.Name is "PlayedGame" or "TreatedToDrink";
 
     /// <summary>Asks before a game or a drink begins. Returns true when the answer was no and the
-    /// refusal has begun in its place (the caller then begins nothing); false when the act goes ahead.</summary>
+    /// refusal has begun in its place, or a Lives pair already considered a game today (the caller
+    /// then begins nothing); false when the act goes ahead.</summary>
     private bool Asked(int m, ActKind kind, Person asker, string target)
     {
         if (!Inviting || !Invites(kind) || !_index.TryGetValue(target, out int t))
             return false;
+        if (_companyOptions.Enabled && kind.Name == "PlayedGame")
+        {
+            // The ordinary and history-led paths share the same pair/day limit. Recheck here
+            // because callers other than the ordinary catalog draw can begin a company act.
+            if (CompanyConsidered(asker.V.Name, target, m))
+                return true;
+            _companyConsidered[CompanyPair(asker.V.Name, target)] = Clock.Day(m);
+        }
         int a = _index[asker.V.Name], actId = _acts.Count;
         var (yes, margin) = Ask(t, a, AskKind.Invitation, actId, m);
         AskState state = AskStateOf(t, m);

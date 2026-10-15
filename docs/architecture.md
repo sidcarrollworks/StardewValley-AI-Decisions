@@ -61,8 +61,20 @@ holding the scene, personal state, options and random unit fixed. They never dir
 `Replay` writes additive `livesRouting` version-1 receipts only when recording is enabled; this is
 not the full Lives 0.2 export and the chain viewer does not read it yet. No canon history pack is
 loaded implicitly or shipped as admitted content. Tests use synthetic histories. Generic routes
-do not yet read expectation keys, the live adapter does not classify expectation outcomes, and
-there are no new Laya calls, company-seeking actions or plans in this increment.
+do not read expectation keys. The separate company consumer below does.
+
+The opt-in [immediate company consumer](under-glass/specs/lives-company-spec.md) adds remembered
+person-seeking and local game offers. `Simulation.LivesCompany.cs` uses the holder's own sightings
+or known shared home to choose a search destination, with bounded travel/search windows. Current
+positions are read only through local perception and execution gates. An offer waits until the
+next minute for a typed yes/not-now/no fallback answer. `Simulation.LivesCompany.Activity.cs`
+checks continued participation through the actual game, and writes person/place/activity feelings
+only on completion. Whereabouts, availability, answers and activity expectations stay separate;
+later company choices read their own relevant keys. Runtime active-person indexes are separate
+from write-only observer lists. Replay writes experimental `livesCompany` version 1 receipts;
+neither this nor `livesRouting` is a full Lives 0.2 export. No future appointments, new model calls
+or canon seed approvals are introduced. The existing sleep rules and bedtime weight remain the
+baseline, with no added bedtime cost on invitations.
 
 Routines are character data (D54). `Villager.HubWeights` is a person's own weight for a named hub
 (`OwnWeight`; 0 leaves it out of their choices) and `Villager.Bedtimes` their habitual bedtimes

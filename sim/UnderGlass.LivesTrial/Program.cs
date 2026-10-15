@@ -10,6 +10,7 @@ using UnderGlass.Sim.Lives;
 string? output = null;
 int days = 7;
 long seed = 7;
+string suite = "routing";
 try
 {
     var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -19,18 +20,23 @@ try
         if (!seen.Add(flag)) throw new ArgumentException($"Repeated option: {flag}.");
         if (flag == "--help")
         {
-            Console.WriteLine("LivesTrial --out <new-directory> [--days 7] [--seed 7]\n"
+            Console.WriteLine("LivesTrial --out <new-directory> [--suite routing|company] [--days 7] [--seed 7]\n"
                 + "Offline synthetic Ann/Bo routing experiment. Days and seed must be positive integers.\n"
                 + "Writes three real recordings, the synthetic history input, a summary, and an HTML review. Never overwrites output.\n"
-                + "Matched comparisons inside with-history.json hold the choice fixed; the separate recordings do not.");
+                + "Matched comparisons inside with-history.json hold the choice fixed; the separate recordings do not.\n"
+                + "The company suite uses a fixed seed/day matrix and does not accept --days or --seed.");
             return 0;
         }
-        if (flag is not ("--out" or "--days" or "--seed")) throw new ArgumentException($"Unknown option: {flag}.");
+        if (flag is not ("--out" or "--days" or "--seed" or "--suite")) throw new ArgumentException($"Unknown option: {flag}.");
         if (++i >= args.Length) throw new ArgumentException($"{flag} needs a value.");
         string value = args[i];
         switch (flag)
         {
             case "--out": output = value; break;
+            case "--suite":
+                if (value is not ("routing" or "company")) throw new ArgumentException("--suite must be routing or company.");
+                suite = value;
+                break;
             case "--days":
                 if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out days)
                     || days <= 0 || days > int.MaxValue / Clock.MinutesPerDay)
@@ -45,6 +51,12 @@ try
     if (string.IsNullOrWhiteSpace(output)) throw new ArgumentException("--out <new-directory> is required.");
     output = Path.GetFullPath(output);
     if (Directory.Exists(output) || File.Exists(output)) throw new ArgumentException("The output path already exists. Choose a fresh directory.");
+    if (suite == "company")
+    {
+        if (seen.Contains("--days") || seen.Contains("--seed"))
+            throw new ArgumentException("The company suite uses its documented fixed seed/day matrix; omit --days and --seed.");
+        return CompanyTrial.Run(output);
+    }
 
     var json = new JsonSerializerOptions
     {

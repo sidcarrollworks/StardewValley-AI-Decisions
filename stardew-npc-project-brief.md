@@ -20,8 +20,11 @@ and conflicting associations, learns expectations from one outcome and recalls a
 through matching cues. An opt-in adapter now learns associations from perceived events and uses
 remembered place feelings in actual free-time destination choices. Recordings retain the reasons,
 draw and comparisons with specified history removed from the same choice. A synthetic offline
-trial exercises this connection; no canon seeds are enabled. Reviewed pilot histories, seeking
-company, shared plans and learning from their outcomes remain next. See the
+trial exercises this connection; no canon seeds are enabled. A separate opt-in
+[immediate-company slice](docs/under-glass/specs/lives-company-spec.md) now connects remembered
+warmth to searching, offering a game, answering and completing or interrupting it. Its own outcome
+expectations feed later company choices. Reviewed pilot histories, future shared plans and model
+evaluation remain next. The current routine baseline is retained. See the
 [memory foundation](docs/under-glass/specs/lives-memory-spec.md) and
 [routing scope](docs/under-glass/specs/lives-routing-spec.md).
 

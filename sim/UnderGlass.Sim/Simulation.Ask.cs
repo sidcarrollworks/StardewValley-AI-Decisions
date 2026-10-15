@@ -70,6 +70,26 @@ public sealed partial class Simulation
     /// </summary>
     private (bool Yes, double Margin) Ask(int asked, int asker, AskKind what, int actId, int m)
     {
+        double margin = AskMargin(asked, asker, what, actId, m);
+        // A thing someone won't fetch is a no however obliged they are (Sid, 2026-10-13: Penny "would
+        // do anything for her mom besides give her alcohol"); the margin still says how obliged.
+        bool yes = what == AskKind.Errand && WontFetchAsked(asked) ? false : DesireMath.Call(margin, _fo) switch
+        {
+            "clear" => true,
+            "no" => false,
+            _ => (what == AskKind.Apology ? Rng.Unit(_seed, "apology", actId.ToString())
+                     : Rng.Unit(_seed, "ask", what.ToString(), actId.ToString(), _names[asked]))
+                 < DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(asked), false, _fo),
+        };
+        if (what != AskKind.Apology) // the apology logs its own line, as acts-4 did
+            DesireLog($"{m} ask {_names[asked]} {what} {_names[asker]} act {actId} {(yes ? "yes" : "no")} margin {margin:+0.00;-0.00}");
+        return (yes, margin);
+    }
+
+    /// <summary>The asked person's reasons, before any sampling or recording. An immediate company
+    /// offer can use the same reasons without manufacturing an act or drawing the old yes/no answer.</summary>
+    private double AskMargin(int asked, int asker, AskKind what, int actId, int m)
+    {
         double regard = St(_names[asked], _names[asker]);
         double liked = Math.Max(0, regard), dislike = Math.Max(0, -regard), withdrawn = Math.Max(0, -Stance(asked));
         double fam = _fam[asked, asker], u = U(asked), keep = 0.5 + Ret(asked);
@@ -92,20 +112,7 @@ public sealed partial class Simulation
                     + ErrandCost(asked)),
             _ => (0, 1),
         };
-        double margin = obliged - cost;
-        // A thing someone won't fetch is a no however obliged they are (Sid, 2026-10-13: Penny "would
-        // do anything for her mom besides give her alcohol"); the margin still says how obliged.
-        bool yes = what == AskKind.Errand && WontFetchAsked(asked) ? false : DesireMath.Call(margin, _fo) switch
-        {
-            "clear" => true,
-            "no" => false,
-            _ => (what == AskKind.Apology ? Rng.Unit(_seed, "apology", actId.ToString())
-                     : Rng.Unit(_seed, "ask", what.ToString(), actId.ToString(), _names[asked]))
-                 < DesireMath.Tilted(DesireMath.CloseCallChance(margin), MoodOf(asked), false, _fo),
-        };
-        if (what != AskKind.Apology) // the apology logs its own line, as acts-4 did
-            DesireLog($"{m} ask {_names[asked]} {what} {_names[asker]} act {actId} {(yes ? "yes" : "no")} margin {margin:+0.00;-0.00}");
-        return (yes, margin);
+        return obliged - cost;
     }
 
     /// <summary>How fond h is of s now (Fond's intensity, as FondMotives works it out).</summary>
