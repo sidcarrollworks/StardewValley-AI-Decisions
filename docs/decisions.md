@@ -1468,3 +1468,23 @@ or hypothetical model response. The dedicated review filters detailed Lives expo
 watched people after simulation; ordinary town output stays intact. Full observer integration,
 learned routines, the complete commitment framework, richer activities and population transfer
 remain future work. See [the implementation spec](under-glass/specs/lives-evenings-spec.md).
+
+
+### Actual evening pilot in Life chains (2026-10-15)
+
+Sid asked to follow the actual pilot histories through choices and outcomes in the main chain
+viewer. A separate read-only runtime adapter accepts the version-1 evening receipts and their
+supporting memory/company blocks. Its internal projection is not a claim that the proposed Lives
+0.2 export is implemented. The illustrative 0.1 fixture remains supported and clearly labelled.
+
+Links use recorded plan, choice, holder and cause identities. Personal outcomes stay separate from
+world stages; a missed plan never reveals another person’s private choice or destination. Rewind
+gates every record, citation and comparison. Keep-plan selections are intentions, with actual
+completion/interruption/miss shown only when recorded. Expected chances and feeling changes use
+recorded values; absent prior states stay unknown. Authored probability comparisons do not re-ask
+Laya, and its weights are not presented as its reasoning.
+
+Starting histories stay in expandable branches. Timeline markers show learning rather than a
+duplicate learned-memory card. Unrelated routing and immediate-company choices are outside this
+pilot adapter; supporting recalled experiences are retained. The trial report links directly to
+Life chains at the relevant character and moment. No simulation behavior changes.

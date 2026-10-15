@@ -1,9 +1,10 @@
-/* Read-only adapter for the proposed Lives 0.1 format. No simulation rules live here. */
+/* Read-only graph projection for illustrative Lives 0.1 and the runtime evening adapter. */
 (function (root, factory) {
-  const api = factory();
+  const runtime = typeof module === 'object' && module.exports ? require('./chains-runtime.js') : root.UnderGlassRuntimeChains;
+  const api = factory(runtime);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.UnderGlassChains = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, () => {
+})(typeof globalThis !== 'undefined' ? globalThis : this, runtime => {
   'use strict';
   const TABLES = ['records','opportunities','recalls','decisions','attempts','plans','outcomes','perceptions','learning'];
   const STAGES = {records:'History',opportunities:'Recall',recalls:'Recall',decisions:'Choice',attempts:'Attempt',plans:'Attempt',outcomes:'Outcome',perceptions:'Perceived',learning:'Learned'};
@@ -14,9 +15,10 @@
   const human = s => String(s ?? '').replace(/[-_]/g,' ');
   function open(run) {
     if (run?.format !== 'under-glass-run' || run.version !== 1 || !Array.isArray(run.names)) throw Error('Open a version 1 Under Glass recording.');
-    if (!run.lives) return {run, missing:true};
-    const l = run.lives;
-    if (l.contract !== 'under-glass-lives-observer' || l.version !== '0.1') throw Error(`Lives ${l.version ?? 'unknown'} is not supported. This viewer reads proposed version 0.1 only.`);
+    if(run.lives?.runtime)throw Error('Runtime graphs must be built from evening receipts.');
+    const l = run.lives || runtime.adapt(run);
+    if (!l) return {run, missing:true};
+    if (!l.runtime && (l.contract !== 'under-glass-lives-observer' || l.version !== '0.1')) throw Error(`Lives ${l.version ?? 'unknown'} is not supported. This viewer reads proposed version 0.1 only.`);
     const index = new Map();
     for (const table of TABLES) {
       if (!Array.isArray(l[table])) throw Error(`Missing Lives table: ${table}.`);
@@ -26,7 +28,11 @@
       }
     }
     if (!Array.isArray(l.threads) || !Array.isArray(l.comparisons)) throw Error('Missing Lives threads or comparisons.');
-    return {run, lives:l, index, missing:false};
+    const learningByRecord=new Map(), perceptionsByOf=new Map();
+    for(const row of l.learning){if(!learningByRecord.has(row.record))learningByRecord.set(row.record,[]);learningByRecord.get(row.record).push(row);}
+    for(const list of learningByRecord.values())list.sort((a,b)=>time(a.visibleAt)-time(b.visibleAt));
+    for(const row of l.perceptions){if(!perceptionsByOf.has(row.of))perceptionsByOf.set(row.of,[]);perceptionsByOf.get(row.of).push(row);}
+    return {run, lives:l, index, learningByRecord, perceptionsByOf, missing:false};
   }
   function known(row, who, tick) { return (row.knownBy ?? []).some(k => k.who === who && arrived(k.availableAt,tick)); }
   function permitted(model, table, row, tick, who, observer) {
@@ -36,7 +42,7 @@
     if (table === 'outcomes') return false;
     if (table === 'attempts') {
       // Being the target of an unspoken/busy attempt does not grant knowledge of it.
-      return row.actor === who || known(row,who,tick) || model.lives.perceptions.some(p => p.who === who && p.of === row.id && arrived(p.visibleAt,tick));
+      return row.actor === who || known(row,who,tick) || (model.perceptionsByOf.get(row.id)??[]).some(p => p.who === who && arrived(p.visibleAt,tick));
     }
     return (row.holder ?? row.who) === who;
   }
@@ -82,7 +88,7 @@
     const updated=v=>{if(arrived(v,tick))updatedAt=Math.max(updatedAt,time(v));};
     if(!observer && (['records','plans'].includes(table) || (table==='attempts' && r.actor!==who))) {
       const acquired=(r.knownBy??[]).filter(k=>k.who===who && arrived(k.availableAt,tick)).map(k=>time(k.availableAt));
-      if(table==='attempts')acquired.push(...model.lives.perceptions.filter(p=>p.who===who && p.of===r.id && arrived(p.visibleAt,tick)).map(p=>time(p.visibleAt)));
+      if(table==='attempts')acquired.push(...(model.perceptionsByOf.get(r.id)??[]).filter(p=>p.who===who && arrived(p.visibleAt,tick)).map(p=>time(p.visibleAt)));
       if(acquired.length)updated(Math.min(...acquired));
     }
     const add = (...xs) => { for (const x of xs.flat(Infinity)) if (typeof x === 'string') refs.push(x); };
@@ -93,7 +99,7 @@
         updated(r.initial?.asOf);
         data.state = arrived(r.initial?.asOf,tick) ? pick(r.initial,['asOf','chance','lived','seeded']) : {status:'Earlier state not recorded in this excerpt'};
         // Apply only recorded updates, never recompute a probability or lose its earlier state.
-        for (const u of [...model.lives.learning].sort((a,b)=>time(a.visibleAt)-time(b.visibleAt)))
+        for (const u of (model.learningByRecord.get(r.id)??[]))
           if (u.record === r.id && arrived(u.visibleAt,tick)) {data.state = pick(u.new,['chance','lived','seeded','entries','strength']);updated(u.visibleAt);}
       }
       add(r.fact, r.causes, typeof r.object === 'string' ? r.object : null);
@@ -111,7 +117,7 @@
       if (arrived(r.choice?.visibleAt,tick)) {
         updated(r.choice.visibleAt);
         data.choice = pick(r.choice,['selected']);
-        if (observer) Object.assign(data.choice,pick(r.choice,['backend','probabilities','fallback','sampled','provenance']));
+        if (observer) Object.assign(data.choice,pick(r.choice,['backend','probabilities','fallback','sampled','provenance','modelWeights']));
         const tape = r.choice.provenance?.tape;
         if (typeof tape === 'string' && tape.startsWith('reflection:')) {
           const reflection = (model.run.reflections ?? []).find(x=>x.request?.id === tape.slice('reflection:'.length));
@@ -123,10 +129,11 @@
     } else if (table === 'attempts') {
       data = pick(r,['kind','attempted']); add(r.decision);
       data.inProgress=observer || r.actor===who;
+      if(observer||r.actor===who){const progress=(r.progress??[]).filter(p=>arrived(p.at,tick)).at(-1);if(progress){data.progress=progress.status;updated(progress.at);}}
       if (arrived(r.resolvedAt,tick) && (observer || r.actor === who)) {
         updated(r.resolvedAt);data.inProgress=false;
         data.status = r.status; if (observer) { data.world = r.world; add(r.outcome); }
-        const perception=model.lives.perceptions.filter(p=>p.of===r.id && p.who===r.actor && arrived(p.visibleAt,tick)).sort((a,b)=>time(b.visibleAt)-time(a.visibleAt))[0];
+        const perception=(model.perceptionsByOf.get(r.id)??[]).filter(p=>p.who===r.actor && arrived(p.visibleAt,tick)).sort((a,b)=>time(b.visibleAt)-time(a.visibleAt))[0];
         if(perception){data.response=pick(perception.perceived,['answer','kind']);updated(perception.visibleAt);}
       }
     } else if (table === 'plans') {
@@ -187,7 +194,7 @@
     const result = new Set([0]);
     for(const {table,row} of model.index.values()) {
       const gates=[row.visibleAt,row.choice?.visibleAt,row.initial?.asOf];
-      if(observer || row.actor===who)gates.push(row.resolvedAt);
+      if(observer || row.actor===who)gates.push(row.resolvedAt,...(row.progress??[]).map(p=>p.at));
       if(observer) gates.push(row.settledAt,...(row.timeline ?? []).map(x=>x.at));
       for(const g of gates) if(Number.isFinite(g) && permitted(model,table,row,g,who,observer)) result.add(g);
       for(const k of row.knownBy ?? []) if(k.who===who && Number.isFinite(k.availableAt)) result.add(k.availableAt);
@@ -220,14 +227,15 @@
     if(n.table==='decisions')return d.choice?{tone:'up',symbol:'✓',label:'Chose',detail:d.alternatives.find(a=>a.id===d.choice.selected)?.label??'Option not recorded'}:{tone:'new',symbol:'◷',label:'Deciding'};
     if(n.table==='plans')return {tone:'up',symbol:'✓',label:'Agreed plan'};
     if(n.table!=='attempts')return null;
-    if(!d.status)return d.inProgress?{tone:'new',symbol:'◷',label:d.kind==='go'?'On the way':d.kind==='begin-planned-act'?'Waiting':'Awaiting response'}:{tone:'unknown',symbol:'?',label:'Outcome unknown'};
+    if(!d.status&&d.progress==='playing')return {tone:'up',symbol:'▶',label:'Playing together'};
+    if(!d.status)return d.inProgress?{tone:'new',symbol:'◷',label:d.kind==='planned-intention'?'Waiting for the evening':d.kind==='go'?'On the way':d.kind==='begin-planned-act'?'Waiting':'Awaiting response'}:{tone:'unknown',symbol:'?',label:'Outcome unknown'};
     if(d.status==='answered'){
       if(d.response?.answer==='yes')return {tone:'up',symbol:'✓',label:'Accepted'};
       if(d.response?.answer==='no')return {tone:'down',symbol:'×',label:'Declined'};
       if(d.response?.kind==='not-now')return {tone:'new',symbol:'◷',label:'Not now'};
       return {tone:'up',symbol:'✓',label:'Answered'};
     }
-    return ({completed:{tone:'up',symbol:'✓',label:'Completed'},unsuccessful:{tone:'down',symbol:'×',label:d.kind==='begin-planned-act'?'Plan did not happen':'Unsuccessful'},busy:{tone:'new',symbol:'◷',label:'Blocked · busy'}})[d.status]??{tone:'unknown',symbol:'?',label:'Status unavailable'};
+    return ({completed:{tone:'up',symbol:'✓',label:'Completed'},unsuccessful:{tone:'down',symbol:'×',label:['begin-planned-act','planned-intention'].includes(d.kind)?'Plan did not happen':'Unsuccessful'},busy:{tone:'new',symbol:'◷',label:'Blocked · busy'},interrupted:{tone:'down',symbol:'×',label:'Interrupted'}})[d.status]??{tone:'unknown',symbol:'?',label:'Status unavailable'};
   }
   function currentMoment(nodes,tick){
     const at=Math.max(-1,...nodes.map(n=>n.updatedAt));
@@ -264,13 +272,15 @@
     if(model.missing)return [];
     const groups=new Map();
     for(const {table,row} of model.index.values()){
+      // Runtime learning already marks the update; its memory snapshot stays in the tree.
+      if(model.lives.runtime&&table==='records')continue;
       const gates=[row.visibleAt];
       if(table==='decisions')gates.push(row.choice?.visibleAt);
-      if(table==='attempts'&&(observer||row.actor===who))gates.push(row.resolvedAt);
+      if(table==='attempts'&&(observer||row.actor===who))gates.push(row.resolvedAt,...(row.progress??[]).map(p=>p.at));
       if(observer&&table==='outcomes')gates.push(row.settledAt,...(row.timeline??[]).map(x=>x.at));
       if(!observer){
         gates.push(...(row.knownBy??[]).filter(k=>k.who===who).map(k=>k.availableAt));
-        if(table==='attempts')gates.push(...model.lives.perceptions.filter(p=>p.who===who&&p.of===row.id).map(p=>p.visibleAt));
+        if(table==='attempts')gates.push(...(model.perceptionsByOf.get(row.id)??[]).filter(p=>p.who===who).map(p=>p.visibleAt));
       }
       for(const at of new Set(gates))if(Number.isFinite(at)&&permitted(model,table,row,at,who,observer)){
         if(!groups.has(at))groups.set(at,new Set());groups.get(at).add(row.id);
