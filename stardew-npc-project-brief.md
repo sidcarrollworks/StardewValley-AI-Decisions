@@ -30,10 +30,16 @@ richer activities remain next. The current routine baseline is retained. See the
 [memory foundation](docs/under-glass/specs/lives-memory-spec.md) and
 [routing scope](docs/under-glass/specs/lives-routing-spec.md).
 
+Run studio update, 2026-10-14: New run launches the existing Replay engine from the local
+preview, exposing all flags and numeric/boolean overrides, uploaded catalogs/towns/profiles,
+saved settings, logs and cancellation. Completed runs open in Run Viewer (the navbar's new
+name for Dashboard). New run can start installed Haiku + Laya (the default) or local Qwen services, and the one-click launcher finds the right preview port. Archetype Studio now edits personal voice/background prompt context in its Characters view. The speech editor has a permanent Newcomer column and its exported
+catalog can be tested in a run without rebuilding. This is authored speech testing, not player input.
+
 Observer tools update, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor
 and saved recordings. Server-hosted recordings travel between tools with the dashboard's time,
 character and tab preserved on return. This is viewer navigation only; the history assessment
-and causal visualization remain separate work. The archetype browser/editor now supports local drafts, reusable-profile duplication, validation and pack export; character backgrounds remain read-only. The Life chains page now previews clock-gated history/action links on a marked timeline, with a focused causal tree, collapsed/paged starting memories and two fallback-only history comparisons using an explicitly illustrative fixture. Runtime Lives mechanics and model trial launching remain separate work. The tools now share the viewer's
+and causal visualization remain separate work. The archetype browser/editor now supports local drafts, reusable-profile duplication, validation and pack export; character backgrounds are editable in a separate Characters view, as prompt context rather than simulated memories. The Life chains page now previews clock-gated history/action links on a marked timeline, with a focused causal tree, collapsed/paged starting memories and two fallback-only history comparisons using an explicitly illustrative fixture. Runtime Lives mechanics and model trial launching remain separate work. The tools now share the viewer's
 visual style and theme, plain titles and sticky top navigation; compact speech metrics and expandable recording collections replace
 long introductions while retaining definitions, provenance and experiment links.
 

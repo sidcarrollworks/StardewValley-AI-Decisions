@@ -56,6 +56,11 @@ if (args.Contains("--help", StringComparer.Ordinal))
         """);
     return;
 }
+if (args.SequenceEqual(new[] { "--describe-options" }))
+{
+    Console.WriteLine(ReplayCliSchema.Json());
+    return;
+}
 var inv = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture = inv;
 long seed = 1;
@@ -63,7 +68,8 @@ int days = 28;
 bool inject = false, speech = false, nights = true;
 string? outPath = null, htmlPath = null;
 string? reflectionMode = null, layaUrl = null, llmUrl = null, llmModel = null, tapePath = null;
-string? inspirationPath = null;
+string? inspirationPath = null, speechPath = null;
+bool newcomerVoice = false;
 string? historyPath = null;
 bool livesRouting = false, livesRecord = true;
 bool livesCompany = false, companyRecord = true;
@@ -117,6 +123,8 @@ for (int i = 0; i < args.Length; i++)
         case "--days": days = int.Parse(Next(), inv); break;
         case "--inject": inject = true; break;
         case "--speech": speech = true; break;
+        case "--speech-catalog": speechPath = Next(); speech = true; break;
+        case "--newcomer-voice": newcomerVoice = true; speech = true; break;
         case "--no-nights": nights = false; break;
         case "--out": outPath = Next(); break;
         case "--html": htmlPath = Next(); break;
@@ -241,7 +249,7 @@ if (livesTapePath is not null)
     livesMind = livesTape;
 }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
-    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech }, Nights = nights,
+    Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights,
     LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
     LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord },
     LivesEvenings = new EveningOptions { Enabled = livesEvenings, Record = eveningRecord,
