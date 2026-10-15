@@ -125,6 +125,12 @@ dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 7 --fee
 dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 28 --feel on --desire on --catalog returns,company,welcome,repair,sides,late,invitations --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/invitations.json --html out/invitations.html
 ```
 
+**Errands (2026-10-13, off by default):** add `errands` to `--catalog` and people come to need one named thing from their own life (Evelyn flour, Harvey a coffee, Pam a bottle of beer), sold where Stardew sells it. They ask someone in reach; a no is a refusal, a yes a promise, due in two days. The one who promised walks to the counter while its sign says open, buys it (the money moves), and hands it over when they meet, looking for the person where they work or where they last saw them; the asker pays it back. Late if after it was due; never, and the one let down knows and feels it. A need nobody takes on lapses. `--ao ErrandDays=1` (or any errand number) tunes it, in the runner and now in Replay. The recording gains `needs`, `favours` and `promises`; with `--speech` the request, the answer, the hand-over and the thanks are spoken, naming the thing ([needs spec](../docs/under-glass/specs/needs-spec.md)).
+
+```powershell
+dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 7 --days 28 --feel on --desire on --catalog returns,company,welcome,repair,sides,late,invitations,errands --reflection authored --character-inspiration sim/character-inspiration.json --speech --out out/errands.json --html out/errands.html
+```
+
 **Reading typed lines (probe, 2026-10-13):** the planned [player speech](../docs/under-glass/specs/player-speech-spec.md) has the player type the Newcomer's lines and Laya read them into an act the engine offers. [`tools/laya_categorize_probe.py`](tools/laya_categorize_probe.py) measures that reading against a running loopback Laya, with the game's packet rules; nothing in the simulation uses it yet ([write-up](../docs/under-glass/experiments/laya-categorize-2026-10-13.md)).
 
 ```powershell

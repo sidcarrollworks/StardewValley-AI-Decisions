@@ -9,7 +9,7 @@ using System.Text.Json;
 //   dotnet run -c Release --project sim/UnderGlass.Replay -- --seed 1 --days 56 --out run1.json
 // --html writes the viewer with the run inside it, one file to open in a browser; --out writes
 // the run alone, for the viewer's "Open a run" button. Options as the runner's: --inject,
-// --fo <Name>=<value> (any FeelingOptions knob), --desire off|observe|on, --tensions <depth>,
+// --fo <Name>=<value> (any FeelingOptions knob), --ao <Name>=<value> (any ActOptions number), --desire off|observe|on, --tensions <depth>,
 // --trait <Name>=<Trait>:<value> (repeatable), --feel off|observe|on, --0d6 <steps> (hermits,
 // brawlers, moods that spread, missing people: b-h, t, m, as the runner's), --catalog <slices> (the
 // act catalog's slices, as the runner's: returns,company,welcome,repair,sides,late), and --town <name>
@@ -76,6 +76,10 @@ for (int i = 0; i < args.Length; i++)
         case "--fo":
             string kv = Next();
             Set(feelings, kv[..kv.IndexOf('=')], kv[(kv.IndexOf('=') + 1)..]);
+            break;
+        case "--ao": // an act catalog number, as the runner's (e.g. --ao ErrandDays=1)
+            string ao = Next();
+            Set(feelings.Acts, ao[..ao.IndexOf('=')], ao[(ao.IndexOf('=') + 1)..]);
             break;
         case "--trait":
             string spec = Next();
@@ -168,9 +172,9 @@ if (htmlPath is not null)
     Console.WriteLine($"wrote {htmlPath}: open it in a browser");
 }
 
-static void Set(FeelingOptions o, string name, string value)
+static void Set(object o, string name, string value)
 {
-    var prop = typeof(FeelingOptions).GetProperty(name) ?? throw new ArgumentException($"no feeling option {name}");
+    var prop = o.GetType().GetProperty(name) ?? throw new ArgumentException($"no {o.GetType().Name} option {name}");
     object v = prop.PropertyType == typeof(bool) ? (object)bool.Parse(value)
         : prop.PropertyType == typeof(int) ? (object)int.Parse(value, CultureInfo.InvariantCulture)
         : prop.PropertyType == typeof(double) ? (object)double.Parse(value, CultureInfo.InvariantCulture)

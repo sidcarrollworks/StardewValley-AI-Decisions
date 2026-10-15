@@ -657,6 +657,12 @@ E5 is Sid's blind read of 10 season journals.
 
 Not taken: needs bars (hunger, bladder, hygiene); controlling anyone but your own character.
 
+**Needs bars, to revisit after errands** (Sid, 2026-10-13): "Since we are implementing game oriented features now I think we should revisit. The needs bars are also important in creating motive and may lead to some inspiration. These need bars can be hidden to the player if we want." The 2026-10-06 reasons were not written down. What was said around them: bars are what make Sims feel mechanical when they are the whole decision (fix hunger, then bladder, then fun), and bars that drain constantly (bladder, hygiene) would fill the log with routine trips. The shape proposed for the revisit, not yet decided:
+- hidden bars, known only to their owner (the observer's viewer may show them);
+- pressure, not the decision: a low bar raises the weight of motives that already exist (hungry: a meal, the saloon, an errand; lonely: seeking company; bored: a game or a drink), and the Ask and the gate still choose;
+- only bars that lead to other people: hunger (meals, cooking, groceries; an empty pantry would make the errands' needs), social (today partly Fond and missing people) and fun; still not bladder or hygiene;
+- energy is already a bar (11b) and stays as it is.
+
 **Length of a run.** At 20 real minutes per game day, a 4-season year is about 37 hours of play if every hour is played, or about 24 hours if sleep is skipped. Five years is about 120-190 hours.
 
 **Aging is real time for now** (Sid, 2026-10-06): one game year is one year of age. Within a run, children grow and elders get older slowly; Lewis dying of old age is rare inside one run.

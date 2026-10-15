@@ -199,6 +199,10 @@ public sealed class SimResult
     public IReadOnlyList<Speech> Speech { get; init; } = Array.Empty<Speech>();
     /// <summary>Every invitation asked, with Invitations on; otherwise empty.</summary>
     public IReadOnlyList<Invitation> Invitations { get; init; } = Array.Empty<Invitation>();
+    /// <summary>Every need for a thing, with Errands on; otherwise empty.</summary>
+    public IReadOnlyList<Need> Needs { get; init; } = Array.Empty<Need>();
+    /// <summary>Every favour asked, with Errands on; otherwise empty.</summary>
+    public IReadOnlyList<Favour> Favours { get; init; } = Array.Empty<Favour>();
 }
 
 /// <summary>
@@ -320,6 +324,8 @@ public sealed partial class Simulation
         _kinds = kinds ?? DefaultTown.Acts();
         foreach (ActKind k in _kinds)
             _kindByName.TryAdd(k.Name, k); // the first of a name, as a search of the list would find
+        if (_fo.Acts.Errands && !ActCatalog.Errands.Append(ActCatalog.Invitations[0]).All(k => _kindByName.ContainsKey(k.Name)))
+            throw new ArgumentException("Errands needs its rows and the refusal's (ActCatalog.Kinds adds them).", nameof(kinds));
         _po = perception ?? new PerceptionOptions();
         _go = gossip ?? new GossipOptions();
         _bo = body ?? new BodyOptions();
@@ -535,6 +541,9 @@ public sealed partial class Simulation
             Reflections = ReflectionRecords(),
             Speech = _speechLines,
             Invitations = _invitations,
+            Needs = _needs,
+            Favours = _favours,
+            Promises = _promises,
             Encounters = _encounters,
             EncounterCauses = _encounterCauses,
             Appraisals = _appraisals,
@@ -586,6 +595,7 @@ public sealed partial class Simulation
             PieceTogether(m);
             Authorities(m);
             Rows(m);
+            RunErrands(m); // errands (needs spec); nothing with the switch off
         }
         CheckLate(m, t);
         Arrivals(m); // the act catalog: coming in late (Late)
@@ -736,6 +746,8 @@ public sealed partial class Simulation
         }
         if (Patrol(p, m))
             return;
+        if (ErrandGoal(p, m))
+            return; // errands (needs spec): to the counter, or to find the one it's for
         if (p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;
 

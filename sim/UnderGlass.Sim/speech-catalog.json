@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "provenance": "Drafted 2026-10-12 by Claude subagents, one per archetype, from the local Stardew 1.6.15.24356 dialogue export as style evidence only (new wording, copy-checked against the whole corpus), plus a generic author; then judged blind by three readers per line for archetype distinctness and rule breaks. Lines the judges could not place lost their archetype tag; lines heard as another voice or breaking a rule were dropped. Awaiting Sid's curation; nothing here is game text. Reply lines for invitations (PlayedGame.Accepted and .Refused, TreatedToDrink.Accepted and .Refused) were added 2026-10-13 the same way: one author per archetype plus a plain author, copy-checked against the corpus, judged blind by three readers.",
+ "provenance": "Drafted 2026-10-12 by Claude subagents, one per archetype, from the local Stardew 1.6.15.24356 dialogue export as style evidence only (new wording, copy-checked against the whole corpus), plus a generic author; then judged blind by three readers per line for archetype distinctness and rule breaks. Lines the judges could not place lost their archetype tag; lines heard as another voice or breaking a rule were dropped. Awaiting Sid's curation; nothing here is game text. Reply lines for invitations (PlayedGame.Accepted and .Refused, TreatedToDrink.Accepted and .Refused) were added 2026-10-13 the same way: one author per archetype plus a plain author, copy-checked against the corpus, judged blind by three readers. Errand lines (AskedFavour and its .Accepted and .Refused replies; HandedOver, .Late and .Thanks) were added 2026-10-13 the same way, with {item} for the thing (as said: \"some flour\"); a line one reader flagged as reading wrongly with some goods was dropped too, since {item} can be any good.",
  "lines": [
   {
    "id": "gavegift-guarded-independent-00",
@@ -7854,6 +7854,2357 @@
     "social-trader"
    ],
    "note": "practical, work comes first"
+  },
+  {
+   "id": "askedfavour-guarded-independent-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "If you're going out anyway, could you grab {item}? I'd rather not deal with daylight right now.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "dry, reclusive, asks by the way of convenience"
+  },
+  {
+   "id": "askedfavour-guarded-independent-01",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "household",
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "{subject}, could you pick up {item} for me? I'm in the middle of something and can't leave it.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "spare request, guards own project"
+  },
+  {
+   "id": "askedfavour-refused-guarded-independent-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "familiar",
+    "household"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Not today, {subject}. I'm not going anywhere near a crowd right now.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "withdraws when crowded, honest refusal"
+  },
+  {
+   "id": "handedover-guarded-independent-00",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Picked up {item} on the way back. Here, before I forget.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "understated, no fuss over the favour"
+  },
+  {
+   "id": "handedover-late-guarded-independent-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Here's {item}. Took me longer than I said. Sorry.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "short flat admission, no long apology"
+  },
+  {
+   "id": "handedover-thanks-guarded-independent-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "guarded-independent"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Thanks. I owe you one, I guess.",
+   "tags": [
+    "guarded-independent"
+   ],
+   "note": "reserved gratitude with a shrug"
+  },
+  {
+   "id": "askedfavour-weary-defender-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar",
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "My knees won't make that trip today. Grab me {item} if you're passing, would you?",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "blunt ask, body wearing out, no pleading"
+  },
+  {
+   "id": "askedfavour-weary-defender-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "You heading out? Bring me back {item}. I'd go myself, but I'm not going.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "economical, dry self-mocking refusal to budge"
+  },
+  {
+   "id": "askedfavour-accepted-weary-defender-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Fine. I'll get it. Don't make a habit of this.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "grudging yes with a guard up"
+  },
+  {
+   "id": "askedfavour-refused-weary-defender-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No. I've done enough walking for one week.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "flat no, tired, protects his little energy"
+  },
+  {
+   "id": "askedfavour-refused-weary-defender-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Not today, {subject}. Ask someone with more spare hours than me.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "pushes back, bitter edge about his time"
+  },
+  {
+   "id": "handedover-weary-defender-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "familiar",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. Said I would, didn't I?",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "terse, pride in keeping his word"
+  },
+  {
+   "id": "handedover-weary-defender-01",
+   "kind": "HandedOver",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "There you go: {item}, like you asked. Don't say I never do anything for you.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "gruff warmth through a grumble"
+  },
+  {
+   "id": "handedover-late-weary-defender-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Took me longer than I promised. Here's {item} anyway, {subject}.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "owns the delay plainly, keeps dignity"
+  },
+  {
+   "id": "handedover-thanks-weary-defender-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Huh. You actually came back with it. Thanks.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "surprised, dry, low expectations of people"
+  },
+  {
+   "id": "handedover-thanks-weary-defender-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "weary-defender"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Appreciate it, {subject}. Saved my back a trip.",
+   "tags": [
+    "weary-defender"
+   ],
+   "note": "economical thanks framed as relief"
+  },
+  {
+   "id": "askedfavour-young-observer-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Could you bring me {item}? I'm not allowed to go that far by myself.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "candid about a child's limits, concrete ask"
+  },
+  {
+   "id": "askedfavour-young-observer-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "{subject}, I need {item}, but I don't really know how paying works yet. Would you get it?",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "knowledge has visible limits, plain question"
+  },
+  {
+   "id": "askedfavour-accepted-young-observer-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Okay! I'll get {item}. I'll hold it with both hands the whole way back.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "eager, concrete imagined detail"
+  },
+  {
+   "id": "askedfavour-refused-young-observer-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, I can't. I'm not supposed to go there without a grown-up.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "firm no grounded in rules for kids"
+  },
+  {
+   "id": "askedfavour-refused-young-observer-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "household",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not today. I'm too tired, and I'd probably drop {item} anyway.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "short, candid self-assessment, retreats"
+  },
+  {
+   "id": "handedover-young-observer-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Here's {item}! I didn't open it or anything. I only looked.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "honest confession of curiosity"
+  },
+  {
+   "id": "handedover-young-observer-01",
+   "kind": "HandedOver",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I got {item}, like you said. I counted my steps on the way back. It was a lot.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "concrete observation, play while doing errands"
+  },
+  {
+   "id": "handedover-late-young-observer-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "young-observer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Here's {item}. I'm late because I stopped to watch a frog. Sorry.",
+   "tags": [
+    "young-observer"
+   ],
+   "note": "candid distraction, brief sorry"
+  },
+  {
+   "id": "handedover-late-young-observer-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, I know it's later than I said. I got {item}, though.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "short, plain admission"
+  },
+  {
+   "id": "askedfavour-practical-builder-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "{subject}, both my hands are on this frame. Any chance you could fetch {item} for me?",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "busy with a build, plain ask"
+  },
+  {
+   "id": "askedfavour-accepted-practical-builder-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Sure. I'll grab {item} and come straight back. Give me twenty minutes.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "sets a plan and an estimate"
+  },
+  {
+   "id": "askedfavour-accepted-practical-builder-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Fine by me. I'm heading out anyway, so it's no extra trip.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "weighs the effort practically"
+  },
+  {
+   "id": "handedover-practical-builder-00",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Got {item} for you. There and back in one trip, right on schedule.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "pleased with an efficient result"
+  },
+  {
+   "id": "handedover-late-practical-builder-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. Took longer than I planned; the queue was out the door.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "gives the concrete cause of delay"
+  },
+  {
+   "id": "handedover-late-practical-builder-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Later than I said, I know. Got caught up fixing something. Here's {item}.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "brief, blames a repair job"
+  },
+  {
+   "id": "handedover-thanks-practical-builder-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "familiar",
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "That's exactly what I needed. Now I can get this finished. Thanks, {subject}.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "thanks tied to finishing the work"
+  },
+  {
+   "id": "handedover-thanks-practical-builder-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "practical-builder"
+   ],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Thanks! That saves me a whole trip, and I get the afternoon back for the project.",
+   "tags": [
+    "practical-builder"
+   ],
+   "note": "values the time saved"
+  },
+  {
+   "id": "askedfavour-steadfast-carer-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Could you bring me {item} when you're out? I can't leave the house while everyone's still unwell.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "duty at home keeps her in; asks carefully"
+  },
+  {
+   "id": "askedfavour-steadfast-carer-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "If it's not out of your way, I'd be grateful for {item}. I've been on my feet since dawn.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "considerate asking, own needs come last"
+  },
+  {
+   "id": "askedfavour-accepted-steadfast-carer-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Of course. I'll fetch it before supper, so you're not left waiting.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "reliable, thinks of the other's wait"
+  },
+  {
+   "id": "askedfavour-accepted-steadfast-carer-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Yes, I can do that. You sit down and rest, I'll bring {item} back.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "agrees while tending to the asker"
+  },
+  {
+   "id": "askedfavour-refused-steadfast-carer-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I'm sorry, I can't today. There's someone here I shouldn't leave alone.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "firm no grounded in a care duty"
+  },
+  {
+   "id": "askedfavour-refused-steadfast-carer-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No, not this time. I've already promised more than I can manage.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "weary carer finally drawing a line"
+  },
+  {
+   "id": "handedover-steadfast-carer-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}, just as I said. I checked it over twice, to be sure.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "careful, does the duty properly"
+  },
+  {
+   "id": "handedover-steadfast-carer-01",
+   "kind": "HandedOver",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "high",
+    "even"
+   ],
+   "text": "There you are, {item}. Now, have you eaten anything today?",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "turns the errand into looking after them"
+  },
+  {
+   "id": "handedover-late-steadfast-carer-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Here's {item}, later than I promised. Something at home needed seeing to first.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "brief, explains delay by a care duty"
+  },
+  {
+   "id": "handedover-late-steadfast-carer-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "{subject}, I know it's late. Here's {item}, still good, I made sure of that.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "owns the delay, checks quality anyway"
+  },
+  {
+   "id": "handedover-thanks-steadfast-carer-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "steadfast-carer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "That's kind of you, {subject}. Now I can stop fretting over it for one evening.",
+   "tags": [
+    "steadfast-carer"
+   ],
+   "note": "worrier relieved of one small burden"
+  },
+  {
+   "id": "askedfavour-craft-devotee-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I'm in the middle of something that can't be left to cool. Could you bring me {item}?",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "work comes first, asks plainly"
+  },
+  {
+   "id": "askedfavour-craft-devotee-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "{subject}, my hands are filthy up to the wrist. Would you fetch {item} for me?",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "tied to the bench, hands busy"
+  },
+  {
+   "id": "askedfavour-accepted-craft-devotee-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Let me set this down where it won't smudge. Then I'll go and get {item}.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "cares about the unfinished piece"
+  },
+  {
+   "id": "askedfavour-accepted-craft-devotee-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "All right. A walk might help; I've been staring at the same piece all morning.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "stuck on the work, takes the errand as a break"
+  },
+  {
+   "id": "askedfavour-refused-craft-devotee-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, I can't. If I stop now the whole batch is ruined.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "turns it down to protect the work"
+  },
+  {
+   "id": "askedfavour-refused-craft-devotee-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Not today, {subject}. I've finally got a rhythm going and I won't break it for {item}.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "in the flow and won't stop"
+  },
+  {
+   "id": "handedover-craft-devotee-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Right on time with {item}. I put my tools down early so I wouldn't lose track.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "work habits shape the timing"
+  },
+  {
+   "id": "handedover-late-craft-devotee-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Sorry, I lost the afternoon at the bench. Here's {item}, later than I said.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "absorbed in making"
+  },
+  {
+   "id": "handedover-late-craft-devotee-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "household"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. Late, I know; I got caught up and forgot the hour.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "admits it was the work, keeps it short"
+  },
+  {
+   "id": "handedover-thanks-craft-devotee-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "craft-devotee"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Thank you. Now I don't have to walk away from this halfway through.",
+   "tags": [
+    "craft-devotee"
+   ],
+   "note": "grateful the work stays whole"
+  },
+  {
+   "id": "askedfavour-convivial-keeper-00",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "If you're heading that way, could you bring me {item}? I can't step away from things here just now.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "host tied to their post, practical ask"
+  },
+  {
+   "id": "askedfavour-convivial-keeper-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, be a dear and fetch me {item}? My knees won't manage the walk in this weather.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "warm endearment, homely complaint"
+  },
+  {
+   "id": "askedfavour-accepted-convivial-keeper-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Leave it with me. I'll bring {item} round before supper, same as always.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "keeps the routine"
+  },
+  {
+   "id": "handedover-thanks-convivial-keeper-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "convivial-keeper"
+   ],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Thank you! That's exactly what I was after. This is how neighbours ought to look out for each other.",
+   "tags": [
+    "convivial-keeper"
+   ],
+   "note": "praises community support"
+  },
+  {
+   "id": "askedfavour-intuitive-seeker-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I had a feeling you'd pass by today. Would you bring me back {item}? I can't leave my work just now.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "trusts a hunch, guards the work"
+  },
+  {
+   "id": "askedfavour-intuitive-seeker-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "{subject}, the morning told me to stay in. Could you fetch {item} for me while you're out?",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "reads signs in the day itself"
+  },
+  {
+   "id": "askedfavour-accepted-intuitive-seeker-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Of course. I sensed someone would send me out today, and here you are.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "sees the request as foretold"
+  },
+  {
+   "id": "askedfavour-accepted-intuitive-seeker-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Yes, I'll bring {item}. I was meant to take that road today anyway.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "finds a hidden purpose in the errand"
+  },
+  {
+   "id": "askedfavour-refused-intuitive-seeker-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Not today. Something tells me to stay right where I am, and I've learned to listen.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "intuition overrides the request"
+  },
+  {
+   "id": "handedover-intuitive-seeker-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Here's {item}, just as I said. The timing felt right the whole way back.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "assured about inner sense of timing"
+  },
+  {
+   "id": "handedover-late-intuitive-seeker-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}, later than I said. The day had its own ideas about my route.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "blames delay on larger currents, briefly"
+  },
+  {
+   "id": "handedover-late-intuitive-seeker-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "household",
+    "close"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Sorry, {subject}, I'm late with {item}. I got lost watching the clouds turn.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "distracted by omens in nature"
+  },
+  {
+   "id": "handedover-thanks-intuitive-seeker-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "acquaintance"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "Ah, {item}. You came just when I needed it, as I hoped you would.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "evocative, sees meaningful timing"
+  },
+  {
+   "id": "handedover-thanks-intuitive-seeker-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "intuitive-seeker"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Thank you, {subject}. I knew you'd be the one to bring it.",
+   "tags": [
+    "intuitive-seeker"
+   ],
+   "note": "certain of a connection foreseen"
+  },
+  {
+   "id": "askedfavour-social-trader-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "{subject}, I can't leave my post. Fetch me {item} and I'll owe you a proper favour.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "practical; frames the ask as a debt to repay"
+  },
+  {
+   "id": "askedfavour-refused-social-trader-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not today. My own errands are stacked up and I've no hands free for {item}.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "plain, practical no from a busy worker"
+  },
+  {
+   "id": "askedfavour-refused-social-trader-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Sorry, {subject}, can't do it. You'll have to fetch that one yourself this time.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "friendly but firm refusal"
+  },
+  {
+   "id": "handedover-social-trader-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "There you go, {item} as promised. I'll take my payment in good conversation.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "treats the hand-over as an exchange for company"
+  },
+  {
+   "id": "handedover-late-social-trader-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. Later than I said, I know. Got talking on the way.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "brief excuse that betrays the sociable streak"
+  },
+  {
+   "id": "handedover-thanks-social-trader-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, you're a gem. Next time you need something, you know where to find me.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "thanks with an offer to return the favour"
+  },
+  {
+   "id": "handedover-thanks-social-trader-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "social-trader"
+   ],
+   "relationship": [
+    "acquaintance",
+    "stranger"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Much obliged. Stay a minute and chat, will you? It gets quiet around here.",
+   "tags": [
+    "social-trader"
+   ],
+   "note": "inviting; uses the thanks to keep company"
+  },
+  {
+   "id": "askedfavour-recognition-seeker-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "You're heading out anyway, right? Grab me {item}. I can't be seen running errands in these shoes.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "image-conscious, assumes the yes"
+  },
+  {
+   "id": "askedfavour-recognition-seeker-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "{subject}, I'm in the middle of something big. Could you pick up {item} for me? I'll remember it.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "frames the errand around their own ambition"
+  },
+  {
+   "id": "askedfavour-accepted-recognition-seeker-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Fine, {item} it is. Just make sure people hear I came through for you.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "wants the credit for helping"
+  },
+  {
+   "id": "askedfavour-refused-recognition-seeker-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Me, running out for {item}? No. That's really not my thing.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "status bristles at errand work"
+  },
+  {
+   "id": "handedover-recognition-seeker-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "recognition-seeker"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even",
+    "high"
+   ],
+   "text": "As promised: {item}. And I went with the best they had, obviously.",
+   "tags": [
+    "recognition-seeker"
+   ],
+   "note": "appraising, shows off taste"
+  },
+  {
+   "id": "handedover-late-recognition-seeker-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Here's {item}. Later than I said, I know. Something came up.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "brief, keeps the polish under pressure"
+  },
+  {
+   "id": "handedover-thanks-recognition-seeker-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "You actually brought it? Nice. I won't forget that.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "appraises the other person approvingly"
+  },
+  {
+   "id": "askedfavour-restless-explorer-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Hey {subject}, heading into town? I could really use {item} and I can't sneak off just yet.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "conspiratorial 'sneak off', playful about limits"
+  },
+  {
+   "id": "askedfavour-accepted-restless-explorer-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Sure, I'll get {item}. Gives me an excuse to take the long way round.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "turns the errand into a wander"
+  },
+  {
+   "id": "askedfavour-refused-restless-explorer-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Nah, not today. I've got plans, and none of them involve errands.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "breezy no that protects free time"
+  },
+  {
+   "id": "handedover-restless-explorer-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Here's {item}, right on time. I even skipped the scenic route for you.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "jokes about giving up the detour"
+  },
+  {
+   "id": "handedover-restless-explorer-01",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Got {item} for you. Told you I'd be quick.",
+   "tags": [
+    "plain",
+    "demoted"
+   ],
+   "note": "short, concrete, a bit proud"
+  },
+  {
+   "id": "handedover-late-restless-explorer-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "household"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Okay, I'm late, I know. Got sidetracked. Anyway, here's {item}.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "quick shrug-off of the delay"
+  },
+  {
+   "id": "handedover-thanks-restless-explorer-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "familiar",
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, sweet, you came through! Thanks, I owe you one.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "casual slang, quick gratitude"
+  },
+  {
+   "id": "handedover-thanks-restless-explorer-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "restless-explorer"
+   ],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "even",
+    "low"
+   ],
+   "text": "Thanks, {subject}. I was about to break out of here and get it myself.",
+   "tags": [
+    "restless-explorer"
+   ],
+   "note": "playful jab at being cooped up"
+  },
+  {
+   "id": "askedfavour-wary-outsider-00",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I don't go where crowds are. Could you bring me {item}? I'll wait out here.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "avoids town, keeps distance, plain request"
+  },
+  {
+   "id": "askedfavour-wary-outsider-01",
+   "kind": "AskedFavour",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "{subject}, you've been fair with me so far. Would you fetch {item}? I'd rather not be seen asking.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "tests trust, wants to stay unseen"
+  },
+  {
+   "id": "askedfavour-accepted-wary-outsider-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Fine. I'll get {item}. Don't tell anyone who it's for.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "agrees but guards privacy"
+  },
+  {
+   "id": "askedfavour-accepted-wary-outsider-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high",
+    "even"
+   ],
+   "text": "You asked me plainly, so I'll go. Expect {item} before dark.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "directness earns his help"
+  },
+  {
+   "id": "askedfavour-refused-wary-outsider-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "No. I keep away from those counters, and I won't go for you either.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "flat refusal rooted in keeping away"
+  },
+  {
+   "id": "askedfavour-refused-wary-outsider-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Not this time, {subject}. Too many eyes about today. Ask someone who likes company.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "watchful of being seen, firm no"
+  },
+  {
+   "id": "handedover-wary-outsider-00",
+   "kind": "HandedOver",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. Nobody asked who it was for, and I didn't say.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "quiet pride in discretion"
+  },
+  {
+   "id": "handedover-late-wary-outsider-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Here's {item}. Later than I said; I waited until the road was empty.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "delay from avoiding people"
+  },
+  {
+   "id": "handedover-late-wary-outsider-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I'm late with {item}. I took the long way, where nobody walks.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "brief, explains by avoidance"
+  },
+  {
+   "id": "handedover-thanks-wary-outsider-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [
+    "wary-outsider"
+   ],
+   "relationship": [
+    "acquaintance",
+    "close"
+   ],
+   "mood": [
+    "high",
+    "low"
+   ],
+   "text": "{subject}... thank you. I wasn't sure you'd really come back with it.",
+   "tags": [
+    "wary-outsider"
+   ],
+   "note": "surprised trust was kept"
+  },
+  {
+   "id": "askedfavour-generic-00",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "household",
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "If you're heading out, could you pick up {item} for me? I can't get away today.",
+   "tags": [
+    "plain"
+   ],
+   "note": "housemate or friend tied up at home"
+  },
+  {
+   "id": "askedfavour-generic-01",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance",
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "{subject}, would you mind bringing me {item} next time you're out? My leg's playing up.",
+   "tags": [
+    "plain"
+   ],
+   "note": "neighbour who can't walk far today"
+  },
+  {
+   "id": "askedfavour-generic-03",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Sorry to bother you, but could you fetch {item} for me? I'll pay you back, of course.",
+   "tags": [
+    "plain"
+   ],
+   "note": "polite request to someone barely known"
+  },
+  {
+   "id": "askedfavour-generic-04",
+   "kind": "AskedFavour",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "I'm stuck here till evening. Any chance you could grab {item} on your way back?",
+   "tags": [
+    "plain"
+   ],
+   "note": "tired, asking a close friend"
+  },
+  {
+   "id": "askedfavour-accepted-generic-00",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Sure, I'll bring {item} by later today.",
+   "tags": [
+    "plain"
+   ],
+   "note": "plain yes"
+  },
+  {
+   "id": "askedfavour-accepted-generic-01",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "No trouble at all. I'm going that way anyway.",
+   "tags": [
+    "plain"
+   ],
+   "note": "obliging neighbour"
+  },
+  {
+   "id": "askedfavour-accepted-generic-02",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Of course, {subject}. Leave it with me.",
+   "tags": [
+    "plain"
+   ],
+   "note": "easy agreement between friends"
+  },
+  {
+   "id": "askedfavour-accepted-generic-03",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Fine, I'll get it. Just don't expect me before supper.",
+   "tags": [
+    "plain"
+   ],
+   "note": "grudging yes at home"
+  },
+  {
+   "id": "askedfavour-accepted-generic-04",
+   "kind": "AskedFavour.Accepted",
+   "archetypes": [],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Happy to! I'll be back with {item} before you know it.",
+   "tags": [
+    "plain"
+   ],
+   "note": "cheerful yes"
+  },
+  {
+   "id": "askedfavour-refused-generic-00",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "low"
+   ],
+   "text": "Sorry, I won't be going out today. You'll have to ask someone else.",
+   "tags": [
+    "plain"
+   ],
+   "note": "tired refusal"
+  },
+  {
+   "id": "askedfavour-refused-generic-01",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "I can't, I'm afraid. I've got too much to do right now.",
+   "tags": [
+    "plain"
+   ],
+   "note": "busy, polite no"
+  },
+  {
+   "id": "askedfavour-refused-generic-02",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Not today, {subject}. I'm worn out.",
+   "tags": [
+    "plain"
+   ],
+   "note": "exhausted no to someone close"
+  },
+  {
+   "id": "askedfavour-refused-generic-03",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "stranger"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "No, I'd rather not. We hardly know each other.",
+   "tags": [
+    "plain"
+   ],
+   "note": "firm no to a stranger"
+  },
+  {
+   "id": "askedfavour-refused-generic-04",
+   "kind": "AskedFavour.Refused",
+   "archetypes": [],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low",
+    "even"
+   ],
+   "text": "Get {item} yourself, it's a short walk. I'm busy.",
+   "tags": [
+    "plain"
+   ],
+   "note": "blunt no between family"
+  },
+  {
+   "id": "handedover-generic-00",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}, just like I said.",
+   "tags": [
+    "plain"
+   ],
+   "note": "plain on-time delivery"
+  },
+  {
+   "id": "handedover-generic-01",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Got {item} for you, and I didn't even have to wait in line!",
+   "tags": [
+    "plain"
+   ],
+   "note": "cheerful hand-over"
+  },
+  {
+   "id": "handedover-generic-02",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "{subject}, here you go: {item}. Right on time.",
+   "tags": [
+    "plain"
+   ],
+   "note": "punctual, a little pleased"
+  },
+  {
+   "id": "handedover-generic-03",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "As promised, here's {item}.",
+   "tags": [
+    "plain"
+   ],
+   "note": "brief and polite"
+  },
+  {
+   "id": "handedover-generic-04",
+   "kind": "HandedOver",
+   "archetypes": [],
+   "relationship": [
+    "close",
+    "household"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "I brought {item}. Tell me if you need anything else.",
+   "tags": [
+    "plain"
+   ],
+   "note": "warm delivery"
+  },
+  {
+   "id": "handedover-late-generic-00",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Here's {item}. It took me longer than I meant, sorry.",
+   "tags": [
+    "plain"
+   ],
+   "note": "brief acknowledgement"
+  },
+  {
+   "id": "handedover-late-generic-01",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "familiar"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Sorry I'm late with {item}. The day got away from me.",
+   "tags": [
+    "plain"
+   ],
+   "note": "tired, a bit sheepish"
+  },
+  {
+   "id": "handedover-late-generic-02",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Finally got {item} for you. Later than I said, I know.",
+   "tags": [
+    "plain"
+   ],
+   "note": "owns the delay plainly"
+  },
+  {
+   "id": "handedover-late-generic-03",
+   "kind": "HandedOver.Late",
+   "archetypes": [],
+   "relationship": [
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "{subject}, I've got {item}. A bit late, but here it is.",
+   "tags": [
+    "plain"
+   ],
+   "note": "cheerful despite the delay"
+  },
+  {
+   "id": "handedover-thanks-generic-00",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [],
+   "mood": [
+    "even"
+   ],
+   "text": "Thank you, that saves me a trip.",
+   "tags": [
+    "plain"
+   ],
+   "note": "plain thanks"
+  },
+  {
+   "id": "handedover-thanks-generic-01",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "high"
+   ],
+   "text": "Oh, perfect! I've been waiting on that all day.",
+   "tags": [
+    "plain"
+   ],
+   "note": "delighted thanks"
+  },
+  {
+   "id": "handedover-thanks-generic-02",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [
+    "familiar",
+    "close"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "Thanks, {subject}. I owe you one.",
+   "tags": [
+    "plain"
+   ],
+   "note": "friendly thanks"
+  },
+  {
+   "id": "handedover-thanks-generic-03",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [
+    "stranger",
+    "acquaintance"
+   ],
+   "mood": [
+    "even"
+   ],
+   "text": "That's very kind of you. Thank you.",
+   "tags": [
+    "plain"
+   ],
+   "note": "formal thanks"
+  },
+  {
+   "id": "handedover-thanks-generic-04",
+   "kind": "HandedOver.Thanks",
+   "archetypes": [],
+   "relationship": [
+    "household"
+   ],
+   "mood": [
+    "low"
+   ],
+   "text": "Thanks for bringing {item}. I really needed it.",
+   "tags": [
+    "plain"
+   ],
+   "note": "quiet, grateful thanks"
   }
  ]
 }

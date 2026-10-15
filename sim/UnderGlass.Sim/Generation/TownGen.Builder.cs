@@ -809,6 +809,9 @@ public static partial class TownGen
                 Wants = e.Wants.Concat(_wants).ToDictionary(x => x.Key, x => x.Value),
                 TownStipend = e.TownStipend * n / 26.0,
                 TownStart = e.TownStart * n / 26.0,
+                // No errands book (needs spec): the shipped town's names only its own people and
+                // counters; a grown town gets one when the generator learns to write it.
+                Errands = null,
             };
 
             FeelingOptions feelings = DefaultTown.Feelings();
