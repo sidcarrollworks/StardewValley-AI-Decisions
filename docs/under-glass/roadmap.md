@@ -120,13 +120,18 @@ The order is:
    beer, even for her mother (Sid). Still to come:
    needs beyond shop goods, asking through reflection, and the player as the one asked.
 
-   **Then, revisit needs bars** (Sid, 2026-10-13: after errands). Not taken on 2026-10-06; Sid now
+   **Then, revisit needs bars** (Sid, 2026-10-13: after errands; proposed in the
+   [needs bars spec](specs/needs-bars-spec.md), for his approval). Not taken on 2026-10-06; Sid now
    sees them as a source of motive, hidden from the player if need be. The proposed shape (hidden
    bars as pressure on existing motives, only hunger, social and fun) is in the
    [design](design.md), section 11c. Hunger could make the errands' needs come from an empty pantry.
    Decide with it Penny's concern for her mother's drinking (Sid, 2026-10-13: she "would do anything
    for her mom besides give her alcohol" and "tries to minimize her moms drinking"); the refusal is
-   built, the rest is proposed in the [needs spec](specs/needs-spec.md), "For Sid".
+   built, the rest is proposed in the [needs spec](specs/needs-spec.md), "For Sid". Penny's concern
+   should come from her history, not a rule written for her (Sid, 2026-10-13): every character starts
+   with a history, and a few standout childhood memories are *core memories* that shape feelings and
+   behaviour from the first day (design rule 18). How new generations come to hold their own core
+   memories is designed later, with 0e.
 
 5. **Player speech** (Sid, 2026-10-12 and 2026-10-13; [spec](specs/player-speech-spec.md)).
    The Newcomer is the player's character and gets the player's voice: the player types, Laya
