@@ -146,5 +146,5 @@
     else{error('Open character-inspiration.json to begin. The default pack is unavailable.');$('draft-status').textContent='No pack loaded';}
   });
   window.underGlassToolPage={page:'archetypes'};
-  if(/^https?:$/.test(location.protocol)){const script=document.createElement('script');script.src='/sim/viewer/tools.js?v=20261014-5';document.head.append(script);}
+  if(/^https?:$/.test(location.protocol)){const script=document.createElement('script');script.src='/sim/viewer/tools.js?v=20261014-6';document.head.append(script);}
 })();

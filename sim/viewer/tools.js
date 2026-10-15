@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const ROOT = "/sim/viewer/";
-  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", archetypes: "archetypes.html", recordings: "morning.html" };
+  const PAGES = { tools: "tools.html", dashboard: "index.html", speech: "speech.html", archetypes: "archetypes.html", chains: "chains.html", recordings: "morning.html" };
 
   function recordingUrl(value, base) {
     const url = new URL(value, base), origin = new URL(base);
@@ -45,8 +45,13 @@
     if (!response.ok) throw new Error(`Could not open the recording (${response.status}).`);
     return parseRecording(await response.text());
   }
+  function compatibleRecording(run, page) {
+    if (run.illustrative && run.lives && ['dashboard','speech'].includes(page))
+      throw new Error('This illustrative excerpt belongs in Life chains; choose a full recording for this tool.');
+    return run;
+  }
   // Exposed for the pages and dependency-free contract tests.
-  window.UnderGlassTools = { recordingUrl, toolUrl, readState, parseRecording, readRecording };
+  window.UnderGlassTools = { recordingUrl, toolUrl, readState, parseRecording, readRecording, compatibleRecording };
 
   async function mount() {
     const page = window.underGlassToolPage;
@@ -66,7 +71,7 @@
     document.head.append(style);
     const nav = document.createElement("nav"); nav.id = "ug-tools"; nav.setAttribute("aria-label", "Under Glass tools");
     const links = document.createElement("div"); links.className = "ug-links";
-    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Dashboard", speech: "Speech editor", archetypes: "Archetypes", recordings: "Recordings" })) {
+    for (const [key, label] of Object.entries({ tools: "Tools", dashboard: "Dashboard", speech: "Speech editor", archetypes: "Archetypes", chains: "Life chains", recordings: "Recordings" })) {
       const link = document.createElement("a"); link.dataset.toolLink = key; link.textContent = label;
       if (key === page.page) link.setAttribute("aria-current", "page");
       links.append(link);
@@ -107,7 +112,7 @@
         error.textContent = "Opening recording…";
         await page.ready;
         const run = await readRecording(source, location.href);
-        await page.load(run, source, state);
+        await page.load(compatibleRecording(run, page.page), source, state);
         error.textContent = "";
       }
     } catch (err) { error.textContent = err.message; }

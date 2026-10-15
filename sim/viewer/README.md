@@ -274,3 +274,12 @@ The speech drawer keeps its coverage explanations in “How these lines are chos
 Open `archetypes.html` through the shared navigation. Search by archetype, tendency or character; edit reusable fields, create or duplicate a profile, and download a schema-1 `character-inspiration.json` pack. The source pack and authored speech examples load from the checkout. Personal profiles are read-only. Drafts persist in this browser; a changed source requires explicit draft recovery or discard. Invalid edits remain drafts and disable export. See [the studio contract](../../docs/under-glass/specs/archetype-studio-spec.md).
 
 Run `node --test sim/tools/test-archetypes.cjs` for the eight editor model tests. Trial execution and history graphs await their separate recording interface; the studio makes no model calls.
+
+
+## Life chains (illustrative preview)
+
+Open `chains.html`. It starts at Penny's first decision in the frozen proposed Lives 0.1 fixture. Select a node to see its dependencies and docked details; use Next/Previous or the scrubber to follow the excerpt. Character knowledge is the default. Observer mode reveals world outcomes and explicitly opened isolated history comparisons. Those two comparisons use the fallback in both arms; the fixture's run choice uses invented Laya weights. Nothing calls a model or changes a run.
+
+The shared navigation preserves time and person. Older recordings show a no-Lives message; future unknown contract versions fail explicitly. Illustrative excerpts are refused by dashboard/speech loaders rather than presented as full recordings. Pack definitions are unavailable in this fixture, not inferred from today's Studio draft.
+
+`node --test sim/tools/test-chains.cjs` checks knowledge/time gates, rewind, dependency filtering, busy/no-ask privacy, immutable projection and both history comparisons. The shared navigation test also covers the chain route and illustrative/full-recording boundary. See `docs/under-glass/specs/lives-chain-viewer-spec.md`.

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Under Glass — Life chains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ui.css?v=20261014-5"><link rel="stylesheet" href="chains.css"><script src="ui.js"></script>
+</head>
+<body class="tool-page">
+<main>
+<header class="tool-head"><div><span class="label">Under Glass / Life chains</span><h1>Follow a life</h1><p>What came to mind, what they tried, and what changed.</p></div><button data-theme-toggle class="theme led" aria-pressed="false">Dark mode</button></header>
+<div class="chain-toolbar tool-actions"><button id="open-recording">Open recording…</button><button id="example">Load illustrative example</button><span id="source-state" class="meta" role="status"></span><input type="file" id="recording-file" accept=".json,.html" hidden></div>
+<p id="error" role="alert" hidden></p>
+<p id="illustrative" class="notice" hidden><strong>Illustrative example</strong> · Proposed mechanics and invented model answers. This is not a simulation result.</p>
+<p id="empty" hidden>This recording has no Lives data. Its events cannot establish these chains. Load the example to explore the proposed format.</p>
+<div id="workspace" hidden>
+<section class="chain-controls" aria-label="Chain playback">
+<div class="tool-actions"><label>Character <select id="person"></select></label><label>View <select id="lens"><option value="character">Character knowledge</option><option value="observer">Observer · privileged</option></select></label><span id="lens-note" class="meta"></span></div>
+<div class="playback"><button id="previous" aria-label="Previous recorded moment">← Previous event</button><button id="play">Play</button><button id="next" aria-label="Next recorded moment">Next event →</button><output id="clock"></output><label>Speed <select id="speed" aria-label="Playback speed"><option value="1">1 min / sec</option><option value="10" selected>10 min / sec</option><option value="60">1 hour / sec</option></select></label><label class="zoom-label">Window <select id="zoom"><option value="custom" disabled>Selected moments</option><option value="180">3 hours</option><option value="1440" selected>Day</option><option value="10080">Week</option><option value="40320">Season</option></select></label></div>
+<div class="time-window"><button id="window-back" aria-label="Earlier time window">← Earlier range</button><span id="window-label"></span><button id="window-next" aria-label="Later time window">Later range →</button></div>
+<div id="event-timeline" aria-label="Recorded event timeline"><div id="timeline-markers"></div><div id="time-cursor" aria-hidden="true"></div><input type="range" id="time" min="0" step="any" aria-label="Playback minute"></div><div id="time-ruler" aria-hidden="true"></div>
+<div id="timeline-preview" role="status" hidden></div>
+<div id="moment-strip" class="moment-strip" aria-label="Current moment"><strong id="moment-label"></strong><span id="moment-links" class="moment-links"></span></div>
+</section>
+<div class="thread-heading"><label>Thread <select id="thread"></select></label><p id="thread-summary" hidden></p><span class="meta">Hover to preview · click to pause and explore · time runs left → right</span></div>
+<section id="moment-events" aria-label="Events at this moment"></section>
+<div class="chain-layout">
+<div id="focus-heading" class="section-heading"></div>
+<section id="graph" aria-label="Focused cause and effect tree"><div id="stages"></div><svg id="connections" aria-hidden="true"></svg></section>
+<aside id="inspector" aria-label="Selected chain node" hidden></aside>
+</div>
+<section id="comparison-section" class="tool-section" hidden>
+<div class="section-heading"><h2>History comparisons</h2><button id="compare-toggle" aria-expanded="false">Open isolated comparisons</button></div>
+<div id="comparisons" hidden></div>
+</section>
+<details class="tool-disclosure"><summary>About this recording</summary><div class="detail-body" id="recording-info"></div></details>
+</div>
+</main>
+<script src="chains-model.js"></script><script src="chains.js"></script><script src="tools.js?v=20261014-6"></script>
+</body></html>
