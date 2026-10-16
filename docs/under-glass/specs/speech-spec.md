@@ -35,6 +35,12 @@ authored thoughts, profiles on, the same log hash) the 196 spoken lines went fro
 `sim/viewer/speech.html` is the curation page: a grid of act kinds by voices showing how many lines
 fit each situation, with a recording's actual use on top, and every line editable in place.
 
+Tool navigation, 2026-10-14: `sim/viewer/tools.html` connects the dashboard, speech editor and
+recordings page. A server-hosted recording can move between dashboard and editor, with the
+dashboard's character, time and tab preserved on return. Coverage still describes the whole run.
+The editor accepts a saved dashboard HTML as well as JSON; it reads only the embedded recording.
+Picked local files require reopening in the other tool. Editing speech never rewrites a recording.
+
 Not built: a reply line for the other person, lines for acts without a chosen target, lines for
 turning away (`Snubbed`, `TurnedAway` are silent by design), lines that mention an item, a task or
 a place (the simulation does not know them), and any effect of speech on the world.

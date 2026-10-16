@@ -81,7 +81,8 @@ public sealed partial class Simulation
             AskKind.Invitation or AskKind.Party => (0.5 * liked + 0.3 * fam + 0.2 * t.Chattiness + (FondOf(asked, asker, m) > 0 ? 0.2 : 0)
                     + (Close(asked, asker) ? _fo.Acts.InviteKinBond : 0),
                 0.15 + dislike * keep + 0.3 * withdrawn
-                    + AskMath.StateCost(AskStateOf(asked, m), AskMath.Eagerness(t), AskMath.Bond(Close(asked, asker), liked, fam), _fo.Acts)),
+                    + AskMath.StateCost(AskStateOf(asked, m), AskMath.Eagerness(t), AskMath.Bond(Close(asked, asker), liked, fam), _fo.Acts)
+                    - BarAskEase(asked)),
             AskKind.Peace => (0.5 * u + 0.3 * fam + (NearWinterStar(Clock.Day(m)) ? 0.2 : 0),
                 0.2 + dislike * keep + 0.3 * Math.Max(0, t.SelfRegard - 0.5)),
             AskKind.Loan => (0.5 * liked + 0.3 * fam + 0.3 * u, 0.2 + 0.3 * LoanShare(asked, actId)),

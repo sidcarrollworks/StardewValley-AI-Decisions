@@ -1,0 +1,2347 @@
+{
+  "format": "under-glass-run", "version": 1, "illustrative": true,
+  "note": "ILLUSTRATIVE fixture for the proposed Lives observer recording contract v0.1 (2026-10-14, revised after its check). It is not output from an implemented system: no Lives code exists. Base fields are a tiny excerpt shaped like a real recording (needs and favours are [#90]); indices are this excerpt's. Laya probabilities, sampled units, prompts and thoughts are invented; fallback weights follow the proposed rules 5 and 7 from the assessment's first guesses.",
+  "seed": 1, "days": 28, "label": "illustrative: Lives v0.1, Penny, Pam and Gus, day 9", "hash": "illustrative",
+  "clock": {"minutesPerDay":1440,"tick":5,"daysPerWeek":7,"daysPerSeason":28}, "names": ["Gus","Pam","Penny"],
+  "places": [{"name":"Beach"},{"name":"Home:Trailer"},{"name":"Saloon"},{"name":"Square"}],
+  "kinds": [{"name":"Refused"},{"name":"PlayedGame"}],
+  "acts": [[412,13510,2,0,1,4,5,1,-1,0,1],[431,14056,1,0,2,6,5,0,-1,0,3]],
+  "needs": [
+    {"id":36,"tick":13510,"holder":"Pam","item":"beer","until":19270,"state":"Open","promise":-1,"settled":-1},
+    {"id":37,"tick":13580,"holder":"Gus","item":"flour","until":19340,"state":"Open","promise":-1,"settled":-1}
+  ],
+  "favours": [
+    {
+      "tick": 13510, "asker": "Pam", "asked": "Penny", "item": "beer", "accepted": false, "margin": 0.6, "actId": 412,
+      "tired": 0, "busy": 1, "low": 0, "bond": 1, "eager": 0.75, "wontFetch": true, "short": false, "running": false
+    },
+    {
+      "tick": 14056, "asker": "Gus", "asked": "Pam", "item": "flour", "accepted": false, "margin": 0.1821, "actId": 431,
+      "tired": 0.1, "busy": 0, "low": 0.02, "bond": 0.45, "eager": 0.5, "wontFetch": false, "short": false,
+      "running": false
+    }
+  ],
+  "invitations": [
+    {
+      "tick": 13512, "asker": "Penny", "asked": "Pam", "kind": "PlayedGame", "accepted": true, "margin": 0.33,
+      "actId": -1, "tired": 0, "busy": 0, "low": 0.1333, "bond": 1, "eager": 0.5
+    }
+  ],
+  "reflections": [
+    {
+      "request": {
+        "id": "1:opp:13510:Penny:0", "tick": 13510, "actor": "Penny", "subject": "Pam", "sourceActId": 412,
+        "memory": "At 09:10 Pam asked you to fetch her a beer and you said no: you never provide alcohol.",
+        "context": "Penny, age 22: home, morning; teaching at 10:00. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {"id":"offer","kind":"PlanOffer","line":"Stay in with me tonight? We could play a game."},
+          {"id":"keep-evening","kind":"","line":"Keep the evening for her book."}
+        ],
+        "opportunity": {"kind":"refused-by-commitment","sleptAt":-1,"wokeAt":-1},
+        "recalled": [
+          {"id":"rd:penny-pam-burden","origin":"CanonStated"}, {"id":"rd:penny-saloon-wary","origin":"CanonStated"},
+          {"id":"rd:penny-pam-care","origin":"CanonStated"}
+        ],
+        "alternatives": [
+          {
+            "id": "offer",
+            "reasons": [
+              {"kind":"supports","code":"refused-while-obliged","value":0.6},
+              {"kind":"supports","code":"warm","value":0.05}, {"kind":"conflicts","code":"cold","value":0.05},
+              {"kind":"conflicts","code":"chance:whereabouts","value":0.3333},
+              {"kind":"shown","code":"wary-place","value":null}
+            ]
+          },
+          {"id":"keep-evening","reasons":[{"kind":"supports","code":"warm","value":0.05}]}
+        ],
+        "excluded": [{"id":"fetch-beer","why":"commitment"},{"id":"other-good","why":"no-eligible-good"}],
+        "constraints": [
+          {"code":"schedule","value":"teaching at the Square 10:00-14:00 on weekdays; she leaves about 09:35"},
+          {"code":"window","value":"18:00 to her usual bedtime as she knows it: the sim's, about 21:20 (O1(a))"},
+          {"code":"one-open-plan-a-pair","value":"none open between them"}
+        ],
+        "alternativeSetHash": "fnv1a64:5d8318d426a99bec"
+      },
+      "answer": {
+        "thought": "I won't bring her beer. I could ask her to stay in tonight instead: a game, just us.",
+        "suggestedChoice": "offer", "backend": "authored+laya", "weights": {"offer":0.46,"keep-evening":0.54},
+        "model": "model:laya:typed-decisions", "evaluationMode": "Raw",
+        "layaPrompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "layaResponse": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "evaluations": [
+          {
+            "pass": 1,
+            "prompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "response": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "labelsToChoiceIds": {"A":["offer"],"B":["keep-evening"]}, "weights": {"offer":0.46,"keep-evening":0.54}
+          }
+        ],
+        "note": "illustrative: authored thought; Laya weights invented for this fixture"
+      },
+      "choice": "offer",
+      "events": [
+        {
+          "tick": 13511, "status": "considered",
+          "text": "I won't bring her beer. I could ask her to stay in tonight instead: a game, just us.", "actId": -1
+        },
+        {"tick":13511,"status":"accepted","text":"Stay in with me tonight? We could play a game.","actId":-1}
+      ]
+    },
+    {
+      "request": {
+        "id": "1:opp:13511:Pam:0", "tick": 13511, "actor": "Pam", "subject": "Penny", "sourceActId": -1,
+        "memory": "At 09:11 Penny asked you to spend this evening at home with her, a game, from 18:00.",
+        "context": "Pam, age 50: home, morning. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {"id":"yes","kind":"PlanAnswer","line":"All right, sweetie. Tonight, then."},
+          {"id":"not-now","kind":"PlanAnswer","line":"Not tonight, maybe another time."},
+          {"id":"no","kind":"PlanAnswer","line":"I've got my own plans."}
+        ],
+        "opportunity": {"kind":"asked","sleptAt":-1,"wokeAt":-1},
+        "recalled": [
+          {"id":"rd:pam-penny-warm","origin":"CanonStated"}, {"id":"ex:Pam:Penny:answers:errand:beer","origin":"Lived"},
+          {"id":"rd:pam-saloon-wary","origin":"CanonStated"}, {"id":"rd:pam-saloon-warm","origin":"CanonStated"}
+        ],
+        "alternatives": [
+          {
+            "id": "yes",
+            "reasons": [
+              {"kind":"supports","code":"obliged","value":0.9}, {"kind":"shown","code":"warm","value":null},
+              {"kind":"conflicts","code":"cost","value":0.15}, {"kind":"conflicts","code":"state","value":0.02},
+              {"kind":"conflicts","code":"displaced-habit","value":0.4},
+              {"kind":"shown","code":"wary-place","value":null}
+            ]
+          },
+          {"id":"not-now","reasons":[{"kind":"supports","code":"low-mood","value":0.02}]},
+          {"id":"no","reasons":[{"kind":"supports","code":"negative-margin","value":-0.33}]}
+        ],
+        "excluded": [], "constraints": [{"code":"same-set-both-backends","value":"yes, not now, no"}],
+        "alternativeSetHash": "fnv1a64:984f6cf5c88a7c08"
+      },
+      "answer": {
+        "thought": "A whole evening in with my girl. The Saloon will keep.", "suggestedChoice": "yes",
+        "backend": "authored+laya", "weights": {"yes":0.71,"not-now":0.21,"no":0.08},
+        "model": "model:laya:typed-decisions", "evaluationMode": "Raw",
+        "layaPrompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "layaResponse": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "evaluations": [
+          {
+            "pass": 1,
+            "prompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "response": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "labelsToChoiceIds": {"A":["yes"],"B":["not-now"],"C":["no"]},
+            "weights": {"yes":0.71,"not-now":0.21,"no":0.08}
+          }
+        ],
+        "note": "illustrative: authored thought; Laya weights invented for this fixture"
+      },
+      "choice": "yes",
+      "events": [
+        {"tick":13512,"status":"considered","text":"A whole evening in with my girl. The Saloon will keep.","actId":-1},
+        {"tick":13512,"status":"accepted","text":"All right, sweetie. Tonight, then.","actId":-1}
+      ]
+    },
+    {
+      "request": {
+        "id": "1:opp:14060:Gus:0", "tick": 14060, "actor": "Gus", "subject": "Pam", "sourceActId": -1,
+        "memory": "At 18:20 Pam asked you to play a game with her, now, at the Saloon.",
+        "context": "Gus, age 50: the Saloon, evening, at the counter. Choose for this person, not for a well-behaved town.",
+        "choices": [
+          {"id":"yes","kind":"PlanAnswer","line":"Sure, one game. Set up the board."},
+          {"id":"not-now","kind":"PlanAnswer","line":"Not while I'm behind the counter, Pam. Later?"},
+          {"id":"no","kind":"PlanAnswer","line":"Not tonight."}
+        ],
+        "opportunity": {"kind":"asked","sleptAt":-1,"wokeAt":-1},
+        "recalled": [
+          {"id":"rd:gus-expects-pam-evenings","origin":"CanonStated"}, {"id":"rd:gus-pam-wary","origin":"CanonStated"},
+          {"id":"ex:Gus:Pam:whereabouts:Saloon:18-21:weekday","origin":"Seeded"}
+        ],
+        "alternatives": [
+          {
+            "id": "yes",
+            "reasons": [
+              {"kind":"supports","code":"obliged","value":0.51}, {"kind":"conflicts","code":"cost","value":0.15},
+              {"kind":"conflicts","code":"state","value":0.2393}, {"kind":"shown","code":"wary","value":null}
+            ]
+          },
+          {"id":"not-now","reasons":[{"kind":"supports","code":"working","value":0.2393}]},
+          {"id":"no","reasons":[{"kind":"supports","code":"negative-margin","value":-0.1207}]}
+        ],
+        "excluded": [], "constraints": [{"code":"same-set-both-backends","value":"yes, not now, no"}],
+        "alternativeSetHash": "fnv1a64:2e069113ac790c02"
+      },
+      "answer": {
+        "thought": "Busy night. She's here every evening; a game will keep.", "suggestedChoice": "not-now",
+        "weights": {"yes":0.3217,"not-now":0.5821,"no":0.0962}, "backend": "authored",
+        "note": "illustrative: authored thought; not torn, so no model is asked and the weights are the fallback's"
+      },
+      "choice": "not-now",
+      "events": [{"tick":14061,"status":"considered","text":"Busy night. She's here every evening; a game will keep.","actId":-1}]
+    }
+  ],
+  "choiceQuestions": [
+    {
+      "request": {
+        "id": "1:q:14010:Pam:0", "tick": 14010, "holder": "Pam", "question": "plan-follow-through",
+        "recalled": [
+          {"id":"rd:pam-saloon-warm","origin":"CanonStated"}, {"id":"rd:pam-saloon-wary","origin":"CanonStated"},
+          {"id":"rd:pam-penny-warm","origin":"CanonStated"}
+        ],
+        "alternatives": [
+          {
+            "id": "keep",
+            "reasons": [
+              {"kind":"supports","code":"intended","value":0.2}, {"kind":"supports","code":"warm","value":0.05},
+              {"kind":"shown","code":"wish","value":null}
+            ]
+          },
+          {
+            "id": "saloon",
+            "reasons": [
+              {"kind":"supports","code":"warm","value":0.05}, {"kind":"supports","code":"habit-weight","value":4},
+              {"kind":"conflicts","code":"cold","value":0.05}
+            ]
+          }
+        ],
+        "excluded": [{"id":"evening-hub","why":"not-open"},{"id":"square","why":"closed"}],
+        "constraints": [{"code":"physical","value":"a 32-minute walk to the Saloon"}],
+        "alternativeSetHash": "fnv1a64:27e5824d0fea5b55"
+      },
+      "answer": {
+        "weights": {"keep":0.38,"saloon":0.62}, "backend": "laya", "model": "model:laya:typed-decisions",
+        "evaluationMode": "Raw",
+        "layaPrompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "layaResponse": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "evaluations": [
+          {
+            "pass": 1,
+            "prompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "response": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "labelsToChoiceIds": {"A":["keep"],"B":["saloon"]}, "weights": {"keep":0.38,"saloon":0.62}
+          }
+        ],
+        "note": "illustrative: Laya weights invented for this fixture"
+      },
+      "choice": "saloon"
+    },
+    {
+      "request": {
+        "id": "1:q:14028:Penny:0", "tick": 14028, "holder": "Penny", "question": "plan-follow-through",
+        "recalled": [
+          {"id":"rd:penny-pam-care","origin":"CanonStated"}, {"id":"rd:penny-expects-pam-away","origin":"CanonStated"},
+          {"id":"rd:penny-pam-burden","origin":"CanonStated"}
+        ],
+        "alternatives": [
+          {
+            "id": "keep",
+            "reasons": [
+              {"kind":"supports","code":"intended","value":0.2}, {"kind":"supports","code":"warm","value":0.05},
+              {"kind":"conflicts","code":"cold","value":0.05},
+              {"kind":"conflicts","code":"chance:whereabouts","value":0.3333},
+              {"kind":"supports","code":"chance:answers","value":1}
+            ]
+          },
+          {"id":"stay","reasons":[{"kind":"supports","code":"carry-on","value":1}]}
+        ],
+        "excluded": [], "constraints": [{"code":"physical","value":"a 12-minute walk home"}],
+        "alternativeSetHash": "fnv1a64:09ce9a99a1990de0"
+      },
+      "answer": {
+        "weights": {"keep":0.81,"stay":0.19}, "backend": "laya", "model": "model:laya:typed-decisions",
+        "evaluationMode": "Raw",
+        "layaPrompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "layaResponse": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+        "evaluations": [
+          {
+            "pass": 1,
+            "prompt": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "response": "(illustrative placeholder: a real run records the exact text, as ReflectionAnswer does today)",
+            "labelsToChoiceIds": {"A":["keep"],"B":["stay"]}, "weights": {"keep":0.81,"stay":0.19}
+          }
+        ],
+        "note": "illustrative: Laya weights invented for this fixture"
+      },
+      "choice": "keep"
+    }
+  ],
+  "lives": {
+    "contract": "under-glass-lives-observer", "version": "0.1", "status": "proposed", "illustrative": true,
+    "note": "Illustrative: hand-built to the proposed contract; not output from an implemented system.",
+    "runId": "run:1:28:illustrative", "rules": "lives-slice-proposed-2026-10-14",
+    "assumes": [
+      "Lives on (proposed switch); Company, Invitations, errands [#90] and reflection on",
+      "Decided (A, 2026-10-14): Penny's evening place corrected as her character data; an agreed evening is informal and may disappoint (direction 4.3)",
+      "O1(a): the sim's bedtime, about 21:20 (exact bedtime fidelity stays Sid's separate choice)",
+      "O2 as the assessment leans: present readings with a stance seed one entry each; Pam's hobby wish opens offers but gives no warmth (her keep pick would otherwise gain 0.05 warm)",
+      "O3 as the assessment leans: an agreed evening's disappointment is mood and one cold entry toward the hoped-for evening, a situation, never toward Pam",
+      "Can wait, kept as default: the Pam-Gus friend seed 0.4; rule 16 limited to errand asks; this fixture also reads Gus's being mid-shift as a not-now reason for a game (contingent on rule 16's open point)",
+      "Laya enabled, two model questions a person-day; authored reflection thoughts"
+    ],
+    "excerpt": {
+      "day": 9, "season": "spring", "weekday": "Wed", "from": 13505, "to": 14240,
+      "omitted": [
+        "Penny's evening reflection (rule 8c, a plan broken): not part of this excerpt",
+        "picks where nothing was recalled (today's draw): they write no Lives record",
+        "each person's own answers and refusals as perceptions: self-knowledge is the act itself",
+        "per-holder plan copies: 9.2's Plan is written for each, with an outcome; this excerpt keeps one shared plan and shows each holder's outcome through their own perception (per:14040:Pam:0, per:14101:Penny:0), so the plan never carries Pam's private follow-through"
+      ]
+    },
+    "settings": {
+      "Lives": true, "k": 5, "intended": 0.2, "seedStrength": 0.05, "disappointment": 0.05, "disappointmentScale": 0.25,
+      "tornAt": 0.04, "planBase": 0.1, "displacedHabit": 0.4, "clearBand": 0.15, "waitMinutes": 60, "livedWindow": 6,
+      "associationsPerObject": 3, "derivedReadingAfter": 3, "sourcedCue": 2,
+      "derivedReadingAfterNote": "a tunable heuristic for when a Derived reading summarises a key; learning starts at the first relevant outcome (direction 4.2)",
+      "disappointmentNote": "D and the invested scale in 9.4, the assessment's first guesses (0.05 and 0.25)",
+      "recall": {"top":3,"reservePreRun":1,"lowMoodExtra":1,"max":4,"runnersUpShown":2}, "modelQuestionsPerPersonDay": 2
+    },
+    "clock": {"unit":"game minutes from midnight of day 0","preRun":"pre-run","dayStart":12960},
+    "models": [
+      {
+        "id": "model:laya:typed-decisions", "family": "Laya", "name": "typed-decisions", "server": "laya-serve 0.3.22",
+        "sources": [
+          "sim/UnderGlass.Minds/ReflectionMindOptions.cs:11 (LayaModel default)",
+          "sidecar/README.md (checked against v0.3.22)"
+        ],
+        "verify": "a real run records the name and version the server reports; the recording keeps neither today"
+      }
+    ],
+    "external": {
+      "archetypes": {
+        "source": "sim/character-inspiration.json characters[].archetypeId",
+        "ids": ["convivial-keeper","steadfast-carer","weary-defender"]
+      }
+    },
+    "characters": [
+      {
+        "who": 0, "name": "Gus", "archetype": "convivial-keeper",
+        "history": ["h:pam-saloon-evenings","acct:pam-saloon-evenings:Gus","rd:gus-expects-pam-evenings","rd:gus-pam-wary"]
+      },
+      {
+        "who": 1, "name": "Pam", "archetype": "weary-defender",
+        "history": [
+          "h:pam-mother-of-penny", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Pam", "rd:pam-penny-warm",
+          "rd:pam-saloon-warm", "rd:pam-saloon-wary", "rd:pam-wish-hobby", "rd:pam-gus-warm"
+        ]
+      },
+      {
+        "who": 2, "name": "Penny", "archetype": "steadfast-carer",
+        "history": [
+          "h:pam-mother-of-penny", "h:penny-father-left", "acct:penny-father-left:Penny", "rd:penny-abandoned",
+          "h:penny-teaches", "rd:penny-teaching-warm", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Penny",
+          "h:penny-household-burden", "acct:penny-household-burden:Penny", "rd:penny-saloon-wary",
+          "rd:penny-expects-pam-away", "rd:penny-pam-burden", "rd:penny-pam-care", "rd:penny-reading-home",
+          "cmt:penny-no-alcohol"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "src:data-characters-penny", "kind": "canon", "key": "Data/Characters:Penny (Pam Relative_Mother)",
+        "standing": "S"
+      },
+      {
+        "id": "src:penny-fall-fri6", "kind": "canon", "key": "Characters/Dialogue/Penny:fall_Fri6 (anchor penny-family)",
+        "standing": "S"
+      },
+      {"id":"src:penny-wed","kind":"canon","key":"Characters/Dialogue/Penny:Wed","standing":"S"},
+      {"id":"src:penny-tue","kind":"canon","key":"Characters/Dialogue/Penny:Tue","standing":"S"},
+      {"id":"src:penny-tue4","kind":"canon","key":"Characters/Dialogue/Penny:Tue4","standing":"S","note":"start branch"},
+      {
+        "id": "src:penny-mon4", "kind": "canon", "key": "Characters/Dialogue/Penny:Mon4", "standing": "S",
+        "note": "first statement only; the rest follows the farmer's answer (NA)"
+      },
+      {"id":"src:penny-fri4","kind":"canon","key":"Characters/Dialogue/Penny:Fri4","standing":"S"},
+      {"id":"src:penny-sun4","kind":"canon","key":"Characters/Dialogue/Penny:Sun4","standing":"S"},
+      {"id":"src:penny-dishes","kind":"canon","key":"penny_dishes (fixtures/game/Penny.json)","standing":"S"},
+      {
+        "id": "src:penny-fall-thu6", "kind": "canon", "key": "Characters/Dialogue/Penny:fall_Thu6", "standing": "S",
+        "note": "6 hearts: a present feeling placed at the start by our choice (S·R2; O2)"
+      },
+      {
+        "id": "src:penny-mon8", "kind": "canon", "key": "Characters/Dialogue/Penny:Mon8", "standing": "S",
+        "note": "8 hearts; 'eager to move out' shown only, not seeded (O2)"
+      },
+      {"id":"src:penny-thu","kind":"canon","key":"Characters/Dialogue/Penny:Thu","standing":"S"},
+      {
+        "id": "src:pam-thu", "kind": "canon", "key": "Characters/Dialogue/Pam:Thu (later page)", "standing": "S",
+        "note": "the first-hearing hangover page is NA"
+      },
+      {"id":"src:pam-fall-thu","kind":"canon","key":"Characters/Dialogue/Pam:fall_Thu","standing":"S"},
+      {"id":"src:pam-winter-tue4","kind":"canon","key":"Characters/Dialogue/Pam:winter_Tue4","standing":"S"},
+      {"id":"src:pam-winter-fri","kind":"canon","key":"Characters/Dialogue/Pam:winter_Fri","standing":"S"},
+      {
+        "id": "src:pam-saloon", "kind": "canon", "key": "Characters/Dialogue/Pam:Saloon, Saloon_Entry, Saloon_Thu",
+        "standing": "S"
+      },
+      {"id":"src:pam-summer-thu4","kind":"canon","key":"Characters/Dialogue/Pam:summer_Thu4","standing":"S"},
+      {
+        "id": "src:pam-fri2", "kind": "canon", "key": "Characters/Dialogue/Pam:Fri2", "standing": "S",
+        "note": "her wish for a hobby besides 'that saloon every night'; perhaps checkers against herself"
+      },
+      {
+        "id": "src:pam-winter-thu", "kind": "canon", "key": "Characters/Dialogue/Pam:winter_Thu", "standing": "S",
+        "note": "first statement only: a visit to the Saloon to warm up (an attraction); the invitation to the farmer is NA. The assessment's table lists it under m4; filing it with the warm reading is ours (E)"
+      },
+      {"id":"src:pam-sun","kind":"canon","key":"Characters/Dialogue/Pam:Sun","standing":"S"},
+      {"id":"src:gus-thu","kind":"canon","key":"Characters/Dialogue/Gus:Thu (anchor gus-regulars)","standing":"S"},
+      {"id":"src:gus-sun","kind":"canon","key":"Characters/Dialogue/Gus:Sun","standing":"S"},
+      {
+        "id": "src:gus-thu8", "kind": "canon", "key": "Characters/Dialogue/Gus:Thu8", "standing": "S",
+        "note": "8 hearts; chronology VERIFY"
+      },
+      {
+        "id": "src:gift-tastes-penny", "kind": "canon", "key": "Data/NPCGiftTastes:Penny", "standing": "S",
+        "note": "support for D52's characterization, not proof of an absolute refusal to fetch"
+      },
+      {
+        "id": "src:game-npc-3667", "kind": "code",
+        "key": "game NPC.cs:3667 (drinks re-rolled when Penny names Pam's loved gift)", "standing": "S",
+        "note": "support, not proof"
+      },
+      {
+        "id": "src:D52", "kind": "decision", "key": "docs/decisions.md D52, Sid, 2026-10-13 (on the #90 branch)",
+        "standing": "A", "note": "Penny will not fetch alcohol"
+      },
+      {
+        "id": "src:direction-4", "kind": "decision", "key": "Sid's fourth direction, 2026-10-14 (relayed)",
+        "standing": "A",
+        "note": "the commitment is not extended to accepting or drinking alcohol without a separate decision; an agreed evening is informal and may disappoint"
+      },
+      {
+        "id": "src:91-answer-7", "kind": "decision",
+        "key": "docs/under-glass/specs/needs-bars-spec.md:424, answer 7 [#91] (ErrandHoursBusy, errands only; Sid, 2026-10-13)",
+        "standing": "A", "note": "rule 16 follows it for errand asks; wider effects of work stay open"
+      },
+      {
+        "id": "src:code-cards", "kind": "code",
+        "key": "sim/UnderGlass.Sim/DefaultTown.cs:389-391, 417, 420-421 [base]: Gus works the Saloon 11-24 and haunts the Square 8-11; Pam's and Penny's cards (traits, Penny's job at the Square 10-14, off Sat and Sun)",
+        "standing": "built"
+      },
+      {
+        "id": "src:code-errand-uses", "kind": "code",
+        "key": "sim/UnderGlass.Sim/DefaultTown.cs:358 [#90]: Pam's only use is beer; Gus's are flour and vinegar (:355)",
+        "standing": "#90"
+      },
+      {
+        "id": "src:code-ask-invitation", "kind": "code",
+        "key": "sim/UnderGlass.Sim/Simulation.Ask.cs:76-79 [base] (b3224f4 :81-85): Ask(Invitation), obliged 0.5 liked + 0.3 familiarity + 0.2 chattiness (+0.2 Fond, + InviteKinBond 0.2) against 0.15 + state",
+        "standing": "built"
+      },
+      {
+        "id": "src:code-ask-errand", "kind": "code",
+        "key": "sim/UnderGlass.Sim/Simulation.Ask.cs:89-93 [#90]: Ask(Errand), obliged 0.5 liked + 0.3 familiarity + 0.2 understanding (+0.2 Fond, + ErrandKinBond 0.2) against 0.2 + state + ErrandCost",
+        "standing": "#90"
+      },
+      {
+        "id": "src:code-state-cost", "kind": "code",
+        "key": "sim/UnderGlass.Sim/Simulation.Ask.cs:30-31 [base]: StateCost = 0.3 (tired + busy + low) (1 - eagerness x bond); AskStateOf, Simulation.Invitations.cs:55-63 [base]: busy means work due within 60 minutes",
+        "standing": "built"
+      },
+      {
+        "id": "src:code-askfavours", "kind": "code",
+        "key": "sim/UnderGlass.Sim/Simulation.Errands.cs:127-160 [#90]: AskFavours draws someone in reach by bond",
+        "standing": "#90"
+      },
+      {
+        "id": "src:code-gathering", "kind": "code",
+        "key": "sim/UnderGlass.Sim/Simulation.cs:743 [base] (b3224f4 :760): gatherings only while On(m); the Evening gathering opens at 18:00",
+        "standing": "built"
+      },
+      {
+        "id": "src:assessment-7", "kind": "editorial",
+        "key": "lives-gap-assessment.md (fourth revision) section 7: the cast's evidence and our filings",
+        "standing": "E"
+      },
+      {
+        "id": "src:assessment-9", "kind": "editorial",
+        "key": "lives-gap-assessment.md (fourth revision) section 9: the proposed records, rules 1-16 and outcomes",
+        "standing": "E", "note": "proposed mechanics, not built"
+      }
+    ],
+    "records": [
+      {
+        "id": "h:pam-mother-of-penny", "type": "fact", "kind": "Fact", "participants": [1,2], "standing": "S",
+        "origin": "canon", "sources": ["src:data-characters-penny"], "time": {"known":false}, "stillTrueAtStart": true,
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"},{"who":1,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run",
+        "cues": [{"key":"person:Pam","origin":"object"},{"key":"person:Penny","origin":"object"}],
+        "label": "Pam is Penny's mother"
+      },
+      {
+        "id": "h:penny-father-left", "type": "fact", "kind": "Past", "admission": "R1", "participants": [2],
+        "absentParticipants": ["her father (not in the town)"], "standing": "S", "origin": "canon",
+        "sources": ["src:penny-fall-fri6"], "time": {"known":false,"relative":"when she was little"},
+        "recurrence": "once", "stillTrueAtStart": "not seen since, by her account",
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run","account":"acct:penny-father-left:Penny"}],
+        "othersKnowledge": "unknown: canon gives no other account; Pam's knowledge is not asserted",
+        "cues": [
+          {
+            "key": "relationship:parent", "origin": "proposed", "standing": "E",
+            "note": "would match Pam: any tie from her father to her mother is ours (E, p2); recall only, never a meaning for an absence"
+          },
+          {"key":"season:fall","origin":"sourced","source":"src:penny-fall-fri6","weight":2,"exclusive":false}
+        ],
+        "visibleAt": "pre-run", "label": "Penny's father left when she was little"
+      },
+      {
+        "id": "acct:penny-father-left:Penny", "type": "account", "holder": 2, "fact": "h:penny-father-left",
+        "mode": "Lived", "standing": "S·R1", "origin": "canon", "sources": ["src:penny-fall-fri6"],
+        "qualifications": ["his stated reason is reported speech; his motives are not known"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "her account: he left, giving his own reason; not seen since"
+      },
+      {
+        "id": "rd:penny-abandoned", "type": "reading", "holder": 2, "object": "h:penny-father-left", "stance": "none",
+        "certainty": "stated", "standing": "S·R1", "origin": "canon", "sources": ["src:penny-fall-fri6"],
+        "effect": "recalled only: no stance toward anyone present (rule 1)",
+        "cues": [{"key":"season:fall","origin":"sourced","source":"src:penny-fall-fri6","weight":2,"exclusive":false}],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "her reading: she felt abandoned; this time of year brings it back"
+      },
+      {
+        "id": "h:penny-teaches", "type": "fact", "kind": "Practice", "admission": "R2", "participants": [2],
+        "standing": "S·R2", "origin": "canon",
+        "sources": ["src:penny-wed","src:penny-tue","src:penny-tue4","src:code-cards"],
+        "recurrence": "her job (base: the Square, 10:00-14:00, not Sat or Sun)",
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}],
+        "othersKnowledge": "not modelled (a public job)", "visibleAt": "pre-run",
+        "cues": [{"key":"activity:teaching","origin":"object"},{"key":"place:Square","origin":"object"}],
+        "label": "Penny teaches Vincent and Jas"
+      },
+      {
+        "id": "rd:penny-teaching-warm", "type": "reading", "holder": 2, "object": "activity:teaching", "stance": "warm",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:penny-wed"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"activity:teaching","origin":"object"}], "label": "every child deserves a chance (her reading)"
+      },
+      {
+        "id": "h:pam-saloon-evenings", "type": "fact", "kind": "Practice", "admission": "R2", "participants": [1],
+        "place": "Saloon", "standing": "S·R2", "origin": "canon",
+        "recurrence": "almost every night (Gus's words; no count)",
+        "countOnce": "one practice with three accounts; never three experiences",
+        "sources": ["src:penny-mon4","src:pam-saloon","src:pam-summer-thu4","src:gus-thu"],
+        "knownBy": [
+          {"who":2,"how":"CanonStated","availableAt":"pre-run","account":"acct:pam-saloon-evenings:Penny"},
+          {"who":1,"how":"CanonStated","availableAt":"pre-run","account":"acct:pam-saloon-evenings:Pam"},
+          {"who":0,"how":"CanonStated","availableAt":"pre-run","account":"acct:pam-saloon-evenings:Gus"}
+        ],
+        "cues": [
+          {"key":"person:Pam","origin":"object"}, {"key":"place:Saloon","origin":"object"},
+          {"key":"time:evening","origin":"object"}
+        ],
+        "visibleAt": "pre-run", "label": "Pam spends her evenings at the Saloon"
+      },
+      {
+        "id": "acct:pam-saloon-evenings:Penny", "type": "account", "holder": 2, "fact": "h:pam-saloon-evenings",
+        "mode": "Inferred", "standing": "E", "origin": "authored",
+        "sources": ["src:penny-mon4","src:penny-fri4","src:assessment-7"],
+        "qualifications": [
+          "canon gives her reading and the effects at home, not how she knows; filing it as Inferred is ours",
+          "she never claims to see a drink"
+        ],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "Penny's account: inferred from what she lives with at home"
+      },
+      {
+        "id": "acct:pam-saloon-evenings:Pam", "type": "account", "holder": 1, "fact": "h:pam-saloon-evenings",
+        "mode": "Lived", "standing": "S·R2", "origin": "canon", "sources": ["src:pam-saloon","src:pam-summer-thu4"],
+        "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "Pam's account: her own evenings there"
+      },
+      {
+        "id": "acct:pam-saloon-evenings:Gus", "type": "account", "holder": 0, "fact": "h:pam-saloon-evenings",
+        "mode": "Witnessed", "standing": "S·R2", "origin": "canon",
+        "sources": ["src:gus-thu","src:gus-sun","src:gus-thu8"],
+        "knownBy": [{"who":0,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "Gus's account: he serves her almost every night"
+      },
+      {
+        "id": "h:penny-household-burden", "type": "fact", "kind": "Practice", "admission": "R2", "participants": [2],
+        "standing": "S·R2", "origin": "canon", "sources": ["src:penny-fri4","src:penny-sun4","src:penny-dishes"],
+        "recurrence": "recurring (no count)",
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run","account":"acct:penny-household-burden:Penny"}],
+        "othersKnowledge": "Pam's side (she expects the chores done, m2) is not part of this excerpt",
+        "cues": [
+          {"key":"place:Home:Trailer","origin":"object"}, {"key":"activity:chores","origin":"object"},
+          {"key":"person:Pam","origin":"object"}
+        ],
+        "visibleAt": "pre-run", "label": "the dishes and cleaning fall to Penny"
+      },
+      {
+        "id": "acct:penny-household-burden:Penny", "type": "account", "holder": 2, "fact": "h:penny-household-burden",
+        "mode": "Lived", "standing": "S·R2", "origin": "canon",
+        "sources": ["src:penny-fri4","src:penny-sun4","src:penny-dishes","src:assessment-7"],
+        "qualifications": ["the chores are Lived","her stated cause, late nights at the Saloon, is filed as Inferred from effects (E)"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "label": "Penny's account: she cleans alone while Pam nurses a headache"
+      },
+      {
+        "id": "rd:penny-saloon-wary", "type": "reading", "holder": 2, "object": "place:Saloon", "stance": "wary",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:penny-mon4"],
+        "seeds": ["as:Penny:place:Saloon:-:wary"], "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run",
+        "cues": [{"key":"place:Saloon","origin":"object"},{"key":"person:Pam","origin":"object"}],
+        "label": "her mother goes to the Saloon too much (her reading)"
+      },
+      {
+        "id": "rd:penny-expects-pam-away", "type": "reading", "holder": 2, "object": "person:Pam", "stance": "expects",
+        "expects": "whereabouts: away from home in the evening", "certainty": "stated", "standing": "S·R2",
+        "origin": "canon", "sources": ["src:penny-mon4"],
+        "seeds": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [
+          {"key":"person:Pam","origin":"object"}, {"key":"time:evening","origin":"object"},
+          {"key":"place:Home:Trailer","origin":"object"}
+        ],
+        "label": "she expects Pam out in the evening"
+      },
+      {
+        "id": "rd:penny-pam-burden", "type": "reading", "holder": 2, "object": "person:Pam", "stance": "wary",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:penny-fri4","src:penny-sun4"],
+        "seeds": ["as:Penny:person:Pam:-:burdened"], "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run",
+        "cues": [
+          {"key":"person:Pam","origin":"object"}, {"key":"place:Home:Trailer","origin":"object"},
+          {"key":"place:Saloon","origin":"object"}
+        ],
+        "label": "no help at home: the burden is hers (her reading)"
+      },
+      {
+        "id": "rd:penny-pam-care", "type": "reading", "holder": 2, "object": "person:Pam", "stance": "warm",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon",
+        "sources": ["src:penny-fall-thu6","src:penny-mon8"],
+        "placedAtStart": "our choice (O2): a present feeling carried to the start",
+        "seeds": ["as:Penny:person:Pam:+:worried-care"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"person:Pam","origin":"object"}],
+        "label": "she worries about her mother and wants her happy (her reading)"
+      },
+      {
+        "id": "rd:penny-reading-home", "type": "reading", "holder": 2, "object": "activity:reading-at-home",
+        "stance": "warm", "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:penny-thu"],
+        "seeds": ["as:Penny:activity:reading-at-home:+:absorbed"],
+        "knownBy": [{"who":2,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"activity:reading-at-home","origin":"object"},{"key":"place:Home:Trailer","origin":"object"}],
+        "label": "in a book she can forget her worries for a while (her reading)"
+      },
+      {
+        "id": "cmt:penny-no-alcohol", "type": "commitment", "holder": 2,
+        "scope": {"provide":"alcohol","goodsToday":["beer"]}, "to": "anyone",
+        "toNote": "#90's behaviour; D52 names her mom, broadening to anyone is ours (E)", "force": "Absolute",
+        "revisable": false, "since": "pre-run", "standing": "A", "origin": "product-decision", "sources": ["src:D52"],
+        "support": ["src:gift-tastes-penny","src:game-npc-3667"],
+        "excludes": [{"what":"accepting or drinking alcohol","why":"needs a separate decision","source":"src:direction-4"}],
+        "knownBy": [{"who":2,"how":"ProductDecision","availableAt":"pre-run"}],
+        "othersKnowledge": "unknown to Pam: she learns only from Penny's answers (rule 15)", "visibleAt": "pre-run",
+        "cues": [{"key":"category:alcohol","origin":"object"},{"key":"good:beer","origin":"object"}],
+        "label": "Penny will not provide alcohol (Sid's D52)"
+      },
+      {
+        "id": "rd:pam-penny-warm", "type": "reading", "holder": 1, "object": "person:Penny", "stance": "warm",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon",
+        "sources": ["src:pam-thu","src:pam-fall-thu","src:pam-winter-tue4","src:pam-winter-fri"],
+        "countOnce": "four sources, one entry", "seeds": ["as:Pam:person:Penny:+:proud"],
+        "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"person:Penny","origin":"object"}],
+        "label": "Penny is her only girl; proud of her (her reading)"
+      },
+      {
+        "id": "rd:pam-saloon-warm", "type": "reading", "holder": 1, "object": "place:Saloon", "stance": "warm",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:pam-saloon","src:pam-winter-thu"],
+        "countOnce": "two sources, one entry", "seeds": ["as:Pam:place:Saloon:+:enjoys"],
+        "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"place:Saloon","origin":"object"},{"key":"time:evening","origin":"object"}],
+        "label": "she enjoys the Saloon, looks forward to it, goes there to warm up (her reading)"
+      },
+      {
+        "id": "rd:pam-saloon-wary", "type": "reading", "holder": 1, "object": "place:Saloon", "stance": "wary",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:pam-summer-thu4","src:pam-fri2"],
+        "seeds": ["as:Pam:place:Saloon:-:uneasy"], "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run",
+        "cues": [{"key":"place:Saloon","origin":"object"},{"key":"time:evening","origin":"object"}],
+        "label": "she always ends up there; not healthy (her own judgment)"
+      },
+      {
+        "id": "rd:pam-wish-hobby", "type": "reading", "holder": 1, "object": "activity:game", "stance": "none",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:pam-fri2"],
+        "effect": "cue only: whether a stated wish gives warmth is O2's second question; reading it as a game with someone is ours (E); in her words it may be checkers against herself",
+        "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [
+          {"key":"activity:game","origin":"object"},
+          {"key":"place:Saloon","origin":"sourced","source":"src:pam-fri2","weight":2,"exclusive":false}
+        ],
+        "label": "she wishes for a hobby besides the Saloon every night, maybe checkers"
+      },
+      {
+        "id": "rd:pam-gus-warm", "type": "reading", "holder": 1, "object": "person:Gus", "stance": "warm",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:pam-sun"],
+        "seeds": ["as:Pam:person:Gus:+:fond"], "knownBy": [{"who":1,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run",
+        "cues": [{"key":"person:Gus","origin":"object"},{"key":"place:Saloon","origin":"object"}],
+        "label": "Gus is a good guy (her reading)"
+      },
+      {
+        "id": "rd:gus-expects-pam-evenings", "type": "reading", "holder": 0, "object": "person:Pam", "stance": "expects",
+        "expects": "whereabouts: at the Saloon in each evening band", "certainty": "stated", "standing": "S·R2",
+        "origin": "canon", "sources": ["src:gus-thu","src:gus-sun"],
+        "seeds": ["ex:Gus:Pam:whereabouts:Saloon:18-21:weekday"],
+        "knownBy": [{"who":0,"how":"CanonStated","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"person:Pam","origin":"object"},{"key":"place:Saloon","origin":"object"}],
+        "label": "Pam comes almost every night (his reading; he depends on regulars)"
+      },
+      {
+        "id": "rd:gus-pam-wary", "type": "reading", "holder": 0, "object": "person:Pam", "stance": "wary",
+        "certainty": "stated", "standing": "S·R2", "origin": "canon", "sources": ["src:gus-thu8"],
+        "seeds": ["as:Gus:person:Pam:-:uneasy"], "knownBy": [{"who":0,"how":"CanonStated","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Pam","origin":"object"}],
+        "label": "she drinks too much; he shouldn't judge (his conflicted reading)"
+      },
+      {
+        "id": "as:Penny:person:Pam:+:worried-care", "type": "association", "holder": 2, "object": "person:Pam",
+        "sign": "+", "name": "worried care", "strength": 0.05, "causes": ["rd:penny-pam-care"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":2,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "as:Penny:person:Pam:-:burdened", "type": "association", "holder": 2, "object": "person:Pam", "sign": "-",
+        "name": "burdened", "strength": 0.05, "causes": ["rd:penny-pam-burden"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":2,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "as:Penny:place:Saloon:-:wary", "type": "association", "holder": 2, "object": "place:Saloon", "sign": "-",
+        "name": "wary", "strength": 0.05, "causes": ["rd:penny-saloon-wary"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":2,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"place:Saloon","origin":"object"}]
+      },
+      {
+        "id": "as:Penny:activity:reading-at-home:+:absorbed", "type": "association", "holder": 2,
+        "object": "activity:reading-at-home", "sign": "+", "name": "absorbed", "strength": 0.05,
+        "causes": ["rd:penny-reading-home"], "origin": "seeded", "standing": "E (rule 1, from a sourced reading)",
+        "knownBy": [{"who":2,"how":"Seeded","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"activity:reading-at-home","origin":"object"}]
+      },
+      {
+        "id": "as:Pam:person:Penny:+:proud", "type": "association", "holder": 1, "object": "person:Penny", "sign": "+",
+        "name": "proud", "strength": 0.05, "causes": ["rd:pam-penny-warm"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":1,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Penny","origin":"object"}]
+      },
+      {
+        "id": "as:Pam:place:Saloon:+:enjoys", "type": "association", "holder": 1, "object": "place:Saloon", "sign": "+",
+        "name": "enjoys", "strength": 0.05, "causes": ["rd:pam-saloon-warm"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":1,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"place:Saloon","origin":"object"}]
+      },
+      {
+        "id": "as:Pam:place:Saloon:-:uneasy", "type": "association", "holder": 1, "object": "place:Saloon", "sign": "-",
+        "name": "uneasy", "strength": 0.05, "causes": ["rd:pam-saloon-wary"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":1,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"place:Saloon","origin":"object"}]
+      },
+      {
+        "id": "as:Pam:person:Gus:+:fond", "type": "association", "holder": 1, "object": "person:Gus", "sign": "+",
+        "name": "fond", "strength": 0.05, "causes": ["rd:pam-gus-warm"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":1,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Gus","origin":"object"}]
+      },
+      {
+        "id": "as:Gus:person:Pam:-:uneasy", "type": "association", "holder": 0, "object": "person:Pam", "sign": "-",
+        "name": "uneasy", "strength": 0.05, "causes": ["rd:gus-pam-wary"], "origin": "seeded",
+        "standing": "E (rule 1, from a sourced reading)", "knownBy": [{"who":0,"how":"Seeded","availableAt":"pre-run"}],
+        "visibleAt": "pre-run", "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday", "type": "expectation", "holder": 2, "subject": 1,
+        "key": "whereabouts:Home:Trailer:18-21:weekday",
+        "initial": {
+          "asOf": 13505,
+          "entries": [
+            {"at":"pre-run","outcome":"away","source":"Reading","cites":"rd:penny-expects-pam-away"},
+            {"day":0,"outcome":"missed","source":"seen-absent"}
+          ],
+          "lived": 1, "seeded": 1, "chance": 0.3333
+        },
+        "origin": "seeded and lived", "standing": "E (rule 1) / D",
+        "knownBy": [{"who":2,"how":"Seeded","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"person:Pam","origin":"object"}],
+        "note": "day 0's miss was written because p4 left her chance at 0.5 (rule 14 needs 0.5 or more); none since"
+      },
+      {
+        "id": "ex:Gus:Pam:whereabouts:Saloon:15-18:weekday", "type": "expectation", "holder": 0, "subject": 1,
+        "key": "whereabouts:Saloon:15-18:weekday",
+        "initial": {
+          "asOf": 13505,
+          "entries": [
+            {"day":1,"outcome":"found","source":"Seen"}, {"day":2,"outcome":"found","source":"Seen"},
+            {"day":3,"outcome":"found","source":"Seen"}, {"day":4,"outcome":"found","source":"Seen"},
+            {"day":7,"outcome":"found","source":"Seen"}, {"day":8,"outcome":"found","source":"Seen"}
+          ],
+          "lived": 6, "seeded": 0, "chance": 1
+        },
+        "origin": "run", "standing": "E (rule 1) / D", "knownBy": [{"who":0,"how":"Lived","availableAt":2345}],
+        "visibleAt": 2345, "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "ex:Gus:Pam:whereabouts:Saloon:18-21:weekday", "type": "expectation", "holder": 0, "subject": 1,
+        "key": "whereabouts:Saloon:18-21:weekday",
+        "initial": {
+          "asOf": 13505,
+          "entries": [
+            {"at":"pre-run","outcome":"found","source":"Reading","cites":"rd:gus-expects-pam-evenings"},
+            {"day":2,"outcome":"found","source":"Seen"}, {"day":3,"outcome":"found","source":"Seen"},
+            {"day":4,"outcome":"found","source":"Seen"}, {"day":7,"outcome":"found","source":"Seen"},
+            {"day":8,"outcome":"found","source":"Seen"}
+          ],
+          "lived": 5, "seeded": 1, "chance": 1
+        },
+        "origin": "seeded and lived", "standing": "E (rule 1) / D",
+        "knownBy": [{"who":0,"how":"Seeded","availableAt":"pre-run"}], "visibleAt": "pre-run",
+        "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "ex:Pam:Penny:answers:errand:beer", "type": "expectation", "holder": 1, "subject": 2,
+        "key": "answers:errand:beer", "initial": {"asOf":13510,"entries":[],"lived":0,"seeded":0,"chance":1},
+        "origin": "run (created empty)", "standing": "D", "knownBy": [{"who":1,"how":"Lived","availableAt":13510}],
+        "visibleAt": 13510, "cues": [{"key":"person:Penny","origin":"object"}]
+      },
+      {
+        "id": "ex:Penny:Pam:answers:plan", "type": "expectation", "holder": 2, "subject": 1, "key": "answers:plan",
+        "initial": {"asOf":13512,"entries":[],"lived":0,"seeded":0,"chance":1}, "origin": "run (created empty)",
+        "standing": "D", "knownBy": [{"who":2,"how":"Lived","availableAt":13512}], "visibleAt": 13512,
+        "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "ex:Gus:Penny:availability:Square:10-14:weekday", "type": "expectation", "holder": 0, "subject": 2,
+        "key": "availability:Square:10-14:weekday",
+        "initial": {"asOf":13580,"entries":[],"lived":0,"seeded":0,"chance":1}, "origin": "run (created empty)",
+        "standing": "D", "knownBy": [{"who":0,"how":"Lived","availableAt":13580}], "visibleAt": 13580,
+        "cues": [{"key":"person:Penny","origin":"object"}]
+      },
+      {
+        "id": "ex:Gus:Pam:answers:errand:flour", "type": "expectation", "holder": 0, "subject": 1,
+        "key": "answers:errand:flour", "initial": {"asOf":14056,"entries":[],"lived":0,"seeded":0,"chance":1},
+        "origin": "run (created empty)", "standing": "D", "knownBy": [{"who":0,"how":"Lived","availableAt":14056}],
+        "visibleAt": 14056, "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "ex:Pam:Gus:availability:Saloon:18-21:weekday", "type": "expectation", "holder": 1, "subject": 0,
+        "key": "availability:Saloon:18-21:weekday",
+        "initial": {"asOf":14061,"entries":[],"lived":0,"seeded":0,"chance":1}, "origin": "run (created empty)",
+        "standing": "D", "knownBy": [{"who":1,"how":"Lived","availableAt":14061}], "visibleAt": 14061,
+        "cues": [{"key":"person:Gus","origin":"object"}]
+      },
+      {
+        "id": "ex:Penny:Pam:followThrough:plan", "type": "expectation", "holder": 2, "subject": 1,
+        "key": "followThrough:plan", "initial": {"asOf":14101,"entries":[],"lived":0,"seeded":0,"chance":1},
+        "origin": "run (created empty)", "standing": "D", "knownBy": [{"who":2,"how":"Lived","availableAt":14101}],
+        "visibleAt": 14101, "cues": [{"key":"person:Pam","origin":"object"}]
+      },
+      {
+        "id": "as:Penny:situation:evening-at-home-with-Pam:-:disappointed", "type": "association", "holder": 2,
+        "object": "situation:evening-at-home-with-Pam", "sign": "-", "name": "disappointed", "strength": 0.0167,
+        "causes": ["plan:13512:Penny:Pam","per:14101:Penny:0"], "origin": "run", "standing": "D",
+        "knownBy": [{"who":2,"how":"Lived","availableAt":14101}], "visibleAt": 14101,
+        "cues": [
+          {"key":"person:Pam","origin":"object"}, {"key":"activity:PlayedGame","origin":"object"},
+          {"key":"place:Home:Trailer","origin":"object"}, {"key":"time:evening","origin":"object"}
+        ],
+        "situation": ["person:Pam","activity:PlayedGame","place:Home:Trailer","time:evening"],
+        "note": "one disappointment, aimed at the hoped-for evening, a situation (9.2, 9.4; O3 as the assessment leans), one cause (the plan); counted once (9.5): no 'no' entry, no whereabouts entry, no regard change, no rejection. Read only by her own keep pick at a later plan for such an evening (rule 12), and recalled; never by an offer to Pam"
+      }
+    ],
+    "opportunities": [
+      {
+        "id": "opp:13510:Penny:0", "holder": 2, "visibleAt": 13510, "trigger": "refused-by-commitment", "rule": "10",
+        "causes": ["favour:412","cmt:penny-no-alcohol"], "reflection": "reflection:1:opp:13510:Penny:0",
+        "budget": "rule 10's own, one a person-day", "observerLinks": {"outcome":"out:13510:Penny:0"},
+        "label": "Penny refused while obliged (+0.60): her reflection opens"
+      },
+      {
+        "id": "opp:13511:Pam:0", "holder": 1, "visibleAt": 13511, "trigger": "asked", "rule": "8a",
+        "causes": ["att:13511:Penny:0"], "reflection": "reflection:1:opp:13511:Pam:0", "budget": "8a, one a person-day",
+        "label": "Pam is asked: her reflection opens"
+      },
+      {
+        "id": "opp:14010:Pam:0", "holder": 1, "visibleAt": 14010, "trigger": "follow-through", "rule": "12",
+        "causes": ["plan:13512:Penny:Pam"], "question": "question:1:q:14010:Pam:0",
+        "timingNote": "her home stay ended 30 minutes before the window; treated as the plan's follow-through pick (illustrative timing)",
+        "label": "Pam at home, 17:30: the plan or her usual evening?"
+      },
+      {
+        "id": "opp:14028:Penny:0", "holder": 2, "visibleAt": 14028, "trigger": "follow-through", "rule": "12",
+        "causes": ["plan:13512:Penny:Pam"], "question": "question:1:q:14028:Penny:0",
+        "label": "Penny at the Beach, 17:48: head home for the plan?"
+      },
+      {
+        "id": "opp:14055:Pam:0", "holder": 1, "visibleAt": 14055, "trigger": "asked", "rule": "8a",
+        "causes": ["att:14055:Gus:0"], "reflection": null,
+        "reflectionNote": "not opened: 8a's budget (one a person-day) was used at 09:11",
+        "label": "Pam is asked a favour"
+      },
+      {
+        "id": "opp:14060:Pam:0", "holder": 1, "visibleAt": 14060, "trigger": "encounter", "rule": "11",
+        "causes": ["rd:pam-gus-warm"], "reflection": null,
+        "note": "ordinary warmth, not a crisis (direction 4.5); a controlled fixture verifies the path, natural runs measure its rate",
+        "label": "Gus in reach: Pam thinks of a game"
+      },
+      {
+        "id": "opp:14060:Gus:0", "holder": 0, "visibleAt": 14060, "trigger": "asked", "rule": "8a",
+        "causes": ["att:14060:Pam:0"], "reflection": "reflection:1:opp:14060:Gus:0",
+        "budget": "8a, one a person-day (his first today)",
+        "label": "Gus is asked: he recalls pre-run records about Pam, so his reflection opens"
+      }
+    ],
+    "recalls": [
+      {
+        "id": "rc:13510:Penny:0", "holder": 2, "opportunity": "opp:13510:Penny:0", "visibleAt": 13510,
+        "active": [
+          "person:Pam", "good:beer", "category:alcohol", "place:Saloon", "place:Home:Trailer", "time:morning",
+          "season:spring", "situation:refused-by-commitment"
+        ],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:penny-pam-burden", "slot": "top",
+            "matched": ["person:Pam","place:Home:Trailer","place:Saloon"],
+            "score": {"overlap":3,"strength":0.05,"significance":0.6}
+          },
+          {
+            "record": "rd:penny-saloon-wary", "slot": "top", "matched": ["place:Saloon","person:Pam"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.4}
+          },
+          {
+            "record": "rd:penny-pam-care", "slot": "top", "matched": ["person:Pam"],
+            "score": {"overlap":1,"strength":0.05,"significance":0.8}
+          }
+        ],
+        "runnersUp": [
+          {"record":"rd:penny-reading-home","overlap":1,"why":"lower strength x significance"},
+          {
+            "record": "rd:penny-abandoned", "overlap": 0,
+            "why": "its sourced cue (fall) is not active in spring; a strong cue, not a gate"
+          }
+        ],
+        "label": "Penny recalls the burden, the Saloon and her worry"
+      },
+      {
+        "id": "rc:13511:Pam:0", "holder": 1, "opportunity": "opp:13511:Pam:0", "visibleAt": 13511,
+        "active": ["person:Penny","place:Home:Trailer","activity:PlayedGame","time:evening","place:Saloon","situation:asked"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":true,"max":4},
+        "items": [
+          {
+            "record": "rd:pam-penny-warm", "slot": "top", "matched": ["person:Penny"],
+            "score": {"overlap":1,"strength":0.05,"significance":0.9}
+          },
+          {
+            "record": "ex:Pam:Penny:answers:errand:beer", "slot": "top", "matched": ["person:Penny"],
+            "score": {"overlap":1,"strength":1,"significance":0.5}
+          },
+          {
+            "record": "rd:pam-saloon-wary", "slot": "top", "matched": ["place:Saloon","time:evening"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.5}
+          },
+          {
+            "record": "rd:pam-saloon-warm", "slot": "low-mood", "matched": ["place:Saloon","time:evening"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.5},
+            "why": "mood low after the refusal: one more by warmth alone (our adaptation of III P13)"
+          }
+        ],
+        "label": "Pam recalls her girl, this morning's no, and both sides of the Saloon"
+      },
+      {
+        "id": "rc:14010:Pam:0", "holder": 1, "opportunity": "opp:14010:Pam:0", "visibleAt": 14010,
+        "active": ["person:Penny","place:Home:Trailer","place:Saloon","time:evening","situation:plan-due"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:pam-saloon-warm", "slot": "top", "matched": ["place:Saloon","time:evening"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.5}
+          },
+          {
+            "record": "rd:pam-saloon-wary", "slot": "top", "matched": ["place:Saloon","time:evening"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.5}
+          },
+          {
+            "record": "rd:pam-penny-warm", "slot": "top", "matched": ["person:Penny"],
+            "score": {"overlap":1,"strength":0.05,"significance":0.9}
+          }
+        ],
+        "label": "Pam recalls the Saloon's two sides and her girl"
+      },
+      {
+        "id": "rc:14028:Penny:0", "holder": 2, "opportunity": "opp:14028:Penny:0", "visibleAt": 14028,
+        "active": ["person:Pam","place:Home:Trailer","time:evening","situation:plan-due"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:penny-pam-care", "slot": "top", "matched": ["person:Pam"],
+            "score": {"overlap":1,"strength":0.05,"significance":0.8}
+          },
+          {
+            "record": "rd:penny-expects-pam-away", "slot": "top",
+            "matched": ["person:Pam","time:evening","place:Home:Trailer"],
+            "score": {"overlap":3,"strength":0.05,"significance":0.5}
+          },
+          {
+            "record": "rd:penny-pam-burden", "slot": "top", "matched": ["person:Pam","place:Home:Trailer"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.6}
+          }
+        ],
+        "label": "Penny recalls her worry, her expectation and the burden"
+      },
+      {
+        "id": "rc:14055:Pam:0", "holder": 1, "opportunity": "opp:14055:Pam:0", "visibleAt": 14055,
+        "active": ["person:Gus","place:Saloon","good:flour","time:evening","situation:asked"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:pam-gus-warm", "slot": "top", "matched": ["person:Gus","place:Saloon"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.4}
+          }
+        ],
+        "label": "Pam recalls that Gus is a good guy"
+      },
+      {
+        "id": "rc:14060:Pam:0", "holder": 1, "opportunity": "opp:14060:Pam:0", "visibleAt": 14060,
+        "active": ["person:Gus","place:Saloon","time:evening","situation:encounter"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:pam-gus-warm", "slot": "top", "matched": ["person:Gus","place:Saloon"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.4}
+          },
+          {
+            "record": "rd:pam-wish-hobby", "slot": "top", "matched": ["place:Saloon"],
+            "cueOrigin": "sourced (Pam:Fri2, weight 2)", "score": {"overlap":2,"strength":0,"significance":0.3}
+          }
+        ],
+        "label": "Pam recalls Gus's kindness and her wish for a hobby"
+      },
+      {
+        "id": "rc:14060:Gus:0", "holder": 0, "opportunity": "opp:14060:Gus:0", "visibleAt": 14060,
+        "active": ["person:Pam","place:Saloon","activity:PlayedGame","time:evening","situation:asked"],
+        "bound": {"top":3,"reservePreRun":1,"lowMood":false,"max":4},
+        "items": [
+          {
+            "record": "rd:gus-expects-pam-evenings", "slot": "top", "matched": ["person:Pam","place:Saloon"],
+            "score": {"overlap":2,"strength":0.05,"significance":0.5}
+          },
+          {
+            "record": "rd:gus-pam-wary", "slot": "top", "matched": ["person:Pam"],
+            "score": {"overlap":1,"strength":0.05,"significance":0.6}
+          },
+          {
+            "record": "ex:Gus:Pam:whereabouts:Saloon:18-21:weekday", "slot": "top", "matched": ["person:Pam"],
+            "score": {"overlap":1,"strength":1,"significance":0.3}
+          }
+        ],
+        "label": "Gus recalls Pam's evenings and his unease about her drinking"
+      }
+    ],
+    "decisions": [
+      {
+        "id": "dec:13510:Penny:0", "holder": 2, "opportunity": "opp:13510:Penny:0", "recall": "rc:13510:Penny:0",
+        "visibleAt": 13510, "question": "what-else-to-offer-after-a-refusal",
+        "label": "After saying no to beer, what does Penny offer instead?",
+        "alternatives": [
+          {
+            "id": "alt:13510:Penny:0/offer", "slug": "offer",
+            "label": "ask Pam to spend this evening at home with her: a game, 18:00 to her bedtime",
+            "template": {"kind":"plan-offer","asked":1,"place":"Home:Trailer","activity":"PlayedGame","from":14040,"until":14240},
+            "components": {
+              "formula": "rule5", "base": 0.6, "chance": {"whereabouts":0.3333,"answers":1,"followThrough":1},
+              "warm": 0.05, "cold": 0.05, "boldness": 0.2, "intended": 0, "cost": 0
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "refused-while-obliged", "value": 0.6, "via": "opportunity",
+                "cites": ["favour:412","cmt:penny-no-alcohol"], "provenance": ["src:code-ask-errand"],
+                "label": "she was obliged (+0.60) and could not say yes"
+              },
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "recall",
+                "cites": ["rd:penny-pam-care","as:Penny:person:Pam:+:worried-care"],
+                "label": "she worries about her mother"
+              },
+              {
+                "kind": "conflicts", "code": "cold", "value": 0.05, "via": "recall",
+                "cites": ["rd:penny-pam-burden","as:Penny:person:Pam:-:burdened"], "label": "the chores fall to her"
+              },
+              {
+                "kind": "conflicts", "code": "chance:whereabouts", "value": 0.3333, "via": "expectation",
+                "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday","rd:penny-expects-pam-away"],
+                "label": "she expects Pam out in the evening"
+              },
+              {
+                "kind": "shown", "code": "wary-place", "via": "recall", "cites": ["rd:penny-saloon-wary"],
+                "effect": "none: the Saloon is not this option's object", "label": "she is wary of the Saloon"
+              }
+            ]
+          },
+          {
+            "id": "alt:13510:Penny:0/keep-evening", "slug": "keep-evening",
+            "label": "no offer: keep her evening, reading at home",
+            "template": {"kind":"carry-on","place":"Home:Trailer","activity":"reading-at-home"},
+            "components": {"formula":"rule5","base":1,"warm":0.05,"cold":0,"boldness":0.2,"intended":0,"cost":0},
+            "reasons": [
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "option-side",
+                "cites": ["rd:penny-reading-home","as:Penny:activity:reading-at-home:+:absorbed"],
+                "label": "a book lets her forget for a while"
+              }
+            ]
+          }
+        ],
+        "excluded": [
+          {
+            "id": "alt:13510:Penny:0/fetch-beer", "slug": "fetch-beer", "label": "fetch Pam a beer",
+            "why": {"code":"commitment","cites":["cmt:penny-no-alcohol"],"label":"absolute: Sid's D52"}
+          },
+          {
+            "id": "alt:13510:Penny:0/other-good", "slug": "other-good", "label": "fetch Pam something else she uses",
+            "why": {"code":"no-eligible-good","cites":["src:code-errand-uses"],"label":"Pam's only listed use is beer [#90]"}
+          }
+        ],
+        "constraints": [
+          {
+            "code": "schedule", "value": "teaching at the Square 10:00-14:00 on weekdays; she leaves about 09:35",
+            "cites": ["h:penny-teaches"]
+          },
+          {
+            "code": "window", "value": "18:00 to her usual bedtime as she knows it: the sim's, about 21:20 (O1(a))",
+            "cites": []
+          },
+          {"code":"one-open-plan-a-pair","value":"none open between them","cites":[]}
+        ],
+        "torn": {"value":true,"rule":"6","why":"warm (0.05) and cold (0.05) toward Pam both above TornAt (0.04)"},
+        "choice": {
+          "visibleAt": 13511, "backend": "laya", "selected": "alt:13510:Penny:0/offer",
+          "probabilities": {"alt:13510:Penny:0/offer":0.46,"alt:13510:Penny:0/keep-evening":0.54},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:13510:Penny:0"], "unit": 0.163,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:13510:Penny:0/offer","alt:13510:Penny:0/keep-evening"]
+          },
+          "fallback": {
+            "weights": {"alt:13510:Penny:0/offer":0.2102,"alt:13510:Penny:0/keep-evening":1.284},
+            "probabilities": {"alt:13510:Penny:0/offer":0.1407,"alt:13510:Penny:0/keep-evening":0.8593},
+            "wouldSelect": "alt:13510:Penny:0/keep-evening"
+          },
+          "laya": {
+            "probabilities": {"alt:13510:Penny:0/offer":0.46,"alt:13510:Penny:0/keep-evening":0.54},
+            "source": "illustrative: invented for this fixture"
+          },
+          "provenance": {
+            "alternativeSetHash": "fnv1a64:5d8318d426a99bec", "tape": "reflection:1:opp:13510:Penny:0",
+            "requestHash": "fnv1a64:d5dcb07b6937ef73", "model": "model:laya:typed-decisions",
+            "thought": {"backend":"authored","imagined":true,"note":"the thought is private and never evidence"}
+          }
+        }
+      },
+      {
+        "id": "dec:13511:Pam:0", "holder": 1, "opportunity": "opp:13511:Pam:0", "recall": "rc:13511:Pam:0",
+        "visibleAt": 13511, "question": "answer-plan-offer", "label": "Does Pam agree to stay in tonight?",
+        "alternatives": [
+          {
+            "id": "alt:13511:Pam:0/yes", "slug": "yes", "label": "yes",
+            "components": {
+              "formula": "rule7", "answer": "yes", "obliged": 0.9,
+              "costs": {"base":0.15,"state":0.02,"displacedHabit":0.4}, "margin": 0.33
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "obliged", "value": 0.9, "via": "ask", "cites": ["h:pam-mother-of-penny"],
+                "provenance": ["src:code-ask-invitation"],
+                "label": "the Ask: regard 0.6 (the household seed), familiarity 0.8 (the household seed), chattiness 0.8, kin bond 0.2; no Fond (they meet daily)"
+              },
+              {
+                "kind": "shown", "code": "warm", "via": "recall", "cites": ["rd:pam-penny-warm"],
+                "effect": "reflection context only: the Ask reads regard, not associations (count once)",
+                "label": "her girl"
+              },
+              {
+                "kind": "conflicts", "code": "cost", "value": 0.15, "via": "ask", "cites": [],
+                "provenance": ["src:code-ask-invitation"], "label": "the Ask's base cost"
+              },
+              {
+                "kind": "conflicts", "code": "state", "value": 0.02, "via": "state", "cites": [],
+                "provenance": ["src:code-state-cost"],
+                "label": "low after the refusal (illustrative low 0.13, eagerness 0.5, bond 1)"
+              },
+              {
+                "kind": "conflicts", "code": "displaced-habit", "value": 0.4, "via": "option-side",
+                "cites": ["acct:pam-saloon-evenings:Pam"],
+                "label": "0.4 x her share of the last 14 evenings at the Saloon (all of them)"
+              },
+              {
+                "kind": "shown", "code": "wary-place", "via": "recall", "cites": ["rd:pam-saloon-wary"],
+                "effect": "torn test only", "label": "she judges the Saloon not healthy"
+              }
+            ]
+          },
+          {
+            "id": "alt:13511:Pam:0/not-now", "slug": "not-now", "label": "not now",
+            "components": {"formula":"rule7","answer":"not-now","reason":{"code":"low-mood","value":0.02}},
+            "reasons": [
+              {
+                "kind": "supports", "code": "low-mood", "value": 0.02, "via": "state", "cites": [],
+                "label": "low after the refusal: a reason holds (rule 7)"
+              }
+            ]
+          },
+          {
+            "id": "alt:13511:Pam:0/no", "slug": "no", "label": "no",
+            "components": {"formula":"rule7","answer":"no","margin":0.33},
+            "reasons": [
+              {
+                "kind": "supports", "code": "negative-margin", "value": -0.33, "via": "ask", "cites": [],
+                "label": "the margin's other side"
+              }
+            ]
+          }
+        ],
+        "excluded": [], "constraints": [{"code":"same-set-both-backends","value":"yes, not now, no","cites":[]}],
+        "torn": {
+          "value": true, "rule": "6",
+          "why": "the displaced place (the Saloon) has warm (0.05) and wary (0.05) sides above TornAt"
+        },
+        "choice": {
+          "visibleAt": 13512, "backend": "laya", "selected": "alt:13511:Pam:0/yes",
+          "probabilities": {"alt:13511:Pam:0/yes":0.71,"alt:13511:Pam:0/not-now":0.21,"alt:13511:Pam:0/no":0.08},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:13511:Pam:0"], "unit": 0.412,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:13511:Pam:0/yes","alt:13511:Pam:0/not-now","alt:13511:Pam:0/no"]
+          },
+          "fallback": {
+            "weights": {"alt:13511:Pam:0/yes":5.207,"alt:13511:Pam:0/not-now":1.1052,"alt:13511:Pam:0/no":0.192},
+            "probabilities": {"alt:13511:Pam:0/yes":0.8006,"alt:13511:Pam:0/not-now":0.1699,"alt:13511:Pam:0/no":0.0295},
+            "wouldSelect": "alt:13511:Pam:0/yes"
+          },
+          "laya": {
+            "probabilities": {"alt:13511:Pam:0/yes":0.71,"alt:13511:Pam:0/not-now":0.21,"alt:13511:Pam:0/no":0.08},
+            "source": "illustrative: invented for this fixture"
+          },
+          "base": ["invitation:13512:Penny:Pam"],
+          "provenance": {
+            "alternativeSetHash": "fnv1a64:984f6cf5c88a7c08", "tape": "reflection:1:opp:13511:Pam:0",
+            "requestHash": "fnv1a64:9b0216f016fbe73e", "model": "model:laya:typed-decisions",
+            "thought": {"backend":"authored","imagined":true}
+          }
+        }
+      },
+      {
+        "id": "dec:14010:Pam:0", "holder": 1, "opportunity": "opp:14010:Pam:0", "recall": "rc:14010:Pam:0",
+        "visibleAt": 14010, "question": "plan-follow-through",
+        "label": "Stay in for the evening she agreed to, or go to the Saloon?",
+        "alternatives": [
+          {
+            "id": "alt:14010:Pam:0/keep", "slug": "keep", "label": "stay home for the plan",
+            "components": {
+              "formula": "rule5", "base": 1, "chance": {"whereabouts":1,"answers":1,"followThrough":1}, "warm": 0.05,
+              "cold": 0, "boldness": 0.7, "intended": 0.2, "cost": 0
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "intended", "value": 0.2, "via": "plan", "cites": ["plan:13512:Penny:Pam"],
+                "label": "she said yes this morning"
+              },
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "recall",
+                "cites": ["rd:pam-penny-warm","as:Pam:person:Penny:+:proud"], "label": "her girl"
+              },
+              {
+                "kind": "shown", "code": "wish", "via": "cue", "cites": ["rd:pam-wish-hobby"],
+                "effect": "none unless Sid's answer to O2's second question gives a wish warmth: it would add 0.05 warm",
+                "label": "her wish for a hobby besides the Saloon"
+              }
+            ]
+          },
+          {
+            "id": "alt:14010:Pam:0/saloon", "slug": "saloon", "label": "go to the Saloon (her haunt, 15:00-24:00)",
+            "components": {"formula":"rule5","base":4,"warm":0.05,"cold":0.05,"boldness":0.7,"intended":0,"cost":0},
+            "reasons": [
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "recall",
+                "cites": ["rd:pam-saloon-warm","as:Pam:place:Saloon:+:enjoys"], "label": "she enjoys it"
+              },
+              {
+                "kind": "supports", "code": "habit-weight", "value": 4, "via": "routine",
+                "cites": ["acct:pam-saloon-evenings:Pam"], "provenance": ["src:code-cards"],
+                "label": "her authored haunt weight"
+              },
+              {
+                "kind": "conflicts", "code": "cold", "value": 0.05, "via": "recall",
+                "cites": ["rd:pam-saloon-wary","as:Pam:place:Saloon:-:uneasy"], "label": "not healthy, she says"
+              }
+            ]
+          }
+        ],
+        "excluded": [
+          {
+            "id": "alt:14010:Pam:0/evening-hub", "slug": "evening-hub", "label": "the Evening gathering",
+            "why": {"code":"not-open","cites":["src:code-gathering"],"label":"not on before 18:00"}
+          },
+          {
+            "id": "alt:14010:Pam:0/square", "slug": "square", "label": "the Square",
+            "why": {"code":"closed","cites":["src:code-cards"],"label":"her Square haunt ends at 17:00"}
+          }
+        ],
+        "constraints": [{"code":"physical","value":"a 32-minute walk to the Saloon","cites":[]}],
+        "torn": {"value":true,"rule":"6","why":"the Saloon's warm and wary sides both above TornAt"},
+        "choice": {
+          "visibleAt": 14011, "backend": "laya", "selected": "alt:14010:Pam:0/saloon",
+          "probabilities": {"alt:14010:Pam:0/keep":0.38,"alt:14010:Pam:0/saloon":0.62},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:14010:Pam:0"], "unit": 0.655,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:14010:Pam:0/keep","alt:14010:Pam:0/saloon"]
+          },
+          "fallback": {
+            "weights": {"alt:14010:Pam:0/keep":3.4903,"alt:14010:Pam:0/saloon":4.765},
+            "probabilities": {"alt:14010:Pam:0/keep":0.4228,"alt:14010:Pam:0/saloon":0.5772},
+            "wouldSelect": "alt:14010:Pam:0/saloon"
+          },
+          "laya": {
+            "probabilities": {"alt:14010:Pam:0/keep":0.38,"alt:14010:Pam:0/saloon":0.62},
+            "source": "illustrative: invented for this fixture"
+          },
+          "provenance": {
+            "alternativeSetHash": "fnv1a64:27e5824d0fea5b55", "tape": "question:1:q:14010:Pam:0",
+            "requestHash": "fnv1a64:96a1c55a4785da5e", "model": "model:laya:typed-decisions", "thought": null
+          }
+        }
+      },
+      {
+        "id": "dec:14028:Penny:0", "holder": 2, "opportunity": "opp:14028:Penny:0", "recall": "rc:14028:Penny:0",
+        "visibleAt": 14028, "question": "plan-follow-through", "label": "Head home now for the evening she offered?",
+        "alternatives": [
+          {
+            "id": "alt:14028:Penny:0/keep", "slug": "keep", "label": "go home now",
+            "components": {
+              "formula": "rule5", "base": 1, "chance": {"whereabouts":0.3333,"answers":1,"followThrough":1},
+              "warm": 0.05, "cold": 0.05, "boldness": 0.2, "intended": 0.2, "cost": 0
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "intended", "value": 0.2, "via": "plan", "cites": ["plan:13512:Penny:Pam"],
+                "label": "her own offer"
+              },
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "recall", "cites": ["rd:penny-pam-care"],
+                "label": "her worry for Pam"
+              },
+              {
+                "kind": "conflicts", "code": "cold", "value": 0.05, "via": "recall", "cites": ["rd:penny-pam-burden"],
+                "label": "the burden"
+              },
+              {
+                "kind": "conflicts", "code": "chance:whereabouts", "value": 0.3333, "via": "expectation",
+                "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday"],
+                "label": "she expects Pam out in the evening"
+              },
+              {
+                "kind": "supports", "code": "chance:answers", "value": 1, "via": "expectation",
+                "cites": ["ex:Penny:Pam:answers:plan"], "label": "Pam said yes"
+              }
+            ]
+          },
+          {
+            "id": "alt:14028:Penny:0/stay", "slug": "stay", "label": "stay at the Beach until it closes at 18:00",
+            "components": {"formula":"rule5","base":1,"warm":0,"cold":0,"boldness":0.2,"intended":0,"cost":0},
+            "reasons": [
+              {
+                "kind": "supports", "code": "carry-on", "value": 1, "via": "routine", "cites": [],
+                "label": "her haunt, 12 more minutes"
+              }
+            ]
+          }
+        ],
+        "excluded": [], "constraints": [{"code":"physical","value":"a 12-minute walk home","cites":[]}],
+        "torn": {"value":true,"rule":"6","why":"the plan's companion (Pam) has warm and cold sides above TornAt"},
+        "choice": {
+          "visibleAt": 14029, "backend": "laya", "selected": "alt:14028:Penny:0/keep",
+          "probabilities": {"alt:14028:Penny:0/keep":0.81,"alt:14028:Penny:0/stay":0.19},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:14028:Penny:0"], "unit": 0.205,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:14028:Penny:0/keep","alt:14028:Penny:0/stay"]
+          },
+          "fallback": {
+            "weights": {"alt:14028:Penny:0/keep":0.9525,"alt:14028:Penny:0/stay":1},
+            "probabilities": {"alt:14028:Penny:0/keep":0.4878,"alt:14028:Penny:0/stay":0.5122},
+            "wouldSelect": "alt:14028:Penny:0/keep"
+          },
+          "laya": {
+            "probabilities": {"alt:14028:Penny:0/keep":0.81,"alt:14028:Penny:0/stay":0.19},
+            "source": "illustrative: invented for this fixture"
+          },
+          "provenance": {
+            "alternativeSetHash": "fnv1a64:09ce9a99a1990de0", "tape": "question:1:q:14028:Penny:0",
+            "requestHash": "fnv1a64:7b0cfa62acacc0c0", "model": "model:laya:typed-decisions", "thought": null
+          }
+        }
+      },
+      {
+        "id": "dec:14055:Pam:0", "holder": 1, "opportunity": "opp:14055:Pam:0", "recall": "rc:14055:Pam:0",
+        "visibleAt": 14055, "question": "answer-errand-ask", "label": "Will Pam fetch Gus's flour tomorrow?",
+        "alternatives": [
+          {
+            "id": "alt:14055:Pam:0/yes", "slug": "yes", "label": "yes",
+            "components": {
+              "formula": "rule7", "answer": "yes", "obliged": 0.41, "costs": {"base":0.2,"state":0.0279,"errand":0},
+              "margin": 0.1821
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "obliged", "value": 0.41, "via": "ask", "cites": [],
+                "provenance": ["src:code-ask-errand"],
+                "label": "the Ask: regard 0.4 (the Pam-Gus friend seed; 'can wait'), familiarity 0.5 (the friends' seed; day 9's may be higher), understanding 0.3 (her card); no Fond (they meet daily)"
+              },
+              {
+                "kind": "shown", "code": "warm", "via": "recall", "cites": ["rd:pam-gus-warm"],
+                "effect": "recalled; the Ask reads regard, not associations (count once)", "label": "Gus is a good guy"
+              },
+              {
+                "kind": "conflicts", "code": "cost", "value": 0.2, "via": "ask", "cites": [],
+                "provenance": ["src:code-ask-errand"],
+                "label": "the Ask's base cost; no errand running, the household can pay (ErrandCost 0)"
+              },
+              {
+                "kind": "conflicts", "code": "state", "value": 0.0279, "via": "state", "cites": [],
+                "provenance": ["src:code-state-cost"],
+                "label": "tired 0.10, low 0.02 (illustrative), eagerness 0.5, bond 0.45"
+              }
+            ]
+          },
+          {
+            "id": "alt:14055:Pam:0/not-now", "slug": "not-now", "label": "not now",
+            "components": {"formula":"rule7","answer":"not-now","reason":{"code":"tired","value":0.0279}},
+            "reasons": [
+              {
+                "kind": "supports", "code": "tired", "value": 0.0279, "via": "state", "cites": [],
+                "label": "tired and a little low: a reason holds (rule 7)"
+              }
+            ]
+          },
+          {
+            "id": "alt:14055:Pam:0/no", "slug": "no", "label": "no",
+            "components": {"formula":"rule7","answer":"no","margin":0.1821},
+            "reasons": [
+              {
+                "kind": "supports", "code": "negative-margin", "value": -0.1821, "via": "ask", "cites": [],
+                "label": "the margin's other side"
+              }
+            ]
+          }
+        ],
+        "excluded": [],
+        "constraints": [
+          {"code":"same-set-both-backends","value":"yes, not now, no","cites":[]},
+          {
+            "code": "counter-hours",
+            "value": "the Store is closed on Wednesdays (Pierre's day off); tomorrow 09:00-17:00", "cites": []
+          }
+        ],
+        "torn": {"value":false,"rule":"6","why":"Gus has only a warm side for Pam; the top two are not within 10%"},
+        "choice": {
+          "visibleAt": 14056, "backend": "fallback-keyed-draw", "selected": "alt:14055:Pam:0/no",
+          "probabilities": {"alt:14055:Pam:0/yes":0.6156,"alt:14055:Pam:0/not-now":0.2847,"alt:14055:Pam:0/no":0.0996},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:14055:Pam:0"], "unit": 0.93,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:14055:Pam:0/yes","alt:14055:Pam:0/not-now","alt:14055:Pam:0/no"]
+          },
+          "fallback": {
+            "weights": {"alt:14055:Pam:0/yes":2.4856,"alt:14055:Pam:0/not-now":1.1497,"alt:14055:Pam:0/no":0.4023},
+            "probabilities": {"alt:14055:Pam:0/yes":0.6156,"alt:14055:Pam:0/not-now":0.2847,"alt:14055:Pam:0/no":0.0996},
+            "wouldSelect": "alt:14055:Pam:0/no"
+          },
+          "base": ["favour:431"],
+          "provenance": {"alternativeSetHash":"fnv1a64:f53febe4191af027","tape":null,"requestHash":null,"model":null,"thought":null}
+        }
+      },
+      {
+        "id": "dec:14060:Pam:0", "holder": 1, "opportunity": "opp:14060:Pam:0", "recall": "rc:14060:Pam:0",
+        "visibleAt": 14060, "question": "encounter-offer", "label": "Ask Gus for a game?",
+        "alternatives": [
+          {
+            "id": "alt:14060:Pam:0/offer", "slug": "offer", "label": "ask Gus to play a game now, at the Saloon",
+            "template": {"kind":"plan-offer","asked":0,"place":"Saloon","activity":"PlayedGame","from":14061,"until":14091},
+            "components": {
+              "formula": "rule5", "base": 0.1, "chance": {"whereabouts":1,"answers":1,"followThrough":1}, "warm": 0.05,
+              "cold": 0, "boldness": 0.7, "intended": 0, "cost": 0
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "recall",
+                "cites": ["rd:pam-gus-warm","as:Pam:person:Gus:+:fond"], "label": "Gus is a good guy"
+              },
+              {
+                "kind": "supports", "code": "plan-base", "value": 0.1, "via": "rule", "cites": [],
+                "label": "an encounter offer starts small (PlanBase)"
+              },
+              {
+                "kind": "supports", "code": "chance:availability", "value": 1, "via": "expectation", "cites": [],
+                "label": "free by her knowledge: no availability entries for Gus yet (rule 11)"
+              },
+              {
+                "kind": "shown", "code": "wish", "via": "cue", "cites": ["rd:pam-wish-hobby"],
+                "effect": "none unless Sid's answer to O2's second question gives a wish warmth",
+                "label": "her wish for a hobby"
+              }
+            ]
+          },
+          {
+            "id": "alt:14060:Pam:0/carry-on", "slug": "carry-on", "label": "carry on at the Saloon",
+            "components": {"formula":"rule5","base":1,"warm":0.05,"cold":0.05,"boldness":0.7,"intended":0,"cost":0},
+            "reasons": [
+              {
+                "kind": "supports", "code": "warm", "value": 0.05, "via": "option-side",
+                "cites": ["as:Pam:place:Saloon:+:enjoys"], "label": "she enjoys it"
+              },
+              {
+                "kind": "conflicts", "code": "cold", "value": 0.05, "via": "option-side",
+                "cites": ["as:Pam:place:Saloon:-:uneasy"], "label": "not healthy"
+              }
+            ]
+          }
+        ],
+        "excluded": [],
+        "constraints": [
+          {"code":"eligible-activity","value":"a game at the Saloon after 17:00; ages within 6 (both 50)","cites":[]},
+          {"code":"one-offer-a-pair-a-day","value":"none yet today between them","cites":[]}
+        ],
+        "torn": {"value":true,"rule":"6","why":"carry-on's object (the Saloon) has warm and wary sides above TornAt"},
+        "choice": {
+          "visibleAt": 14060, "backend": "fallback-keyed-draw", "selected": "alt:14060:Pam:0/offer",
+          "probabilities": {"alt:14060:Pam:0/offer":0.0973,"alt:14060:Pam:0/carry-on":0.9027},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:14060:Pam:0"], "unit": 0.061,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:14060:Pam:0/offer","alt:14060:Pam:0/carry-on"]
+          },
+          "fallback": {
+            "weights": {"alt:14060:Pam:0/offer":0.1284,"alt:14060:Pam:0/carry-on":1.1912},
+            "probabilities": {"alt:14060:Pam:0/offer":0.0973,"alt:14060:Pam:0/carry-on":0.9027},
+            "wouldSelect": "alt:14060:Pam:0/offer"
+          },
+          "cap": {
+            "reached": true, "limit": 2, "used": ["dec:13511:Pam:0","dec:14010:Pam:0"],
+            "note": "torn, but Pam's two model questions today are used: the fallback answers on the same alternatives"
+          },
+          "provenance": {"alternativeSetHash":"fnv1a64:507314515fea36d4","tape":null,"requestHash":null,"model":null,"thought":null}
+        }
+      },
+      {
+        "id": "dec:14060:Gus:0", "holder": 0, "opportunity": "opp:14060:Gus:0", "recall": "rc:14060:Gus:0",
+        "visibleAt": 14060, "question": "answer-plan-offer", "label": "Does Gus play a game with Pam now?",
+        "alternatives": [
+          {
+            "id": "alt:14060:Gus:0/yes", "slug": "yes", "label": "yes",
+            "components": {
+              "formula": "rule7", "answer": "yes", "obliged": 0.51,
+              "costs": {"base":0.15,"state":0.2393,"displacedHabit":0}, "margin": 0.1207
+            },
+            "reasons": [
+              {
+                "kind": "supports", "code": "obliged", "value": 0.51, "via": "ask", "cites": [],
+                "provenance": ["src:code-ask-invitation"],
+                "label": "the Ask: regard 0.4 (the friend seed; 'can wait'), familiarity 0.5 (the friends' seed), chattiness 0.8; no Fond, no kin bond"
+              },
+              {
+                "kind": "conflicts", "code": "cost", "value": 0.15, "via": "ask", "cites": [],
+                "provenance": ["src:code-ask-invitation"],
+                "label": "the Ask's base cost; the game displaces no place of his (he is at the Saloon)"
+              },
+              {
+                "kind": "conflicts", "code": "state", "value": 0.2393, "via": "state", "cites": [],
+                "provenance": ["src:code-state-cost"],
+                "label": "mid-shift, read as a duty in hand (busy 1; eagerness 0.45, bond 0.45). Contingent: today busy means work due within 60 minutes, and whether work weighs a non-errand ask is rule 16's open point"
+              },
+              {
+                "kind": "shown", "code": "wary", "via": "recall", "cites": ["rd:gus-pam-wary"],
+                "effect": "reflection context only: the Ask reads regard, not associations (count once)",
+                "label": "she drinks too much, he thinks"
+              }
+            ]
+          },
+          {
+            "id": "alt:14060:Gus:0/not-now", "slug": "not-now", "label": "not now",
+            "components": {"formula":"rule7","answer":"not-now","reason":{"code":"working","value":0.2393}},
+            "reasons": [
+              {
+                "kind": "supports", "code": "working", "value": 0.2393, "via": "state", "cites": [],
+                "label": "at the counter mid-shift: a reason holds (rule 7), contingent on rule 16's open point"
+              }
+            ]
+          },
+          {
+            "id": "alt:14060:Gus:0/no", "slug": "no", "label": "no",
+            "components": {"formula":"rule7","answer":"no","margin":0.1207},
+            "reasons": [
+              {
+                "kind": "supports", "code": "negative-margin", "value": -0.1207, "via": "ask", "cites": [],
+                "label": "the margin's other side"
+              }
+            ]
+          }
+        ],
+        "excluded": [], "constraints": [{"code":"same-set-both-backends","value":"yes, not now, no","cites":[]}],
+        "torn": {
+          "value": false, "rule": "6",
+          "why": "Gus has only a wary side toward Pam (g3); the top two (not now, yes) are not within 10%"
+        },
+        "choice": {
+          "visibleAt": 14061, "backend": "fallback-keyed-draw", "selected": "alt:14060:Gus:0/not-now",
+          "probabilities": {"alt:14060:Gus:0/yes":0.3217,"alt:14060:Gus:0/not-now":0.5821,"alt:14060:Gus:0/no":0.0962},
+          "sampled": {
+            "stream": "lives-choice", "parts": ["dec:14060:Gus:0"], "unit": 0.533,
+            "unitSource": "illustrative: a real run computes Rng.Unit(seed, \"lives-choice\", decision id)",
+            "order": ["alt:14060:Gus:0/yes","alt:14060:Gus:0/not-now","alt:14060:Gus:0/no"]
+          },
+          "fallback": {
+            "weights": {"alt:14060:Gus:0/yes":1.8285,"alt:14060:Gus:0/not-now":3.3085,"alt:14060:Gus:0/no":0.5469},
+            "probabilities": {"alt:14060:Gus:0/yes":0.3217,"alt:14060:Gus:0/not-now":0.5821,"alt:14060:Gus:0/no":0.0962},
+            "wouldSelect": "alt:14060:Gus:0/not-now"
+          },
+          "provenance": {
+            "alternativeSetHash": "fnv1a64:2e069113ac790c02", "tape": "reflection:1:opp:14060:Gus:0",
+            "requestHash": "fnv1a64:9a8c148ae890149a", "model": null,
+            "thought": {
+              "backend": "authored", "imagined": true,
+              "note": "not torn: the reflection gives only the thought; the keyed draw answers"
+            }
+          }
+        }
+      }
+    ],
+    "attempts": [
+      {
+        "id": "att:13510:Pam:0", "actor": 1, "target": 2, "kind": "errand-ask", "visibleAt": 13510, "decision": null,
+        "decidedBy": "base: AskFavours' draw (Simulation.Errands.cs:146 [#90]) x rule 15's factor, 1 with no entries",
+        "base": ["need:36"], "attempted": "asks Penny to fetch a beer", "resolvedAt": 13510, "status": "answered",
+        "outcome": "out:13510:Penny:0", "label": "Pam asks Penny to fetch her a beer"
+      },
+      {
+        "id": "att:13511:Penny:0", "actor": 2, "target": 1, "kind": "plan-offer", "visibleAt": 13511,
+        "decision": "dec:13510:Penny:0", "alternative": "alt:13510:Penny:0/offer",
+        "intention": "an evening at home with Pam, a game, 18:00 to 21:20",
+        "attempted": "asks Pam (a pending ask, answered the next minute: rule 7)", "resolvedAt": 13512,
+        "status": "answered", "outcome": "out:13512:Pam:0", "label": "Penny asks Pam to stay in tonight"
+      },
+      {
+        "id": "att:13580:Gus:0", "actor": 0, "target": 2, "kind": "errand-ask", "visibleAt": 13580, "decision": null,
+        "decidedBy": "base: AskFavours' draw among those in reach at the Square (Simulation.Errands.cs:146 [#90]; Free ignores work, Simulation.cs:890 [base]) x rule 15's factor, 1 with no entries",
+        "base": ["need:37"], "attempted": "would ask Penny to fetch flour", "resolvedAt": 13580, "status": "busy",
+        "outcome": "out:13580:Penny:0", "label": "Gus, at the Square before his shift, would ask Penny for flour"
+      },
+      {
+        "id": "att:14011:Pam:0", "actor": 1, "kind": "go", "visibleAt": 14011, "decision": "dec:14010:Pam:0",
+        "alternative": "alt:14010:Pam:0/saloon", "intention": "spend the evening at the Saloon",
+        "attempted": "walks from the Trailer to the Saloon", "resolvedAt": 14043, "status": "completed",
+        "world": {"arrived":14043,"place":"Saloon"}, "label": "Pam leaves for the Saloon"
+      },
+      {
+        "id": "att:14029:Penny:0", "actor": 2, "kind": "go", "visibleAt": 14029, "decision": "dec:14028:Penny:0",
+        "alternative": "alt:14028:Penny:0/keep", "intention": "be home for the evening with Pam",
+        "attempted": "walks home from the Beach", "resolvedAt": 14041, "status": "completed",
+        "world": {"arrived":14041,"place":"Home:Trailer","crossed":"no sighting span with Pam on the way (illustrative)"},
+        "label": "Penny heads home"
+      },
+      {
+        "id": "att:14041:Penny:0", "actor": 2, "target": 1, "kind": "begin-planned-act", "visibleAt": 14041,
+        "decision": "dec:14028:Penny:0", "alternative": "alt:14028:Penny:0/keep",
+        "intention": "begin the game when both are home (rule 13)",
+        "attempted": "waits at home for Pam, up to 60 minutes", "resolvedAt": 14101, "status": "unsuccessful",
+        "world": {"began":false,"waitedUntil":14101}, "outcome": "out:14040:Pam:0", "label": "Penny waits for Pam"
+      },
+      {
+        "id": "att:14055:Gus:0", "actor": 0, "target": 1, "kind": "errand-ask", "visibleAt": 14055, "decision": null,
+        "decidedBy": "base: AskFavours' draw (Simulation.Errands.cs:146 [#90]) x rule 15's factor, 1 with no entries",
+        "base": ["need:37"], "attempted": "asks Pam to fetch flour (the Store opens tomorrow)", "resolvedAt": 14056,
+        "status": "answered", "outcome": "out:14056:Pam:0", "label": "Gus asks Pam to fetch flour"
+      },
+      {
+        "id": "att:14060:Pam:0", "actor": 1, "target": 0, "kind": "plan-offer", "visibleAt": 14060,
+        "decision": "dec:14060:Pam:0", "alternative": "alt:14060:Pam:0/offer", "intention": "a game with Gus",
+        "attempted": "asks Gus at the counter (a pending ask, rule 7)", "resolvedAt": 14061, "status": "answered",
+        "outcome": "out:14061:Gus:0", "label": "Pam asks Gus for a game"
+      }
+    ],
+    "plans": [
+      {
+        "id": "plan:13512:Penny:Pam", "visibleAt": 13512, "origin": "att:13511:Penny:0", "answer": "yes",
+        "formal": false,
+        "formalNote": "an agreed evening, not a Promise: informal, and disappointment is still possible (A, direction 4.3, 2026-10-14)",
+        "place": "Home:Trailer", "activity": "PlayedGame",
+        "window": {"from":14040,"until":14240,"untilBasis":"Penny's usual bedtime as she knows it (O1(a))"},
+        "members": [{"who":2,"role":"asker"},{"who":1,"role":"asked"}],
+        "knownBy": [{"who":2,"how":"Lived","availableAt":13512},{"who":1,"how":"Lived","availableAt":13512}],
+        "label": "an evening at home together, 18:00-21:20"
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "out:13510:Penny:0", "about": 2, "visibleAt": 13510, "settledAt": 13510, "attempts": ["att:13510:Pam:0"],
+        "participants": [1,2], "kind": "refused-by-commitment", "base": ["favour:412","act:412"],
+        "world": {
+          "answer": "no", "margin": 0.6, "byCommitment": "cmt:penny-no-alcohol", "act": "act:412",
+          "when": "at once: a commitment answers as line 99 does, with no pending minute (9.7; our reading of rule 7)"
+        },
+        "mustNotWrite": ["a probabilistic yes","any coldness toward Pam in Penny's records"], "observerOnly": true,
+        "settledLabel": "Penny says no; her commitment decides it whatever the margin", "label": "Pam's ask for beer"
+      },
+      {
+        "id": "out:13512:Pam:0", "about": 1, "visibleAt": 13512, "settledAt": 13512, "attempts": ["att:13511:Penny:0"],
+        "participants": [2,1], "kind": "agreed", "base": ["invitation:13512:Penny:Pam"],
+        "world": {"answer":"yes","plan":"plan:13512:Penny:Pam"}, "observerOnly": true,
+        "settledLabel": "Pam says yes: an informal agreement, not a Promise",
+        "label": "Penny's offer of an evening at home"
+      },
+      {
+        "id": "out:13580:Penny:0", "about": 2, "visibleAt": 13580, "settledAt": 13580, "attempts": ["att:13580:Gus:0"],
+        "participants": [0,2], "kind": "busy",
+        "determinedBy": {
+          "rule": "16", "sources": ["src:assessment-9","src:91-answer-7"],
+          "note": "the person drawn is at her job place (the Square) in working hours (10:00-14:00): busy, no ask is made; rule 16 applies to errand asks, as the assessment reads #91's answer 7"
+        },
+        "world": {"asked":false,"place":"Square","job":"teaching, 10:00-14:00"},
+        "mustNotWrite": ["an answer","a refusal","regard","dread"], "observerOnly": true,
+        "settledLabel": "Penny is teaching: busy, not a refusal; she is not asked, so she perceives nothing",
+        "label": "Gus's flour, a first try"
+      },
+      {
+        "id": "out:14040:Pam:0", "about": 1, "visibleAt": 14040, "settledAt": 14240, "plan": "plan:13512:Penny:Pam",
+        "attempts": ["att:14011:Pam:0","att:14029:Penny:0"], "participants": [2,1],
+        "timeline": [
+          {
+            "at": 14040,
+            "label": "the window opens: neither is at the Trailer (Pam on her way to the Saloon since 17:31, Penny on her way home since 17:49)"
+          },
+          {"at":14041,"attempts":["att:14041:Penny:0"],"label":"Penny is home and waits"},
+          {"at":14043,"label":"Pam reaches the Saloon"},
+          {"at":14101,"label":"Penny's hour of waiting ends; the game has not begun"}
+        ],
+        "kind": "agreed-absent",
+        "world": {
+          "plannedAct": null,
+          "spans": [
+            {"who":1,"place":"Home:Trailer","from":13895,"to":14011},
+            {"who":1,"place":"travelling","from":14011,"to":14043}, {"who":1,"place":"Saloon","from":14043,"to":14240},
+            {"who":2,"place":"Home:Trailer","from":14041,"to":14240}
+          ],
+          "spansFrom": "the base moves stream (illustrative here)"
+        },
+        "mustNotWrite": [
+          "a refusal, rejection or betrayal", "LetDown, StoodUp or a Promise(Date)",
+          "where Pam went, except as Inferred", "regard (no act perceived)", "a feeling for one who expected nothing"
+        ],
+        "observerOnly": true,
+        "settledLabel": "Pam was at the Saloon from 18:03 to the window's end; the game never began",
+        "label": "the agreed evening at the Trailer"
+      },
+      {
+        "id": "out:14056:Pam:0", "about": 1, "visibleAt": 14056, "settledAt": 14056, "attempts": ["att:14055:Gus:0"],
+        "participants": [0,1], "kind": "declined", "base": ["favour:431","act:431"],
+        "world": {"answer":"no","act":"act:431","weighed":true}, "observerOnly": true,
+        "mustNotWrite": ["an association for the asker","a fixed 7-day wait"],
+        "settledLabel": "Pam says no, a weighed no (about 1 in 10 at this margin); the hurt is the Refused act's own",
+        "label": "Gus's flour, asked of Pam"
+      },
+      {
+        "id": "out:14061:Gus:0", "about": 0, "visibleAt": 14061, "settledAt": 14061, "attempts": ["att:14060:Pam:0"],
+        "participants": [1,0], "kind": "not-now",
+        "determinedBy": {
+          "rule": "7", "sources": ["src:assessment-9"],
+          "note": "the fallback's keyed draw over the same three answers Laya would have had; the 'working' reason assumes rule 16's open point resolves as 'work weighs an ask' (contingent; if work stops asks, this would be busy)"
+        },
+        "world": {"answer":"not-now","act":null,"baseRow":"none: not now has no base row (contract 16, point 1)"},
+        "mustNotWrite": ["the Refused act","an invitations row","a 7-day wait","regard"], "observerOnly": true,
+        "settledLabel": "Gus: not now, he is working", "label": "Pam's offer of a game"
+      }
+    ],
+    "perceptions": [
+      {
+        "id": "per:13510:Pam:0", "who": 1, "visibleAt": 13510, "of": "att:13510:Pam:0", "causes": ["act:412"],
+        "perceived": {"kind":"refused","answer":"no","act":"act:412"},
+        "notPerceived": ["Penny's reason: the commitment is hers"],
+        "observerLinks": {"worldOutcome":"out:13510:Penny:0"}, "label": "Pam: Penny turned me down"
+      },
+      {
+        "id": "per:13512:Penny:0", "who": 2, "visibleAt": 13512, "of": "att:13511:Penny:0",
+        "causes": ["invitation:13512:Penny:Pam"], "perceived": {"kind":"agreed","answer":"yes"},
+        "observerLinks": {"worldOutcome":"out:13512:Pam:0"}, "label": "Penny: Mom said yes"
+      },
+      {
+        "id": "per:13580:Gus:0", "who": 0, "visibleAt": 13580, "of": "att:13580:Gus:0", "causes": [],
+        "perceived": {"kind":"busy","subject":2,"reason":"at her lessons","place":"Square","source":"Seen"},
+        "notPerceived": ["whether she would have said yes"], "observerLinks": {"worldOutcome":"out:13580:Penny:0"},
+        "label": "Gus: Penny is busy teaching"
+      },
+      {
+        "id": "per:14040:Pam:0", "who": 1, "visibleAt": 14040, "of": "plan:13512:Penny:Pam",
+        "causes": ["att:14011:Pam:0"], "perceived": {"kind":"not-kept-by-me","note":"she knows she chose the Saloon"},
+        "notPerceived": ["Penny's arrival and wait","how Penny felt"],
+        "observerLinks": {"worldOutcome":"out:14040:Pam:0"}, "label": "Pam: on my way to the Saloon"
+      },
+      {
+        "id": "per:14040:Gus:0", "who": 0, "visibleAt": 14040, "of": null, "causes": [],
+        "perceived": {"kind":"missed","subject":1,"place":"Saloon","band":"15-18","source":"seen-absent"},
+        "rule": "14 passive absence", "notPerceived": ["where Pam was","the plan with Penny"],
+        "observerLinks": {"worldOutcome":"out:14040:Pam:0"}, "label": "Gus: no Pam this afternoon"
+      },
+      {
+        "id": "per:14045:Gus:0", "who": 0, "visibleAt": 14045, "of": null, "causes": [],
+        "perceived": {
+          "kind": "found", "subject": 1, "place": "Saloon", "band": "18-21", "firstSeen": 14045, "source": "Seen",
+          "reading": "Pam arrives late"
+        },
+        "notPerceived": ["where Pam was before","the plan with Penny"],
+        "observerLinks": {"worldOutcome":"out:14040:Pam:0"},
+        "reflection": "not opened: the afternoon miss contradicts lived entries, not a recalled reading (rule 8b)",
+        "label": "Gus: Pam arrives late"
+      },
+      {
+        "id": "per:14056:Gus:0", "who": 0, "visibleAt": 14056, "of": "att:14055:Gus:0", "causes": ["act:431"],
+        "perceived": {"kind":"refused","answer":"no","act":"act:431"}, "notPerceived": ["Pam's reasons"],
+        "observerLinks": {"worldOutcome":"out:14056:Pam:0"}, "label": "Gus: Pam said no"
+      },
+      {
+        "id": "per:14061:Pam:0", "who": 1, "visibleAt": 14061, "of": "att:14060:Pam:0", "causes": [],
+        "perceived": {"kind":"not-now","reason":"at work"}, "notPerceived": ["what Gus thinks of her drinking"],
+        "observerLinks": {"worldOutcome":"out:14061:Gus:0"}, "label": "Pam: Gus can't now, he's working"
+      },
+      {
+        "id": "per:14101:Penny:0", "who": 2, "visibleAt": 14101, "of": "plan:13512:Penny:Pam",
+        "causes": ["att:14041:Penny:0"],
+        "perceived": {"kind":"agreed-absent","observed":"Pam not home from 18:01 to 19:01","source":"Sought"},
+        "unknown": [{"about":"where Pam went","status":"unknown"},{"about":"why","status":"unknown"}],
+        "inferences": [
+          {
+            "about": "where Pam went", "guess": "the Saloon", "certainty": "guess",
+            "basis": ["rd:penny-saloon-wary","ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday"],
+            "establishes": false,
+            "note": "an inference, not a sighting: it writes no 'found at the Saloon' entry and is never told as fact"
+          }
+        ],
+        "notAsserted": ["rejection","betrayal","where Pam went"], "notPerceived": ["that Pam was home until 17:31"],
+        "observerLinks": {"worldOutcome":"out:14040:Pam:0"}, "label": "Penny: she said yes, and she isn't here"
+      }
+    ],
+    "learning": [
+      {
+        "id": "lu:13510:Pam:0", "who": 1, "visibleAt": 13510, "record": "ex:Pam:Penny:answers:errand:beer",
+        "rule": "9.4 refused by commitment; rule 15",
+        "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {
+          "entries": 1, "lived": 1, "seeded": 0, "found": 0, "chance": 0.5,
+          "last": {"outcome":"no","source":"Lived","act":"act:412"}
+        },
+        "evidence": ["per:13510:Pam:0"], "note": "from Penny's answers only, never from Penny's commitment record",
+        "label": "Pam: one 'no' from Penny for beer"
+      },
+      {
+        "id": "lu:13512:Penny:0", "who": 2, "visibleAt": 13512, "record": "ex:Penny:Pam:answers:plan",
+        "rule": "9.4 answers", "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {"entries":1,"lived":1,"seeded":0,"found":1,"chance":1,"last":{"outcome":"yes","source":"Lived"}},
+        "evidence": ["per:13512:Penny:0"], "label": "Penny: one 'yes' from Pam to a plan"
+      },
+      {
+        "id": "lu:13580:Gus:0", "who": 0, "visibleAt": 13580, "record": "ex:Gus:Penny:availability:Square:10-14:weekday",
+        "rule": "16; 9.4 busy", "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {"entries":1,"lived":1,"seeded":0,"found":0,"chance":0.5,"last":{"day":9,"outcome":"busy","source":"Seen"}},
+        "evidence": ["per:13580:Gus:0"], "note": "availability only: no answer, no refusal, no regard, no dread",
+        "label": "Gus: Penny is busy at this hour"
+      },
+      {
+        "id": "lu:14040:Gus:0", "who": 0, "visibleAt": 14040, "record": "ex:Gus:Pam:whereabouts:Saloon:15-18:weekday",
+        "rule": "14", "previous": {"entries":6,"lived":6,"seeded":0,"found":6,"chance":1},
+        "new": {
+          "entries": 6, "lived": 6, "seeded": 0, "found": 5, "chance": 0.8571,
+          "dropped": {"day":1,"outcome":"found","source":"Seen"},
+          "last": {"day":9,"outcome":"missed","source":"seen-absent"}
+        },
+        "evidence": ["per:14040:Gus:0"], "note": "a lived key: the oldest lived entry leaves the window",
+        "label": "Gus: Pam's afternoons, a little less sure"
+      },
+      {
+        "id": "lu:14045:Gus:0", "who": 0, "visibleAt": 14045, "record": "ex:Gus:Pam:whereabouts:Saloon:18-21:weekday",
+        "rule": "9.4 seen", "previous": {"entries":6,"lived":5,"seeded":1,"found":6,"chance":1},
+        "new": {"entries":7,"lived":6,"seeded":1,"found":7,"chance":1,"last":{"day":9,"outcome":"found","source":"Seen"}},
+        "evidence": ["per:14045:Gus:0"], "preserved": ["rd:gus-expects-pam-evenings"],
+        "note": "the seeded entry stays beside the six latest lived ones (rule 9): seven entries, seven found",
+        "label": "Gus: Pam's evenings, confirmed by sight"
+      },
+      {
+        "id": "lu:14056:Gus:0", "who": 0, "visibleAt": 14056, "record": "ex:Gus:Pam:answers:errand:flour",
+        "rule": "9.4 refused by weighing", "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {
+          "entries": 1, "lived": 1, "seeded": 0, "found": 0, "chance": 0.5,
+          "last": {"outcome":"no","source":"Lived","act":"act:431"}
+        },
+        "evidence": ["per:14056:Gus:0"], "label": "Gus: one 'no' from Pam for flour"
+      },
+      {
+        "id": "lu:14061:Pam:0", "who": 1, "visibleAt": 14061, "record": "ex:Pam:Gus:availability:Saloon:18-21:weekday",
+        "rule": "9.4 not now", "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {
+          "entries": 1, "lived": 1, "seeded": 0, "found": 0, "chance": 0.5,
+          "last": {"day":9,"outcome":"not-now","source":"Lived","reason":"at work"}
+        },
+        "evidence": ["per:14061:Pam:0"], "note": "availability only: no 'no' entry, no hurt",
+        "label": "Pam: Gus is not free at this hour"
+      },
+      {
+        "id": "lu:14101:Penny:0", "who": 2, "visibleAt": 14101, "record": "ex:Penny:Pam:followThrough:plan",
+        "rule": "9.4 agreed, absent", "previous": {"entries":0,"lived":0,"seeded":0,"found":0,"chance":1},
+        "new": {"entries":1,"lived":1,"seeded":0,"found":0,"chance":0.5,"last":{"outcome":"absent","source":"Sought"}},
+        "evidence": ["per:14101:Penny:0"], "note": "learning starts at the first outcome (direction 4.2)",
+        "label": "Penny: one agreed evening, not kept"
+      },
+      {
+        "id": "lu:14101:Penny:1", "who": 2, "visibleAt": 14101,
+        "record": "as:Penny:situation:evening-at-home-with-Pam:-:disappointed",
+        "rule": "9.4 agreed, absent: disappointment (proposed)", "previous": null,
+        "new": {"strength":0.0167,"name":"disappointed","moodChange":-0.0167},
+        "basis": {
+          "formula": "9.4: D x expected x invested (first guesses)", "D": 0.05, "expectedAt": 13512,
+          "expectedTerms": [
+            {"term":"whereabouts","record":"ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday","chance":0.3333},
+            {"term":"answers","record":"ex:Penny:Pam:answers:plan","chance":1},
+            {"term":"followThrough","record":"ex:Penny:Pam:followThrough:plan","chance":1}
+          ],
+          "expected": 0.3333, "intended": 0.2, "warmth": {"record":"as:Penny:person:Pam:+:worried-care","strength":0.05},
+          "investedScale": 0.25, "invested": 1,
+          "knowledgeDependence": "every term is her own: the plan's chance from her keys at the yes, her intention and her warmth toward Pam; one who expected nothing (chance 0) or set nothing aside feels nothing"
+        },
+        "evidence": ["per:14101:Penny:0"], "notAsserted": ["rejection","betrayal"], "interpretation": {"formed":false},
+        "note": "mood changes once, here; no regard change (no act perceived); no whereabouts entry: the plan, not habit, set where Pam was to be (9.5)",
+        "label": "Penny: disappointed about the evening"
+      }
+    ],
+    "comparisons": [
+      {
+        "id": "cmp:13510:Penny:0:without-p6", "scope": "isolated-choice", "decision": "dec:13510:Penny:0",
+        "visibleAt": 13511, "question": "Does Penny's care for Pam (p6) change what she offers?",
+        "intervention": {
+          "field": "history", "remove": ["rd:penny-pam-care"], "seedsRemoved": ["as:Penny:person:Pam:+:worried-care"],
+          "evidenceKeys": ["p6"]
+        },
+        "validity": "valid: the opportunity (rule 10) and the decision exist in both arms",
+        "heldConstant": ["worldState","availableActions","otherPersonalState","randomInput","method"],
+        "arms": [
+          {
+            "id": "arm:with", "label": "with every history (the decision's inputs, fallback method)",
+            "inputs": {
+              "history": [
+                "h:pam-mother-of-penny", "h:penny-father-left", "acct:penny-father-left:Penny", "rd:penny-abandoned",
+                "h:penny-teaches", "rd:penny-teaching-warm", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Penny",
+                "h:penny-household-burden", "acct:penny-household-burden:Penny", "rd:penny-saloon-wary",
+                "rd:penny-expects-pam-away", "rd:penny-pam-burden", "rd:penny-pam-care", "rd:penny-reading-home",
+                "cmt:penny-no-alcohol"
+              ],
+              "worldState": {
+                "minute": 13510, "place": "Home:Trailer", "present": [1,2], "ask": "favour:412", "askMargin": 0.6,
+                "window": [14040,14240]
+              },
+              "availableActions": {
+                "eligible": ["alt:13510:Penny:0/offer","alt:13510:Penny:0/keep-evening"],
+                "excluded": ["alt:13510:Penny:0/fetch-beer","alt:13510:Penny:0/other-good"]
+              },
+              "otherPersonalState": {
+                "traits": {"boldness":0.2}, "mood": "even",
+                "lived": [
+                  {
+                    "record": "ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday",
+                    "entry": {"day":0,"outcome":"missed","source":"seen-absent"}
+                  }
+                ],
+                "commitments": ["cmt:penny-no-alcohol"]
+              },
+              "randomInput": {"stream":"lives-choice","parts":["dec:13510:Penny:0"],"unit":0.163},
+              "method": {"backend":"fallback-keyed-draw","constants":{"k":5,"seedStrength":0.05,"tornAt":0.04}}
+            },
+            "derived": {
+              "opportunity": {
+                "id": "opp:13510:Penny:0", "trigger": "refused-by-commitment",
+                "why": "rule 10 opens on the refusal and the margin, whatever is recalled"
+              },
+              "decisionExists": true, "recall": ["rd:penny-pam-burden","rd:penny-saloon-wary","rd:penny-pam-care"],
+              "torn": true, "chance": {"whereabouts":0.3333,"answers":1,"followThrough":1},
+              "sides": {"warm":0.05,"cold":0.05},
+              "reasons": {
+                "offer": [
+                  {
+                    "kind": "supports", "code": "refused-while-obliged", "value": 0.6,
+                    "cites": ["favour:412","cmt:penny-no-alcohol"]
+                  },
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-pam-care","as:Penny:person:Pam:+:worried-care"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "cold", "value": 0.05,
+                    "cites": ["rd:penny-pam-burden","as:Penny:person:Pam:-:burdened"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "chance:whereabouts", "value": 0.3333,
+                    "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday","rd:penny-expects-pam-away"]
+                  },
+                  {"kind":"shown","code":"wary-place","value":null,"cites":["rd:penny-saloon-wary"]}
+                ],
+                "keep-evening": [
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-reading-home","as:Penny:activity:reading-at-home:+:absorbed"]
+                  }
+                ]
+              },
+              "weights": {"alt:13510:Penny:0/offer":0.2102,"alt:13510:Penny:0/keep-evening":1.284},
+              "probabilities": {"alt:13510:Penny:0/offer":0.1407,"alt:13510:Penny:0/keep-evening":0.8593},
+              "sampled": "alt:13510:Penny:0/keep-evening"
+            }
+          },
+          {
+            "id": "arm:without-p6", "label": "without p6 (Penny's care for Pam)",
+            "inputs": {
+              "history": [
+                "h:pam-mother-of-penny", "h:penny-father-left", "acct:penny-father-left:Penny", "rd:penny-abandoned",
+                "h:penny-teaches", "rd:penny-teaching-warm", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Penny",
+                "h:penny-household-burden", "acct:penny-household-burden:Penny", "rd:penny-saloon-wary",
+                "rd:penny-expects-pam-away", "rd:penny-pam-burden", "rd:penny-reading-home", "cmt:penny-no-alcohol"
+              ],
+              "worldState": {
+                "minute": 13510, "place": "Home:Trailer", "present": [1,2], "ask": "favour:412", "askMargin": 0.6,
+                "window": [14040,14240]
+              },
+              "availableActions": {
+                "eligible": ["alt:13510:Penny:0/offer","alt:13510:Penny:0/keep-evening"],
+                "excluded": ["alt:13510:Penny:0/fetch-beer","alt:13510:Penny:0/other-good"]
+              },
+              "otherPersonalState": {
+                "traits": {"boldness":0.2}, "mood": "even",
+                "lived": [
+                  {
+                    "record": "ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday",
+                    "entry": {"day":0,"outcome":"missed","source":"seen-absent"}
+                  }
+                ],
+                "commitments": ["cmt:penny-no-alcohol"]
+              },
+              "randomInput": {"stream":"lives-choice","parts":["dec:13510:Penny:0"],"unit":0.163},
+              "method": {"backend":"fallback-keyed-draw","constants":{"k":5,"seedStrength":0.05,"tornAt":0.04}}
+            },
+            "derived": {
+              "opportunity": {
+                "id": "opp:13510:Penny:0", "trigger": "refused-by-commitment",
+                "why": "rule 10 opens on the refusal and the margin, whatever is recalled"
+              },
+              "decisionExists": true, "recall": ["rd:penny-pam-burden","rd:penny-saloon-wary","rd:penny-reading-home"],
+              "torn": false, "chance": {"whereabouts":0.3333,"answers":1,"followThrough":1},
+              "sides": {"warm":0,"cold":0.05},
+              "reasons": {
+                "offer": [
+                  {
+                    "kind": "supports", "code": "refused-while-obliged", "value": 0.6,
+                    "cites": ["favour:412","cmt:penny-no-alcohol"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "cold", "value": 0.05,
+                    "cites": ["rd:penny-pam-burden","as:Penny:person:Pam:-:burdened"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "chance:whereabouts", "value": 0.3333,
+                    "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday","rd:penny-expects-pam-away"]
+                  },
+                  {"kind":"shown","code":"wary-place","value":null,"cites":["rd:penny-saloon-wary"]}
+                ],
+                "keep-evening": [
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-reading-home","as:Penny:activity:reading-at-home:+:absorbed"]
+                  }
+                ]
+              },
+              "weights": {"alt:13510:Penny:0/offer":0.1637,"alt:13510:Penny:0/keep-evening":1.284},
+              "probabilities": {"alt:13510:Penny:0/offer":0.1131,"alt:13510:Penny:0/keep-evening":0.8869},
+              "sampled": "alt:13510:Penny:0/keep-evening"
+            }
+          }
+        ],
+        "unavoidableDifferences": [
+          {"field":"recall","why":"the third slot goes to the next candidate (rd:penny-reading-home)"},
+          {
+            "field": "torn",
+            "why": "with no warm side toward Pam the choice is no longer torn; a Laya-enabled run would route it to the fallback, so the method is held at the fallback in both arms"
+          },
+          {"field":"sides","why":"the warm side toward Pam is the record removed"}
+        ],
+        "effects": {
+          "reasons": "the offer loses its 'warm' reason", "probabilities": "offer 0.141 -> 0.113",
+          "sampledAction": "keep-evening in both arms"
+        },
+        "differs": {"reasons":true,"probabilities":true,"sampledAction":false},
+        "runChoice": "the run's own choice used Laya (offer, 0.46); this comparison isolates the history under one method, the fallback",
+        "wholeRun": {"simulated":false,"note":"not a whole run: neither arm is run forward, so later divergence is not shown"}
+      },
+      {
+        "id": "cmp:13510:Penny:0:without-p4", "scope": "isolated-choice", "decision": "dec:13510:Penny:0",
+        "visibleAt": 13511,
+        "question": "Does Penny's expectation that Pam is out in the evening (p4) change what she offers?",
+        "intervention": {
+          "field": "history", "remove": ["rd:penny-saloon-wary","rd:penny-expects-pam-away"],
+          "seedsRemoved": [
+            "as:Penny:place:Saloon:-:wary",
+            "the 'away' entry (source Reading) in ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday"
+          ],
+          "evidenceKeys": ["p4"], "kept": ["acct:pam-saloon-evenings:Penny (also sourced to p5)"]
+        },
+        "validity": "valid: the opportunity (rule 10) and the decision exist in both arms",
+        "heldConstant": ["worldState","availableActions","otherPersonalState","randomInput","method"],
+        "arms": [
+          {
+            "id": "arm:with", "label": "with every history (the decision's inputs, fallback method)",
+            "inputs": {
+              "history": [
+                "h:pam-mother-of-penny", "h:penny-father-left", "acct:penny-father-left:Penny", "rd:penny-abandoned",
+                "h:penny-teaches", "rd:penny-teaching-warm", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Penny",
+                "h:penny-household-burden", "acct:penny-household-burden:Penny", "rd:penny-saloon-wary",
+                "rd:penny-expects-pam-away", "rd:penny-pam-burden", "rd:penny-pam-care", "rd:penny-reading-home",
+                "cmt:penny-no-alcohol"
+              ],
+              "worldState": {
+                "minute": 13510, "place": "Home:Trailer", "present": [1,2], "ask": "favour:412", "askMargin": 0.6,
+                "window": [14040,14240]
+              },
+              "availableActions": {
+                "eligible": ["alt:13510:Penny:0/offer","alt:13510:Penny:0/keep-evening"],
+                "excluded": ["alt:13510:Penny:0/fetch-beer","alt:13510:Penny:0/other-good"]
+              },
+              "otherPersonalState": {
+                "traits": {"boldness":0.2}, "mood": "even",
+                "lived": [
+                  {
+                    "record": "ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday",
+                    "entry": {"day":0,"outcome":"missed","source":"seen-absent"}
+                  }
+                ],
+                "commitments": ["cmt:penny-no-alcohol"]
+              },
+              "randomInput": {"stream":"lives-choice","parts":["dec:13510:Penny:0"],"unit":0.163},
+              "method": {"backend":"fallback-keyed-draw","constants":{"k":5,"seedStrength":0.05,"tornAt":0.04}}
+            },
+            "derived": {
+              "opportunity": {
+                "id": "opp:13510:Penny:0", "trigger": "refused-by-commitment",
+                "why": "rule 10 opens on the refusal and the margin, whatever is recalled"
+              },
+              "decisionExists": true, "recall": ["rd:penny-pam-burden","rd:penny-saloon-wary","rd:penny-pam-care"],
+              "torn": true, "chance": {"whereabouts":0.3333,"answers":1,"followThrough":1},
+              "sides": {"warm":0.05,"cold":0.05},
+              "reasons": {
+                "offer": [
+                  {
+                    "kind": "supports", "code": "refused-while-obliged", "value": 0.6,
+                    "cites": ["favour:412","cmt:penny-no-alcohol"]
+                  },
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-pam-care","as:Penny:person:Pam:+:worried-care"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "cold", "value": 0.05,
+                    "cites": ["rd:penny-pam-burden","as:Penny:person:Pam:-:burdened"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "chance:whereabouts", "value": 0.3333,
+                    "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday","rd:penny-expects-pam-away"]
+                  },
+                  {"kind":"shown","code":"wary-place","value":null,"cites":["rd:penny-saloon-wary"]}
+                ],
+                "keep-evening": [
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-reading-home","as:Penny:activity:reading-at-home:+:absorbed"]
+                  }
+                ]
+              },
+              "weights": {"alt:13510:Penny:0/offer":0.2102,"alt:13510:Penny:0/keep-evening":1.284},
+              "probabilities": {"alt:13510:Penny:0/offer":0.1407,"alt:13510:Penny:0/keep-evening":0.8593},
+              "sampled": "alt:13510:Penny:0/keep-evening"
+            }
+          },
+          {
+            "id": "arm:without-p4", "label": "without p4 (Penny's reading of the Saloon and of Pam's evenings)",
+            "inputs": {
+              "history": [
+                "h:pam-mother-of-penny", "h:penny-father-left", "acct:penny-father-left:Penny", "rd:penny-abandoned",
+                "h:penny-teaches", "rd:penny-teaching-warm", "h:pam-saloon-evenings", "acct:pam-saloon-evenings:Penny",
+                "h:penny-household-burden", "acct:penny-household-burden:Penny", "rd:penny-pam-burden",
+                "rd:penny-pam-care", "rd:penny-reading-home", "cmt:penny-no-alcohol"
+              ],
+              "worldState": {
+                "minute": 13510, "place": "Home:Trailer", "present": [1,2], "ask": "favour:412", "askMargin": 0.6,
+                "window": [14040,14240]
+              },
+              "availableActions": {
+                "eligible": ["alt:13510:Penny:0/offer","alt:13510:Penny:0/keep-evening"],
+                "excluded": ["alt:13510:Penny:0/fetch-beer","alt:13510:Penny:0/other-good"]
+              },
+              "otherPersonalState": {
+                "traits": {"boldness":0.2}, "mood": "even",
+                "lived": [
+                  {
+                    "record": "ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday",
+                    "entry": {"day":0,"outcome":"missed","source":"seen-absent"}
+                  }
+                ],
+                "commitments": ["cmt:penny-no-alcohol"]
+              },
+              "randomInput": {"stream":"lives-choice","parts":["dec:13510:Penny:0"],"unit":0.163},
+              "method": {"backend":"fallback-keyed-draw","constants":{"k":5,"seedStrength":0.05,"tornAt":0.04}}
+            },
+            "derived": {
+              "opportunity": {
+                "id": "opp:13510:Penny:0", "trigger": "refused-by-commitment",
+                "why": "rule 10 opens on the refusal and the margin, whatever is recalled"
+              },
+              "decisionExists": true, "recall": ["rd:penny-pam-burden","rd:penny-pam-care","rd:penny-reading-home"],
+              "torn": true, "chance": {"whereabouts":0.5,"answers":1,"followThrough":1},
+              "sides": {"warm":0.05,"cold":0.05},
+              "reasons": {
+                "offer": [
+                  {
+                    "kind": "supports", "code": "refused-while-obliged", "value": 0.6,
+                    "cites": ["favour:412","cmt:penny-no-alcohol"]
+                  },
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-pam-care","as:Penny:person:Pam:+:worried-care"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "cold", "value": 0.05,
+                    "cites": ["rd:penny-pam-burden","as:Penny:person:Pam:-:burdened"]
+                  },
+                  {
+                    "kind": "conflicts", "code": "chance:whereabouts", "value": 0.5,
+                    "cites": ["ex:Penny:Pam:whereabouts:Home:Trailer:18-21:weekday"]
+                  }
+                ],
+                "keep-evening": [
+                  {
+                    "kind": "supports", "code": "warm", "value": 0.05,
+                    "cites": ["rd:penny-reading-home","as:Penny:activity:reading-at-home:+:absorbed"]
+                  }
+                ]
+              },
+              "weights": {"alt:13510:Penny:0/offer":0.3154,"alt:13510:Penny:0/keep-evening":1.284},
+              "probabilities": {"alt:13510:Penny:0/offer":0.1972,"alt:13510:Penny:0/keep-evening":0.8028},
+              "sampled": "alt:13510:Penny:0/offer"
+            }
+          }
+        ],
+        "unavoidableDifferences": [
+          {"field":"recall","why":"rd:penny-saloon-wary is gone; the third slot goes to rd:penny-reading-home"},
+          {"field":"chance","why":"the expectation keeps day 0's lived miss but loses the seeded 'away': 1/3 -> 1/2"}
+        ],
+        "effects": {
+          "reasons": "the offer's whereabouts reason moves 0.333 -> 0.5 and loses its p4 cite; the 'shown' Saloon reason goes",
+          "probabilities": "offer 0.141 -> 0.197", "sampledAction": "keep-evening -> offer"
+        },
+        "differs": {"reasons":true,"probabilities":true,"sampledAction":true},
+        "runChoice": "the run's own choice used Laya (offer, 0.46); this comparison isolates the history under one method, the fallback",
+        "wholeRun": {
+          "simulated": false,
+          "note": "reasoned, not run: in a whole run without p4, rule 14 would have written misses on days 0 and 1 (her chance stays at or above 0.5 until then), reaching 1/3 by day 9, so this isolated difference could vanish; that is why isolated and whole-run comparisons are kept apart"
+        }
+      }
+    ],
+    "threads": [
+      {
+        "id": "thr:penny-pam-evening", "title": "An evening at home, offered and agreed", "people": [2,1,0],
+        "visibleAt": 13510,
+        "stages": [
+          {
+            "stage": "history",
+            "ids": [
+              "rd:penny-pam-burden", "rd:penny-saloon-wary", "rd:penny-pam-care", "rd:penny-expects-pam-away",
+              "cmt:penny-no-alcohol", "rd:pam-penny-warm", "rd:pam-saloon-warm", "rd:pam-saloon-wary",
+              "rd:gus-expects-pam-evenings"
+            ]
+          },
+          {"stage":"recall","ids":["rc:13510:Penny:0","rc:13511:Pam:0","rc:14010:Pam:0","rc:14028:Penny:0"]},
+          {"stage":"alternatives","ids":["dec:13510:Penny:0","dec:13511:Pam:0","dec:14010:Pam:0","dec:14028:Penny:0"]},
+          {
+            "stage": "attempt",
+            "ids": ["att:13510:Pam:0","att:13511:Penny:0","att:14011:Pam:0","att:14029:Penny:0","att:14041:Penny:0"]
+          },
+          {"stage":"outcome","ids":["out:13510:Penny:0","out:13512:Pam:0","out:14040:Pam:0"]},
+          {
+            "stage": "perceived",
+            "ids": [
+              "per:13510:Pam:0", "per:13512:Penny:0", "per:14040:Pam:0", "per:14040:Gus:0", "per:14045:Gus:0",
+              "per:14101:Penny:0"
+            ]
+          },
+          {
+            "stage": "learning",
+            "ids": [
+              "lu:13510:Pam:0", "lu:13512:Penny:0", "lu:14040:Gus:0", "lu:14045:Gus:0", "lu:14101:Penny:0",
+              "lu:14101:Penny:1"
+            ]
+          },
+          {"stage":"comparison","ids":["cmp:13510:Penny:0:without-p6","cmp:13510:Penny:0:without-p4"]}
+        ],
+        "summary": [
+          {"visibleAt":13510,"label":"Pam asks for beer; Penny's commitment says no"},
+          {"visibleAt":13512,"label":"Penny offers an evening at home; Pam says yes"},
+          {"visibleAt":14040,"label":"The evening starts; neither is home yet"},
+          {"visibleAt":14101,"label":"Penny has waited an hour; she doesn't know where Pam is"},
+          {"visibleAt":14240,"label":"The window closes: agreed, absent"}
+        ]
+      },
+      {
+        "id": "thr:gus-flour", "title": "Gus's flour: busy at her lessons, then a weighed no", "people": [0,2,1],
+        "visibleAt": 13580,
+        "stages": [
+          {"stage":"attempt","ids":["att:13580:Gus:0","att:14055:Gus:0"]}, {"stage":"recall","ids":["rc:14055:Pam:0"]},
+          {"stage":"alternatives","ids":["dec:14055:Pam:0"]},
+          {"stage":"outcome","ids":["out:13580:Penny:0","out:14056:Pam:0"]},
+          {"stage":"perceived","ids":["per:13580:Gus:0","per:14056:Gus:0"]},
+          {"stage":"learning","ids":["lu:13580:Gus:0","lu:14056:Gus:0"]}
+        ],
+        "summary": [
+          {"visibleAt":13580,"label":"Gus would ask Penny for flour; she is teaching: busy"},
+          {"visibleAt":14056,"label":"Pam says no to fetching it"}
+        ]
+      },
+      {
+        "id": "thr:pam-gus-game", "title": "At the Saloon: a game offered while Gus is working", "people": [1,0],
+        "visibleAt": 14060,
+        "stages": [
+          {"stage":"recall","ids":["rc:14060:Pam:0","rc:14060:Gus:0"]},
+          {"stage":"alternatives","ids":["dec:14060:Pam:0","dec:14060:Gus:0"]},
+          {"stage":"attempt","ids":["att:14060:Pam:0"]}, {"stage":"outcome","ids":["out:14061:Gus:0"]},
+          {"stage":"perceived","ids":["per:14061:Pam:0"]}, {"stage":"learning","ids":["lu:14061:Pam:0"]}
+        ],
+        "summary": [
+          {"visibleAt":14060,"label":"Pam, warm toward Gus, offers a game"},
+          {"visibleAt":14061,"label":"Gus: not now, he's working"}
+        ]
+      }
+    ],
+    "unresolved": [
+      {
+        "ref": "need:36", "asOf": 14240, "status": "open at excerpt end",
+        "label": "Pam's beer need: Penny refused; what happens next is outside the excerpt"
+      },
+      {"ref":"need:37","asOf":14240,"status":"open at excerpt end","label":"Gus's flour need: Penny busy, Pam declined"},
+      {
+        "ref": "plan:13512:Penny:Pam", "asOf": 14240, "status": "settled: agreed, absent",
+        "label": "nobody told anyone where Pam was; whereabouts are never told"
+      }
+    ]
+  }
+}

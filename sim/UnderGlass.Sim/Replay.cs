@@ -306,6 +306,10 @@ public static class Replay
             recording["favours"] = JsonSerializer.SerializeToElement(r.Favours, errandJson);
             recording["promises"] = JsonSerializer.SerializeToElement(r.Promises, errandJson);
         }
+        if (feelings.Acts.Bars)
+            // Additive, with Bars on only: each person's day of bars (needs bars spec).
+            recording["barDays"] = JsonSerializer.SerializeToElement(r.BarDays,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         // Additive observer schema: v1 readers can ignore these fields. Old recordings have
         // no appraisals and remain explicitly unclassified, never backfilled from final regard.
         recording["encounterVersion"] = 1;

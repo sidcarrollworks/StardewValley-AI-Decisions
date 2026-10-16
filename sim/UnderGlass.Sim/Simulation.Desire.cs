@@ -461,6 +461,7 @@ public sealed partial class Simulation
             double i = DesireMath.Fond(St(_names[h], _names[s]), day - last, _fo);
             (i, bool occasion) = Missing(h, s, day, day - last, i); // 0d.6 (X12): missing people
             i = Seeking(h, i); // 0d.6 (X6): the withdrawn seek less
+            i *= BarWish(h); // the needs bars: lonelier than usual, missing more (modes 1 and 2)
             if (i > 0)
                 yield return (new Motive { Holder = h, Subject = s, Kind = DesireKind.Fond, Act = "GaveGift", Source = -1, Since = m, Felt = i, Computed = true,
                     Occasion = occasion }, i);

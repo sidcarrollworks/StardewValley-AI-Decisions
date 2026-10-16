@@ -203,6 +203,8 @@ public sealed class SimResult
     public IReadOnlyList<Need> Needs { get; init; } = Array.Empty<Need>();
     /// <summary>Every favour asked, with Errands on; otherwise empty.</summary>
     public IReadOnlyList<Favour> Favours { get; init; } = Array.Empty<Favour>();
+    /// <summary>Each person's day of bars, with Bars on; otherwise empty.</summary>
+    public IReadOnlyList<BarDay> BarDays { get; init; } = Array.Empty<BarDay>();
 }
 
 /// <summary>
@@ -452,6 +454,7 @@ public sealed partial class Simulation
         _charactersAtStart = Characters();
         StartDesire(days);
         StartMoney();
+        StartBars(); // the needs bars (off by default)
         if (_fo.Enabled)
             foreach (string n in _names)
                 _powerByDay[n] = new double[days];
@@ -544,6 +547,7 @@ public sealed partial class Simulation
             Needs = _needs,
             Favours = _favours,
             Promises = _promises,
+            BarDays = _barDays,
             Encounters = _encounters,
             EncounterCauses = _encounterCauses,
             Appraisals = _appraisals,
@@ -596,6 +600,7 @@ public sealed partial class Simulation
             Authorities(m);
             Rows(m);
             RunErrands(m); // errands (needs spec); nothing with the switch off
+            KeepBars(m); // the needs bars (needs bars spec); nothing with the switch off
         }
         CheckLate(m, t);
         Arrivals(m); // the act catalog: coming in late (Late)
@@ -770,6 +775,7 @@ public sealed partial class Simulation
             Goal(p, p.Place, p.At, m + 60, "home", null);
             return;
         }
+        BarLean(p, options, m); // the needs bars' lean (law 1 experiment, modes 1 and 2); nothing otherwise
         double r = Rng.Unit(_seed, "haunt", p.V.Name, m.ToString()) * options.Sum(o => o.Weight);
         Haunt? pick = options[^1].Haunt;
         foreach (var o in options)
@@ -1105,6 +1111,7 @@ public sealed partial class Simulation
             StirPity(act, kind, m);
             Mark(act, kind, m);
             AfterAct(act, kind, m); // the act catalog: a game's company, a drink's bill, an apology's answer
+            BarsAfterAct(act);
             RemorseAfter(act, kind, m); // the act catalog: remorse in the one who hurt (Repair)
             SidesAfter(act, kind, m); // the act catalog: witnesses take sides (Sides)
         }
@@ -1183,6 +1190,7 @@ public sealed partial class Simulation
                     continue;
                 _chatted.Add((a, b, window));
                 Company(pa, pb);
+                BarsAfterChat(i, j, pa.Place);
                 Tone(i, j, m);
                 Tone(j, i, m);
                 TryTell(a, b, m);
