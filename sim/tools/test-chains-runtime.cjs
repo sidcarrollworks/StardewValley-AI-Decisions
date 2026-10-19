@@ -107,6 +107,17 @@ test('Penny continues beyond her first evening through a recorded search and per
   assert.ok(!view(m,1600,'Alex').nodes.some(n=>n.id===d.id));
 });
 
+test('the asked partner of a found search sees the offer they heard, never the asker search',()=>{
+  const r=structuredClone(continuity),co=r.livesCompany,seek=co.updates.find(u=>u.episode.stage==='Seeking'&&!u.episode.id.startsWith('evening:'));
+  const ep=seek.episode,at=seek.at,stage=(s,m,extra={})=>({at:m,episode:{...ep,stage:s,...extra},reason:s});
+  co.updates.push(stage('Pending',at+30),stage('Playing',at+31,{actId:1}),stage('Completed',at+60,{actId:1,finishedAt:at+60}));
+  co.answers=[...(co.answers||[]),{episodeId:ep.id,at:at+31}];
+  co.outcomes.push({episodeId:ep.id,at:at+60,holder:ep.asker,kind:'completed',felt:0.05},{episodeId:ep.id,at:at+60,holder:ep.asked,kind:'completed',felt:0.05});
+  const m=M.open(r),partner=view(m,at+90,ep.asked),asker=view(m,at+90,ep.asker);
+  assert.ok(!partner.nodes.some(n=>n.table==='attempts'&&n.label.startsWith('Look for')),'the partner never sees the search');
+  assert.ok(partner.nodes.some(n=>n.table==='attempts'&&n.label.startsWith('Ask ')),'the partner sees the offer they heard');
+  assert.ok(asker.nodes.some(n=>n.table==='attempts'&&n.label.startsWith('Look for')),'the asker keeps their own search');
+});
 test('routine routing exposes the recorded legacy selection without inventing probabilities or arrival',()=>{
   const m=M.open(continuity),v=view(m,1600,'Penny',true),d=choice(v,m.run.names.indexOf('Penny'),1532);
   assert.equal(d.label,'Where to spend time?');assert.equal(M.cardStatus(d).detail,'Spend time at home.');

@@ -255,6 +255,20 @@ public class ErrandTests
     }
 
     [Fact]
+    public void TheOneLetDownLearnsNoPlaceFromWhereTheRunnerHappenedToBe()
+    {
+        // The promise lapses wherever Bob is; Ann learns that it lapsed, not where he was.
+        var sim = new Simulation(1, Shop(new World { Shut = Enumerable.Range(0, 7).ToArray() }));
+        sim.ConfigureLivesRouting(new Lives.LivesRoutingOptions { Enabled = true });
+        SimResult r = sim.Run(5);
+        Act letDown = r.Acts[r.Promises[0].SettledAct];
+        var felt = sim.LivesMemoryOf("Ann")!.Snapshot().Associations
+            .Where(a => a.CauseId == "act:" + letDown.Id).ToArray();
+        Assert.Contains(felt, a => a.Object == new Lives.MemoryObject(Lives.MemoryObjectKind.Person, "Bob") && a.Amount < 0);
+        Assert.DoesNotContain(felt, a => a.Object.Kind == Lives.MemoryObjectKind.Place);
+    }
+
+    [Fact]
     public void NobodyServingTurnsTheRunnerAwayUntilTomorrow()
     {
         // Cal serves only from midnight to one; Ann's need comes in waking hours.
