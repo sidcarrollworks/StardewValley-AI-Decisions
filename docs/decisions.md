@@ -1,5 +1,16 @@
 # Design decisions: what we chose and why
 
+### 2026-10-19 — Laya as the primary behavioural decision system
+
+Sid wants Laya to interpret ordinary meaningful choices as well as difficult ones. The prior
+torn-only/two-evaluations-per-day evening policy is now the selective control, not the target
+architecture. Opt-in all-choice evening evaluation is built; other consumers remain planned in
+the [staged plan](under-glass/specs/laya-first-spec.md). The engine owns bodies, evidence, physical
+eligibility and consequences; Laya returns typed weights over executable alternatives using a
+holder-known scene. Existing action/opportunity gates and the 1,250-character working cap remain
+in this first slice so coverage can be tested independently of prompt changes. Haiku continues
+occasional inspiration; larger LLM responsibilities and Jev/Kev comparisons come later.
+
 This is the "why" behind the code. `docs/architecture.md` explains how things work; the brief
 (`stardew-npc-project-brief.md`) holds the goals. Read the decision before you change the code it
 covers. If you change one, update this file in the same commit and say what replaced it.

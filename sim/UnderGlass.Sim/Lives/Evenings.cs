@@ -1,5 +1,7 @@
 namespace UnderGlass.Sim.Lives;
 
+public enum EveningEvaluationPolicy { Selective, All }
+
 /// <summary>Experimental shared-home evening plans. Times and strengths are ours, not canon.</summary>
 public sealed record EveningOptions
 {
@@ -16,6 +18,9 @@ public sealed record EveningOptions
     public string Model { get; init; } = "laya";
     public IReadOnlyList<string> Participants { get; init; } = Array.Empty<string>();
     public bool PassiveExpectations { get; init; } = true;
+    // Omit the old/default policy so existing control recordings retain their shape.
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public EveningEvaluationPolicy Evaluation { get; init; } = EveningEvaluationPolicy.Selective;
 
     public EveningOptions CopyValidated()
     {
@@ -26,6 +31,7 @@ public sealed record EveningOptions
             || !double.IsFinite(Disappointment) || Disappointment is < 0 or > 1
             || !double.IsFinite(InvestmentScale) || InvestmentScale is <= 0 or > 1
             || string.IsNullOrWhiteSpace(Model) || Model.Length > 128
+            || !Enum.IsDefined(Evaluation)
             || Participants is null || Participants.Any(string.IsNullOrWhiteSpace)
             || Participants.Distinct(StringComparer.Ordinal).Count() != Participants.Count)
             throw new ArgumentException("Invalid evening settings.");
