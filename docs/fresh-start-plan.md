@@ -27,15 +27,15 @@ the approved choices have been carried into the new brief and rules.
 - **Reproducibility.** A run replays exactly with its frozen inputs, compatible engine revision,
   seed and model tape. It never means our weights decide instead of Laya.
 
-## Decisions Sid needs to make first (each with a default)
+## Sid's decisions (2026-10-19)
 
-| # | Question | Default |
+| # | Question | Answer |
 |---|---|---|
 | 1 | Name and visibility of the new repo | `under-glass`, **private**. The current repo is public and holds data extracted from Stardew (`fixtures/game/`, quoted dialogue in the character and history packs). The new one must not repeat that in public. |
-| 2 | Language and engine for milestone 1 | The simulation stays C# on .NET 8, harvested from this repo, plus one browser page to watch it. Godot with Stardew assets comes after milestone 1. |
-| 3 | Cast for milestone 1 | Penny, Pam and Gus, plus 3–5 people they meet. Cast size and identity are data, not engine special cases. Adding another authored character must not require code. Population optimization follows the demo. |
-| 4 | Who leads | Codex or Astra builds. Claude reviews PRs and writes no code until milestone 1 lands, unless asked. |
-| 5 | What happens to this repo | Stop unrelated new feature work; keep existing tools usable during extraction. Review outstanding PRs individually. Archive read-only only after Sid accepts the replacement's complete milestone-1 loop and authoring workflow. |
+| 2 | Language and engine for milestone 1 | **No game engine for now** (Godot is dropped). Sid asked whether Rust would be better; **open until Sid confirms.** Claude recommends C# on .NET 8. This plan extracts tested code rather than rewriting it, and Rust would turn every extraction into a rewrite of about 20,000 lines with their tests. The engine is also not the bottleneck: Laya's latency per question is. Rust would pay off for a browser (WebAssembly) or Bevy build later, which nothing here needs yet. Codex, as the builder, should weigh in. |
+| 3 | Cast for milestone 1 | **Ten people:** Penny, Pam, Gus, Pierre, Caroline, Robin, Demetrius, Leah, Elliott and Maru (the game's spellings). Cast size and identity are data, not engine special cases. Adding another authored character must not require code. Population optimization follows the demo. |
+| 4 | Who leads | **Codex builds; Claude reviews.** |
+| 5 | What happens to this repo | **Leave it alone; treat it as archived now.** No new work here. It stays readable for extraction. |
 
 ## The brief (`BRIEF.md`, at most one page)
 
@@ -112,7 +112,7 @@ The only required reading. Proposed outline; Codex drafts the text.
 
 **"Watch a life change through experience."**
 
-- **What runs:** about six people, with authored starting histories, live long enough to return to
+- **What runs:** the ten people of decision 3, with authored starting histories, live long enough to return to
   a meaningful choice after an outcome. The demo takes two minutes to understand; the recording
   may span several days. Laya decides where to spend free time, whom to look for, and whether to
   offer, accept, refuse or put off a game or an evening. There is no player.
@@ -198,7 +198,7 @@ must accompany the first Laya-enabled slice, not arrive after the simulation has
 6. **Milestone acceptance.** Demonstrate all five checks above, including the focused history-removal
    check and adding another authored character without code. Measure simulated minutes per real
    second and model/fallback coverage. Broader model comparisons and population tuning wait.
-7. **Milestone review with Sid.** Accept the replacement before archiving the old repo. Decide the
+7. **Milestone review with Sid.** Decide the
    next milestone and retire temporary switches; keep the minimum experimentation workflow working.
 
 Claude reviews each PR for knowledge leaks, replay exactness and scope creep.
@@ -211,5 +211,5 @@ Claude reviews each PR for knowledge leaks, replay exactness and scope creep.
 - **Laya is too slow.** Measure simulated minutes per real second at milestone 1 before adding people.
 - **Losing the causal loop.** Feelings and outcome learning are required foundations, not optional
   activities to restore later. Preserve their connections and tests; broader gossip can wait.
-- **Rebuilding infrastructure for weeks.** Keep the old tools usable until the replacement is accepted;
-  bring the author/start/watch path forward with the first slice. Six is starting data, not a cast limit.
+- **Rebuilding infrastructure for weeks.** The old repo stays as it is, so its tools remain available for
+  reference; bring the author/start/watch path forward with the first slice. Ten is starting data, not a cast limit.
