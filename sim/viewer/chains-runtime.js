@@ -137,8 +137,12 @@
     for(const {o,i,source,pid}of observed){
       const choices=choiceByPlan.get(pid)||[], ownChoice=choices.filter(x=>x.c.decision.opportunity.holder===o.holder&&x.c.decision.opportunity.at<=o.at).at(-1);
       const immediate=pid.startsWith('company:'),episodeId=immediate?pid.slice(8):pid;
-      const offerId=immediate?id('company-offer',episodeId):id('offer',pid), keepId=immediate?id('company-search',episodeId):id('keep',pid,o.holder), planId=id('plan',pid);
-      const target=rows.has(keepId)&&!['yes','available','no','not-now'].includes(o.kind)?keepId:rows.has(offerId)&&['yes','available','no','not-now'].includes(o.kind)?offerId:rows.has(planId)?planId:undefined;
+      // A search is the asker's private journey: only the asker's outcome may cite it. The asked
+      // partner knows the offer they heard, so their game outcome cites that offer instead.
+      const asker=immediate?companyUpdates.get(episodeId)?.[0]?.episode.asker:undefined, partner=immediate&&o.holder!==asker;
+      const offerId=immediate?id('company-offer',episodeId):id('offer',pid), keepId=immediate?(partner?undefined:id('company-search',episodeId)):id('keep',pid,o.holder), planId=id('plan',pid);
+      const answered=['yes','available','no','not-now'].includes(o.kind);
+      const target=keepId&&rows.has(keepId)&&!answered?keepId:rows.has(offerId)&&(answered||partner)?offerId:rows.has(planId)?planId:undefined;
       const personalKey=id(pid,o.holder,o.at,o.kind);
       const n=personalOutcomes.get(personalKey)||add('perceptions',{id:id('perception',source,i),...own(o.holder,o.at),who:owner(o.holder),label:outcomeLabels[o.kind]||({found:'Found the person sought','not-found':'Did not see them during the search',unavailable:'Saw that they were unavailable'})[o.kind]||o.kind,of:target,causes:ownChoice?[ownChoice.n.id]:[],perceived:{kind:o.kind,answer:['yes','no'].includes(o.kind)?o.kind:undefined,observed:outcomeLabels[o.kind]||({found:'Found the person sought','not-found':'Did not see them during the search',unavailable:'Saw that they were unavailable'})[o.kind]||o.kind,observedMinutes:o.observedMinutes,sawPartner:o.sawPartner,felt:o.felt},unknown:['not-seen-during-plan','whereabouts-missed','not-found'].includes(o.kind)?[{about:'Where they went and why',status:'unknown'}]:[]});
       // The managed game and evening consumer report the same personal completion.

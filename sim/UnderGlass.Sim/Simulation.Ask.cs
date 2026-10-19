@@ -156,6 +156,7 @@ public sealed partial class Simulation
         Person p = _people[_index[actor]];
         _scenes[act.Id] = SceneOf(act, p);
         _witnesses[act.Id] = 0;
+        _unseenActs.Add(act.Id); // its knowers learn of it elsewhere: none perceived its place
         RecordCircle(act, kind); // batch 2's reach checks: a scandal's circle
         if (_fo.Enabled)
         {

@@ -117,6 +117,8 @@ public sealed partial class Simulation
     }
 
     private readonly HashSet<(string Holder, int Act)> _livesAcquired = new();
+    // Acts begun unseen (a promise lapsing): their knowers were told by the event, not present at it.
+    private readonly HashSet<int> _unseenActs = new();
 
     // Synchronize the holder's final felt reading, not observer appraisals, world truth or regard.
     private void RememberLivesFeeling(string holder, Belief belief, int cause, double amount, string basis, int at)
@@ -131,7 +133,9 @@ public sealed partial class Simulation
         string? teller = told ? belief.Chain.FirstOrDefault() : null;
         if (told && teller is null) return; // no invented teller for incomplete legacy data
         double credence = told ? Math.Clamp(PresenceCredence(holder, teller!), 0, 1) : 1;
-        string? place = told ? null : _acts[belief.ActId].Location; // only the witness perceived this place
+        // Only a holder present at the act perceived its place: not a teller's listener, and not the
+        // one let down by an act nobody saw, which happened wherever the actor happened to be.
+        string? place = told || _unseenActs.Contains(belief.ActId) ? null : _acts[belief.ActId].Location;
         KnowledgeKind how = told ? KnowledgeKind.Told
             : belief.Target == holder ? KnowledgeKind.Lived : KnowledgeKind.Witnessed;
         SyncLivesFeeling(holder, belief.ActId, new(Math.Clamp(amount, -1, 1), cause >= 0 ? _names[cause] : null,
