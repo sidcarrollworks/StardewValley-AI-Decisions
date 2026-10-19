@@ -4,6 +4,18 @@ The headless simulator for **Under Glass**, the game designed in `docs/under-gla
 
 **Development base:** Sid designated `codex/reflection-prototype` as the ongoing Under Glass branch on 2026-10-08. Start new game feature branches from its latest remote revision and target it with PRs.
 
+**Laya-first direction (2026-10-19):** Laya is intended to interpret every meaningful behavioural
+choice; broader integration is staged in the [plan](../docs/under-glass/specs/laya-first-spec.md).
+The first slice adds `--evening-evaluation all` alongside `--lives-laya <url>` (or `--lives-tape`):
+every queued evening choice is evaluated, even when untorn or beyond two evaluations/person/day.
+Default `selective` preserves the previous behaviour. Run Studio exposes the choice under Models.
+This does not yet change routing, immediate company, ordinary acts, opportunity gates or context
+packing. Provider errors and oversized requests still produce recorded fallback.
+
+```powershell
+dotnet run -c Release --project sim/UnderGlass.Replay -- --days 7 --seed 7 --lives-routing --lives-company --lives-evenings --catalog company,invitations --history sim/history/penny-pam-gus.json --lives-laya http://127.0.0.1:8000 --evening-evaluation all --out out/laya-all-evenings.json
+```
+
 **Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers. Since 2026-10-14 the next work is the Lives pilot: histories, associations and meaningful actions in one complete Penny, Pam and Gus thread ([assessment](../docs/under-glass/lives-gap-assessment.md), D53). Needs bars are unresolved, not scheduled and not rejected.
 
 **Lives pilot preparation (2026-10-15):** the [implementation plan](../docs/under-glass/specs/lives-pilot-spec.md)

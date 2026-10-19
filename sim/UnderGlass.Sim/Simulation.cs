@@ -401,6 +401,8 @@ public sealed partial class Simulation
     /// and wakes some time before 8:00. <paramref name="each"/> is called after every minute.</summary>
     public SimResult Run(int days, Action<int, Simulation>? each = null)
     {
+        if (_evenings.Evaluation == Lives.EveningEvaluationPolicy.All)
+            throw new InvalidOperationException("All-choice evening evaluation requires RunAsync so the decision mind is used.");
         // The log is formatted in the invariant culture, so a run hashes the same on every machine
         // (juiciness 1.5 would print as "1,5" under de-DE).
         var culture = System.Globalization.CultureInfo.CurrentCulture;

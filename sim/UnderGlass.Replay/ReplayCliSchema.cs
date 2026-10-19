@@ -41,6 +41,7 @@ internal static class ReplayCliSchema
             new Option("no-company-record", "Omit Lives company receipts", "boolean", "Lives"),
             new Option("lives-evenings", "Plan and follow through future evenings", "boolean", "Lives"),
             new Option("evening-people", "Evening participants (comma-separated)", "text", "Lives"),
+            new Option("evening-evaluation", "Evening evaluation coverage", "choice", "Models", "", new[]{"", "selective", "all"}),
             new Option("lives-laya", "Laya service for evening choices", "url", "Lives"),
             new Option("lives-laya-model", "Laya model for evening choices", "text", "Lives"),
             new Option("lives-tape", "Recorded evening choice tape", "path", "Lives"),
