@@ -72,8 +72,11 @@ nothing about where the other person went. The help is still the catalog's gener
 ## Laya, determinism and bounds
 
 Model evaluations occur between simulated minutes; selected answers are applied the next minute
-after rechecking execution eligibility. Only torn choices call the model, at most twice per
-person/day. Every holder has a distinct request ID and keyed draw. Laya supplies weights over
+after rechecking execution eligibility. The default `selective` evaluation policy sends only torn
+choices to the model, at most twice per person/day. Since 2026-10-19, opt-in `all` evaluates every
+queued evening choice, ignoring that gate and budget. Existing opportunity gates still apply;
+this is the first slice of the [Laya-first plan](laya-first-spec.md), not whole-town coverage.
+All requires a decision mind or tape and asynchronous execution. Every holder has a distinct request ID and keyed draw. Laya supplies weights over
 existing options; it neither picks an extra random draw nor creates options. The same fallback
 and draw are retained beside the model answer. HTTP failure, malformed output, timeout or request
 overflow produces a recorded authored fallback. Cancellation stops the run.
@@ -91,6 +94,12 @@ when on, the proposal window is 18:00–20:00, preparation starts 60 minutes ear
 base is 0.1, and the model budget is 2. These are first guesses, not canon. `Participants` can
 restrict this experiment to a small cast; the code has no named-person branches. Recording can
 be disabled independently without changing behavior.
+
+Replay and Run Studio expose `--evening-evaluation selective|all` (blank/default: selective).
+Choose `all` with `--lives-laya` or `--lives-tape`; the selected policy is recorded as
+`livesEvenings.settings.evaluation: "All"`. Default selective omits that additive field to retain
+the previous recording shape. The daily budget applies only to selective. Use the same policy
+when replaying a tape; changed request order or missing answers fail rather than silently falling back.
 
 ```powershell
 dotnet run --project sim/UnderGlass.LivesTrial -- --suite evenings --out out/lives-evenings-review --laya-url http://127.0.0.1:8000

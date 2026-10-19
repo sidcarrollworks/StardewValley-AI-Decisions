@@ -12,6 +12,14 @@ The Stardew mod has its own [roadmap](../spec/roadmap.md) and policies.
 
 ## Product and method
 
+**Priority update, 2026-10-19:** Sid wants Laya to be the character's primary decision system,
+including ordinary choices, rather than a sparse tie-breaker. Follow the staged
+[Laya-first plan](specs/laya-first-spec.md): evening coverage, personal context and destinations,
+immediate company, ordinary social choices, then population performance and Jev/Kev comparisons.
+The first opt-in `--evening-evaluation all` removes the torn gate and daily evaluation cap for
+queued evening choices only. Other behaviour still uses its existing rules; broader coverage is
+planned. Haiku's occasional inspiration role and the current routine baseline remain unchanged.
+
 The first product is an in-depth social simulation watched from above. An observer can follow
 what a person knows, imagines, chooses, attempts and experiences. Player gameplay comes later.
 Sid selected local inspiration plus Laya as the development direction. Continue

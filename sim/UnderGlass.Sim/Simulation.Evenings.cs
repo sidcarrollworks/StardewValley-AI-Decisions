@@ -36,6 +36,8 @@ public sealed partial class Simulation
             throw new ArgumentException("Evenings require company and Lives routing.");
         if (copy.Participants.Any(name => !_index.ContainsKey(name))) throw new ArgumentException("Unknown evening participant.");
         if (!copy.Enabled && mind is not null) throw new ArgumentException("An evening mind requires enabled evenings.");
+        if (copy.Evaluation == EveningEvaluationPolicy.All && (!copy.Enabled || mind is null))
+            throw new ArgumentException("All-choice evening evaluation requires enabled evenings and a decision mind or tape.");
         if (copy.Enabled && _livesMemory.Values.Any(memory => memory.Capture().HistoryIds.Any(id => id.StartsWith("evening:", StringComparison.Ordinal))))
             throw new ArgumentException("History cannot use the evening: runtime namespace.");
         _evenings = copy;
@@ -106,8 +108,9 @@ public sealed partial class Simulation
             string holder = question.Fallback.Opportunity.Holder;
             string? selected = question.Fallback.SelectedId;
             LivesDecisionRecord? evaluation = null;
-            if (!authoredOnly && _eveningMind is not null && question.Fallback.Torn
-                && _eveningBudgets.GetValueOrDefault(holder) < _evenings.ModelCallsPerDay)
+            if (!authoredOnly && _eveningMind is not null
+                && (_evenings.Evaluation == EveningEvaluationPolicy.All
+                    || question.Fallback.Torn && _eveningBudgets.GetValueOrDefault(holder) < _evenings.ModelCallsPerDay))
             {
                 _eveningBudgets[holder] = _eveningBudgets.GetValueOrDefault(holder) + 1;
                 var request = new LivesDecisionRequest(question.Fallback, question.Context, _evenings.Model);

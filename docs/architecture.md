@@ -1,5 +1,12 @@
 # How it works
 
+Under Glass update, 2026-10-19: evening evaluations now have an opt-in `All` policy that sends
+every queued choice through `ILivesDecisionMind`, independent of torn status and daily budget.
+`Selective` retains the previous path and default recording shape. The same keyed draw,
+asynchronous boundary, next-minute eligibility recheck, recorded fallback and exact tape remain.
+This is the first stage of [Laya-first decision coverage](under-glass/specs/laya-first-spec.md);
+routes, immediate company and ordinary acts are not yet converted. The Stardew mod is unchanged.
+
 A map of this repo for whoever maintains it next, human or model. It was checked against the code
 at commit `c97a829` (step 9, Find included) on branch `claude/audit-fixes-initiation`; the per-tick
 flow, the hooks, Memory, Motives, Live, Finding the player, Persistence and the config were checked

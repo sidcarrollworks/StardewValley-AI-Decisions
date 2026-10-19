@@ -8,6 +8,9 @@ models, so each file can be read on its own.
 [the current roadmap](../under-glass/roadmap.md),
 [the independent game design](../under-glass/design.md) and
 [simulator status](../../sim/README.md). The optional
+[Laya-first decision plan](../under-glass/specs/laya-first-spec.md) now defines the staged move
+from selective model involvement to ordinary behavioural choices; only its evening coverage
+slice is built. The optional
 [quiet-reflection prototype](../under-glass/specs/reflection-spec.md) connects private memories,
 authored or locally generated inspiration, Laya's evaluation of actual response lines, executable
 intentions and their recorded outcomes. Its first-version goal is a social simulation watched

@@ -43,6 +43,8 @@ if (args.Contains("--help", StringComparer.Ordinal))
         Experimental future evenings (requires company, routing and their catalog slices):
           --lives-evenings --evening-people Penny,Pam,Gus
           --lives-laya <loopback-url> --lives-laya-model <model>    Default model: laya.
+          --evening-evaluation selective|all   Default: selective (torn, twice/person/day).
+                                               All evaluates every queued evening choice.
           --lives-tape <previous-run.json or tape-array.json>     No network calls.
           --no-evening-record              Omit evening receipts; behavior is unchanged.
         Omit --lives-laya for authored choices. Laya and tape are mutually exclusive.
@@ -84,6 +86,7 @@ bool livesCompany = false, companyRecord = true;
 bool livesEvenings = false, eveningRecord = true;
 string? livesLayaUrl = null, livesTapePath = null;
 string livesLayaModel = "laya";
+string eveningEvaluation = "selective";
 var eveningPeople = new List<string>();
 var compareHistory = new List<string>();
 string layaModel = "typed-decisions";
@@ -112,6 +115,7 @@ for (int i = 0; i < args.Length; i++)
         case "--no-evening-record": eveningRecord = false; break;
         case "--lives-laya": livesLayaUrl = Next(); break;
         case "--lives-laya-model": livesLayaModel = Next(); break;
+        case "--evening-evaluation": eveningEvaluation = Next(); break;
         case "--lives-tape": livesTapePath = Next(); break;
         case "--evening-people":
             string people = Next();
@@ -217,12 +221,17 @@ if (!companyRecord && !livesCompany)
 if (livesEvenings && !livesCompany)
     throw new ArgumentException("--lives-evenings requires --lives-company, --lives-routing and --catalog company,invitations.");
 if (!livesEvenings && (!eveningRecord || livesLayaUrl is not null || livesTapePath is not null
-    || eveningPeople.Count > 0 || args.Contains("--lives-laya-model", StringComparer.Ordinal)))
+    || eveningPeople.Count > 0 || args.Contains("--lives-laya-model", StringComparer.Ordinal)
+    || args.Contains("--evening-evaluation", StringComparer.Ordinal)))
     throw new ArgumentException("Evening model, participant and recording options require --lives-evenings.");
 if (livesLayaUrl is not null && livesTapePath is not null)
     throw new ArgumentException("Choose either --lives-laya or --lives-tape; a tape never calls the model.");
 if (args.Contains("--lives-laya-model", StringComparer.Ordinal) && livesLayaUrl is null && livesTapePath is null)
     throw new ArgumentException("--lives-laya-model requires --lives-laya or --lives-tape.");
+if (eveningEvaluation is not ("selective" or "all"))
+    throw new ArgumentException("--evening-evaluation selective|all");
+if (eveningEvaluation == "all" && livesLayaUrl is null && livesTapePath is null)
+    throw new ArgumentException("--evening-evaluation all requires --lives-laya or --lives-tape.");
 HistoryPack? history = historyPath is null ? null : HistoryPack.Read(File.ReadAllText(historyPath));
 var reflection = new ReflectionOptions { Enabled = reflectionMode is not null, DailyChance = reflectionChance, DreamChance = dreamChance };
 using var model = new ResilientReflectionMind(new ReflectionMindOptions
@@ -265,7 +274,8 @@ string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = day
     LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
     LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord },
     LivesEvenings = new EveningOptions { Enabled = livesEvenings, Record = eveningRecord,
-        Participants = eveningPeople, Model = livesLayaModel } }, mind, livesMind: livesMind, observe: live is null ? null : live.Observe);
+        Participants = eveningPeople, Model = livesLayaModel,
+        Evaluation = eveningEvaluation == "all" ? EveningEvaluationPolicy.All : EveningEvaluationPolicy.Selective } }, mind, livesMind: livesMind, observe: live is null ? null : live.Observe);
 livesTape?.RequireConsumed();
 live?.Finish(json);
 if (reflection.Enabled)

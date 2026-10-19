@@ -7,7 +7,7 @@ namespace UnderGlass.Sim.Tests;
 
 /// <summary>Fictional housemates and scripted typed weights exercise the real plan lifecycle.
 /// The fixture's generous offer/torn settings are branch controls, not the pilot defaults.</summary>
-public sealed class LivesEveningTests
+public sealed partial class LivesEveningTests
 {
     private const string Home = "Home:House";
     private static Villager Person(string name, Job? job = null, IReadOnlyList<KeptHour>? bedtimes = null) =>
@@ -64,10 +64,10 @@ public sealed class LivesEveningTests
 
     private sealed record RunResult(Simulation Sim, SimResult Result, string Trace);
     private static async Task<RunResult> Run(ILivesDecisionMind? mind = null, EveningOptions? options = null,
-        TownData? town = null, int days = 1, long seed = 7)
+        TownData? town = null, int days = 1, long seed = 7, ChoiceSettings? choices = null, HistoryPack? history = null)
     {
         var sim = new Simulation(seed, town ?? Town());
-        sim.ConfigureLivesRouting(new() { Enabled = true, Choices = new(5, 0, 1) }, History());
+        sim.ConfigureLivesRouting(new() { Enabled = true, Choices = choices ?? new(5, 0, 1) }, history ?? History());
         sim.ConfigureLivesCompany(new() { Enabled = true, OfferBase = 1e-12, SeekBase = 1e-12, AnswerScale = 0 });
         sim.ConfigureLivesEvenings(options ?? On(), mind);
         var trace = new List<object>();
@@ -114,13 +114,15 @@ public sealed class LivesEveningTests
         }
     }
 
-    [Fact]
-    public async Task RecorderOffAndAsyncLatencyDoNotChangeChoicesOrTheTown()
+    [Theory]
+    [InlineData(EveningEvaluationPolicy.Selective)]
+    [InlineData(EveningEvaluationPolicy.All)]
+    public async Task RecorderOffAndAsyncLatencyDoNotChangeChoicesOrTheTown(EveningEvaluationPolicy policy)
     {
         var visibleMind = new Scripted();
         var quietMind = new Scripted(yield: true);
-        var visible = await Run(visibleMind);
-        var quiet = await Run(quietMind, On(false));
+        var visible = await Run(visibleMind, On() with { Evaluation = policy });
+        var quiet = await Run(quietMind, On(false) with { Evaluation = policy });
         Assert.Equal(Metrics.LogHash(visible.Result), Metrics.LogHash(quiet.Result));
         Assert.Equal(visible.Trace, quiet.Trace);
         Assert.Equal(Json(visible.Result.Sleeps), Json(quiet.Result.Sleeps));
