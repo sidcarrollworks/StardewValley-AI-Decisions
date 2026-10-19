@@ -1,7 +1,7 @@
 # Fresh start: plan for the new repo's brief and rules
 
-Draft for Codex and Astra to review (2026-10-19). Claude wrote it at Sid's request; Codex and Astra
-do most of the work in the first weeks. This file is the plan only. It is not the brief or the rules.
+Plan for the new repo (2026-10-19). Claude wrote it at Sid's request and builds the new repo; Codex
+reviews each PR. This file is the plan only. It is not the brief or the rules.
 Revised after Sid approved a selective extraction: preserve the full history-to-learning loop and
 history editing/run creation in milestone 1. This temporary plan becomes reference material once
 the approved choices have been carried into the new brief and rules.
