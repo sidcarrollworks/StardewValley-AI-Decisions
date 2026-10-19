@@ -1,7 +1,51 @@
-# Claude handoff: decision coverage report
+# Decision coverage report
 
-Status: ready for implementation, 2026-10-19. This PR contains instructions only. Sid will assign
-the coding work. Target `codex/reflection-prototype`; follow AGENTS.md and inspect git status first.
+Status: implemented by Codex, 2026-10-19, after Sid reassigned PR #108 while Claude fixes review
+findings. The original task specification below remains the scope and acceptance contract.
+Only this document, `sim/tools/decision_coverage.py`, `tests/test_decision_coverage.py` and a
+dedicated new `.github/workflows/decision-coverage.yml` changed. The separate workflow runs these
+tests automatically without editing the shared workflow Claude may be working on.
+No engine, model, shared UI, history pack or server fixes are included.
+
+## Usage and interpretation
+
+Run from the repository root:
+
+```powershell
+python sim/tools/decision_coverage.py path/to/run.json
+python sim/tools/decision_coverage.py path/to/run.json --person Penny
+python sim/tools/decision_coverage.py path/to/run.json --json
+```
+
+Text groups recorded choices by person and phase. JSON uses report format
+`under-glass-decision-coverage`, version 1, with explicit denominators and nulls for unavailable
+facts. Missing blocks mean not recorded, not zero activity. Missing optional `called`, packet,
+selected action or reflection-pass fields remain unknown. Identical repeated evaluations are
+deduplicated; conflicting duplicates reject with a concise error. Evaluations without matching
+recorded choices are listed separately and cannot inflate coverage above 100%.
+
+Configured, answer and reported model names are preserved as separate strings. An alias such as
+`laya-rl-agent` does not establish which checkpoint served the request. Recorded HTTP attempts
+can be inherited from a tape; the report cannot prove fresh network calls. Reflection passes,
+generation responses and character choices are separate counts. There is no whole-town coverage,
+performance or accuracy claim. Input recordings are never changed; no model services are used.
+
+## Validation (2026-10-19)
+
+- `python -m unittest discover -s tests -p test_decision_coverage.py`: 20 passed. Covers malformed
+  input, missing evidence, duplicates/conflicts, filtering, partial snapshots, identity strings,
+  fallback disagreement, reflection passes, deterministic order and unchanged input bytes.
+- Checked existing local recordings, without rerunning them: the selective seven-day record has
+  151 evening choices / 29 evaluations; the all-choice record has 185 / 185. Penny's latter thread
+  contains four answers and one follow-through, no offers. That is diagnostic evidence of the
+  pre-existing opportunity gap, not a claim this report fixes it.
+- The earlier hybrid smoke recording has four evening choices / three evaluations, one private
+  reflection with three recorded evaluator passes, and one generation response. None is counted
+  twice through the duplicate receipt locations or legacy response fields.
+- `dotnet test sim/UnderGlass.sln`: 1102 passed on this independent branch; `dotnet test
+  NpcSchedules.sln`: 945 passed; `dotnet build mod/StardewNpcMod`: passed. This branch does not
+  include PR #109's additional evening tests. Shared test-count docs are intentionally
+  left to Claude's concurrent fixes, preserving the report's ownership boundary.
 
 ## Why this small job matters
 
@@ -14,8 +58,8 @@ must work on existing recordings now and tolerate that additive policy field whe
 ## Ownership and deliverable
 
 Implement a read-only, standard-library Python CLI at `sim/tools/decision_coverage.py` and tests
-at `tests/test_decision_coverage.py`. Update only this task's Status/usage/validation section and
-those two files in the first implementation. Do not edit simulation, model adapters, Replay CLI,
+at `tests/test_decision_coverage.py`. Update only this task's Status/usage/validation section,
+those two files and the dedicated report CI workflow in the first implementation. Do not edit simulation, model adapters, Replay CLI,
 shared docs, run service, Run Studio or chain viewer: Codex is working on their integration.
 Do not add a web page, model calls, dependencies or generated recordings to the repository.
 
