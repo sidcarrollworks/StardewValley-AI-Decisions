@@ -38,20 +38,6 @@ public sealed class PlaytestLogTests
         Assert.Equal(12, presence.GetProperty("x").GetInt32());
         Assert.Equal(7, presence.GetProperty("y").GetInt32());
 
-        JsonElement ladder = Json(PlaytestRecords.ToLine(new LadderRecord(
-            "Sam", "Attempt", "Bubble", 0.51, 0.51, 0.45, 0.87, "urge reached the step", "Beach") { Tick = 4 }));
-        Assert.Equal(4, ladder.GetProperty("tick").GetInt32());
-        Assert.Equal("ladder", ladder.GetProperty("type").GetString());
-        Assert.Equal("Sam", ladder.GetProperty("npc").GetString());
-        Assert.Equal("Attempt", ladder.GetProperty("kind").GetString());
-        Assert.Equal("Bubble", ladder.GetProperty("step").GetString());
-        Assert.Equal(0.51, ladder.GetProperty("urgeBefore").GetDouble());
-        Assert.Equal(0.51, ladder.GetProperty("urgeAfter").GetDouble());
-        Assert.Equal(0.45, ladder.GetProperty("threshold").GetDouble());
-        Assert.Equal(0.87, ladder.GetProperty("modelP").GetDouble());
-        Assert.Equal("urge reached the step", ladder.GetProperty("detail").GetString());
-        Assert.Equal("Beach", ladder.GetProperty("leadPlace").GetString());
-
         JsonElement gossip = Json(PlaytestRecords.ToLine(new GossipRecord(
             "Sam", "Abigail", "GiftReceived", "Player", 1, "heard", null) { Tick = 5 }));
         Assert.Equal(5, gossip.GetProperty("tick").GetInt32());
@@ -119,13 +105,6 @@ public sealed class PlaytestLogTests
     [Fact]
     public void NullOptionalFieldsAreOmittedFromTheLine()
     {
-        // Threshold/ModelP null: the model was never asked, so there is nothing to carry.
-        JsonElement ladder = Json(PlaytestRecords.ToLine(new LadderRecord(
-            "Sam", "Ignored", "Approach", 0.62, 0.42, null, null, "window passed", null) { Tick = 11 }));
-        Assert.False(ladder.TryGetProperty("threshold", out _));
-        Assert.False(ladder.TryGetProperty("modelP", out _));
-        Assert.False(ladder.TryGetProperty("leadPlace", out _));
-
         // Answer null: choice and batch calls have no single answer.
         JsonElement model = Json(PlaytestRecords.ToLine(new ModelCallRecord(
             "ladder", "choice", "Sam", "which option fits best?", "which option fits best?",

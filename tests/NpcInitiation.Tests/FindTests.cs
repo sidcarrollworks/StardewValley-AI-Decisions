@@ -1,4 +1,3 @@
-using NpcDecision;
 using NpcMemory;
 using NpcSchedules;
 using Xunit;
@@ -6,19 +5,11 @@ using Xunit;
 namespace NpcInitiation.Tests;
 
 /// <summary>
-/// Finding the player: NPCs who miss the player ask the NPCs around them, and the ladder's
-/// Approach step can send an NPC to where it believes the player is.
+/// Finding the player: NPCs who miss the player ask the NPCs around them.
 /// </summary>
 public sealed class FindTests
 {
     private const string Player = MemoryStore.PlayerName;
-
-    private sealed class Always : IDecisionClient
-    {
-        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context) => options.Select(_ => 1.0).ToArray();
-        public double Score(string context, double min, double max) => max;
-        public double YesNo(string context, string proposition) => 1.0;
-    }
 
     private static RegionMap Regions()
     {
@@ -37,125 +28,6 @@ public sealed class FindTests
 
     private static Presence You(string location, int x, int y) => new("Farmer", location, x, y, IsPlayer: true);
     private static Presence Npc(string name, string location, int x, int y) => new(name, location, x, y);
-
-    private static LedgerView Told(string npc, int tick) => new(npc, Player, LedgerDetail.Location, "Beach", 4, 1, tick - 4, null, "Willy");
-    private static LedgerView Gone(string npc, int tick) => new(npc, Player, LedgerDetail.Gone, null, 200, 0, tick - 200);
-    private static LedgerView Near(string npc, int tick) => new(npc, Player, LedgerDetail.NamedSpot, "Saloon", 0, 0, tick, "5,5");
-    private static LedgerView SeenEarlier(string npc, int tick) => new(npc, Player, LedgerDetail.Location, "Saloon", 5, 0, tick - 5);
-
-    private static Whereabouts Lead(string npc, WhereaboutsSource source, string? place, int hops = 0, string? toldBy = null)
-        => new(npc, Player, source, place, LedgerDetail.Location, 4, hops, toldBy, source == WhereaboutsSource.Habit ? 0.8 : 0);
-
-    private static InitiationLadder Keen() => new(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.65, HeartsGainPerTick = 0 });
-
-    private static InitiationEvent AttemptOf(IReadOnlyList<InitiationEvent> events) => Assert.Single(events, e => e.Kind == "Attempt");
-
-    // ---- the ladder goes looking ---------------------------------------------------------------------
-
-    [Fact]
-    public void ATipSendsTheNpcToLookForYou()
-    {
-        var lead = Lead("Abigail", WhereaboutsSource.Told, "Beach", hops: 1, toldBy: "Willy");
-
-        InitiationEvent attempt = AttemptOf(Keen().Tick(10, new[] { new InitiationInput("Abigail", Told("Abigail", 10), false, 3, lead) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.Approach, attempt.Step);
-        Assert.Equal(lead, attempt.Lead);
-    }
-
-    private sealed class Never : IDecisionClient
-    {
-        public int YesNoCalls;
-        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context) => options.Select(_ => 0.0).ToArray();
-        public double Score(string context, double min, double max) => min;
-        public double YesNo(string context, string proposition) { YesNoCalls++; return 0.0; }
-    }
-
-    [Fact]
-    public void ATurnedDownApproachIsNotAskedAgainEveryTick()
-    {
-        // Playtest 2026-10-02: with the player on the farm, Jodi was asked "Approach now?" every
-        // tick. A no now waits AskAgainAfterTicks (6) before the same question is asked again.
-        var model = new Never();
-        var ladder = new InitiationLadder(model, 1, new InitiationOptions { BaseGainPerTick = 0.65, HeartsGainPerTick = 0 });
-        var lead = Lead("Jodi", WhereaboutsSource.Told, "Beach", hops: 1, toldBy: "Willy");
-        for (int t = 10; t < 22; t++)
-            ladder.Tick(t, new[] { new InitiationInput("Jodi", Told("Jodi", t), false, 3, lead) }, _ => new Diary());
-        Assert.Equal(2, model.YesNoCalls); // ticks 10 and 16, not 12
-
-        // A different lead is a different question: asked at once.
-        var elsewhere = Lead("Jodi", WhereaboutsSource.Told, "Town", hops: 1, toldBy: "Gus");
-        ladder.Tick(22, new[] { new InitiationInput("Jodi", Told("Jodi", 22), false, 3, elsewhere) }, _ => new Diary());
-        Assert.Equal(3, model.YesNoCalls);
-    }
-
-    [Fact]
-    public void WithoutALeadAFriendStillWritesInstead()
-    {
-        var ladder = new InitiationLadder(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.9, HeartsGainPerTick = 0 });
-        var unknown = Lead("Abigail", WhereaboutsSource.Unknown, null);
-
-        InitiationEvent attempt = AttemptOf(ladder.Tick(10, new[] { new InitiationInput("Abigail", Gone("Abigail", 10), false, 3, unknown) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.Mail, attempt.Step);
-        Assert.Null(attempt.Lead);
-    }
-
-    [Fact]
-    public void AHabitIsALeadToo()
-    {
-        var habit = Lead("Willy", WhereaboutsSource.Habit, "Beach");
-
-        InitiationEvent attempt = AttemptOf(Keen().Tick(10, new[] { new InitiationInput("Willy", Gone("Willy", 10), false, 0, habit) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.Approach, attempt.Step);
-        Assert.Equal(WhereaboutsSource.Habit, attempt.Lead!.Source);
-    }
-
-    [Fact]
-    public void GoingBackToWhereTheNpcSawYouComesBeforeAQueuedLine()
-    {
-        var seen = Lead("Gus", WhereaboutsSource.SeenToday, "Saloon");
-        var ladder = new InitiationLadder(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.75, HeartsGainPerTick = 0 });
-
-        InitiationEvent attempt = AttemptOf(ladder.Tick(10, new[] { new InitiationInput("Gus", SeenEarlier("Gus", 10), false, 0, seen) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.Approach, attempt.Step);
-    }
-
-    [Fact]
-    public void ALeadWithNowhereToGoIsNotALead()
-    {
-        var faded = Lead("Gus", WhereaboutsSource.SeenToday, null); // "earlier today", no place
-        var ladder = new InitiationLadder(new Always(), 1, new InitiationOptions { BaseGainPerTick = 0.75, HeartsGainPerTick = 0 });
-
-        InitiationEvent attempt = AttemptOf(ladder.Tick(10, new[] { new InitiationInput("Gus", SeenEarlier("Gus", 10), false, 0, faded) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.QueuedLine, attempt.Step);
-    }
-
-    [Fact]
-    public void WhenYouAreRightThereNobodyGoesLooking()
-    {
-        var lead = Lead("Gus", WhereaboutsSource.SeenNow, "Saloon");
-
-        InitiationEvent attempt = AttemptOf(Keen().Tick(10, new[] { new InitiationInput("Gus", Near("Gus", 10), false, 0, lead) }, _ => new Diary()));
-
-        Assert.Equal(InitiationStep.Emote, attempt.Step); // the mildest step, in person
-        Assert.Null(attempt.Lead);
-    }
-
-    [Fact]
-    public void TheLadderPublishesUrgesForTheGameThread()
-    {
-        var runner = new BackgroundLadder(Keen());
-        Assert.Empty(runner.LatestUrges);
-
-        runner.EnqueueTick(10, new[] { new InitiationInput("Gus", Gone("Gus", 10), false, 0) });
-        Assert.True(runner.WaitIdle(TimeSpan.FromSeconds(10)));
-
-        Assert.Equal(0.65, runner.LatestUrges["gus"], 9);
-    }
 
     // ---- who asks around, and when -------------------------------------------------------------------
 

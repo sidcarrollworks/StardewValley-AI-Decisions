@@ -39,7 +39,7 @@ public sealed class MotivesViewTests
     }
 
     private static MindsInputs Inputs(MotivesRunner? runner, IReadOnlyDictionary<string, string>? lines = null)
-        => new(1, Now, "Fake", true, MindsStats.None, "none", null, Array.Empty<InitiationInput>(), Array.Empty<string>(),
+        => new(1, Now, "Fake", true, MindsStats.None, "none", Array.Empty<InitiationInput>(), Array.Empty<string>(),
             Array.Empty<IntentCandidate>(), Array.Empty<FeedItem>(),
             Motives: runner?.LatestDecisions(), MotiveStates: runner?.States(),
             RegardFor: npc => npc == "Shane" ? -0.53 : 0, LastMotiveLines: lines);

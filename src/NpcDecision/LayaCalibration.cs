@@ -43,8 +43,8 @@ public sealed class LayaCalibration
 
     /// <summary>The spread eval's id for a live question template — the proposition the mod
     /// really asks, matched case-insensitively:
-    /// the ladder's "should &lt;npc&gt; try to get the player's attention with {Step} now?"
-    /// (InitiationLadder.cs:204, step = Emote/Bubble/Approach), the planner's
+    /// the retired urge ladder's "should &lt;npc&gt; try to get the player's attention with {Step} now?"
+    /// (D31; no longer asked, kept so old eval tables still read), the planner's
     /// "does &lt;npc&gt; have news for the player?" (IntentPlanner.cs:108), the motives'
     /// "would &lt;npc&gt; hold this against the player?" and their walk-up close calls
     /// (MotivesEngine.ActPhrase: "walk over to greet the player", "confront the player"), and the

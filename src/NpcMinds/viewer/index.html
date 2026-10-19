@@ -522,7 +522,7 @@ function updateCard(c, npc, first) {
   changed = setText(f.tRegard, m ? signed(regard) + (regard <= -0.75 ? " grudge" : "") : "–", first) || changed;
   f.tMood.className = "v " + sign(m ? m.outlook : NaN);
   f.tMood.textContent = m ? signed(m.outlook) + (m.tailDay ? " off day" : "") : "–";
-  changed = setText(f.tTries, String(m ? m.attemptsToday : npc.attemptsToday || 0), first) || changed;
+  changed = setText(f.tTries, String(m ? m.attemptsToday : 0), first) || changed;
   changed = setText(f.tSeen, shortSeen(npc), first) || changed;
   f.tSeen.parentElement.title = npc.lastSeen ? npc.lastSeen.summary : "never seen or heard of you";
 
@@ -740,7 +740,7 @@ function layout() {
   const sort = $("sort").value;
   const list = snapshot.npcs.filter(n => (!q || n.name.toLowerCase().includes(q))
     && (!stateFilter || n._state === stateFilter)
-    && (!onlyKnown || n.lastSeen || n.hearts > 0 || n.urge > 0 || (n.motives && n.motives.chosen)));
+    && (!onlyKnown || n.lastSeen || n.hearts > 0 || (n.motives && n.motives.chosen)));
   const num = v => (isFinite(v) ? v : -1);
   const strength = n => (n.motives && n.motives.chosen ? n.motives.chosenStrength : -1);
   const by = {

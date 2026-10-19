@@ -108,7 +108,7 @@ All projects target `net6.0` (the game's runtime) and are in `NpcSchedules.sln`.
 | `src/NpcMemory` | `GameClock`/`GameTime`, `Diary`, `Ledger`, `RoutineBelief`, `Proximity`, `MemoryStore` + `Presence`; `Whereabouts` (Find) | NpcSchedules | yes |
 | `src/NpcDecision` | `IDecisionClient`, `FakeDecisionClient`, `ResilientDecisionClient`, `LayaDecisionClient` + `LayaOptions` | nothing | yes |
 | `src/NpcIntents` | `IntentPlanner`, `IntentPlanJob`, `LineRenderer`, `PlaceNames`, `LineSanitizer`, `VoiceSheets` | NpcMemory, NpcDecision | yes |
-| `src/NpcInitiation` | `InitiationLadder`, `BackgroundLadder`, `InitiationOptions`; `PlayerSearch` (Find) | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
+| `src/NpcInitiation` | `InitiationInput`, `PlayerSearch` (Find), `Heartbeat` | NpcMemory, NpcDecision (NpcSchedules via NpcMemory) | yes |
 | `src/NpcMotives` | the motives engine (step 14): `MotivesEngine`, `Stresses`, `StressorTable`, `RegardBook`, `RegardKeeper`, `RegardHistory`, `MoodRoll`, `MotivesRunner`, `BackgroundMotives`, `MotiveInputBuilder`, `MotiveText`, `MotiveDrive` | NpcMemory, NpcDecision, NpcTemperament | yes: decides every attempt (D31) |
 | `src/NpcMinds` | the NPC Minds viewer: `MindsSnapshotBuilder`, `RecordingDecisionClient`, `RingLog`, `MindsServer`, the embedded `viewer/index.html`; the playtest log (`Playtest/`) | NpcMemory, NpcDecision, NpcIntents, NpcInitiation, NpcTemperament, NpcMotives | yes (read-only) |
 | `src/NpcLive` | the first live acts (D30): `LiveSwitches`, `LiveOptions`, `LivePlanner` (a runner `Act` event to an emote id or a templated bubble line), `BubbleVoices` (each villager's bubble lines), `LiveGate` (the last "not now" check), `LiveBreaker` (circuit breaker per switch), `LiveLedger` (shown acts, so an ignored one is written as `IgnoredBy`) | NpcMotives, NpcIntents | yes, behind the `Live` switches |
@@ -595,8 +595,9 @@ motives see no news, and the next save writes no `intents`.
 and the live acts come only from them. What stays in use from this project: `InitiationInput` (each
 tick's views and leads, built by `ModEntry.BuildViews` and read by `RunMotives` and the viewer),
 `PlayerSearch` (asking around, now triggered by `MotiveDrive.Seeking`) and `Heartbeat` (now
-"strongest motive" and the motives worker's backlog). `InitiationLadder` and `BackgroundLadder` stay
-as a tested library until they are deleted; an old save's `ladder` value is left unread and no longer
+"strongest motive" and the motives worker's backlog). `InitiationLadder` and `BackgroundLadder` were
+deleted on 2026-10-19, with their tests, `InitiationStep`, `InitiationOptions`, the playtest `ladder`
+record and the viewer's urge fields; an old save's `ladder` value is left unread and no longer
 written. The rest of this section describes the ladder as it was.
 
 Each NPC carries an **urge** (0..1) to get the player's attention. When it is high enough the ladder
@@ -686,7 +687,7 @@ NPCs in name order, no clock, seeded FNV-1a for the mood roll and the grudge dra
 | `MoodRoll` | earned mood (the stresses' signed sum) plus 0.3 x (0.5 + sensitivity) x a seeded triangular roll skewed by the emotion biases; 1 day in 40 runs against the character's lean |
 | `MotivesEngine` | the motives toward the player, the netted feeling (+ 0.15 x outlook), the candidates (the feeling, labelled by its strongest motive, plus each task), and the act rule over the allowed and available acts whose minimum motive strength the intensity reaches (`ActMinStrength`: a letter needs 0.30, an interrupt 0.60), from the most expensive down: a clear yes at margin >= 0.15, a close call within 0.15; `ResolveClose` tilts the model's answer by 0.10 x outlook and cuts at 0.5, no random draw |
 | `MotivesRunner` | the engine over time (rules below) |
-| `BackgroundMotives` | runs the runner on one worker, like `BackgroundLadder`: `EnqueueTick`, `EnqueueTalked`, `Drain`; `LatestJson`, `LatestDecisions` and `LatestStates` are safe to read from any thread; a full backlog drops ticks and counts them |
+| `BackgroundMotives` | runs the runner on one worker: `EnqueueTick`, `EnqueueTalked`, `Drain`; `LatestJson`, `LatestDecisions` and `LatestStates` are safe to read from any thread; a full backlog drops ticks and counts them |
 | `MotiveInputBuilder` | one NPC's `MotiveInputs` on the game thread, from its own ledger view (near, seen today, days since a sighting), lead, diary (copied) and regard |
 | `MotiveText` | the model's states (the NPC card, the feelings, the act with its parts, cut to the state budget) and options, and the `[shadow]` lines |
 
@@ -1129,7 +1130,7 @@ state.
 `%USERPROFILE%\stardewvalley.targets`, on the owner's PC
 `D:\SteamLibrary\steamapps\common\Stardew Valley`; the mod compiles against the game and SMAPI there.
 
-**Test:** `dotnet test NpcSchedules.sln` runs twelve xUnit projects, 945 tests (2026-10-05); the
+**Test:** `dotnet test NpcSchedules.sln` runs twelve xUnit projects, 887 tests (2026-10-19); the
 count per project is in `README.md`. It does **not** build the mod: no test project references it.
 On the installed SDK 6.0.300 it may need `DOTNET_ROLL_FORWARD=Major`.
 
@@ -1210,8 +1211,7 @@ defaults.
 **A new diary kind**
 1. Write it on the game thread with `_memory.Note(npc, new DiaryEntry(now, subject, "MyKind",
    detail))`: the one writer, which trims to `MaxDiaryEntries` and calls the `Noting` hook (regard).
-   Diaries are not thread-safe; a worker hands lines back the way
-   `BackgroundLadder.Result.DiaryLines` does.
+   Diaries are not thread-safe; a worker hands lines back to the game thread to apply.
 2. If it stirs a feeling, give it a row in `StressorTable.Of` (`src/NpcMotives`): motive, valence,
    magnitude, decay, plastic share, juiciness, emotion (the table in `docs/spec/motives.md`).
 3. The planner will offer it as news unless it is in `IntentPlannerOptions.SkipKinds`. Its option text
@@ -1223,7 +1223,7 @@ defaults.
 
 **A new decision question**
 - Ask through `IDecisionClient` from a background thread only, via the mod's `Guarded(budget)`. Copy
-  `IntentPlanJob` for a batch with a time budget, or `BackgroundLadder` for per-tick work with a backlog.
+  `IntentPlanJob` for a batch with a time budget, or `BackgroundMotives` for per-tick work with a backlog.
 - Options must be things the game can do (at most 100 for Laya); keep the context short (cut at
   4,000 characters). Feed it memory (ledger views, diaries, beliefs), never live positions.
 - The fallback (uniform, midpoint, 0.5) is what you get whenever Laya is slow, down or over budget, and
