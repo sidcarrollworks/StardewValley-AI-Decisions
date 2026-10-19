@@ -35,25 +35,6 @@ public sealed record PresenceRecord(string Name, string Location, int X, int Y) 
 }
 
 /// <summary>
-/// One ladder step attempt, outcome, or a cap/cooldown that blocked an attempt. Becomes
-/// <c>decision</c> once motives replace the urge.
-/// </summary>
-public sealed record LadderRecord(
-    string Npc,
-    string Kind,         // "attempt", "blocked", or whatever the ladder's event Kind says
-    string Step,         // the InitiationStep name
-    double UrgeBefore,
-    double UrgeAfter,
-    double? Threshold,   // the step's threshold at the attempt
-    double? ModelP,      // the model's yes/no answer (null when the model was not asked)
-    string Detail,       // the ladder's Reason text
-    string? LeadPlace) : PlaytestRecord
-{
-    [JsonPropertyOrder(-1)]
-    public override string Type => "ladder";
-}
-
-/// <summary>
 /// One Heard diary line written by MemoryStore.Chat, or one AskAround answer.
 /// </summary>
 public sealed record GossipRecord(

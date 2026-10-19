@@ -112,7 +112,6 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 - **Records grow at the end.** `LedgerView`, `InitiationInput`, `InitiationEvent` and
   `Whereabouts` are positional records used across projects. Add new fields only at the end, with
   defaults.
-- **Ladder steps are saved as integers.** Never insert or reorder values in `InitiationStep`.
 - **Tuning is not saved.** Ledger thresholds and every `*Options` class are code defaults, so a
   change applies to old saves. `RoutineBelief.UnlockThreshold` is the exception (known issue).
 - **Save format.** Changing it means bumping `MemoryStore.CurrentVersion` and adding a migration
@@ -129,7 +128,6 @@ cp mod/StardewNpcMod/bin/Debug/net6.0/*.dll mod/StardewNpcMod/bin/Debug/net6.0/*
 | A new diary kind (e.g. a gift) | the mod's event hook, then `MemoryStore.Note(npc, entry)` (the one writer: it trims and calls the `Noting` hook that applies regard) | Give `LineRenderer` a template, or add the kind to `IntentPlannerOptions.SkipKinds`; if it stirs a feeling, give it a row in `StressorTable.Of` (`src/NpcMotives`; feeling and juiciness, `docs/spec/motives.md`) |
 | A motive, an act or an act's cost | `MotivesEngine.MotivesOf` / `AllowedActs` / `Available`, `MotiveOptions` | `Motive` values are saved as ints: append only. Pacing and "used up" live in `MotivesRunner` |
 | A new model question | `IDecisionClient` callers | Call through `ResilientDecisionClient`, off the game thread; give a deterministic fallback |
-| A new ladder step | the end of `InitiationStep`, `Available`, the `StepThresholds` array, the response window in `ResolveAt` | Add a cap if it's passive |
 | A player-facing place name | `PlaceNames` | Add a test in `PlannedLineDateAndPlaceTests` |
 | A setting | `ModConfig` | Document it in `docs/architecture.md` |
 | Something to show in the viewer | `NpcMinds.Models` (a field at the end), `MindsSnapshotBuilder`, `viewer/index.html` | Build it from memory on the game thread; never call the model or change state for it |

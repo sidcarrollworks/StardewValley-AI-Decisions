@@ -19,8 +19,8 @@ public sealed class PlayerSearch
 
     /// <summary>
     /// Let every NPC that misses the player ask the NPCs around it. Returns one event per NPC that
-    /// learned something, with what it now knows. <paramref name="urges"/> is the ladder's latest
-    /// snapshot (<see cref="BackgroundLadder.LatestUrges"/>).
+    /// learned something, with what it now knows. <paramref name="urges"/> is each NPC's latest
+    /// drive to reach the player (the motives' <c>MotiveDrive</c>).
     /// </summary>
     public IReadOnlyList<SearchEvent> Tick(MemoryStore memory, int nowTick, IReadOnlyDictionary<string, double> urges)
     {

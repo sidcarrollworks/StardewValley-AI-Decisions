@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 namespace NpcMotives;
 
 /// <summary>
-/// Runs a <see cref="MotivesRunner"/> on a single background worker, the way
-/// <c>BackgroundLadder</c> runs the ladder, so its model calls never block the game thread
+/// Runs a <see cref="MotivesRunner"/> on a single background worker, so its model calls never
+/// block the game thread
 /// (AGENTS.md rule 5). The game thread only enqueues work (a tick's copied inputs, or a talk with
 /// the player) and drains finished events; it never touches the runner itself. When the model is
 /// slow and more than <c>maxBacklog</c> ticks are waiting, new ticks are dropped and counted.

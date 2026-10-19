@@ -42,7 +42,7 @@ public sealed class TemperamentViewTests
     {
         var memory = new MemoryStore();
         memory.Note("Shane", new DiaryEntry(10, "Player", "Saw", "Saloon"));
-        var inputs = new MindsInputs(1, 20, "Fake", true, MindsStats.None, "none", null,
+        var inputs = new MindsInputs(1, 20, "Fake", true, MindsStats.None, "none",
             Array.Empty<NpcInitiation.InitiationInput>(), Array.Empty<string>(),
             Array.Empty<NpcIntents.IntentCandidate>(), Array.Empty<FeedItem>());
 

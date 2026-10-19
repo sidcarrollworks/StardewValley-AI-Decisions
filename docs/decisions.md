@@ -505,7 +505,10 @@ the motives.
   `TriedToReach` diary entries, the viewer's urge (the "Old ladder" tab and the urge sort), and the
   saved `ladder` value (an old one is left unread). `LadderMaxBacklog` keeps its name in
   `config.json` and now bounds the motives worker.
-- **Not yet:** deleting `InitiationLadder`/`BackgroundLadder` and their tests.
+- **Done (Sid, 2026-10-19: "Please get rid of the urge ladder, it's unneeded"):** `InitiationLadder`,
+  `BackgroundLadder`, `InitiationStep`, `InitiationOptions`, `LadderNpcState`, the playtest `ladder`
+  record, the viewer's urge, rung and step fields, and their tests are deleted. The calibration still
+  reads the ladder's old attention templates, so earlier eval tables load.
 
 ### D32. Villagers notice the player between ticks
 **Decision (Sid, 2026-10-03: "That sounds like a good fix to me").** Sightings and decisions ran

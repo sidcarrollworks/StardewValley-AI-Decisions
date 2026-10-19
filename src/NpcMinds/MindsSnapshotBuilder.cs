@@ -9,9 +9,8 @@ using NpcTemperament;
 namespace NpcMinds;
 
 /// <summary>
-/// What the mod hands the builder each tick. Everything is memory or the ladder's last finished
-/// state, never a live position: the ladder inputs already carry each NPC's own ledger view and
-/// Find lead (built by the mod for the ladder), so the viewer shows exactly what the ladder saw.
+/// What the mod hands the builder each tick. Everything is memory, never a live position: the
+/// tick's inputs already carry each NPC's own ledger view and Find lead (built by the mod).
 /// </summary>
 public sealed record MindsInputs(
     long Seq,
@@ -20,8 +19,7 @@ public sealed record MindsInputs(
     bool ModelUp,
     MindsStats Stats,
     string PlanState,
-    string? LadderJson,                             // BackgroundLadder.LatestJson
-    IReadOnlyList<InitiationInput> LadderInputs,    // this tick's ladder inputs (views, leads, hearts)
+    IReadOnlyList<InitiationInput> LadderInputs,    // this tick's views, leads and hearts per NPC
     IReadOnlyCollection<string> IntentsToday,
     IReadOnlyList<IntentCandidate> PlanToday,
     IReadOnlyList<FeedItem> Feed,
@@ -46,14 +44,11 @@ public sealed class MindsSnapshotBuilder
     public const int NewsPicks = 3;
 
     private readonly Newsworthiness _news;
-    private readonly InitiationOptions _ladderOptions;
     private readonly IntentPlannerOptions _planOptions;
 
-    public MindsSnapshotBuilder(Newsworthiness? news = null, InitiationOptions? ladderOptions = null,
-        IntentPlannerOptions? planOptions = null)
+    public MindsSnapshotBuilder(Newsworthiness? news = null, IntentPlannerOptions? planOptions = null)
     {
         _news = news ?? new Newsworthiness();
-        _ladderOptions = ladderOptions ?? new InitiationOptions();
         _planOptions = planOptions ?? new IntentPlannerOptions();
     }
 
@@ -62,8 +57,6 @@ public sealed class MindsSnapshotBuilder
         GameTime time = GameClock.FromAbsoluteTick(inputs.Now);
         int today = GameClock.DayIndex(inputs.Now);
 
-        var ladder = InitiationLadder.ReadStates(inputs.LadderJson)
-            .ToDictionary(s => s.Npc, StringComparer.OrdinalIgnoreCase);
         var ladderInputs = new Dictionary<string, InitiationInput>(StringComparer.OrdinalIgnoreCase);
         foreach (InitiationInput input in inputs.LadderInputs ?? Array.Empty<InitiationInput>())
             if (input is not null)
@@ -80,22 +73,12 @@ public sealed class MindsSnapshotBuilder
         foreach (string npc in memory.Diaries.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
             Diary diary = memory.Diaries[npc];
-            ladder.TryGetValue(npc, out LadderNpcState? state);
             ladderInputs.TryGetValue(npc, out InitiationInput? input);
             planned.TryGetValue(npc, out IntentCandidate? line);
 
-            int rung = state?.Rung ?? 0;
-            double[] thresholds = _ladderOptions.StepThresholds;
             npcs.Add(new NpcMind(
                 npc,
                 input?.Hearts ?? 0,
-                state?.Urge ?? 0.0,
-                rung,
-                StepName(rung),
-                rung >= 0 && rung < thresholds.Length ? thresholds[rung] : null,
-                state is not null && state.Day == today ? state.AttemptsToday : 0,
-                state?.OpenStep?.ToString(),
-                state?.OpenTick is { } open ? Math.Max(0, inputs.Now - open) : null,
                 intents.Contains(npc),
                 line?.Line,
                 LastSeen(input?.PlayerView),
@@ -120,8 +103,6 @@ public sealed class MindsSnapshotBuilder
             inputs.ModelUp,
             inputs.Stats,
             inputs.PlanState,
-            _ladderOptions.StepThresholds.ToArray(),
-            Enum.GetNames(typeof(InitiationStep)),
             npcs,
             (inputs.PlanToday ?? Array.Empty<IntentCandidate>())
                 .Select(c => new PlannedLine(c.Npc, c.Line, c.Reason, c.News)).ToList(),
@@ -291,9 +272,6 @@ public sealed class MindsSnapshotBuilder
         }
         return ranks;
     }
-
-    private static string StepName(int rung)
-        => Enum.IsDefined(typeof(InitiationStep), rung) ? ((InitiationStep)rung).ToString() : $"rung {rung}";
 
     /// <summary>Today's entries the planner would consider tonight, scored the way it scores them
     /// (skipped kinds out, one per summary, at least MinNews), best first. A preview only: the

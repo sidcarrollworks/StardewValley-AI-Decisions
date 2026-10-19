@@ -44,26 +44,8 @@ public sealed class MindsSnapshotBuilderTests
         return memory;
     }
 
-    private static string LadderJson()
-    {
-        // A real ladder's own JSON: Abigail sees the player every tick and the model always says yes.
-        var ladder = new InitiationLadder(new Always(1.0), seed: 3, new InitiationOptions { BaseGainPerTick = 0.4, HeartsGainPerTick = 0 });
-        var view = new LedgerView("Abigail", "Player", LedgerDetail.NamedSpot, "SeedShop", 0, 0, Now - 1, "3,4");
-        ladder.Tick(Now - 1, new[] { new InitiationInput("Abigail", view, false, 2) }, _ => new Diary());
-        return ladder.ToJson();
-    }
-
-    private sealed class Always : IDecisionClient
-    {
-        private readonly double _p;
-        public Always(double p) => _p = p;
-        public IReadOnlyList<double> Choose(IReadOnlyList<string> options, string context) => options.Select(_ => 1.0 / options.Count).ToArray();
-        public double Score(string context, double min, double max) => min;
-        public double YesNo(string context, string proposition) => _p;
-    }
-
     private static MindsInputs Inputs(IReadOnlyList<InitiationInput>? ladderInputs = null, IReadOnlyList<IntentCandidate>? plan = null)
-        => new(7, Now, "Laya", true, new MindsStats(1, 0, 12, 0, 30, 49), "none", LadderJson(),
+        => new(7, Now, "Laya", true, new MindsStats(1, 0, 12, 0, 30, 49), "none",
             ladderInputs ?? new[]
             {
                 new InitiationInput("Abigail", new LedgerView("Abigail", "Player", LedgerDetail.Location, "SeedShop", 18, 0, Now - 18), false, 2,
@@ -98,28 +80,15 @@ public sealed class MindsSnapshotBuilderTests
         Assert.Equal(7, s.Seq);
         Assert.Equal("Laya", s.Backend);
         Assert.Equal(12, s.Stats.Calls);
-        Assert.Equal(new InitiationOptions().StepThresholds, s.StepThresholds);
-        Assert.Equal("Emote", s.StepNames[0]);
         Assert.Single(s.Feed);
     }
 
     [Fact]
-    public void LadderStateComesFromTheLadderJson()
+    public void HeartsComeFromTheTicksInputs()
     {
-        NpcMind abigail = new MindsSnapshotBuilder().Build(Memory(), Inputs()).Npcs[0];
+        MindsSnapshot s = new MindsSnapshotBuilder().Build(Memory(), Inputs());
 
-        Assert.True(abigail.Urge >= 0.3, $"urge {abigail.Urge}");
-        Assert.Equal(0, abigail.Rung);
-        Assert.Equal("Emote", abigail.RungName);
-        Assert.Equal(0.30, abigail.NextThreshold);
-        Assert.Equal("Emote", abigail.OpenStep);  // the attempt is still open
-        Assert.Equal(1, abigail.OpenForTicks);
-        Assert.Equal(1, abigail.AttemptsToday);
-        Assert.Equal(2, abigail.Hearts);
-
-        NpcMind sam = new MindsSnapshotBuilder().Build(Memory(), Inputs()).Npcs[1];
-        Assert.Equal(0.0, sam.Urge); // never ticked by the ladder
-        Assert.Null(sam.OpenStep);
+        Assert.Equal(new[] { 2, 0 }, s.Npcs.Select(n => n.Hearts));
     }
 
     [Fact]
@@ -219,13 +188,6 @@ public sealed class MindsSnapshotBuilderTests
     [InlineData(119, "1:50 am")]
     public void TheClockReadsLikeTheGame(int tick, string expected)
         => Assert.Equal(expected, MindsSnapshotBuilder.Clock(tick));
-
-    [Fact]
-    public void AnUnreadableLadderJsonMeansNoLadderState()
-    {
-        MindsInputs inputs = Inputs() with { LadderJson = "not json" };
-        Assert.All(new MindsSnapshotBuilder().Build(Memory(), inputs).Npcs, n => Assert.Equal(0.0, n.Urge));
-    }
 
     [Fact]
     public void AnIdleSnapshotIsEmpty()

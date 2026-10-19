@@ -33,9 +33,8 @@ namespace StardewNpcMod;
 /// location within <see cref="MemoryStore.CoLocationRadius"/> tiles (memory from the NPC side).</item>
 /// <item>At day end, overnight intents are planned on a background task with a time budget; the plan
 /// is collected (never waited on) and shadow-logged the next morning.</item>
-/// <item>NPCs who miss the player ask the NPCs around them where the player is (gossip), and the
-/// ladder can send an NPC to look for the player where it believes they are.</item>
-/// <item>The initiation ladder runs on its own background worker; its would-be actions are logged.</item>
+/// <item>NPCs who miss the player ask the NPCs around them where the player is (gossip).</item>
+/// <item>The motives run on their own background worker; their would-be actions are logged.</item>
 /// </list>
 /// Model calls (Laya or the fake) never run on the game thread, including during the save.
 /// </summary>
@@ -65,7 +64,7 @@ public class ModEntry : Mod
     private readonly Dictionary<string, (string Location, int X, int Y)> _lastPresencePositions = new();
     private DateTime _planJobStartedUtc;
 
-    // NPCs with a planned line for today (feeds the ladder's intent boost).
+    // NPCs with a planned line for today.
     private readonly HashSet<string> _intentsToday = new(StringComparer.OrdinalIgnoreCase);
 
     // First-conversation tracking for the Talked diary kind; cleared at the 6:00 tick, on load,
@@ -569,7 +568,7 @@ public class ModEntry : Mod
 
         _playtest.DrainWorkerQueue(); // hand off the model-call records the workers queued this tick
 
-        PublishMinds(); // last: the viewer sees this tick's memory, ladder results and plan
+        PublishMinds(); // last: the viewer sees this tick's memory, motives and plan
 
         tickWatch.Stop();
         _playtest.Append(new PerfRecord("tick", tickWatch.Elapsed.TotalMilliseconds) { Tick = now });
@@ -1465,7 +1464,7 @@ public class ModEntry : Mod
     }
 
     /// <summary>Builds the viewer's snapshot on the game thread and hands it to the server. It
-    /// reads memory, the ladder's last finished state and the plan, and changes nothing; a
+    /// reads memory, the motives and the plan, and changes nothing; a
     /// failure only means the viewer shows the previous snapshot.</summary>
     private void PublishMinds()
     {
@@ -1500,7 +1499,7 @@ public class ModEntry : Mod
                 _regions, HeartsFor(npc), Array.Empty<(string, string)>());
 
             var inputs = new MindsInputs(++_mindsSeq, now, BackendName(), _model is not LayaDecisionClient || _layaUp,
-                stats, planState, null, _lastLadderInputs, _intentsToday.ToList(), _planToday,
+                stats, planState, _lastLadderInputs, _intentsToday.ToList(), _planToday,
                 _feed.Newest(), NewsFor, TemperamentViewOf, _spread.Copy(), _calibration,
                 Motives: _motives.LatestDecisions,
                 MotiveStates: _motives.LatestStates,
