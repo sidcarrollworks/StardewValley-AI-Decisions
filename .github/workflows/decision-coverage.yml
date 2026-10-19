@@ -1,0 +1,30 @@
+name: Decision coverage report
+
+on:
+  pull_request:
+    paths:
+      - 'sim/tools/decision_coverage.py'
+      - 'tests/test_decision_coverage.py'
+      - '.github/workflows/decision-coverage.yml'
+  push:
+    branches: [main, codex/reflection-prototype]
+    paths:
+      - 'sim/tools/decision_coverage.py'
+      - 'tests/test_decision_coverage.py'
+      - '.github/workflows/decision-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test recording diagnostics without models or dependencies
+        run: python -m unittest discover -s tests -p test_decision_coverage.py
