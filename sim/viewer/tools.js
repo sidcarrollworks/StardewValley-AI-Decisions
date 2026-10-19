@@ -23,7 +23,7 @@
     const tick = Number(params.get("t"));
     if (params.has("t") && Number.isFinite(tick) && tick >= 0) state.t = Math.floor(tick);
     if (params.has("person")) state.person = params.get("person");
-    if (["town", "inner", "people", "rel", "stories", "explain"].includes(params.get("tab"))) state.tab = params.get("tab");
+    if (["town", "inner", "people", "rel", "stories", "explain", "coverage"].includes(params.get("tab"))) state.tab = params.get("tab");
     return state;
   }
   function parseRecording(text) {
