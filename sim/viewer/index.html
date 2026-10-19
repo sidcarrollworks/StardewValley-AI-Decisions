@@ -461,10 +461,12 @@ input[type="range"]::-moz-range-thumb { width: 10px; height: 18px; border-radius
         <button role="tab" id="tab-rel-btn" aria-selected="false" aria-pressed="false" data-tab="rel">Relationships</button>
         <button role="tab" id="tab-stories-btn" aria-selected="false" aria-pressed="false" data-tab="stories">Stories</button>
         <button role="tab" id="tab-explain-btn" aria-selected="false" aria-pressed="false" data-tab="explain">Explanation</button>
+        <button role="tab" id="tab-coverage-btn" aria-selected="false" aria-pressed="false" data-tab="coverage" hidden>Model coverage</button>
       </nav>
       <label class="hoodpick" id="hoodBox" hidden>Neighbourhood <select id="hoodSel" title="Show one neighbourhood in the town, the population, the relationships, the stories and the log"></select></label>
       </div>
 
+      <div id="tab-coverage" role="tabpanel" aria-labelledby="tab-coverage-btn" hidden></div>
       <div id="tab-town" role="tabpanel" aria-labelledby="tab-town-btn">
         <div class="groups" id="groups"></div>
       </div>
@@ -1500,6 +1502,7 @@ function setPlaying(on) {
 let lastFeedKey = "", lastSideKey = "", lastRelKey = "", lastStoryKey = "", lastPopKey = "", lastInnerKey = "", lastObserverKey = "";
 function render() {
   if (!R) return;
+  if (S.tab === "coverage") window.underGlassCoveragePanel?.render();
   const t = S.t;
   $("clockDate").textContent = dateOf(t);
   const [hh, mm] = hm(t).split(":"); $("clockH").textContent = hh; $("clockM").textContent = mm;
@@ -3135,7 +3138,7 @@ function drawFeed() {
 function showTab(tab) {
   S.tab = tab;
   for (const b of document.querySelectorAll(".tabs button")) { const on = b.dataset.tab === tab; b.setAttribute("aria-selected", on); b.setAttribute("aria-pressed", on); }
-  for (const id of ["town", "inner", "people", "rel", "stories", "explain"]) $("tab-" + id).hidden = id !== tab;
+  for (const id of ["town", "inner", "people", "rel", "stories", "explain", "coverage"]) $("tab-" + id).hidden = id !== tab;
   if (tab === "explain") drawExplanation();
   lastRelKey = lastStoryKey = lastPopKey = lastInnerKey = ""; render();
 }
@@ -3191,6 +3194,7 @@ $("popDir").addEventListener("click", () => { S.popHigh = !S.popHigh; syncPopCon
 $("storyOrder").addEventListener("change", () => render());
 $("feedSearch").addEventListener("input", (e) => { S.feedSearch = e.target.value; render(); });
 document.addEventListener("keydown", (e) => {
+  if (e.target.closest("#tab-coverage") && e.target.matches("summary,button,input,select")) return;
   if (!R || e.target.matches("input[type=search], input[type=checkbox], select")) return;
   if (e.key === " " && !e.target.matches("button")) { e.preventDefault(); setPlaying(!S.playing); }
   else if (e.key === "ArrowRight" && !e.target.matches("input[type=range]")) { e.preventDefault(); setTime(S.t + (e.shiftKey ? 60 : 5)); }
@@ -3278,5 +3282,19 @@ window.underGlassToolPage = {
 };
 if (/^https?:$/.test(location.protocol)) {
   const script = document.createElement("script"); script.src = "/sim/viewer/tools.js?v=20261014-6"; document.head.append(script);
+  // Optional site feature: standalone exported recordings keep their existing offline behavior.
+  const coverageStyle = document.createElement("link");
+  coverageStyle.rel = "stylesheet"; coverageStyle.href = "/sim/viewer/coverage.css"; document.head.append(coverageStyle);
+  const loadCoverageScript = src => new Promise((resolve, reject) => {
+    const node = document.createElement("script"); node.src = src; node.onload = resolve; node.onerror = reject; document.head.append(node);
+  });
+  loadCoverageScript("/sim/viewer/coverage-model.js").then(() => loadCoverageScript("/sim/viewer/coverage.js")).then(() => {
+    window.underGlassCoveragePanel = UnderGlassCoverage.mount($("tab-coverage"), {
+      state: () => ({run:R?.run, at:S.t, person:R?.names[S.person] ?? ""}),
+      selectPerson: name => { if (R) { S.person=R.names.indexOf(name); lastSideKey=lastRelKey=lastFeedKey=lastInnerKey=""; render(); } },
+      seek: (at,name) => { if (R) { setPlaying(false); S.person=R.names.indexOf(name); setTime(at); } },
+    });
+    $("tab-coverage-btn").hidden = false; window.underGlassCoveragePanel.render();
+  }).catch(() => { $("tab-coverage").textContent = "Model coverage could not load. Reload this page to try again."; });
 }
 </script>
