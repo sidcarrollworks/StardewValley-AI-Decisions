@@ -98,12 +98,19 @@
       const otherOpen=others.querySelector('details')?.open;
       const details=disclosure('Other recorded decisions',
         el('div',{class:'coverage-other-grid'},
-          el('div',{},el('h3',{text:'Free-time routing'}),el('p',{text:`${fmt(route.choices)} choices`}),el('p',{class:'muted',text:`Backend: ${route.backend ?? 'not recorded'}`})),
+          el('div',{},el('h3',{text:'Free-time routing'}),el('p',{text:`${fmt(route.choices)} choices`}),el('p',{class:'muted',text:`Backend: ${route.backend ?? 'not recorded'}`}),
+            ...(route.choices==null?[]:[el('p',{text:`${route.laya} Laya answers · ${route.fallback} fallbacks`})])),
           el('div',{},el('h3',{text:'Immediate company'}),el('p',{text:`${fmt(company.choices)} choices · ${fmt(company.answers)} answers`}),el('p',{class:'muted',text:`Backend: ${company.backend ?? 'not recorded'}`})),
           el('div',{},el('h3',{text:'Private inspiration'}),el('p',{text:`${fmt(result.reflectionCount)} considered reflections`}),
             ...(result.reflectionCount == null ? [] : [
               el('p',{text:`${result.passes} evaluator passes · ${result.generated} generated responses`}),
               el('p',{class:'muted',text:`${result.passResponses} pass responses · ${result.passErrors} errors · ${result.passUnknown} unknown pass lists. HTTP attempts not recorded.`})]))),
+        ...(route.rows.some(r=>r.backend) ? [disclosure('Recent destination selections',
+          ...route.rows.slice(-20).reverse().map(r=>el('p',{},
+            el('button',{text:`${when(r.at)} · ${r.person}`,onclick:()=>{whole.checked=false;key='';api.seek(r.at,r.person);}}),
+            el('span',{text:` ${r.line} · ${r.backend ?? 'No evaluation recorded'} · ${r.resolution==='applied' ? 'Destination set (arrival not confirmed)' : r.resolution ?? (r.backend ? 'Awaiting execution' : 'Routine selection (arrival not recorded)')}`}),
+            ...(r.note ? [el('small',{class:'muted',text:' '+r.note})] : []))),
+          el('p',{text:'Last 20 selections in scope. Counts include all recorded destination choices.'}))] : []),
         ...result.reflections.slice(-20).map(r=>el('p',{},el('span',{class:'data',text:when(r.at)+' · '}),
           el('strong',{text:r.person+' · '}),r.answer?.backend ?? 'Backend not recorded')),
         ...(result.reflections.length>20 ? [el('p',{text:'Showing the last 20 reflection receipts. Counts include all considered reflections in scope.'})] : []));

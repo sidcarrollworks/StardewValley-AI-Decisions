@@ -5,7 +5,12 @@ every queued choice through `ILivesDecisionMind`, independent of torn status and
 `Selective` retains the previous path and default recording shape. The same keyed draw,
 asynchronous boundary, next-minute eligibility recheck, recorded fallback and exact tape remain.
 This is the first stage of [Laya-first decision coverage](under-glass/specs/laya-first-spec.md);
-routes, immediate company and ordinary acts are not yet converted. The Stardew mod is unchanged.
+free-time routes now optionally share that evaluator through `Simulation.RoutingDecisions.cs`.
+It freezes holder-known context and menu, waits between minutes, then rechecks priorities and
+availability before setting a goal. Evaluated route receipts carry pending/applied/superseded/
+unavailable resolution separately from model selection; application is not arrival. Old authored
+recordings remain unchanged. Immediate company and ordinary acts are not yet converted.
+The Stardew mod is unchanged.
 
 A map of this repo for whoever maintains it next, human or model. It was checked against the code
 at commit `c97a829` (step 9, Find included) on branch `claude/audit-fixes-initiation`; the per-tick

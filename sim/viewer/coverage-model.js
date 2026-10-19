@@ -72,10 +72,19 @@
     const other = {};
     for (const [key, field] of [['livesRouting','decisions'], ['livesCompany','choices']]) {
       const b = block(run, key), items = new Map(), answers = new Map();
-      for (const c of list(b?.[field])) put(items, opportunity(c.decision).id, c, 'choice');
+      for (const c of list(b?.[field])) {
+        if(c.evaluation && (!c.evaluation.answer || canonical(c.evaluation.request?.fallback)!==canonical(c.decision)))
+          throw new Error('An evaluation disagrees with its recorded choice.');
+        put(items, opportunity(c.decision).id, c, 'choice');
+      }
       for (const a of list(b?.answers)) put(answers, JSON.stringify([a.episodeId,a.holder,a.at]), a, 'company answer');
       other[key] = {recorded:Array.isArray(b?.[field]), answersRecorded:Array.isArray(b?.answers), backend:b?.backend,
-        rows:[...items.values()].map(c => ({person:opportunity(c.decision).holder, at:opportunity(c.decision).at})),
+        rows:[...items.values()].map(c => ({person:opportunity(c.decision).holder,
+          at:opportunity(c.decision).at + (c.evaluation ? 1 : 0), id:opportunity(c.decision).id,
+          line:line(c.decision,c.evaluation?.selectedId ?? c.selectedOption ?? c.decision.selectedId),
+          backend:c.evaluation?.answer?.backend ?? null,
+          resolution:c.resolution ?? null, resolvedAt:c.resolvedAt ?? null,
+          note:c.evaluation?.answer?.note ?? null})),
         answers:[...answers.values()].map(a => ({person:a.holder,at:a.at}))};
     }
     const reflections = new Map();
@@ -98,6 +107,9 @@
     for (const r of rows) counts[r.status]++;
     const other = Object.fromEntries(Object.entries(data.other).map(([k,b]) => [k, {
       choices:b.recorded ? b.rows.filter(visible).length : null,
+      rows:b.rows.filter(visible).map(r=>({...r,resolution:r.resolvedAt != null && r.resolvedAt<=limit ? r.resolution : null})),
+      laya:b.rows.filter(r=>visible(r)&&r.backend==='laya').length,
+      fallback:b.rows.filter(r=>visible(r)&&['authored','authored-fallback'].includes(r.backend)).length,
       answers:b.answersRecorded ? b.answers.filter(visible).length : null, backend:b.backend ?? null}]));
     const reflections = data.reflections.filter(visible), passes = reflections.flatMap(r => list(r.answer?.evaluations));
     return {rows, counts, total:data.recorded ? rows.length : null, orphans:data.orphans.filter(visible).length,

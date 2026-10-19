@@ -11,6 +11,21 @@ function choice(id='one',person='Pam',at=100,backend='laya') {
   return {phase:'offer',decision,evaluation};
 }
 const runWith=(...choices)=>({...base(),livesEvenings:{version:1,choices,decisions:choices.flatMap(c=>c.evaluation?[c.evaluation]:[])}});
+
+test('route receipts show actual selection and gate execution status separately from evening counts',()=>{
+  const c={...choice(),resolution:'applied',resolvedAt:102};
+  const data=index({...base(),livesRouting:{decisions:[c]}});
+  assert.equal(view(data,{at:100}).other.livesRouting.choices,0);
+  const early=view(data,{at:101});assert.equal(early.total,null);
+  assert.equal(early.other.livesRouting.laya,1);
+  assert.equal(early.other.livesRouting.rows[0].line,'Ask for a game.');
+  assert.equal(early.other.livesRouting.rows[0].resolution,null);
+  assert.equal(view(data,{at:102}).other.livesRouting.rows[0].resolution,'applied');
+  assert.equal(view(data,{person:'Penny'}).other.livesRouting.laya,0);
+  c.evaluation.request.fallback=structuredClone(c.decision);
+  c.evaluation.request.fallback.selectedId='different';
+  assert.throws(()=>index({...base(),livesRouting:{decisions:[c]}}),/disagrees/);
+});
 test('deduplicates embedded and separate evaluations; displays actual selection, not fallback',()=>{
   const c=choice(),run=runWith(c,c),original=JSON.stringify(run),v=view(index(run));
   assert.equal(v.total,1);assert.equal(v.evaluated,1);assert.equal(v.called,1);

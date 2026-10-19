@@ -2,6 +2,42 @@
 
 ## Status and scope
 
+**Optional Laya destinations, 2026-10-19:** `--routing-evaluation laya --lives-routing`
+with `--lives-laya <url>` or `--lives-tape <recording>` evaluates available free-time menus,
+even without recalled history. Authored remains the default. Run Studio exposes the evaluator
+under Histories. This mode defaults the shared Lives model to `typed-decisions`; an explicit
+`--lives-laya-model` overrides it. Haiku inspiration remains a separate consumer.
+
+The menu adds “Stay here for a while.” The request contains the person's current place, clock,
+energy, mood, chattiness, boldness, and existing recalled evidence. It does not query other
+characters' positions or minds. This is limited personal context, not the complete archetype,
+commitment and ongoing-intention context planned in the Laya-first specification.
+
+Requests are evaluated between simulated minutes. The next minute rechecks work, sleep,
+detention, errands, active company/evening goals, busy state and destination availability before
+setting the selected goal. While awaiting an answer the person stays at their current spot.
+Provider latency does not advance simulated time; cancellation does not apply an answer.
+The same keyed draw selects from returned weights, with recorded authored fallback on failure.
+There is no torn-choice gate or daily evaluation budget for routes.
+
+Existing menu construction, preference weights, company-seeking priority and the five-option
+limit remain. Larger menus record `legacy-menu-outside-choice-bounds` and use routine selection;
+zero-weight options stay excluded. Bodies, work and movement are still engine mechanisms.
+This is partial destination integration, not full Laya coverage of the town.
+
+Evaluated routing rows append `evaluation`, `resolution` and `resolvedAt`. Resolution is pending,
+applied, superseded or unavailable; **applied means the destination goal was set, not arrival**.
+The routing block uses backend `typed-decisions`; per-answer receipts identify the actual
+provider, model, omitted memory and fallback. Default authored recordings keep their old shape.
+The Run Viewer coverage tab and CLI report count route evaluations separately from evenings;
+Life chains reveals evaluated selections from the next minute. Tape replay accepts route-only
+or combined route/evening recordings and verifies every recorded answer is consumed.
+History comparisons still measure the authored fallback, not a counterfactual Laya answer.
+
+Eight offline route tests cover no-history choices, application, stale destinations, work taking
+priority, fallback, cancellation, recording/latency independence and exact tape replay. Live
+model-quality experiments and observer test packs are deferred until more consumers are connected.
+
 Built 2026-10-15 as the first live consumer of the
 [personal-memory foundation](lives-memory-spec.md). This increment connects perceived feelings,
 recall, and competing **existing free-time destinations**. It also records isolated choices with
@@ -10,7 +46,8 @@ and without specified starting history. It is opt-in and does not change law 1 o
 The [Lives assessment](../lives-gap-assessment.md), especially section 9, remains the broader pilot
 design. This increment does **not** complete the Penny–Pam–Gus thread. It adds no company-seeking
 destination, plan, invitation response, pending ask, shared activity, outcome classifier, reflection
-trigger, or Laya choice call. It does not alter the existing invitation, errand, commitment, or
+trigger. The original authored mode makes no Laya calls; the optional evaluator above was added
+2026-10-19. Routing does not alter the existing invitation, errand, commitment, or
 reflection rules. Those systems can run under their own existing switches; enabling routing does
 not enable them automatically.
 
@@ -152,7 +189,8 @@ Reasons retain the base, boldness, each warm/cold cause, expectations and any in
 
 Torn diagnostics mark mixed sides above `TornAt` (default 0.025), warmth above that threshold with
 chance below 0.5, or the top two probabilities within 10%. They are diagnostics in this increment:
-they do not schedule a Laya request. Settings are experimental, not calibrated psychological laws.
+they do not schedule or gate a Laya request. Optional model routing evaluates untorn choices too.
+Settings are experimental, not calibrated psychological laws.
 
 ## The same choice with and without history
 
@@ -200,6 +238,7 @@ The Replay CLI adds:
 | Flag | Meaning |
 |---|---|
 | `--lives-routing` | Enable this destination-choice increment. |
+| `--routing-evaluation authored\|laya` | Default authored; laya requires a Lives provider or tape, but no history. |
 | `--history <file>` | Read an explicitly supplied history pack; requires routing. |
 | `--compare-history <id>` | Request a local history intervention; repeat for multiple IDs. Requires routing. |
 | `--no-lives-record` | Keep routing active but omit its observation block and comparisons. Requires routing. |
@@ -222,7 +261,8 @@ reflections as Lives choices. The CLI exposes enable/history/recording controls;
 and choice settings above currently require programmatic options.
 
 Enabled, recorded runs gain an additive **`livesRouting`** block, with `version: 1`,
-`stage: "free-time-routing"`, and `backend: "authored-keyed-draw"`. It contains options, the validated
+`stage: "free-time-routing"`, and `backend: "authored-keyed-draw"` in authored mode (`typed-decisions`
+in evaluator mode). It contains options, the validated
 history snapshot when supplied, `historySnapshotHash`, decisions/comparisons, skipped menus, memory
 changes, and perception metadata. The hash is lowercase SHA-256 of the validated pack serialized by
 the local `System.Text.Json` options (camel-case properties and named enums). It is **not JCS**, a

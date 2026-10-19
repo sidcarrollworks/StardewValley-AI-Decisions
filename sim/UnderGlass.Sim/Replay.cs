@@ -102,9 +102,9 @@ public static class Replay
         sim.ConfigureSpeech(o.Speech);
         NightList? nights = o.Nights ? new NightList() : null;
         sim.ConfigureNights(nights);
-        sim.ConfigureLivesRouting(livesRouting, history);
+        sim.ConfigureLivesRouting(livesRouting, history, livesRouting.Evaluate ? livesMind : null);
         sim.ConfigureLivesCompany(livesCompany);
-        sim.ConfigureLivesEvenings(livesEvenings, livesMind);
+        sim.ConfigureLivesEvenings(livesEvenings, livesEvenings.Enabled ? livesMind : null);
         if (inspirationPack is not null)
         {
             if (!o.Reflection.Enabled) throw new ArgumentException("Character inspiration requires enabled reflection.", nameof(o));
@@ -368,7 +368,7 @@ public static class Replay
             byte[]? packBytes = history is null ? null : JsonSerializer.SerializeToUtf8Bytes(history, json);
             recording["livesRouting"] = JsonSerializer.SerializeToElement(new
             {
-                version = 1, stage = "free-time-routing", backend = "authored-keyed-draw",
+                version = 1, stage = "free-time-routing", backend = livesRouting.Evaluate ? "typed-decisions" : "authored-keyed-draw",
                 options = livesRouting, history,
                 historySnapshotHash = packBytes is null ? null : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(packBytes)).ToLowerInvariant(),
                 decisions = r.LivesRouting, skipped = r.LivesRoutingSkipped, memoryChanges = r.LivesMemoryChanges,

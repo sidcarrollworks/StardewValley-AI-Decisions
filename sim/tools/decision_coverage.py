@@ -194,9 +194,18 @@ def authored_choices(data, name, key, person):
         op = opportunity(row.get('decision'))
         unique(unique_choices, op['id'], row, 'choice')
     counts = Counter()
+    matched_choices, evaluations = {}, {}
     for row in unique_choices.values():
         op = opportunity(row['decision'])
+        ev = row.get('evaluation')
+        if ev is not None:
+            ev_op = validate_evaluation(ev)
+            if ev_op['id'] != op['id'] or ev['request']['fallback'] != row['decision']:
+                raise InvalidRecording(f'Evaluation does not match its choice: {op["id"]}.')
         if selected(op['holder'], person):
+            matched_choices[op['id']] = row
+            if ev is not None:
+                evaluations[op['id']] = ev
             phase = text(row.get('phase'), 'choice.phase') or op['trigger']
             counts[(op['holder'], phase)] += 1
     answers = optional_rows(block, 'answers') if name == 'livesCompany' else None
@@ -209,6 +218,7 @@ def authored_choices(data, name, key, person):
         unique(unique_answers, (episode, holder, row['at']), row, 'company answer')
     answer_counts = Counter(r['holder'] for r in unique_answers.values() if selected(r['holder'], person))
     return {'status': 'recorded', 'backend': text(block.get('backend'), name + '.backend'),
+            'evaluation_summary': evening_summary(matched_choices, evaluations) if decisions is not None else None,
             'choices': sum(counts.values()) if decisions is not None else None,
             'answers': sum(answer_counts.values()) if answers is not None else None,
             'by_person_phase': [{'person': who, 'phase': phase, 'choices': n} for (who, phase), n in sorted(counts.items())],
@@ -324,6 +334,9 @@ def render(result):
             lines.append(f"  {one_line(row['person'])} / {one_line(row['phase'])}: {row['choices']}")
         for row in section.get('answers_by_person', []):
             lines.append(f"  {one_line(row['person'])} / answer: {row['answers']}")
+        summary = section.get('evaluation_summary')
+        if summary and summary['evaluations']:
+            lines.append(f"  Evaluated: {summary['evaluations']}; Laya: {summary['successful_laya_answers']}; authored/fallback: {summary['authored_or_fallback_answers']}; recorded HTTP: {summary['recorded_http_attempts']}.")
     ref = result['reflections']
     if ref['status'] == 'not_recorded':
         lines.append('Reflections: not recorded.')
