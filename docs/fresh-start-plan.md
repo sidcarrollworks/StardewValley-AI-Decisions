@@ -34,7 +34,7 @@ the approved choices have been carried into the new brief and rules.
 | 1 | Name and visibility of the new repo | `under-glass`, **private**. The current repo is public and holds data extracted from Stardew (`fixtures/game/`, quoted dialogue in the character and history packs). The new one must not repeat that in public. |
 | 2 | Language and engine for milestone 1 | **No game engine for now** (Godot is dropped). Sid asked whether Rust would be better; **open until Sid confirms.** Claude recommends C# on .NET 8. This plan extracts tested code rather than rewriting it, and Rust would turn every extraction into a rewrite of about 20,000 lines with their tests. The engine is also not the bottleneck: Laya's latency per question is. Rust would pay off for a browser (WebAssembly) or Bevy build later, which nothing here needs yet. Codex, as the builder, should weigh in. |
 | 3 | Cast for milestone 1 | **Ten people:** Penny, Pam, Gus, Pierre, Caroline, Robin, Demetrius, Leah, Elliott and Maru (the game's spellings). Cast size and identity are data, not engine special cases. Adding another authored character must not require code. Population optimization follows the demo. |
-| 4 | Who leads | **Codex builds; Claude reviews.** |
+| 4 | Who leads | **Claude builds; Codex reviews** (Sid changed this on 2026-10-19). |
 | 5 | What happens to this repo | **Leave it alone; treat it as archived now.** No new work here. It stays readable for extraction. |
 
 ## The brief (`BRIEF.md`, at most one page)
@@ -183,7 +183,7 @@ Keep PRs small and demonstrable; split a step when needed. A usable author/start
 must accompany the first Laya-enabled slice, not arrive after the simulation has been rebuilt.
 
 1. **Sid answers decisions 1–5.**
-2. **Codex/Astra: the repo exists.** `BRIEF.md`, `AGENTS.md`, `DECISIONS.md` (seeded with this
+2. **The repo exists.** `BRIEF.md`, `AGENTS.md`, `DECISIONS.md` (seeded with this
    plan's choices), CI, and an empty engine project that builds. Sid reviews the brief.
 3. **The smallest runnable world and page.** Extract clock, map, walking, bodies and perception,
    with tests and a data-defined cast. Show movement in the reused map and start/replay a run from
@@ -201,7 +201,7 @@ must accompany the first Laya-enabled slice, not arrive after the simulation has
 7. **Milestone review with Sid.** Decide the
    next milestone and retire temporary switches; keep the minimum experimentation workflow working.
 
-Claude reviews each PR for knowledge leaks, replay exactness and scope creep.
+Codex reviews each PR for knowledge leaks, replay exactness and scope creep.
 
 ## Risks
 
