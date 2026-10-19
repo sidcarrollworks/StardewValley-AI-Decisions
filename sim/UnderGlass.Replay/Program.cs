@@ -31,6 +31,9 @@ if (args.Contains("--help", StringComparer.Ordinal))
 
         Experimental history and free-time choices (off by default):
           --lives-routing --history <reviewed-pack.json>
+          --routing-evaluation authored|laya    Default: authored. Laya needs --lives-laya or --lives-tape.
+            Evaluates free-time destinations, including staying here; no history is required.
+            Defaults the shared Lives model to typed-decisions unless --lives-laya-model is explicit.
           --compare-history <history-id>    Repeatable, same-choice comparison.
           --no-lives-record                Omit routing receipts; behavior is unchanged.
 
@@ -82,6 +85,7 @@ string? inspirationPath = null, speechPath = null;
 bool newcomerVoice = false;
 string? historyPath = null;
 bool livesRouting = false, livesRecord = true;
+string routingEvaluation = "authored";
 bool livesCompany = false, companyRecord = true;
 bool livesEvenings = false, eveningRecord = true;
 string? livesLayaUrl = null, livesTapePath = null;
@@ -106,6 +110,7 @@ for (int i = 0; i < args.Length; i++)
         case "--reflection": reflectionMode = Next(); break;
         case "--character-inspiration": inspirationPath = Next(); break;
         case "--lives-routing": livesRouting = true; break;
+        case "--routing-evaluation": routingEvaluation = Next(); break;
         case "--history": historyPath = Next(); break;
         case "--compare-history": compareHistory.Add(Next()); break;
         case "--no-lives-record": livesRecord = false; break;
@@ -214,16 +219,23 @@ CharacterInspirationPack? inspiration = inspirationPath is null ? null
     : CharacterInspirationPack.Read(File.ReadAllText(inspirationPath));
 if (!livesRouting && (historyPath is not null || compareHistory.Count > 0 || !livesRecord))
     throw new ArgumentException("--history, --compare-history and --no-lives-record require --lives-routing.");
+if (routingEvaluation is not ("authored" or "laya")) throw new ArgumentException("--routing-evaluation authored|laya");
+if (routingEvaluation == "laya" && (!livesRouting || livesLayaUrl is null && livesTapePath is null))
+    throw new ArgumentException("--routing-evaluation laya requires --lives-routing and --lives-laya or --lives-tape.");
+if (routingEvaluation == "laya" && !args.Contains("--lives-laya-model", StringComparer.Ordinal))
+    livesLayaModel = "typed-decisions";
 if (livesCompany && !livesRouting)
     throw new ArgumentException("--lives-company requires --lives-routing and --catalog company,invitations.");
 if (!companyRecord && !livesCompany)
     throw new ArgumentException("--no-company-record requires --lives-company.");
 if (livesEvenings && !livesCompany)
     throw new ArgumentException("--lives-evenings requires --lives-company, --lives-routing and --catalog company,invitations.");
-if (!livesEvenings && (!eveningRecord || livesLayaUrl is not null || livesTapePath is not null
-    || eveningPeople.Count > 0 || args.Contains("--lives-laya-model", StringComparer.Ordinal)
+if (!livesEvenings && (!eveningRecord
+    || eveningPeople.Count > 0
     || args.Contains("--evening-evaluation", StringComparer.Ordinal)))
     throw new ArgumentException("Evening model, participant and recording options require --lives-evenings.");
+if (!livesEvenings && routingEvaluation != "laya" && (livesLayaUrl is not null || livesTapePath is not null || args.Contains("--lives-laya-model", StringComparer.Ordinal)))
+    throw new ArgumentException("Lives model options require --lives-evenings or --routing-evaluation laya.");
 if (livesLayaUrl is not null && livesTapePath is not null)
     throw new ArgumentException("Choose either --lives-laya or --lives-tape; a tape never calls the model.");
 if (args.Contains("--lives-laya-model", StringComparer.Ordinal) && livesLayaUrl is null && livesTapePath is null)
@@ -259,19 +271,30 @@ RecordedLivesDecisionMind? livesTape = null;
 if (livesTapePath is not null)
 {
     using JsonDocument tape = JsonDocument.Parse(File.ReadAllText(livesTapePath));
-    JsonElement records = tape.RootElement.ValueKind == JsonValueKind.Array ? tape.RootElement
-        : tape.RootElement.TryGetProperty("livesEvenings", out var block) && block.TryGetProperty("decisions", out var decisions)
-            ? decisions : throw new ArgumentException("The Lives tape must be an array of decision records or a run with livesEvenings.decisions.");
     var tapeJson = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } };
-    livesTape = new RecordedLivesDecisionMind(records.Deserialize<LivesDecisionRecord[]>(tapeJson)
-        ?? throw new ArgumentException("The Lives tape is null."));
+    var records = new List<LivesDecisionRecord>();
+    if (tape.RootElement.ValueKind == JsonValueKind.Array)
+        records.AddRange(tape.RootElement.Deserialize<LivesDecisionRecord[]>(tapeJson)!);
+    else
+    {
+        if (tape.RootElement.TryGetProperty("livesEvenings", out var eveningBlock) && eveningBlock.TryGetProperty("decisions", out var decisions))
+            records.AddRange(decisions.Deserialize<LivesDecisionRecord[]>(tapeJson)!);
+        if (tape.RootElement.TryGetProperty("livesRouting", out var routingBlock) && routingBlock.TryGetProperty("decisions", out var routes))
+            foreach (var route in routes.EnumerateArray())
+                if (route.TryGetProperty("evaluation", out var evaluation) && evaluation.ValueKind != JsonValueKind.Null)
+                    records.Add(evaluation.Deserialize<LivesDecisionRecord>(tapeJson)!);
+        if (!tape.RootElement.TryGetProperty("livesEvenings", out _) && !tape.RootElement.TryGetProperty("livesRouting", out _))
+            throw new ArgumentException("The Lives tape needs evening or routing decision receipts.");
+    }
+    livesTape = new RecordedLivesDecisionMind(records);
     livesMind = livesTape;
 }
 using var live = livePath is null ? null : new LiveRecordingWriter(livePath, liveControl);
 if (live is not null) { mind = live.Wrap(mind); if (livesMind is not null) livesMind = live.Wrap(livesMind); }
 string json = await Replay.JsonAsync(new ReplayOptions { Seed = seed, Days = days, Town = town, Feelings = feelings,
     Inject = inject, Traits = traits, Label = label, Reflection = reflection, CharacterInspiration = inspiration, Speech = new SpeechOptions { Enabled = speech, Catalog = speechPath is null ? null : SpeechCatalog.Read(File.ReadAllText(speechPath)), NewcomerVoice = newcomerVoice }, Nights = nights,
-    LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory }, History = history,
+    LivesRouting = new LivesRoutingOptions { Enabled = livesRouting, Record = livesRecord, CompareHistory = compareHistory,
+        Evaluate = routingEvaluation == "laya", Model = routingEvaluation == "laya" ? livesLayaModel : null }, History = history,
     LivesCompany = new CompanyOptions { Enabled = livesCompany, Record = companyRecord },
     LivesEvenings = new EveningOptions { Enabled = livesEvenings, Record = eveningRecord,
         Participants = eveningPeople, Model = livesLayaModel,

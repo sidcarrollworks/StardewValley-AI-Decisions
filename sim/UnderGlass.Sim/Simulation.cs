@@ -401,6 +401,7 @@ public sealed partial class Simulation
     /// and wakes some time before 8:00. <paramref name="each"/> is called after every minute.</summary>
     public SimResult Run(int days, Action<int, Simulation>? each = null)
     {
+        if (_livesRouting.Evaluate) throw new InvalidOperationException("Model routing requires RunAsync.");
         if (_evenings.Evaluation == Lives.EveningEvaluationPolicy.All)
             throw new InvalidOperationException("All-choice evening evaluation requires RunAsync so the decision mind is used.");
         // The log is formatted in the invariant culture, so a run hashes the same on every machine
@@ -447,6 +448,7 @@ public sealed partial class Simulation
                 cancellationToken.ThrowIfCancellationRequested();
                 await AnswerReflections(mind, cancellationToken).ConfigureAwait(false);
                 await AnswerEveningDecisions(cancellationToken).ConfigureAwait(false);
+                await AnswerRoutes(cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             return Result(days);
@@ -602,6 +604,9 @@ public sealed partial class Simulation
         bool tick = m % Clock.TickMinutes == 0;
         foreach (Person p in _people)
             Live(p, m, tick);
+        // Sleep, work or another priority may have bypassed the free-time application point.
+        foreach (var q in _routePending.Values.Where(q => RouteReady(q.Person, m)).ToArray())
+            ResolveRoute(q, m, "superseded");
         ReflectAct(m);
         if (tick)
         {
@@ -686,8 +691,9 @@ public sealed partial class Simulation
                 Begin(m, kind, p, injected: false);
             return;
         }
-        if (tick || p.Why == "")
+        if (tick || p.Why == "" || RouteReady(p, m))
             DecideNoting(p, m);
+        if (_routePending.ContainsKey(p.V.Name)) { p.Walking = false; return; }
         if (p.BusyUntil >= m)
         {
             p.Walking = false;
@@ -787,9 +793,11 @@ public sealed partial class Simulation
         bool checkpoint = BedtimeCheckpoint(p, m); // a habitual bedtime come: the pick in progress is reconsidered once
         if (ContinueEveningGoal(p, m, checkpoint)) return;
         if (ContinueCompanyGoal(p, m, checkpoint)) return;
+        if (ApplyRoute(p, m)) return;
         if (!checkpoint && p.Why is "haunt" or "home" && p.GoalUntil > m && (p.Haunt is null || p.Haunt.Open(t)))
             return;
 
+        if (_routingMind is not null && p.BusyUntil >= m) return;
         var options = p.V.Haunts.Where(h => h.Open(t)).Select(h => (Haunt: (Haunt?)h, h.Weight)).ToList();
         foreach (Gathering g in _gatherings.Where(g => g.On(m) && Admits(g, p, m) && !NeverPicks(p, g)))
         {
@@ -805,6 +813,8 @@ public sealed partial class Simulation
         if (hasHome)
             options.Add((null, HomeWeight(p, m)));
         OfferBed(p, m, options); // going to bed, once a habitual bedtime has come (D54)
+        if (_routingMind is not null)
+            options.Add((new Haunt(p.Place, p.At, 0, Clock.MinutesPerDay, 1, RouteStay), 1));
         if (options.Count == 0)
         {
             Goal(p, p.Place, p.At, m + 60, "home", null);
@@ -812,6 +822,7 @@ public sealed partial class Simulation
         }
         if (TrySeekCompany(p, m, options)) return;
         var routing = LivesRoute(p, m, options);
+        if (QueueRoute(p, m, options, routing)) return;
         double r = Rng.Unit(_seed, "haunt", p.V.Name, m.ToString()) * options.Sum(o => o.Weight);
         Haunt? pick = options[^1].Haunt;
         int chosen = options.Count - 1;
@@ -830,12 +841,7 @@ public sealed partial class Simulation
                 if (r < 0) { pick = options[i].Haunt; chosen = i; break; }
             }
         NoteLivesRoute(p, m, pick, routing, chosen);
-        if (ReferenceEquals(pick, BedtimeHabit)) { GoToBed(p, hasHome); return; }
-        int stay = Rng.Range(_seed, 60, 180, "stay", p.V.Name, m.ToString());
-        if (pick is null)
-            Goal(p, p.V.Home, DefaultTown.Sofa, m + stay, "home", null);
-        else
-            Goal(p, pick.Place, pick.Spot, m + stay, "haunt", pick);
+        SetRouteGoal(p, m, pick, m);
     }
 
     private static void Goal(Person p, string place, Tile spot, int until, string why, Haunt? haunt)

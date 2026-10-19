@@ -36,6 +36,12 @@ class ValidationTests(unittest.TestCase):
         source=(ROOT/'sim/UnderGlass.Replay/Program.cs').read_text(encoding='utf-8-sig')
         described=(ROOT/'sim/UnderGlass.Replay/ReplayCliSchema.cs').read_text(encoding='utf-8-sig')
         self.assertEqual(set(re.findall(r'case "--([\w-]+)"',source)),set(re.findall(r'new Option\("([\w-]+)"',described)))
+        flags = re.findall(r'new Option\("([\w-]+)"', described)
+        self.assertEqual(len(flags), len(set(flags)), 'Duplicate flags can hide the edited control')
+        ui = (ROOT/'sim/viewer/runs.js').read_text(encoding='utf-8-sig')
+        groups = set(re.findall(r'new Option\("[^"]+", "[^"]+", "[^"]+", "([^"]+)"', described))
+        for group in groups - {'Output'}:
+            self.assertIn("'" + group + "'", ui, 'Run Studio must render every option group')
     def test_unknown_flags_and_output_injection_refused(self):
         for bad in ({'project':'x'}, {'out':'elsewhere'}, {'days':'1 --inject'}, {'speech':'false'}, {'seed':str(2**63)}):
             with self.assertRaises(server.Invalid): self.args(bad)

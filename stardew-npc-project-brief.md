@@ -17,8 +17,9 @@ Working rules:
 
 Priority update, 2026-10-19: Laya is intended as the character's primary behavioural decision
 system. The [staged plan](docs/under-glass/specs/laya-first-spec.md) begins with opt-in all-choice
-evening evaluation, now built. Destinations, immediate company and ordinary social choices remain
-to be connected. This extends hybrid rather than expanding Haiku's role yet; the engine retains
+evening evaluation, now built. Free-time destinations also have an opt-in evaluator, including
+characters without history; richer context and larger menus remain unfinished. Immediate company
+and ordinary social choices are next. This extends hybrid without expanding Haiku's role yet; the engine retains
 evidence, bodies and consequences. The earlier selective evening policy remains a control.
 
 Personal memory and routing, 2026-10-15: the library validates histories, keeps private accounts

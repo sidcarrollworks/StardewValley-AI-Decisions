@@ -25,13 +25,17 @@ public sealed partial class Simulation
     }
 
     /// <summary>Explicit opt-in. No canon pack is loaded implicitly. Configure once, before Run.</summary>
-    public void ConfigureLivesRouting(LivesRoutingOptions options, HistoryPack? history = null)
+    public void ConfigureLivesRouting(LivesRoutingOptions options, HistoryPack? history = null, ILivesDecisionMind? mind = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         if (_livesRunStarted || _livesMemory.Count != 0)
             throw new InvalidOperationException("Configure Lives routing once, before running.");
         if (options.CompareHistory is null || options.Memory is null || options.Choices is null)
             throw new ArgumentException("Missing Lives routing settings.");
+        if (options.Evaluate && (!options.Enabled || mind is null))
+            throw new ArgumentException("Model routing requires enabled Lives routing and a decision mind or tape.");
+        if (options.Model is not null && (string.IsNullOrWhiteSpace(options.Model) || options.Model.Length > 128))
+            throw new ArgumentException("Invalid routing model identity.");
         if (!options.Enabled)
         {
             if (history is not null || options.CompareHistory.Count != 0)
@@ -59,6 +63,7 @@ public sealed partial class Simulation
         foreach (var pair in memories) { _livesMemory.Add(pair.Key, pair.Value); _livesSequence.Add(pair.Key, 0); }
         _livesChanges = changes;
         _livesHistory = pack;
+        _routingMind = options.Evaluate ? mind : null;
     }
 
     /// <summary>Frozen observer/test view; routing never reads another person's view.</summary>
@@ -69,11 +74,12 @@ public sealed partial class Simulation
         foreach (PersonalMemory memory in _livesMemory.Values) memory.AdvanceToDay(day);
     }
 
-    /// <summary>Returns null to preserve the exact old draw when no relevant memory is recalled.</summary>
+    /// <summary>Build the current destination choice; authored mode retains the no-recall routine draw.</summary>
     private (ChoiceDecision Decision, ChoiceComparison? Comparison, string[] Ids)? LivesRoute(Person p, int m,
         List<(Haunt? Haunt, double Weight)> options)
     {
         if (!_livesRouting.Enabled) return null;
+        // shortcut: keep the kernel's five-option limit; expand menus before claiming full route coverage.
         if (options.Count > 5 || options.Any(o => !double.IsFinite(o.Weight) || o.Weight < 0) || options.Sum(o => o.Weight) <= 0)
         {
             if (_livesRouting.Record) _livesSkipped.Add(new(p.V.Name, m, "legacy-menu-outside-choice-bounds", options.Count));
@@ -82,7 +88,8 @@ public sealed partial class Simulation
         string Place(Haunt? h) => h is null || ReferenceEquals(h, BedtimeHabit) ? p.V.Home : h.Place;
         string[] ids = options.Select((o, i) => $"{i}:{OptionName(o.Haunt)}").ToArray();
         var choices = options.Select((o, i) => new ChoiceOption(ids[i],
-            ReferenceEquals(o.Haunt, BedtimeHabit) ? "Go to bed." : o.Haunt is null ? "Spend time at home." : $"Spend time at {o.Haunt.Place}.",
+            ReferenceEquals(o.Haunt, BedtimeHabit) ? "Go to bed." : o.Haunt is null ? "Spend time at home."
+                : o.Haunt.Hub == RouteStay ? "Stay here for a while." : $"Spend time at {o.Haunt.Place}.",
             o.Weight, new[] { new MemoryObject(MemoryObjectKind.Place, Place(o.Haunt)) }, Array.Empty<ExpectationKey>())).ToArray();
         // Available destinations are already known routine options. No remote person or location is read.
         var cues = choices.SelectMany(c => c.Objects.Select(o => "place:" + o.Key))
@@ -93,6 +100,8 @@ public sealed partial class Simulation
             CharacterOf(_index[p.V.Name]).Boldness, Mood(p.V.Name) < 0);
         MemoryFrame frame = _livesMemory[p.V.Name].Capture();
         ChoiceDecision decision = LivesChoices.Decide(frame, opportunity, _seed, _livesRouting.Choices);
+        if (_livesRouting.Evaluate && decision.Legacy)
+            decision = EveningNeutralDecision(decision with { Unit = Rng.Unit(_seed, "haunt", p.V.Name, m.ToString()) });
         ChoiceComparison? comparison = null;
         if (_livesRouting.Record)
         {

@@ -127,6 +127,18 @@ test('routine routing exposes the recorded legacy selection without inventing pr
   assert.ok(!v.nodes.some(n=>n.table==='attempts'&&n.refs.includes(d.id)));
 });
 
+test('evaluated routes reveal actual choice only at the next minute, with no invented arrival',()=>{
+  const input=structuredClone(continuity);
+  const c=input.livesRouting.decisions.find(c=>c.decision.opportunity.at===1532&&c.decision.opportunity.holder==='Penny');
+  c.evaluation={request:{fallback:structuredClone(c.decision),model:'typed-decisions'},answer:{backend:'laya',weights:{}},selectedId:c.selectedOption};
+  const m=M.open(input),penny=m.run.names.indexOf('Penny');
+  assert.equal(choice(view(m,1532,'Penny',true),penny,1533),undefined);
+  const v=view(m,1533,'Penny',true),d=choice(v,penny,1533);
+  assert.ok(d);assert.equal(d.data.choice.selected,c.selectedOption);
+  assert.ok(!v.nodes.some(n=>n.table==='attempts'&&n.refs.includes(d.id)));
+  assert.ok(!view(m,1533,'Pam').nodes.some(n=>n.id===d.id));
+});
+
 test('unchanged whereabouts confirmations are tucked away but changed estimates remain on the timeline',()=>{
   const m=M.open(continuity),who=m.run.names.indexOf('Gus'),quiet=M.routineChecks(m,4320,who,false);
   assert.ok(quiet.length>0);assert.ok(quiet.every(n=>n.holder===who));

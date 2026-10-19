@@ -9,11 +9,18 @@ choice; broader integration is staged in the [plan](../docs/under-glass/specs/la
 The first slice adds `--evening-evaluation all` alongside `--lives-laya <url>` (or `--lives-tape`):
 every queued evening choice is evaluated, even when untorn or beyond two evaluations/person/day.
 Default `selective` preserves the previous behaviour. Run Studio exposes the choice under Models.
-This does not yet change routing, immediate company, ordinary acts, opportunity gates or context
-packing. Provider errors and oversized requests still produce recorded fallback.
+Free-time routes now have a separate opt-in `--routing-evaluation laya`, also exposed under
+Histories in Run Studio. It requires `--lives-routing` and a Lives provider or tape; history is optional.
+It evaluates existing menus plus staying put, defaults the shared model to `typed-decisions`,
+and rechecks eligibility next minute before setting a goal. See the [routing scope](../docs/under-glass/specs/lives-routing-spec.md).
+Immediate company, ordinary acts and opportunity gates remain unchanged. Five-option menus and
+request-size limits remain; oversized menus/requests explicitly fall back. No new model comparison
+pack is included. Route receipts are available in Model coverage and Life chains.
 
 ```powershell
 dotnet run -c Release --project sim/UnderGlass.Replay -- --days 7 --seed 7 --lives-routing --lives-company --lives-evenings --catalog company,invitations --history sim/history/penny-pam-gus.json --lives-laya http://127.0.0.1:8000 --evening-evaluation all --out out/laya-all-evenings.json
+# Route-only evaluator (can also be added to the evening configuration above).
+dotnet run -c Release --project sim/UnderGlass.Replay -- --days 7 --seed 7 --lives-routing --routing-evaluation laya --lives-laya http://127.0.0.1:8000 --out out/laya-routes.json
 ```
 
 **Current direction (2026-10-12):** the first product is an in-depth social simulation watched from above. Player gameplay follows later. Hybrid is Sid's selected direction; authored paths remain controls and fallbacks. The [current roadmap](../docs/under-glass/roadmap.md) defines the work: distinct private voices, concrete encounter context and appraisal, broader executable responses and speech, follow-through, and controlled model comparisons. The first [contextual-event slice](../docs/under-glass/specs/contextual-events-spec.md) is built; existing gossip kinds still have fixed juiciness tiers. Since 2026-10-14 the next work is the Lives pilot: histories, associations and meaningful actions in one complete Penny, Pam and Gus thread ([assessment](../docs/under-glass/lives-gap-assessment.md), D53). Needs bars are unresolved, not scheduled and not rejected.

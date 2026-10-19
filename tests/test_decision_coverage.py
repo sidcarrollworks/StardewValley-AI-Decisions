@@ -47,6 +47,17 @@ def reflection(key='r1', actor='Penny', passes=None):
 
 
 class DecisionCoverageTests(unittest.TestCase):
+    def test_route_evaluations_are_counted_separately_and_must_match(self):
+        d = decision(phase='free-time')
+        run = recording(livesRouting={'decisions': [choice(d, evaluation(d))]})
+        result = coverage.report(run)
+        self.assertEqual(1, result['routing']['evaluation_summary']['successful_laya_answers'])
+        self.assertIsNone(result['evenings']['summary']['choices'])
+        self.assertEqual(0, coverage.report(run, 'Gus')['routing']['evaluation_summary']['evaluations'])
+        run['livesRouting']['decisions'][0]['evaluation']['request']['fallback']['selectedId'] = 'different'
+        with self.assertRaises(coverage.InvalidRecording):
+            coverage.report(run)
+
     def test_older_recording_and_missing_blocks_are_unknown(self):
         r = coverage.report(recording())
         self.assertEqual('not_recorded', r['evenings']['status'])

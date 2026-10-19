@@ -9,7 +9,17 @@ No requirement for happy, sociable or stable towns is introduced. Law 1 remains 
 
 First implementation: an opt-in `--evening-evaluation all` evaluates every choice the current
 evening consumer actually queues. The existing `selective` policy remains the default control.
-This does **not** make the whole town model-driven. The remaining stages below are planned.
+This does **not** make the whole town model-driven. Stage 2 now has an opt-in destination
+adapter (`--routing-evaluation laya`), including no-history choices and staying put, with
+next-minute eligibility checks and exact replay. Its context covers current place, clock, body,
+mood, two social traits and recalled evidence. Richer shared personal context and auditing
+preference gates remain unfinished; stages 3–5 remain planned.
+
+Sid's sequencing update, 2026-10-19: defer frozen-scene experiments, history/option-order
+comparisons, model comparisons and observer test packs until the remaining behavioural
+consumers are connected. Proceed through routes, immediate company and ordinary interactions.
+Keep implementation correctness checks (knowledge boundaries, fallback, cancellation and exact
+replay) with each integration; this defers model-quality experiments, not regression checks.
 
 ## Responsibility boundary
 
@@ -32,7 +42,7 @@ until separately reviewed; do not silently change them while changing the evalua
 |---|---|---|
 | Private inspiration, `UnderGlass.Minds/ResilientReflectionMind.cs` | Authored or generator proposals; Laya evaluates bounded responses | Keep independent; reuse its recorded requests, failure and context lessons |
 | Evening offers, answers, follow-through and concern, `Simulation.Evenings*.cs` | Typed `ILivesDecisionMind`, selective torn gate and two evaluations/person/day | Stage 1: optional all queued choices, exact replay and unchanged execution |
-| Destinations, `Simulation.cs` (`Decide`) and `Simulation.Lives.cs` | Routines and memory-weighted maths | Stage 2: detached route choices, asynchronous evaluation, recheck before applying |
+| Destinations, `Simulation.cs` (`Decide`) and `Simulation.RoutingDecisions.cs` | Optional typed route evaluator; authored default; five-option cap and original eligibility gates | Stage 2 partially built: detached choices, next-minute recheck, receipts and tape; richer context/menu audit remain |
 | Seeking, game offers and answers, `Simulation.LivesCompany*.cs` | Memory-weighted maths; synchronous consumers | Stage 3: same decision boundary, preserve real encounters and activity lifecycle |
 | Ordinary acts and responses, `Simulation.Encounters.cs`, `Simulation.Acts.cs`, `Simulation.Ask.cs`, `Simulation.Invitations.cs` | Authored motives, gates, scores and action weights | Stage 4: audit and connect one family at a time, including selected authored speech |
 | Movement, energy, evidence and outcome updates | Engine mechanics | Keep mechanical; private interpretation may later become a separate typed choice |
@@ -41,7 +51,7 @@ This inventory identifies integration sites, not proof that all subjective gates
 
 ## Stages and acceptance
 
-1. **Evening coverage (this PR).** Add `EveningOptions.Evaluation` / CLI
+1. **Evening coverage (built).** `EveningOptions.Evaluation` / CLI
    `--evening-evaluation selective|all`. Selective retains the current torn gate and daily budget.
    All ignores both, but still obeys existing opportunity and execution gates. Require an evaluator
    or tape rather than silently running authored-only. Record the policy in options. Preserve
@@ -50,9 +60,9 @@ This inventory identifies integration sites, not proof that all subjective gates
    still records fallback and observer recording/async latency cannot change behaviour.
 2. **Personal context and free-time routes.** Build a shared detached decision context for actual
    known situation, body state, archetype tendencies, commitments, ongoing intentions and relevant
-   recalled text. Keep numeric fallback reasons separately identifiable. First measure existing
-   packets: which memories fit, which are missing, which calls fail before HTTP. Version packet
-   changes; compare held scenes before changing lengths/checkpoints. Audit physical eligibility
+   recalled text. Keep numeric fallback reasons separately identifiable. Record which memories
+   fit, which are missing and which calls fail before HTTP. Version packet changes; defer the
+   comparative packet experiments to stage 5. Audit physical eligibility
    versus preference gates. Route choices must contain actual alternatives, including staying put,
    and be applied only after rechecking the current state. No call may read the live simulation.
 3. **Immediate company.** Move seek/offer/answer through that boundary. Preserve who perceived an
@@ -69,7 +79,8 @@ This inventory identifies integration sites, not proof that all subjective gates
    contexts; batching must not change answer application order. Jev and Kev use the same boundary
    later, with exact model versions and per-provider context limits recorded.
 
-Complete stage tests and a readable run before broadening the next consumer. These are staged PRs,
+Complete correctness checks before broadening the next consumer; defer comparative runs and
+observer test packs until the remaining consumers are connected. These are staged PRs,
 not a promise to finish all five in the first implementation. Existing authored controls remain.
 
 ## Evaluation and known limits

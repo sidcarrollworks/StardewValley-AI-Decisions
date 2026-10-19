@@ -4,12 +4,21 @@
 
 Sid wants Laya to interpret ordinary meaningful choices as well as difficult ones. The prior
 torn-only/two-evaluations-per-day evening policy is now the selective control, not the target
-architecture. Opt-in all-choice evening evaluation is built; other consumers remain planned in
+architecture. Opt-in all-choice evening evaluation and free-time destination evaluation are built;
+immediate company and ordinary social consumers remain planned in
 the [staged plan](under-glass/specs/laya-first-spec.md). The engine owns bodies, evidence, physical
 eligibility and consequences; Laya returns typed weights over executable alternatives using a
 holder-known scene. Existing action/opportunity gates and the 1,250-character working cap remain
 in this first slice so coverage can be tested independently of prompt changes. Haiku continues
 occasional inspiration; larger LLM responsibilities and Jev/Kev comparisons come later.
+
+Destinations are a separate opt-in so old authored runs retain their control. No-history routes
+still reach the evaluator using routine weights as fallback. Staying put is an actual alternative;
+an answer sets a goal only after the next minute's priority and availability checks. A receipt
+distinguishes selection from execution and never claims arrival. Larger menus retain the existing
+five-option fallback until menu selection is designed; this is recorded incomplete coverage.
+The CLI uses typed-decisions for routing by default and shares explicit model selection with evenings.
+Per Sid, comparative runs wait until the remaining consumers are connected; regression checks remain.
 
 This is the "why" behind the code. `docs/architecture.md` explains how things work; the brief
 (`stardew-npc-project-brief.md`) holds the goals. Read the decision before you change the code it
